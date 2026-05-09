@@ -1,119 +1,140 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
+   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emmy's Portfolio | Dev & BLM48 Idol</title>
-    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <title>withmywish* | Emmy Portfolio</title>
+    <!-- ใช้ฟอนต์ที่ดูสะอาดและทันสมัย -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome สำหรับไอคอนโซเชียล -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root {
-            --primary-pink: #fbcfe8;
-            --primary-blue: #bae6fd;
-            --text-color: #4b5563;
-            --glass-bg: rgba(255, 255, 255, 0.7);
+            --brand-pink: #f06292; /* สีชมพูหลักตามรูป */
+            --light-pink: #fdf2f8;
+            --text-dark: #333333;
         }
 
         body {
-            font-family: 'Quicksand', 'Mitr', sans-serif;
+            font-family: 'Kanit', 'Montserrat', sans-serif;
             margin: 0;
-            color: var(--text-color);
-            background: linear-gradient(135deg, #fdf2f8 0%, #eff6ff 100%);
-            scroll-behavior: smooth;
+            color: var(--text-dark);
+            background-color: #ffffff;
         }
 
-        /* Navbar */
-        .navbar {
-            position: fixed;
-            top: 0; width: 100%;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 1rem 5%;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            box-sizing: border-box;
+        /* Top Bar: โซเชียลมีเดียด้านซ้าย */
+        .top-bar {
+            padding: 10px 5%;
+            display: flex;
+            justify-content: flex-start;
+            gap: 15px;
+            border-bottom: 1px solid #eee;
         }
+        .top-bar a {
+            color: var(--text-dark);
+            font-size: 1.2rem;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .top-bar a:hover { color: var(--brand-pink); }
 
-        .nav-links { display: flex; list-style: none; gap: 20px; }
-        .nav-links a { text-decoration: none; color: var(--text-color); font-weight: 500; }
-
-        /* Hero Section */
-        .hero {
-            height: 80vh;
-            display: flex; align-items: center; justify-content: center;
+        /* Branding Header */
+        .brand-header {
             text-align: center;
-            padding-top: 60px;
+            padding: 40px 20px;
+            background-color: var(--light-pink);
+        }
+        .brand-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--brand-pink);
+            margin: 0;
+            letter-spacing: -1px;
+        }
+        .brand-tagline {
+            font-size: 1rem;
+            color: var(--brand-pink);
+            margin-top: 5px;
+            font-weight: 400;
         }
 
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #ec4899, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* Section Title */
+        .section-header {
+            text-align: center;
+            margin: 50px 0 30px;
         }
+        .section-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .section-header p { color: #666; font-size: 0.9rem; }
 
-        /* Portfolio Sections */
-        .section { padding: 4rem 5%; }
-        .section-title { text-align: center; margin-bottom: 3rem; font-size: 2rem; color: #1f2937; }
-
-        /* Grid & Cards */
+        /* Grid Layout */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            padding: 0 5% 50px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
+        /* Card Style ตามรูป */
         .card {
-            background: white;
-            border-radius: 20px;
+            background: #fff;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
+            border: 1px solid #efefef;
+            transition: transform 0.3s ease;
         }
-
-        .card:hover { transform: translateY(-10px); box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1); }
+        .card:hover { transform: translateY(-5px); }
 
         .card-img {
-            height: 200px;
+            height: 220px;
             background-size: cover;
             background-position: center;
-            background-color: #f3f4f6;
+            position: relative;
         }
 
-        .card-info { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
-        .card-info h3 { margin: 0 0 10px 0; font-size: 1.25rem; }
-        .card-info p { font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; flex-grow: 1; }
-
-        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .tag {
-            padding: 4px 12px;
-            background: #f3f4f6;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
+        .card-content { padding: 20px; }
+        .card-content h3 {
+            font-size: 1.2rem;
+            color: var(--brand-pink);
+            margin: 0 0 10px;
+            line-height: 1.4;
+        }
+        .card-date {
+            font-size: 0.8rem;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .view-link {
-            color: #3b82f6;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
+        /* Footer Sticky (Cookie bar style) */
+        .cookie-bar {
+            position: fixed;
+            bottom: 0; width: 100%;
+            background: #fff;
+            padding: 10px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            font-size: 0.8rem;
+            box-sizing: border-box;
         }
-
-        .btn {
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            margin: 0.5rem;
-            display: inline-block;
-            font-weight: 600;
-            transition: opacity 0.2s;
+        .btn-accept {
+            background: #4db6ac;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
         }
-        .btn:hover { opacity: 0.8; }
-        .btn-primary { background: var(--primary-blue); color: #1e40af; }
-        .btn-secondary { background: var(--primary-pink); color: #9d174d; }
     </style>
 </head>
 <body>
