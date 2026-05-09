@@ -26,12 +26,13 @@
 
         /* Top Bar & Social Links */
         .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 5%;
-            border-bottom: 1px solid #eee;
-        }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 5%; /* เพิ่ม Padding บน-ล่าง จาก 15px เป็น 30px หรือมากกว่าตามชอบ */
+    position: relative;
+    min-height: 80px; /* เพิ่มความสูงขั้นต่ำเพื่อให้ดูโปร่งขึ้น */
+}
 
         .social-icons a {
             color: var(--text-dark);
@@ -45,10 +46,15 @@
 
         /* Branding Section */
         .branding {
-            text-align: center;
-            padding: 40px 20px;
-            background-color: #fff;
-        }
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: auto;
+    padding: 0; /* ล้าง Padding ออกเพื่อให้คำนวณกึ่งกลางง่ายขึ้น */
+    background-color: transparent;
+}
 
         .branding h1 {
             color: var(--withwish-pink);
@@ -65,10 +71,11 @@
 
         /* Header / Banner Area */
         .hero-banner {
-            background-color: #ffebee;
-            padding: 30px 0;
-            text-align: center;
-        }
+    margin-top: 20px; /* เพิ่มระยะห่างด้านบน */
+    background-color: #ffebee;
+    padding: 40px 0;
+    text-align: center;
+}
 
         .hero-banner h2 {
             color: var(--withwish-pink);
@@ -169,6 +176,30 @@
             cursor: pointer;
             font-weight: 600;
         }
+      
+      /* สไตล์ของกลีบซากุระ */
+.sakura {
+    position: fixed;
+    top: -10%;
+    background-color: #ffc0cb; /* สีชมพูซากุระ */
+    border-radius: 100% 0 100% 0; /* ทรงกลีบดอกไม้ */
+    opacity: 0.8;
+    pointer-events: none; /* ไม่ให้ไปขัดขวางการคลิกปุ่มบนเว็บ */
+    z-index: 9999;
+    animation: fall linear infinite;
+}
+
+/* แอนิเมชันการร่วงหล่นและการหมุน */
+@keyframes fall {
+    0% {
+        top: -10%;
+        transform: translateX(0) rotate(0deg);
+    }
+    100% {
+        top: 110%;
+        transform: translateX(100px) rotate(360deg);
+    }
+}
 
         @media (max-width: 768px) {
             .footer-bar { flex-direction: column; text-align: center; gap: 10px; }
@@ -180,18 +211,15 @@
     <!-- Social Top Nav -->
     <div class="top-nav">
         <div class="social-icons">
-            <a href="#"><i class="fab fa-facebook-f"></i></a>
-            <a href="#"><i class="fab fa-x-twitter"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="https://github.com/blm48_senbatsuselection_by_you"><i class="fab fa-github"></i></a>
+            <a href="https://www.facebook.com/chatchapong.singkhiporn?locale=th_TH"><i class="fab fa-facebook-f"></i></a>
+            <a href="https://www.instagram.com/mmchatpong/"><i class="fab fa-instagram"></i></a>
+            <a href="https://github.com/emmyblm48-create"><i class="fab fa-github"></i></a>
         </div>
-        <div class="menu-icon"><i class="fas fa-bars"></i></div>
-    </div>
-
-    <!-- Branding -->
-    <div class="branding">
-        <h1>ๅEMMY</h1>
+      <div class="branding">
+        <h1>EMMY</h1>
         <p>Chatchapong Singkhiporn</p>
+    </div>
+        <div class="menu-icon"><i class="fas fa-bars"></i></div>
     </div>
 
     <!-- Section Title -->
@@ -211,12 +239,16 @@
 
         <div class="section-header" style="margin-top: 80px;">
             <h3>BLM48 WORKS</h3>
-            <p>ผลงานการผลิตสื่อและ Virtual Idol Cover ในฐานะหัวหน้ากลุ่ม BLM48</p>
+            <p>ผลงานการผลิตสื่อและ Virtual Idol Cover ในฐานะเมมเบอร์สมาชิก Emmy BLM48</p>
         </div>
         <div class="grid-container" id="blm48-container">
             <!-- Data will be loaded from Supabase -->
         </div>
     </div>
+  
+  <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
+  <div style="font-weight: 700; color: #888; margin-bottom: 5px;">© 2026 Emmy Chatchapong.All rights reserved.</div>
+</footer>
 
     <script>
         // ใช้ URL และ Key เดิมของคุณ Avat Ekkanyukul
@@ -265,6 +297,37 @@
                 }
             });
         }
+      
+      function createSakura() {
+    const section = document.body;
+    const petal = document.createElement('span');
+    petal.classList.add('sakura');
+
+    // สุ่มขนาดของกลีบ
+    const size = Math.random() * 10 + 10 + 'px';
+    petal.style.width = size;
+    petal.style.height = size;
+
+    // สุ่มตำแหน่งเริ่มต้นตามแนวนอน
+    petal.style.left = Math.random() * innerWidth + 'px';
+
+    // สุ่มระยะเวลาการตก (เร็ว-ช้าต่างกัน)
+    const duration = Math.random() * 3 + 2 + 's';
+    petal.style.animationDuration = duration;
+
+    // สุ่มค่าความโปร่งแสง
+    petal.style.opacity = Math.random();
+
+    section.appendChild(petal);
+
+    // ลบกลีบดอกไม้ทิ้งเมื่อตกถึงพื้นเพื่อไม่ให้หนักเว็บ
+    setTimeout(() => {
+        petal.remove();
+    }, 5000);
+}
+
+// สร้างกลีบซากุระทุกๆ 200 มิลลิวินาที (ถ้าอยากให้เยอะกว่านี้ให้ลดตัวเลขลง)
+setInterval(createSakura, 200);
 
         window.onload = fetchProjects;
     </script>
