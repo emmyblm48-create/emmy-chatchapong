@@ -119,7 +119,8 @@
             transition: transform 0.3s;
         }
 
-        .card:hover { transform: translateY(-5px); }
+        .card:hover { transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(240, 98, 146, 0.2); }
 
         .card-img {
             height: 220px;
@@ -270,33 +271,41 @@
             }
         }
 
-        function displayProjects(projects) {
-            const webContainer = document.getElementById('web-dev-container');
-            const idolContainer = document.getElementById('blm48-container');
+      
+      function displayProjects(projects) {
+    const webContainer = document.getElementById('web-dev-container');
+    const idolContainer = document.getElementById('blm48-container');
 
-            projects.forEach(project => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-img" style="background-image: url('${project.thumbnail_url || 'https://via.placeholder.com/400x225'}')">
-                        <div class="card-label">${project.categories.name}</div>
-                    </div>
-                    <div class="card-content">
-                        <h4>${project.title}</h4>
-                        <p>${project.description || ''}</p>
-                        <div style="font-size: 0.8rem; color: #aaa; margin-top: 15px;">
-                            <i class="far fa-calendar-alt"></i> ${new Date(project.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </div>
-                    </div>
-                `;
+    projects.forEach(project => {
+        // สร้างแท็ก <a> ครอบ Card ทั้งหมด เพื่อให้กดไปดูงานได้
+        const cardLink = document.createElement('a');
+        cardLink.href = project.project_url || '#'; // ใส่ชื่อฟิลด์ลิงก์จาก Supabase (ถ้าไม่มีให้เป็น #)
+        cardLink.target = '_blank'; // ให้เปิดแท็บใหม่
+        cardLink.style.textDecoration = 'none'; // ลบเส้นใต้ลิงก์
+        cardLink.style.color = 'inherit';
 
-                if (project.categories.slug === 'web-dev') {
-                    webContainer.appendChild(card);
-                } else if (project.categories.slug === 'blm48-cover') {
-                    idolContainer.appendChild(card);
-                }
-            });
+        cardLink.innerHTML = `
+            <div class="card">
+                <div class="card-img" style="background-image: url('${project.thumbnail_url || 'https://via.placeholder.com/400x225'}')">
+                    <div class="card-label">${project.categories.name}</div>
+                </div>
+                <div class="card-content">
+                    <h4>${project.title}</h4>
+                    <p>${project.description || ''}</p>
+                    <div style="font-size: 0.8rem; color: #aaa; margin-top: 15px;">
+                        <i class="far fa-calendar-alt"></i> ${new Date(project.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (project.categories.slug === 'web-dev') {
+            webContainer.appendChild(cardLink);
+        } else if (project.categories.slug === 'blm48-cover') {
+            idolContainer.appendChild(cardLink);
         }
+    });
+}
       
       function createSakura() {
     const section = document.body;
