@@ -4,104 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emmy's Portfolio | Dev & BLM48 Idol</title>
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #fbcfe8;
+            --primary-blue: #bae6fd;
+            --text-color: #4b5563;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+        }
+
+        body {
+            font-family: 'Quicksand', 'Mitr', sans-serif;
+            margin: 0;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #fdf2f8 0%, #eff6ff 100%);
+            scroll-behavior: smooth;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0; width: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 5%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+
+        .nav-links { display: flex; list-style: none; gap: 20px; }
+        .nav-links a { text-decoration: none; color: var(--text-color); font-weight: 500; }
+
+        /* Hero Section */
+        .hero {
+            height: 80vh;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ec4899, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Portfolio Sections */
+        .section { padding: 4rem 5%; }
+        .section-title { text-align: center; margin-bottom: 3rem; font-size: 2rem; color: #1f2937; }
+
+        /* Grid & Cards */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover { transform: translateY(-10px); box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1); }
+
+        .card-img {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            background-color: #f3f4f6;
+        }
+
+        .card-info { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-info h3 { margin: 0 0 10px 0; font-size: 1.25rem; }
+        .card-info p { font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; flex-grow: 1; }
+
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .tag {
+            padding: 4px 12px;
+            background: #f3f4f6;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .view-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            margin: 0.5rem;
+            display: inline-block;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.8; }
+        .btn-primary { background: var(--primary-blue); color: #1e40af; }
+        .btn-secondary { background: var(--primary-pink); color: #9d174d; }
+    </style>
 </head>
-<style>
-  :root {
-    --primary-pink: #fbcfe8;
-    --primary-blue: #bae6fd;
-    --text-color: #4b5563;
-    --glass-bg: rgba(255, 255, 255, 0.7);
-}
-
-body {
-    font-family: 'Quicksand', 'Mitr', sans-serif;
-    margin: 0;
-    color: var(--text-color);
-    background: linear-gradient(135deg, #fdf2f8 0%, #eff6ff 100%);
-    scroll-behavior: smooth;
-}
-
-/* Navbar Glassmorphism */
-.navbar {
-    position: fixed;
-    top: 0; width: 100%;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 1.5rem 5%;
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-}
-
-.hero {
-    height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    text-align: center;
-}
-
-.hero h1 {
-    font-size: 3.5rem;
-    background: linear-gradient(to right, #ec4899, #3b82f6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Grid System */
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 2rem 5%;
-}
-
-.card {
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-10px);
-}
-
-.card-img { height: 200px; }
-.card-info { padding: 1.5rem; }
-
-.tag {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    background: #f3f4f6;
-    border-radius: 999px;
-    font-size: 0.8rem;
-}
-
-.btn {
-    padding: 0.8rem 2rem;
-    border-radius: 50px;
-    text-decoration: none;
-    margin: 0.5rem;
-    display: inline-block;
-}
-
-.btn-primary { background: var(--primary-blue); color: #1e40af; }
-.btn-secondary { background: var(--primary-pink); color: #9d174d; }
-  </style>
 <body>
 
-    <!-- Navigation -->
     <nav class="navbar">
-        <div class="logo">Emmy.Chatchapong</div>
+        <div class="logo"><strong>Emmy.E</strong></div>
         <ul class="nav-links">
             <li><a href="#web-dev">Web Dev</a></li>
             <li><a href="#blm48">BLM48</a></li>
-            <li><a href="#contact">Contact</a></li>
         </ul>
     </nav>
 
-    <!-- Hero Section -->
     <header class="hero">
         <div class="hero-content">
             <h1>Dreaming & Coding</h1>
@@ -113,91 +137,71 @@ body {
         </div>
     </header>
 
-    <!-- Portfolio Section: Web Development -->
     <section id="web-dev" class="section">
-        <h2 class="section-title">Web Development Projects</h2>
+        <h2 class="section-title">Web Development</h2>
         <div class="grid-container">
-            <!-- ตัวอย่าง Card ผลงานเว็บ -->
-            <div class="card">
-                <div class="card-img" style="background-color: #e0f2fe;"></div>
-                <div class="card-info">
-                    <h3>DormCare</h3>
-                    <p>Dormitory Management System built with FlutterFlow & Supabase</p>
-                    <span class="tag">FlutterFlow</span>
-                </div>
-            </div>
+            <!-- Data will be loaded here -->
         </div>
     </section>
 
-    <!-- Portfolio Section: BLM48 -->
-    <section id="blm48" class="section pink-bg">
+    <section id="blm48" class="section">
         <h2 class="section-title">BLM48 Cover Works</h2>
         <div class="grid-container">
-            <!-- ตัวอย่าง Card ผลงานไอดอล -->
-            <div class="card idol-card">
-                <div class="card-img" style="background-color: #fce7f3;"></div>
-                <div class="card-info">
-                    <h3>Emmy BLM48 Zepeto Idol Group Cover</h3>
-                    <p>Virtual Setlist - Producer & Center</p>
-                    <span class="tag">ZEPETO</span>
-                </div>
-            </div>
+            <!-- Data will be loaded here -->
         </div>
     </section>
-<script>
-    // ตั้งค่าการเชื่อมต่อ Supabase
-const SUPABASE_URL = 'https://ysfwhdtwmqwudhtrqavd.supabase.co/rest/v1/'; // ใส่ URL ของคุณที่นี่
-const SUPABASE_KEY = 'sb_publishable_CQOr7-T4-gKsgSr5xi2fiA_0GeUNX-t'; // ใส่ Anon Key ของคุณที่นี่
 
-async function fetchProjects() {
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=*,categories(name,slug)`, {
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`
+    <script>
+        const SUPABASE_URL = 'https://ysfwhdtwmqwudhtrqavd.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_CQOr7-T4-gKsgSr5xi2fiA_0GeUNX-t';
+
+        async function fetchProjects() {
+            try {
+                // แก้ไข URL ให้ถูกต้อง
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/projects?select=*,categories(name,slug)`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                const projects = await response.json();
+                displayProjects(projects);
+            } catch (error) {
+                console.error('Error fetching projects:', error);
             }
-        });
-        const projects = await response.json();
-        displayProjects(projects);
-    } catch (error) {
-        console.error('Error fetching projects:', error);
-    }
-}
-
-function displayProjects(projects) {
-    const webContainer = document.querySelector('#web-dev .grid-container');
-    const idolContainer = document.querySelector('#blm48 .grid-container');
-
-    // ล้างข้อมูลตัวอย่างเก่าออกก่อน
-    webContainer.innerHTML = '';
-    idolContainer.innerHTML = '';
-
-    projects.forEach(project => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-            <div class="card-img" style="background-image: url('${project.thumbnail_url || 'https://via.placeholder.com/400x200'}'); background-size: cover; height: 200px;"></div>
-            <div class="card-info">
-                <h3>${project.title}</h3>
-                <p>${project.description || ''}</p>
-                <div class="tags">
-                    ${project.tools_used.map(tool => `<span class="tag">${tool}</span>`).join('')}
-                </div>
-                ${project.content_url ? `<a href="${project.content_url}" target="_blank" class="view-link">View Project →</a>` : ''}
-            </div>
-        `;
-
-        // แยกหมวดหมู่เพื่อไปแสดงใน Section ที่ถูกต้อง
-        if (project.categories.slug === 'web-dev') {
-            webContainer.appendChild(card);
-        } else if (project.categories.slug === 'blm48-cover') {
-            idolContainer.appendChild(card);
         }
-    });
-}
 
-// เรียกใช้งานเมื่อโหลดหน้าเว็บ
-window.onload = fetchProjects;
-</script>
+        function displayProjects(projects) {
+            const webContainer = document.querySelector('#web-dev .grid-container');
+            const idolContainer = document.querySelector('#blm48 .grid-container');
+
+            webContainer.innerHTML = '';
+            idolContainer.innerHTML = '';
+
+            projects.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-img" style="background-image: url('${project.thumbnail_url || 'https://via.placeholder.com/400x225/f3f4f6/999999?text=No+Image'}')"></div>
+                    <div class="card-info">
+                        <h3>${project.title}</h3>
+                        <p>${project.description || ''}</p>
+                        <div class="tags">
+                            ${project.tools_used ? project.tools_used.map(tool => `<span class="tag">${tool}</span>`).join('') : ''}
+                        </div>
+                        ${project.content_url ? `<a href="${project.content_url}" target="_blank" class="view-link">View Project →</a>` : ''}
+                    </div>
+                `;
+
+                if (project.categories.slug === 'web-dev') {
+                    webContainer.appendChild(card);
+                } else if (project.categories.slug === 'blm48-cover') {
+                    idolContainer.appendChild(card);
+                }
+            });
+        }
+
+        window.onload = fetchProjects;
+    </script>
 </body>
 </html>
