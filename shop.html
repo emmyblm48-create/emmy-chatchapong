@@ -1358,7 +1358,7 @@ async function buyGacha(collectionId) {
   }
 }
 
-// ฟังก์ชันโหลดคอลเลกชันและสร้างการ์ดแบบ Dynamic
+// ฟังก์ชันโหลดคอลเลกชันและสร้างการ์ดแบบ Dynamic (ปรับเลย์เอาต์ให้สวยเท่ากับคุกกี้ด้านบน)
 async function loadGachaCollections() {
   const container = document.getElementById("merch-container");
   if(!container) return;
@@ -1370,28 +1370,32 @@ async function loadGachaCollections() {
     container.innerHTML = ""; 
     
     if (collections.length === 0) {
-      container.innerHTML = `<p style="color: #a0a0a0; text-align: center; grid-column: 1/-1;">ตอนนี้ยังไม่มีตู้สุ่มเปิดให้บริการค่ะ</p>`;
+      container.innerHTML = `<p style="color: #a0a0a0; text-align: center; grid-column: 1/-1; font-family:'Kanit';">ตอนนี้ยังไม่มีตู้สุ่มเปิดให้บริการค่ะ</p>`;
       return;
     }
 
     collections.forEach(col => {
-      const coverImg = col.CoverImage ? col.CoverImage : "https://via.placeholder.com/300x300?text=BLM48+Gacha";
+      // ปรับระบบดึงรูปภาพสำรองให้ทำงานเสถียรขึ้น
+      const coverImg = col.CoverImage ? col.CoverImage : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
       
+      // 🚩 ปรับโครงสร้าง Tag และ Class ใหม่ทั้งหมดให้ตรงกับฝั่ง Cookie Shop เป๊ะๆ
       const cardHTML = `
-          <div class="merch-card-large">
-            <div class="card-img-wrapper">
-              <img src="${coverImg}" alt="${col.CollectionName}">
+          <div class="merch-card">
+            
+            <div class="merch-image-container">
+              <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
-            <div class="card-info">
-              <div class="card-tag">[Gacha]</div>
-              <h3 class="card-title">${col.CollectionName}</h3>
-              <p class="card-subtitle">${col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์'}</p>
-            </div>
-            <div class="card-action">
-              <button class="btn-token-buy" onclick="buyGacha('${col.CollectionID}')">
+            
+            <div class="merch-info">
+              <span class="merch-category" style="color: #ff6b8b;">[Gacha]</span>
+              <h3 class="merch-title">${col.CollectionName}</h3>
+              <p class="merch-subtitle">${col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์'}</p>
+              
+              <button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
                 <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
               </button>
             </div>
+
           </div>
         `;
       container.insertAdjacentHTML("beforeend", cardHTML);
@@ -1399,7 +1403,7 @@ async function loadGachaCollections() {
 
   } catch (error) {
     console.error("Error loading gacha collections:", error);
-    container.innerHTML = `<p style="color: #ff5376; text-align: center; grid-column: 1/-1;">เกิดข้อผิดพลาดในการโหลดข้อมูลตู้สุ่ม กรุณาลองใหม่อีกครั้งค่ะ</p>`;
+    container.innerHTML = `<p style="color: #ff5376; text-align: center; grid-column: 1/-1; font-family:'Kanit';">เกิดข้อผิดพลาดในการโหลดข้อมูลตู้สุ่ม กรุณาลองใหม่อีกครั้งค่ะ</p>`;
   }
 }
 
