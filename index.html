@@ -1020,9 +1020,9 @@ window.onload = () => {
     } catch(e) { console.error("Load Error:", e); }
   }
   
-// 🎒 ฟังก์ชันเปิดกระเป๋าเป้ (เวอร์ชันแก้บัคตัวแปรหน้า Home)
+// 🎒 ฟังก์ชันเปิดกระเป๋าเป้ (เวอร์ชันแก้บัคตัวแปรหน้า Home + แยกกลุ่มตาม Collections และเรียง A-Z)
 async function showInventory() {
-    // 🚩 เปลี่ยนจาก userData เป็น user (เพื่อให้ตรงกับระบบหน้า Home)
+    // 🚩 ใช้ตัวแปร user ให้ตรงกับระบบหน้า Home ตามที่คุณแก้บัคไว้
     if (!user) return Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณาล็อกอินก่อน', 'warning');
 
     const modalOverlay = document.getElementById('modal-overlay');
@@ -1039,38 +1039,62 @@ async function showInventory() {
     if(invContent) invContent.innerHTML = "<div style='padding:30px 0; color:#888;'>กำลังค้นกระเป๋า... 🎒</div>";
 
     try {
-        // 🚩 เปลี่ยนตรงปลายลิงก์จาก userData.username เป็น user.username ให้ถูกต้อง
+        // 🚩 ดึงข้อมูลโดยใช้ user.username ที่ถูกต้อง
         const response = await fetch(`${scriptURL}?action=getMyInventory&username=${user.username}`);
         const res = await response.json();
         
         if (res.status === "success" && invContent) {
-            let html = `<div class="inventory-grid">`;
+            let html = "";
+            const inventoryData = res.inventory; // ข้อมูลแบบ Object ที่ถูกจัดกลุ่มตามคอลเลกชันมาจากหลังบ้าน
             
-            if (res.inventory.length > 0) {
-                res.inventory.forEach(item => {
-                    let currentImg = item.img || 'https://placehold.co/150x200?text=BLM48';
+            // ดึงรายชื่อคอลเลกชันทั้งหมดที่มีในกระเป๋าของผู้ใช้
+            const collections = Object.keys(inventoryData);
+            
+            if (collections.length > 0) {
+                // 🔄 วนลูปแสดงผลทีละคอลเลกชัน (e.g., BLM48 Limited Coaster "BINGO!")
+                collections.forEach(collectionName => {
+                    const itemsInCollection = inventoryData[collectionName];
                     
+                    // 🎬 สร้างแถบหัวข้อแยกแต่ละคอลเลกชันให้สวยงามเป็นระเบียบ
                     html += `
-                    <div class="inventory-item">
-                        <span class="inventory-qty">x${item.qty}</span>
-                        
-                        <img src="${currentImg}" 
-                             class="inventory-img" 
-                             onclick="openImagePreview('${currentImg}', '${item.name}')" 
-                             style="cursor: pointer;" 
-                             alt="${item.name}">
-                             
-                        <div class="inventory-name">${item.name}</div>
-                        <div style="font-size:10px; color:#aaa; margin-top:2px;">[${item.type}]</div>
+                    <div class="collection-section" style="margin-top: 25px; margin-bottom: 12px; width: 100%;">
+                        <h3 style="margin: 0; padding: 8px 12px; background-color: #fff0f2; border-left: 5px solid #ff4a6b; color: #333; font-size: 14px; font-weight: bold; border-radius: 4px; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+                            Collection ${collectionName}
+                        </h3>
                     </div>`;
+                    
+                    // เปิด Grid ครอบไอเทมเฉพาะของคอลเลกชันนี้
+                    html += `<div class="inventory-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 20px;">`;
+                    
+                    // วนลูปไอเทมที่เรียงลำดับ A-Z ภายในคอลเลกชันนี้แล้ว
+                    itemsInCollection.forEach(item => {
+                        let currentImg = item.img || 'https://placehold.co/150x200?text=BLM48';
+                        
+                        html += `
+                        <div class="inventory-item">
+                            <span class="inventory-qty">x${item.qty}</span>
+                            
+                            <img src="${currentImg}" 
+                                 class="inventory-img" 
+                                 onclick="openImagePreview('${currentImg}', '${item.name}')" 
+                                 style="cursor: pointer;" 
+                                 alt="${item.name}">
+                                 
+                            <div class="inventory-name" style="font-weight: 500;">${item.name}</div>
+                            <div style="font-size:10px; color:#aaa; margin-top:2px;">[${item.type}]</div>
+                        </div>`;
+                    });
+                    
+                    html += `</div>`; // ปิด Grid ของคอลเลกชันนี้
                 });
             } else {
                 html = `<div style="padding:30px 0; color:#ccc; width:100%; text-align:center;">กระเป๋าว่างเปล่า...<br>ไปช้อปปิ้งกันเถอะ!</div>`;
             }
-            html += `</div>`;
+            
             invContent.innerHTML = html;
         }
     } catch (e) {
+        console.error(e);
         if(invContent) invContent.innerHTML = "<div style='color:red;'>เกิดข้อผิดพลาดในการดึงข้อมูล</div>";
     }
 }
