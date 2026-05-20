@@ -533,6 +533,118 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     overflow: hidden;
     text-overflow: ellipsis;  /* ถ้าชื่อยาวเกินไป จะใส่ ... ให้ท้ายชื่ออัตโนมัติแบบเนียนๆ */
 }
+    /* ชื่อหัวข้อหลักด้านบนสุด */
+.history-main-title {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ff8da1;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* หัวข้อแบ่งส่วนประวัติ */
+.history-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4a4a4a;
+    margin: 15px 0 10px 0;
+    display: flex;
+    align-items: center;
+    border-left: 4px solid #ff8da1;
+    padding-left: 8px;
+}
+
+/* แถวรายการแต่ละแถว */
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 6px;
+    border-bottom: 1px dashed #ffe3e7; /* เส้นประสีชมพูบางๆ */
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+/* การจัดข้อความและวันเวลาฝั่งซ้าย */
+.history-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: left;
+}
+
+.history-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333333;
+}
+
+.history-date {
+    font-size: 0.75rem;
+    color: #b0b0b0;
+}
+
+/* ตัวเลขและแคปซูลแสดงแต้มฝั่งขวา */
+.history-badge-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.history-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 20px;
+    min-width: 55px;
+    text-align: center;
+}
+
+/* ชิปสีแดง/ชมพู เมื่อโดนหัก Token */
+.history-value.minus {
+    color: #ff6b81;
+    background: #fff0f2;
+}
+
+/* ชิปสีเขียว เมื่อได้รับ Cookie เพิ่ม */
+.history-value.plus {
+    color: #2ecc71;
+    background: #e8f8f5;
+}
+
+/* ข้อความเมื่อไม่มีข้อมูล */
+.history-empty-text {
+    text-align: center;
+    color: #c0c0c0;
+    font-size: 0.85rem;
+    padding: 25px 0;
+}
+      
+/* คุมให้ประวัติยาวสูงสุดประมาณ 3-4 รายการแล้วเกิด Scroll ย่อยด้านใน */
+.history-scroll-container {
+    max-height: 200px; /* สามารถปรับความสูงตรงนี้ได้ตามใจชอบเลยครับ */
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* 🧼 แต่งหน้าตาตัวเลื่อน Scrollbar ของประวัติให้ดูนุ่มนวลขึ้น */
+.history-scroll-container::-webkit-scrollbar {
+    width: 5px;
+}
+.history-scroll-container::-webkit-scrollbar-track {
+    background: #fff5f6;
+    border-radius: 10px;
+}
+.history-scroll-container::-webkit-scrollbar-thumb {
+    background: #ffc2cc;
+    border-radius: 10px;
+}
+.history-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #ff99aa;
+}
+
   </style>
 </head>
 <body>
@@ -634,55 +746,59 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div id="modal-overlay" style="display:none;">
     
     <div class="modal-box custom-history-modal" id="history-form" style="display:none;">
-        <h2 class="history-main-title">My History</h2>
-        <div id="history-content"></div> 
-        <button onclick="closeModal()" class="history-close-btn">Close</button>
+    <h2 class="history-main-title">My History</h2>
+    <div id="history-content"></div> 
+    <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #fdf6f7; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: var(--primary-pink); font-weight: 600; transition: all 0.2s;">Close</button>
     </div>
     
     <div class="modal-box" id="inventory-form" style="display:none;">
-        <h2 style="color:var(--primary-pink); margin-bottom:15px;"><i class="fas fa-briefcase"></i> My Inventory</h2>
+        <h2 style="font-family: 'Kanit', sans-serif; font-weight: 600; color: var(--primary-pink); margin-bottom: 15px;">
+            <i class="fas fa-briefcase"></i> My Inventory
+        </h2>
         <div id="inventory-content" style="max-height: 400px; overflow-y: auto;"></div>
-        <button onclick="closeModal()" style="margin-top:25px; width:100%; background: #f5f5f5; border: none; padding: 12px; border-radius: 15px; cursor: pointer; color: #666;">Close</button>
+        <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #fdf6f7; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: var(--primary-pink); font-weight: 600; transition: all 0.2s;">Close</button>
     </div>
     
     <div class="modal-box" id="stats-form" style="display:none;">
         <div id="stats-content"></div> 
         <div class="top-fans-list" id="member-fans-section">
-            <div class="top-fans-title"><i class="fas fa-heart" style="color:var(--primary-pink)"></i> Top Fans</div>
+            <div class="top-fans-title" style="font-family: 'Kanit', sans-serif; font-weight: 600;">
+                <i class="fas fa-heart" style="color: var(--primary-pink);"></i> Top Fans
+            </div>
             <div id="member-fans-content"></div>
         </div>
-        <button onclick="closeModal()" style="margin-top:25px; width:100%; background: #f5f5f5; border: none; padding: 12px; border-radius: 15px; cursor: pointer; color: #666;">Close</button>
+        <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #f5f5f5; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: #666; font-weight: 600;">Close</button>
     </div>
     
-    <div class="modal-box" id="login-form" style="display:none;">
-        <h2 style="color: var(--primary-pink); margin-bottom: 25px;">BLM48 Login</h2>
-        <input type="text" id="login-user" class="login-input" placeholder="ชื่อผู้ใช้ (Username)">
-        <input type="password" id="login-pass" class="login-input" placeholder="รหัสผ่าน (Password)">
-        <button onclick="doLogin()" style="width:100%; background:var(--primary-pink); color:white; border:none; padding:14px; border-radius:12px; cursor:pointer; font-weight:700; margin-top:15px; box-shadow: 0 4px 10px rgba(255,133,162,0.3);">LOGIN</button>
-        <button onclick="closeModal()" style="width:100%; background:none; color:#aaa; border:none; padding:12px; border-radius:12px; cursor:pointer; font-size:13px; margin-top:10px;">Cancel</button>
+    <div class="modal-box" id="login-form" style="display:none; padding: 30px 25px; border-radius: 20px;">
+        <h2 style="font-family: 'Kanit', sans-serif; font-weight: 700; color: var(--primary-pink); margin-bottom: 25px; text-align: center;">BLM48 Login</h2>
+        <input type="text" id="login-user" class="login-input" placeholder="ชื่อผู้ใช้ (Username)" style="width: 100%; box-sizing: border-box;">
+        <input type="password" id="login-pass" class="login-input" placeholder="รหัสผ่าน (Password)" style="width: 100%; box-sizing: border-box;">
+        
+        <button onclick="doLogin()" style="width: 100%; background: var(--primary-pink); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-weight: 700; margin-top: 20px; box-shadow: 0 4px 12px rgba(255, 133, 162, 0.35); transition: all 0.2s;">LOGIN</button>
+        <button onclick="closeModal()" style="width: 100%; background: none; color: #bbb; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; margin-top: 8px; transition: color 0.2s;">Cancel</button>
     </div>
 
-</div> <div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
-    <div class="preview-modal-content" onclick="event.stopPropagation()">
+</div>
+
+<div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
+    <div class="preview-modal-content" onclick="event.stopPropagation()" style="border-radius: 20px; overflow: hidden;">
         <span class="preview-close-btn" onclick="closeImagePreview()">&times;</span>
         
-        <img id="preview-target-img" src="" alt="Item Preview">
+        <img id="preview-target-img" src="" alt="Item Preview" style="display: block; max-width: 100%;">
         
-        <a id="download-item-btn" href="#" download="BLM48_Item.png" class="save-image-btn">
+        <a id="download-item-btn" href="#" download="BLM48_Item.png" class="save-image-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Kanit', sans-serif;">
             <i class="fas fa-download"></i> Save Image
         </a>
     </div>
 </div>
 
-
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
-
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
 
-
-<footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
-    <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
-    <div>© 2026 Virtual Idol Cover Group</div>
+<footer style="padding: 60px 20px 40px 20px; text-align: center; color: #c5c5c5; font-size: 11px; letter-spacing: 0.5px; line-height: 1.6;">
+    <div style="font-family: 'Kanit', sans-serif; font-weight: 700; color: #999; margin-bottom: 6px; letter-spacing: 1px;">BLM48 MEMBERSHIP</div>
+    <div>© 2026 Virtual Idol Cover Group. All Rights Reserved.</div>
 </footer>
 
 
@@ -732,25 +848,30 @@ async function showHistory() {
     const userData = JSON.parse(session).data;
     const username = userData.username; 
 
+    // 1. เปิดม่าน Overlay หลัก (ใช้ flex เพื่อให้กล่องอยู่กึ่งกลางสวยๆ แบบรูปแรก)
     const modalOverlay = document.getElementById('modal-overlay');
-    const statsForm = document.getElementById('stats-form');
-    if(modalOverlay) modalOverlay.style.display = 'block';
-    if(statsForm) statsForm.style.display = 'block';
+    if(modalOverlay) modalOverlay.style.display = 'flex';
     
-    const memberFansSection = document.getElementById('member-fans-section');
-    if (memberFansSection) {
-        memberFansSection.style.display = 'none'; 
-    }
-
-    const statsContent = document.getElementById('stats-content');
-    if(statsContent) statsContent.innerHTML = "กำลังดึงข้อมูลให้นะคะ...";
+    // 2. 🚩 ดักปิดฟอร์มอื่นเพื่อแก้บั๊กซ้อนกันเป็นแซนด์วิช
+    document.getElementById('inventory-form').style.display = 'none';
+    document.getElementById('stats-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'none';
+    
+    // 3. 🚩 เปลี่ยนจากเปิด stats-form มาเปิดกล่องประวัติตัวจริง (history-form) แทนค่ะ!
+    const historyForm = document.getElementById('history-form');
+    if(historyForm) historyForm.style.display = 'block';
+    
+    // 4. 🚩 เปลี่ยนเป้าหมายกล่องเขียนข้อมูลจาก stats-content มาเป็น history-content
+    const historyContent = document.getElementById('history-content');
+    if(historyContent) historyContent.innerHTML = "<p style='text-align:center; color:#aaa; font-family:\"Kanit\"; padding:20px;'>กำลังดึงข้อมูลให้นะคะ...</p>";
 
     try {
         const response = await fetch(`${scriptURL}?action=getMyHistory&username=${username}`);
         const res = await response.json();
         
-        if (res.status === "success" && statsContent) {
-            let html = `<h2 style="color:var(--primary-pink); text-align:center; margin-bottom: 15px;">My History</h2>`;
+        // 5. 🚩 ตรวจสอบและพ่นข้อมูลลงกล่อง historyContent ตัวจริง
+        if (res.status === "success" && historyContent) {
+            let html = ``; // เอาหัวข้อ H2 ออกเพราะใน HTML หลักของเอ็มมี่มี "My History" อยู่แล้ว
             
             // ==========================================
             // 🛒 หมวดหมู่ที่ 1: ประวัติการช้อปปิ้ง
@@ -802,20 +923,26 @@ async function showHistory() {
             html += `
                     </div> </div>`;
             
-            statsContent.innerHTML = html;
+            // พ่นลงกล่องประวัติ
+            historyContent.innerHTML = html;
         }
     } catch (e) {
         console.error(e);
-        if(statsContent) statsContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
+        if(historyContent) historyContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
     }
 }
 
   function closeModal() {
+    // ซ่อนม่าน Overlay หลัก
     document.getElementById('modal-overlay').style.display = 'none';
-    document.getElementById('stats-form').style.display = 'none';
+    
+    // สั่งซ่อนทุกกล่องฟอร์มด้านในเพื่อ Reset สถานะสำหรับรอบหน้า
     document.getElementById('history-form').style.display = 'none';
+    document.getElementById('inventory-form').style.display = 'none';
+    document.getElementById('stats-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'none';
 }
-
+  
 // --- ปิด Splash Screen เมื่อโหลดข้อมูลเสร็จ ---
 function hideSplashScreen() {
   const splash = document.getElementById('splash-screen'); // หรือ ID ที่คุณใช้
