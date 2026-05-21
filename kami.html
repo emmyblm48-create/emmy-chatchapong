@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
+<style>
         :root {
             --primary-pink: #ff85a2;
             --soft-bg: #fffbfd;
@@ -45,7 +45,7 @@
             color: var(--text-dark);
         }
         
-        /* ขยาย Layout เต็มหน้าจอ 100% ไม่เหลือพื้นที่ว่างด้านข้างบน PC */
+        /* Layout เต็มหน้าจอ 100% */
         .app-wrapper {
             width: 100%;
             min-height: 100vh;
@@ -61,7 +61,7 @@
             }
         }
         
-        /* แถบด้านบนสุด: รวมปุ่มย้อนกลับและโปรไฟล์ผู้ใช้แบบแสดงรูปภาพ + ชื่อ */
+        /* แถบเมนูด้านบน */
         .top-navigation-bar {
             display: flex;
             justify-content: space-between;
@@ -108,7 +108,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--primary-pink);
-            background-color: #ffe5ec; /* 🌸 เปลี่ยนเป็นพื้นหลังสีชมพูอ่อน */
+            background-color: #ffe5ec;
         }
 
         .user-profile-info {
@@ -147,7 +147,7 @@
             margin: 0;
         }
 
-        /* คามิโอชิเด่นกลาง */
+        /* โซนคามิโอชิเด่นกลาง */
         .kami-container {
             display: flex;
             flex-direction: column;
@@ -170,6 +170,8 @@
             width: 120px;
             height: 120px;
             margin-bottom: 14px;
+            background-color: #ffe5ec; /* สีชมพูสแตนบายไว้ก่อนรูปมา */
+            border-radius: 50%;
         }
         
         .kami-img {
@@ -179,7 +181,7 @@
             object-fit: cover;
             border: 4px solid var(--kami-gold);
             box-shadow: 0 6px 15px rgba(255, 215, 0, 0.25);
-            background-color: #ffe5ec; /* 🌸 เปลี่ยนเป็นพื้นหลังสีชมพูอ่อน */
+            background-color: #ffe5ec;
         }
         
         .crown-tag {
@@ -190,6 +192,7 @@
             color: var(--kami-gold);
             font-size: 28px;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+            z-index: 10;
         }
         
         .kami-title-name {
@@ -228,6 +231,7 @@
             cursor: pointer;
             transition: 0.2s;
             font-size: 14px;
+            z-index: 5;
         }
         
         .btn-remove-kami:hover {
@@ -245,7 +249,7 @@
             gap: 8px;
         }
         
-        /* ปรับ Grid โอชิให้แผ่เต็มหน้าจออัติโนมัติตามขนาดอุปกรณ์ (Responsive Auto-Fill) */
+        /* โซนโอชิเมมเบอร์ */
         .oshi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -276,7 +280,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--oshi-blue);
-            background-color: #ffe5ec; /* 🌸 เปลี่ยนเป็นพื้นหลังสีชมพูอ่อน */
+            background-color: #ffe5ec; /* สีชมพูสแตนบายไว้ก่อนรูปมา */
         }
         
         .oshi-info-center {
@@ -332,13 +336,28 @@
             background: rgba(255, 255, 255, 0.7);
             border-radius: 20px;
             border: 2px dashed #f0cbd3;
-            grid-column: 1 / -1; /* ทอดยาวเต็มแถวเมื่อไม่มีข้อมูล */
+            grid-column: 1 / -1;
         }
-      
-      .kami-img, .oshi-pic {
-    display: block; /* สำคัญมาก */
-    background-color: #ffe5ec; /* สีชมพูสำรอง */
-}
+
+        /* ✨ เอฟเฟกต์ Skeleton Loading แบบเคลื่อนไหวละมุน ๆ ระหว่างรอชีตทำงาน */
+        .skeleton-card {
+            animation: softPulse 1.4s infinite ease-in-out;
+        }
+        .skeleton-circle {
+            background-color: #ffe5ec !important;
+            border-color: #ffeef2 !important;
+        }
+        .skeleton-text {
+            background: #fff0f3;
+            height: 14px;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
+
+        @keyframes softPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(0.99); }
+        }
     </style>
 </head>
 <body>
@@ -469,84 +488,100 @@
     }
 }
 
-       // เปลี่ยนลูปการ render ให้เป็นแบบ async เพื่อรอโหลดรูป
-async function fetchAndRenderUserOshiBoard() {
-    const kamiArea = document.getElementById('kami-content-area');
-    const oshiArea = document.getElementById('oshi-content-area');
-    
-    // แสดงสถานะ "กำลังโหลด..." เพื่อให้ผู้ใช้รู้ว่าระบบกำลังทำงาน
-    kamiArea.innerHTML = `<div style="text-align:center; padding:20px;">กำลังโหลดข้อมูลคามิโอชิ...</div>`;
-    oshiArea.innerHTML = `<div style="text-align:center; padding:20px;">กำลังโหลดข้อมูลโอชิ...</div>`;
-
-    try {
-        const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
-        const res = await response.json();
+// 🎯 ดึงข้อมูลและเรนเดอร์ทำเนียบคามิ/โอชิ
+    async function fetchAndRenderUserOshiBoard() {
+        const kamiArea = document.getElementById('kami-content-area');
+        const oshiArea = document.getElementById('oshi-content-area');
         
-        if (res.status === "success") {
-            // ฟังก์ชันช่วยโหลดรูป
-            const loadImage = (src) => {
-                return new Promise((resolve) => {
-                    if (!src) return resolve(""); // ถ้าไม่มีรูปให้คืนค่าว่าง (โชว์สีชมพู)
-                    const img = new Image();
-                    img.src = src;
-                    img.onload = () => resolve(src);
-                    img.onerror = () => resolve(""); // ถ้าโหลดรูปไม่ขึ้นให้คืนค่าว่าง
-                });
-            };
+        if (!kamiArea || !oshiArea) return;
 
-            // เตรียมข้อมูลคามิ
-            let kamiHTML = "";
-            if (res.data.kamioshi) {
-                const kamiName = res.data.kamioshi.toString().trim();
-                const rawImg = memberImageMap[kamiName.toLowerCase()];
-                const finalImg = await loadImage(rawImg); // รอโหลดให้เสร็จ
-                
-                kamiHTML = `
-                    <div class="kami-container">
-                        <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                        <div class="kami-avatar-frame">
-                            <i class="fa-solid fa-crown crown-tag"></i>
-                            <img src="${finalImg}" class="kami-img" alt="${kamiName}"  onerror="this.style.display='none'; this.parentElement.style.backgroundColor='#ffe5ec';">
-                        </div>
-                        <div class="kami-title-name">${kamiName}</div>
-                        <span class="badge-kami"><i class="fa-solid fa-bolt"></i> Kamioshi</span>
-                    </div>`;
-            } else {
-                kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
-            }
-
-            // เตรียมข้อมูลโอชิ
-            let oshiHTML = "";
-            const processedOshis = [...(res.data.oshi || [])].filter(o => o.toLowerCase() !== (res.data.kamioshi || "").toLowerCase());
+        // 🌸 STEP 1: ขึ้นบล็อกวงกลมสีชมพูรอไว้ทันทีตั้งแต่ 0 วินาทีแรก (ไม่ต้องรอโหลดข้อมูลเสร็จ)
+        kamiArea.innerHTML = `
+            <div class="kami-container skeleton-card">
+                <div class="kami-avatar-frame skeleton-circle"></div>
+                <div class="skeleton-text" style="width: 100px; margin: 8px auto;"></div>
+            </div>`;
             
-            for (const oshiName of processedOshis) {
-                const rawImg = memberImageMap[oshiName.toLowerCase()];
-                const finalImg = await loadImage(rawImg); // รอโหลดแต่ละรูปให้เสร็จก่อน
+        oshiArea.innerHTML = Array(4).fill(0).map(() => `
+            <div class="oshi-box-card skeleton-card">
+                <div class="oshi-pic skeleton-circle" style="width:54px; height:54px;"></div>
+                <div class="oshi-info-center">
+                    <div class="skeleton-text" style="width: 80px; margin-bottom: 6px;"></div>
+                    <div class="skeleton-text" style="width: 50px; height: 10px;"></div>
+                </div>
+            </div>`).join('');
+
+        // 🛡️ ฟังก์ชันไม้ตายป้องกันรูปภาพแตก: หากลิงก์เสีย จะฟอกรูปให้ใสสะอาดเพื่อโชว์พื้นหลังสีชมพูทันที!
+        const clearBrokenImg = "this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';";
+
+        try {
+            const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
+            const res = await response.json();
+            
+            if (res.status === "success") {
+                // อัปเดตรูปโปรไฟล์ผู้ใช้ตรงแถบด้านบนสุด
+                const userAvatar = document.getElementById('user-avatar');
+                if (userAvatar) {
+                    userAvatar.src = res.data.profile_img || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                    userAvatar.setAttribute('onerror', clearBrokenImg);
+                }
+
+                // 👑 เรนเดอร์ข้อมูล คามิโอชิหลัก (Kami-Oshi)
+                let kamiHTML = "";
+                if (res.data.kamioshi) {
+                    const kamiName = res.data.kamioshi.toString().trim();
+                    const rawImg = memberImageMap[kamiName.toLowerCase()] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                    
+                    kamiHTML = `
+                        <div class="kami-container">
+                            <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            <div class="kami-avatar-frame">
+                                <i class="fa-solid fa-crown crown-tag"></i>
+                                <img src="${rawImg}" class="kami-img" alt="${kamiName}" onerror="${clearBrokenImg}">
+                            </div>
+                            <div class="kami-title-name">${kamiName}</div>
+                            <span class="badge-kami"><i class="fa-solid fa-bolt"></i> Kamioshi</span>
+                        </div>`;
+                } else {
+                    kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิหลักเลยงับ</div>`;
+                }
+
+                // ❤️ เรนเดอร์ข้อมูล โอชิสมทบ (Oshi)
+                let oshiHTML = "";
+                const processedOshis = [...(res.data.oshi || [])].filter(o => o.toLowerCase() !== (res.data.kamioshi || "").toLowerCase());
                 
-                oshiHTML += `
-                    <div class="oshi-box-card">
-                       <img src="${finalImg}" class="oshi-pic" alt="${oshiName}" onerror="this.style.display='none'; this.parentElement.style.backgroundColor='#ffe5ec';">
-                        <div class="oshi-info-center">
-                            <div class="oshi-display-name">${oshiName}</div>
-                            <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
-                        </div>
-                        <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </div>`;
+                if (processedOshis.length > 0) {
+                    processedOshis.forEach(oshiName => {
+                        const rawImg = memberImageMap[oshiName.toLowerCase()] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                        
+                        oshiHTML += `
+                            <div class="oshi-box-card">
+                                <img src="${rawImg}" class="oshi-pic" alt="${oshiName}" onerror="${clearBrokenImg}">
+                                <div class="oshi-info-center">
+                                    <div class="oshi-display-name">${oshiName}</div>
+                                    <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
+                                </div>
+                                <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>`;
+                    });
+                } else {
+                    oshiHTML = `<div class="empty-heart-state">ยังไม่มีรายชื่อโอชิสมทบในระบบเลยงับ</div>`;
+                }
+
+                // เปลี่ยนโครงสร้างหน้าจอเป็นข้อมูลจริงพร้อมกันแบบเนียนๆ
+                kamiArea.innerHTML = kamiHTML;
+                oshiArea.innerHTML = oshiHTML;
             }
-
-            // อัปเดตหน้าจอในครั้งเดียว (DOM Update)
-            kamiArea.innerHTML = kamiHTML;
-            oshiArea.innerHTML = oshiHTML || `<div class="empty-heart-state">ยังไม่มีโอชิสมทบ</div>`;
-
+        } catch (err) {
+            console.error("Error loading user oshi board:", err);
+            kamiArea.innerHTML = `<div class="empty-heart-state" style="color:var(--danger-red);">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรชอีกครั้งนะงับ</div>`;
+            oshiArea.innerHTML = "";
         }
-    } catch (err) {
-        console.error(err);
     }
-}
 
         async function executeDeleteAction(type, memberName) {
             const typeText = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
