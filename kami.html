@@ -296,158 +296,168 @@
         </div>
     </div>
 
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-        
-        // 📡 ตรวจหาพารามิเตอร์ส่งมาจาก index.html (?username=ชื่อผู้ใช้) เพื่อเช็คความถูกต้องการดึงแถวบน Google Sheet
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentUsername = urlParams.get('username') || localStorage.getItem('username') || "";
-        
-        let memberImageMap = {};
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    // 📡 ตรวจหาพารามิเตอร์ส่งมาจาก index.html (?username=ชื่อผู้ใช้)
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentUsername = urlParams.get('username') || localStorage.getItem('username') || "";
+    
+    let memberImageMap = {};
 
-        window.onload = async () => {
-            if (!currentUsername) {
-                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบชื่อบัญชีผู้ใช้งานในระบบงับ', 'error').then(() => { window.location.href = 'index.html'; });
-                return;
-            }
-            
-            document.getElementById('user-sub-id').textContent = `บัญชีผู้ใช้งาน: ${currentUsername}`;
-            
-            // 1. โหลดตารางรูปภาพก่อน
-            await fetchMembersImageDB();
-            // 2. ดึงแถวข้อมูลส่วนตัวมาจัดการแสดงผล
-            await fetchAndRenderUserOshiBoard();
-        };
-
-        // ฟังก์ชันดึงลิงก์รูปของวงเพื่อเอามาจับคู่ชื่อ
-        async function fetchMembersImageDB() {
-            try {
-                const response = await fetch(`${scriptURL}?action=getRanking`);
-                const members = await response.json();
-                members.forEach(m => {
-                    if (m.name) {
-                        memberImageMap[m.name.toString().trim().toLowerCase()] = m.profile_img || "";
-                    }
-                });
-            } catch (err) {
-                console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
-            }
+    window.onload = async () => {
+        if (!currentUsername) {
+            Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบชื่อบัญชีผู้ใช้งานในระบบงับ', 'error').then(() => { window.location.href = 'index.html'; });
+            return;
         }
+        
+        document.getElementById('user-sub-id').textContent = `บัญชีผู้ใช้งาน: ${currentUsername}`;
+        
+        // 1. โหลดตารางรูปภาพก่อน
+        await fetchMembersImageDB();
+        // 2. ดึงแถวข้อมูลส่วนตัวมาจัดการแสดงผล
+        await fetchAndRenderUserOshiBoard();
+    };
 
-        // ฟังก์ชันโหลดข้อมูลเจาะจงราย User และจัดการเรนเดอร์ตามบรีฟเด็ดขาด
-        async function fetchAndRenderUserOshiBoard() {
-            const kamiArea = document.getElementById('kami-content-area');
-            const oshiArea = document.getElementById('oshi-content-area');
+    // ฟังก์ชันดึงลิงก์รูปของวงเพื่อเอามาจับคู่ชื่อ
+    async function fetchMembersImageDB() {
+        try {
+            const response = await fetch(`${scriptURL}?action=getRanking`);
+            const members = await response.json();
+            members.forEach(m => {
+                if (m.name) {
+                    memberImageMap[m.name.toString().trim().toLowerCase()] = m.profile_img || "";
+                }
+            });
+        } catch (err) {
+            console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
+        }
+    }
+
+    // ฟังก์ชันโหลดข้อมูลเจาะจงราย User และจัดการเรนเดอร์ (เวอร์ชันแก้ไขการอ่าน Object {0:..., 1:...})
+    async function fetchAndRenderUserOshiBoard() {
+        const kamiArea = document.getElementById('kami-content-area');
+        const oshiArea = document.getElementById('oshi-content-area');
+        
+        try {
+            const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
+            const res = await response.json();
             
-            try {
-                const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
-                const res = await response.json();
+            if (res.status === "success") {
+                kamiArea.innerHTML = "";
+                oshiArea.innerHTML = "";
                 
-                if (res.status === "success") {
-                    kamiArea.innerHTML = "";
-                    oshiArea.innerHTML = "";
+                // --- 1. เรนเดอร์คามิโอชิเด่นไว้ตรงกลาง ---
+                if (res.data.kamioshi && res.data.kamioshi.toString().trim() !== "") {
+                    const kamiName = res.data.kamioshi.toString().trim();
+                    const kamiImg = memberImageMap[kamiName.toLowerCase()] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
                     
-                    // --- 1. เรนเดอร์คามิโอชิเด่นไว้ตรงกลาง ---
-                    if (res.data.kamioshi && res.data.kamioshi.toString().trim() !== "") {
-                        const kamiName = res.data.kamioshi.toString().trim();
-                        const kamiImg = memberImageMap[kamiName.toLowerCase()] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+                    kamiArea.innerHTML = `
+                        <div class="kami-container">
+                            <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')" title="ลบคามิโอชิ">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                            <div class="kami-avatar-frame">
+                                <i class="fa-solid fa-crown crown-tag"></i>
+                                <img src="${kamiImg}" class="kami-img" alt="${kamiName}">
+                            </div>
+                            <div class="kami-title-name">${kamiName}</div>
+                            <span class="badge-kami"><i class="fa-solid fa-bolt"></i> Kamioshi</span>
+                        </div>
+                    `;
+                } else {
+                    kamiArea.innerHTML = `<div class="empty-heart-state" style="margin-bottom: 20px;">คุณยังไม่ได้เลือกคามิโอชิหลักไว้เลยงับ</div>`;
+                }
+
+                // --- 🌟 2. เรนเดอร์รายชื่อโอชิสมทบ (แก้ไขให้แปลงจาก Object เป็น Array ก่อนทำงาน) ---
+                let oshiRawList = [];
+                
+                if (res.data.oshi && typeof res.data.oshi === 'object') {
+                    // ดึงเฉพาะ Value ทั้งหมดที่อยู่ใน Object {0: "ชื่อ", 1: "ชื่อ"} ออกมารวมเป็น Array ธรรมดา
+                    oshiRawList = Object.values(res.data.oshi);
+                } else if (Array.isArray(res.data.oshi)) {
+                    oshiRawList = res.data.oshi;
+                }
+
+                // ทำความสะอาดข้อมูล: ตัดช่องว่าง, กรองค่าว่างออก, และตัดคนที่เป็นคามิโอชิหลักออก
+                const processedOshis = oshiRawList
+                    .map(o => o ? o.toString().trim() : "")
+                    .filter(o => o !== "" && o.toLowerCase() !== (res.data.kamioshi || "").toString().trim().toLowerCase())
+                    // เรียงตามลำดับตัวอักษรภาษาไทย/อังกฤษ (A-Z) อย่างถูกต้องเรียบร้อย
+                    .sort((a, b) => a.localeCompare(b, 'th', { sensitivity: 'base' }));
+
+                // วาดการ์ดไอเทมโอชิลงบนหน้าจอ
+                if (processedOshis.length > 0) {
+                    processedOshis.forEach(oshiName => {
+                        const oshiImg = memberImageMap[oshiName.toLowerCase()] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
                         
-                        kamiArea.innerHTML = `
-                            <div class="kami-container">
-                                <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')" title="ลบคามิโอชิ">
+                        oshiArea.innerHTML += `
+                            <div class="oshi-box-card">
+                                <img src="${oshiImg}" class="oshi-pic" alt="${oshiName}">
+                                <div class="oshi-info-center">
+                                    <div class="oshi-display-name">${oshiName}</div>
+                                    <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
+                                </div>
+                                <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')" title="ลบโอชิ">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
-                                <div class="kami-avatar-frame">
-                                    <i class="fa-solid fa-crown crown-tag"></i>
-                                    <img src="${kamiImg}" class="kami-img" alt="${kamiName}">
-                                </div>
-                                <div class="kami-title-name">${kamiName}</div>
-                                <span class="badge-kami"><i class="fa-solid fa-bolt"></i> Kamioshi</span>
                             </div>
                         `;
-                    } else {
-                        kamiArea.innerHTML = `<div class="empty-heart-state" style="margin-bottom: 20px;">คุณยังไม่ได้เลือกคามิโอชิหลักไว้เลยงับ</div>`;
-                    }
-
-                    // --- 2. เรนเดอร์รายชื่อโอชิสมทบ (คัดคนซ้ำและทำการเรียงตามตัวอักษร A-Z) ---
-                    const processedOshis = (res.data.oshi || [])
-                        .map(o => o ? o.toString().trim() : "")
-                        .filter(o => o !== "" && o.toLowerCase() !== (res.data.kamioshi || "").toString().trim().toLowerCase())
-                        // เรียงตามอักขระตัวอักษรของชื่อภาษาไทย/อังกฤษอย่างถูกต้องแม่นยำ
-                        .sort((a, b) => a.localeCompare(b, 'th', { sensitivity: 'base' }));
-
-                    if (processedOshis.length > 0) {
-                        processedOshis.forEach(oshiName => {
-                            const oshiImg = memberImageMap[oshiName.toLowerCase()] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
-                            
-                            oshiArea.innerHTML += `
-                                <div class="oshi-box-card">
-                                    <img src="${oshiImg}" class="oshi-pic" alt="${oshiName}">
-                                    <div class="oshi-info-center">
-                                        <div class="oshi-display-name">${oshiName}</div>
-                                        <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
-                                    </div>
-                                    <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')" title="ลบโอชิ">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                            `;
-                        });
-                    } else {
-                        oshiArea.innerHTML = `<div class="empty-heart-state">ตารางโอชิสมทบของคุณยังว่างเปล่าอยู่</div>`;
-                    }
-
+                    });
                 } else {
-                    Swal.fire('ข้อผิดพลาด', res.message, 'error');
+                    oshiArea.innerHTML = `<div class="empty-heart-state">ตารางโอชิสมทบของคุณยังว่างเปล่าอยู่</div>`;
                 }
-            } catch (err) {
-                console.error(err);
-                oshiArea.innerHTML = `<div class="empty-heart-state" style="color:red;">ไม่สามารถเชื่อมต่อนำข้อมูลออกมาได้งับ</div>`;
-            }
-        }
 
-        // 💔 ฟังก์ชันส่งสัญญาณลบ ยิงล้างแถวคอลัมน์บน Google Sheet แบบ Real-time ทันที
-        async function executeDeleteAction(type, memberName) {
-            const typeText = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
-            
-            const confirm = await Swal.fire({
-                title: 'ยืนยันการลบข้อมูล?',
-                text: `คุณแน่ใจนะงับว่าจะลบ ${memberName} ออกจากทำเนียบ ${typeText}?`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ff85a2',
-                cancelButtonColor: '#ccc',
-                confirmButtonText: 'ใช่, ลบออกเลย',
-                cancelButtonText: 'ยกเลิก'
+            } else {
+                Swal.fire('ข้อผิดพลาด', res.message, 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            oshiArea.innerHTML = `<div class="empty-heart-state" style="color:red;">ไม่สามารถเชื่อมต่อนำข้อมูลออกมาได้งับ</div>`;
+        }
+    }
+
+    // 💔 ฟังก์ชันส่งสัญญาณลบ ยิงล้างแถวคอลัมน์บน Google Sheets
+    async function executeDeleteAction(type, memberName) {
+        const typeText = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
+        
+        const confirm = await Swal.fire({
+            title: 'ยืนยันการลบข้อมูล?',
+            text: `คุณแน่ใจนะงับว่าจะลบ ${memberName} ออกจากทำเนียบ ${typeText}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff85a2',
+            cancelButtonColor: '#ccc',
+            confirmButtonText: 'ใช่, ลบออกเลย',
+            cancelButtonText: 'ยกเลิก'
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        Swal.fire({ title: 'กำลังปรับปรุงข้อมูลในตาราง...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        try {
+            const response = await fetch(scriptURL, {
+                method: 'POST',
+                body: new URLSearchParams({
+                    action: 'removeOshi',
+                    username: currentUsername,
+                    type: type,
+                    memberName: memberName
+                })
             });
-
-            if (!confirm.isConfirmed) return;
-
-            Swal.fire({ title: 'กำลังปรับปรุงข้อมูลในตาราง...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-            try {
-                // ส่งคำสั่งอ้างอิงบัญชีผ่าน Parameter ไปลบที่ Google Sheets ด้วย action หลังบ้านตัวเดิม
-                const response = await fetch(scriptURL, {
-                    method: 'POST',
-                    body: new URLSearchParams({
-                        action: 'removeOshi',
-                        username: currentUsername,
-                        type: type,
-                        memberName: memberName
-                    })
-                });
-                
-                const res = await response.json();
-                if (res.status === "success") {
-                    Swal.fire('สำเร็จ!', 'ระบบลบรายชื่อออกจากทำเนียบเรียบร้อยแล้วค่ะ', 'success');
-                    await fetchAndRenderUserOshiBoard(); // รีเรนเดอร์ UI ใหม่แบบไม่ต้องโหลดหน้าซ้ำ
-                } else {
-                    Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบข้อมูลได้', 'error');
-                }
-            } catch (err) {
-                Swal.fire('ล้มเหลว!', 'ระบบติดต่อตารางข้อมูลขัดข้อง กรุณาลองอีกครั้งนะงับ', 'error');
+            
+            const res = await response.json();
+            if (res.status === "success") {
+                Swal.fire('สำเร็จ!', 'ระบบลบรายชื่อออกจากทำเนียบเรียบร้อยแล้วค่ะ', 'success');
+                await fetchAndRenderUserOshiBoard(); // รีเรนเดอร์ข้อมูลใหม่ทันที
+            } else {
+                Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบข้อมูลได้', 'error');
             }
+        } catch (err) {
+            Swal.fire('ล้มเหลว!', 'ระบบติดต่อตารางข้อมูลขัดข้อง กรุณาลองอีกครั้งนะงับ', 'error');
         }
-    </script>
+    }
+</script>
 </body>
 </html>
