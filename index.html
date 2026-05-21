@@ -1189,8 +1189,6 @@ function updateUI() {
 
   if (!user) {
     // --- กรณี Guest (ไม่ได้ Login) ---
-    
-    // เช็คก่อนว่ามีปุ่มไหม ถ้ามีค่อยสั่งซ่อน/แสดง
     if (logoutBtn) logoutBtn.style.display = 'none'; 
     if (loginBtn) loginBtn.style.display = 'block';
 
@@ -1208,16 +1206,35 @@ function updateUI() {
   }
 
   // --- กรณี Member (Login แล้ว) ---
-  
-  // เช็คก่อนว่ามีปุ่มไหม ถ้ามีค่อยสั่งแสดง/ซ่อน
   if (logoutBtn) logoutBtn.style.display = 'inline-block'; 
   if (loginBtn) loginBtn.style.display = 'none';
 
   const isMember = isUserMember();
-  const kamiTag = user.kamioshi ? `<span class="tag tag-kami"><i class="fas fa-crown"></i> ${user.kamioshi}</span>` : '';
-  const oshiTags = (user.oshi || []).map(o => `<span class="tag tag-oshi"><i class="fas fa-heart"></i> ${o}</span>`).join('');
 
- bar.innerHTML = `
+  // 🌸 [ปรับปรุงจุดที่ 2] จัดการเลย์เอาต์การแสดงผล คามิโอชิ และ โอชิ
+  // วาดแท็กคามิโอชิหลัก (ถ้ามี) พร้อมปุ่มลบ (ลบแล้วเคลียร์คอลัมน์ J บน Google Sheet)
+  const kamiTag = user.kamioshi ? `
+    <span class="tag tag-kami" style="display: inline-flex; align-items: center; gap: 5px; background: #ffd700; color: #333; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; margin: 3px;">
+      <i class="fas fa-crown"></i> ${user.kamioshi}
+      <i class="fas fa-times-circle" onclick="removeOshiFromUI('kami', '${user.kamioshi}')" style="cursor: pointer; color: rgba(0,0,0,0.5); margin-left: 4px;"></i>
+    </span>
+  ` : '';
+
+  // นำรายชื่อโอชิมาคัดกรองช่องว่าง และ "เรียงลำดับตามตัวอักษร (A-Z)" อย่างเคร่งครัดตามรีเควส
+  const sortedOshis = (user.oshi || [])
+    .map(o => o ? o.toString().trim() : "")
+    .filter(o => o !== "" && o.toLowerCase() !== (user.kamioshi || "").toLowerCase())
+    .sort((a, b) => a.localeCompare(b, 'th', { sensitivity: 'base' }));
+
+  // วาดแท็กโอชิสมทบ พร้อมปุ่มลบในตัว
+  const oshiTags = sortedOshis.map(o => `
+    <span class="tag tag-oshi" style="display: inline-flex; align-items: center; gap: 5px; background: #87ceeb; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin: 3px;">
+      <i class="fas fa-heart"></i> ${o}
+      <i class="fas fa-times-circle" onclick="removeOshiFromUI('oshi', '${o}')" style="cursor: pointer; color: rgba(255,255,255,0.7); margin-left: 4px;"></i>
+    </span>
+  `).join('');
+
+  bar.innerHTML = `
     <div class="user-info-header">
       <div class="profile-img-container">
         <img src="${getImg(user.profile_img)}" class="user-avatar-img">
@@ -1229,7 +1246,9 @@ function updateUI() {
           ${user.role.toLowerCase() === 'user' ? `<i class="fas fa-edit" style="cursor:pointer; font-size:12px; color:#ff85a2; margin-left:5px;" onclick="updateDisplayName()"></i>` : ''}
           <span class="role-badge">${user.role}</span>
         </div>
-        <div class="oshi-list">${kamiTag}${oshiTags}</div>
+        <div class="oshi-list" style="margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center;">
+          ${kamiTag}${oshiTags}
+        </div>
       </div>
     </div>
     <div class="wallet">
@@ -1242,6 +1261,73 @@ function updateUI() {
       <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
     </div>
   `;
+}
+
+// 💔 ฟังก์ชันสำหรับกดลบคามิ/โอชิจากหน้าจอ แล้วยิงไปอัปเดต Google Sheet ทันทีผ่าน action: removeOshi ที่มีอยู่เดิม
+async function removeOshiFromUI(type, memberName) {
+  const typeText = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
+  
+  // แจ้งเตือนยืนยันการลบแบบน่ารักๆ สไตล์ BLM48
+  const confirm = await Swal.fire({
+    title: `แน่ใจไหมงับ?`,
+    text: `คุณต้องการลบ ${memberName} ออกจากรายการ${typeText}ใช่ไหม?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ff85a2',
+    cancelButtonColor: '#aaa',
+    confirmButtonText: 'ใช่, ลบเลย!',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  Swal.fire({
+    title: 'กำลังอัปเดตฐานข้อมูล...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
+  try {
+    // ดึง URL ของ Apps Script จากที่คุณเอ็มมี่ตั้งค่าไว้ในโค้ดส่วนอื่น (ในที่นี้อ้างอิงตามมาตรฐานเดิมของคุณเอ็มมี่)
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    // ยิง POST Request ส่ง action ไปที่ระบบหลังบ้านตัวเดิมที่คุณเอ็มมี่เขียนรอไว้แล้ว
+    const response = await fetch(scriptURL, {
+      method: 'POST',
+      body: new URLSearchParams({
+        action: 'removeOshi',
+        username: user.username, // ส่ง username ปัจจุบันไปหาแถว
+        type: type,              // 'kami' หรือ 'oshi'
+        memberName: memberName   // ชื่อเมมเบอร์ที่ต้องการลบ
+      })
+    });
+
+    const res = await response.json();
+
+    if (res.status === 'success') {
+      Swal.fire('สำเร็จ!', `ลบ ${memberName} เรียบร้อยแล้วค่ะ`, 'success');
+      
+      // อัปเดตตัวแปร user ในหน้าบ้าน เพื่อให้หน้าเว็บทำการดึงและวาด UI ใหม่ทันที
+      if (typeof window.syncUserData === 'function') {
+        window.syncUserData(); // เรียกฟังก์ชันซิงค์ข้อมูลใหม่
+      } else {
+        // หากไม่มีฟังก์ชันซิงค์ ให้ทำการดึงใหม่ง่ายๆ ตามโครงสร้างเดิม
+        location.reload(); 
+      }
+    } else {
+      Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบข้อมูลได้', 'error');
+    }
+  } catch (error) {
+    console.error(error);
+    Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่อีกครั้งนะงับ', 'error');
+  }
+}
+  
+  // ตัวอย่างโค้ดปุ่มกดในหน้า index.html เพื่อวิ่งมาหน้า kami.html
+function goToKamiPage() {
+    // ดึงชื่อ username ของบัญชีที่ล็อกอินอยู่ปัจจุบันในระบบหน้าบ้านส่งต่อไป
+    const username = user.username; 
+    window.location.href = `kami.html?username=${encodeURIComponent(username)}`;
 }
 
 function renderRanking(data) {
