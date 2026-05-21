@@ -314,14 +314,14 @@
                 <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Profile" class="user-avatar-img">
                 <div class="user-profile-info">
                     <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
-                    <span class="user-role-tag">Membership</span>
+                    <span id="user-role" class="user-role-tag"></span>
                 </div>
             </div>
         </div>
 
         <div class="header-title-zone">
             <h1>My Inventory</h1>
-            <p>คอลเลกชันการ์ดและไอเทมดิจิทัลทั้งหมดที่คุณครอบครองครอบคลุมทุกการสุ่มรางวัล</p>
+            <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
         </div>
 
         <div id="inventory-container">
@@ -346,7 +346,7 @@
 </footer>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
         
         function getUserSession() {
             const sessionStr = localStorage.getItem('bnl_session');
@@ -354,6 +354,9 @@
             const session = JSON.parse(sessionStr);
             if (new Date().getTime() > session.expiry) {
                 localStorage.removeItem('bnl_session');
+                // หากเซสชันหมดอายุ ให้เคลียร์ Cache ของ Inventory ของยูสเซอร์นี้ออกด้วยเพื่อความปลอดภัย
+                localStorage.removeItem(`blm48_inventory_cache_${session.data?.username}`);
+                localStorage.removeItem(`blm48_inventory_time_${session.data?.username}`);
                 return null;
             }
             return session.data;
@@ -370,17 +373,44 @@
                 return;
             }
             
-            // แสดงรูปโปรไฟล์และชื่อจริงแทนการใช้ ID
-            if (user.profile_img) {
+            // 1. ดึงรูปโปรไฟล์ของเมมเบอร์มาแสดงผล
+            if (user.profile_img && user.profile_img.toString().trim() !== "") {
                 document.getElementById('user-avatar').src = user.profile_img;
+            } else {
+                document.getElementById('user-avatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
             }
-            document.getElementById('user-display-name').textContent = user.name || "MEMBER";
             
+            // 2. ดึงชื่อเล่นหรือชื่อจริงมาแสดงผล
+            document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
+            
+            // ✨ [เพิ่มจุดนี้] ดึง Role หรือ Position จากฐานข้อมูลขึ้นมาแสดงผลใต้ชื่อแบบ Dynamic
+            const userRole = user.role || user.position || "BLM48 Member";
+            document.getElementById('user-role').textContent = userRole;
+            
+            // 3. เริ่มโหลดข้อมูลกระเป๋าด้วยระบบ Fast Loading System (Cache-First)
             await loadMyInventory();
         };
 
         async function loadMyInventory() {
             const container = document.getElementById('inventory-container');
+            
+            // ตั้งค่าคีย์สำหรับการทำ Cache แยกตาม username ของแต่ละคน
+            const cacheKey = `blm48_inventory_cache_${currentUsername}`;
+            const cacheTimeKey = `blm48_inventory_time_${currentUsername}`;
+            const refreshInterval = 5 * 60 * 1000; // ตั้งค่าให้จำจำข้อมูลไว้ 5 นาที (ปรับเปลี่ยนเวลาเพิ่ม/ลดได้ตามต้องการ)
+            
+            const cachedData = localStorage.getItem(cacheKey);
+            const cachedTime = localStorage.getItem(cacheTimeKey);
+            const now = new Date().getTime();
+            
+            // 🚀 [Fast Load] หากในเครื่องมีข้อมูลเดิมอยู่แล้ว และยังไม่เกิน 5 นาที ให้ดึงมาแสดงผลทันทีโดยไม่ต้องเรียกหน้า Sheets
+            if (cachedData && cachedTime && (now - cachedTime < refreshInterval)) {
+                console.log("⚡ ดึงข้อมูลคอลเลกชัน Inventory จาก Cache ในเครื่องสำเร็จ!");
+                renderInventoryData(JSON.parse(cachedData));
+                return;
+            }
+            
+            // แสดงสถานะระหว่างวิ่งไปขอข้อมูลจริงกับหลังบ้าน
             container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัล...</p>`;
             
             try {
@@ -388,55 +418,76 @@
                 const res = await response.json();
                 
                 if (res.status === "success") {
-                    container.innerHTML = "";
                     const inv = res.inventory;
                     
-                    if (!inv || Object.keys(inv).length === 0) {
-                        container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
-                        return;
-                    }
-
-                    for (const colName in inv) {
-                        const section = document.createElement('div');
-                        section.className = 'collection-section';
-                        
-                        const title = document.createElement('div');
-                        title.className = 'collection-title';
-                        title.textContent = colName;
-                        section.appendChild(title);
-                        
-                        const grid = document.createElement('div');
-                        grid.className = 'item-grid';
-                        
-                        inv[colName].forEach(item => {
-                            const card = document.createElement('div');
-                            card.className = 'item-card';
-                            card.onclick = () => openPreview(item.img);
-                            
-                            card.innerHTML = `
-                                <span class="item-qty">x${item.qty}</span>
-                                <img class="item-img" src="${item.img}" alt="${item.name}">
-                                <div class="item-name">${item.name}</div>
-                            `;
-                            grid.appendChild(card);
-                        });
-                        
-                        section.appendChild(grid);
-                        container.appendChild(section);
-                    }
+                    // บันทึกข้อมูลที่เพิ่งอัปเดตลง Cache ประจำเครื่อง
+                    localStorage.setItem(cacheKey, JSON.stringify(inv));
+                    localStorage.setItem(cacheTimeKey, now.toString());
+                    
+                    // นำข้อมูลไปวาดบนหน้าเว็บ
+                    renderInventoryData(inv);
+                } else {
+                    container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
                 }
             } catch (err) {
                 console.error(err);
-                container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
+                
+                // กรณีอินเทอร์เน็ตหลุดหรือโหลดไม่ผ่าน แต่ถ้าในเครื่องมี Cache เก่าอยู่ (แม้จะเกิน 5 นาที) ก็นำมาแสดงผลขัดตาทัพก่อนได้
+                if (cachedData) {
+                    console.warn("⚠️ ระบบดึงข้อมูลสดขัดข้อง ทำการกู้คืนข้อมูลล่าสุดจาก Cache มาแสดงแทน");
+                    renderInventoryData(JSON.parse(cachedData));
+                } else {
+                    container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
+                }
+            }
+        }
+
+        // ฟังก์ชันสำหรับจัดรูปฟอร์มและนำการ์ดรางวัลมาเรนเดอร์ลงในโครงสร้าง HTML
+        function renderInventoryData(inv) {
+            const container = document.getElementById('inventory-container');
+            container.innerHTML = "";
+            
+            if (!inv || Object.keys(inv).length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
+                return;
+            }
+
+            for (const colName in inv) {
+                const section = document.createElement('div');
+                section.className = 'collection-section';
+                
+                const title = document.createElement('div');
+                title.className = 'collection-title';
+                title.textContent = colName;
+                section.appendChild(title);
+                
+                const grid = document.createElement('div');
+                grid.className = 'item-grid';
+                
+                inv[colName].forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.onclick = () => openPreview(item.img);
+                    
+                    card.innerHTML = `
+                        <span class="item-qty">x${item.qty}</span>
+                        <img class="item-img" src="${item.img}" alt="${item.name}">
+                        <div class="item-name">${item.name}</div>
+                    `;
+                    grid.appendChild(card);
+                });
+                
+                section.appendChild(grid);
+                container.appendChild(section);
             }
         }
 
         function openPreview(src) {
             document.getElementById('previewImg').src = src;
-            // แนบลิงก์รูปเข้ากับปุ่มบันทึกรูปภาพ
             document.getElementById('saveImgBtn').href = src;
             document.getElementById('previewModal').style.display = 'flex';
         }
+        
         function closePreview() {
             document.getElementById('previewModal').style.display = 'none';
         }
