@@ -423,147 +423,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .cookie-fall { position: fixed; top: -50px; z-index: -1; color: #e6b38a; pointer-events: none; animation: falling linear forwards; opacity: 0.6; }
     @keyframes falling { to { transform: translateY(110vh) rotate(360deg); } }
     
-          /* ==========================================
-   📸 Item Image Preview & Save Style
-   ========================================== */
-
-/* พื้นหลังโปร่งแสงสีเข้มจางๆ ซ้อนเลเยอร์บนสุด */
-.preview-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(5px); /* เบลอหลังบ้านให้ดูพรีเมียม */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000; /* อยู่เหนือทับทุกมิติ */
-    animation: fadeIn 0.3s ease;
-}
-
-/* กล่องจัดระเบียบรูปภาพและปุ่ม */
-.preview-modal-content {
-    position: relative;
-    max-width: 85%;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-}
-
-/* ตัวรูปภาพพรีวิว */
-.preview-modal-content img {
-    max-width: 100%;
-    max-height: 65vh;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    object-fit: contain;
-}
-
-/* ปุ่มปิดรูปกากบาท */
-.preview-close-btn {
-    position: absolute;
-    top: -40px;
-    right: 0;
-    color: #fff;
-    font-size: 30px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-.preview-close-btn:hover {
-    color: #ff8da1;
-}
-
-/* ปุ่มดาวน์โหลดภาพ (Save Image) ซอฟต์พาสเทล */
-.save-image-btn {
-    background: linear-gradient(135deg, #ff8da1 0%, #ff5376 100%);
-    color: #ffffff !important;
-    text-decoration: none;
-    padding: 12px 28px;
-    border-radius: 25px;
-    font-family: 'Kanit', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 5px 15px rgba(255, 83, 118, 0.4);
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-}
-.save-image-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 83, 118, 0.6);
-}
-    
-    /* 🎒 1. ตัวกล่องครอบใหญ่ (Grid) ปรับให้จัดคอลัมน์อัตโนมัติตามความกว้างจอ */
-.inventory-grid {
-    display: grid;
-    /* 🚩 จุดสำคัญ: ระบบจะคำนวณเองว่าใน 1 แถว ควรมีกี่ชิ้น โดยล็อกความกว้างขั้นต่ำของตัวการ์ดไว้ที่ 100px */
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
-    gap: 12px;           /* ระยะห่างระหว่างกล่องการ์ด */
-    padding: 10px 5px;   /* เว้นระยะขอบใน */
-    max-height: 380px;   /* ล็อกความสูงรวมไว้ให้เลื่อน Scroll ได้ ไม่ทะลุจอ */
-    overflow-y: auto;    /* เปิดให้ถูนิ้วเลื่อนขึ้นลงได้ */
-}
-
-/* 📦 2. แผ่นการ์ดเก็บไอเทมแต่ละชิ้น */
-.inventory-item {
-    position: relative;
-    background: #ffffff;
-    border: 1px solid #ffe3e7; /* เส้นขอบชมพูอ่อนบางๆ */
-    border-radius: 16px;       /* ความมนของการ์ด */
-    padding: 12px 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(255, 182, 193, 0.1);
-    box-sizing: border-box;
-    transition: transform 0.2s;
-}
-
-.inventory-item:hover {
-    transform: translateY(-2px); /* เอฟเฟกต์ยกตัวขึ้นนิดๆ ตอนเอาเมาส์ชี้ */
-}
-
-/* 🖼️ 3. ตัวรูปภาพด้านในการ์ด (Coaster/ไอเทม) */
-.inventory-img {
-    width: 100%;
-    height: 90px;          /* ล็อกความสูงของรูปให้เท่ากันทุกใบ หน้าเว็บจะดูเป็นระเบียบมาก */
-    object-fit: contain;   /* คุมสัดส่วนรูปภาพไม่ให้บิดเบี้ยวหรือยืดจนเสียทรง */
-    margin: 8px 0;
-}
-
-/* 🏷️ 4. จำนวนชิ้นที่อยู่มุมบนซ้าย (เช่น x1) */
-.inventory-qty {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    background: rgba(255, 83, 118, 0.85); /* พื้นหลังสีชมพูโปร่งแสงเข้ม */
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: bold;
-    padding: 2px 8px;
-    border-radius: 10px;
-    line-height: 1;
-}
-
-/* 📝 5. ชื่อไอเทมด้านล่าง */
-.inventory-name {
-    font-size: 12px;
-    font-weight: 500;
-    color: #4a4a4a;
-    width: 100%;
-    white-space: nowrap;      /* ล็อกไม่ให้ชื่อเด้งลงมาสองบรรทัด */
-    overflow: hidden;
-    text-overflow: ellipsis;  /* ถ้าชื่อยาวเกินไป จะใส่ ... ให้ท้ายชื่ออัตโนมัติแบบเนียนๆ */
-}
     /* ชื่อหัวข้อหลักด้านบนสุด */
 .history-main-title {
     font-size: 1.4rem;
@@ -760,9 +619,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   
   <div class="nav-btns">
     <!-- ปุ่มกระเป๋าแบบไอคอน -->
-     <button href="inventory.html" class="nav-icon" title="Inventory">
+     <a href="inventory.html" class="nav-icon" title="Inventory">
       <i class="fas fa-briefcase"></i>
-    </button>
+    </a>
     <!-- ปุ่ม Shop กระโดดไป shop.html -->
     <a href="shop.html" class="nav-icon" title="Shop">
       <i class="fas fa-shopping-cart"></i>
