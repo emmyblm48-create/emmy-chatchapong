@@ -3,113 +3,385 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>BLM48 | MY INVENTORY</title>
+    <title>BLM48 | กระเป๋าสัมภาระสะสม</title>
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <!-- สำหรับ iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <!-- สำหรับ Android และ Chrome -->
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-pink: #ff85a2;
-            --soft-pink: #ffe4e1;
-            --bg-color: #fffdf5;
+            --soft-bg: #fffbfd;
+            --card-border: #ffeef2;
+            --text-dark: #444;
         }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 20px 10px;
+            background-color: #fff6f8;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: var(--text-dark);
         }
-        .container { max-width: 800px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .header h1 { color: var(--primary-pink); font-size: 26px; font-weight: 700; margin-bottom: 5px; }
-        .collection-section {
+
+        /* ปรับ Layout ให้กางเต็มจอ 100% ลบข้อจำกัด max-width ออกทั้งหมดเพื่อความเต็มตา */
+        .app-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            background: #ffffff;
+            padding: 20px 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 768px) {
+            .app-wrapper {
+                padding: 16px;
+            }
+        }
+
+        /* แถบด้านบนสุด: รวมปุ่มย้อนกลับและโปรไฟล์ผู้ใช้แบบแสดงรูปภาพ + ชื่อ */
+        .top-navigation-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #ffeef2 0%, #fff6f8 100%);
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--card-border);
+            gap: 15px;
+        }
+
+        .btn-back-top {
             background: white;
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 8px 25px rgba(255, 133, 162, 0.04);
-            border: 1.5px solid #ffeef2;
+            color: var(--primary-pink);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(255,133,162,0.05);
+            transition: 0.2s;
         }
-        .collection-title {
-            font-size: 16px; font-weight: 600; color: #444;
-            margin-bottom: 15px; border-left: 4px solid var(--primary-pink);
-            padding-left: 10px; font-family: 'Kanit';
+
+        .btn-back-top:hover {
+            background: var(--primary-pink);
+            color: white;
+            transform: translateX(-3px);
         }
-        .item-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+
+        .user-profile-box {
+            display: flex;
+            align-items: center;
             gap: 12px;
         }
-        .item-card {
+
+        .user-avatar-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-pink);
+            background: #fff;
+        }
+
+        .user-profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-display-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .user-role-tag {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .header-title-zone {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-size: 28px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+        }
+
+        .header-title-zone p {
+            color: #999;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* คอลเลกชันกล่องเก็บการ์ดแบบ Responsive ขยายตามขนาดจอ */
+        .collection-section {
             background: #fffcfd;
-            border: 1px solid #fcf0f2;
-            border-radius: 16px;
-            padding: 10px;
+            border: 1px solid #ffeef2;
+            border-radius: 22px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(255, 133, 162, 0.02);
+        }
+
+        .collection-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary-pink);
+            margin-bottom: 16px;
+            padding-left: 6px;
+            border-left: 4px solid var(--primary-pink);
+            line-height: 1.2;
+        }
+
+        /* ระบบ Grid อัจฉริยะ แสดงเป็นแถวเรียงสวยงามตามความกว้างของคอมพิวเตอร์และมือถือ */
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+        }
+
+        .item-card {
+            background: white;
+            border: 1.5px solid var(--card-border);
+            border-radius: 18px;
+            padding: 14px;
             text-align: center;
             position: relative;
             cursor: pointer;
-            transition: 0.3s;
+            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.01);
         }
-        .item-card:hover { transform: translateY(-4px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .item-img {
-            width: 100%; height: 130px;
-            object-fit: cover; border-radius: 12px;
-            background: #eee;
+
+        .item-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-pink);
+            box-shadow: 0 6px 15px rgba(255, 133, 162, 0.08);
         }
-        .item-name { font-size: 13px; font-weight: 700; color: #444; margin: 8px 0 2px 0; }
+
         .item-qty {
-            position: absolute; top: 15px; right: 15px;
-            background: var(--primary-pink); color: white;
-            font-size: 11px; padding: 2px 8px;
-            border-radius: 10px; font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(255,133,162,0.3);
         }
-        .preview-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            display: none; justify-content: center; align-items: center; z-index: 10000;
+
+        .item-img {
+            width: 100%;
+            height: 110px;
+            object-fit: contain;
+            margin: 8px auto;
+            display: block;
+            border-radius: 10px;
         }
-        .preview-content { position: relative; max-width: 85%; max-height: 80vh; text-align: center; }
-        .preview-content img { max-width: 100%; max-height: 70vh; border-radius: 16px; }
-        .preview-close { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; }
-        .back-nav { margin-bottom: 20px; }
-        .back-nav a { text-decoration: none; color: var(--primary-pink); font-weight: bold; font-size: 14px; }
+
+        .item-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #555;
+            margin-top: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Modal หน้าจอดูป๊อปอัพขยายภาพเต็ม + เพิ่มปุ่มเซฟรูป */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            padding: 20px;
+        }
+
+        .modal-body-content {
+            background: white;
+            padding: 24px;
+            border-radius: 28px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            border: 3px solid #ffeef2;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.2);
+            animation: zoomInSubtle 0.25s ease-out;
+        }
+
+        @keyframes zoomInSubtle {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-body-content img {
+            width: 100%;
+            max-height: 320px;
+            object-fit: contain;
+            border-radius: 18px;
+            background: #fafafa;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .modal-action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-close-modal {
+            background: #eee;
+            color: #666;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: 'Kanit';
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        /* ปุ่มเซฟรูปภาพสไตล์หวานละมุนเหมือนหน้า Shop */
+        .btn-save-image {
+            background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
+            color: white;
+            text-decoration: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-family: 'Kanit';
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(255,133,162,0.3);
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-save-image:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 15px rgba(255,133,162,0.4);
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="back-nav">
-            <a href="index.html"><i class="fa-solid fa-chevron-left"></i> กลับหน้าหลัก</a>
+    <div class="app-wrapper">
+        <div class="top-navigation-bar">
+            <a href="index.html" class="btn-back-top"><i class="fa-solid fa-house"></i> กลับหน้าหลัก</a>
+            <div class="user-profile-box">
+                <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Profile" class="user-avatar-img">
+                <div class="user-profile-info">
+                    <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
+                    <span class="user-role-tag">Membership</span>
+                </div>
+            </div>
         </div>
-        <div class="header">
-            <h1>🎒 ของสะสมในกระเป๋า</h1>
+
+        <div class="header-title-zone">
+            <h1>My Inventory</h1>
+            <p>คอลเลกชันการ์ดและไอเทมดิจิทัลทั้งหมดที่คุณครอบครองครอบคลุมทุกการสุ่มรางวัล</p>
         </div>
 
         <div id="inventory-container">
-            </div>
-    </div>
-
-    <div id="previewModal" class="preview-modal" onclick="closePreview()">
-        <div class="preview-content" onclick="event.stopPropagation()">
-            <span class="preview-close" onclick="closePreview()">&times;</span>
-            <img id="previewImg" src="" alt="Item Preview">
+            <p style="text-align:center; color:#aaa; font-size:13px;">กำลังหาคอลเลกชันของคุณ...</p>
         </div>
     </div>
 
+    <div id="previewModal" class="modal-overlay" onclick="closePreview()">
+        <div class="modal-body-content" onclick="event.stopPropagation()">
+            <img id="previewImg" src="" alt="Item Preview">
+            <div class="modal-action-buttons">
+                <button type="button" class="btn-close-modal" onclick="closePreview()">ปิด</button>
+                <a id="saveImgBtn" href="" target="_blank" download="blm48_reward.png" class="btn-save-image">
+                    <i class="fa-solid fa-download"></i> บันทึกรูปภาพ
+                </a>
+            </div>
+        </div>
+    </div>
+  <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
+  <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
+  <div>© 2026 Virtual Idol Cover Group</div>
+</footer>
+
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-        const currentUsername = localStorage.getItem('username') || "";
+        
+        function getUserSession() {
+            const sessionStr = localStorage.getItem('bnl_session');
+            if (!sessionStr) return null;
+            const session = JSON.parse(sessionStr);
+            if (new Date().getTime() > session.expiry) {
+                localStorage.removeItem('bnl_session');
+                return null;
+            }
+            return session.data;
+        }
+
+        let user = getUserSession();
+        let currentUsername = user ? user.username : "";
 
         window.onload = async () => {
-            if (!currentUsername) {
-                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบชื่อบัญชีผู้ใช้งาน', 'error');
+            if (!user || !currentUsername) {
+                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การใช้งานกระเป๋า กรุณาล็อกอินก่อนนะงับ', 'error').then(() => {
+                    window.location.href = 'index.html';
+                });
                 return;
             }
+            
+            // แสดงรูปโปรไฟล์และชื่อจริงแทนการใช้ ID
+            if (user.profile_img) {
+                document.getElementById('user-avatar').src = user.profile_img;
+            }
+            document.getElementById('user-display-name').textContent = user.name || "MEMBER";
+            
             await loadMyInventory();
         };
 
         async function loadMyInventory() {
             const container = document.getElementById('inventory-container');
-            container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:14px;">กำลังค้นหากระเป๋าเดินทางสะสม...</p>`;
+            container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัล...</p>`;
             
             try {
                 const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}`);
@@ -119,8 +391,8 @@
                     container.innerHTML = "";
                     const inv = res.inventory;
                     
-                    if (Object.keys(inv).length === 0) {
-                        container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px;">กระเป๋ายังว่างเปล่า ไปเลือกซื้อไอเทมที่ร้านค้ากันเลย!</p>`;
+                    if (!inv || Object.keys(inv).length === 0) {
+                        container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
                         return;
                     }
 
@@ -154,12 +426,15 @@
                     }
                 }
             } catch (err) {
-                container.innerHTML = `<p style="text-align:center; color:red;">โหลดข้อมูลผิดพลาด ลองใหม่อีกครั้งนะงับ</p>`;
+                console.error(err);
+                container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
             }
         }
 
         function openPreview(src) {
             document.getElementById('previewImg').src = src;
+            // แนบลิงก์รูปเข้ากับปุ่มบันทึกรูปภาพ
+            document.getElementById('saveImgBtn').href = src;
             document.getElementById('previewModal').style.display = 'flex';
         }
         function closePreview() {
