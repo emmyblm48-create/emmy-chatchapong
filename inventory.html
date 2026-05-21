@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>BLM48 | MY INVENTORY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --bg-color: #fffdf5;
+        }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 20px 10px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { color: var(--primary-pink); font-size: 26px; font-weight: 700; margin-bottom: 5px; }
+        .collection-section {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(255, 133, 162, 0.04);
+            border: 1.5px solid #ffeef2;
+        }
+        .collection-title {
+            font-size: 16px; font-weight: 600; color: #444;
+            margin-bottom: 15px; border-left: 4px solid var(--primary-pink);
+            padding-left: 10px; font-family: 'Kanit';
+        }
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+        }
+        .item-card {
+            background: #fffcfd;
+            border: 1px solid #fcf0f2;
+            border-radius: 16px;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .item-card:hover { transform: translateY(-4px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .item-img {
+            width: 100%; height: 130px;
+            object-fit: cover; border-radius: 12px;
+            background: #eee;
+        }
+        .item-name { font-size: 13px; font-weight: 700; color: #444; margin: 8px 0 2px 0; }
+        .item-qty {
+            position: absolute; top: 15px; right: 15px;
+            background: var(--primary-pink); color: white;
+            font-size: 11px; padding: 2px 8px;
+            border-radius: 10px; font-weight: bold;
+        }
+        .preview-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 10000;
+        }
+        .preview-content { position: relative; max-width: 85%; max-height: 80vh; text-align: center; }
+        .preview-content img { max-width: 100%; max-height: 70vh; border-radius: 16px; }
+        .preview-close { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; }
+        .back-nav { margin-bottom: 20px; }
+        .back-nav a { text-decoration: none; color: var(--primary-pink); font-weight: bold; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="back-nav">
+            <a href="index.html"><i class="fa-solid fa-chevron-left"></i> กลับหน้าหลัก</a>
+        </div>
+        <div class="header">
+            <h1>🎒 ของสะสมในกระเป๋า</h1>
+        </div>
+
+        <div id="inventory-container">
+            </div>
+    </div>
+
+    <div id="previewModal" class="preview-modal" onclick="closePreview()">
+        <div class="preview-content" onclick="event.stopPropagation()">
+            <span class="preview-close" onclick="closePreview()">&times;</span>
+            <img id="previewImg" src="" alt="Item Preview">
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+        const currentUsername = localStorage.getItem('username') || "";
+
+        window.onload = async () => {
+            if (!currentUsername) {
+                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบชื่อบัญชีผู้ใช้งาน', 'error');
+                return;
+            }
+            await loadMyInventory();
+        };
+
+        async function loadMyInventory() {
+            const container = document.getElementById('inventory-container');
+            container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:14px;">กำลังค้นหากระเป๋าเดินทางสะสม...</p>`;
+            
+            try {
+                const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}`);
+                const res = await response.json();
+                
+                if (res.status === "success") {
+                    container.innerHTML = "";
+                    const inv = res.inventory;
+                    
+                    if (Object.keys(inv).length === 0) {
+                        container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px;">กระเป๋ายังว่างเปล่า ไปเลือกซื้อไอเทมที่ร้านค้ากันเลย!</p>`;
+                        return;
+                    }
+
+                    for (const colName in inv) {
+                        const section = document.createElement('div');
+                        section.className = 'collection-section';
+                        
+                        const title = document.createElement('div');
+                        title.className = 'collection-title';
+                        title.textContent = colName;
+                        section.appendChild(title);
+                        
+                        const grid = document.createElement('div');
+                        grid.className = 'item-grid';
+                        
+                        inv[colName].forEach(item => {
+                            const card = document.createElement('div');
+                            card.className = 'item-card';
+                            card.onclick = () => openPreview(item.img);
+                            
+                            card.innerHTML = `
+                                <span class="item-qty">x${item.qty}</span>
+                                <img class="item-img" src="${item.img}" alt="${item.name}">
+                                <div class="item-name">${item.name}</div>
+                            `;
+                            grid.appendChild(card);
+                        });
+                        
+                        section.appendChild(grid);
+                        container.appendChild(section);
+                    }
+                }
+            } catch (err) {
+                container.innerHTML = `<p style="text-align:center; color:red;">โหลดข้อมูลผิดพลาด ลองใหม่อีกครั้งนะงับ</p>`;
+            }
+        }
+
+        function openPreview(src) {
+            document.getElementById('previewImg').src = src;
+            document.getElementById('previewModal').style.display = 'flex';
+        }
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
