@@ -6,13 +6,9 @@
     <title>BLM48 | Inventory</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
-    <!-- สำหรับ iOS Home Screen Icon -->
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-    <!-- สำหรับ Android และ Chrome -->
     <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
     <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -142,6 +138,65 @@
             font-size: 13px;
             margin: 0;
         }
+
+        /* ✨ เพิ่มสไตล์สำหรับปุ่มสลับเลือกดูทีละคอลเลกชัน */
+        .collection-tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            /* ซ่อน Scrollbar */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .collection-tabs-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+
+        .btn-tab {
+            background: white;
+            color: #666;
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-family: 'Kanit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .btn-tab:hover {
+            border-color: var(--primary-pink);
+            color: var(--primary-pink);
+        }
+
+        .btn-tab.active {
+            background: var(--primary-pink);
+            color: white;
+            border-color: var(--primary-pink);
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255,133,162,0.2);
+        }
+      
+            #tabs-container {
+    display: flex;
+    overflow-x: auto; /* ทำให้เลื่อนซ้ายขวาได้ */
+    white-space: nowrap; /* ไม่ให้ปุ่มขึ้นบรรทัดใหม่ */
+    padding: 10px;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #eee;
+    scrollbar-width: none; /* ซ่อน scrollbar ใน Firefox */
+    }
+    #tabs-container::-webkit-scrollbar {
+        display: none; /* ซ่อน scrollbar ใน Chrome/Safari */
+    }
 
         /* คอลเลกชันกล่องเก็บการ์ดแบบ Responsive ขยายตามขนาดจอ */
         .collection-section {
@@ -324,6 +379,8 @@
             <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
         </div>
 
+        <div id="tabs-container" class="collection-tabs-container"></div> 
+    
         <div id="inventory-container">
             <p style="text-align:center; color:#aaa; font-size:13px;">กำลังหาคอลเลกชันของคุณ...</p>
         </div>
@@ -354,7 +411,6 @@
             const session = JSON.parse(sessionStr);
             if (new Date().getTime() > session.expiry) {
                 localStorage.removeItem('bnl_session');
-                // หากเซสชันหมดอายุ ให้เคลียร์ Cache ของ Inventory ของยูสเซอร์นี้ออกด้วยเพื่อความปลอดภัย
                 localStorage.removeItem(`blm48_inventory_cache_${session.data?.username}`);
                 localStorage.removeItem(`blm48_inventory_time_${session.data?.username}`);
                 return null;
@@ -364,6 +420,10 @@
 
         let user = getUserSession();
         let currentUsername = user ? user.username : "";
+        
+        // ตัวแปรเก็บข้อมูลตู้ทั้งหมด และชื่อตู้ที่กำลังเลือกเปิดดูอยู่
+        let globalInventoryData = null;
+        let currentActiveTab = "all";
 
         window.onload = async () => {
             if (!user || !currentUsername) {
@@ -373,44 +433,40 @@
                 return;
             }
             
-            // 1. ดึงรูปโปรไฟล์ของเมมเบอร์มาแสดงผล
             if (user.profile_img && user.profile_img.toString().trim() !== "") {
                 document.getElementById('user-avatar').src = user.profile_img;
             } else {
                 document.getElementById('user-avatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
             }
             
-            // 2. ดึงชื่อเล่นหรือชื่อจริงมาแสดงผล
             document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
             
-            // ✨ [เพิ่มจุดนี้] ดึง Role หรือ Position จากฐานข้อมูลขึ้นมาแสดงผลใต้ชื่อแบบ Dynamic
             const userRole = user.role || user.position || "BLM48 Member";
             document.getElementById('user-role').textContent = userRole;
             
-            // 3. เริ่มโหลดข้อมูลกระเป๋าด้วยระบบ Fast Loading System (Cache-First)
             await loadMyInventory();
+             renderTabs();
         };
 
         async function loadMyInventory() {
             const container = document.getElementById('inventory-container');
             
-            // ตั้งค่าคีย์สำหรับการทำ Cache แยกตาม username ของแต่ละคน
             const cacheKey = `blm48_inventory_cache_${currentUsername}`;
             const cacheTimeKey = `blm48_inventory_time_${currentUsername}`;
-            const refreshInterval = 5 * 60 * 1000; // ตั้งค่าให้จำจำข้อมูลไว้ 5 นาที (ปรับเปลี่ยนเวลาเพิ่ม/ลดได้ตามต้องการ)
+            const refreshInterval = 5 * 60 * 1000; 
             
             const cachedData = localStorage.getItem(cacheKey);
             const cachedTime = localStorage.getItem(cacheTimeKey);
             const now = new Date().getTime();
             
-            // 🚀 [Fast Load] หากในเครื่องมีข้อมูลเดิมอยู่แล้ว และยังไม่เกิน 5 นาที ให้ดึงมาแสดงผลทันทีโดยไม่ต้องเรียกหน้า Sheets
             if (cachedData && cachedTime && (now - cachedTime < refreshInterval)) {
-                console.log("⚡ ดึงข้อมูลคอลเลกชัน Inventory จาก Cache ในเครื่องสำเร็จ!");
-                renderInventoryData(JSON.parse(cachedData));
+                console.log("⚡ ดึงข้อมูลคอลเลกชัน Inventory จาก Cache สำเร็จ!");
+                globalInventoryData = JSON.parse(cachedData);
+                renderTabs(); // สร้างปุ่ม Tabs
+                renderInventoryData(); // แสดงของในตู้
                 return;
             }
             
-            // แสดงสถานะระหว่างวิ่งไปขอข้อมูลจริงกับหลังบ้าน
             container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัล...</p>`;
             
             try {
@@ -418,41 +474,87 @@
                 const res = await response.json();
                 
                 if (res.status === "success") {
-                    const inv = res.inventory;
+                    globalInventoryData = res.inventory;
                     
-                    // บันทึกข้อมูลที่เพิ่งอัปเดตลง Cache ประจำเครื่อง
-                    localStorage.setItem(cacheKey, JSON.stringify(inv));
+                    localStorage.setItem(cacheKey, JSON.stringify(globalInventoryData));
                     localStorage.setItem(cacheTimeKey, now.toString());
                     
-                    // นำข้อมูลไปวาดบนหน้าเว็บ
-                    renderInventoryData(inv);
+                    renderTabs(); // สร้างปุ่ม Tabs
+                    renderInventoryData(); // แสดงของในตู้
                 } else {
                     container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
                 }
             } catch (err) {
                 console.error(err);
-                
-                // กรณีอินเทอร์เน็ตหลุดหรือโหลดไม่ผ่าน แต่ถ้าในเครื่องมี Cache เก่าอยู่ (แม้จะเกิน 5 นาที) ก็นำมาแสดงผลขัดตาทัพก่อนได้
                 if (cachedData) {
-                    console.warn("⚠️ ระบบดึงข้อมูลสดขัดข้อง ทำการกู้คืนข้อมูลล่าสุดจาก Cache มาแสดงแทน");
-                    renderInventoryData(JSON.parse(cachedData));
+                    console.warn("⚠️ ระบบดึงข้อมูลสดขัดข้อง ใช้ข้อมูลจาก Cache แทน");
+                    globalInventoryData = JSON.parse(cachedData);
+                    renderTabs();
+                    renderInventoryData();
                 } else {
                     container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
                 }
             }
         }
 
-        // ฟังก์ชันสำหรับจัดรูปฟอร์มและนำการ์ดรางวัลมาเรนเดอร์ลงในโครงสร้าง HTML
-        function renderInventoryData(inv) {
+        // ✨ ฟังก์ชันสร้างปุ่มเมนู Tabs สำหรับเลือกดู Collection (เวอร์ชันสร้าง Element โดยตรง)
+function renderTabs() {
+    const tabsContainer = document.getElementById('tabs-container');
+    if (!tabsContainer) return; // กัน Error กรณีหา element ไม่เจอ
+    
+    tabsContainer.innerHTML = ''; // ล้างปุ่มเก่าทิ้งก่อน
+    
+    if (!globalInventoryData || Object.keys(globalInventoryData).length === 0) return;
+
+    // 1. สร้างปุ่ม "ทั้งหมด"
+    const allBtn = document.createElement('button');
+    allBtn.className = `btn-tab ${currentActiveTab === 'all' ? 'active' : ''}`;
+    allBtn.textContent = "ทั้งหมด";
+    allBtn.onclick = () => switchTab('all');
+    tabsContainer.appendChild(allBtn);
+
+    // 2. วนลูปสร้างปุ่มคอลเลกชัน
+    Object.keys(globalInventoryData).forEach(colName => {
+        if (globalInventoryData[colName].length > 0) {
+            const btn = document.createElement('button');
+            btn.className = `btn-tab ${currentActiveTab === colName ? 'active' : ''}`;
+            btn.textContent = colName;
+            btn.onclick = () => switchTab(colName); // ผูก event ตรงนี้เลย
+            tabsContainer.appendChild(btn);
+        }
+    });
+}
+
+        // ✨ ฟังก์ชันเมื่อผู้ใช้กดคลิกเปลี่ยน Tab
+        function switchTab(tabName) {
+            currentActiveTab = tabName; // อัปเดตตู้ที่กำลังดู
+            renderTabs();               // อัปเดตสีของปุ่มที่ถูกกด
+            renderInventoryData();      // วาดหน้าจอโชว์ของใหม่
+        }
+
+        // 🛠️ ปรับปรุงฟังก์ชันวาดหน้าจอ ให้รองรับการซ่อน/โชว์ตู้ตามปุ่ม Tab
+        function renderInventoryData() {
             const container = document.getElementById('inventory-container');
             container.innerHTML = "";
             
+            const inv = globalInventoryData;
+
             if (!inv || Object.keys(inv).length === 0) {
                 container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
                 return;
             }
 
+            // วนลูปดึงทีละตู้คอลเลกชันออกมาวาดบนจอ
             for (const colName in inv) {
+                // ถ้ากล่องไหนไม่มีของ ให้ข้ามไปเลย
+                if (inv[colName].length === 0) continue;
+                
+                // 🔍 ถ้ายูสเซอร์ไม่ได้เลือกดู "ทั้งหมด" และชื่อตู้ไม่ตรงกับปุ่ม Tab ที่กด ให้ข้ามการโชว์ตู้นี้ไปเลย
+                if (currentActiveTab !== 'all' && currentActiveTab !== colName) {
+                    continue; 
+                }
+
+                // ถ้าผ่านเงื่อนไขด้านบน แปลว่าให้แสดงตู้นี้
                 const section = document.createElement('div');
                 section.className = 'collection-section';
                 
