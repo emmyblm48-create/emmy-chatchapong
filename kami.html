@@ -545,7 +545,7 @@
                             <span class="badge-kami"><i class="fa-solid fa-bolt"></i> Kamioshi</span>
                         </div>`;
                 } else {
-                    kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิหลักเลยงับ</div>`;
+                    kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
                 }
 
                 // ❤️ เรนเดอร์ข้อมูล โอชิสมทบ (Oshi)
@@ -569,7 +569,7 @@
                             </div>`;
                     });
                 } else {
-                    oshiHTML = `<div class="empty-heart-state">ยังไม่มีรายชื่อโอชิสมทบในระบบเลยงับ</div>`;
+                    oshiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกโอชิ</div>`;
                 }
 
                 // เปลี่ยนโครงสร้างหน้าจอเป็นข้อมูลจริงพร้อมกันแบบเนียนๆ
@@ -578,7 +578,7 @@
             }
         } catch (err) {
             console.error("Error loading user oshi board:", err);
-            kamiArea.innerHTML = `<div class="empty-heart-state" style="color:var(--danger-red);">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรชอีกครั้งนะงับ</div>`;
+            kamiArea.innerHTML = `<div class="empty-heart-state" style="color:var(--danger-red);">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรชอีกครั้ง</div>`;
             oshiArea.innerHTML = "";
         }
     }
@@ -587,7 +587,7 @@
             const typeText = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
             const confirm = await Swal.fire({
                 title: 'ยืนยันการลบข้อมูล?',
-                text: `คุณแน่ใจนะงับว่าจะลบ ${memberName} ออกจากทำเนียบ ${typeText}?`,
+                text: `คุณต้องการจะลบ ${memberName} ออกจาก ${typeText}?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ff85a2',
@@ -598,7 +598,7 @@
 
             if (!confirm.isConfirmed) return;
 
-            Swal.fire({ title: 'กำลังปรับปรุงข้อมูลในตาราง...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ title: 'กำลังอัพเดทข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
             try {
                 const response = await fetch(scriptURL, {
@@ -613,7 +613,7 @@
                 
                 const res = await response.json();
                 if (res.status === "success") {
-                    Swal.fire('สำเร็จ!', 'ระบบลบรายชื่อออกจากทำเนียบเรียบร้อยแล้วค่ะ', 'success');
+                    Swal.fire('สำเร็จ!', 'ระบบลบรายชื่อออกจากโอชิเรียบร้อยแล้วค่ะ', 'success');
                     await fetchAndRenderUserOshiBoard(); 
                 } else {
                     Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบข้อมูลได้', 'error');
