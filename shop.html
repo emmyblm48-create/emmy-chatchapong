@@ -1312,7 +1312,6 @@ function closeImagePreview() {
     }
 }
   
-// 🎰 ระบบสุ่มกาชา
 async function buyGacha(collectionId) {
   if(!userData) return;
   const username = userData.username;
@@ -1334,6 +1333,11 @@ async function buyGacha(collectionId) {
     const res = await response.json();
     
     if (res.status === "success") {
+      // --- 🚀 เพิ่มโค้ดส่วนนี้เข้าไปเพื่อเคลียร์ Cache ของ Inventory ---
+      localStorage.removeItem(`blm48_inventory_cache_${username}`);
+      localStorage.removeItem(`blm48_inventory_time_${username}`);
+      // ------------------------------------------------------------
+      
       Swal.fire({
         title: 'Congratulations!',
         html: `คุณได้รับ <b>${res.itemName}</b> [${res.itemType}]<br>จากตู้สุ่ม ${res.collectionName}`,
@@ -1360,7 +1364,6 @@ async function buyGacha(collectionId) {
     Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้', 'error');
   }
 }
-
 // ฟังก์ชันโหลดคอลเลกชันและสร้างการ์ดแบบ Dynamic (ปรับเลย์เอาต์ให้สวยเท่ากับคุกกี้ด้านบน)
 async function loadGachaCollections() {
   const container = document.getElementById("merch-container");
