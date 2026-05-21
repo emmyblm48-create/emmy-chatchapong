@@ -345,7 +345,7 @@
                 <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Profile" class="user-avatar-img">
                 <div class="user-profile-info">
                     <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
-                    <span class="user-role-tag">Membership</span>
+                    <span id="user-role" class="user-role-tag"></span>
                 </div>
             </div>
         </div>
@@ -388,37 +388,81 @@
         let currentUsername = user ? user.username : "";
         let memberImageMap = {};
 
-        window.onload = async () => {
-            if (!user || !currentUsername) {
-                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การเข้าใช้งานบัญชีของคุณงับ', 'error').then(() => { 
-                    window.location.href = 'index.html'; 
-                });
-                return;
-            }
-            
-            // ดึงรูปโปรไฟล์และชื่อจริง (Name) มาแสดงผลแทน Usernameตามต้องการ
-            if (user.profile_img) {
-                document.getElementById('user-avatar').src = user.profile_img;
-            }
-            document.getElementById('user-display-name').textContent = user.name || "MEMBER";
-            
-            await fetchMembersImageDB();
-            await fetchAndRenderUserOshiBoard();
-        };
-
-        async function fetchMembersImageDB() {
-            try {
-                const response = await fetch(`${scriptURL}?action=getRanking`);
-                const members = await response.json();
-                members.forEach(m => {
-                    if (m.name) {
-                        memberImageMap[m.name.toString().trim().toLowerCase()] = m.profile_img || "";
-                    }
-                });
-            } catch (err) {
-                console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
-            }
+  window.onload = async () => {
+    if (!user || !currentUsername) {
+        Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การเข้าใช้งานบัญชีของคุณงับ', 'error').then(() => { 
+            window.location.href = 'index.html'; 
+        });
+        return;
+    }
+    
+    // 1. ดึงรูปโปรไฟล์เมมเบอร์มาแสดง
+    if (user.profile_img && user.profile_img.toString().trim() !== "") {
+        document.getElementById('user-avatar').src = user.profile_img;
+    } else {
+        document.getElementById('user-avatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+    }
+    
+    // 2. ดึงชื่อเล่น/ชื่อจริงของเมมเบอร์มาแสดง
+    document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
+    
+    // ✨ [เพิ่มจุดนี้] ดึง Role จากฐานข้อมูลมาแสดงผลใต้ชื่อแบบ Dynamic
+    // ระบบจะเช็คฟิลด์ user.role หรือ user.position (ขึ้นอยู่กับชื่อหัวคอลัมน์ใน Google Sheets ของคุณเอ็มมี่)
+    const userRole = user.role || user.position || "BLM48 Member";
+    document.getElementById('user-role').textContent = userRole;
+    
+    // รันกระบวนการดึงข้อมูลอื่น ๆ ของบอร์ดตามปกติ
+    try {
+        if (typeof fetchMembersImageDB === 'function' && typeof fetchAndRenderUserOshiBoard === 'function') {
+            await Promise.all([
+                fetchMembersImageDB(),
+                fetchAndRenderUserOshiBoard()
+            ]);
+        } else if (typeof loadMyInventory === 'function') {
+            await loadMyInventory();
         }
+    } catch (err) {
+        console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลบอร์ด", err);
+    }
+};
+
+      async function fetchMembersImageDB() {
+    const cacheKey = 'blm48_members_images_cache';
+    const cacheTimeKey = 'blm48_members_images_time';
+    const tenMinutes = 10 * 60 * 1000; // 10 นาทีในหน่วยมิลลิวินาที
+    
+    const cachedData = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheTimeKey);
+    const now = new Date().getTime();
+    
+    // ถ้ามีข้อมูลเก่าในเครื่อง และยังไม่หมดเวลา 10 นาที เอามาใช้ทันที!
+    if (cachedData && cachedTime && (now - cachedTime < tenMinutes)) {
+        memberImageMap = JSON.parse(cachedData);
+        console.log("🚀 ดึงรูปเมมเบอร์จาก Cache ในเครื่อง (เร็วมาก!)");
+        return;
+    }
+
+    // ถ้าไม่มีแคช หรือหมดเวลาแล้ว ค่อยไปดึงจาก Google Sheets
+    try {
+        const response = await fetch(`${scriptURL}?action=getRanking`);
+        const members = await response.json();
+        
+        let tempMap = {};
+        members.forEach(m => {
+            if (m.name) {
+                tempMap[m.name.toString().trim().toLowerCase()] = m.profile_img || "";
+            }
+        });
+        
+        memberImageMap = tempMap;
+        // เซฟเก็บไว้ในเครื่องรอบหน้าจะได้ไม่ต้องโหลดใหม่
+        localStorage.setItem(cacheKey, JSON.stringify(tempMap));
+        localStorage.setItem(cacheTimeKey, now.toString());
+        
+    } catch (err) {
+        console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
+    }
+}
 
         async function fetchAndRenderUserOshiBoard() {
             const kamiArea = document.getElementById('kami-content-area');
