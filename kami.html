@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>BLM48 | จัดตำแหน่งโอชิ</title>
+    <title>BLM48 | My Kami-Oshi Members</title>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -14,6 +14,7 @@
             --bg-color: #fffdf5;
             --kami-gold: #ffd700;
             --oshi-blue: #87ceeb;
+            --danger-red: #ff6b6b;
         }
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
@@ -40,195 +41,337 @@
             font-size: 13px;
             margin: 0;
         }
-        .slot-card {
+        
+        /* ==========================================
+           🌟 สไตล์การ์ดคามิโอชิ (เด่นตรงกลาง)
+           ========================================== */
+        .kami-center-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto 35px auto;
+            text-align: center;
+            position: relative;
+            max-width: 250px;
+        }
+        .kami-avatar-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+        .kami-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--kami-gold);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+            background: #eee;
+        }
+        .crown-icon {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--kami-gold);
+            font-size: 24px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+        }
+        .kami-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 12px;
+        }
+        .kami-badge {
+            background-color: #fef9c3;
+            color: #854d0e;
+            font-size: 11px;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-top: 4px;
+            font-family: 'Kanit';
+            display: inline-block;
+        }
+        .btn-delete-kami {
+            position: absolute;
+            top: 0;
+            right: 0;
             background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 8px 20px rgba(255, 133, 162, 0.05);
-            border: 2px solid #fff0f3;
+            border: 1px solid #ffeef2;
+            color: #aaa;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 15px;
-        }
-        .slot-card.kami { border-color: var(--kami-gold); }
-        .slot-card.oshi { border-color: var(--oshi-blue); }
-        .slot-icon {
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 20px;
-        }
-        .kami .slot-icon { background: var(--kami-gold); }
-        .oshi .slot-icon { background: var(--oshi-blue); }
-        .slot-info { flex: 1; }
-        .slot-label { font-size: 12px; color: #aaa; font-weight: bold; }
-        .select-member {
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1.5px solid #eee;
-            font-family: 'Kanit';
-            outline: none;
-            margin-top: 5px;
-        }
-        .btn-save {
-            width: 100%;
-            height: 50px;
-            background: var(--primary-pink);
-            color: white; border: none;
-            border-radius: 15px;
-            font-family: 'Kanit';
-            font-size: 16px; font-weight: 600;
+            justify-content: center;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(255,133,162,0.3);
-            transition: 0.3s;
-            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: 0.2s;
         }
-        .btn-save:hover { transform: translateY(-2px); filter: brightness(1.05); }
-        .btn-back {
-            text-align: center;
-            margin-top: 15px;
+        .btn-delete-kami:hover {
+            color: var(--danger-red);
+            transform: scale(1.1);
         }
-        .btn-back a { color: #aaa; text-decoration: none; font-size: 14px; }
+
+        /* ==========================================
+           🎒 สไตล์รายการโอชิ (เรียงเป็นแถวลงมา)
+           ========================================== */
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin: 25px 0 12px 0;
+            padding-left: 8px;
+            border-left: 3px solid var(--primary-pink);
+            font-family: 'Kanit';
+        }
+        .oshi-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .oshi-row-card {
+            background: white;
+            border-radius: 18px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 6px 18px rgba(255, 133, 162, 0.03);
+            border: 1.5px solid #fff0f3;
+            transition: 0.2s;
+        }
+        .oshi-row-card:hover {
+            transform: translateY(-2px);
+        }
+        .oshi-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--oshi-blue);
+            background: #eee;
+        }
+        .oshi-details {
+            flex: 1;
+            padding-left: 15px;
+        }
+        .oshi-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+        .oshi-badge {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 3px;
+            font-family: 'Kanit';
+            display: inline-block;
+        }
+        .btn-delete-oshi {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            transition: 0.2s;
+        }
+        .btn-delete-oshi:hover {
+            color: var(--danger-red);
+            transform: scale(1.1);
+        }
+
+        .btn-back { text-align: center; margin-top: 35px; }
+        .btn-back a { color: #aaa; text-decoration: none; font-size: 14px; transition: 0.2s; }
+        .btn-back a:hover { color: var(--primary-pink); }
+        .no-data { text-align: center; color: #bbb; font-size: 13px; padding: 25px; background: rgba(255,255,255,0.4); border-radius: 15px; border: 1px dashed #eee; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <h1>🌸 จัดตำแหน่งห้องหัวใจ</h1>
-            <p>เลือกเมมเบอร์ที่คุณชื่นชอบเพื่อแสดงบนหน้าบอร์ดสมาชิก</p>
+            <h1>My Kami-Oshi Members</h1>
+            <p id="user-display-title">กำลังตรวจสอบข้อมูลสมาชิก...</p>
         </div>
 
-        <form id="position-form">
-            <div class="slot-card kami">
-                <div class="slot-icon"><i class="fa-solid fa-crown"></i></div>
-                <div class="slot-info">
-                    <span class="slot-label">KAMIOSHI (คามิหลัก)</span>
-                    <select id="kamioshi-select" class="select-member">
-                        <option value="">-- เลือกคามิโอชิหลัก --</option>
-                    </select>
-                </div>
+        <div id="kami-zone">
             </div>
 
-            <div class="slot-card oshi">
-                <div class="slot-icon"><i class="fa-solid fa-heart"></i></div>
-                <div class="slot-info">
-                    <span class="slot-label">OSHI #1</span>
-                    <select id="oshi1-select" class="select-member oshi-dropdown">
-                        <option value="">-- เลือกโอชิคนที่ 1 --</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="slot-card oshi">
-                <div class="slot-icon"><i class="fa-solid fa-heart"></i></div>
-                <div class="slot-info">
-                    <span class="slot-label">OSHI #2</span>
-                    <select id="oshi2-select" class="select-member oshi-dropdown">
-                        <option value="">-- เลือกโอชิคนที่ 2 --</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="slot-card oshi">
-                <div class="slot-icon"><i class="fa-solid fa-heart"></i></div>
-                <div class="slot-info">
-                    <span class="slot-label">OSHI #3</span>
-                    <select id="oshi3-select" class="select-member oshi-dropdown">
-                        <option value="">-- เลือกโอชิคนที่ 3 --</option>
-                    </select>
-                </div>
-            </div>
-
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> บันทึกตำแหน่งตำแหน่ง</button>
-        </form>
+        <div class="section-title"><i class="fa-solid fa-heart" style="color: var(--primary-pink)"></i> My Oshi Members</div>
+        <div id="oshi-zone" class="oshi-list-container">
+            <p style="text-align:center; color:#aaa; font-size:13px;">กำลังโหลดรายชื่อโอชิ...</p>
+        </div>
 
         <div class="btn-back">
-            <a href="index.html"><i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก</a>
+            <a href="index.html"><i class="fa-solid fa-arrow-left"></i> กลับสู่หน้าหลักแอปพลิเคชัน</a>
         </div>
     </div>
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-        const currentUsername = localStorage.getItem('username') || "";
+        
+        // 📡 1. ระบบดึงพารามิเตอร์จาก URL ดึงค่า username เพื่อเช็คตัวผู้ใช้งานรายคน
+        const urlParams = new URLSearchParams(window.location.search);
+        // หากใน URL มีการส่ง ?username=xxx มาจะใช้ค่านั้นทันที ถ้าไม่มีจะดึงจาก localStorage แบ็กอัปไว้ครับ
+        const currentUsername = urlParams.get('username') || localStorage.getItem('username') || "";
+        
+        let memberImageMap = {};
 
         window.onload = async () => {
             if (!currentUsername) {
-                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบชื่อผู้ใช้งานของคุณ', 'error').then(() => { window.location.href = 'index.html'; });
+                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบข้อมูลบัญชีผู้ใช้งาน', 'error').then(() => { window.location.href = 'index.html'; });
                 return;
             }
-            await loadMembersDropdown();
-            await fetchCurrentUserPositions();
+            
+            document.getElementById('user-display-title').textContent = `ทำเนียบเมมเบอร์ของคุกกี้สยาม ID: ${currentUsername}`;
+            
+            // สเต็ปที่ 1: โหลดฐานสถิติเพื่อเอารูปเมมเบอร์มาก่อน
+            await loadMembersImageDatabase();
+            // สเต็ปที่ 2: โหลดข้อมูลจาก Google Sheet ของผู้ใช้นั้นๆ มาเรนเดอร์บอร์ด
+            await loadAndRenderHeartBoard();
         };
 
-        async function loadMembersDropdown() {
+        // ฟังก์ชันดึงแมปภาพสมาชิก
+        async function loadMembersImageDatabase() {
             try {
                 const response = await fetch(`${scriptURL}?action=getRanking`);
                 const members = await response.json();
-                const selects = document.querySelectorAll('.select-member');
-                
                 members.forEach(m => {
-                    selects.forEach(select => {
-                        const opt = document.createElement('option');
-                        opt.value = m.name;
-                        opt.textContent = m.name;
-                        select.appendChild(opt);
-                    });
+                    if (m.name) {
+                        memberImageMap[m.name.toString().trim().toLowerCase()] = m.profile_img || "";
+                    }
                 });
             } catch (err) {
-                console.error("โหลดรายชื่อเมมเบอร์ล้มเหลว", err);
+                console.error("โหลดฐานรูปภาพเมมเบอร์ล้มเหลว", err);
             }
         }
 
-        async function fetchCurrentUserPositions() {
+        // ฟังก์ชันประมวลผลดึงค่าของ User จาก Google Sheet แล้วนำมาวาดจัดเลย์เอาต์ตามโจทย์
+        async function loadAndRenderHeartBoard() {
+            const kamiZone = document.getElementById('kami-zone');
+            const oshiZone = document.getElementById('oshi-zone');
+            
             try {
+                // ดึงข้อมูลแบบเจาะจงรายบุคคลผ่าน Parameter
                 const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
                 const res = await response.json();
+                
                 if (res.status === "success") {
-                    if (res.data.kamioshi) document.getElementById('kamioshi-select').value = res.data.kamioshi;
-                    if (res.data.oshi && res.data.oshi[0]) document.getElementById('oshi1-select').value = res.data.oshi[0];
-                    if (res.data.oshi && res.data.oshi[1]) document.getElementById('oshi2-select').value = res.data.oshi[1];
-                    if (res.data.oshi && res.data.oshi[2]) document.getElementById('oshi3-select').value = res.data.oshi[2];
+                    // ล้างข้อมูลหน้าเก่าเพื่อวาดใหม่แบบเรียลไทม์
+                    kamiZone.innerHTML = "";
+                    oshiZone.innerHTML = "";
+                    
+                    // --- 🌟 ส่วนที่ 1: วาดคามิโอชิ (ให้อยู่ตรงกลางเด่นๆ) ---
+                    if (res.data.kamioshi && res.data.kamioshi.toString().trim() !== "") {
+                        const kamiName = res.data.kamioshi.toString().trim();
+                        const kamiImg = memberImageMap[kamiName.toLowerCase()] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+                        
+                        kamiZone.innerHTML = `
+                            <div class="kami-center-section">
+                                <div class="kami-avatar-wrapper">
+                                    <i class="fa-solid fa-crown crown-icon"></i>
+                                    <img src="${kamiImg}" class="kami-avatar" alt="${kamiName}">
+                                    <button type="button" class="btn-delete-kami" onclick="deleteOshiProcess('kami', '${kamiName}')" title="ลบคามิโอชิ">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                                <div class="kami-name">${kamiName}</div>
+                                <span class="kami-badge"><i class="fa-solid fa-star"></i> คามิโอชิหลัก</span>
+                            </div>
+                        `;
+                    } else {
+                        kamiZone.innerHTML = `<div class="no-data" style="margin-bottom:25px;">คุณยังไม่มีคามิโอชิหลัก (กดเลือกคามิได้ที่หน้าหลักแอปพลิเคชัน)</div>`;
+                    }
+
+                    // --- 🎒 ส่วนที่ 2: วาดรายการโอชิสมทบ (เรียงตามตัวอักษร A-Z) ---
+                    // กรองรายชื่อ คัดช่องว่างออก และตัดคนซ้ำกับคามิโอชิออกไปเพื่อความถูกต้อง
+                    const sortedOshis = (res.data.oshi || [])
+                        .map(o => o ? o.toString().trim() : "")
+                        .filter(o => o !== "" && o.toLowerCase() !== (res.data.kamioshi || "").toString().trim().toLowerCase())
+                        // ใช้คำสั่ง localeCompare เพื่อเรียงลำดับภาษาไทย-อังกฤษ (A-Z) อย่างถูกต้องตามรีเควส
+                        .sort((a, b) => a.localeCompare(b, 'th', { sensitivity: 'base' }));
+
+                    if (sortedOshis.length > 0) {
+                        sortedOshis.forEach(oshiName => {
+                            const oshiImg = memberImageMap[oshiName.toLowerCase()] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+                            
+                            oshiZone.innerHTML += `
+                                <div class="oshi-row-card">
+                                    <img src="${oshiImg}" class="oshi-avatar" alt="${oshiName}">
+                                    <div class="oshi-details">
+                                        <div class="oshi-name">${oshiName}</div>
+                                        <span class="oshi-badge"><i class="fa-solid fa-heart"></i> โอชิ</span>
+                                    </div>
+                                    <button type="button" class="btn-delete-oshi" onclick="deleteOshiProcess('oshi', '${oshiName}')" title="ลบโอชิ">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        oshiZone.innerHTML = `<div class="no-data">คุณยังไม่มีรายชื่อโอชิสมทบในขณะนี้</div>`;
+                    }
+
+                } else {
+                    Swal.fire('ข้อผิดพลาด', res.message, 'error');
                 }
             } catch (err) {
-                console.error("ดึงข้อมูลผู้ใช้ล้มเหลว", err);
+                console.error(err);
+                oshiZone.innerHTML = `<div class="no-data" style="color:red;">โหลดข้อมูลล้มเหลว กรุณาลองใหม่อีกครั้งงับ</div>`;
             }
         }
 
-        document.getElementById('position-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // 💔 ระบบลบโอชิ/คามิออกจากหน้าจอ ยิงตรงอัปเดตชีททันที
+        async function deleteOshiProcess(type, memberName) {
+            const label = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
+            
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการลบงับ?',
+                text: `คุณต้องการลบ ${memberName} ออกจากรายการ ${label} ใช่ไหม?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff85a2',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (!confirm.isConfirmed) return;
+
             Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-            const kamioshi = document.getElementById('kamioshi-select').value;
-            const oshi1 = document.getElementById('oshi1-select').value;
-            const oshi2 = document.getElementById('oshi2-select').value;
-            const oshi3 = document.getElementById('oshi3-select').value;
-
             try {
-                // ส่งค่าผ่าน POST ไปยัง Google Apps Script ไปอัปเดตลงตารางชีท
+                // ส่งคำสั่งแบบ POST ไปที่สคริปต์หลังบ้านโดยอ้างอิงบัญชีผู้ใช้งานที่ส่งมาทาง parameter
                 const response = await fetch(scriptURL, {
                     method: 'POST',
                     body: new URLSearchParams({
-                        action: 'updateOshiPositions',
+                        action: 'removeOshi',
                         username: currentUsername,
-                        kamioshi: kamioshi,
-                        oshi1: oshi1,
-                        oshi2: oshi2,
-                        oshi3: oshi3
+                        type: type, // 'kami' หรือ 'oshi'
+                        memberName: memberName
                     })
                 });
+                
                 const res = await response.json();
                 if (res.status === "success") {
-                    Swal.fire('สำเร็จ!', 'เปลี่ยนตำแหน่งโอชิเรียบร้อยแล้วค่ะ 🌸', 'success').then(() => { window.location.href = 'index.html'; });
+                    Swal.fire('สำเร็จ!', `ลบข้อมูลเรียบร้อยแล้วค่ะ`, 'success');
+                    await loadAndRenderHeartBoard(); // โหลดข้อมูลมาวาดใหม่ทันทีโดยไม่ต้องโหลดทั้งหน้าเว็บ
                 } else {
-                    Swal.fire('ข้อผิดพลาด', res.message || 'บันทึกไม่สำเร็จ', 'error');
+                    Swal.fire('ล้มเหลว', res.message || 'เกิดข้อผิดพลาดในการลบ', 'error');
                 }
             } catch (err) {
-                Swal.fire('เกิดข้อผิดพลาด!', 'ระบบขัดข้องกรุณาลองใหม่อีกครั้งนะงับ', 'error');
+                Swal.fire('ข้อผิดพลาด!', 'ระบบขัดข้องกรุณาลองใหม่อีกครั้งนะงับ', 'error');
             }
-        });
+        }
     </script>
 </body>
 </html>
