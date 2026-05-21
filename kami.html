@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>BLM48 | จัดตำแหน่งโอชิ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --bg-color: #fffdf5;
+            --kami-gold: #ffd700;
+            --oshi-blue: #87ceeb;
+        }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: var(--primary-pink);
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: #888;
+            font-size: 13px;
+            margin: 0;
+        }
+        .slot-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 20px rgba(255, 133, 162, 0.05);
+            border: 2px solid #fff0f3;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .slot-card.kami { border-color: var(--kami-gold); }
+        .slot-card.oshi { border-color: var(--oshi-blue); }
+        .slot-icon {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 20px;
+        }
+        .kami .slot-icon { background: var(--kami-gold); }
+        .oshi .slot-icon { background: var(--oshi-blue); }
+        .slot-info { flex: 1; }
+        .slot-label { font-size: 12px; color: #aaa; font-weight: bold; }
+        .select-member {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1.5px solid #eee;
+            font-family: 'Kanit';
+            outline: none;
+            margin-top: 5px;
+        }
+        .btn-save {
+            width: 100%;
+            height: 50px;
+            background: var(--primary-pink);
+            color: white; border: none;
+            border-radius: 15px;
+            font-family: 'Kanit';
+            font-size: 16px; font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255,133,162,0.3);
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+        .btn-save:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .btn-back {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .btn-back a { color: #aaa; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>🌸 จัดตำแหน่งห้องหัวใจ</h1>
+            <p>เลือกเมมเบอร์ที่คุณชื่นชอบเพื่อแสดงบนหน้าบอร์ดสมาชิก</p>
+        </div>
+
+        <form id="position-form">
+            <div class="slot-card kami">
+                <div class="slot-icon"><i class="fa-solid fa-crown"></i></div>
+                <div class="slot-info">
+                    <span class="slot-label">KAMIOSHI (คามิหลัก)</span>
+                    <select id="kamioshi-select" class="select-member">
+                        <option value="">-- เลือกคามิโอชิหลัก --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="slot-card oshi">
+                <div class="slot-icon"><i class="fa-solid fa-heart"></i></div>
+                <div class="slot-info">
+                    <span class="slot-label">OSHI #1</span>
+                    <select id="oshi1-select" class="select-member oshi-dropdown">
+                        <option value="">-- เลือกโอชิคนที่ 1 --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="slot-card oshi">
+                <div class="slot-icon"><i class="fa-solid fa-heart"></i></div>
+                <div class="slot-info">
+                    <span class="slot-label">OSHI #2</span>
+                    <select id="oshi2-select" class="select-member oshi-dropdown">
+                        <option value="">-- เลือกโอชิคนที่ 2 --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="slot-card oshi">
+                <div class="slot-icon"><i class="fa-solid fa-heart"></i></div>
+                <div class="slot-info">
+                    <span class="slot-label">OSHI #3</span>
+                    <select id="oshi3-select" class="select-member oshi-dropdown">
+                        <option value="">-- เลือกโอชิคนที่ 3 --</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> บันทึกตำแหน่งตำแหน่ง</button>
+        </form>
+
+        <div class="btn-back">
+            <a href="index.html"><i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก</a>
+        </div>
+    </div>
+
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+        const currentUsername = localStorage.getItem('username') || "";
+
+        window.onload = async () => {
+            if (!currentUsername) {
+                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบชื่อผู้ใช้งานของคุณ', 'error').then(() => { window.location.href = 'index.html'; });
+                return;
+            }
+            await loadMembersDropdown();
+            await fetchCurrentUserPositions();
+        };
+
+        async function loadMembersDropdown() {
+            try {
+                const response = await fetch(`${scriptURL}?action=getRanking`);
+                const members = await response.json();
+                const selects = document.querySelectorAll('.select-member');
+                
+                members.forEach(m => {
+                    selects.forEach(select => {
+                        const opt = document.createElement('option');
+                        opt.value = m.name;
+                        opt.textContent = m.name;
+                        select.appendChild(opt);
+                    });
+                });
+            } catch (err) {
+                console.error("โหลดรายชื่อเมมเบอร์ล้มเหลว", err);
+            }
+        }
+
+        async function fetchCurrentUserPositions() {
+            try {
+                const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
+                const res = await response.json();
+                if (res.status === "success") {
+                    if (res.data.kamioshi) document.getElementById('kamioshi-select').value = res.data.kamioshi;
+                    if (res.data.oshi && res.data.oshi[0]) document.getElementById('oshi1-select').value = res.data.oshi[0];
+                    if (res.data.oshi && res.data.oshi[1]) document.getElementById('oshi2-select').value = res.data.oshi[1];
+                    if (res.data.oshi && res.data.oshi[2]) document.getElementById('oshi3-select').value = res.data.oshi[2];
+                }
+            } catch (err) {
+                console.error("ดึงข้อมูลผู้ใช้ล้มเหลว", err);
+            }
+        }
+
+        document.getElementById('position-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            const kamioshi = document.getElementById('kamioshi-select').value;
+            const oshi1 = document.getElementById('oshi1-select').value;
+            const oshi2 = document.getElementById('oshi2-select').value;
+            const oshi3 = document.getElementById('oshi3-select').value;
+
+            try {
+                // ส่งค่าผ่าน POST ไปยัง Google Apps Script ไปอัปเดตลงตารางชีท
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        action: 'updateOshiPositions',
+                        username: currentUsername,
+                        kamioshi: kamioshi,
+                        oshi1: oshi1,
+                        oshi2: oshi2,
+                        oshi3: oshi3
+                    })
+                });
+                const res = await response.json();
+                if (res.status === "success") {
+                    Swal.fire('สำเร็จ!', 'เปลี่ยนตำแหน่งโอชิเรียบร้อยแล้วค่ะ 🌸', 'success').then(() => { window.location.href = 'index.html'; });
+                } else {
+                    Swal.fire('ข้อผิดพลาด', res.message || 'บันทึกไม่สำเร็จ', 'error');
+                }
+            } catch (err) {
+                Swal.fire('เกิดข้อผิดพลาด!', 'ระบบขัดข้องกรุณาลองใหม่อีกครั้งนะงับ', 'error');
+            }
+        });
+    </script>
+</body>
+</html>
