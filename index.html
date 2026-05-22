@@ -194,38 +194,122 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .btn-locked { background: #ccc !important; cursor: not-allowed; opacity: 0.7; }
 
     /* Ranking & Lists */
-    .section-title { font-family: 'Kanit'; font-weight: 600; color: #444; margin: 30px 0 15px 20px; font-size: 18px; border-left: 5px solid var(--primary-pink); padding-left: 12px; }
-    .ranking-wrapper { width: 100%; overflow-x: auto; padding-bottom: 15px; -webkit-overflow-scrolling: touch; }
-    .horizontal-list { display: flex; gap: 18px; padding: 10px 20px; min-width: max-content; align-items: flex-end; }
+    /* Ranking & Lists */
+    .section-title { 
+      font-family: 'Kanit', sans-serif; 
+      font-weight: 600; 
+      color: #444; 
+      margin: 30px 0 15px 20px; 
+      font-size: 18px; 
+      border-left: 5px solid var(--primary-pink); 
+      padding-left: 12px; 
+    }
+    .ranking-wrapper { 
+      width: 100%; 
+      overflow-x: auto; 
+      padding-bottom: 25px; /* เพิ่มพื้นที่ด้านล่างเวลา Hover การ์ดจะได้ไม่โดนตัด */
+      -webkit-overflow-scrolling: touch; 
+    }
+    
+    /* จัดวางฐานให้ขอบล่างเสมอกันเพื่อทำเป็นกราฟแท่ง */
+    .horizontal-list { 
+      display: flex; 
+      gap: 12px; /* ลดระยะห่างให้แท่งชิดกันขึ้นนิดนึง */
+      padding: 10px 20px; 
+      min-width: max-content; 
+      align-items: flex-end; /* ล็อกให้ทุกแท่งตั้งอยู่บนพื้นระดับเดียวกัน */
+    }
 
-    /* Member Card */
-    .member-card { width: 170px; text-align: center; background: white; padding: 25px 15px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 2.5px solid transparent; transition: 0.3s ease; }
-    .member-card:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.08); }
-    .rank-1 { height: 310px; border-color: var(--gold); background: linear-gradient(to bottom, #fffef0, #ffffff); }
-    .rank-2 { height: 280px; border-color: var(--silver); }
-    .rank-3 { height: 260px; border-color: var(--bronze); }
-    .rank-other { height: 240px; border-color: #f5f5f5; }
+    /* 🎀 Member Card - ทรงแท่งกราฟหัวมน */
+    .member-card { 
+      width: 90px; /* บีบให้เป็นกรอบเล็กแบบ BNK48 */
+      text-align: center; 
+      background: white; 
+      padding: 15px 10px; /* ลดขอบข้างในลง */
+      border-radius: 60px 60px 24px 24px; /* ✨ หัวกลมมน ฐานโค้งนิดๆ ไม่เหลี่ยม */
+      box-shadow: 0 6px 15px rgba(0,0,0,0.05); 
+      border: 2.5px solid transparent; 
+      transition: 0.3s ease; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .member-card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+    }
+    
+    /* ความสูงไล่ระดับตาม Rank */
+    .rank-1 { height: 260px; border-color: var(--gold); background: linear-gradient(to bottom, #fffef0, #ffffff); }
+    .rank-2 { height: 230px; border-color: var(--silver); }
+    .rank-3 { height: 210px; border-color: var(--bronze); }
+    .rank-other { height: 180px; border-color: #f5f5f5; }
 
-    .img-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 12px; border-radius: 50%; padding: 4px; background: white; border: 3px solid var(--violet-border); cursor: pointer; }
-    .rank-1 .img-wrapper { width: 115px; height: 115px; border-color: var(--gold); }
+    /* โซนรูปภาพให้รับกับหัวกลม */
+    .img-wrapper { 
+      position: relative; 
+      width: 75px; /* ย่อรูปให้เข้ากับแท่ง */
+      height: 75px; 
+      margin: 0 auto 10px; 
+      border-radius: 50%; 
+      padding: 3px; 
+      background: white; 
+      border: 3px solid var(--violet-border); /* หรือใช้ --primary-pink ก็ได้นะคะ */
+      cursor: pointer; 
+    }
+    .rank-1 .img-wrapper { width: 85px; height: 85px; border-color: var(--gold); }
     .img-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
     
-    .rank-badge { position: absolute; bottom: -5px; right: -5px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2.5px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.1); font-size: 13px; }
-    .rank-1 .rank-badge { background: var(--gold); color: white; width: 38px; height: 38px; }
+    /* ป้ายตัวเลข Rank */
+    .rank-badge { 
+      position: absolute; 
+      bottom: -2px; 
+      right: -2px; 
+      width: 24px; 
+      height: 24px; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: bold; 
+      border: 2px solid white; 
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1); 
+      font-size: 11px; 
+    }
+    .rank-1 .rank-badge { background: var(--gold); color: white; width: 28px; height: 28px; font-size: 13px; }
     .rank-2 .rank-badge { background: var(--silver); color: white; }
     .rank-3 .rank-badge { background: var(--bronze); color: white; }
     .rank-other .rank-badge { background: #eee; color: #888; }
 
-    .name-text { font-weight: 700; color: #333; font-size: 16px; text-transform: uppercase; margin-bottom: 2px; }
-    .gen-text { font-size: 10px; color: #bbb; letter-spacing: 1px; margin-bottom: 8px; font-weight: 500; }
-    .cookie-text { font-size: 16px; color: var(--primary-pink); font-weight: 800; margin-bottom: 12px; }
+    /* ข้อความสถิติ */
+    .name-text { font-weight: 700; color: #333; font-size: 13px; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+    .gen-text { font-size: 9px; color: #bbb; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 500; }
+    .cookie-text { font-size: 13px; color: var(--primary-pink); font-weight: 800; margin-bottom: auto; /* ดันปุ่มกดให้ไปอยู่ขอบล่างเสมอ */ }
 
-    .btn-group { display: flex; justify-content: center; gap: 5px; }
-    .btn-action { border: none; border-radius: 8px; padding: 6px 10px; font-size: 10px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    /* กลุ่มปุ่มกด: เปลี่ยนมาเรียงแนวตั้งให้เข้ากับแท่งกราฟ */
+    .btn-group { 
+      display: flex; 
+      flex-direction: column; /* เปลี่ยนเป็นแนวตั้ง */
+      gap: 5px; 
+      width: 100%;
+      margin-top: 10px;
+    }
+    .btn-action { 
+      border: none; 
+      border-radius: 8px; 
+      padding: 6px 0; 
+      font-size: 9px; 
+      font-family: 'Kanit', sans-serif; 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: 0.2s; 
+      width: 100%; /* ให้ปุ่มกว้างเต็มกรอบแท่ง */
+    }
     .btn-kami { background: #fff0f3; color: var(--primary-pink); }
     .btn-oshi { background: #eef9ff; color: #0077b6; }
     .btn-give { background: #fffceb; color: #b08d00; }
-    .btn-action:hover { filter: brightness(0.95); transform: scale(1.05); }
+    .btn-action:hover { filter: brightness(0.95); transform: scale(1.03); }
     
     /* Modals & Stats */
     #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); z-index: 1000; overflow-y: auto; padding: 40px 10px; box-sizing: border-box; }
@@ -694,18 +778,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 </div>
 
-<div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
-    <div class="preview-modal-content" onclick="event.stopPropagation()" style="border-radius: 20px; overflow: hidden;">
-        <span class="preview-close-btn" onclick="closeImagePreview()">&times;</span>
-        
-        <img id="preview-target-img" src="" alt="Item Preview" style="display: block; max-width: 100%;">
-        
-        <a id="download-item-btn" href="#" download="BLM48_Item.png" class="save-image-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Kanit', sans-serif;">
-            <i class="fas fa-download"></i> Save Image
-        </a>
-    </div>
-</div>
-
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
 
@@ -1099,12 +1171,6 @@ function renderRanking(data) {
       <div class="cookie-text" style="margin-bottom: 15px;">
         <i class="fas fa-cookie-bite" style="color: #d2691e;"></i> 
         ${Number(m.monthly_cookies || 0).toLocaleString()}
-      </div>
-
-      <div class="btn-group">
-        <button class="btn-action btn-kami ${isMember ? 'btn-locked' : ''}" onclick="setOshi('kami', '${m.name}')">KAMI</button>
-        <button class="btn-action btn-oshi ${isMember ? 'btn-locked' : ''}" onclick="setOshi('oshi', '${m.name}')">OSHI</button>
-        <button class="btn-action btn-give ${isMember ? 'btn-locked' : ''}" onclick="giveCookie('${m.name}')">SEND</button>
       </div>
     `;
     list.appendChild(card);
