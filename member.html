@@ -417,11 +417,20 @@
       }
     }
 
-    function getImg(url) {
-    if (!url || url.includes('placeholder')) {
-        // ใช้รูป Default ของคุณเองแทนการเรียกผ่านเว็บ
-        return 'assets/no-image.png'; 
+    // ฟังก์ชันจัดการ URL รูปภาพ
+function getMemberImage(url) {
+    // 1. ถ้าลิงก์ว่างหรือไม่มีข้อมูล ให้ใช้รูป default
+    if (!url || url.trim() === "") {
+        return 'assets/images/default-profile.png'; 
     }
+    
+    // 2. ถ้าเป็นลิงก์ Google (lh3.googleusercontent.com) มักจะมีปัญหาเรื่องขนาด
+    // หากต้องการให้โหลดเร็วขึ้น อาจต้องเติมพารามิเตอร์ต่อท้าย เช่น '=s200' 
+    // เพื่อบีบขนาดรูปให้เหมาะสมกับหน้าจอ
+    if (url.includes('googleusercontent.com')) {
+        return url + '=s200';
+    }
+    
     return url;
 }
 
@@ -457,27 +466,30 @@
       const fanContainer = document.getElementById('member-fans-content');
       fanContainer.innerHTML = '';
 
-      if (savedFans) {
-        const fans = JSON.parse(savedFans);
-        if (fans.length === 0) {
-          fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
-        } else {
-          fans.slice(0, 10).forEach((f, idx) => {
-            const row = document.createElement('div');
-            row.className = 'fan-row';
-            row.innerHTML = `
-              <div class="fan-rank">${idx + 1}</div>
-              <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://via.placeholder.com/150'">
-              <div class="fan-meta">
-                <div class="fan-name">${f.name || f.username}</div>
-                <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
-              </div>
-            `;
-            fanContainer.appendChild(row);
-          });
-        }
-      }
-    }
+     if (savedFans) {
+  const fans = JSON.parse(savedFans);
+  if (fans.length === 0) {
+    fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+  } else {
+    fans.slice(0, 10).forEach((f, idx) => {
+      const row = document.createElement('div');
+      row.className = 'fan-row';
+      
+      // ตรงนี้คือจุดสำคัญ: เราแก้จาก placeholder เป็น path รูปที่คุณมีจริงๆ ในโปรเจกต์
+      row.innerHTML = `
+        <div class="fan-rank">${idx + 1}</div>
+        <img src="${getImg(f.img)}" 
+             class="fan-avatar" 
+             onerror="this.src='assets/images/default-fan.png'"> 
+        <div class="fan-meta">
+          <div class="fan-name">${f.name || f.username}</div>
+          <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
+        </div>
+      `;
+      fanContainer.appendChild(row);
+    });
+  }
+}
 
     // โหลดข้อมูลเริ่มต้นเมื่อเปิดหน้าเว็บ
     function loadMemberData() {
