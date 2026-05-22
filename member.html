@@ -670,6 +670,27 @@ function formatMemberScore(num) {
   }
   return number.toLocaleString(); // ถ้าไม่ถึงพันให้โชว์เลขปกติ
 }
+  
+  async function loadMemberData() {
+  console.log("เริ่มโหลดหน้า...");
+  if (!memberName) {
+    console.log("ไม่พบชื่อเมมเบอร์");
+    window.location.href = 'index.html';
+    return;
+  }
+  
+  user = getUserSession();
+  console.log("ได้ข้อมูล User:", user);
+  
+  document.getElementById('mb-name').innerText = memberName;
+  
+  renderMemberStatsAndFans();
+  updateButtonStyles();
+  
+  console.log("กำลังดึงข้อมูลจากหลังบ้าน...");
+  await fetchLatestMemberStats();
+  console.log("โหลดข้อมูลเสร็จสิ้น");
+}
 
     // 🍪 ฟังก์ชันปาคุกกี้ ยิงลง Google Sheets จริง
     function actionCookie() {
