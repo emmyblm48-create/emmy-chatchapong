@@ -176,25 +176,47 @@
     </div>
   </div>
 
-  <script>
+<script>
     const urlParams = new URLSearchParams(window.location.search);
     const memberName = urlParams.get('name');
+    let user = null; // ตัวแปรเก็บข้อมูลผู้ใช้ที่ล็อกอินอยู่ปัจจุบัน
 
-    // ฟังก์ชันช่วยจัดการรูปภาพ (จำลองแบบดั้งเดิมของคุณเอ็มมี่ ถ้ามีฟังก์ชัน getImg จริง สามารถเอามาใส่ได้เลยนะคะ)
+    // 👑 ฟังก์ชันแกะเซสชันตัวเดียวกับหน้า index.html เป๊ะๆ
+    function getUserSession() {
+      const str = localStorage.getItem('bnl_session');
+      if (!str) return null;
+      try {
+        const obj = JSON.parse(str);
+        // ตรวจสอบวันหมดอายุ (ถ้าหมดอายุแล้วให้ลบเซสชันทันที)
+        if (new Date().getTime() > obj.expiry) {
+          localStorage.removeItem('bnl_session');
+          return null;
+        }
+        return obj.data; // คืนค่าข้อมูล user จริงออกไปใช้งาน
+      } catch (e) {
+        return null;
+      }
+    }
+
     function getImg(url) {
       if(!url) return 'https://via.placeholder.com/150';
       return url;
     }
 
+    // ฟังก์ชันโหลดข้อมูลเมมเบอร์และสถิติ
     function loadMemberData() {
       if (!memberName) {
         window.location.href = 'index.html';
         return;
       }
 
+      // ดึงเซสชันผู้ใช้มาสแตนด์บายไว้ในหน้านี้
+      user = getUserSession();
+      console.log("ผู้ใช้ปัจจุบันในหน้านี้คือ:", user ? user.name : "Guest");
+
       document.getElementById('mb-name').innerText = memberName;
 
-      // 1. ดึงสถิติที่บันทึกไว้จาก localStorage
+      // ดึงสถิติของเมมเบอร์ที่ส่งมาจากหน้าหลัก
       const savedStats = localStorage.getItem('current_member_stats');
       if (savedStats) {
         const m = JSON.parse(savedStats);
@@ -204,18 +226,16 @@
         document.getElementById('mb-score').innerText = Number(m.all_time_total || 0).toLocaleString();
       }
 
-      // 2. ดึงรายชื่อ Top Fans มาเรนเดอร์ลงตารางด้านล่างแบบเดียวกับ PopUp เดิม
+      // ดึงทำเนียบแฟนคลับประจำเดือน
       const savedFans = localStorage.getItem('current_member_fans');
       const fanContainer = document.getElementById('member-fans-content');
       fanContainer.innerHTML = '';
 
       if (savedFans) {
         const fans = JSON.parse(savedFans);
-        
         if (fans.length === 0) {
-          fanContainer.innerHTML = '<div style="padding:15px; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+          fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
         } else {
-          // แสดงผลสูงสุด 10 อันดับแรก
           fans.slice(0, 10).forEach((f, idx) => {
             const row = document.createElement('div');
             row.className = 'fan-row';
@@ -223,10 +243,10 @@
 
             row.innerHTML = `
               <div class="fan-rank">${idx + 1}</div>
-              <img src="${getImg(f.img)}" class="fan-img" onerror="this.src='https://via.placeholder.com/150'">
-              <div class="fan-info">
+              <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://via.placeholder.com/150'">
+              <div class="fan-meta">
                 <div class="fan-name">${fanDisplayName}</div>
-                <div class="fan-cookies"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
+                <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
               </div>
             `;
             fanContainer.appendChild(row);
@@ -237,25 +257,82 @@
 
     function goBack() { window.location.href = 'index.html'; }
 
-    // ฟังก์ชันกิจกรรมปุ่มกดต่างๆ
-    function actionKami() { Swal.fire('สำเร็จ', `เลือก ${memberName} เป็นคามิโอชิเรียบร้อยแล้วค่ะ 👑`, 'success'); }
-    function actionOshi() { Swal.fire('สำเร็จ', `เพิ่ม ${memberName} เข้าลิสต์โอชิแล้วค่ะ ❤️`, 'success'); }
+    // 🔒 ฟังก์ชันส่วนกลางสำหรับเช็คว่าผู้ใช้ล็อกอินหรือยังก่อนทำกิจกรรม
+    function checkLoginStatus() {
+      if (!user) {
+        Swal.fire({
+          title: 'กรุณาเข้าสู่ระบบ',
+          text: 'คุณต้องเข้าสู่ระบบก่อนจึงจะร่วมกิจกรรมกับเมมเบอร์ได้ค่ะ 🌸',
+          icon: 'warning',
+          confirmButtonColor: '#ff85a2',
+          confirmButtonText: 'รับทราบ'
+        });
+        return false;
+      }
+      return true;
+    }
+
+    // 👑 กิจกรรมเลือกคามิโอชิ
+    function actionKami() { 
+      if (!checkLoginStatus()) return;
+      Swal.fire('สำเร็จ', `เลือก ${memberName} เป็นคามิโอชิเรียบร้อยแล้วค่ะ 👑`, 'success'); 
+    }
+
+    // ❤️ กิจกรรมกดโอชิ
+    function actionOshi() { 
+      if (!checkLoginStatus()) return;
+      Swal.fire('สำเร็จ', `เพิ่ม ${memberName} เข้าลิสต์โอชิแล้วค่ะ ❤️`, 'success'); 
+    }
+
+    // 🍪 กิจกรรมปาคุกกี้ (เชื่อมโยงกับกระเป๋าเงินจริงของผู้ใช้)
     function actionCookie() {
+      if (!checkLoginStatus()) return;
+
+      // ตรวจเช็คว่าผู้ใช้มีคุกกี้เหลืออยู่เท่าไหร่
+      const userCookies = user.cookie || 0;
+
       Swal.fire({
         title: `ปาคุกกี้ให้ ${memberName}`,
+        html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${userCookies.toLocaleString()}</b> ชิ้น</p>`,
         input: 'number',
-        inputLabel: 'กรอกจำนวนคุกกี้ที่จะส่ง',
-        inputPlaceholder: '0',
+        inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการส่ง',
         showCancelButton: true,
-        confirmButtonColor: '#ff85a2'
+        confirmButtonColor: '#ff85a2',
+        confirmButtonText: 'ส่งคุกกี้',
+        cancelButtonText: 'ยกเลิก',
+        inputValidator: (value) => {
+          if (!value || parseInt(value) <= 0) {
+            return 'กรุณาระบุจำนวนคุกกี้ที่ถูกต้องด้วยงับ!';
+          }
+          if (parseInt(value) > userCookies) {
+            return `คุกกี้ไม่พอค่ะ! คุณมีคุกกี้เหลือแค่ ${userCookies.toLocaleString()} ชิ้นเท่านั้น`;
+          }
+        }
       }).then((result) => {
         if (result.value) {
-          Swal.fire('ขอบคุณค่ะ', `ส่งคุกกี้จำนวน ${Number(result.value).toLocaleString()} ชิ้นเรียบร้อยแล้วงับ 🍪`, 'success');
+          const amountSent = parseInt(result.value);
+          
+          // หักคุกกี้จำลองในเครื่องก่อนส่งไปอัปเดตเซิร์ฟเวอร์
+          user.cookie -= amountSent;
+          
+          // บันทึกค่าที่หักแล้วกลับเข้าเซสชันเครื่อง
+          const sessionData = JSON.parse(localStorage.getItem('bnl_session'));
+          sessionData.data = user;
+          localStorage.setItem('bnl_session', JSON.stringify(sessionData));
+
+          Swal.fire({
+            title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ',
+            text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`,
+            icon: 'success',
+            confirmButtonColor: '#ff85a2'
+          });
+          
+          // (เพิ่มเติมในอนาคต: คุณเอ็มมี่สามารถเขียนฟังก์ชันยิง API อัปเดตขึ้น Firebase Realtime Database ต่อจากตรงนี้ได้เลยค่ะ)
         }
       });
     }
 
     window.onload = loadMemberData;
-  </script>
+</script>
 </body>
 </html>
