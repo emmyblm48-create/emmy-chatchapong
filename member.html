@@ -48,55 +48,88 @@
       color: var(--dark-text);
     }
 
-    /* 📱💻 โครงสร้าง Responsive ปรับตามขนาดอุปกรณ์แบบสมบูรณ์ */
+    /* 📱 โครงสร้างหลัก (Mobile First) */
     .app-layout {
       width: 100%;
-      max-width: 480px; /* ขนาดมาตรฐานบนสมาร์ตโฟน */
+      max-width: 480px;
       background: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       position: relative;
       box-shadow: 0 0 40px rgba(255, 133, 162, 0.08);
-      transition: all 0.3s ease;
     }
 
-    /* 🖥️🖥️ เมื่อเปิดบนคอมพิวเตอร์หรือไอแพดหน้าจอกว้าง (Responsive Magic) */
+    /* 📸 โซนรูปเมมเบอร์บนมือถือ */
+    .hero-image-container {
+      width: 100%;
+      height: 480px; /* เพิ่มความสูงบนมือถืออีกนิดให้ดูเต็มตา */
+      position: relative;
+      overflow: hidden;
+      background: #f3f3f3;
+    }
+    .hero-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top; /* ให้โฟกัสที่ท่อนบนและใบหน้าเมมเบอร์เสมอ */
+    }
+    
+    /* Shade สีขาวบนมือถือ (ไล่จากล่างขึ้นบน) */
+    .hero-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(to top, #ffffff 15%, transparent);
+      z-index: 1;
+    }
+
+    /* 💻 เมื่อเปิดบน iPad / Tablet / PC (ปรับมุมมอง White Shade และรูปภาพ 100%) */
     @media (min-width: 768px) {
       body {
-        padding: 30px 20px;
+        padding: 40px 20px;
         align-items: center;
       }
       .app-layout {
-        max-width: 900px; /* ขยายความกว้างเต็มตาขึ้นบนหน้าจอใหญ่ */
+        max-width: 880px;
         min-height: auto;
-        border-radius: 24px;
-        flex-direction: row; /* สลับซ้าย-ขวา: ซ้ายรูปภาพ / ขวาข้อมูลสถิติและปุ่ม */
+        border-radius: 28px;
+        flex-direction: row; /* แบ่งซ้าย-ขวา */
         overflow: hidden;
+        align-items: stretch; /* บังคับให้ฝั่งซ้ายและขวาสูงเท่ากัน 100% */
       }
+      
+      /* รูปภาพฝั่งซ้าย สูงเต็ม 100% ตามเนื้อหาฝั่งขวา ไม่โดนตัดขาด */
       .hero-image-container {
-        width: 45%; /* รูปภาพอยู่ฝั่งซ้ายครึ่งนึง */
-        height: 600px !important;
+        width: 45%;
+        height: auto !important; /* ปลดล็อกความสูงตายตัว */
+        min-height: 580px;
       }
-      .profile-body {
-        width: 55%; /* ข้อมูลหลักอยู่ฝั่งขวา */
-        margin-top: 0 !important;
-        padding: 40px 30px !important;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
+      
+      /* ปรับมุม White Shade ใหม่ตามที่คุณเอ็มมี่อยากลอง: 
+         ไล่เฉดนุ่มๆ จากมุมล่างขึ้นมา เพื่อไม่ให้บังหน้าเมมเบอร์ด้านบน */
       .hero-gradient {
-        background: linear-gradient(to right, #ffffff, transparent) !important;
-        width: 120px !important;
+        background: linear-gradient(to top, #ffffff 5%, rgba(255,255,255,0.4) 40%, transparent 80%) !important;
+        width: 100% !important;
         height: 100% !important;
         top: 0;
-        right: 0;
-        left: auto !important;
+        left: 0;
+      }
+
+      /* ข้อมูลฝั่งขวา */
+      .profile-body {
+        width: 55%;
+        margin-top: 0 !important;
+        padding: 45px 35px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* จัดเนื้อหาให้อยู่กึ่งกลางแนวดิ่งสวยๆ */
       }
     }
 
-    /* ปุ่มย้อนกลับแบบลอยเหนือรูปภาพ */
+    /* ปุ่มย้อนกลับลอยเหนือรูป */
     .back-circle-btn {
       position: absolute;
       top: 20px;
@@ -118,32 +151,10 @@
     }
     .back-circle-btn:hover { transform: scale(1.08); background: #fff; }
 
-    /* 📸 โซนรูปเมมเบอร์ขนาดใหญ่ */
-    .hero-image-container {
-      width: 100%;
-      height: 450px;
-      position: relative;
-      overflow: hidden;
-      background: #f3f3f3;
-    }
-    .hero-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .hero-gradient {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 120px;
-      background: linear-gradient(to top, #ffffff, transparent);
-    }
-
     /* 🌸 ส่วนข้อมูลเมมเบอร์ */
     .profile-body {
-      padding: 0 24px 30px 24px;
-      margin-top: -40px;
+      padding: 0 24px 35px 24px;
+      margin-top: -50px;
       position: relative;
       z-index: 2;
     }
@@ -199,7 +210,7 @@
     }
     .stat-num.pink { color: var(--blmem-pink); }
 
-    /* 🎀 โซนปุ่มกดโต้ตอบ สไตล์ BLM48 (พร้อมอัปเดต ID เพื่อรองรับระบบจริง) */
+    /* 🎀 ปุ่มกดโต้ตอบ */
     .interaction-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -221,17 +232,15 @@
     }
     .btn-interact:hover { 
       transform: translateY(-3px); 
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
     }
-    .btn-interact i {
-      font-size: 16px;
-    }
+    .btn-interact i { font-size: 16px; }
     
     .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
     .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
     .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
 
-    /* 🏆 โซนทำเนียบแฟนคลับ (Leaderboard) */
+    /* 🏆 โซนทำเนียบแฟนคลับ */
     .leaderboard-section {
       background: #fffdfd;
       border-radius: 22px;
@@ -249,10 +258,7 @@
     }
     .leaderboard-title i { color: var(--gold-kami); }
 
-    .fan-list {
-      display: flex;
-      flex-direction: column;
-    }
+    .fan-list { display: flex; flex-direction: column; }
     .fan-row {
       display: flex;
       align-items: center;
@@ -291,7 +297,7 @@
       gap: 3px;
       margin-top: 2px;
     }
-  </style>
+</style>
 </head>
 <body>
 
@@ -338,7 +344,7 @@
       </div>
 
       <div class="leaderboard-section">
-        <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans ผู้สนับสนุนประจำเดือน</div>
+        <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans</div>
         <div id="member-fans-content" class="fan-list">
           </div>
       </div>
@@ -515,7 +521,7 @@
       if (type === 'kami') {
         if (currentKamioshi === searchName) {
           action = "removeOshi";
-          confirmText = `คุณต้องการลบ ${memberName} ออกจากรายการ "คามิโอชิหลัก" ใช่ไหมงับ?`;
+          confirmText = `คุณต้องการลบ ${memberName} ออกจากรายการ "คามิโอชิ" ใช่ไหมงับ?`;
           subTitle = "ยกเลิกคามิโอชิ";
         } else {
           action = "setKamioshi"; // อ้างอิงตามชื่อฟังก์ชันในหลังบ้านของคุณเอ็มมี่
@@ -527,7 +533,7 @@
       } else {
         // ดักจับกรณีเป็นคามิอยู่แล้ว ไม่ให้กดซ้ำซ้อนเป็นโอชิ
         if (currentKamioshi === searchName) {
-          return Swal.fire('ข้อมูลซ้ำซ้อน', `${memberName} เป็นคามิโอชิหลักของคุณอยู่แล้วค่ะ 👑`, 'warning');
+          return Swal.fire('ข้อมูลซ้ำซ้อน', `${memberName} เป็นคามิโอชิของคุณอยู่แล้วค่ะ 👑`, 'warning');
         }
 
         if (isAlreadyOshi) {
@@ -536,7 +542,7 @@
           subTitle = "ยกเลิกการติดตาม";
         } else {
           action = "setOshi";
-          confirmText = `ติดตาม (Oshi) ${memberName} เพิ่มในลิสต์ใช่หรือไม่?`;
+          confirmText = `ติดตาม (Oshi) ${memberName} ใช่หรือไม่?`;
           subTitle = "ยืนยันรายการ";
         }
       }
@@ -555,7 +561,7 @@
       if (!finalConfirm.isConfirmed) return;
 
       Swal.fire({ 
-        title: 'กำลังอัปเดตข้อมูลลง Google Sheet...', 
+        title: 'กำลังอัปเดตข้อมูล...', 
         allowOutsideClick: false, 
         didOpen: () => Swal.showLoading() 
       });
