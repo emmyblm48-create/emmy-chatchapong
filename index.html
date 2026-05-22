@@ -932,9 +932,10 @@ window.onload = () => {
       renderGlobalFans(currentTopFansData);
     } catch(e) { console.error("Load Error:", e); }
   }  
-  
-
+ 
 function updateUI() {
+  console.log("ฟังก์ชัน updateUI ทำงาน! ค่า user ณ ตอนนี้คือ:", user);
+
   const bar = document.getElementById('user-bar');
   if (!bar) return; // ถ้าหาแถบโปรไฟล์ไม่เจอ ให้หยุดทำงานทันที ไม่ต้องทำต่อ
 
@@ -1551,7 +1552,7 @@ async function refreshAppData() {
     await loadData(); 
     // ถ้ามี User ล็อกอินอยู่ ให้ซิงค์ข้อมูลกระเป๋าเงินด้วย
     if (typeof user !== 'undefined' && user) {
-      await syncUserData();
+      await syncUserData(); 
     }
     console.log("Data Refreshed!");
   } catch (error) {
@@ -1559,14 +1560,23 @@ async function refreshAppData() {
   } finally {
     // หน่วงเวลาเล็กน้อยเพื่อให้ดูเหมือนแอปกำลังโหลดจริงๆ (เลือกปรับได้)
     setTimeout(hideAppLoading, 1000);
-  }
+  } 
 }
 
-// ดักจับเหตุการณ์เมื่อผู้ใช้สลับแอปกลับมาที่ Browser
-document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'visible') {
-    console.log('กลับเข้าสู่แอป - กำลังอัปเดตข้อมูลล่าสุด...');
-    refreshAppData();
+// ใส่ดักจับตอนหน้าเว็บโหลดเสร็จสมบูรณ์
+document.addEventListener("DOMContentLoaded", () => {
+  
+  // 1. 👑 เรียกใช้ฟังก์ชันแกะเซสชันที่คุณเอ็มมี่เขียนไว้ได้เลย (มันจะเช็คคีย์ bnl_session และเช็ควันหมดอายุให้อัตโนมัติ!)
+  user = getUserSession(); 
+  
+  // 2. สั่งรันฟังก์ชันวาดหน้าจอทันที! ถ้ามีข้อมูลผู้ใช้ค้างอยู่ หน้าโปรไฟล์ก็จะขึ้นสวยงาม ไม่หลุดเป็น Guest แล้วค่ะ
+  updateUI();
+  
+  // 3. ⚡ ซ่อนหน้า Loading Screen และสั่งซิงค์ข้อมูลใหม่ล่าสุดจากระบบหลังบ้านเงียบๆ
+  hideAppLoading(); 
+  loadData();
+  if (user) {
+    syncUserData(); 
   }
 });
 
@@ -1601,21 +1611,25 @@ window.addEventListener('DOMContentLoaded', () => {
     c.style.animationDuration = (Math.random() * 3 + 4) + 's';
     document.body.appendChild(c);
     setTimeout(() => c.remove(), 6000);
-  }, 5000);
+  }, 5000);  
   
-  // ใส่ดักจับตอนหน้าเว็บโหลดเสร็จสมบูรณ์
+// 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. ดึงข้อมูลเซสชันที่เคยล็อกอินค้างไว้ (ปรับชื่อคีย์ 'user_session' ให้ตรงกับในฟังก์ชัน saveUserSession นะคะ)
-  const savedUser = localStorage.getItem('user_session'); 
   
-  if (savedUser) {
-    user = JSON.parse(savedUser);
-  } else {
-    user = null; // ถ้าไม่เคยเข้าแอปเลย ให้เคลียร์ค่าเป็น null มั่นใจว่าเป็น Guest
+  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
+  user = getUserSession(); 
+  
+  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
+  updateUI();
+  
+  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
+  hideAppLoading(); 
+  
+  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
+  loadData();
+  if (user) {
+    syncUserData(); 
   }
-  
-  // 2. สั่งรันฟังก์ชันวาดหน้าจอทันที! คนไม่เคยเข้าจะได้เห็นหน้าล็อกอิน (รูปที่ 2) ตั้งแต่แรกเลย
-  updateUI(); 
 });
 </script>
 
