@@ -240,6 +240,28 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
     }
     
+    /* ปรับขนาดรูปโปรไฟล์เมมเบอร์ในตาราง */
+.member-rank-avatar {
+    width: 60px;       /* ขนาดบนมือถือ */
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+/* เมื่อจอใหญ่ขึ้น (iPad/PC) */
+@media (min-width: 768px) {
+    .member-rank-avatar {
+        width: 90px;   /* ขยายขนาดตามอุปกรณ์ */
+        height: 90px;
+    }
+}
+
+/* เพิ่มลูกเล่นเวลาเอาเมาส์ไปชี้ (เฉพาะคอม) */
+.member-rank-avatar:hover {
+    transform: scale(1.05);
+}
+    
     /* ความสูงไล่ระดับตาม Rank */
     .rank-1 { height: 260px; border-color: var(--gold); background: linear-gradient(to bottom, #fffef0, #ffffff); }
     .rank-2 { height: 230px; border-color: var(--silver); }
@@ -1148,12 +1170,20 @@ async function removeOshiFromUI(type, memberName) {
 function renderRanking(data) {
   const list = document.getElementById('ranking-list');
   if (!list) return;
-  list.innerHTML = '';
-  const isMember = isUserMember();
   
-  // กรองข้อมูลและใช้ยอดรายเดือน (monthly_cookies) ในการจัดอันดับ
+  // 1. เคลียร์ข้อมูลเดิม และเช็กก่อนว่ามีข้อมูลไหม
+  list.innerHTML = '';
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">ยังไม่มีข้อมูลการจัดอันดับค่ะ</div>';
+    return;
+  }
+
+  // 2. เริ่มลูปเรนเดอร์
   data.filter(m => m.name).forEach((m, i) => {
+    // กำหนด Class ตามลำดับ
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+    
+    // กำหนด Icon
     let badgeContent = i + 1;
     if (i === 0) badgeContent = '<i class="fas fa-crown"></i>';
     else if (i === 1 || i === 2) badgeContent = '<i class="fas fa-medal"></i>';
@@ -1161,14 +1191,14 @@ function renderRanking(data) {
     const card = document.createElement('div');
     card.className = `member-card ${rankClass}`;
     
+    // ใช้ Template Literal ใส่ข้อมูล
     card.innerHTML = `
-     <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
-        <img src="${getImg(m.profile_img)}" loading="lazy">
-        <div class="rank-badge">${badgeContent}</div>
+      <div class="img-wrapper" onclick="openMemberProfile('${m.name}')" style="cursor:pointer;">
+         <img src="${getImg(m.profile_img)}" class="member-rank-avatar" alt="${m.name}" loading="lazy">
+         <div class="rank-badge">${badgeContent}</div>
       </div>
-      <div class="name-text" style="margin-bottom: 10px;">${m.name}</div>
-
-      <div class="cookie-text" style="margin-bottom: 15px;">
+      <div class="name-text" style="margin-bottom: 10px; font-weight: 500;">${m.name}</div>
+      <div class="cookie-text" style="margin-bottom: 15px; font-size: 0.9em;">
         <i class="fas fa-cookie-bite" style="color: #d2691e;"></i> 
         ${Number(m.monthly_cookies || 0).toLocaleString()}
       </div>
