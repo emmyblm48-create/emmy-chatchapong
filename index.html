@@ -194,214 +194,84 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .btn-locked { background: #ccc !important; cursor: not-allowed; opacity: 0.7; }
 
     /* Ranking & Lists */
-    .section-title { 
-      font-family: 'Kanit', sans-serif; 
-      font-weight: 600; 
-      color: #444; 
-      margin: 30px 0 15px 20px; 
-      font-size: 18px; 
-      border-left: 5px solid var(--primary-pink); 
-      padding-left: 12px; 
-    }
-    .ranking-wrapper { 
-      width: 100%; 
-      overflow-x: auto; 
-      padding-bottom: 25px; /* เพิ่มพื้นที่ด้านล่างเวลา Hover การ์ดจะได้ไม่โดนตัด */
-      display: flex;
-      -webkit-overflow-scrolling: touch; 
-    }
-    
-    /* จัดวางฐานให้ขอบล่างเสมอกันเพื่อทำเป็นกราฟแท่ง */
-    .horizontal-list { 
-      display: flex; 
-      gap: 12px; /* ลดระยะห่างให้แท่งชิดกันขึ้นนิดนึง */
-      padding: 10px 20px; 
-      align-items: flex-end; /* ล็อกให้ทุกแท่งตั้งอยู่บนพื้นระดับเดียวกัน */
-      margin: 0 auto;
-    }
-
-    /* 🎀 Member Card - ทรงแท่งกราฟหัวมน */
-    .member-card { 
-      width: 90px;
-      text-align: center; 
-      background: white; 
-      padding: 15px 10px; /* ลดขอบข้างในลง */
-      border-radius: 60px 60px 24px 24px; /* ✨ หัวกลมมน ฐานโค้งนิดๆ ไม่เหลี่ยม */
-      box-shadow: 0 6px 15px rgba(0,0,0,0.05); 
-      border: 2.5px solid transparent; 
-      transition: 0.3s ease; 
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    .member-card:hover { 
-      transform: translateY(-8px); 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
-    }
-    
-    /* ความสูงไล่ระดับตาม Rank */
-    .rank-1 { height: 260px; border-color: var(--gold); background: linear-gradient(to bottom, #fffef0, #ffffff); }
-    .rank-2 { height: 230px; border-color: var(--silver); }
-    .rank-3 { height: 210px; border-color: var(--bronze); }
-    .rank-other { height: 180px; border-color: #f5f5f5; }
-
-    /* โซนรูปภาพให้รับกับหัวกลม */
-    .img-wrapper { 
-      position: relative; 
-      width: 75px; /* ย่อรูปให้เข้ากับแท่ง */
-      height: 75px; 
-      margin: 0 auto 10px; 
-      border-radius: 50%; 
-      padding: 3px; 
-      background: white; 
-      border: 3px solid var(--violet-border); /* หรือใช้ --primary-pink ก็ได้นะคะ */
-      cursor: pointer; 
-    }
-    .rank-1 .img-wrapper { width: 80px; height: 80px; border-color: var(--gold); }
-    .rank-2 .img-wrapper { width: 80px; height: 80px; border-color: var(--silver); }
-    .rank-3 .img-wrapper { width: 80px; height: 80px; border-color: var(--bronze); }
-    .img-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-    
-    /* ป้ายตัวเลข Rank */
-    .rank-badge { 
-      position: absolute; 
-      bottom: -2px; 
-      right: -2px; 
-      width: 24px; 
-      height: 24px; 
-      border-radius: 50%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-weight: bold; 
-      border: 2px solid white; 
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1); 
-      font-size: 11px; 
-    }
-    .rank-1 .rank-badge { background: var(--gold); color: white; }
-    .rank-2 .rank-badge { background: var(--silver); color: white; }
-    .rank-3 .rank-badge { background: var(--bronze); color: white; }
-    .rank-other .rank-badge { background: #eee; color: #888; }
-
-    /* ข้อความสถิติ */
-    .name-text { font-weight: 700; color: #333; font-size: 13px; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-    .gen-text { font-size: 9px; color: #bbb; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 500; }
-    .cookie-text { font-size: 13px; color: var(--primary-pink); font-weight: 800; margin-bottom: auto; /* ดันปุ่มกดให้ไปอยู่ขอบล่างเสมอ */ }
-
-    /* กลุ่มปุ่มกด: เปลี่ยนมาเรียงแนวตั้งให้เข้ากับแท่งกราฟ */
-    .btn-group { 
-      display: flex; 
-      flex-direction: column; /* เปลี่ยนเป็นแนวตั้ง */
-      gap: 5px; 
-      width: 100%;
-      margin-top: 10px;
-    }
-    .btn-action { 
-      border: none; 
-      border-radius: 8px; 
-      padding: 6px 0; 
-      font-size: 9px; 
-      font-family: 'Kanit', sans-serif; 
-      cursor: pointer; 
-      font-weight: 600; 
-      transition: 0.2s; 
-      width: 100%; /* ให้ปุ่มกว้างเต็มกรอบแท่ง */
-    }
-    .btn-kami { background: #fff0f3; color: var(--primary-pink); }
-    .btn-oshi { background: #eef9ff; color: #0077b6; }
-    .btn-give { background: #fffceb; color: #b08d00; }
-    .btn-action:hover { filter: brightness(0.95); transform: scale(1.03); }
-    
-    @media (max-width: 600px) {
- /* --- Ranking Wrapper (ตัวครอบ) --- */
+   /* 1. สไตล์หลัก (ใช้สำหรับ Desktop/Tablet) */
+.section-title { 
+  font-family: 'Kanit', sans-serif; font-weight: 600; color: #444; 
+  margin: 30px 0 15px 20px; font-size: 18px; 
+  border-left: 5px solid var(--primary-pink); padding-left: 12px; 
+}
 .ranking-wrapper { 
-    display: flex !important; /* บังคับให้เป็น Flex */
-    flex-wrap: nowrap !important; /* ห้ามขึ้นบรรทัดใหม่ */
-    overflow-x: auto !important; /* ให้เลื่อนซ้ายขวาได้ */
-    width: 100% !important; 
-    padding: 10px 10px !important;
-    gap: 8px !important; /* ระยะห่างการ์ด */
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; 
+  width: 100%; overflow-x: auto; padding-bottom: 25px; 
+  display: flex; -webkit-overflow-scrolling: touch; 
 }
-
-/* ซ่อน Scrollbar */
-.ranking-wrapper::-webkit-scrollbar { display: none; }
-      
-     .rank-1 { height:260px; border-color: var(--gold); background: linear-gradient(to bottom, #fffef0, #ffffff); }
-    .rank-2 { height: 230px; border-color: var(--silver); }
-    .rank-3 { height: 210px; border-color: var(--bronze); }
-    .rank-other { height: 180px; border-color: #f5f5f5; }
-
-
-
-/* --- Member Card (การ์ดเมมเบอร์) --- */
+.horizontal-list { 
+  display: flex; gap: 12px; padding: 10px 20px; 
+  align-items: flex-end; margin: 0 auto;
+}
 .member-card { 
-    flex: 0 0 70px !important; /* ล็อกความกว้างไว้ที่ 70px เป๊ะๆ ไม่ขยายไม่หด */
-    width: 70px !important; 
-    text-align: center; 
-    background: white; 
-    padding: 8px 4px !important; 
-    border-radius: 30px 30px 15px 15px !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    border: 2px solid transparent; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    /* ลดความสูงลงเล็กน้อยให้พอดีจอ */
-    height: 160px; 
+  width: 90px; text-align: center; background: white; 
+  padding: 15px 10px; border-radius: 60px 60px 24px 24px; 
+  box-shadow: 0 6px 15px rgba(0,0,0,0.05); border: 2.5px solid transparent; 
+  transition: 0.3s ease; display: flex; flex-direction: column; 
+  align-items: center; position: relative;
 }
-      
- .rank-badge { 
-      position: absolute; 
-      bottom: -2px; 
-      right: -2px; 
-      width: 14px; 
-      height: 14px; 
-      border-radius: 50%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      font-weight: bold; 
-      border: 2px solid white; 
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1); 
-      font-size: 11px; 
-    }
-    .rank-1 .rank-badge { background: var(--gold); color: white; }
-    .rank-2 .rank-badge { background: var(--silver); color: white; }
-    .rank-3 .rank-badge { background: var(--bronze); color: white; }
-    .rank-other .rank-badge { background: #eee; color: #888; }
-
-/* ปรับขนาดรูปและ Text ให้สัมพันธ์กัน */
+.member-card:hover { 
+      transform: translateY(-8px); 
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+.rank-1 { height: 260px; border-color: var(--gold); background: linear-gradient(to bottom, #fffef0, #ffffff); }
+.rank-2 { height: 230px; border-color: var(--silver); }
+.rank-3 { height: 210px; border-color: var(--bronze); }
+.rank-other { height: 180px; border-color: #f5f5f5; }
 .img-wrapper { 
-    width: 50px !important; 
-    height: 50px !important; 
-    margin: 0 auto 5px !important;
+  position: relative; width: 75px; height: 75px; margin: 0 auto 10px; 
+  border-radius: 50%; padding: 3px; background: white; 
+  border: 3px solid var(--violet-border); cursor: pointer; 
 }
-     .rank-1 .img-wrapper { width: 50px; height: 50px; border-color: var(--gold); }
-    .rank-2 .img-wrapper { width: 50px; height: 50px; border-color: var(--silver); }
-    .rank-3 .img-wrapper { width: 50px; height: 50px; border-color: var(--bronze); }
-    .img-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.rank-1 .img-wrapper { width: 80px; height: 80px; border-color: var(--gold); }
+.rank-2 .img-wrapper { width: 80px; height: 80px; border-color: var(--silver); }
+.rank-3 .img-wrapper { width: 80px; height: 80px; border-color: var(--bronze); }
+.img-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.rank-badge { 
+  position: absolute; bottom: -2px; right: -2px; width: 24px; height: 24px; 
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+  font-weight: bold; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.1); font-size: 11px; 
+}
+.rank-1 .rank-badge { background: var(--gold); color: white; }
+.rank-2 .rank-badge { background: var(--silver); color: white; }
+.rank-3 .rank-badge { background: var(--bronze); color: white; }
+.rank-other .rank-badge { background: #eee; color: #888; }
+.name-text { font-weight: 700; color: #333; font-size: 13px; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.cookie-text { font-size: 13px; color: var(--primary-pink); font-weight: 800; margin-bottom: auto; }
+.btn-group { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-top: 10px; }
+.btn-action { border: none; border-radius: 8px; padding: 6px 0; font-size: 9px; cursor: pointer; font-weight: 600; width: 100%; }
 
-.name-text { 
-    font-size: 9px !important; 
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    width: 100%;
-}
-
-.cookie-text { 
-    font-size: 9px !important; 
-    transform: scale(0.9);
-}
-
-/* แก้ไขกรณีมีการ์ด 5 อันแล้วเบี้ยว */
-.ranking-wrapper > .member-card:last-child {
-    margin-right: 10px; /* เว้นระยะขอบขวาสุดนิดนึง */
-}
+/* 2. สไตล์สำหรับมือถือ (ทับสไตล์หลัก) */
+@media (max-width: 600px) {
+  .ranking-wrapper { padding: 10px 5px; gap: 5px; }
+  
+  /* ปรับการ์ดให้เล็กลงเพื่อจุได้ 5 อัน */
+  .member-card { 
+    width: 72px; padding: 8px 4px; border-radius: 30px 30px 15px 15px;
+    flex: 0 0 72px; /* ล็อกความกว้างให้คงที่ */
+  }
+  
+  /* ปรับความสูงให้สั้นลงพอดีจอ */
+  .rank-1 { height: 210px; }
+  .rank-2 { height: 190px; }
+  .rank-3 { height: 175px; }
+  .rank-other { height: 150px; }
+  
+  /* ปรับขนาดรูป */
+  .img-wrapper { width: 55px; height: 55px; }
+  .rank-1 .img-wrapper { width: 60px; height: 60px; border-color: var(--gold); }
+  .rank-2 .img-wrapper { width: 60px; height: 60px; border-color: var(--silver); }
+  .rank-3 .img-wrapper { width: 60px; height: 60px; border-color: var(--bronze); }
+  .img-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  
+  /* ปรับขนาดตัวอักษรและปุ่ม */
+  .name-text { font-size: 9px; }
+  .cookie-text { font-size: 10px; }
+  .btn-action { padding: 4px 0; font-size: 8px; }
 }
     
     /* Modals & Stats */
