@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BLM48 | Member Profile</title>
+  <title>Member Profile - BLM48</title>
    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <!-- สำหรับ iOS Home Screen Icon -->
@@ -396,21 +396,20 @@
     }
 
     // 🔄 🔥 ฟังก์ชันดึงสถิติและทำเนียบแฟนคลับเฉพาะของเมมเบอร์คนนี้ใหม่แบบเรียลไทม์
-    async function fetchLatestMemberStats() {
+   async function fetchLatestMemberStats() {
       if (!memberName) return;
       try {
-        // ยิงไปดึงข้อมูลเมมเบอร์อัปเดตล่าสุดจาก API หลังบ้าน
         const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
         const res = await resp.json();
         
+        // ✨ เติมบรรทัดนี้ลงไป เพื่อดูว่า Google Sheets ส่งอะไรมา!
+        console.log("ข้อมูลน้อง " + memberName + " จากหลังบ้าน:", res); 
+        
         if (res.status === "success") {
-          // บันทึกข้อมูลใหม่ลงเครื่อง
           if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
           if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
           
-          // สั่งให้หน้าจอวาด UI สถิติและบอร์ด Supporter ใหม่ทันที
           renderMemberStatsAndFans();
-          console.log("อัปเดตบอร์ดคะแนนและทำเนียบแฟนคลับแบบเรียลไทม์แล้วงับ 🍪✨");
         }
       } catch (e) {
         console.error("Error fetching latest member stats:", e);
