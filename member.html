@@ -446,8 +446,7 @@
         document.getElementById('mb-avatar').src = getImg(m.profile_img);
         document.getElementById('mb-kami').innerText = m.total_kami || 0;
         document.getElementById('mb-oshi').innerText = m.total_oshi || 0;
-        document.getElementById('mb-score').innerText = Number(m.all_time_total || 0).toLocaleString();
-      }
+        document.getElementById('mb-score').innerText = formatMemberScore(m.all_time_total || 0);
 
       // แสดงทำเนียบแฟนคลับประจำเดือน
       const savedFans = localStorage.getItem('current_member_fans');
@@ -654,6 +653,22 @@
 
     function actionKami() { setOshi('kami'); }
     function actionOshi() { setOshi('oshi'); }
+  
+  // 🎀 ฟังก์ชันแปลงตัวเลขเยอะๆ ให้เป็นตัวย่อ K / M สไตล์มินิมอล
+function formatMemberScore(num) {
+  if (!num || isNaN(num)) return '0';
+  const number = Number(num);
+  
+  if (number >= 1000000) {
+    // หลักล้าน: ถ้าหารลงตัวเป๊ะเป็น 2M แต่ถ้ามีเศษจะเป็น 2.8M
+    return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (number >= 1000) {
+    // หลักพัน: เช่น 120,500 เป็น 120.5K
+    return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return number.toLocaleString(); // ถ้าไม่ถึงพันให้โชว์เลขปกติ
+}
 
     // 🍪 ฟังก์ชันปาคุกกี้ ยิงลง Google Sheets จริง
     function actionCookie() {
@@ -705,7 +720,7 @@
               // 🏎️ [Real-time UI Update] บวกยอดสถิติคุกกี้สะสมรวมของเมมเบอร์บนจอทันที แฟนคลับเห็นตัวเลขเด้งขึ้นทันใจ!
               const scoreElement = document.getElementById('mb-score');
               let currentScore = parseInt(scoreElement.innerText.replace(/,/g, '')) || 0;
-              scoreElement.innerText = (currentScore + amountSent).toLocaleString();
+              scoreElement.innerText = formatMemberScore(currentScore + amountSent);
 
               // บังคับดึงข้อมูลกระเป๋าตังผู้ใช้ และบอร์ด Top Supporters ใหม่สดๆ เพื่อจัดอันดับแรงค์ในตารางทันที
               await syncUserData(); 
