@@ -314,47 +314,63 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .btn-action:hover { filter: brightness(0.95); transform: scale(1.03); }
     
     @media (max-width: 600px) {
-  /* 1. ล็อกการ scroll ให้ลื่นและแสดงผล 5 อันดับแรก */
-  .ranking-wrapper {
-    display: flex;
-    flex-wrap: nowrap; /* ห้ามขึ้นบรรทัดใหม่ */
-    overflow-x: auto;
-    gap: 6px; /* ลดช่องว่างลงเพื่อให้จุการ์ดได้มากขึ้น */
-    padding: 10px 10px;
+ /* --- Ranking Wrapper (ตัวครอบ) --- */
+.ranking-wrapper { 
+    display: flex !important; /* บังคับให้เป็น Flex */
+    flex-wrap: nowrap !important; /* ห้ามขึ้นบรรทัดใหม่ */
+    overflow-x: auto !important; /* ให้เลื่อนซ้ายขวาได้ */
+    width: 100% !important; 
+    padding: 10px 10px !important;
+    gap: 8px !important; /* ระยะห่างการ์ด */
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* ซ่อน scrollbar ให้ดูสะอาด */
-  }
-  .ranking-wrapper::-webkit-scrollbar { display: none; }
+    scrollbar-width: none; 
+}
 
-  /* 2. บีบการ์ดให้กว้างประมาณ 70px (พอดีให้เห็น 5 อันดับในหน้าจอเดียว) */
-  .member-card { 
-    width: 70px; 
-    flex: 0 0 auto; /* สำคัญมาก: ป้องกันการ์ดโดนบีบ */
-    padding: 8px 4px;
-    border-radius: 30px 30px 15px 15px;
-  }
+/* ซ่อน Scrollbar */
+.ranking-wrapper::-webkit-scrollbar { display: none; }
 
-  /* 3. ปรับขนาดรูปให้กะทัดรัดขึ้น */
-  .img-wrapper { 
-    width: 50px; 
-    height: 50px; 
-  }
-  .rank-1 .img-wrapper { 
-    width: 58px; 
-    height: 58px; 
-  }
+/* --- Member Card (การ์ดเมมเบอร์) --- */
+.member-card { 
+    flex: 0 0 70px !important; /* ล็อกความกว้างไว้ที่ 70px เป๊ะๆ ไม่ขยายไม่หด */
+    width: 70px !important; 
+    text-align: center; 
+    background: white; 
+    padding: 8px 4px !important; 
+    border-radius: 30px 30px 15px 15px !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    border: 2px solid transparent; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    /* ลดความสูงลงเล็กน้อยให้พอดีจอ */
+    height: 160px; 
+}
 
-  /* 4. ปรับฟอนต์ให้เล็กและกระชับ */
-  .name-text { 
-    font-size: 9px; 
-    white-space: nowrap; /* ไม่ให้ชื่อขึ้นบรรทัดใหม่ */
+/* ปรับขนาดรูปและ Text ให้สัมพันธ์กัน */
+.img-wrapper { 
+    width: 50px !important; 
+    height: 50px !important; 
+    margin: 0 auto 5px !important;
+}
+
+.name-text { 
+    font-size: 9px !important; 
+    white-space: nowrap; 
     overflow: hidden; 
     text-overflow: ellipsis; 
-  }
-  .cookie-text { 
-    font-size: 9px; 
-    transform: scale(0.9); /* ย่อตัวเลขให้ดูไม่อึดอัด */
-  }
+    width: 100%;
+}
+
+.cookie-text { 
+    font-size: 9px !important; 
+    transform: scale(0.9);
+}
+
+/* แก้ไขกรณีมีการ์ด 5 อันแล้วเบี้ยว */
+.ranking-wrapper > .member-card:last-child {
+    margin-right: 10px; /* เว้นระยะขอบขวาสุดนิดนึง */
+}
 }
     
     /* Modals & Stats */
