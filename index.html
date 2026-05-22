@@ -931,122 +931,7 @@ window.onload = () => {
       renderRanking(currentRankingData);
       renderGlobalFans(currentTopFansData);
     } catch(e) { console.error("Load Error:", e); }
-  }
-  
-// 🎒 ฟังก์ชันเปิดกระเป๋าเป้ (เวอร์ชันแก้บัคตัวแปรหน้า Home + แยกกลุ่มตาม Collections และเรียง A-Z)
-async function showInventory() {
-    // 🚩 ใช้ตัวแปร user ให้ตรงกับระบบหน้า Home ตามที่คุณแก้บัคไว้
-    if (!user) return Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณาล็อกอินก่อน', 'warning');
-
-    const modalOverlay = document.getElementById('modal-overlay');
-    const statsForm = document.getElementById('stats-form');
-    const historyForm = document.getElementById('history-form');
-    const inventoryForm = document.getElementById('inventory-form');
-    const invContent = document.getElementById('inventory-content');
-
-    if(modalOverlay) modalOverlay.style.display = 'block';
-    if(statsForm) statsForm.style.display = 'none';
-    if(historyForm) historyForm.style.display = 'none';
-    if(inventoryForm) inventoryForm.style.display = 'block';
-    
-    if(invContent) invContent.innerHTML = "<div style='padding:30px 0; color:#888;'>กำลังค้นกระเป๋า... 🎒</div>";
-
-    try {
-        // 🚩 ดึงข้อมูลโดยใช้ user.username ที่ถูกต้อง
-        const response = await fetch(`${scriptURL}?action=getMyInventory&username=${user.username}`);
-        const res = await response.json();
-        
-        if (res.status === "success" && invContent) {
-            let html = "";
-            const inventoryData = res.inventory; // ข้อมูลแบบ Object ที่ถูกจัดกลุ่มตามคอลเลกชันมาจากหลังบ้าน
-            
-            // ดึงรายชื่อคอลเลกชันทั้งหมดที่มีในกระเป๋าของผู้ใช้
-            const collections = Object.keys(inventoryData);
-            
-            if (collections.length > 0) {
-                // 🔄 วนลูปแสดงผลทีละคอลเลกชัน (e.g., BLM48 Limited Coaster "BINGO!")
-                collections.forEach(collectionName => {
-                    const itemsInCollection = inventoryData[collectionName];
-                    
-                    // 🎬 สร้างแถบหัวข้อแยกแต่ละคอลเลกชันให้สวยงามเป็นระเบียบ
-                    html += `
-                    <div class="collection-section" style="margin-top: 25px; margin-bottom: 12px; width: 100%;">
-                        <h3 style="margin: 0; padding: 8px 12px; background-color: #fff0f2; border-left: 5px solid #ff4a6b; color: #333; font-size: 14px; font-weight: bold; border-radius: 4px; text-align: left; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
-                            Collection ${collectionName}
-                        </h3>
-                    </div>`;
-                    
-                    // เปิด Grid ครอบไอเทมเฉพาะของคอลเลกชันนี้
-                    html += `
-<div class="inventory-grid" style="
-    display: flex; 
-    flex-wrap: nowrap; 
-    overflow-x: auto; 
-    gap: 12px; 
-    padding: 10px 5px; 
-    margin-bottom: 20px;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-">`;
-                    
-                    // วนลูปไอเทมที่เรียงลำดับ A-Z ภายในคอลเลกชันนี้แล้ว
-                    itemsInCollection.forEach(item => {
-                        let currentImg = item.img || 'https://placehold.co/150x200?text=BLM48';
-                        
-                        html += `
-                        <div class="inventory-item">
-                            <span class="inventory-qty">x${item.qty}</span>
-                            
-                            <img src="${currentImg}" 
-                                 class="inventory-img" 
-                                 onclick="openImagePreview('${currentImg}', '${item.name}')" 
-                                 style="cursor: pointer;" 
-                                 alt="${item.name}">
-                                 
-                            <div class="inventory-name" style="font-weight: 500;">${item.name}</div>
-                            <div style="font-size:10px; color:#aaa; margin-top:2px;">[${item.type}]</div>
-                        </div>`;
-                    });
-                    
-                    html += `</div>`; // ปิด Grid ของคอลเลกชันนี้
-                });
-            } else {
-                html = `<div style="padding:30px 0; color:#ccc; width:100%; text-align:center;">กระเป๋าว่างเปล่า...<br>ไปช้อปปิ้งกันเถอะ!</div>`;
-            }
-            
-            invContent.innerHTML = html;
-        }
-    } catch (e) {
-        console.error(e);
-        if(invContent) invContent.innerHTML = "<div style='color:red;'>เกิดข้อผิดพลาดในการดึงข้อมูล</div>";
-    }
-}
-
-  
-  // 📸 ฟังก์ชันสำหรับเปิดดูรูปไอเทมขนาดใหญ่ และตั้งค่าลิงก์ดาวน์โหลด
-function openImagePreview(imgSrc, itemName) {
-    const modal = document.getElementById('image-preview-modal');
-    const targetImg = document.getElementById('preview-target-img');
-    const downloadBtn = document.getElementById('download-item-btn');
-
-    if (modal && targetImg && downloadBtn) {
-        targetImg.src = imgSrc; // เปลี่ยนรูปในป็อปอัปเป็นรูปไอเทมที่กด
-        downloadBtn.href = imgSrc; // ส่งลิงก์รูปไปให้ปุ่มเซฟดาวน์โหลด
-        
-        // ตั้งชื่อไฟล์ตอนที่เซฟลงเครื่องอัตโนมัติ (เปลี่ยนช่องว่างเป็น _)
-        downloadBtn.download = `BLM48_${itemName.replace(/\s+/g, '_')}.png`; 
-        
-        modal.style.display = 'flex'; // แสดงหน้าต่างพรีวิวขึ้นมา
-    }
-}
-
-// ❌ ฟังก์ชันสำหรับปิดหน้าต่างดูรูปใหญ่
-function closeImagePreview() {
-    const modal = document.getElementById('image-preview-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
+  }  
   
 
 function updateUI() {
@@ -1204,7 +1089,7 @@ function renderRanking(data) {
     card.className = `member-card ${rankClass}`;
     
     card.innerHTML = `
-      <div class="img-wrapper" onclick="showStats('${m.name}')">
+     <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
         <img src="${getImg(m.profile_img)}" loading="lazy">
         <div class="rank-badge">${badgeContent}</div>
       </div>
@@ -1289,116 +1174,22 @@ function renderGlobalFans(rawData) {
   });
 }
 
-// --- Interaction Functions (คงความสามารถเดิม พร้อมอัปเดตชื่อแฟนคลับ) ---
-async function showStats(name) {
-    const m = currentRankingData.find(x => x.name === name);
-    if(!m) return; 
+// เอาฟังก์ชันนี้ไปวางใน <script> ของหน้า index.html แทนตัวเดิมนะงับ
+function openMemberProfile(name) {
+  // 1. ค้นหาข้อมูลสถิติล่าสุดของเมมเบอร์คนนี้
+  const m = currentRankingData.find(x => x.name === name);
+  // 2. ดึงรายชื่อแฟนคลับที่ปาคุกกี้ให้
+  const fans = currentTopFansData[name] || [];
+  
+  if (m) {
+    // เซฟข้อมูลลงคลังชั่วคราวเพื่อให้หน้า member.html ดึงไปใช้ต่อได้
+    localStorage.setItem('current_member_stats', JSON.stringify(m));
+    localStorage.setItem('current_member_fans', JSON.stringify(fans));
     
-    document.getElementById('modal-overlay').style.display = 'block';
-    document.getElementById('stats-form').style.display = 'block';
-    document.getElementById('login-form').style.display = 'none';
-
-    // ✨ จุดสำคัญ: สั่งให้แสดงส่วน Top Fans ของเมมเบอร์
-    const memberFansSection = document.getElementById('member-fans-section');
-    if (memberFansSection) {
-        memberFansSection.style.display = 'block';
-    }
-
-    document.getElementById('stats-content').innerHTML = `
-    <div class="stats-header">
-      <img src="${getImg(m.profile_img)}" class="stats-avatar">
-      <div class="stats-name">${m.name}</div>
-      <div style="font-size:12px; color:#aaa; letter-spacing:2px;">BLM48 MEMBER</div>
-    </div>
-    <div class="stats-summary">
-      <div class="stat-item"><span class="stat-label">Kami</span><span class="stat-val">${m.total_kami || 0}</span></div>
-      <div class="stat-item" style="border-left: 1px solid #ffdce3; border-right: 1px solid #ffdce3;"><span class="stat-label">Oshi</span><span class="stat-val">${m.total_oshi || 0}</span></div>
-      
-      <div class="stat-item">
-        <span class="stat-label">Total Cookies</span>
-        <span class="stat-val" style="color:var(--primary-pink)">
-          ${Number(m.all_time_total || 0).toLocaleString()}
-        </span>
-      </div>
-    </div>
-  `;
-    
-    const fans = currentTopFansData[name] || [];
-    const fanContainer = document.getElementById('member-fans-content');
-    fanContainer.innerHTML = '';
-
-    if(fans.length === 0) {
-      fanContainer.innerHTML = '<div style="padding:20px; color:#bbb; font-size:13px;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
-    } else {
-      fans.slice(0, 10).forEach((f, idx) => { 
-        const row = document.createElement('div');
-        row.className = 'fan-row';
-        
-        const fanDisplayName = f.name || f.username;
-
-        row.innerHTML = `
-          <div class="fan-rank">${idx + 1}</div>
-          <img src="${getImg(f.img)}" class="fan-img" onerror="this.src='https://via.placeholder.com/150'">
-          <div class="fan-info">
-            <div class="fan-name">${fanDisplayName}</div>
-            <div class="fan-cookies"><i class="fas fa-cookie-bite" style="color: #d2691e;"></i>  ${f.total.toLocaleString()} Cookies</div>
-          </div>
-        `;
-        fanContainer.appendChild(row);
-      });
-    } 
-}
-
- async function giveCookie(memberName) {
-  if (!user) return openLogin();
-  if (isUserMember()) return Swal.fire('ขออภัย', 'เมมเบอร์ไม่สามารถปาคุกกี้ได้ค่ะ', 'warning');
-
-  const { value: amount } = await Swal.fire({
-    title: `ปาคุกกี้ให้ ${memberName}`,
-    input: 'number',
-    inputLabel: `ยอดคุกกี้ของคุณ: ${Number(user.cookie).toLocaleString()} ชิ้น`,
-    inputPlaceholder: 'ใส่จำนวนที่ต้องการส่ง...',
-    showCancelButton: true,
-    confirmButtonColor: '#ff85a2',
-    cancelButtonText: 'ยกเลิก',
-    confirmButtonText: 'ถัดไป'
-  }); 
-
-  if (amount) {
-    const numAmount = parseInt(amount);
-    if (numAmount <= 0) return Swal.fire('ผิดพลาด', 'กรุณาใส่จำนวนที่มากกว่า 0', 'error');
-    if (numAmount > user.cookie) return Swal.fire('คุกกี้ไม่พอ', 'ยอดคุกกี้ของคุณไม่เพียงพอครับ', 'error');
-
-    // --- เพิ่ม Alert ยืนยันขั้นสุดท้าย ---
-    const confirmResult = await Swal.fire({
-      title: 'ยืนยันการส่ง?',
-      text: `ส่งคุกกี้จำนวน ${numAmount.toLocaleString()} ชิ้น ให้กับ ${memberName}`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#ff85a2',
-      confirmButtonText: 'ยืนยันการส่ง',
-      cancelButtonText: 'เปลี่ยนใจแล้ว'
-    });
-
-    if (confirmResult.isConfirmed) {
-      Swal.fire({ title: 'กำลังปาคุ้กกี้...', didOpen: () => Swal.showLoading() });
-      try {
-        const resp = await fetch(scriptURL, {
-          method: 'POST', 
-          body: JSON.stringify({
-            action: 'giveCookie',
-            username: user.username,
-            memberName: memberName,
-            amount: numAmount
-          }) 
-        });
-        const res = await resp.json();
-        if (res.status === 'success' || Array.isArray(res)) {
-          Swal.fire('สำเร็จ!', `ส่งคุกกี้ให้ ${memberName} เรียบร้อยแล้วค่ะ`, 'success');
-          syncUserData(); loadData();  
-        } else { Swal.fire('Error', res.message, 'error'); }
-      } catch (err) { Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'); }
-    }
+    // พาวาร์ปไปหน้าโปรไฟล์แยก
+    window.location.href = `member.html?name=${encodeURIComponent(name)}`;
+  } else {
+    Swal.fire('ผิดพลาด', 'ไม่พบข้อมูลเมมเบอร์คนนี้ในระบบค่ะ', 'error');
   }
 }
 
@@ -1499,19 +1290,42 @@ async function setOshi(type, memberName) {
     } catch (error) { Swal.fire('ผิดพลาด', 'ไม่สามารถดึงข้อมูลล่าสุดได้', 'error'); }
   }
 
-  function confirmLogout() {
-    if(!user) return openLogin();
-    Swal.fire({
-      title: 'ออกจากระบบ?', icon: 'warning', showCancelButton: true,
-      confirmButtonColor: '#ff85a2', confirmButtonText: 'ออกจากระบบ'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        localStorage.removeItem('bnl_session');
-        user = null; updateUI();
-        Swal.fire('Logout!', 'ออกจากระบบเรียบร้อยแล้วค่ะ', 'success').then(() => openLogin());
-      }
-    });
-  }
+ function confirmLogout() {
+  // 1. ถ้าไม่มี user ล็อกอินอยู่แล้ว ให้เปิดหน้าล็อกอินขึ้นมาทันที
+  if (!user) return openLogin();
+
+  // 2. แสดงกล่องยืนยันการออกจากระบบ
+  Swal.fire({
+    title: 'ต้องการออกจากระบบใช่ไหมคะ?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#ff85a2',
+    confirmButtonText: 'ตกลง',
+    cancelButtonText: 'ยกเลิก'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // 3. ลบ Session ในเครื่องออกให้หมดจด (ใช้คีย์ bnl_session ตามระบบของคุณ)
+      localStorage.removeItem('bnl_session');
+      sessionStorage.clear();
+
+      // 4. ล้างค่าตัวแปรกลางใน RAM เป็น null ทันที (แก้บั๊กโปรไฟล์ค้าง)
+      user = null; 
+
+      // 5. สั่งอัปเดตหน้าจอทันที แถบโปรไฟล์จะถูกล้างค่าเป็น Guest
+      updateUI(); 
+
+      // 6. แจ้งเตือนสำเร็จ และเมื่อกดตกลงปิดแจ้งเตือน จะเปิดหน้าต่างล็อกอินรูปที่ 2 ขึ้นมา
+      Swal.fire({
+        title: 'สำเร็จ!',
+        text: 'ออกจากระบบเรียบร้อยแล้วค่ะ',
+        icon: 'success',
+        confirmButtonColor: '#ff85a2'
+      }).then(() => {
+        openLogin(); // เด้งหน้าต่างล็อกอิน (รูปที่ 2) ขึ้นมาบล็อกหน้าจอต่อทันที
+      });
+    }
+  });
+}
 
  async function claimMonthly() {
   if (!user) return openLogin();
@@ -1788,6 +1602,21 @@ window.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(c);
     setTimeout(() => c.remove(), 6000);
   }, 5000);
+  
+  // ใส่ดักจับตอนหน้าเว็บโหลดเสร็จสมบูรณ์
+document.addEventListener("DOMContentLoaded", () => {
+  // 1. ดึงข้อมูลเซสชันที่เคยล็อกอินค้างไว้ (ปรับชื่อคีย์ 'user_session' ให้ตรงกับในฟังก์ชัน saveUserSession นะคะ)
+  const savedUser = localStorage.getItem('user_session'); 
+  
+  if (savedUser) {
+    user = JSON.parse(savedUser);
+  } else {
+    user = null; // ถ้าไม่เคยเข้าแอปเลย ให้เคลียร์ค่าเป็น null มั่นใจว่าเป็น Guest
+  }
+  
+  // 2. สั่งรันฟังก์ชันวาดหน้าจอทันที! คนไม่เคยเข้าจะได้เห็นหน้าล็อกอิน (รูปที่ 2) ตั้งแต่แรกเลย
+  updateUI(); 
+});
 </script>
 
 
