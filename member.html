@@ -6,18 +6,14 @@
   <title>Member Profile - BLM48</title>
    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
-    <!-- สำหรับ iOS Home Screen Icon -->
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-    <!-- สำหรับ Android และ Chrome -->
     <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
     <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -29,7 +25,7 @@
       --blmem-mint: #c9e4de;
       --gold-kami: #ffd700;
       --dark-text: #3a3a3a;
-      --bg-soft: #fdf6f7;
+      --bg-soft: #fcfcfc;
     }
 
     * {
@@ -57,7 +53,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      box-shadow: 0 0 40px rgba(255, 133, 162, 0.08);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
     }
 
     /* 📸 โซนรูปเมมเบอร์บนมือถือ */
@@ -68,11 +64,12 @@
       overflow: hidden;
       background: #f3f3f3;
     }
+    
     .hero-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top; /* โฟกัสที่หน้าและท่อนบนเสมอ */
+      object-position: center top;
     }
     
     /* Shade สีขาวบนมือถือ (ไล่จากล่างขึ้นบน) */
@@ -81,50 +78,51 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 140px;
+      height: 150px;
       background: linear-gradient(to top, #ffffff 15%, transparent);
       z-index: 1;
+      pointer-events: none;
     }
 
-    /* 💻 เมื่อเปิดบน iPad / Tablet / PC (Responsive Magic! ✨) */
+    /* 💻 เมื่อเปิดบน iPad / Tablet / PC (Responsive Design) */
     @media (min-width: 768px) {
       body {
         padding: 40px 20px;
         align-items: center;
+        background: #f4f6f8; /* พื้นหลังจอใหญ่ให้ดูมีมิติแยกระหว่างแอปกับพื้นหลัง */
       }
       .app-layout {
-        max-width: 900px; /* ขยายความกว้างเต็มตาขึ้น */
-        min-height: auto;
-        border-radius: 28px;
+        max-width: 850px; /* ล็อกความกว้างไว้ให้สัดส่วนสวยงาม */
+        min-height: 550px;
+        border-radius: 30px;
         flex-direction: row; /* แบ่งซ้าย-ขวา */
         overflow: hidden;
-        align-items: stretch; /* บังคับให้สูงเท่ากัน 100% */
+        align-items: stretch; /* บังคับให้สูงเท่ากัน */
+        box-shadow: 0 15px 35px rgba(255, 133, 162, 0.1);
       }
       
-      /* 🎯🎯 รูปภาพฝั่งซ้าย สูงเต็ม 100% กว้างขึ้นเต็มตา และไม่โดนตัด */
+      /* รูปภาพฝั่งซ้าย สูงเต็ม 100% กว้าง 50% */
       .hero-image-container {
-        width: 50% !important; /* ขยายเป็น 50% ครึ่งนึงของการ์ด */
+        width: 50% !important;
         height: auto !important;
-        min-height: 620px; /* เพิ่มความสูงขั้นต่ำให้ดูโปร่งขึ้น */
+        min-height: 100%;
       }
       
-      /* 🎯🎯 ปรับมุม White Shade ใหม่ตามสัญญา: เคลียร์พื้นที่หน้าเมมเบอร์ด้านบน */
+      /* ปรับมุม White Shade บนจอใหญ่ให้ไล่ระดับเนียนๆ */
       .hero-gradient {
-        background: linear-gradient(to top, #ffffff 5%, rgba(255,255,255,0.3) 35%, transparent 70%) !important;
-        width: 100% !important;
+        background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, transparent 40%) !important;
         height: 100% !important;
-        top: 0;
-        left: 0;
       }
 
       /* ข้อมูลฝั่งขวา */
       .profile-body {
-        width: 50% !important; /* ฝั่งข้อมูลก็เป็น 50% */
+        width: 50% !important;
         margin-top: 0 !important;
-        padding: 50px 40px !important; /* เพิ่ม padding ให้ดูแพงขึ้น */
+        padding: 40px 35px !important;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        overflow-y: auto; /* เผื่อข้อมูลยาวเกินจอ */
       }
     }
 
@@ -255,12 +253,25 @@
     }
     .leaderboard-title i { color: var(--gold-kami); }
 
-    .fan-list { display: flex; flex-direction: column; }
+    /* 🎀 ตั้งค่าการเลื่อนดูรายชื่อแฟนคลับ (Scrollbar) */
+    .fan-list { 
+      display: flex; 
+      flex-direction: column; 
+      max-height: 220px; /* กำหนดความสูงเพื่อให้โชว์แค่ 3-4 อันดับแรก */
+      overflow-y: auto; /* เปิด Scroll หากเนื้อหาเกิน */
+      padding-right: 8px; /* เว้นระยะขวาไม่ให้ข้อความชิดแถบเลื่อน */
+    }
+    
+    /* สไตล์แถบเลื่อน Minimal */
+    .fan-list::-webkit-scrollbar { width: 5px; }
+    .fan-list::-webkit-scrollbar-track { background: #fdf6f7; border-radius: 10px; }
+    .fan-list::-webkit-scrollbar-thumb { background: #ffc2cc; border-radius: 10px; }
+
     .fan-row {
       display: flex;
       align-items: center;
       padding: 12px 0;
-      border-bottom: 1px solid #faf0f2;
+      border-bottom: 1px dashed #faf0f2; /* เปลี่ยนเป็นเส้นประให้ดูซอฟต์ลง */
     }
     .fan-row:last-child { border-bottom: none; }
     
@@ -302,7 +313,7 @@
     <button class="back-circle-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
 
     <div class="hero-image-container">
-      <img id="mb-avatar" src="..." class="...">
+      <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
       <div class="hero-gradient"></div>
     </div>
 
@@ -329,14 +340,14 @@
       </div>
 
       <div class="interaction-grid">
-        <button class="btn-interact btn-kami" onclick="actionKami()">
-          <i class="fas fa-crown"></i> + Kami-Oshi
+        <button id="btn-kami-trigger" class="btn-interact btn-kami" onclick="actionKami()">
+          <i class="fas fa-crown"></i> <span>+ Kami-Oshi</span>
         </button>
-        <button class="btn-interact btn-oshi" onclick="actionOshi()">
-          <i class="fas fa-heart"></i> + Oshi
+        <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
+          <i class="fas fa-heart"></i> <span>+ Oshi</span>
         </button>
         <button class="btn-interact btn-cookie" onclick="actionCookie()">
-          <i class="fas fa-cookie-bite"></i> + Cookie
+          <i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>
         </button>
       </div>
 
@@ -350,14 +361,12 @@
   </div>
 
 <script>
-    // 🔗 ตัวเชื่อมหลังบ้าน Google Apps Script ตัวจริงของคุณเอ็มมี่
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     
     const urlParams = new URLSearchParams(window.location.search);
     const memberName = urlParams.get('name');
-    let user = null; // ตัวแปรเก็บข้อมูลผู้ใช้ปัจจุบัน
+    let user = null; 
 
-    // 👑 ระบบจัดการเซสชัน (อ่าน-เขียนข้อมูลเครื่องสไตล์ BLM48)
     function saveUserSession(userData) {
       const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000);
       localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
@@ -378,7 +387,6 @@
       }
     }
 
-    // 🔄 ฟังก์ชันซิงค์ข้อมูลผู้ใช้จริงจาก Google Sheets เบื้องหลัง
     async function syncUserData() {
       if (!user) return;
       try {
@@ -386,38 +394,31 @@
         const res = await resp.json();
         if (res.status === "success") {
           user = res.data;
-          saveUserSession(user); // อัปเดตข้อมูลเซสชันล่าสุดในเครื่อง
-          console.log("ซิงค์ข้อมูลผู้ใช้จาก Google Sheets เรียบร้อยแล้วงับ 🌸");
-          updateButtonStyles(); // อัปเดตสถานะปุ่มบนหน้าจอตามข้อมูลใหม่
+          saveUserSession(user); 
+          updateButtonStyles(); 
         }
       } catch (e) {
         console.error("Sync Error:", e);
       }
     }
 
-    // 🔄 🔥 ฟังก์ชันดึงสถิติและทำเนียบแฟนคลับเฉพาะของเมมเบอร์คนนี้ใหม่แบบเรียลไทม์
     async function fetchLatestMemberStats() {
       if (!memberName) return;
       try {
-        // ยิงไปดึงข้อมูลเมมเบอร์อัปเดตล่าสุดจาก API หลังบ้าน
         const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
         const res = await resp.json();
         
         if (res.status === "success") {
-          // บันทึกข้อมูลใหม่ลงเครื่อง
           if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
           if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
           
-          // สั่งให้หน้าจอวาด UI สถิติและบอร์ด Supporter ใหม่ทันที
           renderMemberStatsAndFans();
-          console.log("อัปเดตบอร์ดคะแนนและทำเนียบแฟนคลับแบบเรียลไทม์แล้วงับ 🍪✨");
         }
       } catch (e) {
         console.error("Error fetching latest member stats:", e);
       }
     }
 
-// 1️⃣ ฟังก์ชันจัดการ URL รูปภาพ (เจนเปลี่ยนชื่อเป็น getImg ให้ตรงกับที่เรียกใช้แล้ว)
     function getImg(url) {
         if (!url || url.trim() === "") {
             return 'assets/images/default-profile.png'; 
@@ -428,14 +429,11 @@
         return url;
     }
 
-    // 2️⃣ ฟังก์ชันสำหรับ Render ดึงข้อมูลจาก LocalStorage มาวาดบนหน้าจอ
     function renderMemberStatsAndFans() {
-      // แสดงสถิติรวมของเมมเบอร์
-     const savedStats = localStorage.getItem('current_member_stats');
+      const savedStats = localStorage.getItem('current_member_stats');
       if (savedStats) {
         const m = JSON.parse(savedStats);
         
-        // ✨ เพิ่มตัวแปรมารับค่า และเช็กก่อนว่ามี ID นี้อยู่บนหน้าเว็บจริงๆ ไหม เว็บจะได้ไม่พัง!
         const avatarEl = document.getElementById('mb-avatar');
         if (avatarEl) avatarEl.src = getImg(m.profile_img);
 
@@ -449,15 +447,14 @@
         if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
       }
 
-      // แสดงทำเนียบแฟนคลับประจำเดือน
       const savedFans = localStorage.getItem('current_member_fans');
       const fanContainer = document.getElementById('member-fans-content');
-      fanContainer.innerHTML = '';
+      if(fanContainer) fanContainer.innerHTML = '';
 
       if (savedFans) {
         const fans = JSON.parse(savedFans);
         if (fans.length === 0) {
-          fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+          if(fanContainer) fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
         } else {
           fans.slice(0, 10).forEach((f, idx) => {
             const row = document.createElement('div');
@@ -467,19 +464,18 @@
               <div class="fan-rank">${idx + 1}</div>
               <img src="${getImg(f.img)}" 
                    class="fan-avatar" 
-                   onerror="this.src='assets/images/default-fan.png'"> 
+                   onerror="this.src='assets/images/default-profile.png'"> 
               <div class="fan-meta">
                 <div class="fan-name">${f.name || f.username}</div>
                 <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
               </div>
             `;
-            fanContainer.appendChild(row);
+            if(fanContainer) fanContainer.appendChild(row);
           });
         }
       }
-    } // 🎯 ตรงนี้แหละค่ะ ปีกกาปิดที่หายไป! เจนใส่คืนให้แล้ว
+    }
 
-    // ตรวจสอบสถานะล็อกอินก่อนทำกิจกรรม
     function checkLoginStatus() {
       if (!user) {
         Swal.fire({
@@ -494,7 +490,6 @@
       return true;
     }
 
-    // โหลดข้อมูลเริ่มต้นเมื่อเปิดหน้าเว็บ
     function loadMemberData() {
       if (!memberName) {
         window.location.href = 'index.html';
@@ -502,49 +497,43 @@
       }
 
       user = getUserSession();
-      document.getElementById('mb-name').innerText = memberName;
+      if(document.getElementById('mb-name')) document.getElementById('mb-name').innerText = memberName;
 
-      // วาดข้อมูลเก่าที่มีในเครื่องขึ้นมาก่อนเพื่อให้เว็บเปิดไว ไม่หมุนติ้ว
       renderMemberStatsAndFans();
       updateButtonStyles();
-
-      // ดึงข้อมูลใหม่สดๆ จากหลังบ้านมาอัปเดตแถมให้อีกรอบตอนโหลดหน้าเสร็จ
       fetchLatestMemberStats();
     }
 
-    // 🎨 ฟังก์ชันเปลี่ยนหน้าตาและคำบนปุ่ม (KAMI / OSHI) ตามข้อมูลจริงของผู้ใช้
     function updateButtonStyles() {
       const btnKami = document.getElementById('btn-kami-trigger');
       const btnOshi = document.getElementById('btn-oshi-trigger');
       
       if (!btnKami || !btnOshi) return; 
-      if (!user) return; // ถ้าไม่ได้ล็อกอิน ให้ใช้ดีไซน์เริ่มต้น
+      if (!user) return;
 
       const searchName = memberName.toLowerCase();
       const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
       const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
 
-      // เช็คปุ่ม KAMI
       if (currentKamioshi === searchName) {
         btnKami.innerHTML = '<i class="fas fa-heart-broken"></i> <span>REMOVE KAMI</span>';
         btnKami.style.backgroundColor = "#ffe3e3"; 
         btnKami.style.color = "#e03131";
         btnKami.style.borderColor = "#ffa8a8";
       } else {
-        btnKami.innerHTML = '<i class="fas fa-crown"></i> <span>KAMI</span>';
+        btnKami.innerHTML = '<i class="fas fa-crown"></i> <span>+ KAMI</span>';
         btnKami.style.backgroundColor = ""; 
         btnKami.style.color = "";
         btnKami.style.borderColor = "";
       }
 
-      // เช็คปุ่ม OSHI
       if (oshiArray.includes(searchName)) {
         btnOshi.innerHTML = '<i class="fas fa-heart-broken"></i> <span>UN-OSHI</span>';
         btnOshi.style.backgroundColor = "#fff4e6"; 
         btnOshi.style.color = "#d9480f";
         btnOshi.style.borderColor = "#ffd8a8";
       } else {
-        btnOshi.innerHTML = '<i class="fas fa-heart"></i> <span>OSHI</span>';
+        btnOshi.innerHTML = '<i class="fas fa-heart"></i> <span>+ OSHI</span>';
         btnOshi.style.backgroundColor = ""; 
         btnOshi.style.color = "";
         btnOshi.style.borderColor = "";
@@ -553,7 +542,6 @@
 
     function goBack() { window.location.href = 'index.html'; }
 
-    // ⚡ ฟังก์ชันระบบรวมศูนย์ (Toggle) : กดเพิ่ม/ลบ คามิและโอชิ ยิงเข้า Google Sheets จริง!
     async function setOshi(type) {
       if (!checkLoginStatus()) return;
 
@@ -568,7 +556,6 @@
       let confirmText = "";
       let subTitle = "";
 
-      // คัดกรอง Action ส่งหลังบ้าน
       if (type === 'kami') {
         if (currentKamioshi === searchName) {
           action = "removeOshi";
@@ -630,7 +617,6 @@
         const res = await resp.json();
         if (res.status === "success") {
           
-          // 🏎️ [Real-time UI Update] ปรับตัวเลขคามิ/โอชิบนหน้าจอขึ้นลงสดๆ ก่อนเลยทันที
           const kamiElement = document.getElementById('mb-kami');
           const oshiElement = document.getElementById('mb-oshi');
           let currentKamiNum = parseInt(kamiElement.innerText) || 0;
@@ -650,7 +636,6 @@
             }
           }
 
-          // ซิงค์กระเป๋าตังผู้ใช้ + ดึงสถิติล่าสุดจากเซิร์ฟเวอร์มาทับเพื่อความแม่นยำสูงสุดอีกชั้นหนึ่ง
           await syncUserData(); 
           await fetchLatestMemberStats();
 
@@ -673,44 +658,19 @@
     function actionKami() { setOshi('kami'); }
     function actionOshi() { setOshi('oshi'); }
   
-  // 🎀 ฟังก์ชันแปลงตัวเลขเยอะๆ ให้เป็นตัวย่อ K / M สไตล์มินิมอล
-function formatMemberScore(num) {
-  if (!num || isNaN(num)) return '0';
-  const number = Number(num);
-  
-  if (number >= 1000000) {
-    // หลักล้าน: ถ้าหารลงตัวเป๊ะเป็น 2M แต่ถ้ามีเศษจะเป็น 2.8M
-    return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-  }
-  if (number >= 1000) {
-    // หลักพัน: เช่น 120,500 เป็น 120.5K
-    return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-  }
-  return number.toLocaleString(); // ถ้าไม่ถึงพันให้โชว์เลขปกติ
-}
-  
-  async function loadMemberData() {
-  console.log("เริ่มโหลดหน้า...");
-  if (!memberName) {
-    console.log("ไม่พบชื่อเมมเบอร์");
-    window.location.href = 'index.html';
-    return;
-  }
-  
-  user = getUserSession();
-  console.log("ได้ข้อมูล User:", user);
-  
-  document.getElementById('mb-name').innerText = memberName;
-  
-  renderMemberStatsAndFans();
-  updateButtonStyles();
-  
-  console.log("กำลังดึงข้อมูลจากหลังบ้าน...");
-  await fetchLatestMemberStats();
-  console.log("โหลดข้อมูลเสร็จสิ้น");
-}
+    function formatMemberScore(num) {
+      if (!num || isNaN(num)) return '0';
+      const number = Number(num);
+      
+      if (number >= 1000000) {
+        return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+      }
+      if (number >= 1000) {
+        return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+      }
+      return number.toLocaleString(); 
+    }
 
-    // 🍪 ฟังก์ชันปาคุกกี้ ยิงลง Google Sheets จริง
     function actionCookie() {
       if (!checkLoginStatus()) return;
 
@@ -756,13 +716,10 @@ function formatMemberScore(num) {
             const res = await resp.json();
 
             if (res.status === "success") {
-              
-              // 🏎️ [Real-time UI Update] บวกยอดสถิติคุกกี้สะสมรวมของเมมเบอร์บนจอทันที แฟนคลับเห็นตัวเลขเด้งขึ้นทันใจ!
               const scoreElement = document.getElementById('mb-score');
               let currentScore = parseInt(scoreElement.innerText.replace(/,/g, '')) || 0;
               scoreElement.innerText = formatMemberScore(currentScore + amountSent);
 
-              // บังคับดึงข้อมูลกระเป๋าตังผู้ใช้ และบอร์ด Top Supporters ใหม่สดๆ เพื่อจัดอันดับแรงค์ในตารางทันที
               await syncUserData(); 
               await fetchLatestMemberStats(); 
 
