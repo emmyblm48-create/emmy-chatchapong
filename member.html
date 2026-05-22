@@ -4,197 +4,391 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Member Profile - BLM48</title>
+   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <!-- สำหรับ iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <!-- สำหรับ Android และ Chrome -->
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-  <style>
+<style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #ffe5ec 0%, #c9e4de 100%);
-      --main-pink: #ff85a2;
-      --soft-white: rgba(255, 255, 255, 0.9);
+      --blmem-pink: #ff85a2;
+      --blmem-pink-light: #fff0f3;
+      --blmem-mint: #c9e4de;
+      --gold-kami: #ffd700;
+      --dark-text: #3a3a3a;
+      --bg-soft: #fdf6f7;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mitr', sans-serif; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mitr', sans-serif;
+    }
 
     body {
-      background: var(--bg-gradient);
-      min-height: 100vh;
+      background: var(--bg-soft);
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 20px 10px;
+      min-height: 100vh;
+      color: var(--dark-text);
     }
 
-    .profile-card {
-      background: var(--soft-white);
+    /* 📱💻 โครงสร้าง Responsive ปรับตามขนาดอุปกรณ์แบบสมบูรณ์ */
+    .app-layout {
       width: 100%;
-      max-width: 450px;
-      border-radius: 30px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      border: 3px solid #ffffff;
-      backdrop-filter: blur(10px);
+      max-width: 480px; /* ขนาดมาตรฐานบนสมาร์ตโฟน */
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       position: relative;
+      box-shadow: 0 0 40px rgba(255, 133, 162, 0.08);
+      transition: all 0.3s ease;
     }
 
-    .back-btn {
-      position: absolute; top: 20px; left: 20px; background: white; border: none;
-      width: 40px; height: 40px; border-radius: 50px; display: flex;
-      justify-content: center; align-items: center; color: var(--main-pink);
-      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s; z-index: 10;
+    /* 🖥️🖥️ เมื่อเปิดบนคอมพิวเตอร์หรือไอแพดหน้าจอกว้าง (Responsive Magic) */
+    @media (min-width: 768px) {
+      body {
+        padding: 30px 20px;
+        align-items: center;
+      }
+      .app-layout {
+        max-width: 900px; /* ขยายความกว้างเต็มตาขึ้นบนหน้าจอใหญ่ */
+        min-height: auto;
+        border-radius: 24px;
+        flex-direction: row; /* สลับซ้าย-ขวา: ซ้ายรูปภาพ / ขวาข้อมูลสถิติและปุ่ม */
+        overflow: hidden;
+      }
+      .hero-image-container {
+        width: 45%; /* รูปภาพอยู่ฝั่งซ้ายครึ่งนึง */
+        height: 600px !important;
+      }
+      .profile-body {
+        width: 55%; /* ข้อมูลหลักอยู่ฝั่งขวา */
+        margin-top: 0 !important;
+        padding: 40px 30px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .hero-gradient {
+        background: linear-gradient(to right, #ffffff, transparent) !important;
+        width: 120px !important;
+        height: 100% !important;
+        top: 0;
+        right: 0;
+        left: auto !important;
+      }
     }
-    .back-btn:hover { transform: scale(1.1); }
 
-    .avatar-section { width: 100%; height: 320px; position: relative; background: #eee; }
-    .avatar-img { width: 100%; height: 100%; object-fit: cover; }
-    .generation-badge {
-      position: absolute; bottom: -15px; right: 25px; background: var(--main-pink);
-      color: white; padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: 500;
-      box-shadow: 0 4px 10px rgba(255,133,162,0.4);
+    /* ปุ่มย้อนกลับแบบลอยเหนือรูปภาพ */
+    .back-circle-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--blmem-pink);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: 0.2s;
+    }
+    .back-circle-btn:hover { transform: scale(1.08); background: #fff; }
+
+    /* 📸 โซนรูปเมมเบอร์ขนาดใหญ่ */
+    .hero-image-container {
+      width: 100%;
+      height: 450px;
+      position: relative;
+      overflow: hidden;
+      background: #f3f3f3;
+    }
+    .hero-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .hero-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(to top, #ffffff, transparent);
     }
 
-    .profile-content { padding: 35px 20px 25px 20px; text-align: center; }
-    .member-name { font-size: 26px; color: #444; font-weight: 600; margin-bottom: 5px; }
-    .member-status { font-size: 13px; color: #aaa; letter-spacing: 2px; margin-bottom: 20px; }
+    /* 🌸 ส่วนข้อมูลเมมเบอร์ */
+    .profile-body {
+      padding: 0 24px 30px 24px;
+      margin-top: -40px;
+      position: relative;
+      z-index: 2;
+    }
 
-    /* 📊 ส่วนแสดงผลสถิติตามกล่อง PopUp เดิมของคุณเอ็มมี่ */
-    .stats-summary {
+    .member-header-block {
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    .member-name {
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--dark-text);
+      line-height: 1.2;
+    }
+    .member-sub {
+      font-size: 13px;
+      color: var(--blmem-pink);
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    /* 📊 แถบแสดงสถิติ */
+    .stats-bar {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      background: white;
-      padding: 15px 10px;
-      border-radius: 20px;
-      margin-bottom: 25px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-      border: 1px solid rgba(255, 133, 162, 0.1);
+      background: #ffffff;
+      border: 1px solid rgba(255, 133, 162, 0.15);
+      border-radius: 18px;
+      padding: 14px 5px;
+      margin-bottom: 24px;
+      box-shadow: 0 6px 16px rgba(255, 133, 162, 0.03);
     }
-    .stat-item {
+    .stat-box {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .stat-box:not(:last-child) {
+      border-right: 1px solid #ffe5ec;
+    }
+    .stat-num {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--dark-text);
+    }
+    .stat-title {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+    .stat-num.pink { color: var(--blmem-pink); }
+
+    /* 🎀 โซนปุ่มกดโต้ตอบ สไตล์ BLM48 (พร้อมอัปเดต ID เพื่อรองรับระบบจริง) */
+    .interaction-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .btn-interact {
+      border: none;
+      padding: 12px 5px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
     }
-    .stat-item:not(:last-child) {
-      border-right: 1px solid #ffdce3;
+    .btn-interact:hover { 
+      transform: translateY(-3px); 
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
     }
-    .stat-label { font-size: 11px; color: #aaa; font-weight: 500; margin-bottom: 2px; }
-    .stat-val { font-size: 16px; font-weight: 600; color: #555; }
-    .pink-text { color: var(--main-pink); }
+    .btn-interact i {
+      font-size: 16px;
+    }
+    
+    .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
+    .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
+    .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
 
-    /* 🏆 ส่วนแสดงผลแฟนคลับ Top Fans ด้านล่างสุด */
-    .fans-card-section {
-      text-align: left;
-      background: white;
-      border-radius: 20px;
-      padding: 15px;
-      margin-top: 25px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    /* 🏆 โซนทำเนียบแฟนคลับ (Leaderboard) */
+    .leaderboard-section {
+      background: #fffdfd;
+      border-radius: 22px;
+      border: 1px solid #fff0f2;
+      padding: 20px 18px;
     }
-    .fans-title {
+    .leaderboard-title {
       font-size: 14px;
-      color: #666;
       font-weight: 600;
-      margin-bottom: 15px;
+      color: #555;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
+    .leaderboard-title i { color: var(--gold-kami); }
+
+    .fan-list {
+      display: flex;
+      flex-direction: column;
+    }
     .fan-row {
       display: flex;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px dashed #eee;
+      padding: 12px 0;
+      border-bottom: 1px solid #faf0f2;
     }
     .fan-row:last-child { border-bottom: none; }
+    
     .fan-rank {
-      width: 25px; font-size: 14px; font-weight: bold; color: var(--main-pink); text-align: center;
+      width: 24px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #aaa;
+      text-align: center;
     }
-    .fan-img {
-      width: 35px; height: 35px; border-radius: 50%; object-fit: cover;
-      margin: 0 12px; border: 1.5px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .fan-info { flex: 1; }
-    .fan-name { font-size: 13px; color: #444; font-weight: 500; }
-    .fan-cookies { font-size: 11px; color: #d2691e; display: flex; align-items: center; gap: 3px; }
+    .fan-row:nth-child(1) .fan-rank { color: #f59f00; font-size: 16px; }
+    .fan-row:nth-child(2) .fan-rank { color: #94a3b8; font-size: 15px; }
+    .fan-row:nth-child(3) .fan-rank { color: #b45309; font-size: 14px; }
 
-    /* 🎀 แถบปุ่มกิจกรรม */
-    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .action-btn {
-      border: none; padding: 12px 5px; border-radius: 15px; font-weight: bold;
-      cursor: pointer; font-size: 11px; display: flex; flex-direction: column;
-      align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.2s;
+    .fan-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 12px;
+      border: 2px solid #fff;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.06);
     }
-    .action-btn:hover { transform: translateY(-2px); }
-    .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
-    .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
-    .btn-cookie { background: #fff0f6; color: #d6336c; border: 1px solid #fcc2d7; }
+    .fan-meta { flex: 1; text-align: left; }
+    .fan-name { font-size: 13px; color: var(--dark-text); font-weight: 500; }
+    .fan-amount {
+      font-size: 11px;
+      color: #d2691e;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="profile-card">
-    <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+  <div class="app-layout">
+    <button class="back-circle-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
 
-    <div class="avatar-section">
-      <img id="mb-avatar" src="" class="avatar-img" onerror="this.src='https://via.placeholder.com/400x320'">
-      <div id="mb-gen" class="generation-badge">BLM48 MEMBER</div>
+    <div class="hero-image-container">
+      <img id="mb-avatar" src="" class="hero-image" onerror="this.src='https://via.placeholder.com/450x420'">
+      <div class="hero-gradient"></div>
     </div>
 
-    <div class="profile-content">
-      <div id="mb-name" class="member-name">กำลังโหลด...</div>
-      <div class="member-status">BLM48 OFFICIAL MEMBER</div>
+    <div class="profile-body">
+      
+      <div class="member-header-block">
+        <div id="mb-name" class="member-name">กำลังโหลด...</div>
+        <div class="member-sub">BLM48 OFFICIAL MEMBER</div>
+      </div>
 
-      <div class="stats-summary">
-        <div class="stat-item">
-          <span class="stat-label">Kami</span>
-          <span id="mb-kami" class="stat-val">0</span>
+      <div class="stats-bar">
+        <div class="stat-box">
+          <div id="mb-kami" class="stat-num">0</div>
+          <div class="stat-title">Kami-Oshi</div>
         </div>
-        <div class="stat-item">
-          <span class="stat-label">Oshi</span>
-          <span id="mb-oshi" class="stat-val">0</span>
+        <div class="stat-box">
+          <div id="mb-oshi" class="stat-num">0</div>
+          <div class="stat-title">Oshi</div>
         </div>
-        <div class="stat-item">
-          <span class="stat-label">Total Cookies</span>
-          <span id="mb-score" class="stat-val pink-text">0</span>
+        <div class="stat-box">
+          <div id="mb-score" class="stat-num pink">0</div>
+          <div class="stat-title">Total Cookies</div>
         </div>
       </div>
 
-      <div class="action-grid">
-        <button class="action-btn btn-kami" onclick="actionKami()"><i class="fas fa-crown" style="font-size: 16px;"></i> คามิโอชิ</button>
-        <button class="action-btn btn-oshi" onclick="actionOshi()"><i class="fas fa-heart" style="font-size: 16px;"></i> กดโอชิ</button>
-        <button class="action-btn btn-cookie" onclick="actionCookie()"><i class="fas fa-cookie-bite" style="font-size: 16px;"></i> ปาคุกกี้</button>
+      <div class="interaction-grid">
+        <button class="btn-interact btn-kami" onclick="actionKami()">
+          <i class="fas fa-crown"></i> คามิโอชิ
+        </button>
+        <button class="btn-interact btn-oshi" onclick="actionOshi()">
+          <i class="fas fa-heart"></i> กดโอชิ
+        </button>
+        <button class="btn-interact btn-cookie" onclick="actionCookie()">
+          <i class="fas fa-cookie-bite"></i> ปาคุกกี้
+        </button>
       </div>
 
-      <div class="fans-card-section">
-        <div class="fans-title"><i class="fas fa-trophy" style="color: #ffd700;"></i> แฟนคลับที่ปาคุกกี้ให้สูงสุด</div>
-        <div id="member-fans-content">
+      <div class="leaderboard-section">
+        <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans ผู้สนับสนุนประจำเดือน</div>
+        <div id="member-fans-content" class="fan-list">
           </div>
       </div>
 
     </div>
   </div>
 
-<script>
+ <script>
+    // 🔗 ตัวเชื่อมหลังบ้าน Google Apps Script ตัวจริงของคุณเอ็มมี่
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
     const urlParams = new URLSearchParams(window.location.search);
     const memberName = urlParams.get('name');
-    let user = null; // ตัวแปรเก็บข้อมูลผู้ใช้ที่ล็อกอินอยู่ปัจจุบัน
+    let user = null; // ตัวแปรเก็บข้อมูลผู้ใช้ปัจจุบัน
 
-    // 👑 ฟังก์ชันแกะเซสชันตัวเดียวกับหน้า index.html เป๊ะๆ
+    // 👑 ระบบจัดการเซสชัน (อ่าน-เขียนข้อมูลเครื่องสไตล์ BLM48)
+    function saveUserSession(userData) {
+      const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000);
+      localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
+    }
+
     function getUserSession() {
-      const str = localStorage.getItem('bnl_session');
-      if (!str) return null;
+      const sessionStr = localStorage.getItem('bnl_session');
+      if (!sessionStr) return null;
       try {
-        const obj = JSON.parse(str);
-        // ตรวจสอบวันหมดอายุ (ถ้าหมดอายุแล้วให้ลบเซสชันทันที)
-        if (new Date().getTime() > obj.expiry) {
+        const session = JSON.parse(sessionStr);
+        if (new Date().getTime() > session.expiry) {
           localStorage.removeItem('bnl_session');
           return null;
         }
-        return obj.data; // คืนค่าข้อมูล user จริงออกไปใช้งาน
+        return session.data;
       } catch (e) {
         return null;
+      }
+    }
+
+    // 🔄 ฟังก์ชันซิงค์ข้อมูลผู้ใช้จริงจาก Google Sheets เบื้องหลัง
+    async function syncUserData() {
+      if (!user) return;
+      try {
+        const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
+        const res = await resp.json();
+        if (res.status === "success") {
+          user = res.data;
+          saveUserSession(user); // อัปเดตข้อมูลเซสชันล่าสุดในเครื่อง
+          console.log("ซิงค์ข้อมูลผู้ใช้จาก Google Sheets เรียบร้อยแล้วงับ 🌸");
+          updateButtonStyles(); // อัปเดตสถานะปุ่มบนหน้าจอตามข้อมูลใหม่
+        }
+      } catch (e) {
+        console.error("Sync Error:", e);
       }
     }
 
@@ -203,61 +397,7 @@
       return url;
     }
 
-    // ฟังก์ชันโหลดข้อมูลเมมเบอร์และสถิติ
-    function loadMemberData() {
-      if (!memberName) {
-        window.location.href = 'index.html';
-        return;
-      }
-
-      // ดึงเซสชันผู้ใช้มาสแตนด์บายไว้ในหน้านี้
-      user = getUserSession();
-      console.log("ผู้ใช้ปัจจุบันในหน้านี้คือ:", user ? user.name : "Guest");
-
-      document.getElementById('mb-name').innerText = memberName;
-
-      // ดึงสถิติของเมมเบอร์ที่ส่งมาจากหน้าหลัก
-      const savedStats = localStorage.getItem('current_member_stats');
-      if (savedStats) {
-        const m = JSON.parse(savedStats);
-        document.getElementById('mb-avatar').src = getImg(m.profile_img);
-        document.getElementById('mb-kami').innerText = m.total_kami || 0;
-        document.getElementById('mb-oshi').innerText = m.total_oshi || 0;
-        document.getElementById('mb-score').innerText = Number(m.all_time_total || 0).toLocaleString();
-      }
-
-      // ดึงทำเนียบแฟนคลับประจำเดือน
-      const savedFans = localStorage.getItem('current_member_fans');
-      const fanContainer = document.getElementById('member-fans-content');
-      fanContainer.innerHTML = '';
-
-      if (savedFans) {
-        const fans = JSON.parse(savedFans);
-        if (fans.length === 0) {
-          fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
-        } else {
-          fans.slice(0, 10).forEach((f, idx) => {
-            const row = document.createElement('div');
-            row.className = 'fan-row';
-            const fanDisplayName = f.name || f.username;
-
-            row.innerHTML = `
-              <div class="fan-rank">${idx + 1}</div>
-              <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://via.placeholder.com/150'">
-              <div class="fan-meta">
-                <div class="fan-name">${fanDisplayName}</div>
-                <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
-              </div>
-            `;
-            fanContainer.appendChild(row);
-          });
-        }
-      }
-    }
-
-    function goBack() { window.location.href = 'index.html'; }
-
-    // 🔒 ฟังก์ชันส่วนกลางสำหรับเช็คว่าผู้ใช้ล็อกอินหรือยังก่อนทำกิจกรรม
+    // ตรวจสอบสถานะล็อกอินก่อนทำกิจกรรม
     function checkLoginStatus() {
       if (!user) {
         Swal.fire({
@@ -272,23 +412,193 @@
       return true;
     }
 
-    // 👑 กิจกรรมเลือกคามิโอชิ
-    function actionKami() { 
-      if (!checkLoginStatus()) return;
-      Swal.fire('สำเร็จ', `เลือก ${memberName} เป็นคามิโอชิเรียบร้อยแล้วค่ะ 👑`, 'success'); 
+    // โหลดข้อมูลเมมเบอร์ สถิติ และรายชื่อแฟนคลับ
+    function loadMemberData() {
+      if (!memberName) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      user = getUserSession();
+      document.getElementById('mb-name').innerText = memberName;
+
+      // แสดงสถิติรวมของเมมเบอร์
+      const savedStats = localStorage.getItem('current_member_stats');
+      if (savedStats) {
+        const m = JSON.parse(savedStats);
+        document.getElementById('mb-avatar').src = getImg(m.profile_img);
+        document.getElementById('mb-kami').innerText = m.total_kami || 0;
+        document.getElementById('mb-oshi').innerText = m.total_oshi || 0;
+        document.getElementById('mb-score').innerText = Number(m.all_time_total || 0).toLocaleString();
+      }
+
+      // แสดงทำเนียบแฟนคลับประจำเดือน
+      const savedFans = localStorage.getItem('current_member_fans');
+      const fanContainer = document.getElementById('member-fans-content');
+      fanContainer.innerHTML = '';
+
+      if (savedFans) {
+        const fans = JSON.parse(savedFans);
+        if (fans.length === 0) {
+          fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+        } else {
+          fans.slice(0, 10).forEach((f, idx) => {
+            const row = document.createElement('div');
+            row.className = 'fan-row';
+            row.innerHTML = `
+              <div class="fan-rank">${idx + 1}</div>
+              <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://via.placeholder.com/150'">
+              <div class="fan-meta">
+                <div class="fan-name">${f.name || f.username}</div>
+                <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
+              </div>
+            `;
+            fanContainer.appendChild(row);
+          });
+        }
+      }
+
+      // เปิดหน้าจอมาให้เช็คและเปลี่ยนหน้าตาปุ่มทันที
+      updateButtonStyles();
     }
 
-    // ❤️ กิจกรรมกดโอชิ
-    function actionOshi() { 
-      if (!checkLoginStatus()) return;
-      Swal.fire('สำเร็จ', `เพิ่ม ${memberName} เข้าลิสต์โอชิแล้วค่ะ ❤️`, 'success'); 
+    // 🎨 ฟังก์ชันเปลี่ยนหน้าตาและคำบนปุ่ม (KAMI / OSHI) ตามข้อมูลจริงของผู้ใช้
+    function updateButtonStyles() {
+      const btnKami = document.getElementById('btn-kami-trigger');
+      const btnOshi = document.getElementById('btn-oshi-trigger');
+      
+      if (!btnKami || !btnOshi) return; // ป้องกันพังหาก ID ปุ่มไม่ตรงกับ HTML
+      
+      if (!user) return; // ถ้าไม่ได้ล็อกอิน ให้ใช้ดีไซน์เริ่มต้น
+
+      const searchName = memberName.toLowerCase();
+      const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
+      const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
+
+      // เช็คปุ่ม KAMI
+      if (currentKamioshi === searchName) {
+        btnKami.innerText = "REMOVE KAMI";
+        btnKami.style.backgroundColor = "#d9534f"; // เปลี่ยนเป็นสีแดงคูลๆ เวลาต้องการลบ
+      } else {
+        btnKami.innerText = "KAMI";
+        btnKami.style.backgroundColor = ""; // ใช้สีเดิมตาม CSS ของคุณเอ็มมี่
+      }
+
+      // เช็คปุ่ม OSHI
+      if (oshiArray.includes(searchName)) {
+        btnOshi.innerText = "UN-OSHI";
+        btnOshi.style.backgroundColor = "#f0ad4e"; // เปลี่ยนเป็นสีส้ม/แดงเวลากดถอนโอชิ
+      } else {
+        btnOshi.innerText = "OSHI";
+        btnOshi.style.backgroundColor = ""; // ใช้สีเดิมตาม CSS ของคุณเอ็มมี่
+      }
     }
 
-    // 🍪 กิจกรรมปาคุกกี้ (เชื่อมโยงกับกระเป๋าเงินจริงของผู้ใช้)
+    function goBack() { window.location.href = 'index.html'; }
+
+    // ⚡ ฟังก์ชันระบบรวมศูนย์ (Toggle) : กดเพิ่ม/ลบ คามิและโอชิ ยิงเข้า Google Sheets จริง!
+    async function setOshi(type) {
+      if (!checkLoginStatus()) return;
+
+      const username = user.username;
+      const searchName = memberName.toLowerCase();
+      
+      const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
+      const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
+      const isAlreadyOshi = oshiArray.includes(searchName);
+
+      let action = "";
+      let confirmText = "";
+      let subTitle = "";
+
+      // คัดกรอง Action ส่งหลังบ้าน
+      if (type === 'kami') {
+        if (currentKamioshi === searchName) {
+          action = "removeOshi";
+          confirmText = `คุณต้องการลบ ${memberName} ออกจากรายการ "คามิโอชิหลัก" ใช่ไหมงับ?`;
+          subTitle = "ยกเลิกคามิโอชิ";
+        } else {
+          action = "setKamioshi"; // อ้างอิงตามชื่อฟังก์ชันในหลังบ้านของคุณเอ็มมี่
+          confirmText = user.kamioshi 
+            ? `คุณมีคามิโอชิอยู่แล้วคือ ${user.kamioshi} ต้องการเปลี่ยนมาเลือก ${memberName} เป็นคามิโอชิแทนใช่หรือไม่?`
+            : `ตั้งให้ ${memberName} เป็น "คามิโอชิ" ของคุณใช่หรือไม่?`;
+          subTitle = "ยืนยันรายการ";
+        }
+      } else {
+        // ดักจับกรณีเป็นคามิอยู่แล้ว ไม่ให้กดซ้ำซ้อนเป็นโอชิ
+        if (currentKamioshi === searchName) {
+          return Swal.fire('ข้อมูลซ้ำซ้อน', `${memberName} เป็นคามิโอชิหลักของคุณอยู่แล้วค่ะ 👑`, 'warning');
+        }
+
+        if (isAlreadyOshi) {
+          action = "removeOshi";
+          confirmText = `คุณต้องการเลิกติดตาม (Un-Oshi) ${memberName} ใช่ไหมงับ?`;
+          subTitle = "ยกเลิกการติดตาม";
+        } else {
+          action = "setOshi";
+          confirmText = `ติดตาม (Oshi) ${memberName} เพิ่มในลิสต์ใช่หรือไม่?`;
+          subTitle = "ยืนยันรายการ";
+        }
+      }
+
+      const finalConfirm = await Swal.fire({
+        title: subTitle,
+        text: confirmText,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ff85a2',
+        cancelButtonColor: '#aaa',
+        confirmButtonText: 'ตกลง',
+        cancelButtonText: 'ยกเลิก'
+      });
+
+      if (!finalConfirm.isConfirmed) return;
+
+      Swal.fire({ 
+        title: 'กำลังอัปเดตข้อมูลลง Google Sheet...', 
+        allowOutsideClick: false, 
+        didOpen: () => Swal.showLoading() 
+      });
+
+      try {
+        // ใช้รูปแบบการยิงแบบ JSON POST มาตรฐานเดียวกับหน้าหลักเพื่อให้หลังบ้านจัดเก็บได้แม่นยำ
+        const resp = await fetch(scriptURL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: action,
+            type: type,
+            username: username,
+            memberName: memberName
+          })
+        });
+
+        const res = await resp.json();
+        if (res.status === "success") {
+          await syncUserData(); // ซิงค์ค่ากระเป๋าและสถานะคามิโอชิล่าสุดจากเซิร์ฟเวอร์ทันที
+          Swal.fire({ 
+            icon: 'success', 
+            title: 'สำเร็จ!', 
+            text: res.message, 
+            timer: 1500, 
+            showConfirmButton: false 
+          });
+        } else {
+          Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้ค่ะ', 'error');
+        }
+      } catch (e) {
+        console.error(e);
+        Swal.fire('เกิดข้อผิดพลาด!', 'การเชื่อมต่อขัดข้อง หรือ Script URL ไม่ตอบสนอง', 'error');
+      }
+    }
+
+    // แตกสาขาให้เข้ากับฟังก์ชันปุ่มกดที่อยู่บนหน้าจอเดิมของคุณเอ็มมี่
+    function actionKami() { setOshi('kami'); }
+    function actionOshi() { setOshi('oshi'); }
+
+    // 🍪 ฟังก์ชันปาคุกกี้ ยิงลง Google Sheets จริง
     function actionCookie() {
       if (!checkLoginStatus()) return;
 
-      // ตรวจเช็คว่าผู้ใช้มีคุกกี้เหลืออยู่เท่าไหร่
       const userCookies = user.cookie || 0;
 
       Swal.fire({
@@ -308,26 +618,43 @@
             return `คุกกี้ไม่พอค่ะ! คุณมีคุกกี้เหลือแค่ ${userCookies.toLocaleString()} ชิ้นเท่านั้น`;
           }
         }
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.value) {
           const amountSent = parseInt(result.value);
-          
-          // หักคุกกี้จำลองในเครื่องก่อนส่งไปอัปเดตเซิร์ฟเวอร์
-          user.cookie -= amountSent;
-          
-          // บันทึกค่าที่หักแล้วกลับเข้าเซสชันเครื่อง
-          const sessionData = JSON.parse(localStorage.getItem('bnl_session'));
-          sessionData.data = user;
-          localStorage.setItem('bnl_session', JSON.stringify(sessionData));
 
           Swal.fire({
-            title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ',
-            text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`,
-            icon: 'success',
-            confirmButtonColor: '#ff85a2'
+            title: 'กำลังส่งคุกกี้ให้เมมเบอร์...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
           });
-          
-          // (เพิ่มเติมในอนาคต: คุณเอ็มมี่สามารถเขียนฟังก์ชันยิง API อัปเดตขึ้น Firebase Realtime Database ต่อจากตรงนี้ได้เลยค่ะ)
+
+          try {
+            const resp = await fetch(scriptURL, {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'giveCookie', // 🚩 สามารถเปลี่ยนเป็นชื่อ action ส่งคุกกี้ตามโค้ดสตรีมชีตหลังบ้านคุณเอ็มมี่ได้เลยน้า
+                username: user.username,
+                memberName: memberName,
+                amount: amountSent
+              })
+            });
+            const res = await resp.json();
+
+            if (res.status === "success") {
+              await syncUserData(); // หักลบยอดคุกกี้ในกระเป๋าแฟนคลับบนเครื่องทันทีหลังส่งสำเร็จ
+              Swal.fire({
+                title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ',
+                text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`,
+                icon: 'success',
+                confirmButtonColor: '#ff85a2'
+              });
+            } else {
+              Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error');
+            }
+          } catch (e) {
+            console.error(e);
+            Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหมีกครั้งงับ', 'error');
+          }
         }
       });
     }
