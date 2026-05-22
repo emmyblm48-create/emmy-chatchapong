@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Profile - BLM48</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #ffe5ec 0%, #c9e4de 100%);
+      --main-pink: #ff85a2;
+      --soft-white: rgba(255, 255, 255, 0.9);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mitr', sans-serif; }
+
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px 10px;
+    }
+
+    .profile-card {
+      background: var(--soft-white);
+      width: 100%;
+      max-width: 450px;
+      border-radius: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 3px solid #ffffff;
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+
+    .back-btn {
+      position: absolute; top: 20px; left: 20px; background: white; border: none;
+      width: 40px; height: 40px; border-radius: 50px; display: flex;
+      justify-content: center; align-items: center; color: var(--main-pink);
+      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s; z-index: 10;
+    }
+    .back-btn:hover { transform: scale(1.1); }
+
+    .avatar-section { width: 100%; height: 320px; position: relative; background: #eee; }
+    .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+    .generation-badge {
+      position: absolute; bottom: -15px; right: 25px; background: var(--main-pink);
+      color: white; padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: 500;
+      box-shadow: 0 4px 10px rgba(255,133,162,0.4);
+    }
+
+    .profile-content { padding: 35px 20px 25px 20px; text-align: center; }
+    .member-name { font-size: 26px; color: #444; font-weight: 600; margin-bottom: 5px; }
+    .member-status { font-size: 13px; color: #aaa; letter-spacing: 2px; margin-bottom: 20px; }
+
+    /* 📊 ส่วนแสดงผลสถิติตามกล่อง PopUp เดิมของคุณเอ็มมี่ */
+    .stats-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      background: white;
+      padding: 15px 10px;
+      border-radius: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+      border: 1px solid rgba(255, 133, 162, 0.1);
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .stat-item:not(:last-child) {
+      border-right: 1px solid #ffdce3;
+    }
+    .stat-label { font-size: 11px; color: #aaa; font-weight: 500; margin-bottom: 2px; }
+    .stat-val { font-size: 16px; font-weight: 600; color: #555; }
+    .pink-text { color: var(--main-pink); }
+
+    /* 🏆 ส่วนแสดงผลแฟนคลับ Top Fans ด้านล่างสุด */
+    .fans-card-section {
+      text-align: left;
+      background: white;
+      border-radius: 20px;
+      padding: 15px;
+      margin-top: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+    .fans-title {
+      font-size: 14px;
+      color: #666;
+      font-weight: 600;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fan-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px dashed #eee;
+    }
+    .fan-row:last-child { border-bottom: none; }
+    .fan-rank {
+      width: 25px; font-size: 14px; font-weight: bold; color: var(--main-pink); text-align: center;
+    }
+    .fan-img {
+      width: 35px; height: 35px; border-radius: 50%; object-fit: cover;
+      margin: 0 12px; border: 1.5px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .fan-info { flex: 1; }
+    .fan-name { font-size: 13px; color: #444; font-weight: 500; }
+    .fan-cookies { font-size: 11px; color: #d2691e; display: flex; align-items: center; gap: 3px; }
+
+    /* 🎀 แถบปุ่มกิจกรรม */
+    .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .action-btn {
+      border: none; padding: 12px 5px; border-radius: 15px; font-weight: bold;
+      cursor: pointer; font-size: 11px; display: flex; flex-direction: column;
+      align-items: center; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: 0.2s;
+    }
+    .action-btn:hover { transform: translateY(-2px); }
+    .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
+    .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
+    .btn-cookie { background: #fff0f6; color: #d6336c; border: 1px solid #fcc2d7; }
+  </style>
+</head>
+<body>
+
+  <div class="profile-card">
+    <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+
+    <div class="avatar-section">
+      <img id="mb-avatar" src="" class="avatar-img" onerror="this.src='https://via.placeholder.com/400x320'">
+      <div id="mb-gen" class="generation-badge">BLM48 MEMBER</div>
+    </div>
+
+    <div class="profile-content">
+      <div id="mb-name" class="member-name">กำลังโหลด...</div>
+      <div class="member-status">BLM48 OFFICIAL MEMBER</div>
+
+      <div class="stats-summary">
+        <div class="stat-item">
+          <span class="stat-label">Kami</span>
+          <span id="mb-kami" class="stat-val">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Oshi</span>
+          <span id="mb-oshi" class="stat-val">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total Cookies</span>
+          <span id="mb-score" class="stat-val pink-text">0</span>
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <button class="action-btn btn-kami" onclick="actionKami()"><i class="fas fa-crown" style="font-size: 16px;"></i> คามิโอชิ</button>
+        <button class="action-btn btn-oshi" onclick="actionOshi()"><i class="fas fa-heart" style="font-size: 16px;"></i> กดโอชิ</button>
+        <button class="action-btn btn-cookie" onclick="actionCookie()"><i class="fas fa-cookie-bite" style="font-size: 16px;"></i> ปาคุกกี้</button>
+      </div>
+
+      <div class="fans-card-section">
+        <div class="fans-title"><i class="fas fa-trophy" style="color: #ffd700;"></i> แฟนคลับที่ปาคุกกี้ให้สูงสุด</div>
+        <div id="member-fans-content">
+          </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const memberName = urlParams.get('name');
+
+    // ฟังก์ชันช่วยจัดการรูปภาพ (จำลองแบบดั้งเดิมของคุณเอ็มมี่ ถ้ามีฟังก์ชัน getImg จริง สามารถเอามาใส่ได้เลยนะคะ)
+    function getImg(url) {
+      if(!url) return 'https://via.placeholder.com/150';
+      return url;
+    }
+
+    function loadMemberData() {
+      if (!memberName) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      document.getElementById('mb-name').innerText = memberName;
+
+      // 1. ดึงสถิติที่บันทึกไว้จาก localStorage
+      const savedStats = localStorage.getItem('current_member_stats');
+      if (savedStats) {
+        const m = JSON.parse(savedStats);
+        document.getElementById('mb-avatar').src = getImg(m.profile_img);
+        document.getElementById('mb-kami').innerText = m.total_kami || 0;
+        document.getElementById('mb-oshi').innerText = m.total_oshi || 0;
+        document.getElementById('mb-score').innerText = Number(m.all_time_total || 0).toLocaleString();
+      }
+
+      // 2. ดึงรายชื่อ Top Fans มาเรนเดอร์ลงตารางด้านล่างแบบเดียวกับ PopUp เดิม
+      const savedFans = localStorage.getItem('current_member_fans');
+      const fanContainer = document.getElementById('member-fans-content');
+      fanContainer.innerHTML = '';
+
+      if (savedFans) {
+        const fans = JSON.parse(savedFans);
+        
+        if (fans.length === 0) {
+          fanContainer.innerHTML = '<div style="padding:15px; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+        } else {
+          // แสดงผลสูงสุด 10 อันดับแรก
+          fans.slice(0, 10).forEach((f, idx) => {
+            const row = document.createElement('div');
+            row.className = 'fan-row';
+            const fanDisplayName = f.name || f.username;
+
+            row.innerHTML = `
+              <div class="fan-rank">${idx + 1}</div>
+              <img src="${getImg(f.img)}" class="fan-img" onerror="this.src='https://via.placeholder.com/150'">
+              <div class="fan-info">
+                <div class="fan-name">${fanDisplayName}</div>
+                <div class="fan-cookies"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
+              </div>
+            `;
+            fanContainer.appendChild(row);
+          });
+        }
+      }
+    }
+
+    function goBack() { window.location.href = 'index.html'; }
+
+    // ฟังก์ชันกิจกรรมปุ่มกดต่างๆ
+    function actionKami() { Swal.fire('สำเร็จ', `เลือก ${memberName} เป็นคามิโอชิเรียบร้อยแล้วค่ะ 👑`, 'success'); }
+    function actionOshi() { Swal.fire('สำเร็จ', `เพิ่ม ${memberName} เข้าลิสต์โอชิแล้วค่ะ ❤️`, 'success'); }
+    function actionCookie() {
+      Swal.fire({
+        title: `ปาคุกกี้ให้ ${memberName}`,
+        input: 'number',
+        inputLabel: 'กรอกจำนวนคุกกี้ที่จะส่ง',
+        inputPlaceholder: '0',
+        showCancelButton: true,
+        confirmButtonColor: '#ff85a2'
+      }).then((result) => {
+        if (result.value) {
+          Swal.fire('ขอบคุณค่ะ', `ส่งคุกกี้จำนวน ${Number(result.value).toLocaleString()} ชิ้นเรียบร้อยแล้วงับ 🍪`, 'success');
+        }
+      });
+    }
+
+    window.onload = loadMemberData;
+  </script>
+</body>
+</html>
