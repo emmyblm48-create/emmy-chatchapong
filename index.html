@@ -314,39 +314,48 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .btn-action:hover { filter: brightness(0.95); transform: scale(1.03); }
     
     @media (max-width: 600px) {
-        /* 1. จัดกึ่งกลางให้ Ranking Wrapper */
-        .ranking-wrapper {
-          justify-content: flex-start; /* ให้เริ่มจากซ้ายเพื่อให้ scroll ง่าย */
-          padding: 10px 15px;
-        }
+  /* 1. ล็อกการ scroll ให้ลื่นและแสดงผล 5 อันดับแรก */
+  .ranking-wrapper {
+    display: flex;
+    flex-wrap: nowrap; /* ห้ามขึ้นบรรทัดใหม่ */
+    overflow-x: auto;
+    gap: 6px; /* ลดช่องว่างลงเพื่อให้จุการ์ดได้มากขึ้น */
+    padding: 10px 10px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* ซ่อน scrollbar ให้ดูสะอาด */
+  }
+  .ranking-wrapper::-webkit-scrollbar { display: none; }
 
-        /* 2. บีบขนาดการ์ดลงให้ดูพอดีหน้าจอ */
-        .member-card { 
-          width: 85px; /* ลดความกว้างลงเล็กน้อยเพื่อไม่ให้ล้น */
-          padding: 10px 5px; 
-          border-radius: 40px 40px 20px 20px;
-        }
+  /* 2. บีบการ์ดให้กว้างประมาณ 70px (พอดีให้เห็น 5 อันดับในหน้าจอเดียว) */
+  .member-card { 
+    width: 70px; 
+    flex: 0 0 auto; /* สำคัญมาก: ป้องกันการ์ดโดนบีบ */
+    padding: 8px 4px;
+    border-radius: 30px 30px 15px 15px;
+  }
 
-        /* 3. ปรับขนาดรูปให้เล็กลงรับกับหน้าจอ */
-        .img-wrapper { 
-          width: 60px; 
-          height: 60px; 
-        }
-        .rank-1 .img-wrapper { 
-          width: 70px; 
-          height: 70px; 
-        }
+  /* 3. ปรับขนาดรูปให้กะทัดรัดขึ้น */
+  .img-wrapper { 
+    width: 50px; 
+    height: 50px; 
+  }
+  .rank-1 .img-wrapper { 
+    width: 58px; 
+    height: 58px; 
+  }
 
-        /* 4. ปรับขนาดตัวอักษรให้ไม่ล้นแท่ง */
-        .name-text { font-size: 10px; }
-        .cookie-text { font-size: 11px; }
-
-        /* 5. จัดระยะห่างระหว่างการ์ดให้ชิดขึ้น */
-        .horizontal-list { 
-          gap: 8px; 
-          padding: 10px 5px;
-        }
-      }
+  /* 4. ปรับฟอนต์ให้เล็กและกระชับ */
+  .name-text { 
+    font-size: 9px; 
+    white-space: nowrap; /* ไม่ให้ชื่อขึ้นบรรทัดใหม่ */
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+  }
+  .cookie-text { 
+    font-size: 9px; 
+    transform: scale(0.9); /* ย่อตัวเลขให้ดูไม่อึดอัด */
+  }
+}
     
     /* Modals & Stats */
     #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); z-index: 1000; overflow-y: auto; padding: 40px 10px; box-sizing: border-box; }
