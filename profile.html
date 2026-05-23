@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile | BLM48</title>
+  <meta name="theme-color" content="#ffc0cb">
+  <link rel="icon" type="image/png" href="assets/images/favicon.png">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+  <style>
+    :root {
+      --blmem-pink: #ff85a2;
+      --blmem-pink-light: #fff0f3;
+      --blmem-mint: #c9e4de;
+      --dark-text: #3a3a3a;
+      --bg-soft: #fcfcfc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mitr', sans-serif; }
+
+    body {
+      background: var(--bg-soft);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      color: var(--dark-text);
+    }
+
+    .app-layout {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
+    }
+
+    .hero-image-container {
+      width: 100%;
+      height: 220px;
+      position: relative;
+      overflow: hidden;
+      background: #f3f3f3;
+    }
+    
+    .hero-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      filter: brightness(0.9);
+    }
+
+    .hero-gradient {
+      position: absolute;
+      bottom: 0; left: 0; width: 100%; height: 80px;
+      background: linear-gradient(to top, #ffffff 10%, transparent);
+      z-index: 1;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 40px 20px;
+        align-items: center;
+        background: #f4f6f8;
+      }
+      .app-layout {
+        max-width: 900px;
+        min-height: 600px;
+        border-radius: 30px;
+        flex-direction: row;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(255, 133, 162, 0.1);
+      }
+      .hero-image-container {
+        width: 45% !important;
+        height: auto !important;
+        min-height: 100%;
+      }
+      .hero-gradient {
+        background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, transparent 40%) !important;
+        height: 100% !important;
+      }
+      .profile-body {
+        width: 55% !important;
+        margin-top: 0 !important;
+        padding: 40px 40px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        overflow-y: auto;
+      }
+      .profile-avatar-container {
+        margin-top: 0 !important;
+        justify-content: flex-start !important;
+      }
+    }
+
+    .nav-circle-btn {
+      position: absolute;
+      top: 20px; left: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      color: var(--blmem-pink);
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      text-decoration: none;
+      transition: 0.2s;
+    }
+    .nav-circle-btn:hover { transform: scale(1.08); background: #fff; }
+
+    .profile-body {
+      padding: 0 24px 35px 24px;
+      position: relative;
+      z-index: 2;
+      flex: 1;
+    }
+
+    .profile-avatar-container {
+      margin-top: -55px;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 15px;
+    }
+    .profile-avatar-wrapper {
+      position: relative;
+      cursor: pointer;
+    }
+    .profile-avatar {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      border: 4px solid #ffffff;
+      object-fit: cover;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      background: #fff;
+      transition: transform 0.2s;
+    }
+    .profile-avatar-wrapper:hover .profile-avatar {
+      transform: scale(1.03);
+      filter: brightness(0.9);
+    }
+    .edit-photo-overlay {
+      position: absolute;
+      bottom: 2px; right: 2px;
+      background: var(--dark-text);
+      color: white;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      border: 2px solid white;
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    .member-header-block { text-align: center; margin-bottom: 24px; }
+    @media (min-width: 768px) { .member-header-block { text-align: left; } }
+    
+    .member-name {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--dark-text);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .edit-name-icon {
+      font-size: 14px;
+      color: #999;
+      background: #f0f0f0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: inline-flex; justify-content: center; align-items: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .edit-name-icon:hover { background: var(--blmem-pink); color: white; }
+    
+    .member-role {
+      font-size: 13px;
+      color: var(--blmem-pink);
+      font-weight: 500;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: #ffffff;
+      border: 1px solid rgba(255, 133, 162, 0.15);
+      border-radius: 18px;
+      padding: 16px 5px;
+      margin-bottom: 30px;
+      box-shadow: 0 6px 16px rgba(255, 133, 162, 0.03);
+    }
+    .stat-box { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .stat-box:not(:last-child) { border-right: 1px solid #ffe5ec; }
+    .stat-num { font-size: 16px; font-weight: 600; color: var(--dark-text); display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .stat-title { font-size: 11px; color: #999; margin-top: 4px; }
+
+    .menu-section {
+      background: #fffdfd;
+      border-radius: 22px;
+      border: 1px solid #fff0f2;
+      padding: 10px 0;
+      margin-bottom: 20px;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      text-decoration: none;
+      color: var(--dark-text);
+      transition: 0.2s;
+      border-bottom: 1px dashed #faf0f2;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item:hover { background: var(--blmem-pink-light); }
+    
+    .menu-icon {
+      width: 35px; height: 35px;
+      border-radius: 10px;
+      display: flex; justify-content: center; align-items: center;
+      font-size: 16px;
+      margin-right: 15px;
+      background: #f7f7f7;
+    }
+    .menu-text { flex: 1; font-size: 15px; font-weight: 500; }
+    .menu-arrow { color: #ccc; font-size: 14px; }
+
+    .icon-pink { color: var(--blmem-pink); background: #fff0f3 !important; }
+    .icon-blue { color: #4dabf7; background: #e7f5ff !important; }
+    .icon-gold { color: #f59f00; background: #fff9db !important; }
+    .icon-gray { color: #868e96; background: #f1f3f5 !important; }
+
+    #app-loading-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #ffffff; z-index: 9999;
+      display: flex; justify-content: center; align-items: center;
+      transition: opacity 0.5s;
+    }
+
+    /* สไตล์เพิ่มเติมสำหรับกล่องครอบรูปภาพ */
+    .cropper-container-box {
+      max-width: 100%;
+      max-height: 320px;
+      margin-top: 15px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f8f9fa;
+    }
+    .cropper-container-box img {
+      max-width: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app-loading-screen">
+    <i class="fas fa-cookie-bite fa-spin" style="font-size: 40px; color: var(--blmem-pink);"></i>
+  </div>
+
+  <div class="app-layout">
+    <a href="index.html" class="nav-circle-btn"><i class="fas fa-home"></i></a>
+
+    <div class="hero-image-container">
+      <img id="pf-cover" src="https://via.placeholder.com/800x400/ffe4e1/ff85a2?text=BLM48+Cover" class="hero-image">
+      <div class="hero-gradient"></div>
+    </div>
+
+    <div class="profile-body">
+      
+      <div class="profile-avatar-container">
+        <div class="profile-avatar-wrapper" onclick="document.getElementById('profile-upload').click()">
+          <img id="pf-avatar" src="https://via.placeholder.com/150" class="profile-avatar">
+          <div class="edit-photo-overlay">
+            <i class="fas fa-camera"></i>
+          </div>
+          <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleProfileImageSelect(event)">
+        </div>
+      </div>
+      
+      <div class="member-header-block">
+        <div class="member-name">
+          <span id="pf-name">กำลังโหลด...</span>
+          <div id="edit-name-btn" class="edit-name-icon" onclick="updateDisplayName()" style="display: none;">
+            <i class="fas fa-pencil-alt"></i>
+          </div>
+        </div>
+        <div id="pf-role" class="member-role">MEMBER</div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-box">
+          <div id="pf-oshi-count" class="stat-num">0</div>
+          <div class="stat-title">Oshi Members</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color: #d2691e;"><i class="fas fa-cookie-bite"></i> <span id="pf-cookies">0</span></div>
+          <div class="stat-title">Cookies</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color: #f59f00;"><i class="fas fa-coins"></i> <span id="pf-tokens">0</span></div>
+          <div class="stat-title">Tokens</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" style="color: #4dabf7;"><i class="fas fa-gem"></i> <span id="pf-getokens">0</span></div>
+          <div class="stat-title">GETokens</div>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <a href="index.html" class="menu-item">
+          <div class="menu-icon icon-pink"><i class="fas fa-home"></i></div>
+          <div class="menu-text">หน้าแรก (Home)</div>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="inventory.html" class="menu-item">
+          <div class="menu-icon icon-blue"><i class="fas fa-briefcase"></i></div>
+          <div class="menu-text">กระเป๋าไอเทม (Inventory)</div>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="kami.html" class="menu-item">
+          <div class="menu-icon icon-gold"><i class="fas fa-star"></i></div>
+          <div class="menu-text">คามิโอชิของฉัน (Kami-Oshi)</div>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="#" onclick="confirmLogout(); return false;" class="menu-item">
+          <div class="menu-icon icon-gray"><i class="fas fa-sign-out-alt"></i></div>
+          <div class="menu-text">ออกจากระบบ (Logout)</div>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+  let user = null;
+  let activeCropper = null;
+
+  // 📈 ฟังก์ชันย่อหน่วยตัวเลข (Compact Number Formatter) เช่น 1,500 -> 1.5K / 2,400,000 -> 2.4M
+  function formatCompactNumber(number) {
+    if (isNaN(number)) return '0';
+    const num = Number(number);
+    if (num >= 1e6) {
+      return (num / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1e3) {
+      return (num / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toLocaleString();
+  }
+
+  // --- Session Storage ---
+  function getUserSession() {
+    const sessionStr = localStorage.getItem('bnl_session');
+    if (!sessionStr) return null;
+    try {
+      const session = JSON.parse(sessionStr);
+      if (new Date().getTime() > session.expiry) {
+        localStorage.removeItem('bnl_session');
+        return null;
+      }
+      return session.data;
+    } catch (e) { return null; }
+  }
+
+  function saveUserSession(userData) {
+    const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
+    localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
+  }
+
+  // --- อัปเดต UI หน้าจอ ---
+  function updateProfileUI() {
+    if (!user) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    document.getElementById('pf-name').innerText = user.name || user.username;
+    document.getElementById('pf-role').innerText = (user.role || 'MEMBER').toUpperCase();
+    
+    const avatarEl = document.getElementById('pf-avatar');
+    if (user.profile_img) {
+      if (user.profile_img.includes('drive.google.com')) {
+         avatarEl.src = `https://lh3.googleusercontent.com/u/0/d/$${user.profile_img.match(/[-\w]{25,}/)}`;
+      } else {
+         avatarEl.src = user.profile_img;
+      }
+      document.getElementById('pf-cover').src = avatarEl.src;
+    }
+
+    let totalOshi = 0;
+    if (user.kamioshi && user.kamioshi.trim() !== "") totalOshi += 1;
+    if (user.oshi && Array.isArray(user.oshi)) {
+      const validOshis = user.oshi.filter(o => o && o.trim() !== "" && o.toLowerCase() !== (user.kamioshi || "").toLowerCase());
+      totalOshi += validOshis.length;
+    }
+    document.getElementById('pf-oshi-count').innerText = formatCompactNumber(totalOshi);
+
+    // นำฟังก์ชันย่อหน่วยตัวเลขมาใช้ครอบค่าสถิติกระเป๋าเงิน
+    document.getElementById('pf-cookies').innerText = formatCompactNumber(user.cookie || 0);
+    document.getElementById('pf-tokens').innerText = formatCompactNumber(user.token || 0);
+    document.getElementById('pf-getokens').innerText = formatCompactNumber(user.geToken || 0);
+
+    if (user.role && user.role.toLowerCase() === 'user') {
+      document.getElementById('edit-name-btn').style.display = 'inline-flex';
+    }
+  }
+
+  async function syncUserData() {
+    if (!user) return;
+    try {
+      const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
+      const res = await resp.json();
+      if (res.status === "success") {
+        user = res.data; 
+        saveUserSession(user); 
+        updateProfileUI(); 
+      }
+    } catch (e) { console.error("Sync Error:", e); }
+  }
+
+  // --- แก้ไขชื่อเล่น ---
+  async function updateDisplayName() {
+    if (!user || user.role.toLowerCase() !== "user") return;
+
+    const { value: newName } = await Swal.fire({
+      title: 'แก้ไขชื่อของคุณ',
+      input: 'text',
+      inputLabel: 'กรอกชื่อใหม่ที่ต้องการ',
+      inputValue: user.name,
+      showCancelButton: true,
+      confirmButtonColor: '#ff85a2',
+      inputValidator: (value) => {
+        if (!value) return 'กรุณากรอกชื่อด้วยนะคะ'
+        if (value.length > 20) return 'ชื่อยาวเกินไปหน่อยค่ะ'
+      }
+    });
+
+    if (newName) {
+      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        const response = await fetch(scriptURL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'updateName', username: user.username, newName: newName })
+        });
+        const res = await response.json();
+        if (res.status === "success") {
+          user.name = newName; 
+          saveUserSession(user); 
+          updateProfileUI(); 
+          Swal.fire('สำเร็จ!', 'เปลี่ยนชื่อเรียบร้อยแล้วค่ะ', 'success');
+        }
+      } catch (error) { Swal.fire('Error', 'ไม่สามารถเปลี่ยนชื่อได้ในขณะนี้', 'error'); }
+    }
+  }
+
+  // ✂️ --- ระบบเลือกภาพและ Crop อัจฉริยะก่อนยืนยัน ---
+  function handleProfileImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      // เปิด SweetAlert2 เพื่อให้ผู้ใช้จัดตำแหน่งและครอบตัดรูปภาพแบบ 1:1
+      Swal.fire({
+        title: 'ปรับตำแหน่งรูปโปรไฟล์',
+        html: `
+          <div class="cropper-container-box">
+            <img id="cropper-target-img" src="${e.target.result}">
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#ff85a2',
+        confirmButtonText: 'ยืนยันรูปภาพนี้',
+        cancelButtonText: 'ยกเลิก',
+        allowOutsideClick: false,
+        didOpen: () => {
+          const imageElement = document.getElementById('cropper-target-img');
+          // เรียกใช้งานสถาปัตยกรรม Cropper.js ล็อคสัดส่วนวงกลม/จัตุรัส 1 ต่อ 1
+          activeCropper = new Cropper(imageElement, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 1,
+            movable: true,
+            zoomable: true,
+            rotatable: false,
+            scalable: false
+          });
+        },
+        willClose: () => {
+          if (activeCropper) {
+            activeCropper.destroy();
+            activeCropper = null;
+          }
+        },
+        preConfirm: () => {
+          // ดึงข้อมูล Canvas ที่ถูกตัด และแปลงค่าความละเอียดเป็น Blob (ขนาดกำลังดีไม่หนักโฮสต์)
+          return new Promise((resolve) => {
+            activeCropper.getCroppedCanvas({
+              width: 400,
+              height: 400
+            }).toBlob((blob) => {
+              resolve(blob);
+            }, 'image/jpeg', 0.85);
+          });
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed && result.value) {
+          const croppedBlob = result.value;
+          await proceedToUploadProfile(croppedBlob);
+        }
+        // ล้างค่าอินพุตเพื่อให้เลือกไฟล์เดิมซ้ำได้ในครั้งต่อไป
+        document.getElementById('profile-upload').value = '';
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // --- ส่งรูปเข้าคลัง ImgBB & อัปเดต Google Sheets ---
+  async function proceedToUploadProfile(blobFile) {
+    Swal.fire({
+      title: 'กำลังอัปเดตระบบ...',
+      text: 'กำลังนำรูปภาพโปรไฟล์ใหม่ขึ้นระบบฐานข้อมูล',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+      // 1. ส่งขึ้นเซิร์ฟเวอร์ฝากรูปผ่านคีย์ API เดิมของคุณเอ็มมี่
+      const apiKey = '80ad839da07973eeefee57af54fc9f6d';
+      const formData = new FormData();
+      formData.append('image', blobFile, 'profile.jpg');
+
+      const imgbbResp = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData
+      });
+      const imgbbData = await imgbbResp.json();
+
+      if (!imgbbData.success) throw new Error("ImgBB อัปโหลดล้มเหลว");
+      const finalImageUrl = imgbbData.data.url;
+
+      // 2. ซิงค์ส่งลิงก์ URL รูปภาพใหม่ตรงเข้าคอลัมน์กูเกิ้ลชีต
+      await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'updateProfileImage',
+          username: user.username,
+          imageUrl: finalImageUrl
+        })
+      });
+
+      // 3. เรียกดึงข้อมูลเวอร์ชันล่าสุดมาโชว์บนหน้าจอทันที
+      await syncUserData();
+      Swal.fire('สำเร็จแล้ว!', 'เปลี่ยนรูปภาพโปรไฟล์ของคุณเรียบร้อยงับ', 'success');
+
+    } catch (error) {
+      console.error(error);
+      Swal.fire('เกิดข้อผิดพลาด!', 'ไม่สามารถบันทึกรูปภาพได้ กรุณาลองใหม่อีกครั้งนะงับ', 'error');
+    }
+  }
+
+  function confirmLogout() {
+    Swal.fire({
+      title: 'ต้องการออกจากระบบใช่ไหมคะ?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#ff85a2',
+      confirmButtonText: 'ตกลง',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem('bnl_session');
+        window.location.href = 'index.html';
+      }
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    updateProfileUI();
+    
+    setTimeout(() => {
+      const loader = document.getElementById('app-loading-screen');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+      }
+    }, 500);
+
+    if (user) syncUserData();
+  });
+</script>
+</body>
+</html>
