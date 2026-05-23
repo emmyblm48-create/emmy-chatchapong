@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLM48 Membership | Search</title>
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+  <meta name="theme-color" content="#ffc0cb">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Mitr', sans-serif;
+      background-color: #fff5f7;
+      color: #4a4a4a;
+      margin: 0;
+      padding: 20px;
+    }
+    .search-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(255, 133, 162, 0.15);
+    }
+    .header-area {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .back-btn {
+      color: #ff85a2;
+      font-size: 20px;
+      text-decoration: none;
+      margin-right: 16px;
+      transition: transform 0.2s;
+    }
+    .back-btn:hover {
+      transform: translateX(-3px);
+    }
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      color: #ff85a2;
+    }
+    .search-box {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 14px 20px 14px 45px;
+      font-family: 'Mitr', sans-serif;
+      font-size: 16px;
+      border: 2px solid #ffe3e8;
+      border-radius: 50px;
+      outline: none;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+    }
+    .search-input:focus {
+      border-color: #ff85a2;
+      box-shadow: 0 0 10px rgba(255, 133, 162, 0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ff85a2;
+    }
+    .member-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    /* คัสตอม Scrollbar ให้ดูตะมุตะมิ */
+    .member-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .member-list::-webkit-scrollbar-thumb {
+      background-color: #ffe3e8;
+      border-radius: 10px;
+    }
+    .member-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: #fffcfd;
+      border: 1px solid #ffeef1;
+      border-radius: 16px;
+      text-decoration: none;
+      color: #4a4a4a;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .member-item:hover {
+      background: #ffeef1;
+      transform: translateY(-2px);
+      border-color: #ff85a2;
+    }
+    .member-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 16px;
+      border: 2px solid #ff85a2;
+    }
+    .member-info {
+      flex-grow: 1;
+    }
+    .member-name {
+      font-weight: 500;
+      font-size: 16px;
+    }
+    .member-team {
+      font-size: 12px;
+      color: #aaa;
+    }
+    .no-result {
+      text-align: center;
+      color: #999;
+      padding: 20px;
+      font-size: 14px;
+    }
+    .loading-spinner {
+      text-align: center;
+      color: #ff85a2;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="search-container">
+    <div class="header-area">
+      <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+      <h2>ค้นหาเมมเบอร์ BLM48</h2>
+    </div>
+
+    <div class="search-box">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="search-input" class="search-input" placeholder="พิมพ์ชื่อเมมเบอร์ที่ต้องการค้นหา..." autocomplete="off">
+    </div>
+
+    <div id="loading" class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i> กำลังโหลดข้อมูลเมมเบอร์...
+    </div>
+    <div id="member-list" class="member-list" style="display: none;">
+      </div>
+  </div>
+
+  <script>
+    // URL ของ Web App (Google Apps Script) ที่ดึงรายชื่อเมมเบอร์
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberList'; 
+    // หมายเหตุ: พี่เวย์ลองดูว่าในสคริปต์มี action สำหรับดึงรายชื่อเมมเบอร์ทั้งหมดไหมนะครับ หรือสามารถปรับเปลี่ยนตาม API ที่มีได้เลย
+
+    let allMembers = [];
+    
+    // ฟังก์ชันค้นหาที่ฉลาดขึ้น (กรองทั้งชื่อและวงน้องได้พร้อมกัน)
+function filterMembers() {
+  const searchTerm = document.getElementById('search-input').value.toLowerCase();
+  const selectedGroup = document.getElementById('group-filter').value; // เช่น BLM48 หรือ All
+
+  const filtered = allMembers.filter(member => {
+    const matchName = member.name.toLowerCase().includes(searchTerm) || member.nameTh.includes(searchTerm);
+    const matchGroup = (selectedGroup === 'All') || (member.group === selectedGroup);
+    
+    return matchName && matchGroup;
+  });
+
+  displayMembers(filtered);
+}
+
+    // 1. โหลดข้อมูลเมมเบอร์ทั้งหมดมาเก็บไว้ก่อน
+    async function loadMembers() {
+      try {
+        // ตัวอย่างการจำลองข้อมูล / หรือ fetch จริง
+        // เพื่อให้เห็นภาพชัดเจน ผมทำโครงสร้างรับข้อมูลไว้ให้ครับ
+        const response = await fetch(scriptURL);
+        const data = await response.json();
+        
+        if (data && data.success) {
+          allMembers = data.members; // สมมติว่าคืนค่าเป็น array ของเมมเบอร์
+        } else {
+          // กรณีไม่มี API ดึงทั้งหมด สามารถใช้ mock data ชั่วคราว หรือปรับปรุงตามโครงสร้างฐานข้อมูลได้ครับ
+          allMembers = [
+            { name: "Emmy", team: "Trainee", img: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32" },
+            // เพิ่มรายชื่อเมมเบอร์คนอื่นๆ ตรงนี้ได้ครับ
+          ];
+        }
+      } catch (e) {
+        console.error("Error loading members:", e);
+        // Fallback ข้อมูลเผื่อเชื่อมต่อสคริปต์ไม่ได้
+        allMembers = [
+          { name: "Emmy", team: "Trainee", img: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32" }
+        ];
+      } finally {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('member-list').style.display = 'grid';
+        displayMembers(allMembers);
+      }
+    }
+
+    // 2. ฟังก์ชันแสดงผลรายชื่อบนหน้าจอ
+    function displayMembers(members) {
+      const listContainer = document.getElementById('member-list');
+      listContainer.innerHTML = '';
+
+      if (members.length === 0) {
+        listContainer.innerHTML = '<div class="no-result">ไม่พบข้อมูลเมมเบอร์งับ 🌸</div>';
+        return;
+      }
+
+      members.forEach(member => {
+        const item = document.createElement('a');
+        item.className = 'member-item';
+        // 🎯 ส่งค่าชื่อเมมเบอร์ผ่าน URL parameter ไปยังหน้า member.html
+        item.href = `member.html?name=${encodeURIComponent(member.name)}`;
+        
+        item.innerHTML = `
+          <img src="${member.img || 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32'}" class="member-avatar" alt="${member.name}">
+          <div class="member-info">
+            <div class="member-name">${member.name}</div>
+            <div class="member-team">${member.team || 'BLM48'}</div>
+          </div>
+          <i class="fas fa-chevron-right" style="color: #ffe3e8;"></i>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    // 3. ระบบค้นหาแบบ Real-time (Filter)
+    document.getElementById('search-input').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase().trim();
+      
+      const filtered = allMembers.filter(member => {
+        return member.name.toLowerCase().includes(searchTerm) || 
+               (member.team && member.team.toLowerCase().includes(searchTerm));
+      });
+      
+      displayMembers(filtered);
+    });
+
+    window.onload = loadMembers;
+  </script>
+</body>
+</html>
