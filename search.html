@@ -2,254 +2,440 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BLM48 Membership | Search</title>
+  
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <meta name="theme-color" content="#ffc0cb">
   
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --primary-color: #ff85a2;
+      --bg-color: #fff5f7;
+      --card-bg: #ffffff;
+      --text-main: #4a4a4a;
+      --text-sub: #888888;
+      --border-color: #ffe3e8;
+    }
+
     body {
       font-family: 'Mitr', sans-serif;
-      background-color: #fff5f7;
-      color: #4a4a4a;
+      background-color: var(--bg-color);
+      color: var(--text-main);
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
-    .search-container {
+
+    .container {
       max-width: 600px;
-      margin: 40px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 24px;
-      box-shadow: 0 8px 24px rgba(255, 133, 162, 0.15);
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 80px;
     }
-    .header-area {
+
+    /* Header */
+    .header {
       display: flex;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 25px;
+      padding-top: 10px;
     }
+
     .back-btn {
-      color: #ff85a2;
-      font-size: 20px;
+      color: var(--primary-color);
+      font-size: 22px;
       text-decoration: none;
-      margin-right: 16px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(255, 133, 162, 0.15);
+      margin-right: 15px;
       transition: transform 0.2s;
     }
-    .back-btn:hover {
-      transform: translateX(-3px);
+
+    .back-btn:active {
+      transform: scale(0.9);
     }
-    h2 {
-      margin: 0;
+
+    .header-title {
       font-size: 22px;
-      color: #ff85a2;
+      font-weight: 500;
+      color: var(--primary-color);
+      margin: 0;
     }
-    .search-box {
+
+    /* Search Box */
+    .search-wrapper {
       position: relative;
       margin-bottom: 20px;
     }
+
     .search-input {
       width: 100%;
-      padding: 14px 20px 14px 45px;
+      padding: 16px 20px 16px 50px;
       font-family: 'Mitr', sans-serif;
       font-size: 16px;
-      border: 2px solid #ffe3e8;
-      border-radius: 50px;
-      outline: none;
+      border: 2px solid var(--border-color);
+      border-radius: 20px;
       box-sizing: border-box;
+      outline: none;
+      color: var(--text-main);
+      background: white;
       transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 133, 162, 0.05);
     }
+
     .search-input:focus {
-      border-color: #ff85a2;
-      box-shadow: 0 0 10px rgba(255, 133, 162, 0.2);
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 20px rgba(255, 133, 162, 0.15);
     }
+
+    .search-input::placeholder {
+      color: #ccc;
+      font-size: 14px;
+    }
+
     .search-icon {
       position: absolute;
-      left: 18px;
+      left: 20px;
       top: 50%;
       transform: translateY(-50%);
-      color: #ff85a2;
+      color: var(--primary-color);
+      font-size: 18px;
     }
-    .member-list {
-      display: grid;
-      grid-template-columns: 1fr;
+
+    /* Group Filters */
+    .filter-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      -ms-overflow-style: none;  
+      scrollbar-width: none;  
+    }
+    
+    .filter-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      background: white;
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      font-family: 'Mitr', sans-serif;
+      font-size: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+      font-weight: 500;
+      box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3);
+    }
+
+    /* Member List */
+    .member-grid {
+      display: flex;
+      flex-direction: column;
       gap: 12px;
-      max-height: 400px;
-      overflow-y: auto;
-      padding-right: 5px;
     }
-    /* คัสตอม Scrollbar ให้ดูตะมุตะมิ */
-    .member-list::-webkit-scrollbar {
-      width: 6px;
-    }
-    .member-list::-webkit-scrollbar-thumb {
-      background-color: #ffe3e8;
-      border-radius: 10px;
-    }
-    .member-item {
+
+    .member-card {
       display: flex;
       align-items: center;
+      background: var(--card-bg);
+      border-radius: 18px;
       padding: 12px 16px;
-      background: #fffcfd;
-      border: 1px solid #ffeef1;
-      border-radius: 16px;
       text-decoration: none;
-      color: #4a4a4a;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
       transition: all 0.2s ease;
-      cursor: pointer;
     }
-    .member-item:hover {
-      background: #ffeef1;
-      transform: translateY(-2px);
-      border-color: #ff85a2;
+
+    .member-card:active {
+      transform: scale(0.98);
+      background: #fffafa;
     }
-    .member-avatar {
-      width: 45px;
-      height: 45px;
+
+    .member-img-box {
+      position: relative;
+      margin-right: 15px;
+    }
+
+    .member-img {
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       object-fit: cover;
-      margin-right: 16px;
-      border: 2px solid #ff85a2;
+      border: 2px solid var(--primary-color);
+      background-color: #f0f0f0;
     }
+
+    .member-team-badge {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      background: var(--primary-color);
+      color: white;
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 2px solid white;
+    }
+
+    /* โครงสร้างข้อมูลใหม่ */
     .member-info {
       flex-grow: 1;
     }
-    .member-name {
-      font-weight: 500;
+
+    .member-name-main {
       font-size: 16px;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .member-team {
+
+    .member-name-en {
+      font-size: 13px;
+      color: var(--primary-color);
+      font-weight: 400;
+    }
+
+    .member-name-sub {
       font-size: 12px;
-      color: #aaa;
+      color: var(--text-sub);
+      margin-bottom: 4px;
     }
-    .no-result {
-      text-align: center;
+
+    .member-meta {
+      font-size: 11px;
       color: #999;
-      padding: 20px;
+      background: #fff5f7;
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid #ffe3e8;
+    }
+
+    .arrow-icon {
+      color: var(--primary-color);
+      opacity: 0.5;
       font-size: 14px;
     }
-    .loading-spinner {
+
+    /* States */
+    .loading-state, .empty-state {
       text-align: center;
-      color: #ff85a2;
-      padding: 20px;
+      padding: 40px 20px;
+      color: var(--text-sub);
+    }
+
+    .loading-spinner {
+      font-size: 30px;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+      animation: spin 1s infinite linear;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+
+    .empty-img {
+      font-size: 40px;
+      color: var(--border-color);
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="search-container">
-    <div class="header-area">
-      <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
-      <h2>ค้นหาเมมเบอร์ BLM48</h2>
+  <div class="container">
+    <div class="header">
+      <a href="index.html" class="back-btn">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+      <h1 class="header-title">ค้นหาเมมเบอร์</h1>
     </div>
 
-    <div class="search-box">
+    <div class="search-wrapper">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="search-input" class="search-input" placeholder="พิมพ์ชื่อเมมเบอร์ที่ต้องการค้นหา..." autocomplete="off">
+      <input type="text" id="searchInput" class="search-input" placeholder="ค้นหาชื่อเล่น, ชื่อจริง, หรือ รหัสเมมเบอร์..." autocomplete="off">
     </div>
 
-    <div id="loading" class="loading-spinner">
-      <i class="fas fa-spinner fa-spin"></i> กำลังโหลดข้อมูลเมมเบอร์...
+    <div class="filter-scroll" id="groupFilters">
+      </div>
+
+    <div id="loadingState" class="loading-state">
+      <div class="loading-spinner"><i class="fas fa-circle-notch"></i></div>
+      <div>กำลังดึงข้อมูลฐานสมาชิก...🌸</div>
     </div>
-    <div id="member-list" class="member-list" style="display: none;">
+
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <div class="empty-img"><i class="fas fa-ghost"></i></div>
+      <div>ไม่พบข้อมูลเมมเบอร์ที่คุณค้นหางับ</div>
+    </div>
+
+    <div class="member-grid" id="memberGrid" style="display: none;">
       </div>
   </div>
 
   <script>
-    // URL ของ Web App (Google Apps Script) ที่ดึงรายชื่อเมมเบอร์
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberList'; 
-    // หมายเหตุ: พี่เวย์ลองดูว่าในสคริปต์มี action สำหรับดึงรายชื่อเมมเบอร์ทั้งหมดไหมนะครับ หรือสามารถปรับเปลี่ยนตาม API ที่มีได้เลย
+    // 🔗 อัปเดตลิงก์ API ตามที่โปรดิวเซอร์ให้มา
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
     let allMembers = [];
-    
-    // ฟังก์ชันค้นหาที่ฉลาดขึ้น (กรองทั้งชื่อและวงน้องได้พร้อมกัน)
-function filterMembers() {
-  const searchTerm = document.getElementById('search-input').value.toLowerCase();
-  const selectedGroup = document.getElementById('group-filter').value; // เช่น BLM48 หรือ All
+    let activeGroup = 'All'; 
 
-  const filtered = allMembers.filter(member => {
-    const matchName = member.name.toLowerCase().includes(searchTerm) || member.nameTh.includes(searchTerm);
-    const matchGroup = (selectedGroup === 'All') || (member.group === selectedGroup);
-    
-    return matchName && matchGroup;
-  });
-
-  displayMembers(filtered);
-}
-
-    // 1. โหลดข้อมูลเมมเบอร์ทั้งหมดมาเก็บไว้ก่อน
-    async function loadMembers() {
+    // 1. ดึงข้อมูล
+    async function fetchMembers() {
       try {
-        // ตัวอย่างการจำลองข้อมูล / หรือ fetch จริง
-        // เพื่อให้เห็นภาพชัดเจน ผมทำโครงสร้างรับข้อมูลไว้ให้ครับ
-        const response = await fetch(scriptURL);
+        const response = await fetch(scriptURL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getMemberList' })
+        });
+        
         const data = await response.json();
         
         if (data && data.success) {
-          allMembers = data.members; // สมมติว่าคืนค่าเป็น array ของเมมเบอร์
+          allMembers = data.members;
+          generateGroupFilters();
+          renderMembers();
         } else {
-          // กรณีไม่มี API ดึงทั้งหมด สามารถใช้ mock data ชั่วคราว หรือปรับปรุงตามโครงสร้างฐานข้อมูลได้ครับ
-          allMembers = [
-            { name: "Emmy", team: "Trainee", img: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32" },
-            // เพิ่มรายชื่อเมมเบอร์คนอื่นๆ ตรงนี้ได้ครับ
-          ];
+          showError();
         }
-      } catch (e) {
-        console.error("Error loading members:", e);
-        // Fallback ข้อมูลเผื่อเชื่อมต่อสคริปต์ไม่ได้
-        allMembers = [
-          { name: "Emmy", team: "Trainee", img: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32" }
-        ];
-      } finally {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('member-list').style.display = 'grid';
-        displayMembers(allMembers);
+      } catch (error) {
+        console.error("Error fetching members:", error);
+        showError();
       }
     }
 
-    // 2. ฟังก์ชันแสดงผลรายชื่อบนหน้าจอ
-    function displayMembers(members) {
-      const listContainer = document.getElementById('member-list');
-      listContainer.innerHTML = '';
+    // 2. สร้างปุ่มแยกวง
+    function generateGroupFilters() {
+      const filterContainer = document.getElementById('groupFilters');
+      filterContainer.innerHTML = ''; 
 
-      if (members.length === 0) {
-        listContainer.innerHTML = '<div class="no-result">ไม่พบข้อมูลเมมเบอร์งับ 🌸</div>';
+      const groups = ['All'];
+      allMembers.forEach(member => {
+        if (member.group && !groups.includes(member.group)) {
+          groups.push(member.group);
+        }
+      });
+
+      groups.forEach(group => {
+        const btn = document.createElement('button');
+        btn.className = `filter-btn ${group === activeGroup ? 'active' : ''}`;
+        btn.textContent = group === 'All' ? 'ทั้งหมด' : group;
+        
+        btn.onclick = () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeGroup = group;
+          handleSearch(); 
+        };
+        
+        filterContainer.appendChild(btn);
+      });
+    }
+
+    // 3. ฟังก์ชันค้นหาครอบคลุมทุกข้อมูล (ชื่อไทย, อังกฤษ, ชื่อจริง, รหัส)
+    function handleSearch() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      const filteredMembers = allMembers.filter(member => {
+        
+        const matchNickName = member.nickName && member.nickName.toLowerCase().includes(searchTerm);
+        const matchNameEn = member.name && member.name.toLowerCase().includes(searchTerm);
+        const matchFullName = member.fullName && member.fullName.toLowerCase().includes(searchTerm);
+        const matchMemberId = member.memberId && member.memberId.toLowerCase().includes(searchTerm);
+
+        const matchName = matchNickName || matchNameEn || matchFullName || matchMemberId;
+        const matchGroup = activeGroup === 'All' || member.group === activeGroup;
+        
+        return matchName && matchGroup;
+      });
+
+      renderMembers(filteredMembers);
+    }
+
+    // 4. วาดการ์ด (รองรับข้อมูลใหม่)
+    function renderMembers(membersToRender = allMembers) {
+      const grid = document.getElementById('memberGrid');
+      const loading = document.getElementById('loadingState');
+      const empty = document.getElementById('emptyState');
+
+      loading.style.display = 'none';
+
+      if (membersToRender.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
         return;
       }
 
-      members.forEach(member => {
-        const item = document.createElement('a');
-        item.className = 'member-item';
-        // 🎯 ส่งค่าชื่อเมมเบอร์ผ่าน URL parameter ไปยังหน้า member.html
-        item.href = `member.html?name=${encodeURIComponent(member.name)}`;
+      empty.style.display = 'none';
+      grid.style.display = 'flex';
+      grid.innerHTML = ''; 
+
+      membersToRender.forEach(member => {
+        const avatarUrl = member.img ? member.img : 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32';
+        const teamBadge = member.team ? `<div class="member-team-badge">${member.team}</div>` : '';
+        const genText = member.generation ? `Gen ${member.generation}` : '-';
+
+        const card = document.createElement('a');
+        card.className = 'member-card';
+        // ส่งต่อ NameEN เพื่อเข้าหน้าโปรไฟล์ member.html?name=Emmy
+        card.href = `member.html?name=${encodeURIComponent(member.name)}`;
         
-        item.innerHTML = `
-          <img src="${member.img || 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32'}" class="member-avatar" alt="${member.name}">
-          <div class="member-info">
-            <div class="member-name">${member.name}</div>
-            <div class="member-team">${member.team || 'BLM48'}</div>
+        card.innerHTML = `
+          <div class="member-img-box">
+            <img src="${avatarUrl}" alt="${member.name}" class="member-img" loading="lazy">
+            ${teamBadge}
           </div>
-          <i class="fas fa-chevron-right" style="color: #ffe3e8;"></i>
+          <div class="member-info">
+            <div class="member-name-main">
+              ${member.nickName || member.name} 
+              <span class="member-name-en">(${member.name})</span>
+            </div>
+            <div class="member-name-sub">${member.fullName || ''}</div>
+            <div class="member-meta"><i class="fas fa-id-badge"></i> ${member.memberId || '-'} | ${genText}</div>
+          </div>
+          <i class="fas fa-chevron-right arrow-icon"></i>
         `;
-        listContainer.appendChild(item);
+        grid.appendChild(card);
       });
     }
 
-    // 3. ระบบค้นหาแบบ Real-time (Filter)
-    document.getElementById('search-input').addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase().trim();
-      
-      const filtered = allMembers.filter(member => {
-        return member.name.toLowerCase().includes(searchTerm) || 
-               (member.team && member.team.toLowerCase().includes(searchTerm));
-      });
-      
-      displayMembers(filtered);
-    });
+    function showError() {
+      document.getElementById('loadingState').innerHTML = `
+        <div style="color: #ff85a2;">
+          <i class="fas fa-exclamation-triangle" style="font-size: 30px; margin-bottom: 10px;"></i>
+          <br>ไม่สามารถโหลดข้อมูลได้ ลองรีเฟรชใหม่อีกครั้งนะคะ
+        </div>
+      `;
+    }
 
-    window.onload = loadMembers;
+    document.getElementById('searchInput').addEventListener('input', handleSearch);
+    window.onload = fetchMembers;
+
   </script>
 </body>
 </html>
