@@ -627,6 +627,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   </style>
 </head>
 <body>
+
 <div id="app-loading-screen">
   <div class="loader-content">
     <div class="loader-brand">BLM48</div>
@@ -635,18 +636,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </div>
     <div class="loader-text">กำลังรวบรวมคุกกี้...</div>
   </div>
-</div>
-  
-  <div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
-    <div class="preview-modal-content" onclick="event.stopPropagation()">
-        <span class="preview-close-btn" onclick="closeImagePreview()">&times;</span>
-        
-        <img id="preview-target-img" src="" alt="Item Preview">
-        
-        <a id="download-item-btn" href="#" download="BLM48_Item.png" class="save-image-btn">
-            <i class="fas fa-download"></i> Save Image
-        </a>
-    </div>
 </div>
 
 <div id="sidebar">
@@ -677,12 +666,22 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         <i class="fas fa-globe" style="width:20px;"></i> OFFICIAL SITE
       </a>
       
+      <a href="#" onclick="refreshPage()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:10px 0;">
+         <i class="fas fa-sync-alt" style="width:20px;"></i> REFRESH
+      </a>
+      
+      <a href="#" onclick="confirmLogout()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:10px 0; color: #ff6b6b;">
+         <i class="fas fa-sign-out-alt" style="width:20px;"></i> LOGOUT
+      </a>
+      
       <hr style="border: 0.5px solid #f0f0f0; margin: 10px 0;">
       
-      <div onclick="toggleDarkMode();" class="nav-link" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; cursor:pointer;">
+      
+      <div onclick="toggleDarkMode();" class="nav-link" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer;">
          <span>DARK MODE</span>
          <i class="fas fa-moon" id="dark-mode-icon"></i>
       </div>
+      
     </div>
 
     <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
@@ -726,10 +725,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <a href="shop.html" class="nav-icon" title="Shop">
       <i class="fas fa-shopping-cart"></i>
     </a>
-    <button onclick="refreshPage()" class="nav-icon" title="Refresh"><i class="fas fa-sync-alt"></i></button>
-    <button onclick="confirmLogout()" class="nav-icon" title="Logout">
-      <i class="fas fa-sign-out-alt"></i>
-    </button>
+    <a href="profile.html" class="nav-icon" title="Profile">
+     <i class="fas fa-user"></i>
+    </a>
   </div>
 </nav>
 
@@ -921,6 +919,7 @@ async function showHistory() {
         if(historyContent) historyContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
     }
 }
+ 
 
   function closeModal() {
     // ซ่อนม่าน Overlay หลัก
