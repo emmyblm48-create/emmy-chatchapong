@@ -487,11 +487,29 @@
         console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
     }
 }
+      
+      async function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(url);
+        img.onerror = reject;
+        img.src = url + '?t=' + new Date().getTime(); // ใส่ Timestamp ป้องกัน Cache
+    });
+}
 
+      
 // 🎯 ดึงข้อมูลและเรนเดอร์ทำเนียบคามิ/โอชิ
     async function fetchAndRenderUserOshiBoard() {
         const kamiArea = document.getElementById('kami-content-area');
         const oshiArea = document.getElementById('oshi-content-area');
+        const imgContainer = document.createElement('img');
+      
+          try {
+            await preloadImage(member.img_url);
+            imgContainer.src = member.img_url + '?t=' + new Date().getTime();
+        } catch (e) {
+            imgContainer.src = 'default-image.png'; // รูปสำรองหากโหลดไม่สำเร็จ
+        }
         
         if (!kamiArea || !oshiArea) return;
 
@@ -539,10 +557,14 @@
                             </button>
                             <div class="kami-avatar-frame">
                                 <i class="fa-solid fa-crown crown-tag"></i>
-                                <img src="${rawImg}" class="kami-img" alt="${kamiName}" onerror="${clearBrokenImg}">
+                                <img src="${rawImg}?t=${new Date().getTime()}" 
+                 class="kami-img" 
+                 alt="${kamiName}" 
+                 loading="lazy" 
+                 onerror="${clearBrokenImg}">
                             </div>
                             <div class="kami-title-name">${kamiName}</div>
-                            <span class="badge-kami"><i class="fa-solid fa-bolt"></i> Kamioshi</span>
+                            <span class="badge-kami"><i class="fa-solid fa-heart"></i> Kamioshi</span>
                         </div>`;
                 } else {
                     kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
@@ -558,7 +580,11 @@
                         
                         oshiHTML += `
                             <div class="oshi-box-card">
-                                <img src="${rawImg}" class="oshi-pic" alt="${oshiName}" onerror="${clearBrokenImg}">
+                                 <img src="${rawImg}?t=${new Date().getTime()}" 
+             class="oshi-pic" 
+             alt="${oshiName}" 
+             loading="lazy" 
+             onerror="${clearBrokenImg}">
                                 <div class="oshi-info-center">
                                     <div class="oshi-display-name">${oshiName}</div>
                                     <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
