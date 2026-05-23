@@ -407,6 +407,18 @@
             }
             return session.data;
         }
+      
+     function getImg(url) {
+    if (!url || url === "") return 'https://via.placeholder.com/150';
+    
+    // แปลง Google Drive เป็น Direct Link (ตัวอย่าง)
+    if (url.includes('drive.google.com')) {
+        const id = url.match(/[-\w]{25,}/);
+        return id ? `https://lh3.googleusercontent.com/d/${id[0]}=w300` : url;
+    }
+    
+    return url; // ส่งคืน URL ปกติ
+}
 
         let user = getUserSession();
         let currentUsername = user ? user.username : "";
@@ -541,9 +553,9 @@
                             </button>
                             <div class="kami-avatar-frame">
                                 <i class="fa-solid fa-crown crown-tag"></i>
-                                <img src="${rawImg}?t=${new Date().getTime()}" 
+                                <img src="${getImg(rawImg)}"
                  class="kami-img" 
-                 alt="${kamiName}" 
+                 alt="${kamiName}" loading="lazy" 
                  onerror="${clearBrokenImg}">
                             </div>
                             <div class="kami-title-name">${kamiName}</div>
@@ -563,9 +575,9 @@
                         
                         oshiHTML += `
                             <div class="oshi-box-card">
-                                 <img src="${rawImg}?t=${new Date().getTime()}" 
+                                 <img src="${getImg(rawImg)}"
              class="oshi-pic" 
-             alt="${oshiName}" 
+             alt="${oshiName}" loading="lazy" 
              onerror="${clearBrokenImg}">
                                 <div class="oshi-info-center">
                                     <div class="oshi-display-name">${oshiName}</div>
