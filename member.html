@@ -490,6 +490,7 @@
       return true;
     }
 
+    // 👇 อัปเดตฟังก์ชันนี้ เพื่อเคลียร์หน้าจอก่อนโหลดข้อมูลใหม่
     function loadMemberData() {
       if (!memberName) {
         window.location.href = 'index.html';
@@ -499,10 +500,23 @@
       user = getUserSession();
       if(document.getElementById('mb-name')) document.getElementById('mb-name').innerText = memberName;
 
-      renderMemberStatsAndFans();
+      // 🧹 1. ล้างข้อมูลเก่าบนหน้าจอให้เป็นสถานะ "กำลังโหลด" ก่อน
+      if(document.getElementById('mb-avatar')) document.getElementById('mb-avatar').src = 'assets/images/default-profile.png';
+      if(document.getElementById('mb-kami')) document.getElementById('mb-kami').innerText = '-';
+      if(document.getElementById('mb-oshi')) document.getElementById('mb-oshi').innerText = '-';
+      if(document.getElementById('mb-score')) document.getElementById('mb-score').innerText = '-';
+      
+      const fanContainer = document.getElementById('member-fans-content');
+      if(fanContainer) {
+         fanContainer.innerHTML = '<div style="padding:40px 0; color:#bbb; font-size:13px; text-align:center;"><i class="fas fa-circle-notch fa-spin" style="color: #ff85a2; font-size: 24px; margin-bottom: 10px; display: block;"></i>กำลังดึงข้อมูลเมมเบอร์...</div>';
+      }
+
       updateButtonStyles();
+      
+      // 📡 2. ไปดึงข้อมูลของคนใหม่จากเซิร์ฟเวอร์มาแสดง
       fetchLatestMemberStats();
     }
+    // 👆 สิ้นสุดส่วนที่อัปเดต
 
     function updateButtonStyles() {
       const btnKami = document.getElementById('btn-kami-trigger');
