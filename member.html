@@ -305,6 +305,32 @@
       gap: 3px;
       margin-top: 2px;
     }
+  /* ☠️ Skeleton Loading Animation */
+    .skeleton {
+      background: #eee;
+      background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+      border-radius: 5px;
+      background-size: 200% 100%;
+      animation: 1.5s shine linear infinite;
+      color: transparent !important;
+    }
+    .skeleton * {
+      visibility: hidden; /* ซ่อนเนื้อหาข้างในไว้ชั่วคราว */
+    }
+    
+    @keyframes shine {
+      to {
+        background-position-x: -200%;
+      }
+    }
+
+    /* กำหนดขนาดกล่อง Skeleton สำหรับจุดต่างๆ */
+    .skeleton-text { width: 60%; height: 28px; border-radius: 8px; margin-bottom: 8px; }
+    .skeleton-avatar { width: 100%; height: 100%; border-radius: 0; }
+    .skeleton-stat { width: 40px; height: 24px; border-radius: 6px; margin: 0 auto; }
+    .skeleton-fan { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #faf0f2; }
+    .skeleton-fan-img { width: 40px; height: 40px; border-radius: 50%; margin: 0 12px; }
+    .skeleton-fan-text { width: 120px; height: 14px; border-radius: 4px; margin-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -359,7 +385,6 @@
 
     </div>
   </div>
-
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     
@@ -409,13 +434,21 @@
         const res = await resp.json();
         
         if (res.status === "success") {
+          // เซฟข้อมูลลงเครื่อง
           if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
           if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
           
+          // โหลดเสร็จแล้ว ลบ Skeleton แล้วแสดงของจริง!
+          removeSkeleton();
           renderMemberStatsAndFans();
+        } else {
+          // ถ้าเกิดข้อผิดพลาดในการดึงข้อมูล
+          removeSkeleton();
+          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลของเมมเบอร์คนนี้ได้', 'error');
         }
       } catch (e) {
         console.error("Error fetching latest member stats:", e);
+        removeSkeleton();
       }
     }
 
@@ -449,12 +482,12 @@
 
       const savedFans = localStorage.getItem('current_member_fans');
       const fanContainer = document.getElementById('member-fans-content');
-      if(fanContainer) fanContainer.innerHTML = '';
-
-      if (savedFans) {
+      
+      if (savedFans && fanContainer) {
+        fanContainer.innerHTML = '';
         const fans = JSON.parse(savedFans);
         if (fans.length === 0) {
-          if(fanContainer) fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+          fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
         } else {
           fans.slice(0, 10).forEach((f, idx) => {
             const row = document.createElement('div');
@@ -470,7 +503,7 @@
                 <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
               </div>
             `;
-            if(fanContainer) fanContainer.appendChild(row);
+            fanContainer.appendChild(row);
           });
         }
       }
@@ -490,7 +523,60 @@
       return true;
     }
 
-    // 👇 อัปเดตฟังก์ชันนี้ เพื่อเคลียร์หน้าจอก่อนโหลดข้อมูลใหม่
+    // --- ☠️ ระบบเปิด-ปิด Skeleton ---
+    function showSkeleton() {
+      // รูปโปรไฟล์
+      const avatarEl = document.getElementById('mb-avatar');
+      if (avatarEl) {
+        avatarEl.src = '';
+        avatarEl.classList.add('skeleton', 'skeleton-avatar');
+      }
+
+      // ชื่อเมมเบอร์
+      const nameEl = document.getElementById('mb-name');
+      if (nameEl) {
+        nameEl.innerText = 'กำลังโหลด...';
+        nameEl.classList.add('skeleton', 'skeleton-text');
+      }
+
+      // สถิติ (Kami, Oshi, Cookie)
+      const kamiEl = document.getElementById('mb-kami');
+      if (kamiEl) { kamiEl.innerText = '0'; kamiEl.classList.add('skeleton', 'skeleton-stat'); }
+      
+      const oshiEl = document.getElementById('mb-oshi');
+      if (oshiEl) { oshiEl.innerText = '0'; oshiEl.classList.add('skeleton', 'skeleton-stat'); }
+      
+      const scoreEl = document.getElementById('mb-score');
+      if (scoreEl) { scoreEl.innerText = '0'; scoreEl.classList.add('skeleton', 'skeleton-stat'); }
+
+      // ลิสต์รายชื่อแฟนคลับ
+      const fanContainer = document.getElementById('member-fans-content');
+      if (fanContainer) {
+        fanContainer.innerHTML = '';
+        // จำลองกล่องโหลดรายชื่อแฟนคลับ 3 อัน
+        for(let i=0; i<3; i++) {
+          fanContainer.innerHTML += `
+            <div class="skeleton-fan">
+              <div style="width:24px;"></div>
+              <div class="skeleton skeleton-fan-img"></div>
+              <div style="flex:1;">
+                <div class="skeleton skeleton-fan-text"></div>
+                <div class="skeleton skeleton-fan-text" style="width: 80px;"></div>
+              </div>
+            </div>`;
+        }
+      }
+    }
+
+    function removeSkeleton() {
+      const els = document.querySelectorAll('.skeleton');
+      els.forEach(el => {
+        el.classList.remove('skeleton', 'skeleton-avatar', 'skeleton-text', 'skeleton-stat', 'skeleton-fan-img', 'skeleton-fan-text');
+      });
+      // เอาคำว่ากำลังโหลดออก เปลี่ยนเป็นชื่อจริง
+      if(document.getElementById('mb-name')) document.getElementById('mb-name').innerText = memberName;
+    }
+
     function loadMemberData() {
       if (!memberName) {
         window.location.href = 'index.html';
@@ -498,25 +584,14 @@
       }
 
       user = getUserSession();
-      if(document.getElementById('mb-name')) document.getElementById('mb-name').innerText = memberName;
-
-      // 🧹 1. ล้างข้อมูลเก่าบนหน้าจอให้เป็นสถานะ "กำลังโหลด" ก่อน
-      if(document.getElementById('mb-avatar')) document.getElementById('mb-avatar').src = 'assets/images/default-profile.png';
-      if(document.getElementById('mb-kami')) document.getElementById('mb-kami').innerText = '-';
-      if(document.getElementById('mb-oshi')) document.getElementById('mb-oshi').innerText = '-';
-      if(document.getElementById('mb-score')) document.getElementById('mb-score').innerText = '-';
       
-      const fanContainer = document.getElementById('member-fans-content');
-      if(fanContainer) {
-         fanContainer.innerHTML = '<div style="padding:40px 0; color:#bbb; font-size:13px; text-align:center;"><i class="fas fa-circle-notch fa-spin" style="color: #ff85a2; font-size: 24px; margin-bottom: 10px; display: block;"></i>กำลังดึงข้อมูลเมมเบอร์...</div>';
-      }
-
+      // 1. เปิดใช้งาน Skeleton ทันทีที่เข้าหน้า
+      showSkeleton();
       updateButtonStyles();
       
-      // 📡 2. ไปดึงข้อมูลของคนใหม่จากเซิร์ฟเวอร์มาแสดง
+      // 2. ไปดึงข้อมูลจาก API
       fetchLatestMemberStats();
     }
-    // 👆 สิ้นสุดส่วนที่อัปเดต
 
     function updateButtonStyles() {
       const btnKami = document.getElementById('btn-kami-trigger');
@@ -651,6 +726,9 @@
           }
 
           await syncUserData(); 
+          
+          // ดึงข้อมูลใหม่แล้วใส่ Skeleton รอไว้ด้วย
+          showSkeleton();
           await fetchLatestMemberStats();
 
           Swal.fire({ 
@@ -735,6 +813,7 @@
               scoreElement.innerText = formatMemberScore(currentScore + amountSent);
 
               await syncUserData(); 
+              showSkeleton();
               await fetchLatestMemberStats(); 
 
               Swal.fire({
