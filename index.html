@@ -626,6 +626,84 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     background: #ff99aa;
 }
 
+    /* =========================================
+       👑 CHAMP OF THE MONTH BANNER (HOME PAGE)
+       ========================================= */
+    .champ-banner {
+      background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+      border: 2px solid #d4af37; /* ขอบสีทอง */
+      border-radius: 20px;
+      padding: 15px 20px;
+      margin: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+    .champ-banner:active { transform: scale(0.98); }
+    
+    /* เอฟเฟกต์แสงวิบวับพื้นหลัง */
+    .champ-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+      animation: rotateGlow 10s linear infinite;
+    }
+    @keyframes rotateGlow { 100% { transform: rotate(360deg); } }
+
+    .champ-info {
+      position: relative;
+      z-index: 2;
+      color: #fff;
+      flex: 1;
+    }
+    .champ-badge {
+      font-size: 12px;
+      color: #d4af37;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .champ-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .champ-month {
+      font-size: 12px;
+      color: #aaaaaa;
+    }
+    .champ-btn-view {
+      margin-top: 10px;
+      background: #d4af37;
+      color: #111;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .champ-img-container {
+      position: relative;
+      z-index: 2;
+      width: 70px;
+      height: 70px;
+    }
+    .champ-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #d4af37;
+    }
+    
   </style>
 </head>
 <body>
@@ -736,6 +814,18 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 </nav>
 
 <div id="user-bar" class="user-profile-bar"></div>
+  
+<div class="champ-banner" onclick="window.location.href='champ.html'">
+      <div class="champ-info">
+        <div class="champ-badge"><i class="fas fa-crown"></i> Champ of the Month</div>
+        <div class="champ-title" id="home-champ-name">Mushroom</div>
+        <div class="champ-month" id="home-champ-month">ประจำเดือนกุมภาพันธ์</div>
+        <button class="champ-btn-view">view more <i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="champ-img-container">
+        <img src="https://lh3.googleusercontent.com/d/1h1eW8OP8UOaJm8kRK-13t-1Z_WhNluy9=s400" id="home-champ-img" class="champ-img" alt="Champ">
+      </div>
+    </div>
 
 <div class="section-title">🏆 Member Ranking</div>
 <div class="ranking-wrapper">
@@ -923,7 +1013,6 @@ async function showHistory() {
         if(historyContent) historyContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
     }
 }
- 
 
   function closeModal() {
     // ซ่อนม่าน Overlay หลัก
