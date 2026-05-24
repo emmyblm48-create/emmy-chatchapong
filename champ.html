@@ -15,6 +15,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -308,67 +309,88 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-        let globalChampData = [];
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+let globalChampData = [];
 
-        async function loadChampHistoryData() {
-            try {
-                const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
-                const result = await response.json();
+async function loadChampHistoryData() {
+    // 1. ดึงข้อมูลจาก Cache มาโชว์ก่อนทันที ถ้ามี! (Cache-First)
+    const cachedData = sessionStorage.getItem('blm_champ_history');
+    if (cachedData) {
+        globalChampData = JSON.parse(cachedData);
+        renderChampRows(globalChampData); // แสดงผลทันทีไม่ต้องรอโหลด
+    }
 
-                if (result.status === "success") {
-                    globalChampData = result.data;
-                    sessionStorage.setItem('blm_champ_history', JSON.stringify(globalChampData));
-                    renderChampRows(globalChampData);
-                } else {
-                    document.getElementById('champ-list-wrapper').innerHTML = `<div class="empty-state">โหลดข้อมูลล้มเหลว: ${result.message}</div>`;
-                }
-            } catch (error) {
-                console.error("Fetch Error:", error);
-                document.getElementById('champ-list-wrapper').innerHTML = `<div class="empty-state">ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ</div>`;
+    try {
+        // 2. ดึงข้อมูลอัปเดตจากหลังบ้านเงียบๆ
+        const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
+        const result = await response.json();
+
+        if (result.status === "success") {
+            // เช็กว่าข้อมูลใหม่กับข้อมูลใน Cache ต่างกันไหม ถ้าต่างกันค่อย Render ใหม่
+            if (JSON.stringify(globalChampData) !== JSON.stringify(result.data)) {
+                globalChampData = result.data;
+                sessionStorage.setItem('blm_champ_history', JSON.stringify(globalChampData));
+                renderChampRows(globalChampData);
+            }
+        } else {
+            if (!cachedData) {
+                document.getElementById('champ-list-wrapper').innerHTML = `<div class="empty-state">โหลดข้อมูลล้มเหลว: ${result.message}</div>`;
             }
         }
-
-        function renderChampRows(champArray) {
-            const container = document.getElementById('champ-list-wrapper');
-            container.innerHTML = ''; 
-
-            if (!champArray || champArray.length === 0) {
-                container.innerHTML = `<div class="empty-state">ยังไม่มีประวัติทำเนียบแชมป์ในขณะนี้ค่ะ 🌟</div>`;
-                return;
-            }
-
-            champArray.forEach((champ, index) => {
-                const row = document.createElement('div');
-                row.className = 'champ-row-box';
-                row.style.animationDelay = `${index * 0.05}s`;
-
-                const formatCookieCount = Number(champ.totalCookie).toLocaleString();
-                const avatarImg = champ.profileImage ? champ.profileImage : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
-
-                row.innerHTML = `
-                    <div class="box-left-side">
-                        <div class="avatar-frame">
-                            <i class="fa-solid fa-crown crown-mini"></i>
-                            <img class="member-avatar" src="${avatarImg}" alt="${champ.name}" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'">
-                        </div>
-                        <div class="member-details">
-                            <span class="period-text"><i class="fa-regular fa-calendar" style="margin-right:3px;"></i> ${champ.monthYear}</span>
-                            <h2 class="member-name">${champ.name}</h2>
-                            <span class="cookie-amount"><i class="fa-solid fa-cookie"></i> ${formatCookieCount} Cookies</span>
-                        </div>
-                    </div>
-                    <div class="box-right-side">
-                        <a href="specialthanks.html?index=${index}" class="view-thanks-btn">
-                            View special thanks <i class="fa-solid fa-arrow-right" style="font-size:0.7rem; margin-left:1px;"></i>
-                        </a>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        if (!cachedData) {
+            document.getElementById('champ-list-wrapper').innerHTML = `<div class="empty-state">ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ</div>`;
         }
+    }
+}
 
-        window.addEventListener('DOMContentLoaded', loadChampHistoryData);
+function renderChampRows(champArray) {
+    const container = document.getElementById('champ-list-wrapper');
+    container.innerHTML = ''; 
+
+    if (!champArray || champArray.length === 0) {
+        container.innerHTML = `<div class="empty-state">ยังไม่มีประวัติทำเนียบแชมป์ในขณะนี้ค่ะ 🌟</div>`;
+        return;
+    }
+
+    // 3. ใช้ DocumentFragment เพื่อความเร็วในการสร้าง DOM
+    const fragment = document.createDocumentFragment();
+
+    champArray.forEach((champ, index) => {
+        const row = document.createElement('div');
+        row.className = 'champ-row-box';
+        row.style.animationDelay = `${index * 0.05}s`;
+
+        const formatCookieCount = Number(champ.totalCookie).toLocaleString();
+        const avatarImg = champ.profileImage ? champ.profileImage : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
+
+        row.innerHTML = `
+            <div class="box-left-side">
+                <div class="avatar-frame">
+                    <i class="fa-solid fa-crown crown-mini"></i>
+                    <img class="member-avatar" loading="lazy" src="${avatarImg}" alt="${champ.name}" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'">
+                </div>
+                <div class="member-details">
+                    <span class="period-text"><i class="fa-regular fa-calendar" style="margin-right:3px;"></i> ${champ.monthYear}</span>
+                    <h2 class="member-name">${champ.name}</h2>
+                    <span class="cookie-amount"><i class="fa-solid fa-cookie"></i> ${formatCookieCount} Cookies</span>
+                </div>
+            </div>
+            <div class="box-right-side">
+                <a href="specialthanks.html?index=${index}" class="view-thanks-btn">
+                    View special thanks <i class="fa-solid fa-arrow-right" style="font-size:0.7rem; margin-left:1px;"></i>
+                </a>
+            </div>
+        `;
+        fragment.appendChild(row);
+    });
+    
+    // โยน Fragment ลงไปที่หน้าจอในครั้งเดียว
+    container.appendChild(fragment);
+}
+
+window.addEventListener('DOMContentLoaded', loadChampHistoryData);
     </script>
 </body>
-</html>
+</html> 
