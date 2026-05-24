@@ -1,5 +1,5 @@
 const festivalThemes = {
-    6: { // เดือนมิถุนายน
+    5: { // เดือนมิถุนายน
         name: 'pride-month',
         colors: {
             '--blm-pink': '#ff9a9e',
