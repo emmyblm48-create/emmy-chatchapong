@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLM48 Membership | Search Members</title>
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <!-- สำหรับ iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <!-- สำหรับ Android และ Chrome -->
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+      --blmem-pink: #ff85a2;
+      --blmem-pink-light: #fff0f3;
+      --dark-text: #111111;
+      --gray-text: #666666;
+      --border-color: #f0f0f0;
+      --bg-soft: #f9f9f9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Mitr', sans-serif;
+    }
+
+    /* พื้นหลังเมื่อเปิดบนจอใหญ่ */
+    body {
+      background: var(--bg-soft);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    /* 📱 โครงสร้างหลัก (Responsive Mobile First) */
+    .app-layout {
+      width: 100%;
+      max-width: 100%;
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 💻 เมื่อเปิดบน iPad / Tablet / PC */
+    @media (min-width: 600px) {
+      body {
+        padding: 40px 20px;
+        align-items: center;
+        background: #f4f6f8; 
+      }
+      .app-layout {
+        max-width: 450px; /* ล็อกความกว้างให้ดูเหมือนเปิดแอปมือถือบนจอใหญ่ */
+        min-height: 800px;
+        border-radius: 35px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        border: 8px solid #ffffff; /* ขอบจำลองตัวเครื่อง */
+      }
+    }
+
+    /* --- ส่วนหัว (Header) --- */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 20px 24px 10px 24px;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--dark-text);
+      cursor: pointer;
+      margin-right: 16px;
+      padding: 5px;
+      transition: 0.2s;
+    }
+    .back-btn:active { transform: scale(0.9); }
+
+    /* ช่องค้นหาแบบมินิมอล */
+    .search-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      background: transparent;
+    }
+    .search-input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+      font-size: 16px;
+      color: var(--dark-text);
+    }
+    .search-input::placeholder { color: #bbbbbb; font-weight: 300; }
+
+    /* เส้นแบ่งใต้ Header */
+    .header-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 0 20px;
+    }
+
+    /* --- ส่วนรายการเมมเบอร์ (List View) --- */
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      padding: 10px 0 30px 0;
+      overflow-y: auto;
+    }
+
+    .member-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 24px;
+      text-decoration: none;
+      transition: background-color 0.2s;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .member-item:hover, .member-item:active {
+      background-color: var(--blmem-pink-light);
+    }
+    .member-item:last-child {
+      border-bottom: none;
+    }
+
+    /* รูปโปรไฟล์วงกลม */
+    .member-avatar-wrapper {
+      position: relative;
+    }
+    .member-avatar {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #f3f3f3;
+      border: 1px solid #eaeaea; /* ขอบบางๆ ให้รูปดูมีมิติ */
+    }
+
+    /* ข้อมูลชื่อ */
+    .member-info {
+      flex: 1;
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .member-nickname {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--dark-text);
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+    .member-fullname {
+      font-size: 13px;
+      color: var(--gray-text);
+      font-weight: 300;
+      margin-top: 2px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 250px;
+    }
+
+    /* ลูกศรด้านขวา */
+    .chevron-icon {
+      color: #cccccc;
+      font-size: 16px;
+    }
+
+    /* สถานะโหลด */
+    .loading-state, .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+      font-size: 15px;
+    }
+    .loading-spinner {
+      color: var(--blmem-pink);
+      font-size: 24px;
+      margin-bottom: 12px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+</style>
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <div class="header">
+      <button class="back-btn" onclick="window.location.href='index.html'">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="search-box">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search Members" onkeyup="filterMembers()">
+      </div>
+    </div>
+    <div class="header-divider"></div>
+
+    <div class="member-list" id="memberList">
+      <div class="loading-state" id="loadingState">
+        <i class="fas fa-circle-notch loading-spinner"></i>
+        <p>Loading Members...</p>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    let allMembers = [];
+
+    // ฟังก์ชันจัดการรูปภาพ
+    function getImg(url) {
+        if (!url || url.trim() === "") {
+            return 'assets/images/default-profile.png'; 
+        }
+        if (url.includes('googleusercontent.com')) {
+            return url + '=s200';
+        }
+        return url;
+    }
+
+    // ดึงข้อมูลจาก Google Sheet
+    async function fetchAllMembers() {
+      try {
+        const resp = await fetch(`${scriptURL}?action=getAllMembers&_=${Date.now()}`);
+        const res = await resp.json();
+        
+        if (res.status === "success" && res.data) {
+          allMembers = res.data;
+          renderMembers(allMembers);
+        } else {
+          document.getElementById('memberList').innerHTML = '<div class="empty-state">ไม่พบฐานข้อมูลเมมเบอร์</div>';
+        }
+      } catch (e) {
+        console.error("Error fetching members:", e);
+        document.getElementById('memberList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+      }
+    }
+
+    // เรนเดอร์ HTML รายชื่อ (List View แบบในรูป)
+    function renderMembers(membersData) {
+      const listContainer = document.getElementById('memberList');
+      listContainer.innerHTML = ''; 
+
+      if (membersData.length === 0) {
+        listContainer.innerHTML = '<div class="empty-state">ไม่พบเมมเบอร์ที่คุณค้นหา 😥</div>';
+        return;
+      }
+
+      membersData.forEach(m => {
+        const item = document.createElement('a');
+        item.className = 'member-item';
+        item.href = `member.html?name=${encodeURIComponent(m.name)}`;
+        
+        // หากมี full_name ส่งมาจาก API ก็จะแสดง ถ้าไม่มีให้โชว์เป็นคำว่า "BLM48 Member"
+        const fullNameText = m.full_name ? m.full_name : "BLM48 Member";
+
+        item.innerHTML = `
+          <div class="member-avatar-wrapper">
+            <img src="${getImg(m.profile_img)}" class="member-avatar" onerror="this.src='assets/images/default-profile.png'">
+          </div>
+          <div class="member-info">
+            <div class="member-nickname">${m.name}</div>
+            <div class="member-fullname">${fullNameText}</div>
+          </div>
+          <i class="fas fa-chevron-right chevron-icon"></i>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+
+    // ฟังก์ชันค้นหา Real-time
+    function filterMembers() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allMembers.filter(m => 
+        (m.name || "").toLowerCase().includes(searchTerm) || 
+        (m.full_name || "").toLowerCase().includes(searchTerm)
+      );
+      renderMembers(filtered);
+    }
+
+    window.onload = fetchAllMembers;
+</script>
+</body>
+</html>
