@@ -105,28 +105,6 @@
     padding-left: 12px; 
 }
 
-      .category-filters {
-    display: flex;
-    overflow-x: auto;          /* ให้เลื่อนซ้ายขวาได้ */
-    gap: 12px;
-    padding: 5px 15px 15px 15px; /* เว้นขอบซ้ายขวาให้ดูมีมิติ */
-    scroll-behavior: smooth;
-    -ms-overflow-style: none;  /* ซ่อน Scrollbar (IE/Edge) */
-    scrollbar-width: none;     /* ซ่อน Scrollbar (Firefox) */
-}
-.category-filters::-webkit-scrollbar { 
-    display: none;             /* ซ่อน Scrollbar (Chrome/Safari) */
-}
-.filter-btn {
-    flex-shrink: 0;            /* ไม่ให้ปุ่มหดตัว */
-    padding: 8px 20px;
-    border-radius: 25px;       /* ทำปุ่มให้โค้งมนแบบแคปซูล */
-    white-space: nowrap;       /* ไม่ให้ตัวหนังสือตัดบรรทัด */
-    font-weight: 600;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* เพิ่มเงาบางๆ */
-    /* สีและ border คงของเดิมไว้ได้เลยค่ะ */
-}
-
 /* 🛒 ทั้งกล่องเก่าและกล่องใหม่จากหลังบ้าน: บังคับเป็น 2 คอลัมน์บนมือถือ */
 .merch-grid, .shop-container {
     display: grid !important;
@@ -178,14 +156,14 @@
 
 /* 📝 ดักส่วนกล่องข้อมูลสินค้า */
 .merch-info, .card-info {
+    background: #ffffff;
+    padding: 12px 10px !important;    /* บีบกระชับพื้นที่สำหรับจอมือถือ */
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    border-radius: 16px;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* เงาให้ดูเป็นแอป */
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    box-sizing: border-box;
 }
 
 /* แท็กหมวดหมู่ เช่น [Gacha] / [Pack] */
@@ -844,6 +822,93 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     box-shadow: 0 8px 20px rgba(255, 83, 118, 0.6);
 }
       
+/* แถบเมนูด้านบน */
+        .top-navigation-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #ffeef2 0%, #fff6f8 100%);
+            border-radius: 20px;
+            padding: 10px 16px;
+            margin-bottom: 25px;
+            border: 1px solid var(--card-border);
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-back-top {
+            background: white;
+            color: var(--primary-pink);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(255,133,162,0.05);
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-back-top:hover {
+            background: var(--primary-pink);
+            color: white;
+            transform: translateX(-2px);
+        }
+
+        .user-profile-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-pink);
+            background-color: #ffe5ec;
+        }
+
+        .user-profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-display-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .user-role-tag {
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .header-title-zone {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-size: 26px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .header-title-zone p {
+            color: #999;
+            font-size: 13px;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -874,78 +939,25 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </div>
 </div>
 
-<!-- 2. Sidebar (Slicer Menu) -->
-<div id="sidebar">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-    <div class="brand" style="font-size: 20px;">BLM48 MENU</div>
-    <i class="fas fa-times" onclick="toggleSidebar()" style="cursor:pointer; color:#ccc; font-size: 20px;"></i>
-  </div>
-  
-  <div class="sidebar-links">
-    <a href="index.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-      <i class="fas fa-home" style="width:20px;"></i> HOME
-    </a>
-    <a href="shop.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-      <i class="fas fa-shopping-cart" style="width:20px;"></i> SHOP
-    </a>
-    <a href="inventory.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-  <i class="fas fa-briefcase" style="width:20px;"></i> INVENTORY
-</a>
-      <a href="kami.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-  <i class="fa-solid fa-star" style="width:20px;"></i> My Kami-Oshi Members
-</a>
-    <a href="#" onclick="showHistory(); toggleSidebar();" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-      <i class="fas fa-history" style="width:20px;"></i> HISTORY
-    </a>
-    <a href="https://sites.google.com/view/blm48/home" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-      <i class="fas fa-globe" style="width:20px;"></i> OFFICIAL SITE
-    </a>
-    
-     <a href="#" onclick="refreshPage()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-         <i class="fas fa-sync-alt" style="width:20px;"></i> REFRESH
-      </a>
-      
-      <a href="#" onclick="confirmLogout()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0; color: #ff6b6b;">
-         <i class="fas fa-sign-out-alt" style="width:20px;"></i> LOGOUT
-      </a>
-
-    <hr style="border: 0.5px solid #f0f0f0; margin: 10px 0;">
-    
-    <div onclick="toggleDarkMode();" class="nav-link" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; cursor:pointer;">
-       <span>DARK MODE</span>
-       <i class="fas fa-moon" id="dark-mode-icon"></i>
-    </div>
-  </div>
-</div>
-
-<!-- Overlay สำหรับปิด Sidebar -->
-<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- 3. Navbar (ปรับปรุงปุ่ม) -->
 <nav class="navbar">
-  <div style="display: flex; align-items: center; gap: 15px;">
-    <button onclick="toggleSidebar()" class="nav-icon" style="font-size: 1.4rem;">
-      <i class="fas fa-bars"></i>
-    </button>
-    <div class="brand">BLM48</div>
-  </div>
-  
-  <div class="nav-btns">
-    <!-- ปุ่มกระเป๋าแบบไอคอน -->
-    <a href="inventory.html" class="nav-icon" title="Inventory">
-      <i class="fas fa-briefcase"></i>
-    </a>
-    <!-- ปุ่ม Shop กระโดดไป shop.html -->
-    <a href="shop.html" class="nav-icon" title="Shop">
-      <i class="fas fa-shopping-cart"></i>
-    </a>
-    
-   <a href="profile.html" class="nav-icon" title="Profile">
-     <i class="fas fa-user"></i>
-    </a>
-  </div>
+  <div class="top-navigation-bar">
+        <a href="index.html" class="btn-back-top"><i class="fa-solid fa-house"></i> กลับหน้าหลัก</a>
+        <div class="user-profile-box">
+            <img id="user-avatar" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" alt="Profile" class="user-avatar-img">
+            <div class="user-profile-info">
+                <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
+                <span id="user-role" class="user-role-tag"></span>
+            </div>
+        </div>
 </nav>
   
+<div class="header-title-zone">
+        <h1>BLM48 SHOP</h1>
+        <p>BLM48 Official Store</p>
+    </div>
+
   <!-- Modal -->
 <div id="modal-overlay">
  <!-- Stats Modal -->
@@ -1070,16 +1082,24 @@ let userData = null;
 
 // 1. โหลดข้อมูลผู้ใช้จากหน้าแรก (LocalStorage)
 function initShop() {
-    const session = localStorage.getItem('bnl_session');
-    if (!session) {
-        Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณากลับไปหน้าแรกเพื่อ Login', 'warning').then(() => {
-            window.location.href = 'index.html';
-        });
-        return;
+        const session = localStorage.getItem('bnl_session');
+        if (!session) {
+            Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณากลับไปหน้าแรกเพื่อ Login', 'warning').then(() => {
+                window.location.href = 'index.html';
+            });
+            return;
+        }
+        userData = JSON.parse(session).data;
+        
+        if (userData.profile_img && userData.profile_img.toString().trim() !== "") {
+            document.getElementById('user-avatar').src = userData.profile_img;
+        }
+        document.getElementById('user-display-name').textContent = userData.name || "BLM48 MEMBER";
+        const userRole = userData.role || userData.position || "BLM48 Member";
+        document.getElementById('user-role').textContent = userRole;
+        
+        updateWalletUI();
     }
-    userData = JSON.parse(session).data;
-    updateWalletUI();
-}
 
 // 2. อัปเดตการแสดงผลยอดเงิน
 function updateWalletUI() {
@@ -1356,58 +1376,73 @@ function closeImagePreview() {
     }
 }
   
-async function buyGacha(collectionId) {
-  if(!userData) return;
-  const username = userData.username;
-  
-  Swal.fire({
-    title: 'กำลังสุ่มไอเทม...',
-    text: 'ตู้กำลังหมุน ลุ้นรับเมมเบอร์กันเถอะ!',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
+async function buyGacha(collectionId, costToken, collectionName) {
+        if(!userData) return;
+        const username = userData.username;
+        
+        if (Number(userData.token) < costToken) {
+            Swal.fire('Token ไม่พอค่ะ', 'กรุณาเติม Token ก่อนทำรายการนะงับ', 'error');
+            return;
+        }
 
-  try {
-    const response = await fetch(`${scriptURL}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `action=buyGachaItem&username=${encodeURIComponent(username)}&collectionId=${encodeURIComponent(collectionId)}`
-    });
-    
-    const res = await response.json();
-    
-    if (res.status === "success") {
-      // --- 🚀 เพิ่มโค้ดส่วนนี้เข้าไปเพื่อเคลียร์ Cache ของ Inventory ---
-      localStorage.removeItem(`blm48_inventory_cache_${username}`);
-      localStorage.removeItem(`blm48_inventory_time_${username}`);
-      // ------------------------------------------------------------
-      
-      Swal.fire({
-        title: 'Congratulations!',
-        html: `คุณได้รับ <b>${res.itemName}</b> [${res.itemType}]<br>จากตู้สุ่ม ${res.collectionName}`,
-        imageUrl: res.itemImg,
-        imageWidth: 250,
-        imageHeight: 250,
-        imageAlt: res.itemName,
-        confirmButtonText: 'Collect',
-        confirmButtonColor: '#ff5376'
-      });
-      
-      // อัปเดตยอด Token คืนกลับหลังสุ่ม
-      if(res.newToken !== undefined) {
-          userData.token = res.newToken;
-          const session = JSON.parse(localStorage.getItem('bnl_session'));
-          session.data = userData;
-          localStorage.setItem('bnl_session', JSON.stringify(session));
-          updateWalletUI();
-      }
-    } else {
-      Swal.fire('สุ่มไม่สำเร็จ', res.message, 'warning');
+        const confirmResult = await Swal.fire({
+            title: `ยืนยันการซื้อตู้สุ่ม?`,
+            text: `ใช้ ${costToken} Tokens เพื่อสุ่มกล่อง ${collectionName} ใช่หรือไม่?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ff85a2',
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancle'
+        });
+
+        if (!confirmResult.isConfirmed) return;
+
+        Swal.fire({
+            title: 'กำลังหมุนตู้สุ่ม...',
+            text: 'ระบบกำลังประมวลผลการสุ่มการ์ดไอเทมลิมิเต็ดงับ!',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        try {
+            const response = await fetch(`${scriptURL}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=buyGachaItem&username=${encodeURIComponent(username)}&collectionId=${encodeURIComponent(collectionId)}`
+            });
+            
+            const res = await response.json();
+            
+            if (res.status === "success") {
+                localStorage.removeItem(`blm48_inventory_cache_${username}`);
+                localStorage.removeItem(`blm48_inventory_time_${username}`);
+                
+                Swal.fire({
+                    title: 'Congratulations!',
+                    html: `คุณได้รับ <b>${res.itemName}</b> [${res.itemType}]<br>จากตู้สุ่ม ${res.collectionName}`,
+                    imageUrl: res.itemImg,
+                    imageWidth: 220,
+                    imageHeight: 220,
+                    imageAlt: res.itemName,
+                    confirmButtonText: 'Collect',
+                    confirmButtonColor: '#ff5376'
+                });
+                
+                if(res.newToken !== undefined) {
+                    userData.token = res.newToken;
+                    const session = JSON.parse(localStorage.getItem('bnl_session'));
+                    session.data = userData;
+                    localStorage.setItem('bnl_session', JSON.stringify(session));
+                    updateWalletUI();
+                }
+            } else {
+                Swal.fire('สุ่มไม่สำเร็จ', res.message, 'warning');
+            }
+        } catch (error) {
+            Swal.fire('เกิดข้อผิดพลาด', 'ระบบตู้สุ่มขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้งค่ะ', 'error');
+        }
     }
-  } catch (error) {
-    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้', 'error');
-  }
-}
+  
 // ฟังก์ชันโหลดคอลเลกชันและสร้างการ์ดแบบ Dynamic (ปรับเลย์เอาต์ให้สวยเท่ากับคุกกี้ด้านบน)
 async function loadGachaCollections() {
   const container = document.getElementById("merch-container");
