@@ -4,20 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - BLM48 Membership</title>
-  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
-    <meta name="theme-color" content="#ffc0cb">
-    <!-- สำหรับ iOS Home Screen Icon -->
-    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-    <!-- สำหรับ Android และ Chrome -->
-    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
-    <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
@@ -293,34 +280,29 @@
   </div>
 
   <script>
-   function executeLogin(event) {
-      event.preventDefault();
+   document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
       
-      const u = document.getElementById('usernameField').value.trim();
-      const p = document.getElementById('passwordField').value.trim();
+      const userVal = document.getElementById('username').value;
+      const passVal = document.getElementById('password').value;
 
-      Swal.fire({
-        title: 'กำลังเข้าสู่ระบบ...',
-        allowOutsideClick: false,
-        didOpen: () => { 
-          Swal.showLoading();
-          Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
-          Swal.getPopup().style.borderRadius = "20px";
-        }
-      });
-
-      // URL ของ Script เอ็มมี่
+      // URL ของ Google Apps Script ของพี่เอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
-      // 🔄 ปรับพารามิเตอร์ให้ตรงกับฝั่ง index.html (เป็น username และ password ตามโค้ดเดิมฝั่งชีต)
-      fetch(`${scriptURL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`)
+      Swal.fire({
+        title: 'กำลังตรวจสอบข้อมูล...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      // ส่งข้อมูลไปตรวจที่ตาราง Google Sheets
+      fetch(`${scriptURL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
         .then(response => response.json())
         .then(result => {
-          // 🔄 เช็กเงื่อนไขสถานะให้แมตช์ตามแบบดั้งเดิมของระบบเดิม (result.status === "success")
-          if (result && result.status === "success") {
+          if (result.success) {
             
-            // 🔒 บันทึกลงคีย์เซสชัน 'bnl_session' ตามที่หน้า index.html รอเรียกใช้งานอยู่
-            localStorage.setItem('bnl_session', JSON.stringify(result.data));
+            // 🎯 จุดสำคัญ: เซฟข้อมูลผู้ใช้ลง localStorage เพื่อส่งต่อไปหน้า index.html
+            localStorage.setItem('blm48_user', JSON.stringify(result.data));
 
             Swal.fire({
               icon: 'success',
@@ -333,7 +315,7 @@
                 Swal.getPopup().style.borderRadius = "20px";
               }
             }).then(() => {
-              window.location.href = 'index.html'; // ล็อกอินเสร็จดีดกลับแอปหลักทันที ข้อมูลโปรไฟล์จะรันออโต้
+              window.location.href = 'index.html'; // เด้งไปหน้าหลัก
             });
           } else {
             Swal.fire({
@@ -354,14 +336,10 @@
             icon: 'error',
             title: 'Error',
             text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้',
-            confirmButtonColor: '#ff85a2',
-            didOpen: () => {
-              Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
-              Swal.getPopup().style.borderRadius = "20px";
-            }
+            confirmButtonColor: '#ff85a2'
           });
         });
-    }
+    });
   </script>
 </body>
 </html>
