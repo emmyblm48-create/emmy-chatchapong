@@ -1065,6 +1065,25 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 <script >
   
+  // 1. อ่านข้อมูลทันทีที่โหลดหน้าเว็บ
+  let user = null;
+  try {
+    const sessionData = localStorage.getItem('bnl_session');
+    if (sessionData) {
+      const parsed = JSON.parse(sessionData);
+      // ถ้าโครงสร้างข้อมูลมีการเก็บเป็น {data: ..., expiry: ...}
+      user = parsed.data || parsed; 
+    }
+  } catch (e) {
+    console.error("Session corrupted", e);
+    localStorage.removeItem('bnl_session'); // ลบข้อมูลเสียทิ้ง
+  }
+
+  // 2. ถ้าไม่มี user ให้ดีดไปหน้า login ทันที
+  if (!user) {
+    window.location.href = 'login.html';
+  }
+  
  const userSession = localStorage.getItem('bnl_session');
   if (!userSession) {
     window.location.href = 'login.html';
@@ -1144,14 +1163,38 @@ window.onload = () => {
 
   function getUserSession() {
     const sessionStr = localStorage.getItem('bnl_session');
-    if (!sessionStr) return null;
-    const session = JSON.parse(sessionStr);
-    if (new Date().getTime() > session.expiry) {
-      localStorage.removeItem('bnl_session');
-      return null;
+    
+    // 1. ถ้าไม่มีข้อมูลเลย
+    if (!sessionStr) {
+        console.log("⚠️ ไม่มี session ใน localStorage");
+        return null;
     }
-    return session.data;
-  }
+
+    try {
+        const session = JSON.parse(sessionStr);
+        
+        // 2. เช็กว่าข้อมูลหน้าตาเป็นยังไง
+        console.log("🔍 ข้อมูลที่ดึงได้จาก session:", session);
+
+        // 3. ถ้าไม่มี expiry หรือ data (แสดงว่าบันทึกผิดรูปแบบ)
+        if (!session.data) {
+            console.error("❌ รูปแบบข้อมูลใน localStorage ผิด! คาดหวัง {data: ..., expiry: ...} แต่ได้:", session);
+            return null; // หรือลอง return session ตรงๆ ถ้าคุณเซฟแบบไม่ห่อหุ้ม
+        }
+
+        // 4. เช็กวันหมดอายุ
+        if (new Date().getTime() > session.expiry) {
+            console.log("🕒 Session หมดอายุแล้ว");
+            localStorage.removeItem('bnl_session');
+            return null;
+        }
+
+        return session.data;
+    } catch (e) {
+        console.error("💥 ข้อมูลใน localStorage เสียหาย:", e);
+        return null;
+    }
+}
 
   function isUserMember() {
     return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
