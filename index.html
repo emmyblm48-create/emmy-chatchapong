@@ -22,9 +22,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-    
   </script>
-    
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> 
   </head>
     
   <body>
@@ -1068,6 +1067,14 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="ranking-wrapper">
   <div id="global-fan-list" class="horizontal-list"></div>
 </div>
+  
+  <div id="membership-card" style="background: white; border-radius: 20px; padding: 20px; border: 2px solid #ff85a2; width: 300px; text-align: center; margin: 20px auto;">
+  <img id="card-avatar" src="URL_รูปภาพ" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ff85a2;">
+  <h2 id="card-name" style="color: #ff85a2; margin: 10px 0 0 0;">ชื่อผู้ใช้</h2>
+  <p id="card-username" style="color: #888; font-size: 14px;">@username</p>
+</div>
+
+<button onclick="saveCard()" style="background: #ff85a2; color: white; padding: 10px 20px; border-radius: 15px; border: none;">Save Membership Card</button>
 
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
@@ -1452,6 +1459,18 @@ function renderGlobalFans(rawData) {
       </div>
     `;
     list.appendChild(card);
+  });
+}
+  
+  function saveCard() {
+  const cardElement = document.getElementById("membership-card");
+  
+  html2canvas(cardElement).then(canvas => {
+    // สร้างลิงก์ดาวน์โหลด
+    const link = document.createElement("a");
+    link.download = "my-membership-card.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   });
 }
 
