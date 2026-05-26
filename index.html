@@ -1478,7 +1478,7 @@ function updateUI() {
   `;
 }
   
-// 🌸 ฟังก์ชันเปิดกล่องป๊อปอัปบัตรสมาชิกดิจิทัลระดับพรีเมียม
+// 🌸 ฟังก์ชันเปิดกล่องป๊อปอัปบัตรสมาชิกดิจิทัลระดับพรีเมียม (เวอร์ชันกด Save รูปภาพได้)
 function showMembershipCardModal() {
   if (!user) return;
 
@@ -1487,7 +1487,7 @@ function showMembershipCardModal() {
     html: `
       <div class="membership-modal-body" style="font-family: 'Quicksand', 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px; padding-top: 10px;">
         
-        <div class="virtual-card" style="
+        <div id="member-card-target" class="virtual-card" style="
           width: 100%;
           max-width: 320px;
           height: 190px;
@@ -1513,7 +1513,7 @@ function showMembershipCardModal() {
           </div>
 
           <div style="display: flex; align-items: center; gap: 14px; margin-top: 22px; position: relative; z-index: 2;">
-            <img src="${getImg(user.profile_img)}" style="width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 2.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+            <img src="${getImg(user.profile_img)}" style="width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 2.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" crossorigin="anonymous">
             <div style="flex: 1; min-width: 0;">
               <div style="font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">${user.name}</div>
               <div style="font-size: 10px; color: #ff5376; font-weight: bold; background: rgba(255, 255, 255, 0.85); padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
@@ -1538,15 +1538,33 @@ function showMembershipCardModal() {
         <p style="font-size: 12px; color: #aaa; text-align: center; margin: 5px 0 0 0; line-height: 1.4;">
           ขอบคุณที่คอยสนับสนุนและเป็นส่วนหนึ่งในความฝันของพวกเรา <br><b style="color: #ff85a2;">BLM48</b> เสมอมานะคะ
         </p>
+
+        <button onclick="downloadCardImage()" style="
+          margin-top: 5px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 24px;
+          background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 100%);
+          color: white;
+          border: none;
+          border-radius: 25px;
+          font-weight: bold;
+          font-size: 14px;
+          box-shadow: 0 4px 12px rgba(255,133,162,0.35);
+          cursor: pointer;
+          transition: all 0.2s;
+        ">
+          <i class="fas fa-download"></i> บันทึกการ์ดสมาชิก
+        </button>
       </div>
     `,
-    confirmButtonText: 'ปิดหน้าต่าง',
-    confirmButtonColor: '#ff85a2',
+    confirmButtonText: 'close',
+    confirmButtonColor: '#aaa',
     background: '#ffffff',
     customClass: {
       popup: 'cute-modal-border-radius'
     },
-    // สไตล์เสริมเพื่อให้ขอบหน้าต่างหลักโค้งมนรับกับตัวบัตร
     didOpen: () => {
       const popup = Swal.getPopup();
       if (popup) {
@@ -1556,6 +1574,49 @@ function showMembershipCardModal() {
   });
 }
 
+// 📸 ฟังก์ชันสำหรับดักจับภาพ HTML และดาวน์โหลดเป็นไฟล์รูปภาพจริง
+function downloadCardImage() {
+  const cardElement = document.getElementById('member-card-target');
+  if (!cardElement) return;
+
+  // แสดง Loading แจ้งเตือนแฟนคลับว่ากำลังเซฟภาพ
+  Swal.fire({
+    title: 'กำลังบันทึกรูปภาพ...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
+  // ใช้ html2canvas ทำการ Screenshot เฉพาะตัวการ์ด
+  html2canvas(cardElement, {
+    scale: 2, // เพิ่มสเกล x2 เพื่อให้รูปที่ดาวน์โหลดออกมามีความคมชัดสูง ไม่แตกเบลอ
+    useCORS: true, // รองรับกรณีรูปโปรไฟล์ดึงมาจากลิงก์ภายนอก Host
+    backgroundColor: null // ทำให้พื้นหลังภายนอกการ์ดโปร่งใสตามโค้งมน
+  }).then(canvas => {
+    // แปลงภาพออกมาเป็น URL Link
+    const imageURL = canvas.toDataURL('image/png');
+    
+    // สร้างแท็กลิงก์จำลองเพื่อดาวน์โหลดไฟล์ลงเครื่องอัตโนมัติ
+    const downloadLink = document.createElement('a');
+    downloadLink.href = imageURL;
+    downloadLink.download = `BLM48_Membership_${user.username || 'member'}.png`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    // ปิดหน้าต่างโหลดและแจ้งสำเร็จ
+    Swal.fire({
+      icon: 'success',
+      title: 'บันทึกสำเร็จ!',
+      text: 'การ์ดสมาชิกถูกเซฟลงเครื่องของคุณเรียบร้อยแล้วค่ะ',
+      confirmButtonColor: '#ff85a2',
+      timer: 2000
+    });
+  }).catch(error => {
+    console.error("Save Card Error:", error);
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกรูปภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้งนะ', 'error');
+  });
+}
+  
 function renderRanking(data) {
   const list = document.getElementById('ranking-list');
   if (!list) return;
