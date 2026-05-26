@@ -1,89 +1,120 @@
-// --- แสดงประวัติประใจ 
-async function showHistory() {
-    const session = localStorage.getItem('bnl_session');
-    if (!session) return Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณาล็อกอินก่อน', 'warning');
-
-    const userData = JSON.parse(session).data;
-    const username = userData.username; 
-
-    // 1. เปิดม่าน Overlay หลัก (ใช้ flex เพื่อให้กล่องอยู่กึ่งกลางสวยๆ แบบรูปแรก)
-    const modalOverlay = document.getElementById('modal-overlay');
-    if(modalOverlay) modalOverlay.style.display = 'flex';
-    
-    // 2. 🚩 ดักปิดฟอร์มอื่นเพื่อแก้บั๊กซ้อนกันเป็นแซนด์วิช
-    document.getElementById('stats-form').style.display = 'none';
-    
-    // 3. 🚩 เปลี่ยนจากเปิด stats-form มาเปิดกล่องประวัติตัวจริง (history-form) แทนค่ะ!
-    const historyForm = document.getElementById('history-form');
-    if(historyForm) historyForm.style.display = 'block';
-    
-    // 4. 🚩 เปลี่ยนเป้าหมายกล่องเขียนข้อมูลจาก stats-content มาเป็น history-content
-    const historyContent = document.getElementById('history-content');
-    if(historyContent) historyContent.innerHTML = "<p style='text-align:center; color:#aaa; font-family:\"Kanit\"; padding:20px;'>กำลังดึงข้อมูลให้นะคะ...</p>";
-
-    try {
-        const response = await fetch(`${scriptURL}?action=getMyHistory&username=${username}`);
-        const res = await response.json();
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | History</title>
+     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <!-- สำหรับ iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <!-- สำหรับ Android และ Chrome -->
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#ffc0cb">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background: #fff5f7; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h2 { text-align: center; color: #ff6b81; }
         
-        // 5. 🚩 ตรวจสอบและพ่นข้อมูลลงกล่อง historyContent ตัวจริง
-        if (res.status === "success" && historyContent) {
-            let html = ``; // เอาหัวข้อ H2 ออกเพราะใน HTML หลักของเอ็มมี่มี "My History" อยู่แล้ว
-            
-            // ==========================================
-            // 🛒 หมวดหมู่ที่ 1: ประวัติการช้อปปิ้ง
-            // ==========================================
-            html += `
-                <div style="text-align:left; margin-top:15px;">
-                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">🛒 ประวัติการช้อปปิ้ง</h4>
-                    <div class="history-scroll-container">`;
-            
-            if (res.purchaseHistory && res.purchaseHistory.length > 0) {
-                res.purchaseHistory.forEach(log => {
-                    html += `
-                        <div class="fan-row">
-                            <div class="fan-info">
-                                <div class="fan-name">${log.action}: ${log.target}</div>
-                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
-                            </div>
-                            <div class="fan-cookies" style="color:#4dabf7">${log.amount}</div>
-                        </div>`;
-                });
-            } else {
-                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่มีประวัติการซื้อไอเทมงับ</p>`;
-            }
-            html += `
-                    </div> </div>`;
+        .history-section { margin-top: 20px; }
+        .history-title { border-bottom: 2px solid #ffc0cb; padding-bottom: 5px; margin-bottom: 10px; font-weight: 500; color: #555; }
+        
+        .history-scroll-container { max-height: 400px; overflow-y: auto; background: #fafafa; border-radius: 10px; padding: 10px; }
+        
+        .fan-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px dashed #ddd; }
+        .fan-info .fan-name { font-weight: bold; font-size: 14px; }
+        .fan-info .timestamp { font-size: 10px; color: #aaa; }
+        .fan-cookies { color: #4dabf7; font-weight: bold; }
+        
+        .back-btn { display: block; width: 100%; padding: 10px; margin-top: 20px; background: #ffc0cb; color: white; border: none; border-radius: 10px; cursor: pointer; text-align: center; text-decoration: none; }
+    </style>
+</head>
+<body>
 
-            // ==========================================
-            // 💖 หมวดหมู่ที่ 2: ประวัติการส่งกำลังใจ
-            // ==========================================
-            html += `
-                <div style="text-align:left; margin-top:20px;">
-                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">💖 ประวัติการส่งกำลังใจ</h4>
-                    <div class="history-scroll-container">`;
-            
-            if (res.giveLogs && res.giveLogs.length > 0) {
-                res.giveLogs.forEach(log => {
-                    html += `
-                        <div class="fan-row">
-                            <div class="fan-info">
-                                <div class="fan-name">ปาให้: ${log.member}</div>
-                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
-                            </div>
-                            <div class="fan-cookies">${log.amount} 🍪</div>
-                        </div>`;
-                });
-            } else {
-                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่เคยปาคุกกี้เลยงับ</p>`;
-            }
-            html += `
-                    </div> </div>`;
-            
-            // พ่นลงกล่องประวัติ
-            historyContent.innerHTML = html;
+<div class="container">
+    <h2>My History</h2>
+    
+    <div id="history-content">
+        <p style="text-align:center; color:#aaa;">กำลังโหลดข้อมูลนะคะ...</p>
+    </div>
+
+    <a href="index.html" class="back-btn">กลับหน้าหลัก</a>
+</div>
+
+<script>
+    // ดึงค่า URL ของสคริปต์มาจากหน้าที่พี่ใช้งานอยู่
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+
+    async function loadHistory() {
+        const session = localStorage.getItem('bnl_session');
+        if (!session) {
+            alert('กรุณาล็อกอินก่อนงับ');
+            window.location.href = 'login.html';
+            return;
         }
-    } catch (e) {
-        console.error(e);
-        if(historyContent) historyContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
+
+        const userData = JSON.parse(session).data;
+        const username = userData.username;
+        const historyContent = document.getElementById('history-content');
+
+        try {
+            const response = await fetch(`${scriptURL}?action=getMyHistory&username=${username}`);
+            const res = await response.json();
+
+            if (res.status === "success") {
+                let html = `
+                    <div class="history-section">
+                        <div class="history-title">🛒 ประวัติการช้อปปิ้ง</div>
+                        <div class="history-scroll-container">
+                            ${res.purchaseHistory?.length ? res.purchaseHistory.map(log => `
+                                <div class="fan-row">
+                                    <div class="fan-info">
+                                        <div class="fan-name">${log.action}: ${log.target}</div>
+                                        <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
+                                    </div>
+                                    <div class="fan-cookies">${log.amount}</div>
+                                </div>
+                            `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่มีประวัติการซื้อไอเทมงับ</p>'}
+                        </div>
+                    </div>
+
+                    <div class="history-section">
+                        <div class="history-title">💖 ประวัติการส่งกำลังใจ</div>
+                        <div class="history-scroll-container">
+                            ${res.giveLogs?.length ? res.giveLogs.map(log => `
+                                <div class="fan-row">
+                                    <div class="fan-info">
+                                        <div class="fan-name">ปาให้: ${log.member}</div>
+                                        <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
+                                    </div>
+                                    <div class="fan-cookies">${log.amount} 🍪</div>
+                                </div>
+                            `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่เคยปาคุกกี้เลยงับ</p>'}
+                        </div>
+                    </div>
+                `;
+                historyContent.innerHTML = html;
+            } else {
+                historyContent.innerHTML = "<p style='text-align:center;'>ไม่พบข้อมูลประวัติงับ</p>";
+            }
+        } catch (e) {
+            console.error(e);
+            historyContent.innerHTML = "<p style='text-align:center;'>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+        }
     }
-}--->
+
+    // เรียกโหลดข้อมูลทันทีที่เปิดหน้า
+    loadHistory();
+</script>
+
+</body>
+</html>
