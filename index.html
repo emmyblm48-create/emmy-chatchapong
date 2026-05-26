@@ -1924,23 +1924,33 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 5000);  
   
 // 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. ลองดึงข้อมูลจาก localStorage
-    const savedUser = localStorage.getItem('blm48_user'); // เปลี่ยนชื่อ Key ให้ตรงกับที่คุณใช้ Login
-
-    if (savedUser) {
-        // ถ้ามีข้อมูล แสดงว่า Login อยู่แล้ว
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
-        
-        // อย่าลืมโหลดข้อมูลสมาชิกด้วย
-        // loadUserData(JSON.parse(savedUser)); 
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // 1. เช็ก Session ทันทีที่โหลด DOM เสร็จ
+    const user = getUserSession(); // ใช้ฟังก์ชันที่คุณมีอยู่แล้ว
+    
+    // 2. เรียกฟังก์ชันปรับหน้าจอ (ต้องแน่ใจว่าฟังก์ชันนี้ถูกเรียก)
+    if (user) {
+        console.log("พบ User, กำลังเข้าสู่โหมด Member:", user);
+        showMemberUI(user); // สร้างฟังก์ชันนี้ขึ้นมา
     } else {
-        // ถ้าไม่มีข้อมูล ให้แสดงหน้า Login
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('main-app').style.display = 'none';
+        console.log("ไม่พบ Session, แสดงหน้า Guest");
+        showGuestUI(); // สร้างฟังก์ชันนี้ขึ้นมา
     }
 });
+  // ฟังก์ชันปรับ UI
+function showMemberUI(user) {
+    document.getElementById('guest-ui').style.display = 'none';
+    document.getElementById('member-ui').style.display = 'block';
+    // ใส่ชื่อผู้ใช้
+    const userNameElement = document.getElementById('user-name');
+    if(userNameElement) userNameElement.textContent = user.name; 
+}
+
+function showGuestUI() {
+    document.getElementById('guest-ui').style.display = 'block';
+    document.getElementById('member-ui').style.display = 'none';
+}
 </script>
 
 
