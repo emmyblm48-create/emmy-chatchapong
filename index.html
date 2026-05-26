@@ -1095,49 +1095,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         </div>
         <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #f5f5f5; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: #666; font-weight: 600;">Close</button>
     </div>
-    
-    <div class="modal-box" id="login-form" style="display:none; padding: 30px 25px; border-radius: 20px;">
-    <div class="brand-logo">
-         <i class="fas fa-heart animate__animated animate__heartBeat animate__infinite"></i>
-    </div>
-    <h1 class="title">BLM48 Login</h1>
-    <p class="subtitle">Log in to BLM48 Membership</p>
-
-    <div>
-        <div class="form-group">
-            <label for="login-user">Membership ID</label>
-            <div class="input-wrapper">
-                <input type="text" id="login-user" class="cute-input" placeholder="username" required>
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label for="login-pass">Password</label>
-            <div class="input-wrapper">
-                <input type="password" id="login-pass" class="cute-input" placeholder="password" required>
-                <i class="fas fa-lock"></i>
-            </div>
-        </div>
-
-        <button onclick="doLogin()" type="button" class="btn-login">Sign In</button>
-        <button onclick="closeModal()" style="width: 100%; background: none; color: #bbb; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; margin-top: 8px; transition: color 0.2s;">Cancel</button>
-    </div>
-
-    <div class="divider">New to BLM48 Membership?</div>
-
-    <a href="https://line.me/R/ti/p/@569rnpsj?from=page&liff.referrer=https%3A%2F%2Flinktr.ee%2F&searchId=569rnpsj" 
-       target="_blank" 
-       class="btn-login-main" 
-       style="background: #06C755; box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);">
-      <i class="fab fa-line" style="font-size: 20px;"></i> สมัครสมาชิกผ่าน LINE
-    </a>
-
-    <p class="note-text">
-      หมายเหตุ : ติดต่อสมัคร BLM48 Membership ฟรี<br>
-      ได้ทาง BLM48 Line ID : @569rnpsj
-    </p>
-</div>
 
 </div>
 
@@ -1151,6 +1108,82 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 
 <script >
+  
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const userVal = document.getElementById('username').value;
+      const passVal = document.getElementById('password').value;
+
+      // URL ของ Web App Google Apps Script ของพี่เอ็มมี่
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+
+      Swal.fire({
+        title: 'กำลังตรวจสอบข้อมูล...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      // ส่ง Request ไปตรวจสอบล็อกอินที่ Sheets
+      fetch(`${scriptURL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            
+            // 👑 🎯 สร้างโครงสร้างเซสชันให้ "match" กับ getUserSession() เดิมของพี่เอ็มมี่
+            // ตั้งเวลาบวกเพิ่มไป 7 วันนับจากปัจจุบัน (ปรับเปลี่ยนระยะเวลาได้ตามชอบเลยครับ)
+            const expireTime = Date.now() + (7 * 24 * 60 * 60 * 1000); 
+            
+            const sessionData = {
+              user: result.data,         // ข้อมูลยูสเซอร์ (name, username, role ฯลฯ)
+              expire: expireTime         // แนบวันหมดอายุลงไปด้วยเพื่อใช้ดักเช็ค
+            };
+
+            // บันทึกลง localStorage ในคีย์ bnl_session ตามที่ระบบเก่าต้องการ
+            localStorage.setItem('bnl_session', JSON.stringify(sessionData));
+
+            Swal.fire({
+              icon: 'success',
+              title: 'ยินดีต้อนรับ',
+              text: `สวัสดีค่ะคุณ ${result.data.name}`,
+              showConfirmButton: false,
+              timer: 1500,
+              didOpen: () => {
+                Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
+                Swal.getPopup().style.borderRadius = "20px";
+              }
+            }).then(() => {
+              window.location.href = 'index.html'; // ล็อกอินสำเร็จแล้ว เด้งไปหน้าหลัก
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'ล็อกอินล้มเหลว',
+              text: result.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+              confirmButtonColor: '#ff85a2',
+              didOpen: () => {
+                Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
+                Swal.getPopup().style.borderRadius = "20px";
+              }
+            });
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้',
+            confirmButtonColor: '#ff85a2'
+          });
+        });
+    });
+
+// 🎯 ฟังก์ชันสำหรับกด Logout (ผูกกับปุ่มออกจากระบบในหน้า index)
+function logoutBLM48() {
+  localStorage.removeItem('blm48_user'); // ลบข้อมูลออก
+  window.location.href = 'login.html';   // ดีดกลับหน้าล็อกอิน
+}
   // --- CONFIG & CONSTANTS ---
 const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่คุณเอ็มมี่มีการอัปเดตโค้ดสำคัญ
 
@@ -1924,8 +1957,6 @@ async function setOshi(type, memberName) {
   
   function openLogin() { 
     document.getElementById('modal-overlay').style.display = 'block'; 
-    document.getElementById('login-form').style.display = 'block'; 
-    document.getElementById('stats-form').style.display = 'none'; 
   }
   
   // หลังจาก Login หรือดึงข้อมูลผู้ใช้สำเร็จ
@@ -1989,22 +2020,6 @@ async function refreshAppData() {
   } 
 }
 
-// ใส่ดักจับตอนหน้าเว็บโหลดเสร็จสมบูรณ์
-document.addEventListener("DOMContentLoaded", () => {
-  
-  // 1. 👑 เรียกใช้ฟังก์ชันแกะเซสชันที่คุณเอ็มมี่เขียนไว้ได้เลย (มันจะเช็คคีย์ bnl_session และเช็ควันหมดอายุให้อัตโนมัติ!)
-  user = getUserSession(); 
-  
-  // 2. สั่งรันฟังก์ชันวาดหน้าจอทันที! ถ้ามีข้อมูลผู้ใช้ค้างอยู่ หน้าโปรไฟล์ก็จะขึ้นสวยงาม ไม่หลุดเป็น Guest แล้วค่ะ
-  updateUI();
-  
-  // 3. ⚡ ซ่อนหน้า Loading Screen และสั่งซิงค์ข้อมูลใหม่ล่าสุดจากระบบหลังบ้านเงียบๆ
-  hideAppLoading(); 
-  loadData();
-  if (user) {
-    syncUserData(); 
-  }
-});
 
 // ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh
 window.addEventListener('pageshow', function(event) {
@@ -2108,54 +2123,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
-
-    <div class="bottom-nav">
-  <a href="index.html" class="nav-item" id="nav-home">
-    <i class="fa-solid fa-house"></i>
-    <span>Home</span>
-  </a>
-  <a href="search.html" class="nav-item" id="nav-search">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span>Search</span>
-  </a>
-  <a href="shop.html" class="nav-item" id="nav-shop">
-    <i class="fa-solid fa-basket-shopping"></i>
-    <span>Shop</span>
-  </a>
-  <a href="kami.html" class="nav-item" id="nav-kami">
-    <i class="fa-solid fa-heart"></i>
-    <span>Oshi</span>
-  </a>
-  <a href="profile.html" class="nav-item" id="nav-profile">
-    <i class="fa-solid fa-user"></i>
-    <span>Profile</span>
-  </a>
-</div>
-<script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const currentPath = window.location.pathname.split("/").pop();
-      
-      // ล้างคลาส active เก่าออกก่อนเพื่อความชัวร์
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-      if (currentPath === "index.html" || currentPath === "") {
-        const el = document.getElementById("nav-home");
-        if (el) el.classList.add("active");
-      } else if (currentPath === "search.html" || currentPath === "member.html") {
-        const el = document.getElementById("nav-search");
-        if (el) el.classList.add("active");
-      } else if (currentPath === "shop.html" || currentPath === "inventory.html") {
-        const el = document.getElementById("nav-shop");
-        if (el) el.classList.add("active");
-      } else if (currentPath === "kami.html") {
-        const el = document.getElementById("nav-kami");
-        if (el) el.classList.add("active");
-      } else if (currentPath === "profile.html") {
-        const el = document.getElementById("nav-profile");
-        if (el) el.classList.add("active");
-      }
-    });
-  </script>
   </body>
   
 </html>
