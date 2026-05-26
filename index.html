@@ -1493,7 +1493,7 @@ function showMembershipCardModal() {
       // 1. โหลดรูปดีไซน์การ์ดหลัก
       const bgImg = new Image();
       bgImg.crossOrigin = "anonymous"; 
-      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; '; // ปิด String ให้สมบูรณ์เรียบร้อยครับ
+      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; 
 
       bgImg.onload = function() {
         const canvas = document.createElement('canvas');
@@ -1504,7 +1504,7 @@ function showMembershipCardModal() {
         canvas.height = bgImg.height || 675;
 
         // ✂️ 2. สร้าง Path ตัดขอบ Canvas ให้โค้งมนก่อนวาดรูป (เพื่อให้ตอนเซฟรูปมีมุมโค้ง)
-        const radius = canvas.width * 0.04; 
+        const radius = canvas.width * 0.04; // กำหนดความโค้งที่ 4% ของความกว้างการ์ด
         ctx.beginPath();
         ctx.moveTo(radius, 0);
         ctx.lineTo(canvas.width - radius, 0);
@@ -1516,36 +1516,32 @@ function showMembershipCardModal() {
         ctx.lineTo(0, radius);
         ctx.quadraticCurveTo(0, 0, radius, 0);
         ctx.closePath();
-        ctx.clip(); 
+        ctx.clip(); // สั่งตัดขอบ!
 
-        // วาดภาพพื้นหลังการ์ดหลัก
+        // วาดภาพพื้นหลังการ์ดหลัก (ภาพจะถูกลบขอบมุมฉากออกไปตามที่ Clip ไว้)
         ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
         // 3. ตั้งค่ารูปแบบตัวอักษร (สีขาว)
-        ctx.textBaseline = 'middle'; 
+        ctx.textBaseline = 'middle'; // เปลี่ยนจุดอ้างอิงเป็นกึ่งกลางบรรทัด เพื่อให้จัดข้อความกับป้ายง่ายขึ้น
 
-        // 🎯 กำหนดพิกัดแกน Y ใหม่ (ดันลงมาด้านล่างเพื่อหลบโลโก้และลายน้ำ)
-        const left_X = canvas.width * 0.08;   // ชิดซ้ายห่างจากขอบ
-        const right_X = canvas.width - (canvas.width * 0.08); // ชิดขวาห่างจากขอบ
-        
-        const line1_Y = canvas.height * 0.77; // ระดับบรรทัดบนสุดของข้อความด้านล่าง
-        const line2_Y = canvas.height * 0.87; // ระดับบรรทัดล่างสุดของการ์ด
+        // 🎯 กำหนดพิกัดบรรทัด
+        const textX = canvas.width * 0.08;  // ขยับแนวนอน ซ้าย-ขวา
+        const line1_Y = canvas.height * 0.74; // บรรทัดแรก (ชื่อ + บทบาท)
+        const line2_Y = canvas.height * 0.86; // บรรทัดสอง (Username + สถานะ)
 
-        // ==========================================
-        // 🌸 [ฝั่งซ้ายล่าง] บรรทัดที่ 1: ชื่อผู้ใช้งาน (Name)
-        // ==========================================
+        // 🌸 3.1 เขียนชื่อผู้ใช้งาน (Name)
         ctx.textAlign = 'left';
         ctx.fillStyle = '#ffffff'; 
         ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
-        ctx.fillText(user.name, left_X, line1_Y);
+        ctx.fillText(user.name, textX, line1_Y);
 
-        // 🛡️ [ฝั่งซ้ายล่าง] บรรทัดที่ 1: สร้างป้าย Role (วางต่อท้ายชื่อ)
-        const nameWidth = ctx.measureText(user.name).width; 
+        // 🛡️ 3.2 สร้างป้าย Role (ต่อท้ายชื่อ)
+        const nameWidth = ctx.measureText(user.name).width; // วัดความยาวของชื่อ
         const roleText = (user.role || 'MEMBER').toUpperCase();
         ctx.font = '600 ' + Math.floor(canvas.height * 0.035) + 'px "Kanit", sans-serif';
         const roleWidth = ctx.measureText(roleText).width;
         
-        const badgeX = left_X + nameWidth + (canvas.width * 0.02); 
+        const badgeX = textX + nameWidth + (canvas.width * 0.02); // ขยับห่างจากชื่อนิดนึง
         const badgePadX = canvas.width * 0.015;
         const badgePadY = canvas.height * 0.025;
 
@@ -1559,32 +1555,29 @@ function showMembershipCardModal() {
         ctx.fillStyle = '#ffffff';
         ctx.fillText(roleText, badgeX + badgePadX, line1_Y);
 
-        // ==========================================
-        // 🌸 [ฝั่งขวาล่าง] บรรทัดที่ 1: เขียน Username (@username)
-        // ==========================================
-        ctx.textAlign = 'right';
+        // 🌸 3.3 เขียน Username (@username)
+        ctx.textAlign = 'left';
         ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Quicksand", "Kanit", sans-serif';
-        ctx.fillText("@" + (user.username || "blm48_member"), right_X, line1_Y);
+        ctx.fillText("@" + (user.username || "blm48_member"), textX, line2_Y);
 
-        // ==========================================
-        // 🟢 [ฝั่งขวาล่าง] บรรทัดที่ 2: เขียน Status: Active
-        // ==========================================
+        // 🟢 3.4 เขียน Status (วางชิดขวาของบรรทัดที่ 2)
         ctx.textAlign = 'right';
+        const statusX = canvas.width - (canvas.width * 0.08); // ห่างจากขอบขวาเท่ากับฝั่งซ้าย
         const statusText = "Status: Active";
         ctx.font = '600 ' + Math.floor(canvas.height * 0.04) + 'px "Quicksand", "Kanit", sans-serif';
         const statusWidth = ctx.measureText(statusText).width;
         
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(statusText, right_X, line2_Y);
+        ctx.fillText(statusText, statusX, line2_Y);
 
-        // วาดจุดไฟสีเขียว (Active Dot) ไว้ข้างหน้าคำว่า Status: Active ฝั่งขวา
+        // วาดจุดไฟสีเขียว (Active Dot) หน้าคำว่า Status
         const dotRadius = canvas.height * 0.012;
-        ctx.fillStyle = '#55efc4'; 
+        ctx.fillStyle = '#55efc4'; // สีเขียวมิ้นต์น่ารักๆ
         ctx.beginPath();
-        ctx.arc(right_X - statusWidth - (canvas.width * 0.015), line2_Y, dotRadius, 0, Math.PI * 2);
+        ctx.arc(statusX - statusWidth - (canvas.width * 0.015), line2_Y, dotRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // 4. แปลงข้อมูล Canvas เป็น Data URL (.png เพื่อความโปร่งใสของมุมโค้ง)
+        // 4. แปลงข้อมูล Canvas เป็น Data URL (❗️ ใช้ image/png เพื่อให้มุมโค้งด้านนอกโปร่งใส)
         const cardDataUrl = canvas.toDataURL('image/png');
 
         // 5. แสดงหน้าต่างป๊อปอัปพรีวิวการ์ดและปุ่มเซฟ
