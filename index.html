@@ -49,7 +49,7 @@
       overflow-x: hidden;
     }
     
-    /* 🔐 หน้าต่าง Login */
+        /* 🔐 หน้าต่าง Login */
     #login-screen {
       display: flex;
       flex-direction: column;
@@ -900,12 +900,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   </div>
 </div>
 
-    <div class="nav-dots">
-      <div class="dot active" id="dot1"></div>
-      <div class="dot" id="dot2"></div>
-    </div>
-  </div>
-
 <div id="sidebar">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <div class="brand" style="font-size: 20px;">BLM48 MENU</div>
@@ -938,7 +932,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
          <i class="fas fa-sync-alt" style="width:20px;"></i> REFRESH
       </a>
       
-      <a href="login.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0; color: #ff6b6b;">
+      <a href="#" onclick="confirmLogout()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0; color: #ff6b6b;">
          <i class="fas fa-sign-out-alt" style="width:20px;"></i> LOGOUT
       </a>
       
@@ -1051,6 +1045,15 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         </div>
         <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #f5f5f5; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: #666; font-weight: 600;">Close</button>
     </div>
+    
+    <div class="modal-box" id="login-form" style="display:none; padding: 30px 25px; border-radius: 20px;">
+        <h2 style="font-family: 'Kanit', sans-serif; font-weight: 700; color: var(--primary-pink); margin-bottom: 25px; text-align: center;">BLM48 Login</h2>
+        <input type="text" id="login-user" class="login-input" placeholder="ชื่อผู้ใช้ (Username)" style="width: 100%; box-sizing: border-box;">
+        <input type="password" id="login-pass" class="login-input" placeholder="รหัสผ่าน (Password)" style="width: 100%; box-sizing: border-box;">
+        
+        <button onclick="doLogin()" style="width: 100%; background: var(--primary-pink); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-weight: 700; margin-top: 20px; box-shadow: 0 4px 12px rgba(255, 133, 162, 0.35); transition: all 0.2s;">LOGIN</button>
+        <button onclick="closeModal()" style="width: 100%; background: none; color: #bbb; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 13px; margin-top: 8px; transition: color 0.2s;">Cancel</button>
+    </div>
 
 </div>
 
@@ -1064,39 +1067,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 
 <script >
-  
-  // 1. อ่านข้อมูลทันทีที่โหลดหน้าเว็บ
-  let user = null;
-  try {
-    const sessionData = localStorage.getItem('bnl_session');
-    if (sessionData) {
-      const parsed = JSON.parse(sessionData);
-      // ถ้าโครงสร้างข้อมูลมีการเก็บเป็น {data: ..., expiry: ...}
-      user = parsed.data || parsed; 
-    }
-  } catch (e) {
-    console.error("Session corrupted", e);
-    localStorage.removeItem('bnl_session'); // ลบข้อมูลเสียทิ้ง
-  }
-
-  // 2. ถ้าไม่มี user ให้ดีดไปหน้า login ทันที
-  if (!user) {
-    window.location.href = 'login.html';
-  }
-  
- const userSession = localStorage.getItem('bnl_session');
-  if (!userSession) {
-    window.location.href = 'login.html';
-  }
-  function openLogin() { 
-  // 🌸 เมื่อฟังก์ชันนี้ถูกเรียกใช้ที่ไหน จะพาไปหน้าล็อกอินแบบเต็มจอทันที
-    window.location.href = 'login.html'; 
-  }
-  function logout() {
-    localStorage.removeItem('bnl_session');
-    window.location.href = 'login.html';
-}
-  
   // --- CONFIG & CONSTANTS ---
 const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่คุณเอ็มมี่มีการอัปเดตโค้ดสำคัญ
 
@@ -1132,6 +1102,109 @@ function toggleDarkMode() {
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   document.getElementById('dark-mode-btn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+
+// --- แสดงประวัติประใจ ---
+async function showHistory() {
+    const session = localStorage.getItem('bnl_session');
+    if (!session) return Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณาล็อกอินก่อน', 'warning');
+
+    const userData = JSON.parse(session).data;
+    const username = userData.username; 
+
+    // 1. เปิดม่าน Overlay หลัก (ใช้ flex เพื่อให้กล่องอยู่กึ่งกลางสวยๆ แบบรูปแรก)
+    const modalOverlay = document.getElementById('modal-overlay');
+    if(modalOverlay) modalOverlay.style.display = 'flex';
+    
+    // 2. 🚩 ดักปิดฟอร์มอื่นเพื่อแก้บั๊กซ้อนกันเป็นแซนด์วิช
+    document.getElementById('inventory-form').style.display = 'none';
+    document.getElementById('stats-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'none';
+    
+    // 3. 🚩 เปลี่ยนจากเปิด stats-form มาเปิดกล่องประวัติตัวจริง (history-form) แทนค่ะ!
+    const historyForm = document.getElementById('history-form');
+    if(historyForm) historyForm.style.display = 'block';
+    
+    // 4. 🚩 เปลี่ยนเป้าหมายกล่องเขียนข้อมูลจาก stats-content มาเป็น history-content
+    const historyContent = document.getElementById('history-content');
+    if(historyContent) historyContent.innerHTML = "<p style='text-align:center; color:#aaa; font-family:\"Kanit\"; padding:20px;'>กำลังดึงข้อมูลให้นะคะ...</p>";
+
+    try {
+        const response = await fetch(`${scriptURL}?action=getMyHistory&username=${username}`);
+        const res = await response.json();
+        
+        // 5. 🚩 ตรวจสอบและพ่นข้อมูลลงกล่อง historyContent ตัวจริง
+        if (res.status === "success" && historyContent) {
+            let html = ``; // เอาหัวข้อ H2 ออกเพราะใน HTML หลักของเอ็มมี่มี "My History" อยู่แล้ว
+            
+            // ==========================================
+            // 🛒 หมวดหมู่ที่ 1: ประวัติการช้อปปิ้ง
+            // ==========================================
+            html += `
+                <div style="text-align:left; margin-top:15px;">
+                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">🛒 ประวัติการช้อปปิ้ง</h4>
+                    <div class="history-scroll-container">`;
+            
+            if (res.purchaseHistory && res.purchaseHistory.length > 0) {
+                res.purchaseHistory.forEach(log => {
+                    html += `
+                        <div class="fan-row">
+                            <div class="fan-info">
+                                <div class="fan-name">${log.action}: ${log.target}</div>
+                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="fan-cookies" style="color:#4dabf7">${log.amount}</div>
+                        </div>`;
+                });
+            } else {
+                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่มีประวัติการซื้อไอเทมงับ</p>`;
+            }
+            html += `
+                    </div> </div>`;
+
+            // ==========================================
+            // 💖 หมวดหมู่ที่ 2: ประวัติการส่งกำลังใจ
+            // ==========================================
+            html += `
+                <div style="text-align:left; margin-top:20px;">
+                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">💖 ประวัติการส่งกำลังใจ</h4>
+                    <div class="history-scroll-container">`;
+            
+            if (res.giveLogs && res.giveLogs.length > 0) {
+                res.giveLogs.forEach(log => {
+                    html += `
+                        <div class="fan-row">
+                            <div class="fan-info">
+                                <div class="fan-name">ปาให้: ${log.member}</div>
+                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="fan-cookies">${log.amount} 🍪</div>
+                        </div>`;
+                });
+            } else {
+                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่เคยปาคุกกี้เลยงับ</p>`;
+            }
+            html += `
+                    </div> </div>`;
+            
+            // พ่นลงกล่องประวัติ
+            historyContent.innerHTML = html;
+        }
+    } catch (e) {
+        console.error(e);
+        if(historyContent) historyContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
+    }
+}
+
+  function closeModal() {
+    // ซ่อนม่าน Overlay หลัก
+    document.getElementById('modal-overlay').style.display = 'none';
+    
+    // สั่งซ่อนทุกกล่องฟอร์มด้านในเพื่อ Reset สถานะสำหรับรอบหน้า
+    document.getElementById('history-form').style.display = 'none';
+    document.getElementById('inventory-form').style.display = 'none';
+    document.getElementById('stats-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'none';
 }
   
 // --- ปิด Splash Screen เมื่อโหลดข้อมูลเสร็จ ---
@@ -1176,7 +1249,8 @@ window.onload = () => {
     return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
   }
   
- async function syncUserData() {
+ // แยกการ Sync User ออกมาทำงานเบื้องหลัง พร้อมเช็คการเด้งออกทันที (ฉบับแก้ไข)
+  async function syncUserData() {
     if (!user) return;
     try {
       const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
@@ -1184,7 +1258,8 @@ window.onload = () => {
       
       if (res.status === "success") {
         
-        // 🚨 กรณีถูกระงับสิทธิ์ (รหัสผ่านเป็นค่าว่าง)
+        // 🚨 แก้ไขแล้ว: เช็คเฉพาะกรณีที่ Google Sheet ส่งค่ากลับมาเป็น "ช่องว่าง" จริงๆ เท่านั้น
+        // (ตัดเงื่อนไข undefined ออก เพื่อไม่ให้มันเข้าใจผิดตอนที่ระบบซ่อนรหัสผ่าน)
         if (res.data.password === "") {
             Swal.fire({
               icon: 'warning',
@@ -1196,23 +1271,23 @@ window.onload = () => {
               localStorage.removeItem('bnl_session');
               sessionStorage.clear();
               user = null;
-              // แทนที่จะเรียก openLogin() ให้สั่ง Redirect ตรงๆ เลยครับ
-              window.location.href = 'login.html'; 
+              updateUI();
+              openLogin();
             });
-            return;
+            return; // หยุดการทำงานทันที
         }
 
+        // 💖 ถ้าไม่ได้ถูกลบรหัสผ่าน ให้อัปเดตข้อมูลใหม่ (โดยใช้วิธีรวมข้อมูล เพื่อไม่ให้รหัสผ่านในเครื่องหาย)
         user = { ...user, ...res.data }; 
         saveUserSession(user); 
         updateUI(); 
 
       } else {
-        // 🚨 กรณีหาชื่อไม่เจอ
+        // 🚨 กรณีค้นหาชื่อผู้ใช้ไม่เจอเลย (เช่น คุณเอ็มมี่ลบแถวของคนนี้ทิ้งไปจาก Sheet)
         localStorage.removeItem('bnl_session');
         user = null;
         updateUI();
-        // สั่ง Redirect ตรงๆ ไปหน้า Login
-        window.location.href = 'login.html';
+        openLogin();
       }
     } catch (e) { 
         console.error("Sync Error:", e); 
@@ -1415,6 +1490,7 @@ function updateUI() {
     });
   }
 }
+
 
 // 💔 ฟังก์ชันสำหรับกดลบคามิ/โอชิจากหน้าจอ แล้วยิงไปอัปเดต Google Sheet ทันทีผ่าน action: removeOshi ที่มีอยู่เดิม
 async function removeOshiFromUI(type, memberName) {
@@ -1830,6 +1906,27 @@ async function setOshi(type, memberName) {
       } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
     }
   }
+
+  async function doLogin() {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    if(!u || !p) return Swal.fire('เตือน', 'กรุณากรอกข้อมูลให้ครบค่ะ', 'warning');
+    Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', didOpen: () => Swal.showLoading() });
+    try {
+      const resp = await fetch(`${scriptURL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
+      const result = await resp.json();
+      if (result.status === "success") { 
+        user = result.data; saveUserSession(user); closeModal(); updateUI(); loadData();
+        Swal.fire('ยินดีต้อนรับ', `สวัสดีค่ะคุณ ${user.name}`, 'success');
+      } else { Swal.fire('ล้มเหลว', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error'); }
+    } catch(e) { Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'); }
+  }
+  
+  function openLogin() { 
+    document.getElementById('modal-overlay').style.display = 'block'; 
+    document.getElementById('login-form').style.display = 'block'; 
+    document.getElementById('stats-form').style.display = 'none'; 
+  }
   
   // หลังจาก Login หรือดึงข้อมูลผู้ใช้สำเร็จ
 function setupUserProfile(user) {
@@ -1846,6 +1943,8 @@ function setupUserProfile(user) {
   }
 }
   
+  function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
   function getImg(url) {
     if (!url) return 'https://via.placeholder.com/150';
     if (url.includes('drive.google.com')) return `https://lh3.googleusercontent.com/u/0/d/${url.match(/[-\w]{25,}/)}`;
@@ -1890,6 +1989,23 @@ async function refreshAppData() {
   } 
 }
 
+// ใส่ดักจับตอนหน้าเว็บโหลดเสร็จสมบูรณ์
+document.addEventListener("DOMContentLoaded", () => {
+  
+  // 1. 👑 เรียกใช้ฟังก์ชันแกะเซสชันที่คุณเอ็มมี่เขียนไว้ได้เลย (มันจะเช็คคีย์ bnl_session และเช็ควันหมดอายุให้อัตโนมัติ!)
+  user = getUserSession(); 
+  
+  // 2. สั่งรันฟังก์ชันวาดหน้าจอทันที! ถ้ามีข้อมูลผู้ใช้ค้างอยู่ หน้าโปรไฟล์ก็จะขึ้นสวยงาม ไม่หลุดเป็น Guest แล้วค่ะ
+  updateUI();
+  
+  // 3. ⚡ ซ่อนหน้า Loading Screen และสั่งซิงค์ข้อมูลใหม่ล่าสุดจากระบบหลังบ้านเงียบๆ
+  hideAppLoading(); 
+  loadData();
+  if (user) {
+    syncUserData(); 
+  }
+});
+
 // ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh
 window.addEventListener('pageshow', function(event) {
     refreshAppData();
@@ -1925,32 +2041,22 @@ window.addEventListener('DOMContentLoaded', () => {
   
 // 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
-    
-    // 1. เช็ก Session ทันทีที่โหลด DOM เสร็จ
-    const user = getUserSession(); // ใช้ฟังก์ชันที่คุณมีอยู่แล้ว
-    
-    // 2. เรียกฟังก์ชันปรับหน้าจอ (ต้องแน่ใจว่าฟังก์ชันนี้ถูกเรียก)
-    if (user) {
-        console.log("พบ User, กำลังเข้าสู่โหมด Member:", user);
-        showMemberUI(user); // สร้างฟังก์ชันนี้ขึ้นมา
-    } else {
-        console.log("ไม่พบ Session, แสดงหน้า Guest");
-        showGuestUI(); // สร้างฟังก์ชันนี้ขึ้นมา
-    }
+  
+  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
+  user = getUserSession(); 
+  
+  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
+  updateUI();
+  
+  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
+  hideAppLoading(); 
+  
+  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
+  loadData();
+  if (user) {
+    syncUserData(); 
+  }
 });
-  // ฟังก์ชันปรับ UI
-function showMemberUI(user) {
-    document.getElementById('guest-ui').style.display = 'none';
-    document.getElementById('member-ui').style.display = 'block';
-    // ใส่ชื่อผู้ใช้
-    const userNameElement = document.getElementById('user-name');
-    if(userNameElement) userNameElement.textContent = user.name; 
-}
-
-function showGuestUI() {
-    document.getElementById('guest-ui').style.display = 'block';
-    document.getElementById('member-ui').style.display = 'none';
-}
 </script>
 
 
