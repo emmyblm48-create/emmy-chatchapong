@@ -1483,17 +1483,17 @@ function showMembershipCardModal() {
 
   // แจ้งเตือนผู้ใช้ในระหว่างที่ระบบกำลังประมวลผลวาดการ์ด
   Swal.fire({
-    title: '🌸 กำลังสร้างบัตรสมาชิกของคุณ 🌸',
-    html: '<div style="font-size: 14px; color: #666; margin-top: 10px;">โปรดรอสักครู่ ระบบกำลังลงทะเบียนชื่อของคุณลงบนการ์ด...</div>',
+    title: 'Loading...',
+    html: '<div style="font-size: 14px; color: #666; margin-top: 10px;">กรุณารอสักครู่</div>',
     allowOutsideClick: false,
     showConfirmButton: false,
     didOpen: () => {
       Swal.showLoading();
 
-      // 1. โหลดรูปดีไซน์การ์ดหลักของ BLM48
+      // 1. โหลดรูปดีไซน์การ์ดหลัก
       const bgImg = new Image();
       bgImg.crossOrigin = "anonymous"; 
-      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; 
+      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; // หากใช้ลิงก์อื่น สามารถเปลี่ยนตรงนี้ได้เลยครับ
 
       bgImg.onload = function() {
         const canvas = document.createElement('canvas');
@@ -1506,98 +1506,66 @@ function showMembershipCardModal() {
         // วาดภาพพื้นหลังการ์ดหลัก
         ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-        // 2. โหลดรูปภาพโปรไฟล์ของผู้ใช้งาน
-        const avatarImg = new Image();
-        avatarImg.crossOrigin = "anonymous";
-        avatarImg.src = getImg(user.profile_img);
+        // 2. ตั้งค่ารูปแบบตัวอักษร (สีขาว)
+        ctx.fillStyle = '#ffffff'; 
+        ctx.textAlign = 'left';  // ให้ตัวหนังสือเริ่มพิมพ์จากฝั่งซ้ายไปขวา
+        ctx.textBaseline = 'top';
 
-        avatarImg.onload = function() {
-          // 🎯 คำนวณพิกัดสำหรับวางรูปโปรไฟล์ในกรอบขาวฝั่งขวา
-          const avatarSize = canvas.height * 0.28; // ขนาดความกว้าง-ยาวของรูปโปรไฟล์
-          const avatarX = canvas.width * 0.735;     // ขยับไปทางขวาให้อยู่กึ่งกลางกรอบ
-          const avatarY = canvas.height * 0.22;     // ตำแหน่งความสูงจากขอบบน
+        // 🎯 กำหนดพิกัด X, Y สำหรับวางข้อความใต้คำว่า Membership
+        // (คุณเอ็มมี่สามารถเพิ่ม/ลด ตัวเลขทศนิยม เพื่อขยับตำแหน่งได้เลยครับ)
+        const textX = canvas.width * 0.08;  // ขยับแนวนอน ซ้าย-ขวา (0.08 คือห่างจากขอบซ้ายนิดหน่อย)
+        const textY = canvas.height * 0.75; // ขยับแนวตั้ง บน-ล่าง (0.75 คือค่อนไปทางด้านล่างของการ์ด)
 
-          // วาดรูปโปรไฟล์เป็นวงกลมขอบมน
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
+        // 🌸 เขียนชื่อผู้ใช้งาน (Name)
+        ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
+        ctx.fillText(user.name, textX, textY);
 
-          // วาดเส้นขอบวงกลมสีขาวบางๆ ให้รูปโปรไฟล์ดูมีมิติ
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.stroke();
+        // 🌸 เขียน Username (@username)
+        const usernameY = textY + (canvas.height * 0.07); // ระยะห่างบรรทัดลงมาจากชื่อ
+        ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Quicksand", "Kanit", sans-serif';
+        ctx.fillText("@" + (user.username || "blm48_member"), textX, usernameY);
 
-          // 3. ตั้งค่าการเขียนข้อความ (เปลี่ยนเป็นสีน้ำตาลเข้มหม่นละมุน เข้ากับธีมการ์ด)
-          ctx.fillStyle = '#6e4a4a'; 
-          ctx.textAlign = 'center'; // ตั้งค่าให้ข้อความอยู่กึ่งกลางการ์ดฝั่งขวาพอดี
-          ctx.textBaseline = 'top';
+        // 3. แปลงข้อมูล Canvas เป็น Data URL สกุลไฟล์ JPEG
+        const cardDataUrl = canvas.toDataURL('image/jpeg', 0.95);
 
-          // 🌸 เขียนชื่อผู้ใช้งาน (Name)
-          // วางไว้ใต้รูปโปรไฟล์ ขยับตำแหน่งให้ตรงกับจุดศูนย์กลางแกน X ของรูปโปรไฟล์
-          ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
-          const centerX = avatarX + (avatarSize / 2);
-          const nameY = avatarY + avatarSize + (canvas.height * 0.05); // ระยะเยื้องลงมาจากรูปโปรไฟล์
-          ctx.fillText(user.name, centerX, nameY);
-
-          // 🌸 เขียน Username (@username)
-          // ปรับฟอนต์ให้เล็กลงมานิดนึงเพื่อความมินิมอล จัดวางไว้บรรทัดล่างสุดใต้ชื่อ
-          ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Quicksand", "Kanit", sans-serif';
-          const usernameY = nameY + (canvas.height * 0.07); // ระยะห่างจากบรรทัดชื่อ
-          ctx.fillText("@" + (user.username || "blm48_member"), centerX, usernameY);
-
-          // 4. แปลงข้อมูล Canvas เป็น Data URL สกุลไฟล์ JPEG
-          const cardDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-
-          // 5. แสดงหน้าต่างป๊อปอัปพรีวิวการ์ดและปุ่มเซฟ
-          Swal.fire({
-            title: 'BLM48 Official Membership',
-            html: `
-              <div style="font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                <img src="${cardDataUrl}" style="width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 8px 26px rgba(255,133,162,0.25); border: 1.5px solid #ffe4e1;">
-                
-                <a href="${cardDataUrl}" download="BLM48_Member_${user.username || 'card'}.jpg" style="
-                  display: inline-flex;
-                  align-items: center;
-                  gap: 8px;
-                  padding: 12px 32px;
-                  background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 100%);
-                  color: white;
-                  text-decoration: none;
-                  border-radius: 25px;
-                  font-weight: bold;
-                  font-size: 15px;
-                  box-shadow: 0 4px 12px rgba(255,133,162,0.35);
-                  transition: all 0.2s;
-                " onclick="Swal.close();">
-                  <i class="fas fa-download"></i> บันทึกการ์ดสมาชิก
-                </a>
-              </div>
-            `,
-            showConfirmButton: false, 
-            showCloseButton: true,
-            background: '#ffffff',
-            didOpen: () => {
-              const popup = Swal.getPopup();
-              if (popup) popup.style.borderRadius = '28px';
-            }
-          });
-        };
-
-        // ในกรณีดึงรูปโปรไฟล์จริงไม่สำเร็จ ให้ใช้ภาพ Placeholder แทน
-        avatarImg.onerror = function() {
-          avatarImg.src = 'https://www.w3schools.com/howto/img_avatar.png';
-        };
+        // 4. แสดงหน้าต่างป๊อปอัปพรีวิวการ์ดและปุ่มเซฟ
+        Swal.fire({
+          title: 'BLM48 Official Membership',
+          html: `
+            <div style="font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+              <img src="${cardDataUrl}" style="width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 8px 26px rgba(255,133,162,0.25); border: 1.5px solid #ffe4e1;">
+              
+              <a href="${cardDataUrl}" download="BLM48_Member_${user.username || 'card'}.jpg" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 32px;
+                background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 25px;
+                font-weight: bold;
+                font-size: 15px;
+                box-shadow: 0 4px 12px rgba(255,133,162,0.35);
+                transition: all 0.2s;
+              " onclick="Swal.close();">
+                <i class="fas fa-download"></i> Save Card
+              </a>
+            </div>
+          `,
+          showConfirmButton: false, 
+          showCloseButton: true,
+          background: '#ffffff',
+          didOpen: () => {
+            const popup = Swal.getPopup();
+            if (popup) popup.style.borderRadius = '28px';
+          }
+        });
       };
 
       // ในกรณีโหลดรูปพื้นหลังไม่ขึ้น
       bgImg.onerror = function() {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถค้นหาไฟล์ดีไซน์หลัก MEMBERSHIP (1).jpg ได้สำเร็จ กรุณาตรวจสอบชื่อไฟล์ในโฟลเดอร์โครงการอีกครั้งค่ะ', 'error');
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถค้นหาไฟล์ดีไซน์หลักได้สำเร็จ กรุณาตรวจสอบชื่อไฟล์อีกครั้งค่ะ', 'error');
       };
     }
   });
