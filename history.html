@@ -1,0 +1,89 @@
+// --- แสดงประวัติประใจ 
+async function showHistory() {
+    const session = localStorage.getItem('bnl_session');
+    if (!session) return Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณาล็อกอินก่อน', 'warning');
+
+    const userData = JSON.parse(session).data;
+    const username = userData.username; 
+
+    // 1. เปิดม่าน Overlay หลัก (ใช้ flex เพื่อให้กล่องอยู่กึ่งกลางสวยๆ แบบรูปแรก)
+    const modalOverlay = document.getElementById('modal-overlay');
+    if(modalOverlay) modalOverlay.style.display = 'flex';
+    
+    // 2. 🚩 ดักปิดฟอร์มอื่นเพื่อแก้บั๊กซ้อนกันเป็นแซนด์วิช
+    document.getElementById('stats-form').style.display = 'none';
+    
+    // 3. 🚩 เปลี่ยนจากเปิด stats-form มาเปิดกล่องประวัติตัวจริง (history-form) แทนค่ะ!
+    const historyForm = document.getElementById('history-form');
+    if(historyForm) historyForm.style.display = 'block';
+    
+    // 4. 🚩 เปลี่ยนเป้าหมายกล่องเขียนข้อมูลจาก stats-content มาเป็น history-content
+    const historyContent = document.getElementById('history-content');
+    if(historyContent) historyContent.innerHTML = "<p style='text-align:center; color:#aaa; font-family:\"Kanit\"; padding:20px;'>กำลังดึงข้อมูลให้นะคะ...</p>";
+
+    try {
+        const response = await fetch(`${scriptURL}?action=getMyHistory&username=${username}`);
+        const res = await response.json();
+        
+        // 5. 🚩 ตรวจสอบและพ่นข้อมูลลงกล่อง historyContent ตัวจริง
+        if (res.status === "success" && historyContent) {
+            let html = ``; // เอาหัวข้อ H2 ออกเพราะใน HTML หลักของเอ็มมี่มี "My History" อยู่แล้ว
+            
+            // ==========================================
+            // 🛒 หมวดหมู่ที่ 1: ประวัติการช้อปปิ้ง
+            // ==========================================
+            html += `
+                <div style="text-align:left; margin-top:15px;">
+                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">🛒 ประวัติการช้อปปิ้ง</h4>
+                    <div class="history-scroll-container">`;
+            
+            if (res.purchaseHistory && res.purchaseHistory.length > 0) {
+                res.purchaseHistory.forEach(log => {
+                    html += `
+                        <div class="fan-row">
+                            <div class="fan-info">
+                                <div class="fan-name">${log.action}: ${log.target}</div>
+                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="fan-cookies" style="color:#4dabf7">${log.amount}</div>
+                        </div>`;
+                });
+            } else {
+                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่มีประวัติการซื้อไอเทมงับ</p>`;
+            }
+            html += `
+                    </div> </div>`;
+
+            // ==========================================
+            // 💖 หมวดหมู่ที่ 2: ประวัติการส่งกำลังใจ
+            // ==========================================
+            html += `
+                <div style="text-align:left; margin-top:20px;">
+                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">💖 ประวัติการส่งกำลังใจ</h4>
+                    <div class="history-scroll-container">`;
+            
+            if (res.giveLogs && res.giveLogs.length > 0) {
+                res.giveLogs.forEach(log => {
+                    html += `
+                        <div class="fan-row">
+                            <div class="fan-info">
+                                <div class="fan-name">ปาให้: ${log.member}</div>
+                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="fan-cookies">${log.amount} 🍪</div>
+                        </div>`;
+                });
+            } else {
+                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่เคยปาคุกกี้เลยงับ</p>`;
+            }
+            html += `
+                    </div> </div>`;
+            
+            // พ่นลงกล่องประวัติ
+            historyContent.innerHTML = html;
+        }
+    } catch (e) {
+        console.error(e);
+        if(historyContent) historyContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
+    }
+}--->
