@@ -1163,38 +1163,14 @@ window.onload = () => {
 
   function getUserSession() {
     const sessionStr = localStorage.getItem('bnl_session');
-    
-    // 1. ถ้าไม่มีข้อมูลเลย
-    if (!sessionStr) {
-        console.log("⚠️ ไม่มี session ใน localStorage");
-        return null;
+    if (!sessionStr) return null;
+    const session = JSON.parse(sessionStr);
+    if (new Date().getTime() > session.expiry) {
+      localStorage.removeItem('bnl_session');
+      return null;
     }
-
-    try {
-        const session = JSON.parse(sessionStr);
-        
-        // 2. เช็กว่าข้อมูลหน้าตาเป็นยังไง
-        console.log("🔍 ข้อมูลที่ดึงได้จาก session:", session);
-
-        // 3. ถ้าไม่มี expiry หรือ data (แสดงว่าบันทึกผิดรูปแบบ)
-        if (!session.data) {
-            console.error("❌ รูปแบบข้อมูลใน localStorage ผิด! คาดหวัง {data: ..., expiry: ...} แต่ได้:", session);
-            return null; // หรือลอง return session ตรงๆ ถ้าคุณเซฟแบบไม่ห่อหุ้ม
-        }
-
-        // 4. เช็กวันหมดอายุ
-        if (new Date().getTime() > session.expiry) {
-            console.log("🕒 Session หมดอายุแล้ว");
-            localStorage.removeItem('bnl_session');
-            return null;
-        }
-
-        return session.data;
-    } catch (e) {
-        console.error("💥 ข้อมูลใน localStorage เสียหาย:", e);
-        return null;
-    }
-}
+    return session.data;
+  }
 
   function isUserMember() {
     return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
