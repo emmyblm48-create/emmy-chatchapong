@@ -21,9 +21,8 @@
 <meta http-equiv="Expires" content="0">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-  </script>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
   </head>
     
   <body>
@@ -46,6 +45,130 @@
       padding: 0;
       min-height: 100vh;
       overflow-x: hidden;
+    }
+    
+    /* 📱 ระบบสไลด์หน้าจอหลัก (หลังล็อกอิน) */
+    #main-app {
+      display: none; /* ซ่อนไว้ก่อนล็อกอินสำเร็จ */
+      height: 100vh;
+      width: 100vw;
+      position: relative;
+    }
+
+    .swipe-container {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none; /* ซ่อนแถบเลื่อนบน Firefox */
+      height: 100%;
+      width: 100%;
+    }
+
+    .swipe-container::-webkit-scrollbar {
+      display: none; /* ซ่อนแถบเลื่อนบน Chrome/Safari */
+    }
+
+    .page {
+      flex: 0 0 100%;
+      width: 100vw;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Page 1: UI หลัก */
+    #main-ui-page {
+      background-color: var(--bg-color);
+    }
+
+    .content-box {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    /* Page 2: หน้า Membership Card */
+    #membership-page {
+      background: linear-gradient(180deg, var(--bg-color), #ffe4e8);
+    }
+
+    /* การ์ด Membership */
+    .membership-card-container {
+      position: relative;
+      width: 100%;
+      max-width: 350px;
+      aspect-ratio: 1.586 / 1; /* อัตราส่วนบัตรมาตรฐาน */
+      background-image: url('MEMBERSHIP.png');
+      background-size: cover;
+      background-position: center;
+      border-radius: 15px;
+      box-shadow: 0 12px 25px rgba(255, 141, 161, 0.3);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    /* 🏷️ ตัวอักษรชื่อที่จะแสดงบนการ์ด */
+    .card-member-name {
+      position: absolute;
+      bottom: 18%; /* ปรับตำแหน่งความสูงของชื่อตามดีไซน์รูปภาพ */
+      left: 8%;    /* ปรับตำแหน่งแนวนอน */
+      color: #ffffff; /* เปลี่ยนสีตัวอักษรตามต้องการ */
+      font-size: 1.2rem;
+      font-weight: 500;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+      letter-spacing: 0.5px;
+    }
+
+    /* 🔘 จุดระบุหน้า (Dots Indicator) */
+    .nav-dots {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      background-color: #dddddd;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+
+    .dot.active {
+      background-color: var(--primary-color);
+      width: 25px;
+      border-radius: 5px;
+    }
+
+    .btn-logout {
+      margin-top: 15px;
+      padding: 8px 18px;
+      background-color: #ffb3bf;
+      border: none;
+      border-radius: 15px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    #swipe-wrapper {
+  scrollbar-width: none; /* สำหรับซ่อนบน Firefox */
+    }
+    #swipe-wrapper::-webkit-scrollbar {
+      display: none; /* สำหรับซ่อนบน Chrome, Safari, Edge, และบนมือถือส่วนใหญ่ */
     }
     
     /* สไตล์สำหรับแถบเมนูด้านล่างแบบแอป */
@@ -935,24 +1058,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     font-family: 'Quicksand', 'Kanit', sans-serif !important;
 }
     
-    .swipe-wrapper {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  width: 100vw;
-  height: 100vh; /* หรือความสูงที่เอ็มมี่ต้องการ */
-  scrollbar-width: none; /* ซ่อนแถบเลื่อนบนมือถือ */
-}
-
-.swipe-wrapper::-webkit-scrollbar { display: none; }
-
-.panel {
-  min-width: 100vw; /* ให้แต่ละหน้ากว้างเต็มจอ */
-  scroll-snap-align: start;
-  flex-shrink: 0;
-  overflow-y: auto;
-}
-    
   </style>
 </head>
 <body>
@@ -1351,35 +1456,78 @@ function updateUI() {
     </span>
   `).join('');
 
-  // 👑 วาดหน้าจอแสดงผลข้อมูลโปรไฟล์ บัญชีผู้ใช้ และ กระเป๋าเงินทันที
+  // 📱 ปรับสไตล์ของตัว `user-bar` ให้รองรับ CSS Scroll Snap สำหรับปัดสไลด์จอ
+  bar.style.position = 'relative';
+  bar.style.overflow = 'hidden';
+  bar.style.padding = '0'; // เคลียร์ Padding เพื่อให้ตัวสไลด์ชนขอบพอดี
+
+  // พ่นโครงสร้างแบบสลับหน้า (Swipe Pages) ลงใน InnerHTML
   bar.innerHTML = `
-  <div class="swipe-wrapper">
-    <div class="panel" id="user-bar">
-      <a href="profile.html" class="profile-img-container nav-icon" title="Profile">
-        <img src="${getImg(user.profile_img)}" class="user-avatar-img">
-      </a>
-      <div style="flex:1">
-        <div class="user-name">
-          <span id="user-display-name">${user.name}</span> 
-          <span class="role-badge">${user.role}</span>
+    <div id="swipe-wrapper" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; width: 100%;">
+      <style>
+        #swipe-wrapper::-webkit-scrollbar { display: none; }
+        .swipe-page { flex: 0 0 100%; width: 100%; padding: 20px; box-sizing: border-box; scroll-snap-align: start; }
+        .dot-indicator { width: 8px; height: 8px; background: #ddd; border-radius: 50%; transition: 0.3s; }
+        .dot-indicator.active { background: #ff85a2; width: 20px; border-radius: 5px; }
+      </style>
+
+      <div class="swipe-page" id="page-main-ui">
+        <div class="user-info-header" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+          <a href="profile.html" class="profile-img-container nav-icon" title="Profile" style="display: block; width: 50px; height: 50px; border-radius: 50%; overflow: hidden;">
+            <img src="${getImg(user.profile_img)}" class="user-avatar-img" style="width:100%; height:100%; object-fit:cover;">
+          </a>
+          <div style="flex:1">
+            <div class="user-name" style="font-weight: bold; font-size: 16px;">
+              <span id="user-display-name">${user.name}</span> 
+              <span class="role-badge" style="background: #ffc2d1; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 5px; color: #fff;">${user.role}</span>
+            </div>
+            <div style="margin-top: 5px;">${kamiTag} ${oshiTags}</div>
+          </div>
         </div>
+        
+        <div class="wallet" style="display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 12px;">
+          <div class="wallet-item" style="text-align:center; flex:1;"><div style="font-size:10px; color:#aaa;">Tokens</div><i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(user.token || 0).toLocaleString()}</div>
+          <div class="wallet-item" style="text-align:center; flex:1;"><div style="font-size:10px; color:#aaa;">Cookies</div><i class="fas fa-cookie-bite" style="color: #d2691e;"></i> ${Number(user.cookie || 0).toLocaleString()}</div>
+          <div class="wallet-item" style="text-align:center; flex:1;"><div style="font-size:10px; color:#aaa;">GE Tokens</div><i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(user.geToken || 0).toLocaleString()}</div>
+        </div>
+        
+        <div class="bonus-container" style="display: flex; gap: 10px;">
+          <button onclick="${isMember ? "Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info')" : "claimMonthly()"}" class="btn-bonus btn-monthly ${isMember ? 'btn-locked' : ''}" style="flex:1; padding: 10px; border-radius: 20px; border:none; cursor:pointer; background:#ffe4e8; color:#ff6b8b; font-weight:bold;"><i class="fas fa-gift"></i> รับรายเดือน</button>
+          <button onclick="redeemCode()" class="btn-bonus btn-redeem" style="flex:1; padding: 10px; border-radius: 20px; border:none; cursor:pointer; background:#ff85a2; color:white; font-weight:bold;"><i class="fas fa-ticket-alt"></i> Redeem</button>
+        </div>
+        <p style="text-align: center; font-size: 11px; color: #bbb; margin-top: 10px;">ปัดซ้ายเพื่อดูบัตรสมาชิก ➡️</p>
+      </div>
+
+      <div class="swipe-page" id="page-membership-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="membership-card-box" style="position: relative; width: 100%; max-width: 320px; aspect-ratio: 1.586 / 1; background-image: url('MEMBERSHIP.png'); background-size: cover; background-position: center; border-radius: 12px; box-shadow: 0 8px 20px rgba(255, 141, 161, 0.25); overflow: hidden;">
+          <div id="card-member-name-text" style="position: absolute; bottom: 16%; left: 8%; color: #ffffff; font-size: 16px; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); letter-spacing: 0.5px;">
+            ${user.name}
+          </div>
+        </div>
+        <p style="text-align: center; font-size: 11px; color: #bbb; margin-top: 15px;">⬅️ ปัดขวากลับไปหน้าหลัก</p>
       </div>
     </div>
-    <div class="wallet">
-      <div class="wallet-item"><div style="font-size:10px; color:#aaa;">Tokens</div><i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(user.token || 0).toLocaleString()}</div>
-      <div class="wallet-item"><div style="font-size:10px; color:#aaa;">Cookies</div><i class="fas fa-cookie-bite" style="color: #d2691e;"></i> ${Number(user.cookie || 0).toLocaleString()}</div>
-      <div class="wallet-item"><div style="font-size:10px; color:#aaa;">GE Tokens</div><i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(user.geToken || 0).toLocaleString()}</div>
-    </div>
-    <div class="bonus-container">
-      <button onclick="${isMember ? "Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info')" : "claimMonthly()"}" class="btn-bonus btn-monthly ${isMember ? 'btn-locked' : ''}"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
-      <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
-    </div>
-    <div class="panel" id="membership-card-display"></div>
-    
+
+    <div style="display: flex; justify-content: center; gap: 6px; padding-bottom: 10px; background: transparent;">
+      <div class="dot-indicator active" id="mbr-dot1"></div>
+      <div class="dot-indicator" id="mbr-dot2"></div>
     </div>
   `;
-}
-  renderMembershipCard(user);
+
+ // ⚡ ระบบจับ Event การเลื่อนสไลด์เพื่อเปลี่ยนสถานะจุดเมนู (Active Dot)
+ wrapper.addEventListener('scroll', () => {
+  const position = wrapper.scrollLeft; // ดูว่าเลื่อนไปทางซ้ายกี่พิกเซลแล้ว
+  const width = wrapper.offsetWidth;   // ดูความกว้างของหน้าจอ ณ ตอนนั้น
+  
+  // ถ้าตำแหน่งที่เลื่อนไป มันเกินครึ่งหนึ่งของหน้าจอ (width / 2)
+  if (position >= width / 2) {
+    d1.classList.remove('active'); // เอาสีชมพูออกจากจุดที่ 1
+    d2.classList.add('active');    // เติมสีชมพูให้จุดที่ 2 (หน้าบัตรสมาชิก)
+  } else {
+    d1.classList.add('active');    // เติมสีชมพูให้จุดที่ 1 (หน้า UI หลัก)
+    d2.classList.remove('active'); // เอาสีชมพูออกจากจุดที่ 2
+  }
+});
 
 function renderRanking(data) {
   const list = document.getElementById('ranking-list');
@@ -1476,32 +1624,6 @@ function renderGlobalFans(rawData) {
     list.appendChild(card);
   });
 }
-  
-   function renderMembershipCard(user) {
-    const cardContainer = document.getElementById('membership-card-display');
-    if (!cardContainer) return;
-
-    cardContainer.innerHTML = `
-      <div class="card-container" id="card-to-save" style="margin: 20px auto; padding: 20px; width: 300px; background: white; border-radius: 20px; border: 3px solid #ffc0cb; text-align: center;">
-        <h3 style="color: #ffc0cb;">Membership Card</h3>
-        <img src="${getImg(user.profile_img)}" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid #ddd;">
-        <p style="font-weight: bold; margin-top: 10px;">${user.name}</p>
-        <p style="color: #888;">@${user.username || 'user'}</p>
-        <button onclick="saveCard()" style="background: #ffc0cb; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer;">Save Image</button>
-      </div>
-    `;
-  }
-
-  // ฟังก์ชัน Save ภาพ
-  function saveCard() {
-    const card = document.getElementById("card-to-save");
-    html2canvas(card).then(canvas => {
-      const link = document.createElement("a");
-      link.download = "my-membership.png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    });
-  }
 
 // เอาฟังก์ชันนี้ไปวางใน <script> ของหน้า index.html แทนตัวเดิมนะงับ
 function openMemberProfile(name) {
