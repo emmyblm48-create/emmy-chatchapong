@@ -1493,49 +1493,101 @@ function showMembershipCardModal() {
       // 1. โหลดรูปดีไซน์การ์ดหลัก
       const bgImg = new Image();
       bgImg.crossOrigin = "anonymous"; 
-      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; // หากใช้ลิงก์อื่น สามารถเปลี่ยนตรงนี้ได้เลยครับ
+      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; 
 
       bgImg.onload = function() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        // ตั้งค่าขนาดตามมิติรูปภาพจริงเพื่อให้ได้ไฟล์ความละเอียดสูง
+        // ตั้งค่าขนาดตามมิติรูปภาพจริง
         canvas.width = bgImg.width || 1200;
         canvas.height = bgImg.height || 675;
 
-        // วาดภาพพื้นหลังการ์ดหลัก
+        // ✂️ 2. สร้าง Path ตัดขอบ Canvas ให้โค้งมนก่อนวาดรูป (เพื่อให้ตอนเซฟรูปมีมุมโค้ง)
+        const radius = canvas.width * 0.04; // กำหนดความโค้งที่ 4% ของความกว้างการ์ด
+        ctx.beginPath();
+        ctx.moveTo(radius, 0);
+        ctx.lineTo(canvas.width - radius, 0);
+        ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+        ctx.lineTo(canvas.width, canvas.height - radius);
+        ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+        ctx.lineTo(radius, canvas.height);
+        ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+        ctx.lineTo(0, radius);
+        ctx.quadraticCurveTo(0, 0, radius, 0);
+        ctx.closePath();
+        ctx.clip(); // สั่งตัดขอบ!
+
+        // วาดภาพพื้นหลังการ์ดหลัก (ภาพจะถูกลบขอบมุมฉากออกไปตามที่ Clip ไว้)
         ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-        // 2. ตั้งค่ารูปแบบตัวอักษร (สีขาว)
+        // 3. ตั้งค่ารูปแบบตัวอักษร (สีขาว)
+        ctx.textBaseline = 'middle'; // เปลี่ยนจุดอ้างอิงเป็นกึ่งกลางบรรทัด เพื่อให้จัดข้อความกับป้ายง่ายขึ้น
+
+        // 🎯 กำหนดพิกัดบรรทัด
+        const textX = canvas.width * 0.08;  // ขยับแนวนอน ซ้าย-ขวา
+        const line1_Y = canvas.height * 0.74; // บรรทัดแรก (ชื่อ + บทบาท)
+        const line2_Y = canvas.height * 0.86; // บรรทัดสอง (Username + สถานะ)
+
+        // 🌸 3.1 เขียนชื่อผู้ใช้งาน (Name)
+        ctx.textAlign = 'left';
         ctx.fillStyle = '#ffffff'; 
-        ctx.textAlign = 'left';  // ให้ตัวหนังสือเริ่มพิมพ์จากฝั่งซ้ายไปขวา
-        ctx.textBaseline = 'top';
-
-        // 🎯 กำหนดพิกัด X, Y สำหรับวางข้อความใต้คำว่า Membership
-        // (คุณเอ็มมี่สามารถเพิ่ม/ลด ตัวเลขทศนิยม เพื่อขยับตำแหน่งได้เลยครับ)
-        const textX = canvas.width * 0.08;  // ขยับแนวนอน ซ้าย-ขวา (0.08 คือห่างจากขอบซ้ายนิดหน่อย)
-        const textY = canvas.height * 0.75; // ขยับแนวตั้ง บน-ล่าง (0.75 คือค่อนไปทางด้านล่างของการ์ด)
-
-        // 🌸 เขียนชื่อผู้ใช้งาน (Name)
         ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
-        ctx.fillText(user.name, textX, textY);
+        ctx.fillText(user.name, textX, line1_Y);
 
-        // 🌸 เขียน Username (@username)
-        const usernameY = textY + (canvas.height * 0.07); // ระยะห่างบรรทัดลงมาจากชื่อ
+        // 🛡️ 3.2 สร้างป้าย Role (ต่อท้ายชื่อ)
+        const nameWidth = ctx.measureText(user.name).width; // วัดความยาวของชื่อ
+        const roleText = (user.role || 'MEMBER').toUpperCase();
+        ctx.font = '600 ' + Math.floor(canvas.height * 0.035) + 'px "Kanit", sans-serif';
+        const roleWidth = ctx.measureText(roleText).width;
+        
+        const badgeX = textX + nameWidth + (canvas.width * 0.02); // ขยับห่างจากชื่อนิดนึง
+        const badgePadX = canvas.width * 0.015;
+        const badgePadY = canvas.height * 0.025;
+
+        // วาดพื้นหลังป้าย Role (สีขาวโปร่งแสง)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.beginPath();
+        ctx.roundRect(badgeX, line1_Y - badgePadY, roleWidth + (badgePadX * 2), badgePadY * 2, canvas.height * 0.02);
+        ctx.fill();
+
+        // เขียนข้อความ Role ลงในป้าย
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(roleText, badgeX + badgePadX, line1_Y);
+
+        // 🌸 3.3 เขียน Username (@username)
+        ctx.textAlign = 'left';
         ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Quicksand", "Kanit", sans-serif';
-        ctx.fillText("@" + (user.username || "blm48_member"), textX, usernameY);
+        ctx.fillText("@" + (user.username || "blm48_member"), textX, line2_Y);
 
-        // 3. แปลงข้อมูล Canvas เป็น Data URL สกุลไฟล์ JPEG
-        const cardDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        // 🟢 3.4 เขียน Status (วางชิดขวาของบรรทัดที่ 2)
+        ctx.textAlign = 'right';
+        const statusX = canvas.width - (canvas.width * 0.08); // ห่างจากขอบขวาเท่ากับฝั่งซ้าย
+        const statusText = "Status: Active";
+        ctx.font = '600 ' + Math.floor(canvas.height * 0.04) + 'px "Quicksand", "Kanit", sans-serif';
+        const statusWidth = ctx.measureText(statusText).width;
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(statusText, statusX, line2_Y);
 
-        // 4. แสดงหน้าต่างป๊อปอัปพรีวิวการ์ดและปุ่มเซฟ
+        // วาดจุดไฟสีเขียว (Active Dot) หน้าคำว่า Status
+        const dotRadius = canvas.height * 0.012;
+        ctx.fillStyle = '#55efc4'; // สีเขียวมิ้นต์น่ารักๆ
+        ctx.beginPath();
+        ctx.arc(statusX - statusWidth - (canvas.width * 0.015), line2_Y, dotRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. แปลงข้อมูล Canvas เป็น Data URL (❗️ ใช้ image/png เพื่อให้มุมโค้งด้านนอกโปร่งใส)
+        const cardDataUrl = canvas.toDataURL('image/png');
+
+        // 5. แสดงหน้าต่างป๊อปอัปพรีวิวการ์ดและปุ่มเซฟ
         Swal.fire({
           title: 'BLM48 Official Membership',
           html: `
             <div style="font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-              <img src="${cardDataUrl}" style="width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 8px 26px rgba(255,133,162,0.25); border: 1.5px solid #ffe4e1;">
+              <img src="${cardDataUrl}" style="width: 100%; max-width: 420px; box-shadow: 0 8px 26px rgba(255,133,162,0.25);">
               
-              <a href="${cardDataUrl}" download="BLM48_Member_${user.username || 'card'}.jpg" style="
+              <a href="${cardDataUrl}" download="BLM48_Member_${user.username || 'card'}.png" style="
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
@@ -1565,7 +1617,7 @@ function showMembershipCardModal() {
 
       // ในกรณีโหลดรูปพื้นหลังไม่ขึ้น
       bgImg.onerror = function() {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถค้นหาไฟล์ดีไซน์หลักได้สำเร็จ กรุณาตรวจสอบชื่อไฟล์อีกครั้งค่ะ', 'error');
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถค้นหาไฟล์ดีไซน์หลักได้สำเร็จ กรุณาตรวจสอบลิงก์รูปภาพอีกครั้งค่ะ', 'error');
       };
     }
   });
