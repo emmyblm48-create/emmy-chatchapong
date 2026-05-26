@@ -4,7 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - BLM48 Membership</title>
-  
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <!-- สำหรับ iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <!-- สำหรับ Android และ Chrome -->
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
@@ -280,16 +293,14 @@
   </div>
 
   <script>
-    function executeLogin(event) {
+   function executeLogin(event) {
       event.preventDefault();
       
-      const memberId = document.getElementById('usernameField').value.trim();
-      const password = document.getElementById('passwordField').value.trim();
+      const u = document.getElementById('usernameField').value.trim();
+      const p = document.getElementById('passwordField').value.trim();
 
-      // สั่งเปิดกล่องโหลดข้อมูล SweetAlert2 ตกแต่งเข้าฟอนต์เว็บ
       Swal.fire({
-        title: 'Verifying...',
-        text: 'กำลังเชื่อมต่อฐานข้อมูลคุกกี้ระบบสักครู่นะคะ',
+        title: 'กำลังเข้าสู่ระบบ...',
         allowOutsideClick: false,
         didOpen: () => { 
           Swal.showLoading();
@@ -298,32 +309,23 @@
         }
       });
 
-      // ดึง URL จากสคริปต์ Google Sheets เดิมของเอ็มมี่
+      // URL ของ Script เอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
-      fetch(`${scriptURL}?action=login&id=${encodeURIComponent(memberId)}&pass=${encodeURIComponent(password)}`)
+      // 🔄 ปรับพารามิเตอร์ให้ตรงกับฝั่ง index.html (เป็น username และ password ตามโค้ดเดิมฝั่งชีต)
+      fetch(`${scriptURL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`)
         .then(response => response.json())
-        .then(data => {
-          if (data && data.success) {
-            // แพ็กข้อมูลลงวัตถุตามโครงสร้างที่ฟังก์ชัน updateUI() ของเอ็มมี่ต้องการอ่านค่า
-            const userData = {
-              name: data.user.name || 'Member',
-              role: data.user.role || 'General',
-              token: Number(data.user.token || 0),
-              cookie: Number(data.user.cookie || 0),
-              geToken: Number(data.user.geToken || 0),
-              profile_img: data.user.profile_img || 'https://lh3.googleusercontent.com/d/1i1JiKXm7fSLWXjsuVZ-480RJMfL6Pebx=s400',
-              kamioshi: data.user.kamioshi || '',
-              oshi: data.user.oshi || []
-            };
+        .then(result => {
+          // 🔄 เช็กเงื่อนไขสถานะให้แมตช์ตามแบบดั้งเดิมของระบบเดิม (result.status === "success")
+          if (result && result.status === "success") {
             
-            // บันทึก Session ลงเบราว์เซอร์
-            localStorage.setItem('user', JSON.stringify(userData));
+            // 🔒 บันทึกลงคีย์เซสชัน 'bnl_session' ตามที่หน้า index.html รอเรียกใช้งานอยู่
+            localStorage.setItem('bnl_session', JSON.stringify(result.data));
 
             Swal.fire({
               icon: 'success',
-              title: 'Success! 🎉',
-              text: `ยินดีต้อนรับคุณ ${userData.name} สู่ระบบค่ะ`,
+              title: 'ยินดีต้อนรับ',
+              text: `สวัสดีค่ะคุณ ${result.data.name}`,
               showConfirmButton: false,
               timer: 1500,
               didOpen: () => {
@@ -331,13 +333,13 @@
                 Swal.getPopup().style.borderRadius = "20px";
               }
             }).then(() => {
-              window.location.href = 'index.html'; // ล็อกอินเสร็จส่งผู้ใช้กลับหน้าแอปหลัก
+              window.location.href = 'index.html'; // ล็อกอินเสร็จดีดกลับแอปหลักทันที ข้อมูลโปรไฟล์จะรันออโต้
             });
           } else {
             Swal.fire({
               icon: 'error',
-              title: 'Authentication Failed',
-              text: data.message || 'รหัสสมาชิกหรือรหัสผ่านไม่ถูกต้องค่ะ กรุณาเช็กอีกครั้งนะ',
+              title: 'ล้มเหลว',
+              text: result.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
               confirmButtonColor: '#ff85a2',
               didOpen: () => {
                 Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
@@ -350,8 +352,8 @@
           console.error(err);
           Swal.fire({
             icon: 'error',
-            title: 'Connection Error',
-            text: 'ไม่สามารถเชื่อมต่อฐานข้อมูล Google Sheets ได้ในขณะนี้',
+            title: 'Error',
+            text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้',
             confirmButtonColor: '#ff85a2',
             didOpen: () => {
               Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
