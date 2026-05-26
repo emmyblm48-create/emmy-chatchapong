@@ -279,14 +279,14 @@
 
   </div>
 
-  <script>
-   document.getElementById('loginForm').addEventListener('submit', function(e) {
+ <script>
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
       const userVal = document.getElementById('username').value;
       const passVal = document.getElementById('password').value;
 
-      // URL ของ Google Apps Script ของพี่เอ็มมี่
+      // URL ของ Web App Google Apps Script ของพี่เอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
       Swal.fire({
@@ -295,14 +295,23 @@
         didOpen: () => { Swal.showLoading(); }
       });
 
-      // ส่งข้อมูลไปตรวจที่ตาราง Google Sheets
+      // ส่ง Request ไปตรวจสอบล็อกอินที่ Sheets
       fetch(`${scriptURL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
         .then(response => response.json())
         .then(result => {
           if (result.success) {
             
-            // 🎯 จุดสำคัญ: เซฟข้อมูลผู้ใช้ลง localStorage เพื่อส่งต่อไปหน้า index.html
-            localStorage.setItem('blm48_user', JSON.stringify(result.data));
+            // 👑 ตั้งเวลาหมดอายุเซสชัน 90 วัน ให้แมตช์กับระบบหลักของพี่เอ็มมี่
+            const expireTime = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
+            
+            // 🎯 จัดโครงสร้าง Object (data และ expiry) ให้ตรงกับฟังก์ชัน getUserSession() เป๊ะๆ
+            const sessionData = {
+              data: result.data,   
+              expiry: expireTime   
+            };
+
+            // บันทึกลง localStorage ในคีย์ bnl_session เพื่อให้อินเด็กซ์เอาไปแกะใช้งานต่อได้
+            localStorage.setItem('bnl_session', JSON.stringify(sessionData));
 
             Swal.fire({
               icon: 'success',
@@ -315,12 +324,12 @@
                 Swal.getPopup().style.borderRadius = "20px";
               }
             }).then(() => {
-              window.location.href = 'index.html'; // เด้งไปหน้าหลัก
+              window.location.href = 'index.html'; // ล็อกอินสำเร็จแล้ว เด้งไปหน้าหลัก
             });
           } else {
             Swal.fire({
               icon: 'error',
-              title: 'ล้มเหลว',
+              title: 'ล็อกอินล้มเหลว',
               text: result.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
               confirmButtonColor: '#ff85a2',
               didOpen: () => {
@@ -335,11 +344,11 @@
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้',
+            text: 'ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้',
             confirmButtonColor: '#ff85a2'
           });
         });
-    });
-  </script>
+  });
+</script>
 </body>
 </html>
