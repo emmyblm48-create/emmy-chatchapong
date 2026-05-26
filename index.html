@@ -1423,13 +1423,13 @@ function updateUI() {
   // 🎯 หากไม่มีข้อมูลผู้ใช้ (เช่น กำลังเปลี่ยนหน้าไป Login) ให้หยุดทำงานทันที ไม่ต้องแสดงหน้า Guest อีกต่อไป
   if (!user) return;
 
-  // 1. ดึงปุ่ม Logout มาจัดการแสดงผล (ตัดส่วนปุ่ม Login ออกเรียบร้อยครับ)
+  // 1. ดึงปุ่ม Logout มาจัดการแสดงผล
   const logoutBtn = document.querySelector('button[onclick="confirmLogout()"]');
   if (logoutBtn) logoutBtn.style.display = 'inline-block'; 
 
   const isMember = isUserMember();
 
-  // 🌸 จัดการเลย์เอาต์การแสดงผล คามิโอชิ และ โอชิ (เก็บไว้ตามโครงสร้างเดิมของพี่เอ็มมี่)
+  // 🌸 จัดการเลย์เอาต์การแสดงผล คามิโอชิ และ โอชิ
   const kamiTag = user.kamioshi ? `
     <span class="tag tag-kami" style="display: inline-flex; align-items: center; gap: 5px; background: #ffd700; color: #333; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; margin: 3px;">
       <i class="fas fa-crown"></i> ${user.kamioshi}
@@ -1449,7 +1449,7 @@ function updateUI() {
     </span>
   `).join('');
 
-  // 👑 วาดหน้าจอแสดงผลข้อมูลโปรไฟล์ บัญชีผู้ใช้ และ กระเป๋าเงินทันที
+  // 👑 วาดหน้าจอแสดงผลข้อมูลโปรไฟล์ บัญชีผู้ใช้ และ กระเป๋าเงิน
   bar.innerHTML = `
     <div class="user-info-header">
       <a href="profile.html" class="profile-img-container nav-icon" title="Profile">
@@ -1482,80 +1482,132 @@ function updateUI() {
   `;
 }
   
-  // 🌸 ฟังก์ชันเปิดกล่องป๊อปอัปบัตรสมาชิกดิจิทัลระดับพรีเมียม
-function showMembershipCardModal() {
+  function showMembershipCardModal() {
   if (!user) return;
 
+  // แจ้งเตือนผู้ใช้ในระหว่างที่ระบบกำลังประมวลผลวาดการ์ด
   Swal.fire({
-    title: '🌸 BLM48 Official Membership 🌸',
-    html: `
-      <div class="membership-modal-body" style="font-family: 'Quicksand', 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px; padding-top: 10px;">
-        
-        <div class="virtual-card" style="
-          width: 100%;
-          max-width: 320px;
-          height: 190px;
-          background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 50%, #ffe4e1 100%);
-          border-radius: 22px;
-          padding: 20px;
-          box-sizing: border-box;
-          color: white;
-          position: relative;
-          text-align: left;
-          overflow: hidden;
-          box-shadow: 0 12px 28px rgba(255, 133, 162, 0.4);
-          border: 2px solid rgba(255, 255, 255, 0.5);
-        ">
-          <div style="position: absolute; right: -15px; bottom: -25px; font-size: 140px; font-weight: 700; color: rgba(255, 255, 255, 0.15); font-family: 'Quicksand'; pointer-events: none; user-select: none;">48</div>
-          
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-              <div style="font-family: 'Quicksand'; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(255,133,162,0.3);">BLM48</div>
-              <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255, 255, 255, 0.85); font-weight: 500;">Official Fanclub Member</div>
-            </div>
-            <i class="fas fa-star" style="font-size: 20px; color: #ffd700; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));"></i>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 14px; margin-top: 22px; position: relative; z-index: 2;">
-            <img src="${getImg(user.profile_img)}" style="width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 2.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">${user.name}</div>
-              <div style="font-size: 10px; color: #ff5376; font-weight: bold; background: rgba(255, 255, 255, 0.85); padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <i class="fas fa-shield-alt"></i> ${user.role || 'MEMBER'}
-              </div>
-            </div>
-          </div>
-
-          <div style="position: absolute; bottom: 16px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Quicksand', 'Kanit';">
-            <div>
-              <div style="font-size: 8px; color: rgba(255, 255, 255, 0.75); text-transform: uppercase; letter-spacing: 0.5px;">Username</div>
-              <div style="font-size: 13px; font-weight: 500; color: #ffffff; letter-spacing: 0.3px;">@${user.username || 'blm48_member'}</div>
-            </div>
-            <div style="text-align: right;">
-              <div style="font-size: 11px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 8px; font-size: 10px;">
-                <i class="fas fa-check-circle" style="color: #55efc4;"></i> Status: Active
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <p style="font-size: 12px; color: #aaa; text-align: center; margin: 5px 0 0 0; line-height: 1.4;">
-          ขอบคุณที่คอยสนับสนุนและเป็นส่วนหนึ่งในความฝันของพวกเรา <br><b style="color: #ff85a2;">BLM48</b> เสมอมานะคะ 💖
-        </p>
-      </div>
-    `,
-    confirmButtonText: 'ปิดหน้าต่าง',
-    confirmButtonColor: '#ff85a2',
-    background: '#ffffff',
-    customClass: {
-      popup: 'cute-modal-border-radius'
-    },
-    // สไตล์เสริมเพื่อให้ขอบหน้าต่างหลักโค้งมนรับกับตัวบัตร
+    title: '🌸 กำลังสร้างบัตรสมาชิกของคุณ 🌸',
+    html: '<div style="font-size: 14px; color: #666; margin-top: 10px;">โปรดรอสักครู่ ระบบกำลังลงทะเบียนชื่อของคุณลงบนการ์ด...</div>',
+    allowOutsideClick: false,
+    showConfirmButton: false,
     didOpen: () => {
-      const popup = Swal.getPopup();
-      if (popup) {
-        popup.style.borderRadius = '32px';
-      }
+      Swal.showLoading();
+
+      // 1. โหลดรูปดีไซน์การ์ดหลักของคุณเอ็มมี่
+      const bgImg = new Image();
+      bgImg.crossOrigin = "anonymous"; // ป้องกันปัญหาเรื่องสิทธิ์การเข้าถึงไฟล์กรณีขึ้นโฮสต์จริง
+      bgImg.src = 'MEMBERSHIP (1).jpg'; 
+
+      bgImg.onload = function() {
+        // 2. สร้าง Canvas จำลองขึ้นมาเพื่อทำการประกอบภาพและข้อความเข้าด้วยกัน
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // อ้างอิงขนาดตามรูปต้นฉบับเพื่อให้เซฟออกมาแล้วภาพคมชัด ไม่แตกเบลอ
+        canvas.width = bgImg.width || 1000;
+        canvas.height = bgImg.height || 600;
+
+        // วาดภาพพื้นหลังการ์ดหลักลงไปก่อน
+        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+        // 3. โหลดรูปภาพโปรไฟล์ของผู้ใช้งานมาวาดลงบนการ์ด
+        const avatarImg = new Image();
+        avatarImg.crossOrigin = "anonymous";
+        avatarImg.src = getImg(user.profile_img);
+
+        avatarImg.onload = function() {
+          // กำหนดขนาดและตำแหน่งของรูปโปรไฟล์วงกลมบนการ์ด
+          const avatarSize = canvas.height * 0.28; // สเกลขนาดโปรไฟล์ตามหน้าการ์ด
+          const avatarX = canvas.width * 0.08;      // ระยะห่างจากขอบซ้าย (ปรับเปลี่ยนได้)
+          const avatarY = canvas.height * 0.35;     // ระยะห่างจากขอบบน (ปรับเปลี่ยนได้)
+
+          // เทคนิคทำให้รูปโปรไฟล์ตัดเป็น "วงกลมขอบมนสุดละมุน"
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+          ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
+          ctx.restore();
+
+          // วาดเส้นขอบวงกลมสีขาวล้อมรอบรูปโปรไฟล์เพื่อความพรีเมียม
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // 4. ตั้งค่าเขียนชื่อจริง (Name) และ Username ลงไปบนเนื้อการ์ด
+          ctx.fillStyle = '#ffffff'; // สีของตัวอักษรบนการ์ด (สามารถเปลี่ยนเป็นสีโค้ดอื่นๆ ได้)
+          ctx.textBaseline = 'top';
+
+          // เขียนชื่อ (Name)
+          ctx.font = 'bold ' + Math.floor(canvas.height * 0.07) + 'px "Kanit", "Prompt", sans-serif';
+          const textX = avatarX + avatarSize + (canvas.width * 0.04); // ถัดจากรูปโปรไฟล์ออกไปทางขวา
+          ctx.fillText(user.name, textX, avatarY + (canvas.height * 0.03));
+
+          // เขียนตำแหน่ง/บทบาท (Role) ในกล่องป้ายชื่อเล็กๆ
+          ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Kanit", sans-serif';
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.fillText("Role: " + (user.role || 'MEMBER'), textX, avatarY + (canvas.height * 0.12));
+
+          // เขียน Username ด้านล่างซ้ายของการ์ด
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'normal ' + Math.floor(canvas.height * 0.05) + 'px "Quicksand", "Kanit", sans-serif';
+          ctx.fillText("@" + (user.username || "blm48_member"), avatarX, canvas.height * 0.82);
+
+          // 5. แปลงข้อมูล Canvas ออกมาเป็น URL ไฟล์รูปภาพเพื่อใช้ดาวน์โหลดได้จริง
+          const cardDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+          // 6. เปลี่ยนเป็นแสดงหน้าต่างป๊อปอัปให้ผู้ใช้งานชื่นชมและกดเซฟบันทึกภาพได้
+          Swal.fire({
+            title: '🌸 บัตรสมาชิก BLM48 ของคุณ 🌸',
+            html: `
+              <div style="font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                <img src="${cardDataUrl}" style="width: 100%; max-width: 400px; border-radius: 16px; box-shadow: 0 8px 24px rgba(255,133,162,0.3); border: 2px solid #ffe4e1;">
+                <p style="font-size: 13px; color: #888; line-height: 1.4; margin: 5px 0;">
+                  ✨ การ์ดใบนี้จะระบุชื่อและไอดีของคุณโดยเฉพาะ <br>สามารถกดปุ่มสีชมพูด้านล่างเพื่อดาวน์โหลดเก็บไว้ได้เลยนะคะ!💖
+                </p>
+                
+                <a href="${cardDataUrl}" download="BLM48_Membership_${user.username || 'member'}.jpg" style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 8px;
+                  padding: 12px 30px;
+                  background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 100%);
+                  color: white;
+                  text-decoration: none;
+                  border-radius: 25px;
+                  font-weight: bold;
+                  font-size: 15px;
+                  box-shadow: 0 4px 12px rgba(255,133,162,0.4);
+                  transition: all 0.2s;
+                " onclick="Swal.close();">
+                  <i class="fas fa-download"></i> 💾 บันทึกการ์ดสมาชิก
+                </a>
+              </div>
+            `,
+            showConfirmButton: false, // ปิดปุ่มยืนยันหลักเพื่อให้ผู้ใช้คลิกปุ่มดาวน์โหลดที่เราสร้างดีไซน์เองแทน
+            showCloseButton: true,
+            background: '#ffffff',
+            didOpen: () => {
+              const popup = Swal.getPopup();
+              if (popup) popup.style.borderRadius = '28px';
+            }
+          });
+        };
+
+        // เคสกรณีโหลดรูปโปรไฟล์ผู้ใช้งานไม่สำเร็จ (เช่น ลิงก์เสีย) ให้ดึงภาพ Default เปล่ามาใช้แทน
+        avatarImg.onerror = function() {
+          avatarImg.src = 'https://www.w3schools.com/howto/img_avatar.png';
+        };
+      };
+
+      // เคสกรณีโหลดรูปภาพดีไซน์หลัก MEMBERSHIP (1).jpg ไม่สำเร็จ
+      bgImg.onerror = function() {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดภาพดีไซน์หลักของการ์ดได้สำเร็จ กรุณาเช็กชื่อไฟล์ภาพอีกครั้งค่ะ', 'error');
+      };
     }
   });
 }
