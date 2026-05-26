@@ -1078,169 +1078,103 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 </footer>
 
 
-<script >
-  
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const userVal = document.getElementById('username').value;
-      const passVal = document.getElementById('password').value;
+<script>
+// ==========================================
+// 👑 1. CONFIG & GLOBAL VARIABLES (ประกาศตัวแปรสากลไว้บนสุด)
+// ==========================================
+const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่มีการอัปเดตโค้ดสำคัญ
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
-      // URL ของ Web App Google Apps Script ของพี่เอ็มมี่
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+var user = null;
+var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) || [];
+var currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
 
-      Swal.fire({
-        title: 'กำลังตรวจสอบข้อมูล...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-      });
-
-      // ส่ง Request ไปตรวจสอบล็อกอินที่ Sheets
-      fetch(`${scriptURL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
-        .then(response => response.json())
-        .then(result => {
-          if (result.success) {
-            
-            // 👑 🎯 สร้างโครงสร้างเซสชันให้ "match" กับ getUserSession() เดิมของพี่เอ็มมี่
-            // ตั้งเวลาบวกเพิ่มไป 7 วันนับจากปัจจุบัน (ปรับเปลี่ยนระยะเวลาได้ตามชอบเลยครับ)
-            const expireTime = Date.now() + (7 * 24 * 60 * 60 * 1000); 
-            
-            const sessionData = {
-              user: result.data,         // ข้อมูลยูสเซอร์ (name, username, role ฯลฯ)
-              expire: expireTime         // แนบวันหมดอายุลงไปด้วยเพื่อใช้ดักเช็ค
-            };
-
-            // บันทึกลง localStorage ในคีย์ bnl_session ตามที่ระบบเก่าต้องการ
-            localStorage.setItem('bnl_session', JSON.stringify(sessionData));
-
-            Swal.fire({
-              icon: 'success',
-              title: 'ยินดีต้อนรับ',
-              text: `สวัสดีค่ะคุณ ${result.data.name}`,
-              showConfirmButton: false,
-              timer: 1500,
-              didOpen: () => {
-                Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
-                Swal.getPopup().style.borderRadius = "20px";
-              }
-            }).then(() => {
-              window.location.href = 'index.html'; // ล็อกอินสำเร็จแล้ว เด้งไปหน้าหลัก
-            });
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'ล็อกอินล้มเหลว',
-              text: result.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
-              confirmButtonColor: '#ff85a2',
-              didOpen: () => {
-                Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
-                Swal.getPopup().style.borderRadius = "20px";
-              }
-            });
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'ไม่สามารถเชื่อมต่อระบบฐานข้อมูลได้',
-            confirmButtonColor: '#ff85a2'
-          });
-        });
-    });
-
-// 🎯 ฟังก์ชันสำหรับกด Logout (ผูกกับปุ่มออกจากระบบในหน้า index)
-function logoutBLM48() {
-  localStorage.removeItem('bnl_session'); // 👑 เปลี่ยนมาลบคีย์นี้ให้ตรงกับระบบหลัก
-  window.location.href = 'login.html';   // ดีดกลับหน้าล็อกอิน
+// ==========================================
+// 👑 2. SESSION MANAGEMENT (ระบบจัดการเซสชันและล็อกอิน)
+// ==========================================
+function saveUserSession(userData) {
+  // ตั้งเวลาหมดอายุเซสชันล่วงหน้า 90 วัน
+  const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
+  localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
 }
-  
-  // --- CONFIG & CONSTANTS ---
-const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่คุณเอ็มมี่มีการอัปเดตโค้ดสำคัญ
 
-function checkVersion() {
-    const savedVersion = localStorage.getItem('bnl_app_version');
-    if (savedVersion !== APP_VERSION) {
-        // ถ้าเวอร์ชันไม่ตรง ให้เคลียร์ Cache ข้อมูลเดิมทิ้ง
-        localStorage.removeItem('bnl_ranking_cache');
-        localStorage.removeItem('bnl_topfans_cache');
-        localStorage.setItem('bnl_app_version', APP_VERSION);
-        
-        // สั่งรีโหลดหน้าเว็บแบบ Hard Reload เพื่อดึงไฟล์ใหม่จากเซิร์ฟเวอร์
-        window.location.reload(true); 
+function getUserSession() {
+  const sessionStr = localStorage.getItem('bnl_session');
+  if (!sessionStr) return null;
+  
+  try {
+    const session = JSON.parse(sessionStr);
+    // 🎯 แก้บั๊ก Session Mismatch: รองรับทั้งโครงสร้างแบบเก่าและใหม่ ป้องกันแอปวนลูปรีไดเรกต์
+    const expiryTime = session.expiry || session.expire;
+    const userData = session.data || session.user;
+    
+    if (new Date().getTime() > expiryTime) {
+      localStorage.removeItem('bnl_session');
+      return null;
     }
+    return userData;
+  } catch (e) {
+    console.error("Session Parse Error:", e);
+    return null;
+  }
 }
-  
-  // --- CONFIG & CONSTANTS ---
-  let user = getUserSession();
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
-  
-  // --- ฟังก์ชันควบคุม Sidebar ---
+
+function isUserMember() {
+  return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
+}
+
+function logoutBLM48() {
+  localStorage.removeItem('bnl_session'); 
+  window.location.href = 'login.html'; // ดีดกลับหน้าล็อกอิน
+}
+
+// ==========================================
+// 👑 3. VERSION CONTROL (ระบบเคลียร์แคชอัตโนมัติ)
+// ==========================================
+function checkVersion() {
+  const savedVersion = localStorage.getItem('bnl_app_version');
+  if (savedVersion !== APP_VERSION) {
+    localStorage.removeItem('bnl_ranking_cache');
+    localStorage.removeItem('bnl_topfans_cache');
+    localStorage.setItem('bnl_app_version', APP_VERSION);
+    window.location.reload(true); // Hard Reload ดึงไฟล์ล่าสุดจากเซิร์ฟเวอร์
+  }
+}
+
+// ==========================================
+// 👑 4. UI & SIDEBAR & THEME CONTROLS
+// ==========================================
 function toggleSidebar() { 
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
+  if (!sidebar) return;
   const isOpen = sidebar.style.left === '0px';
   sidebar.style.left = isOpen ? '-280px' : '0px';
-  overlay.style.display = isOpen ? 'none' : 'block';
+  if (overlay) overlay.style.display = isOpen ? 'none' : 'block';
 }
 
-// --- ฟังก์ชัน Dark Mode ---
 function toggleDarkMode() {
   document.body.classList.toggle('dark-mode');
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  document.getElementById('dark-mode-btn').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  const darkBtn = document.getElementById('dark-mode-btn');
+  if (darkBtn) {
+    darkBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  }
 }
 
-// --- แสดงประวัติประใจ ---
 function history() {
   window.location.href = 'history.html';
 }
-  
-// --- ปิด Splash Screen เมื่อโหลดข้อมูลเสร็จ ---
+
 function hideSplashScreen() {
-  const splash = document.getElementById('splash-screen'); // หรือ ID ที่คุณใช้
-  if (splash) {
-    splash.style.display = 'none';
-  } else {
-    console.warn("หา splash-screen ไม่เจอค่ะ!");
-  }
+  const splash = document.getElementById('splash-screen'); 
+  if (splash) splash.style.display = 'none';
 }
 
-// โหลดการตั้งค่าธีมเมื่อเริ่มแอป
-window.onload = () => {
-  if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
-  // สมมติว่าดึงข้อมูลเสร็จแล้ว
-  setTimeout(hideSplashScreen, 2000); 
-};
-   
-  // ใช้หุ้มข้อมูลเพื่อลด Global Variable รบกวนกัน
-  let currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) || [];
-  let currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
-
-  // --- Session Management ---
-  function saveUserSession(userData) {
-    const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
-    localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
-  }
-
-  function getUserSession() {
-    const sessionStr = localStorage.getItem('bnl_session');
-    if (!sessionStr) return null;
-    const session = JSON.parse(sessionStr);
-    if (new Date().getTime() > session.expiry) {
-      localStorage.removeItem('bnl_session');
-      return null;
-    }
-    return session.data;
-  }
-
-  function isUserMember() {
-    return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
-  }
-  
-  // แยกการ Sync User ออกมาทำงานเบื้องหลัง พร้อมเช็คการเด้งออกทันที (ฉบับแก้ไข)
+// ==========================================
+// 👑 5. ASYNC DATA SYNC (ระบบดึงข้อมูล Google Sheets)
+// ==========================================
 async function syncUserData() {
   if (!user) return;
   try {
@@ -1248,59 +1182,122 @@ async function syncUserData() {
     const res = await resp.json();
     
     if (res.status === "success") {
-      
+      // ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนแบน / ไม่ได้เข้ากลุ่ม)
       if (res.data.password === "") {
-          Swal.fire({
-            icon: 'warning',
-            title: 'กรุณาติดต่อ BLM48 Line Official',
-            text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
-            confirmButtonColor: '#ff85a2',
-            allowOutsideClick: false
-          }).then(() => {
-            localStorage.removeItem('bnl_session');
-            sessionStorage.clear();
-            user = null;
-            updateUI();
-            window.location.href = 'login.html'; // 🎯 แก้ไข: ดีดไปหน้า login.html แทน
-          });
-          return;
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณาติดต่อ BLM48 Line Official',
+          text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
+          confirmButtonColor: '#ff85a2',
+          allowOutsideClick: false
+        }).then(() => {
+          localStorage.removeItem('bnl_session');
+          sessionStorage.clear();
+          user = null;
+          if (typeof updateUI === 'function') updateUI();
+          window.location.href = 'login.html'; 
+        });
+        return;
       }
 
       user = { ...user, ...res.data }; 
       saveUserSession(user); 
-      updateUI(); 
+      if (typeof updateUI === 'function') updateUI(); 
 
     } else {
       localStorage.removeItem('bnl_session');
       user = null;
-      updateUI();
-      window.location.href = 'login.html'; // 🎯 แก้ไข: ดีดไปหน้า login.html แทน
+      if (typeof updateUI === 'function') updateUI();
+      window.location.href = 'login.html';
     }
   } catch (e) { 
-      console.error("Sync Error:", e); 
+    console.error("Sync User Error:", e); 
   }
 }
 
-  // ปรับการโหลดข้อมูลให้ทำงานพร้อมกัน (Parallel) และใช้ระบบ Cache
-  async function loadData() {
-    try {
-      // ยิง Request พร้อมกัน ไม่ต้องรอทีละตัว
-      const [rankingResp, topFansResp] = await Promise.all([
-        fetch(`${scriptURL}?_=${Date.now()}`),
-        fetch(`${scriptURL}?action=getTopFans&_=${Date.now()}`)
-      ]);
+async function loadData() {
+  try {
+    const [rankingResp, topFansResp] = await Promise.all([
+      fetch(`${scriptURL}?_=${Date.now()}`),
+      fetch(`${scriptURL}?action=getTopFans&_=${Date.now()}`)
+    ]);
 
-      currentRankingData = await rankingResp.json();
-      currentTopFansData = await topFansResp.json();
+    currentRankingData = await rankingResp.json();
+    currentTopFansData = await topFansResp.json();
 
-      // บันทึกลง Cache เพื่อให้เปิดเว็บครั้งหน้าโหลดได้ทันที
-      localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
-      localStorage.setItem('bnl_topfans_cache', JSON.stringify(currentTopFansData));
+    localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
+    localStorage.setItem('bnl_topfans_cache', JSON.stringify(currentTopFansData));
 
-      renderRanking(currentRankingData);
-      renderGlobalFans(currentTopFansData);
-    } catch(e) { console.error("Load Error:", e); }
-  }  
+    if (typeof renderRanking === 'function') renderRanking(currentRankingData);
+    if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
+  } catch(e) { 
+    console.error("Load Data Error:", e); 
+  }
+} 
+
+// ฟังก์ชันรวมรีเฟรชข้อมูลทั้งหมด (เรียกใช้ตอนเลื่อนจอดึงข้อมูล หรือกดปุ่มรีเฟรช)
+async function refreshAppData() {
+  if (typeof showAppLoading === 'function') showAppLoading();
+  try {
+    await loadData();
+    await syncUserData();
+    if (typeof refreshCountFromSheets === 'function') {
+      await refreshCountFromSheets();
+    }
+  } catch (error) {
+    console.error("Refresh App Error:", error);
+  } finally {
+    if (typeof hideAppLoading === 'function') hideAppLoading();
+  }
+}
+
+// ==========================================
+// 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอ)
+// ==========================================
+window.addEventListener('pageshow', function(event) {
+  if (user && typeof refreshAppData === 'function') {
+    refreshAppData();
+  }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    user = getUserSession(); 
+
+    // ล็อกอินวอลล์: ถ้าไม่มีข้อมูล ให้ดีดไปหน้าล็อกอินทันที
+    if (!user) {
+      window.location.href = 'login.html';
+      return; 
+    }
+
+    checkVersion(); 
+    if (typeof updateUI === 'function') updateUI();
+    
+    // วาดตารางจากแคชในเครื่องรอทันทีเว็บจะได้ดูโหลดเร็วขึ้น
+    if (Array.isArray(currentRankingData) && currentRankingData.length > 0) {
+      if (typeof renderRanking === 'function') renderRanking(currentRankingData);
+    }
+    if (currentTopFansData && Object.keys(currentTopFansData).length > 0) {
+      if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
+    }
+
+    // รันกระบวนการดึงข้อมูลสดจาก Sheets เบื้องหลัง
+    loadData();
+    syncUserData(); 
+
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการเปิดหน้าแรก:", error);
+  } finally {
+    // ไม้ตายสุดท้าย: ไม่ว่าจะพังตรงไหน หน้าโหลดสีขาวชมพูต้องยอมปิดตัวออกเสมอ แอปจะได้ไม่ค้าง
+    if (typeof hideAppLoading === 'function') hideAppLoading();
+  }
+});
+
+// ตรวจสอบธีมและปิด Splash Screen โหลดตอนเริ่มรอบแรก
+window.addEventListener('load', () => {
+  if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
+  setTimeout(hideSplashScreen, 2000); 
+});
  
 function updateUI() {
   console.log("ฟังก์ชัน updateUI ทำงาน! ค่า user ณ ตอนนี้คือ:", user);
@@ -1724,59 +1721,9 @@ async function refreshAppData() {
   } 
 }
 
-// 1. ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh หน้าจอ
-window.addEventListener('pageshow', function(event) {
-    if (typeof user !== 'undefined' && user) {
-        if (typeof refreshAppData === 'function') refreshAppData();
-    }
-});
-
-// 👑 ⚡ เวอร์ชั่นเซฟตี้ขั้นสุด ป้องกันหน้าจอโหลดค้าง (Bulletproof Initial Load)
-window.addEventListener('DOMContentLoaded', () => {
-    try {
-        // ป้องกันแอปพัง: เช็คว่ามีฟังก์ชัน getUserSession ในระบบไหมก่อนเรียกใช้
-        if (typeof getUserSession === 'function') {
-            user = getUserSession(); 
-        } else {
-            console.error("หาฟังก์ชัน getUserSession ไม่เจอครับพี่เอ็มมี่!");
-            user = null;
-        }
-
-        // 🚨 ระบบล็อกอินวอลล์: ถ้าไม่มีข้อมูลผู้ใช้ ให้ดีดไปหน้าล็อกอินทันที
-        if (!user) {
-            window.location.href = 'login.html';
-            return; // หยุดทำงานโค้ดด้านล่างทันทีเพื่อรีไดเรกต์ไปหน้าล็อกอิน
-        }
-
-        // เรียกทำงานฟังก์ชันสถิติต่างๆ แบบปลอดภัย (เช็คตัวแปรก่อนรันเสมอ)
-        if (typeof checkVersion === 'function') checkVersion(); 
-        if (typeof updateUI === 'function') updateUI();
-        
-        if (typeof currentRankingData !== 'undefined' && currentRankingData.length > 0) {
-            if (typeof renderRanking === 'function') renderRanking(currentRankingData);
-        }
-        if (typeof currentTopFansData !== 'undefined' && Object.keys(currentTopFansData).length > 0) {
-            if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
-        }
-
-        // ดึงข้อมูลใหม่และซิงค์กระเป๋าเงินจาก Google Sheets เบื้องหลังเงียบๆ
-        if (typeof loadData === 'function') loadData();
-        if (typeof syncUserData === 'function') syncUserData(); 
-
-    } catch (error) {
-        // หากโค้ดจุดไหนทำงานพลาด ให้พ่นฟ้องใน Console (F12) จะได้ตามแก้ถูกจุดครับ
-        console.error("เกิดข้อผิดพลาดระหว่างโหลดแอป:", error);
-    } finally {
-        // 🎯 จุดสำคัญที่สุด: ไม่ว่าจะเกิด Error อะไรขึ้น หน้าโหลดสีขาวชมพูต้องถูกปิดออกเสมอ! แอปจะได้ไม่ค้าง
-        if (typeof hideAppLoading === 'function') {
-            hideAppLoading();
-        }
-    }
-});
-
-// 🍪 ระบบแอนิเมชันคุกกี้ร่วง
+// 🍪 ระบบแอนิเมชันคุกกี้ร่วง (ทำงานเฉพาะตอนล็อกอินแล้วและเปิดหน้านี้อยู่เท่านั้น)
 setInterval(() => {
-    if (document.hidden || typeof user === 'undefined' || !user) return;
+    if (document.hidden || !user) return;
     
     const c = document.createElement('i');
     c.className = 'fas fa-cookie cookie-fall';
