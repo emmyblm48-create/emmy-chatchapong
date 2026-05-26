@@ -935,6 +935,24 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     font-family: 'Quicksand', 'Kanit', sans-serif !important;
 }
     
+    .swipe-wrapper {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  width: 100vw;
+  height: 100vh; /* หรือความสูงที่เอ็มมี่ต้องการ */
+  scrollbar-width: none; /* ซ่อนแถบเลื่อนบนมือถือ */
+}
+
+.swipe-wrapper::-webkit-scrollbar { display: none; }
+
+.panel {
+  min-width: 100vw; /* ให้แต่ละหน้ากว้างเต็มจอ */
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+    
   </style>
 </head>
 <body>
@@ -1067,14 +1085,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="ranking-wrapper">
   <div id="global-fan-list" class="horizontal-list"></div>
 </div>
-  
-  <div id="membership-card" style="background: white; border-radius: 20px; padding: 20px; border: 2px solid #ff85a2; width: 300px; text-align: center; margin: 20px auto;">
-  <img id="card-avatar" src="URL_รูปภาพ" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ff85a2;">
-  <h2 id="card-name" style="color: #ff85a2; margin: 10px 0 0 0;">ชื่อผู้ใช้</h2>
-  <p id="card-username" style="color: #888; font-size: 14px;">@username</p>
-</div>
-
-<button onclick="saveCard()" style="background: #ff85a2; color: white; padding: 10px 20px; border-radius: 15px; border: none;">Save Membership Card</button>
 
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
@@ -1343,7 +1353,8 @@ function updateUI() {
 
   // 👑 วาดหน้าจอแสดงผลข้อมูลโปรไฟล์ บัญชีผู้ใช้ และ กระเป๋าเงินทันที
   bar.innerHTML = `
-    <div class="user-info-header">
+  <div class="swipe-wrapper">
+    <div class="panel" id="user-bar">
       <a href="profile.html" class="profile-img-container nav-icon" title="Profile">
         <img src="${getImg(user.profile_img)}" class="user-avatar-img">
       </a>
@@ -1363,8 +1374,12 @@ function updateUI() {
       <button onclick="${isMember ? "Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info')" : "claimMonthly()"}" class="btn-bonus btn-monthly ${isMember ? 'btn-locked' : ''}"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
       <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
     </div>
+    <div class="panel" id="membership-card-display"></div>
+    
+    </div>
   `;
 }
+  renderMembershipCard(user);
 
 function renderRanking(data) {
   const list = document.getElementById('ranking-list');
@@ -1462,17 +1477,31 @@ function renderGlobalFans(rawData) {
   });
 }
   
+   function renderMembershipCard(user) {
+    const cardContainer = document.getElementById('membership-card-display');
+    if (!cardContainer) return;
+
+    cardContainer.innerHTML = `
+      <div class="card-container" id="card-to-save" style="margin: 20px auto; padding: 20px; width: 300px; background: white; border-radius: 20px; border: 3px solid #ffc0cb; text-align: center;">
+        <h3 style="color: #ffc0cb;">Membership Card</h3>
+        <img src="${getImg(user.profile_img)}" style="width: 100px; height: 100px; border-radius: 50%; border: 2px solid #ddd;">
+        <p style="font-weight: bold; margin-top: 10px;">${user.name}</p>
+        <p style="color: #888;">@${user.username || 'user'}</p>
+        <button onclick="saveCard()" style="background: #ffc0cb; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer;">Save Image</button>
+      </div>
+    `;
+  }
+
+  // ฟังก์ชัน Save ภาพ
   function saveCard() {
-  const cardElement = document.getElementById("membership-card");
-  
-  html2canvas(cardElement).then(canvas => {
-    // สร้างลิงก์ดาวน์โหลด
-    const link = document.createElement("a");
-    link.download = "my-membership-card.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  });
-}
+    const card = document.getElementById("card-to-save");
+    html2canvas(card).then(canvas => {
+      const link = document.createElement("a");
+      link.download = "my-membership.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+  }
 
 // เอาฟังก์ชันนี้ไปวางใน <script> ของหน้า index.html แทนตัวเดิมนะงับ
 function openMemberProfile(name) {
