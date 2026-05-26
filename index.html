@@ -1870,47 +1870,6 @@ async function refreshAppData() {
     setTimeout(hideAppLoading, 1000);
   } 
 }
-  
-  function handleLoginSuccess(userData) {
-    // 1. บันทึกลงเครื่อง
-    localStorage.setItem('blm48_user', JSON.stringify(userData));
-    
-    // 2. สลับหน้า
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
-}
-
-// ใส่ดักจับตอนหน้าเว็บโหลดเสร็จสมบูรณ์
-document.addEventListener("DOMContentLoaded", async () => {
-  // 1. ตรวจสอบเวอร์ชันก่อน (ป้องกัน cache เก่ารวน)
-  checkVersion();
-
-  // 2. ดึง session อีกครั้งให้มั่นใจ
-  user = getUserSession();
-
-  // 3. ถ้าไม่มี user ให้ดีดออกทันที
-  if (!user) {
-    window.location.href = 'login.html';
-    return;
-  }
-
-  // 4. วาด UI ทันทีด้วยข้อมูลที่อยู่ในเครื่อง (ไม่ต้องรอเน็ต)
-  updateUI();
-
-  // 5. สั่งซิงค์ข้อมูลใหม่จากหลังบ้านเงียบๆ
-  try {
-    await Promise.all([
-      loadData(),     // โหลด Ranking
-      syncUserData()  // ซิงค์ข้อมูล user
-    ]);
-    // อัปเดต UI อีกครั้งหลังได้ข้อมูลใหม่
-    updateUI(); 
-  } catch (err) {
-    console.error("Sync error during load:", err);
-  }
-  
-  hideAppLoading();
-});
 
 // ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh
 window.addEventListener('pageshow', function(event) {
