@@ -1478,130 +1478,80 @@ function updateUI() {
   `;
 }
   
+// 🌸 ฟังก์ชันเปิดกล่องป๊อปอัปบัตรสมาชิกดิจิทัลระดับพรีเมียม
 function showMembershipCardModal() {
   if (!user) return;
 
-  // แจ้งเตือนผู้ใช้ในระหว่างที่ระบบกำลังประมวลผลวาดการ์ด
   Swal.fire({
-    title: '🌸 กำลังสร้างบัตรสมาชิกของคุณ 🌸',
-    html: '<div style="font-size: 14px; color: #666; margin-top: 10px;">โปรดรอสักครู่ ระบบกำลังลงทะเบียนชื่อของคุณลงบนการ์ด...</div>',
-    allowOutsideClick: false,
-    showConfirmButton: false,
-    didOpen: () => {
-      Swal.showLoading();
+    title: 'BLM48 Official Membership',
+    html: `
+      <div class="membership-modal-body" style="font-family: 'Quicksand', 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px; padding-top: 10px;">
+        
+        <div class="virtual-card" style="
+          width: 100%;
+          max-width: 320px;
+          height: 190px;
+          background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 50%, #ffe4e1 100%);
+          border-radius: 22px;
+          padding: 20px;
+          box-sizing: border-box;
+          color: white;
+          position: relative;
+          text-align: left;
+          overflow: hidden;
+          box-shadow: 0 12px 28px rgba(255, 133, 162, 0.4);
+          border: 2px solid rgba(255, 255, 255, 0.5);
+        ">
+          <div style="position: absolute; right: -15px; bottom: -25px; font-size: 140px; font-weight: 700; color: rgba(255, 255, 255, 0.15); font-family: 'Quicksand'; pointer-events: none; user-select: none;">48</div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-family: 'Quicksand'; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(255,133,162,0.3);">BLM48</div>
+              <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255, 255, 255, 0.85); font-weight: 500;">Official Fanclub Member</div>
+            </div>
+            <i class="fas fa-star" style="font-size: 20px; color: #ffd700; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));"></i>
+          </div>
 
-      // 1. โหลดรูปดีไซน์การ์ดหลักของ BLM48
-      const bgImg = new Image();
-      bgImg.crossOrigin = "anonymous"; 
-      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; 
-
-      bgImg.onload = function() {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // ตั้งค่าขนาดตามมิติรูปภาพจริงเพื่อให้ได้ไฟล์ความละเอียดสูง
-        canvas.width = bgImg.width || 1200;
-        canvas.height = bgImg.height || 675;
-
-        // วาดภาพพื้นหลังการ์ดหลัก
-        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-        // 2. โหลดรูปภาพโปรไฟล์ของผู้ใช้งาน
-        const avatarImg = new Image();
-        avatarImg.crossOrigin = "anonymous";
-        avatarImg.src = getImg(user.profile_img);
-
-        avatarImg.onload = function() {
-          // 🎯 คำนวณพิกัดสำหรับวางรูปโปรไฟล์ในกรอบขาวฝั่งขวา
-          const avatarSize = canvas.height * 0.28; // ขนาดความกว้าง-ยาวของรูปโปรไฟล์
-          const avatarX = canvas.width * 0.735;     // ขยับไปทางขวาให้อยู่กึ่งกลางกรอบ
-          const avatarY = canvas.height * 0.22;     // ตำแหน่งความสูงจากขอบบน
-
-          // วาดรูปโปรไฟล์เป็นวงกลมขอบมน
-          ctx.save();
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.closePath();
-          ctx.clip();
-          ctx.drawImage(avatarImg, avatarX, avatarY, avatarSize, avatarSize);
-          ctx.restore();
-
-          // วาดเส้นขอบวงกลมสีขาวบางๆ ให้รูปโปรไฟล์ดูมีมิติ
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.arc(avatarX + avatarSize/2, avatarY + avatarSize/2, avatarSize/2, 0, Math.PI * 2);
-          ctx.stroke();
-
-          // 3. ตั้งค่าการเขียนข้อความ (เปลี่ยนเป็นสีน้ำตาลเข้มหม่นละมุน เข้ากับธีมการ์ด)
-          ctx.fillStyle = '#6e4a4a'; 
-          ctx.textAlign = 'center'; // ตั้งค่าให้ข้อความอยู่กึ่งกลางการ์ดฝั่งขวาพอดี
-          ctx.textBaseline = 'top';
-
-          // 🌸 เขียนชื่อผู้ใช้งาน (Name)
-          // วางไว้ใต้รูปโปรไฟล์ ขยับตำแหน่งให้ตรงกับจุดศูนย์กลางแกน X ของรูปโปรไฟล์
-          ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
-          const centerX = avatarX + (avatarSize / 2);
-          const nameY = avatarY + avatarSize + (canvas.height * 0.05); // ระยะเยื้องลงมาจากรูปโปรไฟล์
-          ctx.fillText(user.name, centerX, nameY);
-
-          // 🌸 เขียน Username (@username)
-          // ปรับฟอนต์ให้เล็กลงมานิดนึงเพื่อความมินิมอล จัดวางไว้บรรทัดล่างสุดใต้ชื่อ
-          ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Quicksand", "Kanit", sans-serif';
-          const usernameY = nameY + (canvas.height * 0.07); // ระยะห่างจากบรรทัดชื่อ
-          ctx.fillText("@" + (user.username || "blm48_member"), centerX, usernameY);
-
-          // 4. แปลงข้อมูล Canvas เป็น Data URL สกุลไฟล์ JPEG
-          const cardDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-
-          // 5. แสดงหน้าต่างป๊อปอัปพรีวิวการ์ดและปุ่มเซฟ
-          Swal.fire({
-            title: 'My Membership Card',
-            html: `
-              <div style="font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                <img src="${cardDataUrl}" style="width: 100%; max-width: 420px; border-radius: 16px; box-shadow: 0 8px 26px rgba(255,133,162,0.25); border: 1.5px solid #ffe4e1;">
-                <p style="font-size: 13px; color: #777; line-height: 1.4; margin: 5px 0;">
-                  ดีไซน์การ์ดสมาชิกถูกบันทึกข้อมูลของคุณเรียบร้อยแล้วค่ะ<br>สามารถกดปุ่มด้านล่างเพื่อเซฟรูปเก็บไว้ได้เลยนะ! 💖
-                </p>
-                
-                <a href="${cardDataUrl}" download="BLM48_Member_${user.username || 'card'}.jpg" style="
-                  display: inline-flex;
-                  align-items: center;
-                  gap: 8px;
-                  padding: 12px 32px;
-                  background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 100%);
-                  color: white;
-                  text-decoration: none;
-                  border-radius: 25px;
-                  font-weight: bold;
-                  font-size: 15px;
-                  box-shadow: 0 4px 12px rgba(255,133,162,0.35);
-                  transition: all 0.2s;
-                " onclick="Swal.close();">
-                  <i class="fas fa-download"></i> 💾 บันทึกการ์ดสมาชิก
-                </a>
+          <div style="display: flex; align-items: center; gap: 14px; margin-top: 22px; position: relative; z-index: 2;">
+            <img src="${getImg(user.profile_img)}" style="width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 2.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">${user.name}</div>
+              <div style="font-size: 10px; color: #ff5376; font-weight: bold; background: rgba(255, 255, 255, 0.85); padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <i class="fas fa-shield-alt"></i> ${user.role || 'MEMBER'}
               </div>
-            `,
-            showConfirmButton: false, 
-            showCloseButton: true,
-            background: '#ffffff',
-            didOpen: () => {
-              const popup = Swal.getPopup();
-              if (popup) popup.style.borderRadius = '28px';
-            }
-          });
-        };
+            </div>
+          </div>
 
-        // ในกรณีดึงรูปโปรไฟล์จริงไม่สำเร็จ ให้ใช้ภาพ Placeholder แทน
-        avatarImg.onerror = function() {
-          avatarImg.src = 'https://www.w3schools.com/howto/img_avatar.png';
-        };
-      };
+          <div style="position: absolute; bottom: 16px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Quicksand', 'Kanit';">
+            <div>
+              <div style="font-size: 8px; color: rgba(255, 255, 255, 0.75); text-transform: uppercase; letter-spacing: 0.5px;">Username</div>
+              <div style="font-size: 13px; font-weight: 500; color: #ffffff; letter-spacing: 0.3px;">@${user.username || 'blm48_member'}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 11px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 8px; font-size: 10px;">
+                <i class="fas fa-check-circle" style="color: #55efc4;"></i> Status: Active
+              </div>
+            </div>
+          </div>
+        </div>
 
-      // ในกรณีโหลดรูปพื้นหลังไม่ขึ้น
-      bgImg.onerror = function() {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถค้นหาไฟล์ดีไซน์หลัก MEMBERSHIP (1).jpg ได้สำเร็จ กรุณาตรวจสอบชื่อไฟล์ในโฟลเดอร์โครงการอีกครั้งค่ะ', 'error');
-      };
+        <p style="font-size: 12px; color: #aaa; text-align: center; margin: 5px 0 0 0; line-height: 1.4;">
+          ขอบคุณที่คอยสนับสนุนและเป็นส่วนหนึ่งในความฝันของพวกเรา <br><b style="color: #ff85a2;">BLM48</b> เสมอมานะคะ
+        </p>
+      </div>
+    `,
+    confirmButtonText: 'ปิดหน้าต่าง',
+    confirmButtonColor: '#ff85a2',
+    background: '#ffffff',
+    customClass: {
+      popup: 'cute-modal-border-radius'
+    },
+    // สไตล์เสริมเพื่อให้ขอบหน้าต่างหลักโค้งมนรับกับตัวบัตร
+    didOpen: () => {
+      const popup = Swal.getPopup();
+      if (popup) {
+        popup.style.borderRadius = '32px';
+      }
     }
   });
 }
