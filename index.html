@@ -1460,6 +1460,10 @@ function updateUI() {
           <span id="user-display-name">${user.name}</span> 
           <span class="role-badge">${user.role}</span>
         </div>
+        <div class="oshi-list" style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px;">
+          ${kamiTag}
+          ${oshiTags}
+        </div>
       </div>
     </div>
     <div class="wallet">
@@ -1467,11 +1471,93 @@ function updateUI() {
       <div class="wallet-item"><div style="font-size:10px; color:#aaa;">Cookies</div><i class="fas fa-cookie-bite" style="color: #d2691e;"></i> ${Number(user.cookie || 0).toLocaleString()}</div>
       <div class="wallet-item"><div style="font-size:10px; color:#aaa;">GE Tokens</div><i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(user.geToken || 0).toLocaleString()}</div>
     </div>
-    <div class="bonus-container">
+    <div class="bonus-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
       <button onclick="${isMember ? "Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info')" : "claimMonthly()"}" class="btn-bonus btn-monthly ${isMember ? 'btn-locked' : ''}"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
       <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
+      
+      <button onclick="showMembershipCardModal()" class="btn-bonus btn-membership" style="grid-column: span 2; background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 100%); box-shadow: 0 4px 12px rgba(255, 133, 162, 0.35); color: white;">
+        <i class="fas fa-id-card"></i> Membership Card
+      </button>
     </div>
   `;
+}
+  
+  // 🌸 ฟังก์ชันเปิดกล่องป๊อปอัปบัตรสมาชิกดิจิทัลระดับพรีเมียม
+function showMembershipCardModal() {
+  if (!user) return;
+
+  Swal.fire({
+    title: '🌸 BLM48 Official Membership 🌸',
+    html: `
+      <div class="membership-modal-body" style="font-family: 'Quicksand', 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px; padding-top: 10px;">
+        
+        <div class="virtual-card" style="
+          width: 100%;
+          max-width: 320px;
+          height: 190px;
+          background: linear-gradient(135deg, #ff85a2 0%, #ffb6c1 50%, #ffe4e1 100%);
+          border-radius: 22px;
+          padding: 20px;
+          box-sizing: border-box;
+          color: white;
+          position: relative;
+          text-align: left;
+          overflow: hidden;
+          box-shadow: 0 12px 28px rgba(255, 133, 162, 0.4);
+          border: 2px solid rgba(255, 255, 255, 0.5);
+        ">
+          <div style="position: absolute; right: -15px; bottom: -25px; font-size: 140px; font-weight: 700; color: rgba(255, 255, 255, 0.15); font-family: 'Quicksand'; pointer-events: none; user-select: none;">48</div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-family: 'Quicksand'; font-size: 20px; font-weight: 700; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(255,133,162,0.3);">BLM48</div>
+              <div style="font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px; color: rgba(255, 255, 255, 0.85); font-weight: 500;">Official Fanclub Member</div>
+            </div>
+            <i class="fas fa-star" style="font-size: 20px; color: #ffd700; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));"></i>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 14px; margin-top: 22px; position: relative; z-index: 2;">
+            <img src="${getImg(user.profile_img)}" style="width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 2.5px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">${user.name}</div>
+              <div style="font-size: 10px; color: #ff5376; font-weight: bold; background: rgba(255, 255, 255, 0.85); padding: 3px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <i class="fas fa-shield-alt"></i> ${user.role || 'MEMBER'}
+              </div>
+            </div>
+          </div>
+
+          <div style="position: absolute; bottom: 16px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Quicksand', 'Kanit';">
+            <div>
+              <div style="font-size: 8px; color: rgba(255, 255, 255, 0.75); text-transform: uppercase; letter-spacing: 0.5px;">Username</div>
+              <div style="font-size: 13px; font-weight: 500; color: #ffffff; letter-spacing: 0.3px;">@${user.username || 'blm48_member'}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 11px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 8px; font-size: 10px;">
+                <i class="fas fa-check-circle" style="color: #55efc4;"></i> Status: Active
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: #aaa; text-align: center; margin: 5px 0 0 0; line-height: 1.4;">
+          ขอบคุณที่คอยสนับสนุนและเป็นส่วนหนึ่งในความฝันของพวกเรา <br><b style="color: #ff85a2;">BLM48</b> เสมอมานะคะ 💖
+        </p>
+      </div>
+    `,
+    confirmButtonText: 'ปิดหน้าต่าง',
+    confirmButtonColor: '#ff85a2',
+    background: '#ffffff',
+    customClass: {
+      popup: 'cute-modal-border-radius'
+    },
+    // สไตล์เสริมเพื่อให้ขอบหน้าต่างหลักโค้งมนรับกับตัวบัตร
+    didOpen: () => {
+      const popup = Swal.getPopup();
+      if (popup) {
+        popup.style.borderRadius = '32px';
+      }
+    }
+  });
 }
 
 function renderRanking(data) {
