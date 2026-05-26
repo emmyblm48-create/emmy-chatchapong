@@ -1872,20 +1872,35 @@ async function refreshAppData() {
 }
 
 // ใส่ดักจับตอนหน้าเว็บโหลดเสร็จสมบูรณ์
-document.addEventListener("DOMContentLoaded", () => {
-  
-  // 1. 👑 เรียกใช้ฟังก์ชันแกะเซสชันที่คุณเอ็มมี่เขียนไว้ได้เลย (มันจะเช็คคีย์ bnl_session และเช็ควันหมดอายุให้อัตโนมัติ!)
-  user = getUserSession(); 
-  
-  // 2. สั่งรันฟังก์ชันวาดหน้าจอทันที! ถ้ามีข้อมูลผู้ใช้ค้างอยู่ หน้าโปรไฟล์ก็จะขึ้นสวยงาม ไม่หลุดเป็น Guest แล้วค่ะ
-  updateUI();
-  
-  // 3. ⚡ ซ่อนหน้า Loading Screen และสั่งซิงค์ข้อมูลใหม่ล่าสุดจากระบบหลังบ้านเงียบๆ
-  hideAppLoading(); 
-  loadData();
-  if (user) {
-    syncUserData(); 
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. ตรวจสอบเวอร์ชันก่อน (ป้องกัน cache เก่ารวน)
+  checkVersion();
+
+  // 2. ดึง session อีกครั้งให้มั่นใจ
+  user = getUserSession();
+
+  // 3. ถ้าไม่มี user ให้ดีดออกทันที
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
   }
+
+  // 4. วาด UI ทันทีด้วยข้อมูลที่อยู่ในเครื่อง (ไม่ต้องรอเน็ต)
+  updateUI();
+
+  // 5. สั่งซิงค์ข้อมูลใหม่จากหลังบ้านเงียบๆ
+  try {
+    await Promise.all([
+      loadData(),     // โหลด Ranking
+      syncUserData()  // ซิงค์ข้อมูล user
+    ]);
+    // อัปเดต UI อีกครั้งหลังได้ข้อมูลใหม่
+    updateUI(); 
+  } catch (err) {
+    console.error("Sync error during load:", err);
+  }
+  
+  hideAppLoading();
 });
 
 // ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh
