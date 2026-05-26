@@ -1069,35 +1069,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div id="global-fan-list" class="horizontal-list"></div>
 </div>
 
-<div id="modal-overlay" style="display:none;">
-    
-    <div class="modal-box custom-history-modal" id="history-form" style="display:none;">
-    <h2 class="history-main-title">My History</h2>
-    <div id="history-content"></div> 
-    <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #fdf6f7; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: var(--primary-pink); font-weight: 600; transition: all 0.2s;">Close</button>
-    </div>
-    
-    <div class="modal-box" id="inventory-form" style="display:none;">
-        <h2 style="font-family: 'Kanit', sans-serif; font-weight: 600; color: var(--primary-pink); margin-bottom: 15px;">
-            <i class="fas fa-briefcase"></i> My Inventory
-        </h2>
-        <div id="inventory-content" style="max-height: 400px; overflow-y: auto;"></div>
-        <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #fdf6f7; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: var(--primary-pink); font-weight: 600; transition: all 0.2s;">Close</button>
-    </div>
-    
-    <div class="modal-box" id="stats-form" style="display:none;">
-        <div id="stats-content"></div> 
-        <div class="top-fans-list" id="member-fans-section">
-            <div class="top-fans-title" style="font-family: 'Kanit', sans-serif; font-weight: 600;">
-                <i class="fas fa-heart" style="color: var(--primary-pink);"></i> Top Fans
-            </div>
-            <div id="member-fans-content"></div>
-        </div>
-        <button onclick="closeModal()" style="margin-top: 25px; width: 100%; background: #f5f5f5; border: none; padding: 12px; border-radius: 12px; cursor: pointer; color: #666; font-weight: 600;">Close</button>
-    </div>
-
-</div>
-
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
 
@@ -1181,9 +1152,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 // 🎯 ฟังก์ชันสำหรับกด Logout (ผูกกับปุ่มออกจากระบบในหน้า index)
 function logoutBLM48() {
-  localStorage.removeItem('blm48_user'); // ลบข้อมูลออก
+  localStorage.removeItem('bnl_session'); // 👑 เปลี่ยนมาลบคีย์นี้ให้ตรงกับระบบหลัก
   window.location.href = 'login.html';   // ดีดกลับหน้าล็อกอิน
 }
+  
   // --- CONFIG & CONSTANTS ---
 const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่คุณเอ็มมี่มีการอัปเดตโค้ดสำคัญ
 
@@ -1222,106 +1194,8 @@ function toggleDarkMode() {
 }
 
 // --- แสดงประวัติประใจ ---
-async function showHistory() {
-    const session = localStorage.getItem('bnl_session');
-    if (!session) return Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณาล็อกอินก่อน', 'warning');
-
-    const userData = JSON.parse(session).data;
-    const username = userData.username; 
-
-    // 1. เปิดม่าน Overlay หลัก (ใช้ flex เพื่อให้กล่องอยู่กึ่งกลางสวยๆ แบบรูปแรก)
-    const modalOverlay = document.getElementById('modal-overlay');
-    if(modalOverlay) modalOverlay.style.display = 'flex';
-    
-    // 2. 🚩 ดักปิดฟอร์มอื่นเพื่อแก้บั๊กซ้อนกันเป็นแซนด์วิช
-    document.getElementById('inventory-form').style.display = 'none';
-    document.getElementById('stats-form').style.display = 'none';
-    document.getElementById('login-form').style.display = 'none';
-    
-    // 3. 🚩 เปลี่ยนจากเปิด stats-form มาเปิดกล่องประวัติตัวจริง (history-form) แทนค่ะ!
-    const historyForm = document.getElementById('history-form');
-    if(historyForm) historyForm.style.display = 'block';
-    
-    // 4. 🚩 เปลี่ยนเป้าหมายกล่องเขียนข้อมูลจาก stats-content มาเป็น history-content
-    const historyContent = document.getElementById('history-content');
-    if(historyContent) historyContent.innerHTML = "<p style='text-align:center; color:#aaa; font-family:\"Kanit\"; padding:20px;'>กำลังดึงข้อมูลให้นะคะ...</p>";
-
-    try {
-        const response = await fetch(`${scriptURL}?action=getMyHistory&username=${username}`);
-        const res = await response.json();
-        
-        // 5. 🚩 ตรวจสอบและพ่นข้อมูลลงกล่อง historyContent ตัวจริง
-        if (res.status === "success" && historyContent) {
-            let html = ``; // เอาหัวข้อ H2 ออกเพราะใน HTML หลักของเอ็มมี่มี "My History" อยู่แล้ว
-            
-            // ==========================================
-            // 🛒 หมวดหมู่ที่ 1: ประวัติการช้อปปิ้ง
-            // ==========================================
-            html += `
-                <div style="text-align:left; margin-top:15px;">
-                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">🛒 ประวัติการช้อปปิ้ง</h4>
-                    <div class="history-scroll-container">`;
-            
-            if (res.purchaseHistory && res.purchaseHistory.length > 0) {
-                res.purchaseHistory.forEach(log => {
-                    html += `
-                        <div class="fan-row">
-                            <div class="fan-info">
-                                <div class="fan-name">${log.action}: ${log.target}</div>
-                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
-                            </div>
-                            <div class="fan-cookies" style="color:#4dabf7">${log.amount}</div>
-                        </div>`;
-                });
-            } else {
-                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่มีประวัติการซื้อไอเทมงับ</p>`;
-            }
-            html += `
-                    </div> </div>`;
-
-            // ==========================================
-            // 💖 หมวดหมู่ที่ 2: ประวัติการส่งกำลังใจ
-            // ==========================================
-            html += `
-                <div style="text-align:left; margin-top:20px;">
-                    <h4 style="border-bottom: 2px solid var(--soft-pink); padding-bottom:5px; margin-bottom: 10px;">💖 ประวัติการส่งกำลังใจ</h4>
-                    <div class="history-scroll-container">`;
-            
-            if (res.giveLogs && res.giveLogs.length > 0) {
-                res.giveLogs.forEach(log => {
-                    html += `
-                        <div class="fan-row">
-                            <div class="fan-info">
-                                <div class="fan-name">ปาให้: ${log.member}</div>
-                                <div style="font-size:10px; color:#aaa;">${new Date(log.timestamp).toLocaleString()}</div>
-                            </div>
-                            <div class="fan-cookies">${log.amount} 🍪</div>
-                        </div>`;
-                });
-            } else {
-                html += `<p style="font-size:12px; color:#ccc; text-align:center; padding:15px 0;">ยังไม่เคยปาคุกกี้เลยงับ</p>`;
-            }
-            html += `
-                    </div> </div>`;
-            
-            // พ่นลงกล่องประวัติ
-            historyContent.innerHTML = html;
-        }
-    } catch (e) {
-        console.error(e);
-        if(historyContent) historyContent.innerHTML = "เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ";
-    }
-}
-
-  function closeModal() {
-    // ซ่อนม่าน Overlay หลัก
-    document.getElementById('modal-overlay').style.display = 'none';
-    
-    // สั่งซ่อนทุกกล่องฟอร์มด้านในเพื่อ Reset สถานะสำหรับรอบหน้า
-    document.getElementById('history-form').style.display = 'none';
-    document.getElementById('inventory-form').style.display = 'none';
-    document.getElementById('stats-form').style.display = 'none';
-    document.getElementById('login-form').style.display = 'none';
+function history() {
+  window.location.href = 'history.html';
 }
   
 // --- ปิด Splash Screen เมื่อโหลดข้อมูลเสร็จ ---
@@ -1366,50 +1240,46 @@ window.onload = () => {
     return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
   }
   
- // แยกการ Sync User ออกมาทำงานเบื้องหลัง พร้อมเช็คการเด้งออกทันที (ฉบับแก้ไข)
-  async function syncUserData() {
-    if (!user) return;
-    try {
-      const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
-      const res = await resp.json();
+  // แยกการ Sync User ออกมาทำงานเบื้องหลัง พร้อมเช็คการเด้งออกทันที (ฉบับแก้ไข)
+async function syncUserData() {
+  if (!user) return;
+  try {
+    const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
+    const res = await resp.json();
+    
+    if (res.status === "success") {
       
-      if (res.status === "success") {
-        
-        // 🚨 แก้ไขแล้ว: เช็คเฉพาะกรณีที่ Google Sheet ส่งค่ากลับมาเป็น "ช่องว่าง" จริงๆ เท่านั้น
-        // (ตัดเงื่อนไข undefined ออก เพื่อไม่ให้มันเข้าใจผิดตอนที่ระบบซ่อนรหัสผ่าน)
-        if (res.data.password === "") {
-            Swal.fire({
-              icon: 'warning',
-              title: 'กรุณาติดต่อ BLM48 Line Official',
-              text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
-              confirmButtonColor: '#ff85a2',
-              allowOutsideClick: false
-            }).then(() => {
-              localStorage.removeItem('bnl_session');
-              sessionStorage.clear();
-              user = null;
-              updateUI();
-              openLogin();
-            });
-            return; // หยุดการทำงานทันที
-        }
-
-        // 💖 ถ้าไม่ได้ถูกลบรหัสผ่าน ให้อัปเดตข้อมูลใหม่ (โดยใช้วิธีรวมข้อมูล เพื่อไม่ให้รหัสผ่านในเครื่องหาย)
-        user = { ...user, ...res.data }; 
-        saveUserSession(user); 
-        updateUI(); 
-
-      } else {
-        // 🚨 กรณีค้นหาชื่อผู้ใช้ไม่เจอเลย (เช่น คุณเอ็มมี่ลบแถวของคนนี้ทิ้งไปจาก Sheet)
-        localStorage.removeItem('bnl_session');
-        user = null;
-        updateUI();
-        openLogin();
+      if (res.data.password === "") {
+          Swal.fire({
+            icon: 'warning',
+            title: 'กรุณาติดต่อ BLM48 Line Official',
+            text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
+            confirmButtonColor: '#ff85a2',
+            allowOutsideClick: false
+          }).then(() => {
+            localStorage.removeItem('bnl_session');
+            sessionStorage.clear();
+            user = null;
+            updateUI();
+            window.location.href = 'login.html'; // 🎯 แก้ไข: ดีดไปหน้า login.html แทน
+          });
+          return;
       }
-    } catch (e) { 
-        console.error("Sync Error:", e); 
+
+      user = { ...user, ...res.data }; 
+      saveUserSession(user); 
+      updateUI(); 
+
+    } else {
+      localStorage.removeItem('bnl_session');
+      user = null;
+      updateUI();
+      window.location.href = 'login.html'; // 🎯 แก้ไข: ดีดไปหน้า login.html แทน
     }
+  } catch (e) { 
+      console.error("Sync Error:", e); 
   }
+}
 
   // ปรับการโหลดข้อมูลให้ทำงานพร้อมกัน (Parallel) และใช้ระบบ Cache
   async function loadData() {
@@ -1438,50 +1308,16 @@ function updateUI() {
   const bar = document.getElementById('user-bar');
   if (!bar) return; // ถ้าหาแถบโปรไฟล์ไม่เจอ ให้หยุดทำงานทันที ไม่ต้องทำต่อ
 
-  // 1. ดึงปุ่มต่างๆ มาเก็บไว้ (ถ้าหาไม่เจอจะเป็น null)
+  // 🎯 หากไม่มีข้อมูลผู้ใช้ (เช่น กำลังเปลี่ยนหน้าไป Login) ให้หยุดทำงานทันที ไม่ต้องแสดงหน้า Guest อีกต่อไป
+  if (!user) return;
+
+  // 1. ดึงปุ่ม Logout มาจัดการแสดงผล (ตัดส่วนปุ่ม Login ออกเรียบร้อยครับ)
   const logoutBtn = document.querySelector('button[onclick="confirmLogout()"]');
-  const loginBtn = document.getElementById('login-btn');
-
-  if (!user) {
-    // --- กรณี Guest (ไม่ได้ Login) ---
-    if (logoutBtn) logoutBtn.style.display = 'none'; 
-    if (loginBtn) loginBtn.style.display = 'block';
-
-    bar.innerHTML = `
-      <div class="guest-container" style="text-align: center; padding: 30px 15px; border-radius: 15px; background: rgba(255, 255, 255, 0.5); border: 2px dashed #ffc2d1;">
-        <i class="fas fa-user-circle" style="font-size: 40px; color: #ffc2d1; margin-bottom: 10px;"></i>
-        <p style="font-size: 14px; color: #888; margin-bottom: 15px;">ยินดีต้อนรับสู่ BLM48 ค่ะ<br>เข้าสู่ระบบเพื่อสะสมคุกกี้กันนะ!</p>
-        
-<div class="auth-buttons-container" style="display: flex; flex-flow: row wrap; justify-content: center; gap: 15px; width: 100%; max-width: 400px; margin: 20px auto 0 auto; padding: 0 15px; box-sizing: border-box;">
-  
-  <a href="#" 
-     onclick="openLogin(); return false;" 
-     class="btn-login-main" 
-     style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1 1 160px; height: 45px; text-decoration: none; background: #ff85a2; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3); font-size: 16px; box-sizing: border-box; transition: transform 0.2s, opacity 0.2s;">
-    <i class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ
-  </a>
-
-  <a href="https://line.me/R/ti/p/@569rnpsj?from=page&liff.referrer=https%3A%2F%2Flinktr.ee%2F&searchId=569rnpsj" 
-     target="_blank" 
-     class="btn-login-main" 
-     style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1 1 160px; height: 45px; text-decoration: none; background: #ff85a2; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3); font-size: 16px; box-sizing: border-box; transition: transform 0.2s, opacity 0.2s;">
-    <i class="fas fa-user-plus"></i> สมัครสมาชิก
-  </a>
-
-</div>
-         <p style="font-size: 12px; color: #888; margin-bottom: 15px;">หมายเหตุ : ติดต่อสมัคร BLM48 Membership ฟรี<br>ได้ทาง BLM48 Line ID : @569rnpsj</p>
-      </div>
-    `;
-    return;
-  }
-
-  // --- กรณี Member (Login แล้ว) ---
   if (logoutBtn) logoutBtn.style.display = 'inline-block'; 
-  if (loginBtn) loginBtn.style.display = 'none';
 
   const isMember = isUserMember();
 
-  // 🌸 จัดการเลย์เอาต์การแสดงผล คามิโอชิ และ โอชิ
+  // 🌸 จัดการเลย์เอาต์การแสดงผล คามิโอชิ และ โอชิ (เก็บไว้ตามโครงสร้างเดิมของพี่เอ็มมี่)
   const kamiTag = user.kamioshi ? `
     <span class="tag tag-kami" style="display: inline-flex; align-items: center; gap: 5px; background: #ffd700; color: #333; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; margin: 3px;">
       <i class="fas fa-crown"></i> ${user.kamioshi}
@@ -1501,10 +1337,11 @@ function updateUI() {
     </span>
   `).join('');
 
+  // 👑 วาดหน้าจอแสดงผลข้อมูลโปรไฟล์ บัญชีผู้ใช้ และ กระเป๋าเงินทันที
   bar.innerHTML = `
     <div class="user-info-header">
-           <a href="profile.html" class="profile-img-container nav-icon" title="Profile">
-          <img src="${getImg(user.profile_img)}" class="user-avatar-img">
+      <a href="profile.html" class="profile-img-container nav-icon" title="Profile">
+        <img src="${getImg(user.profile_img)}" class="user-avatar-img">
       </a>
       <div style="flex:1">
         <div class="user-name">
@@ -1522,67 +1359,7 @@ function updateUI() {
       <button onclick="${isMember ? "Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info')" : "claimMonthly()"}" class="btn-bonus btn-monthly ${isMember ? 'btn-locked' : ''}"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
       <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
     </div>
-  `;}
-
-
-// 💔 ฟังก์ชันสำหรับกดลบคามิ/โอชิจากหน้าจอ แล้วยิงไปอัปเดต Google Sheet ทันทีผ่าน action: removeOshi ที่มีอยู่เดิม
-async function removeOshiFromUI(type, memberName) {
-  const typeText = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
-  
-  // แจ้งเตือนยืนยันการลบแบบน่ารักๆ สไตล์ BLM48
-  const confirm = await Swal.fire({
-    title: `แน่ใจไหมงับ?`,
-    text: `คุณต้องการลบ ${memberName} ออกจากรายการ${typeText}ใช่ไหม?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#ff85a2',
-    cancelButtonColor: '#aaa',
-    confirmButtonText: 'ใช่, ลบเลย!',
-    cancelButtonText: 'ยกเลิก'
-  });
-
-  if (!confirm.isConfirmed) return;
-
-  Swal.fire({
-    title: 'กำลังอัปเดตฐานข้อมูล...',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
-
-  try {
-    // ดึง URL ของ Apps Script จากที่คุณเอ็มมี่ตั้งค่าไว้ในโค้ดส่วนอื่น (ในที่นี้อ้างอิงตามมาตรฐานเดิมของคุณเอ็มมี่)
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    
-    // ยิง POST Request ส่ง action ไปที่ระบบหลังบ้านตัวเดิมที่คุณเอ็มมี่เขียนรอไว้แล้ว
-    const response = await fetch(scriptURL, {
-      method: 'POST',
-      body: new URLSearchParams({
-        action: 'removeOshi',
-        username: user.username, // ส่ง username ปัจจุบันไปหาแถว
-        type: type,              // 'kami' หรือ 'oshi'
-        memberName: memberName   // ชื่อเมมเบอร์ที่ต้องการลบ
-      })
-    });
-
-    const res = await response.json();
-
-    if (res.status === 'success') {
-      Swal.fire('สำเร็จ!', `ลบ ${memberName} เรียบร้อยแล้วค่ะ`, 'success');
-      
-      // อัปเดตตัวแปร user ในหน้าบ้าน เพื่อให้หน้าเว็บทำการดึงและวาด UI ใหม่ทันที
-      if (typeof window.syncUserData === 'function') {
-        window.syncUserData(); // เรียกฟังก์ชันซิงค์ข้อมูลใหม่
-      } else {
-        // หากไม่มีฟังก์ชันซิงค์ ให้ทำการดึงใหม่ง่ายๆ ตามโครงสร้างเดิม
-        location.reload(); 
-      }
-    } else {
-      Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบข้อมูลได้', 'error');
-    }
-  } catch (error) {
-    console.error(error);
-    Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่อีกครั้งนะงับ', 'error');
-  }
+  `;
 }
 
 function renderRanking(data) {
@@ -1700,95 +1477,6 @@ function openMemberProfile(name) {
   }
 }
 
-  
-async function setOshi(type, memberName) {
-  if (!user) return openLogin();
-  const username = user.username;
-  const searchName = memberName.toLowerCase();
-  
-  // ใช้ข้อมูลจาก Object user ที่เราจัดระเบียบไว้แล้วใน doGet
-  const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
-  const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
-  const isAlreadyOshi = oshiArray.includes(searchName);
-
-  let action = "";
-  let confirmText = "";
-  let subTitle = "";
-
-  // --- 1. วิเคราะห์สถานะเพื่อกำหนด Action (Toggle Logic) ---
-  if (type === 'kami') {
-    if (currentKamioshi === searchName) {
-      action = "removeOshi";
-      confirmText = `ลบ ${memberName} ออกจาก "คามิโอชิ" ใช่หรือไม่?`;
-      subTitle = "ยกเลิกการติดตาม";
-    } else {
-      action = "setKamioshi";
-      confirmText = `ตั้งให้ ${memberName} เป็น "คามิโอชิ" ของคุณใช่หรือไม่?`;
-      subTitle = "ยืนยันรายการ";
-    }
-  } else {
-    // ถ้าจะเพิ่มเป็นโอชิ แต่ดันเป็นคามิอยู่แล้ว ให้หยุดทันที
-    if (currentKamioshi === searchName) {
-      return Swal.fire('ข้อมูลซ้ำซ้อน', `${memberName} เป็นคามิโอชิของคุณอยู่แล้วค่ะ`, 'warning');
-    }
-
-    if (isAlreadyOshi) {
-      action = "removeOshi";
-      confirmText = `เลิกติดตาม (Un-Oshi) ${memberName} ใช่หรือไม่?`;
-      subTitle = "ยกเลิกการติดตาม";
-    } else {
-      action = "setOshi";
-      confirmText = `ติดตาม (Oshi) ${memberName} เพิ่มในลิสต์ใช่หรือไม่?`;
-      subTitle = "ยืนยันรายการ";
-    }
-  }
-
-  // --- 2. แสดง Alert ยืนยันเพียงครั้งเดียว ---
-  const finalConfirm = await Swal.fire({
-    title: subTitle,
-    text: confirmText,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonColor: '#ff85a2',
-    confirmButtonText: 'ตกลง',
-    cancelButtonText: 'ยกเลิก'
-  });
-
-  if (!finalConfirm.isConfirmed) return;
-
-  // --- 3. ส่งข้อมูลไปที่ Apps Script (ใช้ POST แบบเดียวกับที่ App Script รอรับ) ---
-  Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-  try {
-    const resp = await fetch(scriptURL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: action,
-        type: type,
-        username: username,
-        memberName: memberName
-      })
-    });
-
-    const res = await resp.json();
-    if (res.status === "success") {
-      await syncUserData(); // สำคัญมาก: ต้องดึงข้อมูลล่าสุดกลับมาเก็บในตัวแปร user
-      Swal.fire({ 
-        icon: 'success', 
-        title: 'สำเร็จ!', 
-        text: res.message, 
-        timer: 1500, 
-        showConfirmButton: false 
-      });
-    } else {
-      Swal.fire('ผิดพลาด', res.message, 'error');
-    }
-  } catch (e) {
-    console.error(e);
-    Swal.fire('Error', 'การเชื่อมต่อขัดข้อง หรือ Script URL ไม่ถูกต้อง', 'error');
-  }
-}
-
   async function refreshPage() {
     Swal.fire({ title: 'กำลังอัปเดตข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     try {
@@ -1797,9 +1485,12 @@ async function setOshi(type, memberName) {
     } catch (error) { Swal.fire('ผิดพลาด', 'ไม่สามารถดึงข้อมูลล่าสุดได้', 'error'); }
   }
 
- function confirmLogout() {
-  // 1. ถ้าไม่มี user ล็อกอินอยู่แล้ว ให้เปิดหน้าล็อกอินขึ้นมาทันที
-  if (!user) return openLogin();
+function confirmLogout() {
+  // 1. ถ้าไม่มี user ล็อกอินอยู่แล้ว ให้ดีดไปหน้าล็อกอินทันที
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
 
   // 2. แสดงกล่องยืนยันการออกจากระบบ
   Swal.fire({
@@ -1811,31 +1502,35 @@ async function setOshi(type, memberName) {
     cancelButtonText: 'ยกเลิก'
   }).then((result) => {
     if (result.isConfirmed) {
-      // 3. ลบ Session ในเครื่องออกให้หมดจด (ใช้คีย์ bnl_session ตามระบบของคุณ)
+      // 3. ลบ Session ในเครื่องออกให้หมดจด
       localStorage.removeItem('bnl_session');
       sessionStorage.clear();
 
-      // 4. ล้างค่าตัวแปรกลางใน RAM เป็น null ทันที (แก้บั๊กโปรไฟล์ค้าง)
+      // 4. ล้างค่าตัวแปรกลางใน RAM เป็น null ทันที
       user = null; 
 
-      // 5. สั่งอัปเดตหน้าจอทันที แถบโปรไฟล์จะถูกล้างค่าเป็น Guest
+      // 5. สั่งอัปเดตหน้าจอ
       updateUI(); 
 
-      // 6. แจ้งเตือนสำเร็จ และเมื่อกดตกลงปิดแจ้งเตือน จะเปิดหน้าต่างล็อกอินรูปที่ 2 ขึ้นมา
+      // 6. แจ้งเตือนสำเร็จ และเมื่อกดตกลงจะดีดกลับหน้าล็อกอินหลักทันที
       Swal.fire({
         title: 'สำเร็จ!',
         text: 'ออกจากระบบเรียบร้อยแล้วค่ะ',
         icon: 'success',
         confirmButtonColor: '#ff85a2'
       }).then(() => {
-        openLogin(); // เด้งหน้าต่างล็อกอิน (รูปที่ 2) ขึ้นมาบล็อกหน้าจอต่อทันที
+        window.location.href = 'login.html'; // 🎯 แก้ไขจาก openLogin() เป็นการเปลี่ยนหน้า
       });
     }
   });
 }
 
- async function claimMonthly() {
-  if (!user) return openLogin();
+async function claimMonthly() {
+  // 🎯 แก้ไข: ถ้าไม่มีเซสชัน ให้ดีดไปหน้าล็อกอินแทนการเปิด Modal
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
   
   const btnClaim = document.querySelector('.btn-monthly');
   if (btnClaim && btnClaim.disabled) return; 
@@ -1860,21 +1555,20 @@ async function setOshi(type, memberName) {
     if (res.status === "success") { 
       await syncUserData(); 
       Swal.fire('สำเร็จ!', res.message, 'success'); 
-      // หลังสำเร็จ ไม่ต้องเปิดปุ่มคืน (เพราะ syncUserData จะคุมสถานะปุ่มอยู่แล้ว)
     } else { 
       Swal.fire('ขออภัย', res.message, 'info'); 
       if (btnClaim) btnClaim.disabled = false; 
     }
   } catch (e) { 
     Swal.fire('Error', 'ระบบขัดข้อง', 'error'); 
-    if (btnClaim) btnClaim.disabled = false; // ✨ ปรับเป็น false เพื่อให้กดลองใหม่ได้หากเน็ตมีปัญหา
+    if (btnClaim) btnClaim.disabled = false; 
   }
 }
   
   async function updateDisplayName() {
-  // สมมติว่าคุณเอ็มมี่เก็บข้อมูลผู้ใช้ที่ล็อกอินไว้ในตัวแปร currentUser
-  if (!currentUser || currentUser.role.toLowerCase() !== "user") {
-    alert("เฉพาะผู้ใช้งานทั่วไป (User) เท่านั้นที่สามารถเปลี่ยนชื่อได้ค่ะ");
+  // 🎯 แก้ไขจาก currentUser เป็น user ให้ตรงกับระบบหลัก
+  if (!user) {
+    window.location.href = 'login.html';
     return;
   }
 
@@ -1882,7 +1576,7 @@ async function setOshi(type, memberName) {
     title: 'แก้ไขชื่อของคุณ',
     input: 'text',
     inputLabel: 'กรอกชื่อใหม่ที่ต้องการ',
-    inputValue: currentUser.name,
+    inputValue: user.name, // 🎯 แก้ไขเป็น user.name
     showCancelButton: true,
     inputValidator: (value) => {
       if (!value) return 'กรุณากรอกชื่อด้วยนะคะ'
@@ -1895,22 +1589,24 @@ async function setOshi(type, memberName) {
       // แสดง Loading
       Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-      const response = await fetch(SCRIPT_URL, {
+      // 🎯 แก้ไข SCRIPT_URL เป็น scriptURL (ตามที่พี่เอ็มมี่ประกาศไว้ข้างบน)
+      const response = await fetch(scriptURL, {
         method: 'POST',
-        mode: 'no-cors', // หรือปรับตามการตั้งค่า Deployment ของคุณ
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `action=updateName&username=${currentUser.username}&newName=${encodeURIComponent(newName)}`
+        body: `action=updateName&username=${user.username}&newName=${encodeURIComponent(newName)}` // 🎯 แก้ไขเป็น user.username
       });
 
-      // หมายเหตุ: ถ้าใช้ no-cors จะอ่าน response ตรงๆ ไม่ได้ 
-      // แนะนำให้ใช้การแจ้งเตือนสำเร็จไปเลย หรือใช้เทคนิคอื่นในการเช็ค
       Swal.fire('สำเร็จ!', 'เปลี่ยนชื่อเป็น ' + newName + ' เรียบร้อยแล้วค่ะ', 'success');
       
-      // อัปเดตชื่อในหน้าเว็บทันทีโดยไม่ต้องรีโหลด
-      currentUser.name = newName;
-      document.getElementById('user-display-name').innerText = newName; 
+      // อัปเดตชื่อในหน้าเว็บและตัวแปรในเครื่องทันที
+      user.name = newName; // 🎯 อัปเดตลงตัวแปรหลัก
+      if(typeof saveUserSession === "function") saveUserSession(user); // บันทึกลงเซสชันถาวร
+      
+      const nameElem = document.getElementById('user-display-name');
+      if (nameElem) nameElem.innerText = newName; 
 
     } catch (error) {
+      console.error(error);
       Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเปลี่ยนชื่อได้ในขณะนี้', 'error');
     }
   }
@@ -1956,29 +1652,37 @@ async function setOshi(type, memberName) {
   }
   
   function openLogin() { 
-    document.getElementById('modal-overlay').style.display = 'block'; 
+    window.location.href = 'login.html';
   }
   
-  // หลังจาก Login หรือดึงข้อมูลผู้ใช้สำเร็จ
+// หลังจาก Login หรือดึงข้อมูลผู้ใช้สำเร็จ
 function setupUserProfile(user) {
+  if (!user) return; // 🎯 ดักเอาไว้ก่อน ถ้าไม่มีข้อมูลผู้ใช้ (เป็น Guest) จะได้ไม่เกิด Error ค้างหน้าจอครับ
+  
   const nameElement = document.getElementById('user-display-name');
   const editBtn = document.getElementById('edit-name-btn');
 
-  nameElement.innerText = user.name;
+  if (nameElement) nameElement.innerText = user.name;
 
   // ถ้าเป็น role user ให้แสดงไอคอนดินสอ
-  if (user.role.toLowerCase() === 'user') {
-    editBtn.style.display = 'inline-block';
+  if (user.role && user.role.toLowerCase() === 'user') {
+    if (editBtn) editBtn.style.display = 'inline-block';
   } else {
-    editBtn.style.display = 'none';
+    if (editBtn) editBtn.style.display = 'none';
   }
 }
   
   function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
-  function getImg(url) {
+   function getImg(url) {
     if (!url) return 'https://via.placeholder.com/150';
-    if (url.includes('drive.google.com')) return `https://lh3.googleusercontent.com/u/0/d/${url.match(/[-\w]{25,}/)}`;
+
+    if (url.includes('drive.google.com')) {
+      const match = url.match(/[-\w]{25,}/);
+      // 🎯 แก้ไข: เติม $ และกำหนดตัวแปรดึงค่า Array ตัวแรก [0] เพื่อให้ระบบแปลงลิงก์รูปภาพได้อย่างถูกต้อง
+      return match ? `https://lh3.googleusercontent.com/u/0/d/$${match[0]}` : url;
+    }
+
     if (url.startsWith('data:image')) return url;
     return url;
   }
@@ -2021,38 +1725,59 @@ async function refreshAppData() {
 }
 
 
-// ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh
+// 1. ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh หน้าจอ
 window.addEventListener('pageshow', function(event) {
-    refreshAppData();
+    // ซิงค์ข้อมูลใหม่เฉพาะกรณีที่มีตัวแปร user อยู่ในระบบแล้วเท่านั้น
+    if (typeof user !== 'undefined' && user) {
+        refreshAppData();
+    }
 });
 
-  // --- Initial Load Strategy (Speed up!) ---
+// 👑 ⚡ รวมร่างก้อน Initial Load Strategy ให้เหลือสิทธิ์เดียว (Speed up & No Duplicate Requests)
 window.addEventListener('DOMContentLoaded', () => {
-    checkVersion(); 
-
-    // 1. วาด UI ทันทีจากข้อมูลเก่าในเครื่อง (ถ้ามี)
-    if (user) updateUI();
-    if (currentRankingData.length > 0) renderRanking(currentRankingData);
-    if (Object.keys(currentTopFansData).length > 0) renderGlobalFans(currentTopFansData);
     
-    // 2. ซ่อน Loading Screen ทันทีที่ของในเครื่องแสดงผลเสร็จ
+    // 1️⃣ ดึงข้อมูลเซสชันล็อกอินจากเครื่องเป็นอันดับแรกสุด
+    user = getUserSession(); 
+
+    // 🚨 ระบบล็อกอินวอลล์ (Enforce Login): ถ้าไม่มีข้อมูลผู้ใช้ ให้ดีดไปหน้า login.html ทันที!
+    // (สอดคล้องกับที่พี่เอ็มมี่เอาปุ่มล็อกอินหน้าแรกออก ให้เข้ามารับหน้าโปรไฟล์ได้เลย)
+    if (!user) {
+        window.location.href = 'login.html';
+        return; // หยุดการทำงานของโค้ดบรรทัดล่างทั้งหมดทันที ป้องกันแอปพัง
+    }
+
+    // 2️⃣ ตรวจสอบเวอร์ชันแอปพลิเคชัน (ถ้ามีฟังก์ชันนี้ทำงานอยู่)
+    if (typeof checkVersion === 'function') checkVersion(); 
+
+    // 3️⃣ วาด UI ทันทีจากข้อมูลเก่า/ข้อมูลแคชในเครื่อง (ช่วยให้หน้าเว็บขึ้นสถิติต่างๆ ทันที ไม่ต้องรอเน็ตโหลด)
+    updateUI();
+    if (typeof currentRankingData !== 'undefined' && currentRankingData.length > 0) {
+        renderRanking(currentRankingData);
+    }
+    if (typeof currentTopFansData !== 'undefined' && Object.keys(currentTopFansData).length > 0) {
+        renderGlobalFans(currentTopFansData);
+    }
+    
+    // 4️⃣ ซ่อนหน้าจอโหลดสีขาวชมพู (App Loading Screen) เพื่อเปิดหน้าแอปอย่างนุ่มนวล
     hideAppLoading();
 
-    // 3. ดึงข้อมูลใหม่เงียบๆ มาอัปเดตภายหลัง
+    // 5️⃣ ดึงข้อมูลอันดับใหม่และซิงค์กระเป๋าเงินจากระบบ Google Sheets เบื้องหลังเงียบๆ (ยิงรอบเดียว ไม่เบิ้ลแล้วครับ)
     loadData();
-    if(user) syncUserData(); 
+    syncUserData(); 
 });
 
-  // ลดความถี่ในการสร้างคุกกี้ร่วงเพื่อลดภาระ CPU
-  setInterval(() => {
-    if (document.hidden) return; // ไม่ทำถ้าเปิดแท็บอื่นอยู่
+// 🍪 ระบบแอนิเมชันคุกกี้ร่วง (ปรับแต่งเพื่อประหยัด CPU ของผู้ใช้งาน)
+setInterval(() => {
+    if (document.hidden || !user) return; // ไม่ทำงานหากเปิดแท็บอื่นอยู่ หรือผู้ใช้ไม่ได้ล็อกอิน
+    
     const c = document.createElement('i');
     c.className = 'fas fa-cookie cookie-fall';
     c.style.left = Math.random() * 100 + 'vw';
     c.style.animationDuration = (Math.random() * 3 + 4) + 's';
     document.body.appendChild(c);
+    
     setTimeout(() => c.remove(), 6000);
-  }, 5000);  
+}, 5000);
   
 // 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
@@ -2076,7 +1801,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 <script type="module">
-  // 1. นำเข้าฟังก์ชันจาก Firebase (เก็บไว้เพราะอาจใช้ Sync ข้อมูลส่วนอื่น)
+  // 1. นำเข้าฟังก์ชันจาก Firebase
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
   import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
@@ -2095,30 +1820,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
 
-  // 🎯 ระบบดึงสถิติจำนวนสมาชิก (เก็บไว้)
-  function refreshCountFromSheets() {
+  // 👑 ส่งค่า Firebase ออกไปที่ window เพื่อให้สคริปต์จุดอื่นๆ ในแอปสามารถเรียกใช้งานร่วมกันได้
+  window.firebaseApp = app;
+  window.firebaseDatabase = database;
+
+  // 🎯 ระบบดึงสถิติจำนวนสมาชิก (ปรับเป็น async/await เพื่อความคลีนและเข้าชุดกับฟังก์ชันอื่นครับ)
+  async function refreshCountFromSheets() {
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberCount';
     const countElement = document.getElementById('total-members-count');
     
     if (!countElement) return;
 
-    fetch(scriptURL)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.success) {
-                countElement.textContent = Number(data.total).toLocaleString();
-            } else {
-                console.error("Sheets Counter Error:", data.error);
-                countElement.textContent = "0";
-            }
-        })
-        .catch(error => {
-            console.error("เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets:", error);
-            countElement.textContent = "...";
-        });
+    try {
+      const response = await fetch(scriptURL);
+      const data = await response.json();
+      
+      if (data && data.success) {
+        countElement.textContent = Number(data.total).toLocaleString();
+      } else {
+        console.error("Sheets Counter Error:", data.error);
+        countElement.textContent = "0";
+      }
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets:", error);
+      countElement.textContent = "...";
+    }
   }
 
-  // สั่งให้ทำงานทันทีเมื่อโหลดหน้าเว็บ
+  // 👑 ส่งฟังก์ชันออกไปที่ window เพื่อให้ปุ่มรีเฟรชข้อมูลตัวอื่นสามารถสั่งอัปเดตยอดสมาชิกได้ด้วย
+  window.refreshCountFromSheets = refreshCountFromSheets;
+
+  // สั่งให้ทำงานทันทีเมื่อโหลดโมดูลเสร็จรอบแรก
   refreshCountFromSheets();
 </script>
 </body>
