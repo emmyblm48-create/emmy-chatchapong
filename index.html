@@ -1724,51 +1724,59 @@ async function refreshAppData() {
   } 
 }
 
-
 // 1. ดักจับเมื่อมีการโหลดหน้าเว็บครั้งแรกหรือกด Refresh หน้าจอ
 window.addEventListener('pageshow', function(event) {
-    // ซิงค์ข้อมูลใหม่เฉพาะกรณีที่มีตัวแปร user อยู่ในระบบแล้วเท่านั้น
     if (typeof user !== 'undefined' && user) {
-        refreshAppData();
+        if (typeof refreshAppData === 'function') refreshAppData();
     }
 });
 
-// 👑 ⚡ รวมร่างก้อน Initial Load Strategy ให้เหลือสิทธิ์เดียว (Speed up & No Duplicate Requests)
+// 👑 ⚡ เวอร์ชั่นเซฟตี้ขั้นสุด ป้องกันหน้าจอโหลดค้าง (Bulletproof Initial Load)
 window.addEventListener('DOMContentLoaded', () => {
-    
-    // 1️⃣ ดึงข้อมูลเซสชันล็อกอินจากเครื่องเป็นอันดับแรกสุด
-    user = getUserSession(); 
+    try {
+        // ป้องกันแอปพัง: เช็คว่ามีฟังก์ชัน getUserSession ในระบบไหมก่อนเรียกใช้
+        if (typeof getUserSession === 'function') {
+            user = getUserSession(); 
+        } else {
+            console.error("หาฟังก์ชัน getUserSession ไม่เจอครับพี่เอ็มมี่!");
+            user = null;
+        }
 
-    // 🚨 ระบบล็อกอินวอลล์ (Enforce Login): ถ้าไม่มีข้อมูลผู้ใช้ ให้ดีดไปหน้า login.html ทันที!
-    // (สอดคล้องกับที่พี่เอ็มมี่เอาปุ่มล็อกอินหน้าแรกออก ให้เข้ามารับหน้าโปรไฟล์ได้เลย)
-    if (!user) {
-        window.location.href = 'login.html';
-        return; // หยุดการทำงานของโค้ดบรรทัดล่างทั้งหมดทันที ป้องกันแอปพัง
+        // 🚨 ระบบล็อกอินวอลล์: ถ้าไม่มีข้อมูลผู้ใช้ ให้ดีดไปหน้าล็อกอินทันที
+        if (!user) {
+            window.location.href = 'login.html';
+            return; // หยุดทำงานโค้ดด้านล่างทันทีเพื่อรีไดเรกต์ไปหน้าล็อกอิน
+        }
+
+        // เรียกทำงานฟังก์ชันสถิติต่างๆ แบบปลอดภัย (เช็คตัวแปรก่อนรันเสมอ)
+        if (typeof checkVersion === 'function') checkVersion(); 
+        if (typeof updateUI === 'function') updateUI();
+        
+        if (typeof currentRankingData !== 'undefined' && currentRankingData.length > 0) {
+            if (typeof renderRanking === 'function') renderRanking(currentRankingData);
+        }
+        if (typeof currentTopFansData !== 'undefined' && Object.keys(currentTopFansData).length > 0) {
+            if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
+        }
+
+        // ดึงข้อมูลใหม่และซิงค์กระเป๋าเงินจาก Google Sheets เบื้องหลังเงียบๆ
+        if (typeof loadData === 'function') loadData();
+        if (typeof syncUserData === 'function') syncUserData(); 
+
+    } catch (error) {
+        // หากโค้ดจุดไหนทำงานพลาด ให้พ่นฟ้องใน Console (F12) จะได้ตามแก้ถูกจุดครับ
+        console.error("เกิดข้อผิดพลาดระหว่างโหลดแอป:", error);
+    } finally {
+        // 🎯 จุดสำคัญที่สุด: ไม่ว่าจะเกิด Error อะไรขึ้น หน้าโหลดสีขาวชมพูต้องถูกปิดออกเสมอ! แอปจะได้ไม่ค้าง
+        if (typeof hideAppLoading === 'function') {
+            hideAppLoading();
+        }
     }
-
-    // 2️⃣ ตรวจสอบเวอร์ชันแอปพลิเคชัน (ถ้ามีฟังก์ชันนี้ทำงานอยู่)
-    if (typeof checkVersion === 'function') checkVersion(); 
-
-    // 3️⃣ วาด UI ทันทีจากข้อมูลเก่า/ข้อมูลแคชในเครื่อง (ช่วยให้หน้าเว็บขึ้นสถิติต่างๆ ทันที ไม่ต้องรอเน็ตโหลด)
-    updateUI();
-    if (typeof currentRankingData !== 'undefined' && currentRankingData.length > 0) {
-        renderRanking(currentRankingData);
-    }
-    if (typeof currentTopFansData !== 'undefined' && Object.keys(currentTopFansData).length > 0) {
-        renderGlobalFans(currentTopFansData);
-    }
-    
-    // 4️⃣ ซ่อนหน้าจอโหลดสีขาวชมพู (App Loading Screen) เพื่อเปิดหน้าแอปอย่างนุ่มนวล
-    hideAppLoading();
-
-    // 5️⃣ ดึงข้อมูลอันดับใหม่และซิงค์กระเป๋าเงินจากระบบ Google Sheets เบื้องหลังเงียบๆ (ยิงรอบเดียว ไม่เบิ้ลแล้วครับ)
-    loadData();
-    syncUserData(); 
 });
 
-// 🍪 ระบบแอนิเมชันคุกกี้ร่วง (ปรับแต่งเพื่อประหยัด CPU ของผู้ใช้งาน)
+// 🍪 ระบบแอนิเมชันคุกกี้ร่วง
 setInterval(() => {
-    if (document.hidden || !user) return; // ไม่ทำงานหากเปิดแท็บอื่นอยู่ หรือผู้ใช้ไม่ได้ล็อกอิน
+    if (document.hidden || typeof user === 'undefined' || !user) return;
     
     const c = document.createElement('i');
     c.className = 'fas fa-cookie cookie-fall';
