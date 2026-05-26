@@ -49,6 +49,52 @@
       overflow-x: hidden;
     }
     
+    /* สไตล์สำหรับแถบเมนูด้านล่างแบบแอป */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  border-top: 1px solid #ffe4e8;
+  z-index: 999;
+  padding-bottom: env(safe-area-inset-bottom); /* รองรับรอยบากด้านล่างของ iPhone */
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #888888;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-family: inherit;
+  transition: color 0.2s ease;
+  flex: 1;
+}
+
+.nav-item i {
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+
+/* คลาสสำหรับหน้าปัจจุบันที่เปิดอยู่ */
+.nav-item.active {
+  color: #ff85a2; /* สีชมพูธีม BLM48 */
+  font-weight: bold;
+}
+
+/* เพิ่ม padding-bottom ให้เนื้อหาหลักของทุกหน้า เพื่อไม่ให้โดนเมนูบัง */
+body {
+  padding-bottom: 80px;
+}
+    
     .navbar {
     display: flex;
     justify-content: space-between; /* กระจายชื่อ เมนู และปุ่ม */
@@ -2062,7 +2108,54 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
-    
+
+    <div class="bottom-nav">
+  <a href="index.html" class="nav-item" id="nav-home">
+    <i class="fa-solid fa-house"></i>
+    <span>Home</span>
+  </a>
+  <a href="search.html" class="nav-item" id="nav-search">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span>Search</span>
+  </a>
+  <a href="shop.html" class="nav-item" id="nav-shop">
+    <i class="fa-solid fa-basket-shopping"></i>
+    <span>Shop</span>
+  </a>
+  <a href="kami.html" class="nav-item" id="nav-kami">
+    <i class="fa-solid fa-heart"></i>
+    <span>Oshi</span>
+  </a>
+  <a href="profile.html" class="nav-item" id="nav-profile">
+    <i class="fa-solid fa-user"></i>
+    <span>Profile</span>
+  </a>
+</div>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const currentPath = window.location.pathname.split("/").pop();
+      
+      // ล้างคลาส active เก่าออกก่อนเพื่อความชัวร์
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      if (currentPath === "index.html" || currentPath === "") {
+        const el = document.getElementById("nav-home");
+        if (el) el.classList.add("active");
+      } else if (currentPath === "search.html" || currentPath === "member.html") {
+        const el = document.getElementById("nav-search");
+        if (el) el.classList.add("active");
+      } else if (currentPath === "shop.html" || currentPath === "inventory.html") {
+        const el = document.getElementById("nav-shop");
+        if (el) el.classList.add("active");
+      } else if (currentPath === "kami.html") {
+        const el = document.getElementById("nav-kami");
+        if (el) el.classList.add("active");
+      } else if (currentPath === "profile.html") {
+        const el = document.getElementById("nav-profile");
+        if (el) el.classList.add("active");
+      }
+    });
+  </script>
   </body>
   
 </html>
