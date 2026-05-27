@@ -924,17 +924,27 @@ function setupTopBarProfile() {
         const usernameTxt = document.getElementById('top-bar-username');
         const roleTxt = document.getElementById('top-bar-user-role');
         
-        // นำข้อมูลจาก userData ไปแสดงผลบนหน้าจอ
+        // 1. นำข้อมูลชื่อไปแสดงผล (เปลี่ยนเป็น userData.name ตามที่ส่งมาจาก u[2] ใน GAS)
         if (usernameTxt) {
-            usernameTxt.textContent = userData.nickname || userData.username || 'Guest';
+            usernameTxt.textContent = userData.name || userData.username || 'Guest';
         }
+        
+        // 2. นำข้อมูล Role ไปแสดงผล (ตรงกับ u[3] ใน GAS แล้ว)
         if (roleTxt && userData.role) {
             roleTxt.textContent = userData.role;
         }
         
-        // ✨ แก้ไขตรงนี้: เปลี่ยนมาดึงค่าจาก userData.profile ตามชื่อคอลัมน์ในตาราง Sheets งับ
-        if (avatarImg && userData.profile) {
-            avatarImg.src = userData.profile;
+        // 3. ✨ แก้ไขจุดนี้: เปลี่ยนมาดึงค่าจาก userData.profile_img ตามคีย์ใน Google Script งับ
+        if (avatarImg) {
+            // ดักคีย์ profile_img เผื่อไว้คู่กับ profile และใส่รูป Default เผื่อกรณีช่องใน Sheets ว่าง
+            const userPhoto = userData.profile_img || userData.profile;
+            
+            if (userPhoto && userPhoto.trim() !== "") {
+                avatarImg.src = userPhoto;
+            } else {
+                // รูปภาพสำรองน่ารักๆ เผื่อกรณีที่สมาชิกยังไม่ได้ใส่ลิงก์รูปภาพในชีทงับ
+                avatarImg.src = "https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000";
+            }
         }
     } catch (error) {
         console.error("ไม่สามารถโหลดข้อมูลโปรไฟล์สำหรับ Top Bar ได้:", error);
