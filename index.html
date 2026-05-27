@@ -374,6 +374,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .horizontal-list { 
   display: flex; gap: 12px; padding: 10px 20px; 
   align-items: flex-end; margin: 0 auto;
+  scroll-snap-type: x mandatory;
 }
 .member-card { 
   width: 85px; /* ปรับให้พอดี */
@@ -1081,52 +1082,57 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 }
 
 /* =========================================
-   ✨ TRENDING MV STYLES
+   ✨ TRENDING MV STYLES (สไตล์กะทัดรัดแบบ Peek เลื่อนขวา)
    ========================================= */
 .mv-card {
   position: relative;
-  min-width: 170px; /* ขนาดความกว้างของการ์ดให้พอดีกับจอ */
+  
+  /* 🎯 ใช้หน่วย vw เพื่อให้คำนวณตามความกว้างหน้าจอมือถือจริง */
+  /* 75vw = กว้าง 75% ของหน้าจอ ทำให้เหลือพื้นที่อีก 25% ให้ใบถัดไปโผล่มานิดๆ พร้อมช่องไฟ */
+  width: 75vw;
+  max-width: 240px; /* ล็อกขนาดสูงสุดไว้ เผื่อเปิดบนคอม/แท็บเล็ต การ์ดจะได้ไม่ขยายจนเบลอ */
+  
   background: white;
-  padding: 12px;
-  border-radius: 20px;
+  padding: 10px; /* ลด padding ลงเล็กน้อยให้ดูเล็กกะทัดรัดขึ้น */
+  border-radius: 18px; /* ปรับโค้งให้มนเข้ากับขนาดการ์ด */
   text-align: center;
-  border: 2px solid #ffeef2; /* สีขอบชมพูอ่อนแบบเดียวกับ Fan Card */
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  border: 2px solid #ffeef2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
+  flex-shrink: 0; /* ห้ามให้การ์ดโดนบีบแบน */
 }
 
 .mv-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(255, 133, 162, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(255, 133, 162, 0.15);
 }
 
 /* รูปปก MV อัตราส่วน 16:9 */
 .mv-thumbnail {
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: 12px;
+  border-radius: 10px;
   object-fit: cover;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
-/* ชื่อเพลง (ตั้งค่าให้ขึ้นบรรทัดใหม่ถ้ายาวเกิน) */
+/* ชื่อเพลง (ล็อกให้กะทัดรัด เหมาะกับจอเล็ก) */
 .mv-title {
   font-family: 'Kanit', sans-serif;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px; /* ปรับเล็กลง 1px เพื่อความคลีนบนมือถือ */
   color: #444;
-  margin-top: 10px;
-  line-height: 1.4;
+  margin-top: 8px;
+  line-height: 1.3;
   width: 100%;
-  white-space: normal; /* อนุญาตให้ปัดบรรทัดใหม่ */
-  word-wrap: break-word; /* ป้องกันคำยาวทะลุกรอบ */
+  white-space: normal;
+  word-wrap: break-word;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* ล็อกให้โชว์สูงสุด 2 บรรทัด (ถ้ายาวกว่านี้จะมี ... ต่อท้าย) เพื่อไม่ให้การ์ดสูงเกินไป */
+  -webkit-line-clamp: 2; /* ยาวเกิน 2 บรรทัดจะตัดเป็น ... */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1134,10 +1140,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 /* วันที่ลง MV */
 .mv-date {
   font-family: 'Quicksand', 'Kanit', sans-serif;
-  font-size: 11px;
-  color: #ff85a2; /* สีชมพูธีมหลัก */
+  font-size: 10px; /* ปรับให้เข้ากับการ์ดไซส์เล็ก */
+  color: #ff85a2;
   font-weight: 700;
-  margin-top: 6px;
+  margin-top: 4px;
 }
     
   </style>
