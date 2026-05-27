@@ -4,20 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Post | BLM48</title>
-    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
-    <meta name="theme-color" content="#ffc0cb">
-    <!-- สำหรับ iOS Home Screen Icon -->
-    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-    <!-- สำหรับ Android และ Chrome -->
-    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
-    <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+  <meta name="theme-color" content="#ffc0cb">
+  <meta name="apple-mobile-web-app-title" content="BLM48">   
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
   <style>
     body { font-family: 'Kanit', sans-serif; background-color: #fff0f5; padding: 20px; }
     .post-container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(255, 133, 162, 0.2); }
@@ -27,68 +22,127 @@
     .upload-btn-wrapper { margin-top: 10px; overflow: hidden; position: relative; }
     .btn-upload { border: 2px dashed #ffc0cb; color: #ff85a2; background-color: white; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
     .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
-    #preview-img { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
-    .btn-submit { background-color: #ff85a2; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; }
+    #preview-img { width: 100%; border-radius: 10px; margin-top: 10px; display: none; object-fit: cover; max-height: 300px; }
+    .btn-submit { background-color: #ff85a2; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    .btn-submit:hover { background-color: #ff6b8b; }
   </style>
 </head>
 <body>
 
 <div class="post-container">
-  <div class="header"> New Post</div>
+  <div class="header">🌸 New Post (BLM48 Feed)</div>
   <textarea id="post-content" placeholder="พิมพ์ข้อความถึงแฟนๆ ตรงนี้เลยงับ..."></textarea>
   
   <div class="upload-btn-wrapper">
-    <button class="btn-upload"> Add image</button>
+    <button class="btn-upload">📁 Add image (Optional)</button>
     <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" />
   </div>
   <img id="preview-img" />
 
-  <button class="btn-submit" onclick="submitPost()"> Share</button>
+  <button class="btn-submit" onclick="submitPost()">✨ Share Post</button>
 </div>
 
-<script>
-  let base64ImageString = "";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
-  function previewImage(event) {
+  // Config ของวง BLM48 เดิมของคุณเอ็มมี่
+  const firebaseConfig = {
+    apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
+    authDomain: "blm48-official-site.firebaseapp.com",
+    projectId: "blm48-official-site",
+    databaseURL: "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    storageBucket: "blm48-official-site.firebasestorage.app",
+    messagingSenderId: "924510827472",
+    appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const storage = getStorage(app);
+
+  let selectedFile = null;
+
+  // ฟังก์ชันแสดงตัวอย่างรูปภาพเมื่อเลือกไฟล์
+  window.previewImage = function(event) {
     const file = event.target.files[0];
     if (file) {
+      selectedFile = file; // เก็บไฟล์จริงเอาไว้รออัปโหลดไป Firebase ตอนกดแชร์
       const reader = new FileReader();
       reader.onload = function(e) {
-        document.getElementById('preview-img').src = e.target.result;
-        document.getElementById('preview-img').style.display = 'block';
-        base64ImageString = e.target.result; // เก็บไว้ส่งไป Apps Script
+        const preview = document.getElementById('preview-img');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
       }
       reader.readAsDataURL(file);
     }
   }
 
-  async function submitPost() {
-    const content = document.getElementById('post-content').value;
-    const author = "ชื่อเมมเบอร์"; // ดึงจาก Session หรือ localStorage ของระบบ Auth
+  // ฟังก์ชันกดส่งโพสต์
+  window.submitPost = async function() {
+    const content = document.getElementById('post-content').value.trim();
     
-    // กำหนด URL ของ Apps Script ที่เรา Deploy ไว้
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    // ดึงข้อมูล User ล็อกอินจริงจากระบบเซสชันของคุณเอ็มมี่ (ปรับคีย์ 'user' ให้ตรงกับระบบเดิมนะครับ)
+    const sessionUser = JSON.parse(localStorage.getItem('user')); 
     
-    // โค้ดส่งข้อมูล
+    if (!sessionUser || !sessionUser.username) {
+      Swal.fire('ไม่พบผู้ใช้งาน', 'กรุณาล็อกอินเข้าระบบก่อนนะคะ 😥', 'warning');
+      return;
+    }
+
+    if (!content && !selectedFile) {
+      Swal.fire('ข้อความว่างเปล่า', 'กรุณาพิมพ์ข้อความหรือเลือกรูปภาพก่อนแชร์น้าส', 'info');
+      return;
+    }
+
+    // แสดงหน้าต่างกำลังโหลดแบบน่ารักๆ
+    Swal.fire({
+      title: 'กำลังส่งโพสต์... 🌸',
+      text: 'ระบบกำลังนำโพสต์ขึ้นฟีดหลักงับ',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    let imageUrl = ""; // ค่าเริ่มต้นกรณีไม่มีการโพสต์รูปภาพ
+
     try {
+      // 1. ถ้ามีการเลือกรูปภาพ -> ให้ส่งขึ้น Firebase Storage ก่อนเลยงับ
+      if (selectedFile) {
+        const fileRef = ref(storage, `posts/${sessionUser.username}_post_${Date.now()}`);
+        await uploadBytes(fileRef, selectedFile);
+        imageUrl = await getDownloadURL(fileRef); // ได้ลิงก์ URL สั้นๆ สวยๆ กลับมา
+      }
+
+      // 2. ส่งข้อมูลทั้งหมดไปบันทึกที่ Google Sheets ผ่าน Apps Script
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+      
       const resp = await fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify({
           action: 'createPost',
-          author: author,
+          username: sessionUser.username, // แก้ไขคีย์ให้ตรงกับ Apps Script
           content: content,
-          imageContent: base64ImageString,
-          imageBase64: base64ImageString !== ""
+          imageUrl: imageUrl // ส่งเป็นลิงก์ URL จากคลาวด์แทน Base64
         })
       });
+
       const data = await resp.json();
-      if(data.status === "success") {
-        alert("โพสต์สำเร็จแล้วงับ!");
-        window.location.href = "index.html";
+
+      if (data.status === "success") {
+        Swal.fire({
+          title: 'สำเร็จแล้วงับ! ✨',
+          text: 'โพสต์ของคุณถูกส่งไปยังไทม์ไลน์เรียบร้อยแล้ว',
+          icon: 'success',
+          confirmButtonColor: '#ff85a2'
+        }).then(() => {
+          window.location.href = "index.html"; // โพสต์เสร็จส่งกลับหน้าหลักดึงฟีดมาโชว์
+        });
+      } else {
+        Swal.fire('เกิดข้อผิดพลาดจากเซิร์ฟเวอร์', data.message || 'ไม่สามารถโพสต์ได้', 'error');
       }
+
     } catch (error) {
-      console.error(error);
-      alert("เกิดข้อผิดพลาด");
+      console.error("Post Submission Error:", error);
+      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองอีกครั้งงับ 😥', 'error');
     }
   }
 </script>
