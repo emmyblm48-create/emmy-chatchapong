@@ -897,7 +897,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 </footer>
       
 <script>
-       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 let userData = null;
 
 // 1. โหลดข้อมูลผู้ใช้จากหน้าแรก (LocalStorage)
@@ -910,41 +910,36 @@ function initShop() {
         return;
     }
     userData = JSON.parse(session).data;
+    
+    // อัปเดต UI หน้าเว็บหลังจากได้ข้อมูลผู้ใช้ชัวร์ๆ แล้ว
     updateWalletUI();
+    setupTopBarProfile(); 
 }
   
-  function setupTopBarProfile() {
+// 👑 ฟังก์ชันแสดงโปรไฟล์ ชื่อ และ Role บน Top Bar ด้านบน (ดึงจากตัวแปรส่วนกลาง ไม่สับสนคีย์)
+function setupTopBarProfile() {
+    if (!userData) return;
     try {
-        // ดึงข้อมูล User Session จาก localStorage (อิงตามคีย์ที่เอ็มมี่ใช้ในแอป)
-        const sessionData = localStorage.getItem('bnl_user') || localStorage.getItem('user');
+        const avatarImg = document.getElementById('top-bar-avatar');
+        const usernameTxt = document.getElementById('top-bar-username');
+        const roleTxt = document.getElementById('top-bar-user-role');
         
-        if (sessionData) {
-            const userData = JSON.parse(sessionData);
-            
-            const avatarImg = document.getElementById('top-bar-avatar');
-            const usernameTxt = document.getElementById('top-bar-username');
-            const roleTxt = document.getElementById('top-bar-user-role');
-            
-            // นำข้อมูลไปแปะบน Top Bar
-            if (usernameTxt) {
-                usernameTxt.textContent = userData.nickname || userData.username || 'Guest';
-            }
-            if (roleTxt && userData.role) {
-                roleTxt.textContent = userData.role;
-            }
-            if (avatarImg && userData.avatar) {
-                avatarImg.src = userData.avatar;
-            }
+        // นำข้อมูลจาก userData ไปแสดงผลบนหน้าจอ
+        if (usernameTxt) {
+            usernameTxt.textContent = userData.nickname || userData.username || 'Guest';
+        }
+        if (roleTxt && userData.role) {
+            roleTxt.textContent = userData.role;
+        }
+        if (avatarImg && userData.avatar) {
+            avatarImg.src = userData.avatar;
         }
     } catch (error) {
         console.error("ไม่สามารถโหลดข้อมูลโปรไฟล์สำหรับ Top Bar ได้:", error);
     }
 }
 
-// เรียกใช้งานฟังก์ชันเมื่อโหลดหน้าเว็บเสร็จ
-window.addEventListener('DOMContentLoaded', setupTopBarProfile);
-
-// 2. อัปเดตการแสดงผลยอดเงิน
+// 2. อัปเดตการแสดงผลยอดเงินในกระเป๋า
 function updateWalletUI() {
     const walletBar = document.getElementById('shop-wallet-bar');
     if (!userData || !walletBar) return;
@@ -987,7 +982,10 @@ async function refreshPage() {
             session.data = userData;
             localStorage.setItem('bnl_session', JSON.stringify(session));
             
+            // อัปเดต UI กระเป๋าเงินและข้อมูลแถบด้านบนพร้อมกัน
             updateWalletUI();
+            setupTopBarProfile();
+            
             Swal.fire('อัปเดตแล้ว!', 'ข้อมูลกระเป๋าเงินเป็นปัจจุบันแล้วค่ะ', 'success');
         } else {
             throw new Error("User not found");
@@ -1018,7 +1016,7 @@ function confirmLogout() {
     });
 }
 
-// 🛒 5. ระบบแลกซื้อคุกกี้ (Cookie Shop ฟังก์ชันใหม่เสถียร 100%)
+// 🛒 5. ระบบแลกซื้อคุกกี้
 async function buyCookies(tokenPrice, cookieReward) {
     if (!userData) return;
 
@@ -1045,7 +1043,6 @@ async function buyCookies(tokenPrice, cookieReward) {
         });
 
         try {
-            // ส่งแบบ FormData เพื่อให้แมทช์กับ doPost และ e.parameter บน Apps Script
             const formData = new FormData();
             formData.append('action', 'exchangeCookies');
             formData.append('username', userData.username);
@@ -1060,7 +1057,6 @@ async function buyCookies(tokenPrice, cookieReward) {
             const res = await response.json();
 
             if (res.status === "success") {
-                // เซฟและคำนวณข้อมูลใหม่ลง Client UI ทันที
                 userData.token = res.newToken !== undefined ? res.newToken : (userData.token - tokenPrice);
                 userData.cookie = res.newCookie !== undefined ? res.newCookie : (Number(userData.cookie) + cookieReward);
 
@@ -1068,7 +1064,7 @@ async function buyCookies(tokenPrice, cookieReward) {
                 newSession.data = userData;
                 localStorage.setItem('bnl_session', JSON.stringify(newSession));
 
-                updateWalletUI(); // แสดงผลตัวเลขกระเป๋าเงินล่าสุดบนหน้าจอ
+                updateWalletUI(); 
                 Swal.fire('สำเร็จ!', res.message, 'success');
             } else {
                 Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
@@ -1080,6 +1076,7 @@ async function buyCookies(tokenPrice, cookieReward) {
     }
 }
   
+// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด
 async function buyGacha(collectionId) {
   if(!userData) return;
   const username = userData.username;
@@ -1101,10 +1098,9 @@ async function buyGacha(collectionId) {
     const res = await response.json();
     
     if (res.status === "success") {
-      // --- 🚀 เพิ่มโค้ดส่วนนี้เข้าไปเพื่อเคลียร์ Cache ของ Inventory ---
+      // เคลียร์ Cache ของคลังไอเทมเพื่อให้ดึงค่าใหม่
       localStorage.removeItem(`blm48_inventory_cache_${username}`);
       localStorage.removeItem(`blm48_inventory_time_${username}`);
-      // ------------------------------------------------------------
       
       Swal.fire({
         title: 'Congratulations!',
@@ -1117,7 +1113,6 @@ async function buyGacha(collectionId) {
         confirmButtonColor: '#ff5376'
       });
       
-      // อัปเดตยอด Token คืนกลับหลังสุ่ม
       if(res.newToken !== undefined) {
           userData.token = res.newToken;
           const session = JSON.parse(localStorage.getItem('bnl_session'));
@@ -1133,7 +1128,7 @@ async function buyGacha(collectionId) {
   }
 }
   
-// ฟังก์ชันโหลดคอลเลกชันและสร้างการ์ดแบบ Dynamic (ปรับเลย์เอาต์ให้สวยเท่ากับคุกกี้ด้านบน)
+// 📦 7. โหลดคอลเลกชันตู้สุ่มมาแสดงผลบนหน้าเว็บ
 async function loadGachaCollections() {
   const container = document.getElementById("merch-container");
   if(!container) return;
@@ -1150,27 +1145,21 @@ async function loadGachaCollections() {
     }
 
     collections.forEach(col => {
-      // ปรับระบบดึงรูปภาพสำรองให้ทำงานเสถียรขึ้น
       const coverImg = col.CoverImage ? col.CoverImage : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
       
-      // 🚩 ปรับโครงสร้าง Tag และ Class ใหม่ทั้งหมดให้ตรงกับฝั่ง Cookie Shop เป๊ะๆ
       const cardHTML = `
           <div class="merch-card">
-            
             <div class="merch-image-container">
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
-            
             <div class="merch-info">
               <span class="merch-category" style="color: #ff6b8b;">[Gacha]</span>
               <h3 class="merch-title">${col.CollectionName}</h3>
               <p class="merch-subtitle">${col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์'}</p>
-              
               <button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
                 <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
               </button>
             </div>
-
           </div>
         `;
       container.insertAdjacentHTML("beforeend", cardHTML);
@@ -1182,71 +1171,60 @@ async function loadGachaCollections() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadGachaCollections);
-  
-  
-  // ตอนเริ่มโหลด (ถ้าเปิดหน้าเว็บมาให้ตั้ง block ไว้เลยใน HTML หรือสั่งเปิดผ่าน JS)
-document.getElementById('shop-loading-overlay').style.display = 'flex';
-
-// ยัดใส่ไว้ในท่อนที่ดึงข้อมูลจาก Sheets สำเร็จ (เช่น หลัง res.status === "success")
-document.getElementById('shop-loading-overlay').style.display = 'none';
-  
-  // ฟังก์ชันแสดงหน้าโหลด
+// ⏳ 8. ระบบจัดการหน้าจอ Loading หน้าเว็บ
 function showAppLoading() {
-  const loader = document.getElementById('shop-loading-overlay'); // ✨ เปลี่ยนเป็น shop-loading-overlay
+  const loader = document.getElementById('shop-loading-overlay');
   if (loader) {
     loader.style.display = 'flex';
-    // บังคับให้บราวเซอร์รับรู้การเปลี่ยนค่า opacity หลังจากเปลี่ยน display
     setTimeout(() => { loader.style.opacity = '1'; }, 10);
   }
 }
 
-// ฟังก์ชันซ่อนหน้าโหลด
 function hideAppLoading() {
-  const loader = document.getElementById('shop-loading-overlay'); // ✨ เปลี่ยนเป็น shop-loading-overlay
+  const loader = document.getElementById('shop-loading-overlay');
   if (loader) {
     loader.style.opacity = '0';
-    // รอให้ Fade out 0.5 วินาทีเสร็จก่อน แล้วค่อยซ่อนกล่องทิ้ง
     setTimeout(() => { loader.style.display = 'none'; }, 500);
   }
 }
   
-  async function refreshShopData() {
-    // 1. เปิดหน้าจอโหลดขึ้นมาก่อน
+async function refreshShopData() {
     showAppLoading(); 
-    
     try {
         const response = await fetch(`${scriptURL}?action=getShopData`);
         const res = await response.json();
-        
         if (res.status === "success") {
-            // ... วนลูปวาดการ์ดไอเทม/อัปเดตแต้มหน้าเว็บตรงนี้ ...
+            // วนลูปวาดการ์ดไอเทมเพิ่มเติมถ้ามีแยกย่อย
         }
     } catch (error) {
         console.error(error);
     } finally {
-        // 2. ไม่ว่าจะดึงข้อมูลสำเร็จหรือพัง (เข้า catch) ให้ปิดหน้าจอโหลดเสมอเมื่อทำเสร็จ
         hideAppLoading(); 
     }
 }
-  
 
 function hideSplashScreen() {
     const splash = document.getElementById('splash-screen');
     if (splash) {
         splash.style.opacity = '0';
         setTimeout(() => splash.style.display = 'none', 500);
-    } else {
-        console.warn("ระบบข้ามการปิด Splash Screen เนื่องจากไม่พบ id 'splash-screen' ใน HTML");
     }
 }
 
+// 🚀 เริ่มต้นทำงานเมื่อโหลดหน้าเว็บเรียบร้อย
+document.addEventListener("DOMContentLoaded", () => {
+    // เปิดการแสดงผลหน้าโหลดทันทีที่ DOM พร้อมทำงาน เพื่อรอทรัพยากรอื่นๆ
+    const loader = document.getElementById('shop-loading-overlay');
+    if(loader) loader.style.display = 'flex';
+    
+    loadGachaCollections();
+});
+
 window.onload = async () => {
     if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
-    if (typeof initShop === "function") initShop();
+    initShop(); // โหลดเซสชั่นและเปิดแถบโปรไฟล์ด้านบน
     setTimeout(hideSplashScreen, 2000); 
 };
-
-    </script>
+</script>
 </body>
 </html>
