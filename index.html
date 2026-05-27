@@ -1086,24 +1086,26 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
    ========================================= */
 .mv-card {
   position: relative;
-  
-  /* 🎯 ใช้หน่วย vw เพื่อให้คำนวณตามความกว้างหน้าจอมือถือจริง */
-  /* 75vw = กว้าง 75% ของหน้าจอ ทำให้เหลือพื้นที่อีก 25% ให้ใบถัดไปโผล่มานิดๆ พร้อมช่องไฟ */
   width: 75vw;
-  max-width: 240px; /* ล็อกขนาดสูงสุดไว้ เผื่อเปิดบนคอม/แท็บเล็ต การ์ดจะได้ไม่ขยายจนเบลอ */
-  
+  max-width: 240px;
   background: white;
-  padding: 10px; /* ลด padding ลงเล็กน้อยให้ดูเล็กกะทัดรัดขึ้น */
-  border-radius: 18px; /* ปรับโค้งให้มนเข้ากับขนาดการ์ด */
-  text-align: center;
+  padding: 10px;
+  border-radius: 18px;
+  
+  /* 📍 เปลี่ยนจาก center เป็น flex-start เพื่อให้เนื้อหาภายในชิดซ้าย */
+  text-align: left; 
+  
   border: 2px solid #ffeef2;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  flex-shrink: 0; /* ห้ามให้การ์ดโดนบีบแบน */
+  
+  /* 📍 เปลี่ยนเป็น flex-start ให้ Element ลูกเรียงชิดซ้ายทั้งหมด */
+  align-items: flex-start; 
+  
+  flex-shrink: 0;
 }
 
 .mv-card:hover {
@@ -1120,14 +1122,18 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
-/* ชื่อเพลง (ล็อกให้กะทัดรัด เหมาะกับจอเล็ก) */
+/* ชื่อเพลง (บังคับพื้นที่ 2 บรรทัด + ชิดซ้าย) */
 .mv-title {
   font-family: 'Kanit', sans-serif;
   font-weight: 600;
-  font-size: 12px; /* ปรับเล็กลง 1px เพื่อความคลีนบนมือถือ */
+  font-size: 12px;
   color: #444;
   margin-top: 8px;
-  line-height: 1.3;
+  
+  /* 📍 เทคนิคบังคับให้สูงคงที่เท่ากับ 2 บรรทัดเสมอ (fontSize * lineHeight * 2) */
+  line-height: 1.4;
+  height: calc(12px * 1.4 * 2); /* สูงประมาณ 33.6px */
+  
   width: 100%;
   white-space: normal;
   word-wrap: break-word;
@@ -1140,10 +1146,13 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 /* วันที่ลง MV */
 .mv-date {
   font-family: 'Quicksand', 'Kanit', sans-serif;
-  font-size: 10px; /* ปรับให้เข้ากับการ์ดไซส์เล็ก */
+  font-size: 10px;
   color: #ff85a2;
   font-weight: 700;
   margin-top: 4px;
+  
+  /* 📍 มั่นใจว่าชิดซ้ายแน่นอน */
+  text-align: left; 
 }
     
   </style>
