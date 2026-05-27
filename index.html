@@ -1080,40 +1080,64 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* ดีไซน์การ์ดแต่ละอัน */
+/* =========================================
+   ✨ TRENDING MV STYLES
+   ========================================= */
 .mv-card {
-  flex: 0 0 220px; /* กำหนดความกว้างการ์ดแบบตายตัว */
-  scroll-snap-align: start;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(255, 192, 203, 0.4); /* เงาสีชมพูอ่อน */
-  overflow: hidden;
-  transition: transform 0.2s ease;
-  cursor: pointer;
-}
-
-.mv-card:active {
-  transform: scale(0.97);
-}
-
-/* รูปปก MV (Thumbnail) */
-.mv-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  display: block;
-}
-
-/* ชื่อเพลง */
-.mv-title {
-  padding: 10px 12px;
-  font-size: 0.9rem;
-  color: #333333;
+  position: relative;
+  min-width: 170px; /* ขนาดความกว้างของการ์ดให้พอดีกับจอ */
+  background: white;
+  padding: 12px;
+  border-radius: 20px;
   text-align: center;
-  font-weight: 500;
-  white-space: nowrap;
+  border: 2px solid #ffeef2; /* สีขอบชมพูอ่อนแบบเดียวกับ Fan Card */
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.mv-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(255, 133, 162, 0.15);
+}
+
+/* รูปปก MV อัตราส่วน 16:9 */
+.mv-thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* ชื่อเพลง (ตั้งค่าให้ขึ้นบรรทัดใหม่ถ้ายาวเกิน) */
+.mv-title {
+  font-family: 'Kanit', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: #444;
+  margin-top: 10px;
+  line-height: 1.4;
+  width: 100%;
+  white-space: normal; /* อนุญาตให้ปัดบรรทัดใหม่ */
+  word-wrap: break-word; /* ป้องกันคำยาวทะลุกรอบ */
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* ล็อกให้โชว์สูงสุด 2 บรรทัด (ถ้ายาวกว่านี้จะมี ... ต่อท้าย) เพื่อไม่ให้การ์ดสูงเกินไป */
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+/* วันที่ลง MV */
+.mv-date {
+  font-family: 'Quicksand', 'Kanit', sans-serif;
+  font-size: 11px;
+  color: #ff85a2; /* สีชมพูธีมหลัก */
+  font-weight: 700;
+  margin-top: 6px;
 }
     
   </style>
@@ -1249,10 +1273,11 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div id="global-fan-list" class="horizontal-list"></div>
 </div>
   
-  <div class="section-titler">  Trending MV </div>
-  <div class="trending-container">
-  <div class="horizontal-list" id="mv-scroller"></div>
+<div class="section-title"> Trending MV</div>
+<div class="ranking-wrapper">
+  <div id="mv-scroller" class="horizontal-list" style="align-items: flex-start;">
     </div>
+</div>
 
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
@@ -1458,6 +1483,9 @@ window.addEventListener('DOMContentLoaded', () => {
     checkVersion(); 
     if (typeof updateUI === 'function') updateUI();
     
+    // ✨ เพิ่มคำสั่งวาดหน้าต่าง Trending MV ตรงนี้ครับ ✨
+    if (typeof renderTrendingMVs === 'function') renderTrendingMVs();
+    
     // วาดตารางจากแคชในเครื่องรอทันทีเว็บจะได้ดูโหลดเร็วขึ้น
     if (Array.isArray(currentRankingData) && currentRankingData.length > 0) {
       if (typeof renderRanking === 'function') renderRanking(currentRankingData);
@@ -1552,36 +1580,43 @@ function updateUI() {
 const blm48MVs = [
   { 
     title: "【Cover】Sustainable ( Thai Version ) / BLM48 ", 
+    date: "25 April 2026",
     image: "https://lh3.googleusercontent.com/d/1WXp1ZbzQ8ib1gb3imrDGQ7KjnFJZUaOO=s1000",
     link: "https://youtu.be/1Vwg1iQUDtc?si=kVNFI4TQdqiNF-Zs"
   },
   { 
     title: "【Cover】Celebration / BLM48 ", 
+    date: "4 April 2026",
     image: "https://lh3.googleusercontent.com/d/11zU0OJFxJ9WFzqQvfrqPJrCUUyG-KJZJ=s1000",
     link: "https://youtu.be/TAPlWWZMGFQ?si=v7ikM7O89ftDQ2S8"
   },
   { 
     title: "【Cover】Sekai no Hito e - ถึงบรรเลง..ถ้อยเพลงของเรา ( Thai ver. ) / BLM48 ", 
+    date: "21 March 2026",
     image: "https://lh3.googleusercontent.com/d/1wD34e9W6bHHuf9SJ_qBf6I_4e-c_oLen=s1000",
     link: "https://youtu.be/tqFr0QPgqR0?si=31bFJP2MmgCRiFre"
   },
   { 
     title: "【Male Cover】Eien Pressure – ผูกพันนิรันดร์ / BLM48 ", 
+    date: "28 February 2026",
     image: "https://lh3.googleusercontent.com/d/1-GMwAgsjKBORWgEHNKPUyecvDRo1w-Gc=s1000",
     link: "https://www.youtube.com/watch?v=-rhmBTZoZk0"
   },
   { 
     title: "【Cover】Oh my pumpkin! ( CGM48 Version ) / BLM48 ", 
+    date: "15 February 2026",
     image: "https://lh3.googleusercontent.com/d/1RUXDQSqKG43mWcJ01uNmwDMj8ARugdwS=s1000",
     link: "https://youtu.be/03UW5ok6de4?si=c5vM4PtXGipCbO1O"
   },
   { 
     title: "【Cover】Bingo! ( Thai ver. ) / BLM48 ", 
+    date: "31 January 2026",
     image: "https://lh3.googleusercontent.com/d/1UY2KxZBjcAQQJc2XHUvmtsGNG9rSFn5A=s1000",
     link: "https://youtu.be/QaxSjLIxcSE?si=8G7rfyE3_mxaQ6sH"
   },
   { 
     title: "【Cover】Sasameyuki Regret - ความในใจที่มี Regret ( Thai Ver. ) / BLM48 ", 
+    date: "20 December 2025",
     image: "https://lh3.googleusercontent.com/d/15-dAe_lbzf8E5Nu1d0pCDOYsYE7dH2tK=s1000",
     link: "https://youtu.be/Q5Chm71CyjA?si=AXAKDmY4zXjWg3eX"
   }
@@ -1599,28 +1634,21 @@ function renderTrendingMVs() {
     const card = document.createElement('div');
     card.className = 'mv-card';
     
-    // ใส่รูปและชื่อเพลง
+    // ใส่รูป ชื่อเพลง และวันที่ พร้อมไอคอนปฏิทิน
     card.innerHTML = `
-      <img src="${mv.image}" alt="${mv.title}">
+      <img src="${mv.image}" alt="MV Cover" class="mv-thumbnail">
       <div class="mv-title">${mv.title}</div>
+      <div class="mv-date"><i class="far fa-calendar-alt"></i> ${mv.date}</div>
     `;
     
-    // 🎯 คำสั่งตั้งค่าให้กดที่การ์ดแล้วเปิดหน้าต่างใหม่ไปยังลิงก์ที่ตั้งไว้
+    // คำสั่งตั้งค่าให้กดที่การ์ดแล้วเปิดหน้าต่างใหม่ไปยังลิงก์ที่ตั้งไว้
     if(mv.link) {
-      card.onclick = () => {
-        window.open(mv.link, '_blank');
-      };
+      card.onclick = () => window.open(mv.link, '_blank');
     }
 
     scroller.appendChild(card);
   });
 }
-
-// สั่งให้ฟังก์ชันทำงานเมื่อหน้าเว็บโหลดเสร็จ
-document.addEventListener('DOMContentLoaded', renderTrendingMVs);
-
-// สั่งให้ฟังก์ชันทำงานเมื่อหน้าเว็บโหลดเสร็จ
-document.addEventListener('DOMContentLoaded', renderTrendingMVs);
   
 function showMembershipCardModal() {
   if (!user) return;
