@@ -2081,11 +2081,11 @@ function renderPost(post) {
       
       <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
         <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; padding: 5px;">
-          <i class="fa-regular fa-heart" style="font-size: 1.1rem;"></i> <span id="like-count-${postId}">${postLikes}</span> ใจ
+          <i class="fa-regular fa-heart" style="font-size: 1.1rem;"></i> <span id="like-count-${postId}">${postLikes}</span>
         </button>
         
         <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; padding: 5px;">
-          <i class="fa-regular fa-comment" style="font-size: 1.1rem;"></i> <span id="comment-count-${postId}">${commentCount}</span> คอมเมนต์
+          <i class="fa-regular fa-comment" style="font-size: 1.1rem;"></i> <span id="comment-count-${postId}">${commentCount}</span>
         </button>
       </div>
 
@@ -2095,11 +2095,10 @@ function renderPost(post) {
         </div>
         
         <div class="comment-input-box" style="display: flex; gap: 8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="เขียนคอมเมนต์น่ารักๆ ตรงนี้น้า..." 
+          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." 
                  style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
           <button onclick="submitComment('${postId}')" 
-                  style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold; transition: 0.2s;">
-            ส่ง
+                  style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold; transition: 0.2s;"> SEND
           </button>
         </div>
       </div>
@@ -2186,7 +2185,7 @@ async function loadTimelinePosts() {
   if (!container) return;
   
   // แสดงข้อความ Loading มินิมอลน่ารักๆ ระหว่างรอโหลดข้อมูล
-  container.innerHTML = '<p style="text-align: center; color: #ff85a2; padding: 20px;">กำลังโหลดไทม์ไลน์ของเมมเบอร์... 🌸</p>';
+  container.innerHTML = '<p style="text-align: center; color: #ff85a2; padding: 20px;">Loading...</p>';
   
   try {
     // ส่ง Request ไปขอข้อมูลโพสต์ทั้งหมดจาก doGet (action = getPosts)
@@ -2197,7 +2196,7 @@ async function loadTimelinePosts() {
     
     // เคสที่ยังไม่มีใครโพสต์อะไรเลย
     if (!posts || posts.length === 0) {
-      container.innerHTML = '<p style="text-align: center; color: gray; padding: 20px;">ยังไม่มีโพสต์บนไทม์ไลน์เลยงับ 🌸</p>';
+      container.innerHTML = '<p style="text-align: center; color: gray; padding: 20px;">Not Post</p>';
       return;
     }
     
@@ -2217,7 +2216,7 @@ async function loadTimelinePosts() {
     
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
-    container.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">โหลดฟีดไม่สำเร็จ กรุณาลองใหม่อีกครั้งนะงับ 😥</p>';
+    container.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">โหลดฟีดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>';
   }
 }
   
