@@ -1281,22 +1281,25 @@ function saveUserSession(userData) {
 }
 
 function getUserSession() {
-  const sessionStr = localStorage.getItem('bnl_session');
-  if (!sessionStr) return null;
-  
   try {
-    const session = JSON.parse(sessionStr);
-    // 🎯 แก้บั๊ก Session Mismatch: รองรับทั้งโครงสร้างแบบเก่าและใหม่ ป้องกันแอปวนลูปรีไดเรกต์
-    const expiryTime = session.expiry || session.expire;
-    const userData = session.data || session.user;
+    const sessionStr = localStorage.getItem('bnl_session');
+    if (!sessionStr) return null;
     
-    if (new Date().getTime() > expiryTime) {
+    const session = JSON.parse(sessionStr);
+    
+    // ⏳ 1. ระบบเช็คเวลาหมดอายุ (ดักเคสถ้าหมดอายุให้เตะออกและลบ Cache ทันที)
+    const expiryTime = session.expiry || session.expire;
+    if (expiryTime && new Date().getTime() > expiryTime) {
       localStorage.removeItem('bnl_session');
       return null;
     }
+    
+    // 🎯 2. แกะข้อมูล User ออกมา (แก้บั๊ก Mismatch รองรับคีย์ .data / .user หรือตัวก้อนเซสชันเอง)
+    const userData = session.data || session.user || session;
     return userData;
+    
   } catch (e) {
-    console.error("Session Parse Error:", e);
+    console.error("Session Parse Error (แกะเซสชันผิดพลาด):", e);
     return null;
   }
 }
@@ -2049,24 +2052,24 @@ async function claimMonthly() {
 }
   
  function renderPost(post) {
-  // 🎯 ดักเคสกันพัง: ถ้าไม่มีข้อมูลส่งมาให้ส่งค่าว่างกลับไป
   if (!post) return '';
 
-  // 🎯 ปรับคีย์ให้ตรงกับฐานข้อมูลหลังบ้าน
-  const authorName = post.username || post.name || 'Anonymous Member';
+  // ดึงคีย์ author (ที่เป็น Name) และ profile_img ที่เราอัปเกรดส่งมาจากหลังบ้านตะกี้งับ 🌸
+  const authorName = post.author || post.username || 'Anonymous Member';
   const postContent = post.content || '';
   const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
   const postLikes = post.likes || 0;
   const postId = post.id || '';
-  
-  // 🎯 เช็คคีย์ตัวแปรเรื่องรูปภาพ (imageUrl ตัว L เล็ก)
   const displayImage = post.imageUrl || post.imageURL || '';
+  
+  // หากเมมเบอร์ยังไม่ได้ตั้งรูปโปรไฟล์ในระบบ ให้ใช้ไอคอนมินิมอลน่ารักๆ แทนงับ
+  const profilePic = post.profile_img || 'https://via.placeholder.com/40?text=🌸';
 
   return `
     <div class="post-card" style="background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
-        <img src="${post.profile_img || 'https://via.placeholder.com/40'}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+        <img src="${profilePic}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
         <div>
           <b style="color: #ff85a2;">${authorName}</b>
           <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
@@ -2080,7 +2083,7 @@ async function claimMonthly() {
       
       <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
         <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 1rem;">
-          <i class="far fa-heart"></i> ${postLikes} 
+          <i class="far fa-heart"></i> <span id="like-count-${postId}">${postLikes}</span>
         </button>
         <button onclick="openComment('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 1rem;">
           <i class="far fa-comment"></i> คอมเมนต์
@@ -2090,6 +2093,49 @@ async function claimMonthly() {
     </div>
   `;
 }
+
+// 💖 3. ฟังก์ชันกดใจโพสต์ (เปิดเสรีให้ทุก Role สามารถกดใจได้งับ!)
+async function likePost(postId) {
+  const currentUser = getUserSession();
+  console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอ:", currentUser);
+  
+  if (!currentUser || !currentUser.username) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'ไม่พบข้อมูลผู้ใช้งาน 😰',
+      text: 'กรุณาล็อกอินเข้าสู่ระบบก่อนร่วมกิจกรรมไลก์โพสต์นะงับ',
+      confirmButtonColor: '#ff85a2'
+    });
+    return;
+  }
+
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+  
+  try {
+    // ยิงไปหาหลังบ้าน action = 'likePost' ส่ง Username ไปเช็คระบบโควตากดใจ
+    const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
+    const result = await response.json();
+    
+    if (result.status === "success") {
+      // อัปเดตตัวเลขยอดใจบนหน้าจอทันทีแบบไม่ต้องรีเฟรชหน้าเว็บให้สะดุดงับ ✨
+      const likeSpan = document.getElementById(`like-count-${postId}`);
+      if (likeSpan) likeSpan.innerText = result.likes;
+      
+      Swal.fire({
+        icon: 'success',
+        title: result.isLiked ? 'กดใจให้แล้วน้า! 💖' : 'ยกเลิกกดใจแล้วงับ',
+        showConfirmButton: false,
+        timer: 1000
+      });
+    } else {
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: result.message });
+    }
+  } catch (error) {
+    console.error("ระบบกดใจขัดข้อง:", error);
+    Swal.fire({ icon: 'error', title: 'ขออภัยงับ', text: 'ไม่สามารถเชื่อมต่อระบบกดใจได้ในขณะนี้' });
+  }
+}
+  
   // 🚀 ฟังก์ชันดึงข้อมูลโพสต์จาก Google Sheets มาแสดงผลใน #posts-container
 async function loadTimelinePosts() {
   // 🎯 1. ใส่ลิงก์ Web App ของ Apps Script ของคุณเอ็มมี่ตรงนี้เลยงับ
