@@ -2059,7 +2059,7 @@ function renderPost(post) {
       
       commentsHtml += `
         <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; background: #fff5f7; padding: 8px 12px; border-radius: 12px;">
-          <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${authorName}</b>
+          <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${cmt.name}:</b>
           <span style="color: #333; word-break: break-word;">${cmt.text}</span>
         </div>
       `;
@@ -2114,47 +2114,38 @@ function renderPost(post) {
   `;
 }
   
-  // 🚀 ฟังก์ชันดึงข้อมูลโพสต์จาก Google Sheets มาแสดงผลใน #posts-container
 async function loadTimelinePosts() {
-  // 🎯 1. ใส่ลิงก์ Web App ของ Apps Script ของคุณเอ็มมี่ตรงนี้เลยงับ
   const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-  
   const container = document.getElementById('posts-container');
   if (!container) return;
   
-  // แสดงข้อความ Loading มินิมอลน่ารักๆ ระหว่างรอโหลดข้อมูล
   container.innerHTML = '<p style="text-align: center; color: #ff85a2; padding: 20px;">Loading...</p>';
   
   try {
-    // ส่ง Request ไปขอข้อมูลโพสต์ทั้งหมดจาก doGet (action = getPosts)
-    const response = await fetch(`${scriptURL}?action=getPosts`);
+    // 🎯 1. ดึงข้อมูล User (ถ้าล็อกอินอยู่)
+    const currentUser = getUserSession();
+    const username = currentUser ? currentUser.username : "";
+
+    // 🎯 2. ส่ง username ไปด้วยใน URL เพื่อให้หลังบ้านเช็คสถานะไลก์และดึงคอมเมนต์ของโพสต์นั้นๆ
+    const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
     const posts = await response.json();
     
-    container.innerHTML = ''; // เคลียร์ข้อความ Loading ออก
+    container.innerHTML = ''; 
     
-    // เคสที่ยังไม่มีใครโพสต์อะไรเลย
     if (!posts || posts.length === 0) {
       container.innerHTML = '<p style="text-align: center; color: gray; padding: 20px;">Not Post</p>';
       return;
     }
     
-    // 🔥 2. วนลูปนำข้อมูลแต่ละโพสต์โยนเข้าฟังก์ชัน renderPost เพื่อแปลงเป็น HTML
+    // 🎯 3. วนลูปวาดการ์ด
     posts.forEach(post => {
-      
-      // 🎯 ดักกันพังเรื่องคีย์ชื่อผู้เขียน:
-      // ถ้าหลังบ้านส่งคีย์มาชื่อ 'author' แต่ในฟังก์ชัน renderPost คุณเอ็มมี่เรียก 'post.username'
-      // บรรทัดนี้จะช่วยย้ายค่ามาใส่ให้อัตโนมัติ ชื่อเมมเบอร์จะได้ไม่ขึ้น Anonymous งับ 💖
-      if (post.author && !post.username) {
-        post.username = post.author;
-      }
-      
-      // สั่งวาดการ์ดโพสต์ต่อๆ กันลงไปในกล่องรับข้อมูล
+      // ข้อมูล post ตอนนี้จะมี .comments และ .isLiked ติดมาด้วยจากหลังบ้านแล้วงับ!
       container.innerHTML += renderPost(post);
     });
     
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
-    container.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">โหลดฟีดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>';
+    container.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">โหลดฟีดไม่สำเร็จ</p>';
   }
 }
   
