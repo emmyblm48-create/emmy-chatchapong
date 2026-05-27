@@ -46,7 +46,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
   import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
-  // Config ของวง BLM48 เดิมของคุณเอ็มมี่
+  // Config ของวง BLM48 ของคุณเอ็มมี่
   const firebaseConfig = {
     apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
     authDomain: "blm48-official-site.firebaseapp.com",
@@ -62,11 +62,34 @@
 
   let selectedFile = null;
 
+  // 🔐 ฟังก์ชันแกะ Session ตัวเทพ (ดึงมาร่วมรบในหน้า post.html ด้วยงับ)
+  function getUserSession() {
+    try {
+      const sessionStr = localStorage.getItem('bnl_session');
+      if (!sessionStr) return null;
+      
+      const session = JSON.parse(sessionStr);
+      
+      // ตรวจสอบเวลาหมดอายุ ป้องกันแอปค้าง
+      const expiryTime = session.expiry || session.expire;
+      if (expiryTime && new Date().getTime() > expiryTime) {
+        localStorage.removeItem('bnl_session');
+        return null;
+      }
+      
+      // รองรับโครงสร้างข้อมูลทุกรูปแบบ (.data หรือ .user)
+      return session.data || session.user || session;
+    } catch (e) {
+      console.error("Session Parse Error ในหน้าโพสต์:", e);
+      return null;
+    }
+  }
+
   // ฟังก์ชันแสดงตัวอย่างรูปภาพเมื่อเลือกไฟล์
   window.previewImage = function(event) {
     const file = event.target.files[0];
     if (file) {
-      selectedFile = file; // เก็บไฟล์จริงเอาไว้รออัปโหลดไป Firebase ตอนกดแชร์
+      selectedFile = file; 
       const reader = new FileReader();
       reader.onload = function(e) {
         const preview = document.getElementById('preview-img');
@@ -77,37 +100,35 @@
     }
   }
 
-// ฟังก์ชันกดส่งโพสต์ (เวอร์ชันเชื่อมต่อคีย์ล็อกอิน bnl_session ของวง BLM48)
+  // ฟังก์ชันกดส่งโพสต์ (เวอร์ชันอุดรอยรั่ว เรียบร้อยโรงเรียน BLM48)
   window.submitPost = async function() {
     const content = document.getElementById('post-content').value.trim();
     
-    // 🔍 [จุดแก้ไขสำคัญ] ดึงข้อมูลจากคีย์ bnl_session จริงของระบบคุณเอ็มมี่
-    const bnlSession = JSON.parse(localStorage.getItem('bnl_session'));
-    
-    console.log("🌸 ข้อมูล Session จากล็อกอินที่ระบบตรวจเจอ:", bnlSession);
+    // 🎯 เรียกใช้ฟังก์ชันตรวจสอบสิทธิ์ที่รวมร่างแล้ว
+    const currentUser = getUserSession();
+    console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอในหน้าโพสต์:", currentUser);
 
-    // แกะข้อมูลผู้ใช้จากฟิลด์ data ด้านใน bnl_session อีกทีงับ
-    const sessionUser = bnlSession ? bnlSession.data : null;
-    const activeUsername = sessionUser ? (sessionUser.username || sessionUser.name) : null;
-
-    if (!bnlSession || !activeUsername) {
+    if (!currentUser || !currentUser.username) {
       Swal.fire({
         title: 'ไม่พบข้อมูลผู้ใช้งาน 😥',
-        text: 'ระบบหาประวัติการล็อกอิน bnl_session ไม่เจอ หรือเซสชันอาจหมดอายุแล้ว กรุณาลองล็อกอินใหม่อีกครั้งที่หน้า login.html นะคะ',
-        icon: 'warning'
+        text: 'ระบบหาประวัติการล็อกอินไม่เจอ หรือเซสชันหมดอายุแล้ว กรุณาล็อกอินใหม่อีกครั้งนะงับ',
+        icon: 'warning',
+        confirmButtonColor: '#ff85a2'
       });
       return;
     }
 
+    const activeUsername = currentUser.username;
+
     if (!content && !selectedFile) {
-      Swal.fire('ข้อความว่างเปล่า', 'กรุณาพิมพ์ข้อความหรือเลือกรูปภาพก่อนแชร์น้าส', 'info');
+      Swal.fire('ข้อความว่างเปล่า', 'กรุณาพิมพ์ข้อความหรือเลือกรูปภาพก่อนแชร์น้า', 'info');
       return;
     }
 
-    // แสดงหน้าต่างกำลังโหลดแบบมินิมอล
+    // แสดงหน้าต่างกำลังโหลดมินิมอล
     Swal.fire({
-      title: 'กำลังส่งโพสต์... 🌸',
-      text: 'ระบบกำลังนำโพสต์ขึ้นฟีดหลักงับ',
+      title: 'กำลังส่งโพสต์... ',
+      text: 'ระบบกำลังนำโพสต์',
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
     });
@@ -115,7 +136,7 @@
     let imageUrl = ""; 
 
     try {
-      // 1. อัปโหลดรูปภาพไป Firebase Storage (ถ้ามี)
+      // 1. อัปโหลดรูปภาพไป Firebase Storage (ถ้าผู้ใช้เลือกรูป)
       if (selectedFile) {
         const fileRef = ref(storage, `posts/${activeUsername}_post_${Date.now()}`);
         await uploadBytes(fileRef, selectedFile);
@@ -129,7 +150,7 @@
         method: 'POST',
         body: JSON.stringify({
           action: 'createPost',
-          username: activeUsername, // ส่ง Username ที่ถูกต้องไปหลังบ้าน
+          username: activeUsername, 
           content: content,
           imageUrl: imageUrl
         })
@@ -140,7 +161,7 @@
 
       if (data.status === "success") {
         Swal.fire({
-          title: 'สำเร็จแล้วงับ! ✨',
+          title: 'สำเร็จแล้ว',
           text: 'โพสต์ของคุณถูกส่งไปยังไทม์ไลน์เรียบร้อยแล้ว',
           icon: 'success',
           confirmButtonColor: '#ff85a2'
@@ -153,7 +174,11 @@
 
     } catch (error) {
       console.error("Post Submission Error:", error);
-      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองอีกครั้งงับ 😥', 'error');
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด 😥',
+        text: 'หากคุณอัปโหลดรูปภาพ อาจเกิดจากสิทธิ์ Firebase Storage กรุณาตรวจสอบ Rules หรือลองโพสต์แบบข้อความธรรมดาดูก่อนนะงับ!'
+      });
     }
   }
 </script>
