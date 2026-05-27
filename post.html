@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Post | BLM48</title>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #fff0f5; padding: 20px; }
+    .post-container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(255, 133, 162, 0.2); }
+    .header { font-size: 1.2rem; font-weight: bold; color: #ff85a2; margin-bottom: 15px; text-align: center; }
+    textarea { width: 100%; height: 120px; border: 1px solid #ffc0cb; border-radius: 10px; padding: 10px; font-family: inherit; resize: none; box-sizing: border-box;}
+    textarea:focus { outline: none; border-color: #ff85a2; }
+    .upload-btn-wrapper { margin-top: 10px; overflow: hidden; position: relative; }
+    .btn-upload { border: 2px dashed #ffc0cb; color: #ff85a2; background-color: white; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
+    .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+    #preview-img { width: 100%; border-radius: 10px; margin-top: 10px; display: none; }
+    .btn-submit { background-color: #ff85a2; color: white; border: none; padding: 12px; width: 100%; border-radius: 10px; margin-top: 15px; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<div class="post-container">
+  <div class="header"> New Post</div>
+  <textarea id="post-content" placeholder="พิมพ์ข้อความถึงแฟนๆ ตรงนี้เลยงับ..."></textarea>
+  
+  <div class="upload-btn-wrapper">
+    <button class="btn-upload"> Add image</button>
+    <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" />
+  </div>
+  <img id="preview-img" />
+
+  <button class="btn-submit" onclick="submitPost()"> Share</button>
+</div>
+
+<script>
+  let base64ImageString = "";
+
+  function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('preview-img').src = e.target.result;
+        document.getElementById('preview-img').style.display = 'block';
+        base64ImageString = e.target.result; // เก็บไว้ส่งไป Apps Script
+      }
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function submitPost() {
+    const content = document.getElementById('post-content').value;
+    const author = "ชื่อเมมเบอร์"; // ดึงจาก Session หรือ localStorage ของระบบ Auth
+    
+    // กำหนด URL ของ Apps Script ที่เรา Deploy ไว้
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    // โค้ดส่งข้อมูล
+    try {
+      const resp = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'createPost',
+          author: author,
+          content: content,
+          imageContent: base64ImageString,
+          imageBase64: base64ImageString !== ""
+        })
+      });
+      const data = await resp.json();
+      if(data.status === "success") {
+        alert("โพสต์สำเร็จแล้วงับ!");
+        window.location.href = "index.html";
+      }
+    } catch (error) {
+      console.error(error);
+      alert("เกิดข้อผิดพลาด");
+    }
+  }
+</script>
+</body>
+</html>
