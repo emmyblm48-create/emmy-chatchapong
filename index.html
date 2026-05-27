@@ -2050,16 +2050,20 @@ function renderPost(post) {
   if (post.comments && Object.keys(post.comments).length > 0) {
     const commentsList = typeof post.comments === 'object' ? Object.values(post.comments) : post.comments;
     
-    commentsList.forEach(cmt => {
+     commentsList.forEach(cmt => {
+      // แทนที่จะใช้ cmt.username ตรงๆ ให้ใช้ค่าที่ต้องการแสดงแทนงับ
+      // หากหลังบ้านส่งชื่อมาให้แล้วใน cmt.name ก็ใช้ได้เลย
+      const displayName = cmt.name || cmt.username || 'Anonymous'; 
+      
       commentsHtml += `
         <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; background: #fff5f7; padding: 8px 12px; border-radius: 12px;">
-          <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${cmt.username}:</b>
+          <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${displayName}:</b>
           <span style="color: #333; word-break: break-word;">${cmt.text}</span>
         </div>
       `;
     });
   } else {
-    commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาเป็นคนแรกกันน้า 🌸</div>`;
+    commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">No Comments yet</div>`;
   }
 
   // 🎨 3. ส่งก้อน HTML Card ออกไปแสดงบนหน้าเว็บ
@@ -2106,75 +2110,6 @@ function renderPost(post) {
     </div>
   `;
 }
-
-async function likePost(postId) {
-  const currentUser = getUserSession();
-  console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอ:", currentUser);
-  
-  // 🔒 ดักเคสถ้ายังไม่ได้ล็อกอิน (อันนี้ยังจำเป็นต้องเตือนน้า ไม่งั้นระบบจะไม่รู้ว่าใครกดงับ)
-  if (!currentUser || !currentUser.username) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'ไม่พบข้อมูลผู้ใช้งาน 😰',
-      text: 'กรุณาล็อกอินเข้าสู่ระบบก่อนร่วมกิจกรรมไลก์โพสต์นะงับ',
-      confirmButtonColor: '#ff85a2'
-    });
-    return;
-  }
-
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-  
-  // 🎯 [Optimistic UI] ทำงานทันทีบนหน้าจอ ไม่ต้องรอหลังบ้านตอบกลับงับคุณเอ็มมี่!
-  const likeSpan = document.getElementById(`like-count-${postId}`);
-  const heartIcon = likeSpan?.previousElementSibling; // ดึงตัวไอคอนหัวใจที่อยู่ข้างหน้าเลขไลก์
-  
-  let currentLikes = parseInt(likeSpan ? likeSpan.innerText : 0) || 0;
-  let isCurrentlyLiked = heartIcon ? heartIcon.classList.contains('fa-solid') : false;
-
-  // จำลองสถานะบนหน้าจอทันที เพื่อความลื่นไหลแบบ 100%
-  if (isCurrentlyLiked) {
-    // ถ้ายกเลิกกดใจ -> ปรับหัวใจเป็นเส้นโปร่ง และลดแต้มลง 1
-    if (heartIcon) {
-      heartIcon.classList.remove('fa-solid');
-      heartIcon.classList.add('fa-regular');
-    }
-    if (likeSpan) likeSpan.innerText = Math.max(0, currentLikes - 1);
-  } else {
-    // ถ้ากดใจใหม่ -> ปรับหัวใจเป็นสีชมพูทึบ และเพิ่มแต้มขึ้น 1
-    if (heartIcon) {
-      heartIcon.classList.remove('fa-regular');
-      heartIcon.classList.add('fa-solid');
-    }
-    if (likeSpan) likeSpan.innerText = currentLikes + 1;
-  }
-
-  try {
-    // ยิงข้อมูลไปอัปเดตที่ Google Sheets เงียบๆ ทางหลังบ้าน (Background Request)
-    const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
-    const result = await response.json();
-    
-    // 🔄 หากหลังบ้านส่งค่าจริงมา ให้ซิงค์ตัวเลขให้ตรงกับฐานข้อมูลจริงอีกรอบเพื่อความแม่นยำ
-    if (result && result.status === "success") {
-      if (likeSpan) likeSpan.innerText = result.likes;
-      
-      // ซิงค์สไตล์หัวใจตามที่ฐานข้อมูลบันทึกจริง
-      if (heartIcon) {
-        if (result.isLiked) {
-          heartIcon.classList.remove('fa-regular');
-          heartIcon.classList.add('fa-solid');
-        } else {
-          heartIcon.classList.remove('fa-solid');
-          heartIcon.classList.add('fa-regular');
-        }
-      }
-    }
-    // หมายเหตุ: ลบ Swal.fire ออกทั้งหมดแล้วงับ ไม่ว่าจะสำเร็จหรือพลาด จะไม่มีแจ้งเตือนขึ้นมากวนใจอีกต่อไป!
-    
-  } catch (error) {
-    // บันทึก Log เงียบๆ ใน Console เผื่อคุณเอ็มมี่ไว้ใช้ตรวจสอบระบบตอนรันบั๊กงับ
-    console.error("ระบบกดใจหลังบ้านขัดข้อง แต่หน้าจอทำงานลื่นไหลปกติงับ:", error);
-  }
-}
   
   // 🚀 ฟังก์ชันดึงข้อมูลโพสต์จาก Google Sheets มาแสดงผลใน #posts-container
 async function loadTimelinePosts() {
@@ -2219,6 +2154,7 @@ async function loadTimelinePosts() {
     container.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">โหลดฟีดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</p>';
   }
 }
+  
   
   async function redeemCode() {
     if (!user) return openLogin();
@@ -2470,76 +2406,88 @@ document.addEventListener("DOMContentLoaded", () => {
      💖 ระบบกดใจโพสต์ (เวอร์ชันใหม่ รองรับการกดซ้ำเพื่อถอนใจซิงค์กับหลังบ้าน)
      ========================================== */
   window.likePost = async function(postId) {
-    const currentUser = getUserSession();
-    console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอ:", currentUser);
-    
-    if (!currentUser || !currentUser.username) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'ไม่พบข้อมูลผู้ใช้งาน 😰',
-        text: 'กรุณาล็อกอินเข้าสู่ระบบก่อนร่วมกิจกรรมไลก์โพสต์นะงับ',
-        confirmButtonColor: '#ff85a2'
-      });
-      return;
-    }
-
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    
-    try {
-      // ยิงไปหาหลังบ้านแบบ Query String ส่ง Username ไปเช็คระบบโควตากดใจ
-      const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
-      const result = await response.json();
-      
-      if (result.status === "success") {
-        // อัปเดตตัวเลขยอดใจบนหน้าจอทันทีตามค่าจริงที่ได้จากฐานข้อมูลหลังบ้าน ✨
-        const likeSpan = document.getElementById(`like-count-${postId}`);
-        if (likeSpan) likeSpan.innerText = result.likes;
-        
-        Swal.fire({
-          icon: 'success',
-          title: result.isLiked ? 'กดใจให้แล้วน้า! 💖' : 'ยกเลิกกดใจแล้วงับ',
-          showConfirmButton: false,
-          timer: 1000
-        });
-      } else {
-        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: result.message });
-      }
-    } catch (error) {
-      console.error("ระบบกดใจขัดข้อง:", error);
-      Swal.fire({ icon: 'error', title: 'ขออภัยงับ', text: 'ไม่สามารถเชื่อมต่อระบบกดใจได้ในขณะนี้' });
-    }
+  const currentUser = getUserSession();
+  
+  // 1. เช็คสิทธิ์
+  if (!currentUser || !currentUser.username) {
+    Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: '#ff85a2' });
+    return;
   }
 
+  // 2. เตรียม DOM อ้างอิง
+  const likeSpan = document.getElementById(`like-count-${postId}`);
+  const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
+  
+  // 3. สถานะก่อนกด (Optimistic UI)
+  const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
+  
+  // สลับไอคอนและตัวเลขทันที
+  heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
+  heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
+  likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) - 1 : parseInt(likeSpan.innerText) + 1;
 
-  /* ==========================================
-     💬 ระบบส่งคอมเมนต์ใหม่เข้าฐานข้อมูล
+  // 4. ยิง Request ไปหลังบ้าน
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+  
+  try {
+    const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
+    const result = await response.json();
+    
+    if (result.status === "success") {
+      // ซิงค์ค่าให้ตรงกับฐานข้อมูลจริง (เผื่อกรณีมีคนอื่นกดพร้อมกัน)
+      likeSpan.innerText = result.likes;
+      heartIcon.classList.toggle('fa-solid', result.isLiked);
+      heartIcon.classList.toggle('fa-regular', !result.isLiked);
+    } else {
+      throw new Error(result.message);
+    }
+  } catch (error) {
+    // 5. ถ้าพลาด ให้เด้งกลับ (Rollback)
+    heartIcon.classList.toggle('fa-solid', isCurrentlyLiked);
+    heartIcon.classList.toggle('fa-regular', !isCurrentlyLiked);
+    likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) + 1 : parseInt(likeSpan.innerText) - 1;
+    console.error("Like Error:", error);
+  }
+}
+
+ /* ==========================================
+     💬 ระบบส่งคอมเมนต์ใหม่เข้าฐานข้อมูล (เวอร์ชันสมบูรณ์)
      ========================================== */
   window.submitComment = async function(postId) {
-    const currentUser = getUserSession(); // เช็คสิทธิ์คนคอมเมนต์
+    const currentUser = getUserSession();
     if (!currentUser || !currentUser.username) {
       Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนแสดงความคิดเห็นนะงับ', 'warning');
       return;
     }
-
+    
+    const btn = event.target;
     const inputEl = document.getElementById(`comment-input-${postId}`);
-    const commentText = inputEl.value.trim();
-
+    const commentText = inputEl.value.trim(); // ประกาศครั้งเดียวพอแล้วงับ
+    
+    // ดักปุ่มที่โดน disable ไปแล้ว
+    if (btn.disabled) return; 
+    
+    // ดักเคสพิมพ์ว่างเปล่า
     if (!commentText) {
       Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
       return;
     }
 
+    // เตรียมสถานะปุ่ม "กำลังส่ง"
+    const originalText = btn.innerText;
+    btn.innerText = "กำลังส่ง...";
+    btn.disabled = true;
+    inputEl.disabled = true;
+
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
     try {
-      inputEl.disabled = true;
-
       const resp = await fetch(scriptURL, {
         method: 'POST',
         body: JSON.stringify({
           action: 'addComment',
           postId: postId,
-          username: currentUser.username,
+          username: currentUser.username, // หรือใช้ currentUser.name เพื่อความเป็นส่วนตัวงับ
           text: commentText
         })
       });
@@ -2550,8 +2498,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const commentList = document.getElementById(`comment-list-${postId}`);
         const noCommentMsg = document.getElementById(`no-comment-${postId}`);
         
-        if (noCommentMsg) noCommentMsg.remove(); // ลบคำเตือน "ยังไม่มีคอมเมนต์" ออก
+        if (noCommentMsg) noCommentMsg.remove();
 
+        // 🎯 อัปเดต HTML คอมเมนต์ใหม่
         const newCommentHtml = `
           <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; background: #fff5f7; padding: 8px 12px; border-radius: 12px;">
             <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${currentUser.username}:</b>
@@ -2560,8 +2509,13 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         
         commentList.insertAdjacentHTML('beforeend', newCommentHtml);
-        inputEl.value = ""; // พิมพ์เสร็จแล้วเคลียร์ช่องให้ว่างเปล่า
-        commentList.scrollTop = commentList.scrollHeight; // ดัน Scroll ลงมาล่างสุด
+        
+        // อัปเดตตัวเลขคอมเมนต์บนหน้าจอ (ไม่ต้องรีโหลด)
+        const countEl = document.getElementById(`comment-count-${postId}`);
+        if(countEl) countEl.innerText = parseInt(countEl.innerText || 0) + 1;
+
+        inputEl.value = ""; 
+        commentList.scrollTop = commentList.scrollHeight;
       } else {
         Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถส่งคอมเมนต์ได้ในขณะนี้', 'error');
       }
@@ -2569,7 +2523,10 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Comment Submission Error:", error);
       Swal.fire('ระบบขัดข้อง', 'เชื่อมต่อหลังบ้านไม่สำเร็จงับ', 'error');
     } finally {
-      inputEl.disabled = false; // เปิดช่องพิมพ์ให้กลับมาใช้งานได้ปกติ
+      // คืนค่าปุ่มและช่องพิมพ์เสมอ ไม่ว่าจะสำเร็จหรือพัง
+      btn.innerText = originalText;
+      btn.disabled = false;
+      inputEl.disabled = false;
     }
   }
 
