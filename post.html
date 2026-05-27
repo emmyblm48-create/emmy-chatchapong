@@ -77,15 +77,27 @@
     }
   }
 
-  // ฟังก์ชันกดส่งโพสต์
+// ฟังก์ชันกดส่งโพสต์ (เวอร์ชันอัปเดตดักจับ Error และตรวจสอบเซสชัน)
   window.submitPost = async function() {
     const content = document.getElementById('post-content').value.trim();
     
-    // ดึงข้อมูล User ล็อกอินจริงจากระบบเซสชันของคุณเอ็มมี่ (ปรับคีย์ 'user' ให้ตรงกับระบบเดิมนะครับ)
-    const sessionUser = JSON.parse(localStorage.getItem('user')); 
+    // 🔍 [จุดแก้ไข] ดักจับคีย์ทุกแบบ เผื่อหน้า Login เซฟไว้ชื่ออื่นงับ
+    const sessionUser = JSON.parse(localStorage.getItem('user')) || 
+                        JSON.parse(localStorage.getItem('currentUser')) || 
+                        JSON.parse(localStorage.getItem('bnl_user'));
     
-    if (!sessionUser || !sessionUser.username) {
-      Swal.fire('ไม่พบผู้ใช้งาน', 'กรุณาล็อกอินเข้าระบบก่อนนะคะ 😥', 'warning');
+    // พิมพ์เช็คใน Console (F12) ทันทีเพื่อดูว่าในเซสชันมีหน้าตาแบบไหน
+    console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอ:", sessionUser);
+
+    // ดึงค่า username ออกมา (ถ้าไม่มีลองดึงจาก .name หรือ .author เผื่อไว้)
+    const activeUsername = sessionUser ? (sessionUser.username || sessionUser.name) : null;
+
+    if (!sessionUser || !activeUsername) {
+      Swal.fire({
+        title: 'ไม่พบข้อมูลผู้ใช้งาน 😥',
+        text: 'ระบบหาประวัติการล็อกอินในเครื่องนี้ไม่เจอค่ะ หรือ ข้อมูลล็อกอินไม่มี username (ตรวจสอบค่าใน Console ได้งับ)',
+        icon: 'warning'
+      });
       return;
     }
 
@@ -94,7 +106,7 @@
       return;
     }
 
-    // แสดงหน้าต่างกำลังโหลดแบบน่ารักๆ
+    // แสดงหน้าต่างกำลังโหลด
     Swal.fire({
       title: 'กำลังส่งโพสต์... 🌸',
       text: 'ระบบกำลังนำโพสต์ขึ้นฟีดหลักงับ',
@@ -102,14 +114,14 @@
       didOpen: () => Swal.showLoading()
     });
 
-    let imageUrl = ""; // ค่าเริ่มต้นกรณีไม่มีการโพสต์รูปภาพ
+    let imageUrl = ""; 
 
     try {
-      // 1. ถ้ามีการเลือกรูปภาพ -> ให้ส่งขึ้น Firebase Storage ก่อนเลยงับ
+      // 1. อัปโหลดรูปภาพไป Firebase Storage (ถ้ามี)
       if (selectedFile) {
-        const fileRef = ref(storage, `posts/${sessionUser.username}_post_${Date.now()}`);
+        const fileRef = ref(storage, `posts/${activeUsername}_post_${Date.now()}`);
         await uploadBytes(fileRef, selectedFile);
-        imageUrl = await getDownloadURL(fileRef); // ได้ลิงก์ URL สั้นๆ สวยๆ กลับมา
+        imageUrl = await getDownloadURL(fileRef);
       }
 
       // 2. ส่งข้อมูลทั้งหมดไปบันทึกที่ Google Sheets ผ่าน Apps Script
@@ -119,13 +131,14 @@
         method: 'POST',
         body: JSON.stringify({
           action: 'createPost',
-          username: sessionUser.username, // แก้ไขคีย์ให้ตรงกับ Apps Script
+          username: activeUsername, // ใช้ตัวแปรที่เราแกะค่ามาได้
           content: content,
-          imageUrl: imageUrl // ส่งเป็นลิงก์ URL จากคลาวด์แทน Base64
+          imageUrl: imageUrl
         })
       });
 
       const data = await resp.json();
+      console.log("ผลลัพธ์จาก Google Sheets:", data);
 
       if (data.status === "success") {
         Swal.fire({
@@ -134,7 +147,7 @@
           icon: 'success',
           confirmButtonColor: '#ff85a2'
         }).then(() => {
-          window.location.href = "index.html"; // โพสต์เสร็จส่งกลับหน้าหลักดึงฟีดมาโชว์
+          window.location.href = "index.html"; 
         });
       } else {
         Swal.fire('เกิดข้อผิดพลาดจากเซิร์ฟเวอร์', data.message || 'ไม่สามารถโพสต์ได้', 'error');
