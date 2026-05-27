@@ -1174,7 +1174,12 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 <!-- 3. Navbar (ปรับปรุงปุ่ม) -->
 <nav class="navbar">
-    <div class="brand">BLM48</div>
+    <div class="logo-container" style="display: flex; align-items: center;">
+    <a href="post.html" id="btn-create-post" style="display: none; color: #ff85a2; font-size: 1.5rem; margin-right: 10px; text-decoration: none;">
+        <i class="fas fa-plus-circle"></i> 
+    </a>
+    <span class="logo-text">BLM48</span>
+</div>
 </div>
   </div>
   
@@ -1225,6 +1230,12 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </div>
 </div>
 
+<div class="section-title"> Timeline</div>
+<div class="feed-section" id="blm48-feed">
+   <div id="posts-container">
+       </div>
+</div>
+
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
 
@@ -1259,6 +1270,10 @@ const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWts
 var user = null;
 var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) || [];
 var currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
+  
+  if (currentUser && currentUser.role === 'member') {
+    document.getElementById('btn-create-post').style.display = 'inline-block';
+}
 
 // ==========================================
 // 👑 2. SESSION MANAGEMENT (ระบบจัดการเซสชันและล็อกอิน)
@@ -2015,6 +2030,36 @@ async function claimMonthly() {
   }
 }
   
+  function renderPost(post) {
+  return `
+    <div class="post-card" style="background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+      
+      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="path_to_member_profile.jpg" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
+        <div>
+          <b style="color: #ff85a2;">${post.author}</b>
+          <div style="font-size: 0.8rem; color: gray;">${post.timestamp}</div>
+        </div>
+      </div>
+      
+      <div class="post-body" style="margin-bottom: 15px;">
+        <p>${post.content}</p>
+        ${post.imageURL ? `<img src="${post.imageURL}" style="width: 100%; border-radius: 10px; margin-top: 10px;">` : ''}
+      </div>
+      
+      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
+        <button onclick="likePost('${post.id}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 1rem;">
+          <i class="far fa-heart"></i> ${post.likes} 
+        </button>
+        <button onclick="openComment('${post.id}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 1rem;">
+          <i class="far fa-comment"></i> คอมเมนต์
+        </button>
+      </div>
+
+    </div>
+  `;
+}
+  
   async function redeemCode() {
     if (!user) return openLogin();
     const { value: code } = await Swal.fire({ 
@@ -2160,11 +2205,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-
 <script type="module">
-  // 1. นำเข้าฟังก์ชันจาก Firebase
+  // 1. นำเข้าฟังก์ชันจาก Firebase (ปรับเวอร์ชันเป็น 10.10.0 ให้ตรงกันทั้งหมด และตั้งชื่อเล่นให้ ref)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-  import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+  import { getDatabase, ref as dbRef, update, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+  import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
   // 2. ตั้งค่า Configuration ของ Firebase
   const firebaseConfig = {
@@ -2177,15 +2222,17 @@ document.addEventListener("DOMContentLoaded", () => {
     appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
   };
 
-  // 3. เริ่มต้นเปิดใช้งาน Firebase
+  // 3. เริ่มต้นเปิดใช้งาน Firebase ทั้ง Database และ Storage ไปพร้อมกัน
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
+  const storage = getStorage(app); // ✨ เปิดใช้งาน Storage ร่วมด้วยตรงนี้เลยครับ
 
   // 👑 ส่งค่า Firebase ออกไปที่ window เพื่อให้สคริปต์จุดอื่นๆ ในแอปสามารถเรียกใช้งานร่วมกันได้
   window.firebaseApp = app;
   window.firebaseDatabase = database;
+  window.firebaseStorage = storage; // ✨ ส่ง Storage ออกไปที่ window เพื่อให้หน้าอื่นเรียกใช้ได้
 
-  // 🎯 ระบบดึงสถิติจำนวนสมาชิก (ปรับเป็น async/await เพื่อความคลีนและเข้าชุดกับฟังก์ชันอื่นครับ)
+  // 🎯 ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets
   async function refreshCountFromSheets() {
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberCount';
     const countElement = document.getElementById('total-members-count');
