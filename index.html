@@ -42,7 +42,8 @@
       font-family: 'Quicksand', 'Kanit', sans-serif; 
       background-color: var(--bg-color); 
       margin: 0; 
-      padding: 0;
+      padding-top: 60px; /* เว้นพื้นที่ให้ Header ด้านบน */
+      padding-bottom: 75px; /* เว้นพื้นที่ให้คานเมนูด้านล่าง จะได้ไม่บังเนื้อหา */
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -171,38 +172,73 @@
   left: 0;
   right: 0;
   height: 65px;
-  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px); /* เอฟเฟกต์กระจกฝ้าหรูๆ */
   display: flex;
   justify-content: space-around;
   align-items: center;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-  border-top: 1px solid #ffe4e8;
-  z-index: 999;
-  padding-bottom: env(safe-area-inset-bottom); /* รองรับรอยบากด้านล่างของ iPhone */
+  box-shadow: 0 -4px 15px rgba(255, 192, 203, 0.15);
+  border-top: 1px solid #ffeef2;
+  z-index: 1000;
 }
 
 .nav-item {
-  display: flex;
+ display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #888888;
+  color: #bbb;
   text-decoration: none;
-  font-size: 0.75rem;
-  font-family: inherit;
-  transition: color 0.2s ease;
-  flex: 1;
+  font-size: 11px;
+  font-weight: 500;
+  width: 100%;
+  height: 100%;
+  transition: all 0.2s ease;
 }
 
 .nav-item i {
-  font-size: 1.25rem;
+ font-size: 20px;
   margin-bottom: 4px;
+  transition: transform 0.2s ease;
 }
 
 /* คลาสสำหรับหน้าปัจจุบันที่เปิดอยู่ */
 .nav-item.active {
-  color: #ff85a2; /* สีชมพูธีม BLM48 */
-  font-weight: bold;
+  color: #ff85a2; /* เปลี่ยนเป็นสีธีมหลัก */
+  font-weight: 700;
+}
+    
+    .nav-item.active i {
+  transform: translateY(-2px) scale(1.1); /* ขยับเด้งขึ้นเล็กน้อยเหมือนแอปดังๆ */
+}
+    
+    /* เพิ่มแอนิเมชันตอนสลับหน้า */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+    
+    /* Responsive: ปรับแต่งหน้าตาเพิ่มเติมเมื่อเปิดบนคอมพิวเตอร์ */
+@media (min-width: 768px) {
+  .bottom-nav {
+    top: 0;
+    bottom: auto;
+    left: auto;
+    right: 0;
+    width: 500px;
+    height: 60px;
+    box-shadow: none;
+    border-top: none;
+    background: transparent;
+  }
+  .app-header {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .app-content {
+    max-width: 1000px;
+    padding-top: 30px;
+  }
 }
 
 /* เพิ่ม padding-bottom ให้เนื้อหาหลักของทุกหน้า เพื่อไม่ให้โดนเมนูบัง */
@@ -1167,43 +1203,41 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   </div>
   
   <div class="sidebar-links" style="display: flex; flex-direction: column; height: calc(100% - 60px); justify-content: space-between;">
-    
     <div>
-      <a href="index.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
+      <a href="#" onclick="switchPage('home', event); toggleSidebar();" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
         <i class="fas fa-home" style="width:20px;"></i> HOME
       </a>
-      <a href="shop.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-        <i class="fas fa-shopping-cart" style="width:20px;"></i> SHOP
+      <a href="#" onclick="switchPage('shop', event); toggleSidebar();" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
+        <i class="fas fa-shopping-bag" style="width:20px;"></i> SHOP
       </a>
-      <a href="inventory.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-        <i class="fas fa-briefcase" style="width:20px;"></i> INVENTORY
+      <a href="#" onclick="switchPage('inventory', event); toggleSidebar();" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
+        <i class="fas fa-box-open" style="width:20px;"></i> INVENTORY
       </a>
-      <a href="kami.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-        <i class="fa-solid fa-star" style="width:20px;"></i> My Kami-Oshi Members
+      <a href="#" onclick="switchPage('oshi', event); toggleSidebar();" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
+        <i class="fas fa-star" style="width:20px;"></i> KAMI-OSHI MEMBERS
       </a>
+      
+      <hr style="border: 0.5px solid #f0f0f0; margin: 10px 0;">
+      
       <a href="history.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
         <i class="fas fa-history" style="width:20px;"></i> HISTORY
       </a>
       <a href="https://sites.google.com/view/blm48/home" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
         <i class="fas fa-globe" style="width:20px;"></i> OFFICIAL SITE
       </a>
-      
       <a href="#" onclick="refreshPage()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
          <i class="fas fa-sync-alt" style="width:20px;"></i> REFRESH
       </a>
-      
       <a href="#" onclick="confirmLogout()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0; color: #ff6b6b;">
          <i class="fas fa-sign-out-alt" style="width:20px;"></i> LOGOUT
       </a>
       
       <hr style="border: 0.5px solid #f0f0f0; margin: 10px 0;">
       
-      
       <div onclick="toggleDarkMode();" class="nav-link" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; cursor:pointer;">
          <span>DARK MODE</span>
          <i class="fas fa-moon" id="dark-mode-icon"></i>
       </div>
-      
     </div>
 
     <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
@@ -1221,43 +1255,30 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
             <span style="font-size: 11px; color: #ff85a2; font-weight: 600; margin-left: 1px;">คน</span>
         </div>
     </div>
-
   </div>
 </div>
 
-<!-- Overlay สำหรับปิด Sidebar -->
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
-<!-- 3. Navbar (ปรับปรุงปุ่ม) -->
-<nav class="navbar">
+<div class="app-header">
   <div style="display: flex; align-items: center; gap: 15px;">
-    <button onclick="toggleSidebar()" class="nav-icon" style="font-size: 1.4rem;">
+    <button onclick="toggleSidebar()" class="nav-icon" style="background: none; border: none; font-size: 1.3rem; color: #ff85a2; cursor: pointer; padding: 0;">
       <i class="fas fa-bars"></i>
     </button>
-    <div class="brand">BLM48</div>
-</div>
+    <div class="app-logo">BLM48</div>
   </div>
-  
-  <div class="nav-btns">
-    <!-- ปุ่มกระเป๋าแบบไอคอน -->
-     <a href="inventory.html" class="nav-icon" title="Inventory">
-      <i class="fas fa-briefcase"></i>
-    </a>
-    <!-- ปุ่ม Shop กระโดดไป shop.html -->
-    <a href="shop.html" class="nav-icon" title="Shop">
-      <i class="fas fa-shopping-cart"></i>
-    </a>
-    <a href="profile.html" class="nav-icon" title="Profile">
-     <i class="fas fa-user"></i>
-    </a>
-    <a href="search.html" class="nav-icon" title="Profile">
-    <i class="fas fa-search"></i> </a>
-    </div>
-</nav>
+  <div class="app-actions" style="display: flex; align-items: center; gap: 18px;">
+    <i class="fas fa-search" onclick="window.location.href='search.html'" style="font-size: 1.2rem; color: #888; cursor: pointer;" title="Search"></i>
+    <i class="far fa-bell" style="font-size: 1.2rem; color: #888; cursor: pointer;" title="Notifications"></i>
+  </div>
+</div>
 
-<div id="user-bar" class="user-profile-bar"></div>
+<main class="app-content">
   
-<div class="champ-banner" onclick="window.location.href='champ.html'">
+  <section id="page-home" class="app-page active">
+    <div id="user-bar" class="user-profile-bar"></div>
+    
+    <div class="champ-banner" onclick="window.location.href='champ.html'">
       <div class="champ-info">
         <div class="champ-badge"><i class="fas fa-crown"></i> Champ of the Month</div>
         <div class="champ-title" id="home-champ-name">Mushroom</div>
@@ -1269,21 +1290,76 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       </div>
     </div>
 
-<div class="section-title"> Member Ranking</div>
-<div class="ranking-wrapper">
-  <div id="ranking-list" class="horizontal-list"></div>
-</div>
- 
-<div class="section-title"> Top Fans</div>
-<div class="ranking-wrapper">
-  <div id="global-fan-list" class="horizontal-list"></div>
-</div>
-  
-<div class="section-title"> Trending MV</div>
-<div class="ranking-wrapper">
-  <div id="mv-scroller" class="horizontal-list" style="align-items: flex-start;">
+    <div class="section-title"><i class="fas fa-trophy"></i> Member Ranking</div>
+    <div class="ranking-wrapper">
+      <div id="ranking-list" class="horizontal-list"></div>
     </div>
-</div>
+     
+    <div class="section-title"><i class="fas fa-heart"></i> Top Fans</div>
+    <div class="ranking-wrapper">
+      <div id="global-fan-list" class="horizontal-list"></div>
+    </div>
+      
+    <div class="section-title"><i class="fas fa-play-circle"></i> Trending MV</div>
+    <div class="ranking-wrapper">
+      <div id="mv-scroller" class="horizontal-list" style="align-items: flex-start;">
+         </div>
+    </div>
+
+    <footer style="padding: 40px 20px; text-align: center; color: #c5c5c5; font-size: 11px; letter-spacing: 0.5px; line-height: 1.6;">
+        <div style="font-family: 'Kanit', sans-serif; font-weight: 700; color: #999; margin-bottom: 6px; letter-spacing: 1px;">BLM48 MEMBERSHIP</div>
+        <div>© 2026 Virtual Idol Cover Group. All Rights Reserved.</div>
+    </footer>
+  </section>
+
+  <section id="page-shop" class="app-page">
+    <div class="section-title"><i class="fas fa-shopping-bag"></i> Shop</div>
+    </section>
+
+  <section id="page-inventory" class="app-page">
+    <div class="section-title"><i class="fas fa-box-open"></i> Inventory</div>
+    </section>
+
+  <section id="page-oshi" class="app-page">
+    <div class="section-title"><i class="fas fa-star"></i> My Kami-Oshi</div>
+    </section>
+
+  <section id="page-members" class="app-page">
+    <div class="section-title"><i class="fas fa-users"></i> Members</div>
+    </section>
+
+  <section id="page-profile" class="app-page">
+    <div class="section-title"><i class="fas fa-user-circle"></i> My Profile</div>
+    </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <a href="#" class="nav-item active" onclick="switchPage('home', event)">
+    <i class="fas fa-home"></i>
+    <span>Home</span>
+  </a>
+  <a href="#" class="nav-item" onclick="switchPage('shop', event)">
+    <i class="fas fa-shopping-bag"></i>
+    <span>Shop</span>
+  </a>
+  <a href="#" class="nav-item" onclick="switchPage('inventory', event)">
+    <i class="fas fa-box-open"></i>
+    <span>Inventory</span>
+  </a>
+  <a href="#" class="nav-item" onclick="switchPage('oshi', event)">
+    <i class="fas fa-star"></i>
+    <span>Kami-Oshi</span>
+  </a>
+  <a href="#" class="nav-item" onclick="switchPage('members', event)">
+    <i class="fas fa-users"></i>
+    <span>Members</span>
+  </a>
+  <a href="#" class="nav-item" onclick="switchPage('profile', event)">
+    <i class="fas fa-user-circle"></i>
+    <span>Profile</span>
+  </a>
+</nav>
 
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
@@ -1517,6 +1593,36 @@ window.addEventListener('load', () => {
   if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
   setTimeout(hideSplashScreen, 2000); 
 });
+  
+  function switchPage(pageId, event) {
+  if (event) event.preventDefault(); // ป้องกันไม่ให้หน้าเว็บเลื่อนกระตุกขึ้นบนสุด
+
+  // 1. ซ่อนทุกหน้าเว็บก่อน
+  const pages = document.querySelectorAll('.app-page');
+  pages.forEach(page => page.classList.remove('active'));
+
+  // 2. ปลดสถานะ active ของทุกปุ่มเมนู
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => item.classList.remove('active'));
+
+  // 3. เปิดแสดงผลหน้าที่ถูกเลือก
+  const targetPage = document.getElementById(`page-${pageId}`);
+  if (targetPage) {
+    targetPage.classList.add('active');
+  }
+
+  // 4. ไฮไลต์ปุ่มเมนูที่ถูกเลือก
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add('active');
+  } else {
+    // กรณีเรียกผ่านโค้ดปกติ ให้หาปุ่มที่มี href หรือดักจากปุ่มตรงๆ
+    const targetBtn = Array.from(document.querySelectorAll('.nav-item')).find(item => item.getAttribute('onclick').includes(pageId));
+    if (targetBtn) targetBtn.classList.add('active');
+  }
+  
+  // เสริม: สั่งให้เลื่อนหน้าจอกลับไปด้านบนสุดของหน้านั้นๆ เสมอเวลาสลับแท็บ
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
  
 function updateUI() {
   console.log("ฟังก์ชัน updateUI ทำงาน! ค่า user ณ ตอนนี้คือ:", user);
