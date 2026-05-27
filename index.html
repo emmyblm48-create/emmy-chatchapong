@@ -1178,9 +1178,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div class="sidebar-links" style="display: flex; flex-direction: column; height: calc(100% - 60px); justify-content: space-between;">
     
     <div>
-      <a href="index.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-        <i class="fas fa-home" style="width:20px;"></i> HOME
-      </a>
       <a href="shop.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
         <i class="fas fa-shopping-cart" style="width:20px;"></i> SHOP
       </a>
@@ -1189,21 +1186,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       </a>
       <a href="kami.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
         <i class="fa-solid fa-star" style="width:20px;"></i> My Kami-Oshi Members
-      </a>
-      <a href="history.html" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-        <i class="fas fa-history" style="width:20px;"></i> HISTORY
-      </a>
-      <a href="https://sites.google.com/view/blm48/home" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-        <i class="fas fa-globe" style="width:20px;"></i> OFFICIAL SITE
-      </a>
-      
-      <a href="#" onclick="refreshPage()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0;">
-         <i class="fas fa-sync-alt" style="width:20px;"></i> REFRESH
-      </a>
-      
-      <a href="#" onclick="confirmLogout()" class="nav-link" style="display:flex; align-items:center; gap:15px; padding:15px 0; color: #ff6b6b;">
-         <i class="fas fa-sign-out-alt" style="width:20px;"></i> LOGOUT
-      </a>
+      </a>    
       
       <hr style="border: 0.5px solid #f0f0f0; margin: 10px 0;">
       
@@ -1441,6 +1424,16 @@ async function syncUserData() {
 }
 
 async function loadData() {
+  // เช็คเวลาอัปเดตล่าสุด
+  const lastSync = localStorage.getItem('bnl_last_sync');
+  const now = Date.now();
+  
+  // ถ้าเพิ่งดึงข้อมูลมาไม่เกิน 3 นาที (180,000 มิลลิวินาที) ให้ข้ามการดึงข้อมูลใหม่ไปเลย
+  if (lastSync && (now - parseInt(lastSync)) < 180000) {
+    console.log("ใช้ข้อมูลจากแคชที่ยังมีอายุอยู่");
+    return;
+  }
+
   try {
     const [rankingResp, topFansResp] = await Promise.all([
       fetch(`${scriptURL}?_=${Date.now()}`),
@@ -1450,9 +1443,12 @@ async function loadData() {
     currentRankingData = await rankingResp.json();
     currentTopFansData = await topFansResp.json();
 
+    // บันทึกข้อมูลและประทับเวลาใหม่ลงเครื่อง
     localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
     localStorage.setItem('bnl_topfans_cache', JSON.stringify(currentTopFansData));
+    localStorage.setItem('bnl_last_sync', now.toString());
 
+    // อัปเดต UI อีกครั้งแบบเงียบๆ
     if (typeof renderRanking === 'function') renderRanking(currentRankingData);
     if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
   } catch(e) { 
@@ -1489,34 +1485,32 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     user = getUserSession(); 
 
-    // ล็อกอินวอลล์: ถ้าไม่มีข้อมูล ให้ดีดไปหน้าล็อกอินทันที
     if (!user) {
       window.location.href = 'login.html';
       return; 
     }
 
     checkVersion(); 
+    
+    // 1. วาดหน้าจอด้วยข้อมูลจาก Cache ทันที
     if (typeof updateUI === 'function') updateUI();
-    
-    // ✨ เพิ่มคำสั่งวาดหน้าต่าง Trending MV ตรงนี้ครับ ✨
     if (typeof renderTrendingMVs === 'function') renderTrendingMVs();
-    
-    // วาดตารางจากแคชในเครื่องรอทันทีเว็บจะได้ดูโหลดเร็วขึ้น
     if (Array.isArray(currentRankingData) && currentRankingData.length > 0) {
-      if (typeof renderRanking === 'function') renderRanking(currentRankingData);
+      renderRanking(currentRankingData);
     }
     if (currentTopFansData && Object.keys(currentTopFansData).length > 0) {
-      if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
+      renderGlobalFans(currentTopFansData);
     }
 
-    // รันกระบวนการดึงข้อมูลสดจาก Sheets เบื้องหลัง
+    // 2. ซ่อนหน้าต่างโหลดทันที ผู้ใช้จะรู้สึกว่าแอปเข้าปุ๊บติดปั๊บ
+    if (typeof hideAppLoading === 'function') hideAppLoading();
+
+    // 3. แอบดึงข้อมูลสดจาก Sheets เบื้องหลัง (ไม่ต้องมี Swal.showLoading มารบกวน)
     loadData();
     syncUserData(); 
 
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการเปิดหน้าแรก:", error);
-  } finally {
-    // ไม้ตายสุดท้าย: ไม่ว่าจะพังตรงไหน หน้าโหลดสีขาวชมพูต้องยอมปิดตัวออกเสมอ แอปจะได้ไม่ค้าง
     if (typeof hideAppLoading === 'function') hideAppLoading();
   }
 });
