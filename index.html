@@ -1270,10 +1270,6 @@ const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWts
 var user = null;
 var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) || [];
 var currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
-  
-  if (currentUser && currentUser.role === 'member') {
-    document.getElementById('btn-create-post').style.display = 'inline-block';
-}
 
 // ==========================================
 // 👑 2. SESSION MANAGEMENT (ระบบจัดการเซสชันและล็อกอิน)
@@ -1495,6 +1491,21 @@ function updateUI() {
 
   const isMember = isUserMember();
 
+  // =========================================================================
+  // 🌸 [จุดเพิ่มใหม่] ระบบเปิด-ปิดปุ่มสร้างโพสต์ตามสิทธิ์เมมเบอร์ BLM48
+  // =========================================================================
+  const btnCreatePost = document.getElementById('btn-create-post');
+  if (btnCreatePost) {
+    if (isMember) { 
+      // ถ้าเป็นเมมเบอร์ ให้แสดงปุ่มไอคอน + ขึ้นมางับ
+      btnCreatePost.style.display = 'inline-block';
+    } else {
+      // ถ้าเป็น User/แฟนคลับทั่วไป ให้ซ่อนปุ่มนี้ไว้
+      btnCreatePost.style.display = 'none';
+    }
+  }
+  // =========================================================================
+
   // 🌸 จัดการเลย์เอาต์การแสดงผล คามิโอชิ และ โอชิ
   const kamiTag = user.kamioshi ? `
     <span class="tag tag-kami" style="display: inline-flex; align-items: center; gap: 5px; background: #ffd700; color: #333; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; margin: 3px;">
@@ -1537,9 +1548,9 @@ function updateUI() {
       <button onclick="${isMember ? "Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info')" : "claimMonthly()"}" class="btn-bonus btn-monthly ${isMember ? 'btn-locked' : ''}"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
       <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
       
-     <button onclick="showMembershipCardModal()" class="btn-bonus btn-membership" style="grid-column: span 2; background: linear-gradient(135deg, #e0b953 0%, #fff5c3 45%, #fff5c3 55%, #cba034 100%); box-shadow: 0 4px 12px rgba(224, 185, 83, 0.4); color: #5e470c; border: 1px solid #fce899; font-weight: bold;">
-  <i class="fas fa-id-card"></i> Membership Card
-</button>
+      <button onclick="showMembershipCardModal()" class="btn-bonus btn-membership" style="grid-column: span 2; background: linear-gradient(135deg, #e0b953 0%, #fff5c3 45%, #fff5c3 55%, #cba034 100%); box-shadow: 0 4px 12px rgba(224, 185, 83, 0.4); color: #5e470c; border: 1px solid #fce899; font-weight: bold;">
+        <i class="fas fa-id-card"></i> Membership Card
+      </button>
     </div>
   `;
 }
