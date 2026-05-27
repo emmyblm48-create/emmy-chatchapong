@@ -1168,6 +1168,9 @@ async function loadGachaCollections() {
   } catch (error) {
     console.error("Error loading gacha collections:", error);
     container.innerHTML = `<p style="color: #ff5376; text-align: center; grid-column: 1/-1; font-family:'Kanit';">เกิดข้อผิดพลาดในการโหลดข้อมูลตู้สุ่ม กรุณาลองใหม่อีกครั้งค่ะ</p>`;
+  } finally {
+    // ✨ [แก้ไขจุดที่ 1]: สั่งปิดหน้าจอ Loading Overlay ทุกครั้งเมื่อทำงานเสร็จสิ้น ป้องกันจอขาวค้าง
+    hideAppLoading();
   }
 }
 
@@ -1213,18 +1216,22 @@ function hideSplashScreen() {
 
 // 🚀 เริ่มต้นทำงานเมื่อโหลดหน้าเว็บเรียบร้อย
 document.addEventListener("DOMContentLoaded", () => {
-    // เปิดการแสดงผลหน้าโหลดทันทีที่ DOM พร้อมทำงาน เพื่อรอทรัพยากรอื่นๆ
-    const loader = document.getElementById('shop-loading-overlay');
-    if(loader) loader.style.display = 'flex';
-    
+    // เปิดหน้าจอโหลดทันทีที่ DOM พร้อมทำงาน เพื่อรอทรัพยากรอื่นๆ
+    showAppLoading();
     loadGachaCollections();
 });
 
 window.onload = async () => {
-    if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
+    // ✨ [แก้ไขจุดที่ 2]: ใส่เงื่อนไขเช็คความปลอดภัย เพื่อป้องกันแอปพังกรณีไม่มีฟังก์ชัน toggleDarkMode() ในไฟล์นี้
+    if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'function') {
+        toggleDarkMode();
+    }
     initShop(); // โหลดเซสชั่นและเปิดแถบโปรไฟล์ด้านบน
     setTimeout(hideSplashScreen, 2000); 
 };
+
+/* 💡 ข้อควรระวัง: หากเอ็มมี่มีฟังก์ชันอื่นๆ ของเดิม เช่น closeModal(), toggleSidebar(), หรือ showHistory() 
+   ที่ถูกเรียกใช้จากปุ่มต่างๆ ในหน้า HTML แนะนำให้วางต่อท้ายไฟล์ตรงด้านล่างนี้ด้วยนะงับ อย่าเผลอลบทิ้งน้า */
 </script>
 </body>
 </html>
