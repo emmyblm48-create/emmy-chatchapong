@@ -2035,14 +2035,19 @@ function renderPost(post) {
   const postContent = post.content || '';
   const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
   const postLikes = post.likes || 0;
-  const postId = post.id || ''; // ตรวจสอบให้มั่นใจว่าหลังบ้านส่ง ID โพสต์มาด้วยน้า
+  const postId = post.id || ''; 
   const displayImage = post.imageUrl || post.imageURL || '';
   const profilePic = post.profile_img || 'https://via.placeholder.com/40?text=🌸';
 
-  // 💬 ส่วนการเตรียมรายการคอมเมนต์ที่ดึงมาจากฐานข้อมูล
+  // 🔢 1. นับจำนวนคอมเมนต์จริงที่ส่งมาจากหลังบ้าน (Object หรือ Array ก็รองรับหมดงับ)
+  let commentCount = 0;
+  if (post.comments) {
+    commentCount = typeof post.comments === 'object' ? Object.keys(post.comments).length : post.comments.length;
+  }
+
+  // 💬 2. ส่วนการเตรียมรายการคอมเมนต์เพื่อเตรียมเอาไปแสดงผล
   let commentsHtml = '';
   if (post.comments && Object.keys(post.comments).length > 0) {
-    // รองรับทั้งคิวรีที่เป็น Array หรือ Object จากฐานข้อมูลงับ
     const commentsList = typeof post.comments === 'object' ? Object.values(post.comments) : post.comments;
     
     commentsList.forEach(cmt => {
@@ -2054,10 +2059,10 @@ function renderPost(post) {
       `;
     });
   } else {
-    // ถ้ายังไม่มีใครคอมเมนต์ให้ขึ้นข้อความน่ารักๆ
     commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาเป็นคนแรกกันน้า 🌸</div>`;
   }
 
+  // 🎨 3. ส่งก้อน HTML Card ออกไปแสดงบนหน้าเว็บ
   return `
     <div class="post-card" id="post-${postId}" style="background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       
@@ -2075,11 +2080,12 @@ function renderPost(post) {
       </div>
       
       <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;">
-          ❤️ <span id="like-count-${postId}">${postLikes}</span> ใจ
+        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; padding: 5px;">
+          <i class="fa-regular fa-heart" style="font-size: 1.1rem;"></i> <span id="like-count-${postId}">${postLikes}</span> ใจ
         </button>
-        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;">
-          💬 คอมเมนต์
+        
+        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; padding: 5px;">
+          <i class="fa-regular fa-comment" style="font-size: 1.1rem;"></i> <span id="comment-count-${postId}">${commentCount}</span> คอมเมนต์
         </button>
       </div>
 
@@ -2102,11 +2108,11 @@ function renderPost(post) {
   `;
 }
 
-// 💖 3. ฟังก์ชันกดใจโพสต์ (เปิดเสรีให้ทุก Role สามารถกดใจได้งับ!)
 async function likePost(postId) {
   const currentUser = getUserSession();
   console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอ:", currentUser);
   
+  // 🔒 ดักเคสถ้ายังไม่ได้ล็อกอิน (อันนี้ยังจำเป็นต้องเตือนน้า ไม่งั้นระบบจะไม่รู้ว่าใครกดงับ)
   if (!currentUser || !currentUser.username) {
     Swal.fire({
       icon: 'warning',
@@ -2119,28 +2125,55 @@ async function likePost(postId) {
 
   const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
   
+  // 🎯 [Optimistic UI] ทำงานทันทีบนหน้าจอ ไม่ต้องรอหลังบ้านตอบกลับงับคุณเอ็มมี่!
+  const likeSpan = document.getElementById(`like-count-${postId}`);
+  const heartIcon = likeSpan?.previousElementSibling; // ดึงตัวไอคอนหัวใจที่อยู่ข้างหน้าเลขไลก์
+  
+  let currentLikes = parseInt(likeSpan ? likeSpan.innerText : 0) || 0;
+  let isCurrentlyLiked = heartIcon ? heartIcon.classList.contains('fa-solid') : false;
+
+  // จำลองสถานะบนหน้าจอทันที เพื่อความลื่นไหลแบบ 100%
+  if (isCurrentlyLiked) {
+    // ถ้ายกเลิกกดใจ -> ปรับหัวใจเป็นเส้นโปร่ง และลดแต้มลง 1
+    if (heartIcon) {
+      heartIcon.classList.remove('fa-solid');
+      heartIcon.classList.add('fa-regular');
+    }
+    if (likeSpan) likeSpan.innerText = Math.max(0, currentLikes - 1);
+  } else {
+    // ถ้ากดใจใหม่ -> ปรับหัวใจเป็นสีชมพูทึบ และเพิ่มแต้มขึ้น 1
+    if (heartIcon) {
+      heartIcon.classList.remove('fa-regular');
+      heartIcon.classList.add('fa-solid');
+    }
+    if (likeSpan) likeSpan.innerText = currentLikes + 1;
+  }
+
   try {
-    // ยิงไปหาหลังบ้าน action = 'likePost' ส่ง Username ไปเช็คระบบโควตากดใจ
+    // ยิงข้อมูลไปอัปเดตที่ Google Sheets เงียบๆ ทางหลังบ้าน (Background Request)
     const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
     const result = await response.json();
     
-    if (result.status === "success") {
-      // อัปเดตตัวเลขยอดใจบนหน้าจอทันทีแบบไม่ต้องรีเฟรชหน้าเว็บให้สะดุดงับ ✨
-      const likeSpan = document.getElementById(`like-count-${postId}`);
+    // 🔄 หากหลังบ้านส่งค่าจริงมา ให้ซิงค์ตัวเลขให้ตรงกับฐานข้อมูลจริงอีกรอบเพื่อความแม่นยำ
+    if (result && result.status === "success") {
       if (likeSpan) likeSpan.innerText = result.likes;
       
-      Swal.fire({
-        icon: 'success',
-        title: result.isLiked ? 'กดใจให้แล้วน้า! 💖' : 'ยกเลิกกดใจแล้วงับ',
-        showConfirmButton: false,
-        timer: 1000
-      });
-    } else {
-      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: result.message });
+      // ซิงค์สไตล์หัวใจตามที่ฐานข้อมูลบันทึกจริง
+      if (heartIcon) {
+        if (result.isLiked) {
+          heartIcon.classList.remove('fa-regular');
+          heartIcon.classList.add('fa-solid');
+        } else {
+          heartIcon.classList.remove('fa-solid');
+          heartIcon.classList.add('fa-regular');
+        }
+      }
     }
+    // หมายเหตุ: ลบ Swal.fire ออกทั้งหมดแล้วงับ ไม่ว่าจะสำเร็จหรือพลาด จะไม่มีแจ้งเตือนขึ้นมากวนใจอีกต่อไป!
+    
   } catch (error) {
-    console.error("ระบบกดใจขัดข้อง:", error);
-    Swal.fire({ icon: 'error', title: 'ขออภัยงับ', text: 'ไม่สามารถเชื่อมต่อระบบกดใจได้ในขณะนี้' });
+    // บันทึก Log เงียบๆ ใน Console เผื่อคุณเอ็มมี่ไว้ใช้ตรวจสอบระบบตอนรันบั๊กงับ
+    console.error("ระบบกดใจหลังบ้านขัดข้อง แต่หน้าจอทำงานลื่นไหลปกติงับ:", error);
   }
 }
   
