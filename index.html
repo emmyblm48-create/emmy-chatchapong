@@ -1223,6 +1223,22 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="ranking-wrapper">
   <div id="global-fan-list" class="horizontal-list"></div>
 </div>
+
+        <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="color: #ff85a2; font-size: 14px; background: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(255,133,162,0.1);">
+                <i class="fas fa-users"></i>
+            </div>
+            <div style="display: flex; flex-direction: column; text-align: left;">
+                <span style="font-size: 11px; color: #a39095; font-weight: 600;">สมาชิกทั้งหมด</span>
+                <span style="font-size: 9px; color: #ccb2b7;">Official Membership</span>
+            </div>
+        </div>
+        <div style="background: white; padding: 2px 10px; border-radius: 8px; border: 1px solid #ffe6eb;">
+            <span id="total-members-count" style="font-size: 15px; font-weight: 700; color: #ff6b8b;">...</span>
+            <span style="font-size: 11px; color: #ff85a2; font-weight: 600; margin-left: 1px;">คน</span>
+        </div>
+    </div>
   
 <div class="section-title"> Trending MV</div>
 <div class="ranking-wrapper">
@@ -1240,21 +1256,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
 
 <footer style="padding: 60px 20px 40px 20px; text-align: center; color: #c5c5c5; font-size: 11px; letter-spacing: 0.5px; line-height: 1.6;">
-        <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="color: #ff85a2; font-size: 14px; background: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(255,133,162,0.1);">
-                <i class="fas fa-users"></i>
-            </div>
-            <div style="display: flex; flex-direction: column; text-align: left;">
-                <span style="font-size: 11px; color: #a39095; font-weight: 600;">สมาชิกทั้งหมด</span>
-                <span style="font-size: 9px; color: #ccb2b7;">Official Membership</span>
-            </div>
-        </div>
-        <div style="background: white; padding: 2px 10px; border-radius: 8px; border: 1px solid #ffe6eb;">
-            <span id="total-members-count" style="font-size: 15px; font-weight: 700; color: #ff6b8b;">...</span>
-            <span style="font-size: 11px; color: #ff85a2; font-weight: 600; margin-left: 1px;">คน</span>
-        </div>
-    </div>
     <div style="font-family: 'Kanit', sans-serif; font-weight: 700; color: #999; margin-bottom: 6px; letter-spacing: 1px;">BLM48 MEMBERSHIP</div>
     <div>© 2026 Virtual Idol Cover Group. All Rights Reserved.</div>
 </footer>
@@ -1278,30 +1279,6 @@ function saveUserSession(userData) {
   // ตั้งเวลาหมดอายุเซสชันล่วงหน้า 90 วัน
   const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
   localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
-}
-
-function getUserSession() {
-  try {
-    const sessionStr = localStorage.getItem('bnl_session');
-    if (!sessionStr) return null;
-    
-    const session = JSON.parse(sessionStr);
-    
-    // ⏳ 1. ระบบเช็คเวลาหมดอายุ (ดักเคสถ้าหมดอายุให้เตะออกและลบ Cache ทันที)
-    const expiryTime = session.expiry || session.expire;
-    if (expiryTime && new Date().getTime() > expiryTime) {
-      localStorage.removeItem('bnl_session');
-      return null;
-    }
-    
-    // 🎯 2. แกะข้อมูล User ออกมา (แก้บั๊ก Mismatch รองรับคีย์ .data / .user หรือตัวก้อนเซสชันเอง)
-    const userData = session.data || session.user || session;
-    return userData;
-    
-  } catch (e) {
-    console.error("Session Parse Error (แกะเซสชันผิดพลาด):", e);
-    return null;
-  }
 }
 
 function isUserMember() {
@@ -2051,22 +2028,38 @@ async function claimMonthly() {
   }
 }
   
- function renderPost(post) {
+function renderPost(post) {
   if (!post) return '';
 
-  // ดึงคีย์ author (ที่เป็น Name) และ profile_img ที่เราอัปเกรดส่งมาจากหลังบ้านตะกี้งับ 🌸
   const authorName = post.author || post.username || 'Anonymous Member';
   const postContent = post.content || '';
   const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
   const postLikes = post.likes || 0;
-  const postId = post.id || '';
+  const postId = post.id || ''; // ตรวจสอบให้มั่นใจว่าหลังบ้านส่ง ID โพสต์มาด้วยน้า
   const displayImage = post.imageUrl || post.imageURL || '';
-  
-  // หากเมมเบอร์ยังไม่ได้ตั้งรูปโปรไฟล์ในระบบ ให้ใช้ไอคอนมินิมอลน่ารักๆ แทนงับ
   const profilePic = post.profile_img || 'https://via.placeholder.com/40?text=🌸';
 
+  // 💬 ส่วนการเตรียมรายการคอมเมนต์ที่ดึงมาจากฐานข้อมูล
+  let commentsHtml = '';
+  if (post.comments && Object.keys(post.comments).length > 0) {
+    // รองรับทั้งคิวรีที่เป็น Array หรือ Object จากฐานข้อมูลงับ
+    const commentsList = typeof post.comments === 'object' ? Object.values(post.comments) : post.comments;
+    
+    commentsList.forEach(cmt => {
+      commentsHtml += `
+        <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; background: #fff5f7; padding: 8px 12px; border-radius: 12px;">
+          <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${cmt.username}:</b>
+          <span style="color: #333; word-break: break-word;">${cmt.text}</span>
+        </div>
+      `;
+    });
+  } else {
+    // ถ้ายังไม่มีใครคอมเมนต์ให้ขึ้นข้อความน่ารักๆ
+    commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาเป็นคนแรกกันน้า 🌸</div>`;
+  }
+
   return `
-    <div class="post-card" style="background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div class="post-card" id="post-${postId}" style="background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
         <img src="${profilePic}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
@@ -2082,12 +2075,27 @@ async function claimMonthly() {
       </div>
       
       <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 1rem;">
-          <i class="far fa-heart"></i> <span id="like-count-${postId}">${postLikes}</span>
+        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;">
+          ❤️ <span id="like-count-${postId}">${postLikes}</span> ใจ
         </button>
-        <button onclick="openComment('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 1rem;">
-          <i class="far fa-comment"></i> คอมเมนต์
+        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 5px;">
+          💬 คอมเมนต์
         </button>
+      </div>
+
+      <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
+        <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
+          ${commentsHtml}
+        </div>
+        
+        <div class="comment-input-box" style="display: flex; gap: 8px;">
+          <input type="text" id="comment-input-${postId}" placeholder="เขียนคอมเมนต์น่ารักๆ ตรงนี้น้า..." 
+                 style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
+          <button onclick="submitComment('${postId}')" 
+                  style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold; transition: 0.2s;">
+            ส่ง
+          </button>
+        </div>
       </div>
 
     </div>
@@ -2381,8 +2389,160 @@ document.addEventListener("DOMContentLoaded", () => {
   // สั่งให้ทำงานทันทีเมื่อโหลดโมดูลเสร็จรอบแรก
   refreshCountFromSheets();
 </script>
+<script type="module">
+  
+  /* ==========================================
+     🔒 ระบบจัดการ USER SESSION
+     ========================================== */
+  function getUserSession() {
+    try {
+      const sessionStr = localStorage.getItem('bnl_session');
+      if (!sessionStr) return null;
+      
+      const session = JSON.parse(sessionStr);
+      
+      // ⏳ ระบบเช็คเวลาหมดอายุ (ดักเคสถ้าหมดอายุให้เตะออกและลบ Cache ทันที)
+      const expiryTime = session.expiry || session.expire;
+      if (expiryTime && new Date().getTime() > expiryTime) {
+        localStorage.removeItem('bnl_session');
+        return null;
+      }
+      
+      // 🎯 แกะข้อมูล User ออกมา
+      const userData = session.data || session.user || session;
+      return userData;
+      
+    } catch (e) {
+      console.error("Session Parse Error (แกะเซสชันผิดพลาด):", e);
+      return null;
+    }
+  }
+  // 👑 ส่งฟังก์ชันออกไปโลกภายนอก (Global Scope) ให้จุดอื่นเรียกใช้ได้
+  window.getUserSession = getUserSession;
+
+
+  /* ==========================================
+     🔄 ระบบเปิด-ปิดลิ้นชักคอมเมนต์
+     ========================================== */
+  window.toggleCommentSection = function(postId) {
+    const section = document.getElementById(`comment-section-${postId}`);
+    if (section.style.display === "none" || section.style.display === "") {
+      section.style.display = "block";
+    } else {
+      section.style.display = "none";
+    }
+  }
+
+
+  /* ==========================================
+     💖 ระบบกดใจโพสต์ (เวอร์ชันใหม่ รองรับการกดซ้ำเพื่อถอนใจซิงค์กับหลังบ้าน)
+     ========================================== */
+  window.likePost = async function(postId) {
+    const currentUser = getUserSession();
+    console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอ:", currentUser);
+    
+    if (!currentUser || !currentUser.username) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ไม่พบข้อมูลผู้ใช้งาน 😰',
+        text: 'กรุณาล็อกอินเข้าสู่ระบบก่อนร่วมกิจกรรมไลก์โพสต์นะงับ',
+        confirmButtonColor: '#ff85a2'
+      });
+      return;
+    }
+
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    try {
+      // ยิงไปหาหลังบ้านแบบ Query String ส่ง Username ไปเช็คระบบโควตากดใจ
+      const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        // อัปเดตตัวเลขยอดใจบนหน้าจอทันทีตามค่าจริงที่ได้จากฐานข้อมูลหลังบ้าน ✨
+        const likeSpan = document.getElementById(`like-count-${postId}`);
+        if (likeSpan) likeSpan.innerText = result.likes;
+        
+        Swal.fire({
+          icon: 'success',
+          title: result.isLiked ? 'กดใจให้แล้วน้า! 💖' : 'ยกเลิกกดใจแล้วงับ',
+          showConfirmButton: false,
+          timer: 1000
+        });
+      } else {
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: result.message });
+      }
+    } catch (error) {
+      console.error("ระบบกดใจขัดข้อง:", error);
+      Swal.fire({ icon: 'error', title: 'ขออภัยงับ', text: 'ไม่สามารถเชื่อมต่อระบบกดใจได้ในขณะนี้' });
+    }
+  }
+
+
+  /* ==========================================
+     💬 ระบบส่งคอมเมนต์ใหม่เข้าฐานข้อมูล
+     ========================================== */
+  window.submitComment = async function(postId) {
+    const currentUser = getUserSession(); // เช็คสิทธิ์คนคอมเมนต์
+    if (!currentUser || !currentUser.username) {
+      Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนแสดงความคิดเห็นนะงับ', 'warning');
+      return;
+    }
+
+    const inputEl = document.getElementById(`comment-input-${postId}`);
+    const commentText = inputEl.value.trim();
+
+    if (!commentText) {
+      Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
+      return;
+    }
+
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+
+    try {
+      inputEl.disabled = true;
+
+      const resp = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'addComment',
+          postId: postId,
+          username: currentUser.username,
+          text: commentText
+        })
+      });
+
+      const result = await resp.json();
+      
+      if (result.status === "success") {
+        const commentList = document.getElementById(`comment-list-${postId}`);
+        const noCommentMsg = document.getElementById(`no-comment-${postId}`);
+        
+        if (noCommentMsg) noCommentMsg.remove(); // ลบคำเตือน "ยังไม่มีคอมเมนต์" ออก
+
+        const newCommentHtml = `
+          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; background: #fff5f7; padding: 8px 12px; border-radius: 12px;">
+            <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${currentUser.username}:</b>
+            <span style="color: #333; word-break: break-word;">${commentText}</span>
+          </div>
+        `;
+        
+        commentList.insertAdjacentHTML('beforeend', newCommentHtml);
+        inputEl.value = ""; // พิมพ์เสร็จแล้วเคลียร์ช่องให้ว่างเปล่า
+        commentList.scrollTop = commentList.scrollHeight; // ดัน Scroll ลงมาล่างสุด
+      } else {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถส่งคอมเมนต์ได้ในขณะนี้', 'error');
+      }
+    } catch (error) {
+      console.error("Comment Submission Error:", error);
+      Swal.fire('ระบบขัดข้อง', 'เชื่อมต่อหลังบ้านไม่สำเร็จงับ', 'error');
+    } finally {
+      inputEl.disabled = false; // เปิดช่องพิมพ์ให้กลับมาใช้งานได้ปกติ
+    }
+  }
+
+</script>
 </body>
 </html>
-  </body>
-  
+</body>
 </html>
