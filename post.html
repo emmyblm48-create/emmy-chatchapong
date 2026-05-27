@@ -77,25 +77,23 @@
     }
   }
 
-// ฟังก์ชันกดส่งโพสต์ (เวอร์ชันอัปเดตดักจับ Error และตรวจสอบเซสชัน)
+// ฟังก์ชันกดส่งโพสต์ (เวอร์ชันเชื่อมต่อคีย์ล็อกอิน bnl_session ของวง BLM48)
   window.submitPost = async function() {
     const content = document.getElementById('post-content').value.trim();
     
-    // 🔍 [จุดแก้ไข] ดักจับคีย์ทุกแบบ เผื่อหน้า Login เซฟไว้ชื่ออื่นงับ
-    const sessionUser = JSON.parse(localStorage.getItem('user')) || 
-                        JSON.parse(localStorage.getItem('currentUser')) || 
-                        JSON.parse(localStorage.getItem('bnl_user'));
+    // 🔍 [จุดแก้ไขสำคัญ] ดึงข้อมูลจากคีย์ bnl_session จริงของระบบคุณเอ็มมี่
+    const bnlSession = JSON.parse(localStorage.getItem('bnl_session'));
     
-    // พิมพ์เช็คใน Console (F12) ทันทีเพื่อดูว่าในเซสชันมีหน้าตาแบบไหน
-    console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอ:", sessionUser);
+    console.log("🌸 ข้อมูล Session จากล็อกอินที่ระบบตรวจเจอ:", bnlSession);
 
-    // ดึงค่า username ออกมา (ถ้าไม่มีลองดึงจาก .name หรือ .author เผื่อไว้)
+    // แกะข้อมูลผู้ใช้จากฟิลด์ data ด้านใน bnl_session อีกทีงับ
+    const sessionUser = bnlSession ? bnlSession.data : null;
     const activeUsername = sessionUser ? (sessionUser.username || sessionUser.name) : null;
 
-    if (!sessionUser || !activeUsername) {
+    if (!bnlSession || !activeUsername) {
       Swal.fire({
         title: 'ไม่พบข้อมูลผู้ใช้งาน 😥',
-        text: 'ระบบหาประวัติการล็อกอินในเครื่องนี้ไม่เจอค่ะ หรือ ข้อมูลล็อกอินไม่มี username (ตรวจสอบค่าใน Console ได้งับ)',
+        text: 'ระบบหาประวัติการล็อกอิน bnl_session ไม่เจอ หรือเซสชันอาจหมดอายุแล้ว กรุณาลองล็อกอินใหม่อีกครั้งที่หน้า login.html นะคะ',
         icon: 'warning'
       });
       return;
@@ -106,7 +104,7 @@
       return;
     }
 
-    // แสดงหน้าต่างกำลังโหลด
+    // แสดงหน้าต่างกำลังโหลดแบบมินิมอล
     Swal.fire({
       title: 'กำลังส่งโพสต์... 🌸',
       text: 'ระบบกำลังนำโพสต์ขึ้นฟีดหลักงับ',
@@ -131,7 +129,7 @@
         method: 'POST',
         body: JSON.stringify({
           action: 'createPost',
-          username: activeUsername, // ใช้ตัวแปรที่เราแกะค่ามาได้
+          username: activeUsername, // ส่ง Username ที่ถูกต้องไปหลังบ้าน
           content: content,
           imageUrl: imageUrl
         })
