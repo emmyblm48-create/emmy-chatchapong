@@ -1226,22 +1226,40 @@ function hideSplashScreen() {
     }
 }
 
-// 🚀 เริ่มต้นทำงานเมื่อโหลดหน้าเว็บเรียบร้อย
-document.addEventListener("DOMContentLoaded", () => {
-    // เปิดหน้าจอโหลดทันทีที่ DOM พร้อมทำงาน เพื่อรอทรัพยากรอื่นๆ
+// 🔥 [เดฟทริค]: รันเช็ค Dark Mode ทันทีตรงนี้ เพื่อป้องกัน "หน้าจอกระพริบสีขาว" (FOUC) ตอนโหลดหน้าเว็บ
+if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'function') {
+    toggleDarkMode();
+}
+
+// 🚀 เริ่มต้นทำงานทันทีที่โครงสร้าง HTML (DOM) พร้อม ไม่ต้องรอโหลดรูปภาพจนเสร็จ
+document.addEventListener("DOMContentLoaded", async () => {
+    // 1. เปิดหน้าจอโหลดทันทีที่ DOM พร้อมทำงาน
     showAppLoading();
-    loadGachaCollections();
-});
+    
+    // บันทึกเวลาเริ่มโหลด เพื่อเอาไปคำนวณเวลาเปิด Splash Screen ให้พอดีสวยๆ
+    const startTime = Date.now();
 
-window.onload = async () => {
-    // ✨ [แก้ไขจุดที่ 2]: ใส่เงื่อนไขเช็คความปลอดภัย เพื่อป้องกันแอปพังกรณีไม่มีฟังก์ชัน toggleDarkMode() ในไฟล์นี้
-    if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'function') {
-        toggleDarkMode();
+    try {
+        // 2. ✨ [จุดไม้ตาย]: สั่งให้โหลดข้อมูลคอลเลกชันกาก้า และ ระบบ Shop/เซสชัน ไปพร้อมๆ กันขนานกันไปเลย (เร็วขึ้น 2 เท่า!)
+        await Promise.all([
+            loadGachaCollections(),
+            typeof initShop === 'function' ? initShop() : Promise.resolve()
+        ]);
+    } catch (error) {
+        console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลหน้าเว็บ:", error);
+    } finally {
+        // 3. 🎯 [ปรับปรุงระบบ Splash Screen]: คำนวณเวลาที่ระบบใช้โหลดจริง 
+        const elapsedTime = Date.now() - startTime;
+        
+        // ถ้าโหลดเสร็จไวมาก ให้หน่วงเวลาโชว์ Splash Screen ไว้แค่ 500ms พอสวยงามแจกความสดใส 
+        // แต่ถ้าโหลดช้าเกิน 500ms อยู่แล้ว ก็สั่งปิดหน้าจอโหลดทันที ไม่ต้องบวกเพิ่มอีก 2 วินาทีงับ!
+        const remainingTime = Math.max(0, 500 - elapsedTime); 
+        
+        setTimeout(() => {
+            hideSplashScreen();
+        }, remainingTime);
     }
-    initShop(); // โหลดเซสชั่นและเปิดแถบโปรไฟล์ด้านบน
-    setTimeout(hideSplashScreen, 2000); 
-};
-
+});
 /* 💡 ข้อควรระวัง: หากเอ็มมี่มีฟังก์ชันอื่นๆ ของเดิม เช่น closeModal(), toggleSidebar(), หรือ showHistory() 
    ที่ถูกเรียกใช้จากปุ่มต่างๆ ในหน้า HTML แนะนำให้วางต่อท้ายไฟล์ตรงด้านล่างนี้ด้วยนะงับ อย่าเผลอลบทิ้งน้า */
 </script>
