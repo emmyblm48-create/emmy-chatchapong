@@ -465,16 +465,21 @@
       // 4. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       
+      // เปลี่ยนมาใช้ URLSearchParams เพื่อส่งเป็น Parameter ที่ปลอดภัยและแน่นอนกว่างับ ✨
+      const params = new URLSearchParams();
+      params.append('action', 'createPost');
+      params.append('username', activeUsername);
+      params.append('content', content);
+      params.append('imageUrl', imageUrlString);
+      params.append('audioURL', finalAudioUrl);
+      params.append('videoURL', finalVideoUrl);
+
       const resp = await fetch(scriptURL, {
         method: 'POST',
-        body: JSON.stringify({
-          action: 'createPost',
-          username: activeUsername, 
-          content: content,
-          imageUrl: imageUrlString,
-          audioURL: finalAudioUrl,  // 🌟 ส่งเป็นลิงก์ URL จริงจาก Supabase ไปแทน Base64
-          videoURL: finalVideoUrl   // 🌟 ส่งเป็นลิงก์ URL จริงจาก Supabase ไปแทน Base64
-        })
+        body: params,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       });
 
       const data = await resp.json();
