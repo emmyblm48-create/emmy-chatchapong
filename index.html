@@ -2107,29 +2107,28 @@ function renderPost(post) {
   const postId = post.id || ''; 
   const displayImage = post.imageUrl || post.imageURL || '';
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
-  const profilePic = post.profile_img || 'https://via.placeholder.com/40?text=🌸';
+  const allowedRoles = ['member', 'admin', 'ceo'];
+  const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
 
-  let commentCount = post.comments ? post.comments.length : 0;
-  let commentsHtml = '';
-  if (post.comments && post.comments.length > 0) {
-       post.comments.forEach(cmt => {
-        // 🌟 [จุดแก้ไข] เปลี่ยนมาเช็คจาก cmt.role แทน 
-        // ถ้า role เป็น member, Admin, หรือ CEO (ไม่สนตัวพิมพ์เล็ก-ใหญ่) จะได้ไอคอน Verified ทันที
-        const allowedRoles = ['member', 'admin', 'ceo'];
-        const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
-       const isCmtVerified = allowedRoles.includes(currentRole) 
-  ? '<i class="fa-solid fa-patched-check" style="color: #0095f6; font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>' 
-  : '';
+  // 🌟 1. ดึง SVG ที่เอ็มมี่เขียนไว้มาเก็บในตัวแปรนี้ (ผมปรับโค้ดสีจาก #1DA1F2 ฟ้าทวิตเตอร์ เป็น #0095f6 ฟ้า Instagram ตามที่เอ็มมี่ชอบนะงับ)
+  const verifiedBadgeIcon = `
+    <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+      <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+    </svg>
+  `;
 
-        commentsHtml += `
-          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
-            <img src="${cmt.profile_img}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-            <div style="font-size: 0.88rem;">
-              <b style="color: #ff85a2; margin-right: 4px;">${cmt.name} ${isCmtVerified}</b>
-              <span style="color: #333; word-break: break-word;">${cmt.text}</span>
-            </div>
-          </div>
-        `;
+  // 🌟 2. นำตัวแปรโค้ด SVG (verifiedBadgeIcon) มาใส่ตรงนี้แทนแท็ก <i> ตัวเดิม
+  const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
+
+  commentsHtml += `
+    <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
+      <img src="${cmt.profile_img}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+      <div style="font-size: 0.88rem;">
+        <b style="color: #ff85a2; margin-right: 4px;">${cmt.name} ${isCmtVerified}</b>
+        <span style="color: #333; word-break: break-word;">${cmt.text}</span>
+      </div>
+    </div>
+  `;
       });
   } else {
     commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">No Comments yet</div>`;
@@ -2152,7 +2151,7 @@ function renderPost(post) {
         
         <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
           <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
-            <span>Voice Note 🌸</span>
+            <span>Voice Note</span>
             <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
           </div>
           <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
