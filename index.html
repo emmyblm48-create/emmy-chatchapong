@@ -1156,6 +1156,43 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   text-align: left; 
 }
     
+    /* Gallery Layout */
+.post-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* แบ่ง 2 คอลัมน์ */
+  gap: 8px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.img-wrapper {
+  position: relative;
+  aspect-ratio: 1 / 1;
+}
+
+.gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* เงาสีดำรูปที่ 4 */
+.more-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+    
   </style>
 </head>
 <body>
@@ -2103,24 +2140,23 @@ function renderPost(post) {
   // =========================================================================
   // 📸 [จุดที่รวมเพิ่ม: จัดการรูปภาพ - รองรับทั้งรูปเดี่ยวและรูปหลายรูป]
   // =========================================================================
-  let imagesHtml = '';
+ let imagesHtml = '';
   if (displayImage) {
-    // แยกลิงก์รูปภาพออกจากกันด้วยเครื่องหมายคอมม่า (,)
-    const imageUrls = displayImage.includes(',') ? displayImage.split(',') : [displayImage];
+    const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
+    const visibleImages = imageUrls.slice(0, 4); // เอาแค่ 4 รูปแรก
     
-    imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: ${imageUrls.length > 1 ? 'repeat(auto-fit, minmax(140px, 1fr))' : '1fr'}; gap: 8px; margin-top: 10px;">`;
+    imagesHtml += `<div class="post-gallery">`;
     
-    imageUrls.forEach(url => {
-      const trimmedUrl = url.trim();
-      if (trimmedUrl) {
-        imagesHtml += `
-          <img src="${trimmedUrl}" onclick="openImageViewer('${trimmedUrl}')" 
-               style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s;"
-               onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        `;
+    visibleImages.forEach((url, index) => {
+      imagesHtml += `<div class="img-wrapper">`;
+      imagesHtml += `<img src="${url}" class="gallery-img" onclick="openImageViewer('${url}', ${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])">`;
+      
+      // ถ้าเป็นรูปที่ 4 และมีรูปเหลืออีก
+      if (index === 3 && imageUrls.length > 4) {
+        imagesHtml += `<div class="more-overlay" onclick="openImageViewer('${url}', ${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])">+${imageUrls.length - 4}</div>`;
       }
+      imagesHtml += `</div>`;
     });
-    
     imagesHtml += `</div>`;
   }
 
@@ -2519,6 +2555,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // 👑 ส่งฟังก์ชันออกไปโลกภายนอก (Global Scope) ให้จุดอื่นเรียกใช้ได้
   window.getUserSession = getUserSession;
 
+  
+let currentGallery = [];
+let currentIndex = 0;
+
+window.openImageViewer = function(url, index, galleryArray) {
+  currentGallery = galleryArray;
+  currentIndex = index;
+  const modal = document.getElementById('image-viewer-modal');
+  const img = document.getElementById('full-size-image');
+  img.src = url;
+  modal.style.display = 'flex';
+};
+
+// ฟังก์ชันเปลี่ยนรูป (ใส่เพิ่มใน script)
+window.changeImage = function(direction) {
+  currentIndex += direction;
+  if (currentIndex < 0) currentIndex = currentGallery.length - 1;
+  if (currentIndex >= currentGallery.length) currentIndex = 0;
+  document.getElementById('full-size-image').src = currentGallery[currentIndex];
+};
 
   /* ==========================================
      🔄 ระบบเปิด-ปิดลิ้นชักคอมเมนต์
@@ -2671,9 +2727,12 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
-<div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; cursor: pointer;">
-    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 35px; font-weight: bold; cursor: pointer;">&times;</span>
-    <img id="full-size-image" src="" style="max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-  </div>
+<div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; cursor: pointer;">
+  <span onclick="document.getElementById('image-viewer-modal').style.display='none'" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; z-index: 10000;">&times;</span>
+  
+  <button onclick="event.stopPropagation(); changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 30px;">❮</button>
+  <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
+  <button onclick="event.stopPropagation(); changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 30px;">❯</button>
+</div>
 </body>
 </html>
