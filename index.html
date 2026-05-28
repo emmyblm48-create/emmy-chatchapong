@@ -2078,7 +2078,7 @@ function renderPost(post) {
   }
 
   // =========================================================================
-  // 👑 [จุดที่รวมเพิ่ม: จัดการไฟล์เสียง Voice Note และ วิดีโอ]
+  // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
   // =========================================================================
   let mediaHtml = '';
 
@@ -2098,6 +2098,30 @@ function renderPost(post) {
         <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
       </div>
     `;
+  }
+
+  // =========================================================================
+  // 📸 [จุดที่รวมเพิ่ม: จัดการรูปภาพ - รองรับทั้งรูปเดี่ยวและรูปหลายรูป]
+  // =========================================================================
+  let imagesHtml = '';
+  if (displayImage) {
+    // แยกลิงก์รูปภาพออกจากกันด้วยเครื่องหมายคอมม่า (,)
+    const imageUrls = displayImage.includes(',') ? displayImage.split(',') : [displayImage];
+    
+    imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: ${imageUrls.length > 1 ? 'repeat(auto-fit, minmax(140px, 1fr))' : '1fr'}; gap: 8px; margin-top: 10px;">`;
+    
+    imageUrls.forEach(url => {
+      const trimmedUrl = url.trim();
+      if (trimmedUrl) {
+        imagesHtml += `
+          <img src="${trimmedUrl}" onclick="openImageViewer('${trimmedUrl}')" 
+               style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s;"
+               onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        `;
+      }
+    });
+    
+    imagesHtml += `</div>`;
   }
 
   // 🌟 สร้างปุ่มลบ/แก้ไข เฉพาะถ้าเป็นเจ้าของโพสต์
@@ -2121,7 +2145,7 @@ function renderPost(post) {
       
       <div class="post-body" style="margin-bottom: 15px;">
         <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
-        ${displayImage ? `<img src="${displayImage}" onclick="openImageViewer('${displayImage}')" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; margin-top: 10px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">` : ''}
+        ${imagesHtml}
         ${mediaHtml}
       </div>
       
