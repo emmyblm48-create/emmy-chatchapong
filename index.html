@@ -2044,51 +2044,79 @@ function renderPost(post) {
 }
   
 async function loadTimelinePosts() {
+  // 🛡️ ป้องกันการโหลดซ้อน (ถ้ากดสลับแท็บรัวๆ แล้วตัวเก่ากำลัง Fetch อยู่ ให้ข้ามฟังก์ชันนี้ไปเลย)
+  if (window.isTimelineLoading) return;
+
   const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
   const container = document.getElementById('posts-container');
   if (!container) return;
-  
-  // 🛑 ไม่ต้องเคลียร์ container.innerHTML = ''; แล้วนะงับ ปล่อยโพสต์เก่าค้างไว้เลย
+
+  // 🔍 1. ตรวจสอบว่า ณ ตอนนี้บนหน้าจอมีโพสต์เก่าแสดงอยู่แล้วหรือยัง
+  const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
+
+  // 🔍 2. ถ้า "ยังไม่เคยมีโพสต์เลย" (เช่น เพิ่งเปิดเว็บครั้งแรกสุดในชีวิต) ค่อยแสดงข้อความกำลังโหลด
+  if (!hasExistingPosts) {
+    if (!document.getElementById('loading-msg')) {
+      container.innerHTML = `
+        <div id="loading-msg" style="text-align: center; padding: 30px 20px; color: #ff85a2; font-size: 0.95rem;">
+          <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> กำลังเปิดประตูมิติดึงฟีดฟินๆ รอแป๊บน้า...
+        </div>`;
+    }
+  }
+  // 💡 หมายเหตุ: ถ้ามีโพสต์เก่าอยู่แล้ว บล็อกข้างบนจะไม่ทำงาน ทำให้โพสต์เก่าค้างอยู่บนจอให้ผู้ใช้ไถอ่านได้ทันที!
 
   try {
+    window.isTimelineLoading = true; // เปิดสถานะล็อกป้องกันการดึงข้อมูลซ้อนกัน
+
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
     const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
     
     let posts = await response.json();
-    if (!posts || posts.length === 0) return;
+    
+    // หากดึงข้อมูลมาแล้วไม่มีโพสต์เลย
+    if (!posts || posts.length === 0) {
+      if (!hasExistingPosts) {
+        container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: gray; font-size: 0.9rem;">ยังไม่มีโพสต์ในระบบขณะนี้งับ</div>`;
+      }
+      return;
+    }
 
-    // เคลียร์พวกข้อความ Loading หรือ Not Post (ถ้ามี) ออกไป
+    // ลบข้อความ "กำลังโหลด" ออกไป (ถ้ามีอยู่บนจอ)
     const loadingMsg = document.getElementById('loading-msg');
     if (loadingMsg) loadingMsg.remove();
 
-    // 🌟 ทริคสำคัญ: กลับด้านข้อมูลให้เป็น (เก่าสุด -> ใหม่สุด)
-    // เพื่อเวลาเราเจอโพสต์ใหม่ เราจะดันมันไปแทรกไว้ "บนสุด" ของหน้าจอได้พอดีเป๊ะ
+    // 🌟 ทริค: กลับด้านข้อมูลให้เป็น (เก่าสุด -> ใหม่สุด) เพื่อนำของใหม่ไปหยอดแทรกไว้ "บนสุด"
     posts.reverse(); 
 
     posts.forEach(post => {
       const existingPost = document.getElementById(`post-${post.id}`);
       
       if (existingPost) {
-        // 🎯 1. โพสต์เก่าที่มีอยู่แล้ว: อัปเดตแค่เลขไลก์ และไอคอนหัวใจ (หน้าจอไม่กะพริบ)
+        // 🎯 สถานการณ์ A (โพสต์เดิม): อัปเดตแค่ยอดไลก์และไอคอนหัวใจเงียบๆ (หน้าจอไม่กระพริบ ข้อมูลไม่หาย)
         const likeCountEl = document.getElementById(`like-count-${post.id}`);
         if (likeCountEl) likeCountEl.innerText = post.likes;
         
         const heartIcon = document.getElementById(`heart-${post.id}`);
         if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        
       } else {
-        // 🎯 2. โพสต์ใหม่ที่เพิ่งมา: ให้วาด HTML แล้วดันแทรกไป "บนสุด" (afterbegin)
+        // 🎯 สถานการณ์ B (โพสต์ใหม่แกะกล่อง): ให้วาด HTML แล้วแทรกดันไป "บนสุด" (afterbegin) ทันที!
         container.insertAdjacentHTML('afterbegin', renderPost(post));
       }
     });
     
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
+    // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ ค่อยพ่นข้อความเตือน
+    if (!hasExistingPosts) {
+      container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: #ff4d4d; font-size: 0.9rem;">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้งน้า 😥</div>`;
+    }
+  } finally {
+    window.isTimelineLoading = false; // ปลดล็อกเพื่อให้ระลอกถัดไปทำงานได้ปกติ
   }
 }
 
-  // ฟังก์ชันลบโพสต์
+// ฟังก์ชันลบโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
 async function deletePostUi(postId) {
   const result = await Swal.fire({
     title: 'ลบโพสต์นี้?',
@@ -2102,19 +2130,22 @@ async function deletePostUi(postId) {
 
   if (result.isConfirmed) {
     const currentUser = getUserSession();
-    const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}`);
+    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
+    
+    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL
+    const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
     const data = await response.json();
     
     if (data.status === 'success') {
       document.getElementById(`post-${postId}`).remove(); // เตะการ์ดออกจากหน้าจอทันที
-      Swal.fire('ลบแล้ว!', 'ลบโพสต์ของคุณเรียบร้อยงับ', 'success');
+      Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อยงับ', 'success');
     } else {
-      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่ใช่เจ้าของโพสต์', 'error');
+      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error');
     }
   }
 }
 
-// ฟังก์ชันแก้ไขโพสต์
+// ฟังก์ชันแก้ไขโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
 async function editPostUi(postId, encodedContent) {
   const oldContent = decodeURIComponent(encodedContent);
   const { value: newText } = await Swal.fire({
@@ -2128,14 +2159,17 @@ async function editPostUi(postId, encodedContent) {
 
   if (newText && newText !== oldContent) {
     const currentUser = getUserSession();
-    const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&newContent=${encodeURIComponent(newText)}`);
+    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
+    
+    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL พร้อมกับเนื้อหาใหม่
+    const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
     const data = await response.json();
 
     if (data.status === 'success') {
       document.getElementById(`content-${postId}`).innerText = newText; // เปลี่ยนข้อความบนจอทันที
       Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
     } else {
-      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาดในการแก้ไข', 'error');
+      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error');
     }
   }
 }
