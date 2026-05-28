@@ -19,15 +19,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
-      /* 🌟 ล็อกขนาดรูปโปรไฟล์ไม่ให้ซูมหรือเบี้ยว และรองรับมือถือ */
+    /* 🌟 ล็อกขนาดรูปโปรไฟล์ไม่ให้ซูมหรือเบี้ยว และรองรับมือถือ */
     .member-profile-img {
-      width: 120px; /* ปรับขนาดความใหญ่ตามต้องการได้เลยงับ */
+      width: 120px; 
       height: 120px;
-      border-radius: 50%; /* ทำให้เป็นวงกลม */
-      object-fit: cover; /* 🌟 หัวใจสำคัญ: ทำให้รูปซูมพอดีกรอบ ไม่ยืด ไม่เบี้ยว */
-      object-position: center; /* จัดให้อยู่กึ่งกลางเสมอ */
-      flex-shrink: 0; /* ป้องกันไม่ให้โดนบีบเวลามีพื้นที่น้อย */
-      border: 3px solid #ffccd7; /* เพิ่มขอบน่ารักๆ */
+      border-radius: 50%; 
+      object-fit: cover; 
+      object-position: center; 
+      flex-shrink: 0; 
+      border: 3px solid #ffccd7; 
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
@@ -105,18 +105,18 @@
       pointer-events: none;
     }
 
-    /* 💻 เมื่อเปิดบน iPad / Tablet / PC (ล็อกให้เป็น Mobile Size) */
+    /* 💻 เมื่อเปิดบน iPad / Tablet / PC */
     @media (min-width: 768px) {
       body {
         padding: 40px 20px;
         align-items: center;
-        background: #f4f6f8; /* พื้นหลังจอใหญ่ให้ดูมีมิติแยกระหว่างแอปกับพื้นหลัง */
+        background: #f4f6f8; 
       }
       .app-layout {
-        max-width: 480px; /* ล็อกความกว้างไว้เท่ามือถือ */
+        max-width: 480px; 
         min-height: 800px;
         border-radius: 30px;
-        flex-direction: column; /* เรียงจากบนลงล่างเหมือนมือถือ */
+        flex-direction: column; 
         overflow: hidden;
         margin: 0 auto;
         box-shadow: 0 15px 35px rgba(255, 133, 162, 0.1);
@@ -270,12 +270,11 @@
     .fan-list { 
       display: flex; 
       flex-direction: column; 
-      max-height: 220px; /* กำหนดความสูงเพื่อให้โชว์แค่ 3-4 อันดับแรก */
-      overflow-y: auto; /* เปิด Scroll หากเนื้อหาเกิน */
-      padding-right: 8px; /* เว้นระยะขวาไม่ให้ข้อความชิดแถบเลื่อน */
+      max-height: 220px; 
+      overflow-y: auto; 
+      padding-right: 8px; 
     }
     
-    /* สไตล์แถบเลื่อน Minimal */
     .fan-list::-webkit-scrollbar { width: 5px; }
     .fan-list::-webkit-scrollbar-track { background: #fdf6f7; border-radius: 10px; }
     .fan-list::-webkit-scrollbar-thumb { background: #ffc2cc; border-radius: 10px; }
@@ -284,7 +283,7 @@
       display: flex;
       align-items: center;
       padding: 12px 0;
-      border-bottom: 1px dashed #faf0f2; /* เปลี่ยนเป็นเส้นประให้ดูซอฟต์ลง */
+      border-bottom: 1px dashed #faf0f2; 
     }
     .fan-row:last-child { border-bottom: none; }
     
@@ -318,7 +317,44 @@
       gap: 3px;
       margin-top: 2px;
     }
-  /* ☠️ Skeleton Loading Animation */
+
+    /* =========================================
+       📸 TRENDING GALLERY & AUDIO PLAYERS (PORTED FROM INDEX)
+       ========================================= */
+    .post-gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .post-gallery .img-container-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+    }
+    .post-gallery .gallery-img-item {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px !important;
+      cursor: pointer;
+      display: block;
+    }
+    .more-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px !important;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* ☠️ Skeleton Loading Animation */
     .skeleton {
       background: #eee;
       background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
@@ -327,17 +363,9 @@
       animation: 1.5s shine linear infinite;
       color: transparent !important;
     }
-    .skeleton * {
-      visibility: hidden; /* ซ่อนเนื้อหาข้างในไว้ชั่วคราว */
-    }
-    
-    @keyframes shine {
-      to {
-        background-position-x: -200%;
-      }
-    }
+    .skeleton * { visibility: hidden; }
+    @keyframes shine { to { background-position-x: -200%; } }
 
-    /* กำหนดขนาดกล่อง Skeleton สำหรับจุดต่างๆ */
     .skeleton-text { width: 60%; height: 28px; border-radius: 8px; margin-bottom: 8px; }
     .skeleton-avatar { width: 100%; height: 100%; border-radius: 0; }
     .skeleton-stat { width: 40px; height: 24px; border-radius: 6px; margin: 0 auto; }
@@ -392,19 +420,21 @@
 
       <div class="leaderboard-section">
         <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans</div>
-        <div id="member-fans-content" class="fan-list">
-          </div>
+        <div id="member-fans-content" class="fan-list"></div>
       </div>
       
       <div class="member-feed-section" style="margin-top: 25px;">
         <div class="leaderboard-title"><i class="fas fa-stream"></i> Latest Top Posts</div>
         <div id="posts-container">
-           <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Loading...</div>
+           <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
+             <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
+           </div>
         </div>
       </div>
 
     </div>
   </div>
+
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     
@@ -427,9 +457,7 @@
           return null;
         }
         return session.data;
-      } catch (e) {
-        return null;
-      }
+      } catch (e) { return null; }
     }
 
     async function syncUserData() {
@@ -442,9 +470,7 @@
           saveUserSession(user); 
           updateButtonStyles(); 
         }
-      } catch (e) {
-        console.error("Sync Error:", e);
-      }
+      } catch (e) { console.error("Sync Error:", e); }
     }
 
     async function fetchLatestMemberStats() {
@@ -454,15 +480,12 @@
         const res = await resp.json();
         
         if (res.status === "success") {
-          // เซฟข้อมูลลงเครื่อง
           if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
           if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
           
-          // โหลดเสร็จแล้ว ลบ Skeleton แล้วแสดงของจริง!
           removeSkeleton();
           renderMemberStatsAndFans();
         } else {
-          // ถ้าเกิดข้อผิดพลาดในการดึงข้อมูล
           removeSkeleton();
           Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลของเมมเบอร์คนนี้ได้', 'error');
         }
@@ -473,12 +496,8 @@
     }
 
     function getImg(url) {
-        if (!url || url.trim() === "") {
-            return 'assets/images/default-profile.png'; 
-        }
-        if (url.includes('googleusercontent.com')) {
-            return url + '=s200';
-        }
+        if (!url || url.trim() === "") { return 'assets/images/default-profile.png'; }
+        if (url.includes('googleusercontent.com')) { return url + '=s200'; }
         return url;
     }
 
@@ -486,7 +505,6 @@
       const savedStats = localStorage.getItem('current_member_stats');
       if (savedStats) {
         const m = JSON.parse(savedStats);
-        
         const avatarEl = document.getElementById('mb-avatar');
         if (avatarEl) avatarEl.src = getImg(m.profile_img);
 
@@ -512,12 +530,9 @@
           fans.slice(0, 10).forEach((f, idx) => {
             const row = document.createElement('div');
             row.className = 'fan-row';
-            
             row.innerHTML = `
               <div class="fan-rank">${idx + 1}</div>
-              <img src="${getImg(f.img)}" 
-                   class="fan-avatar" 
-                   onerror="this.src='assets/images/default-profile.png'"> 
+              <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='assets/images/default-profile.png'"> 
               <div class="fan-meta">
                 <div class="fan-name">${f.name || f.username}</div>
                 <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
@@ -543,23 +558,13 @@
       return true;
     }
 
-    // --- ☠️ ระบบเปิด-ปิด Skeleton ---
     function showSkeleton() {
-      // รูปโปรไฟล์
       const avatarEl = document.getElementById('mb-avatar');
-      if (avatarEl) {
-        avatarEl.src = '';
-        avatarEl.classList.add('skeleton', 'skeleton-avatar');
-      }
+      if (avatarEl) { avatarEl.src = ''; avatarEl.classList.add('skeleton', 'skeleton-avatar'); }
 
-      // ชื่อเมมเบอร์
       const nameEl = document.getElementById('mb-name');
-      if (nameEl) {
-        nameEl.innerText = 'กำลังโหลด...';
-        nameEl.classList.add('skeleton', 'skeleton-text');
-      }
+      if (nameEl) { nameEl.innerText = 'กำลังโหลด...'; nameEl.classList.add('skeleton', 'skeleton-text'); }
 
-      // สถิติ (Kami, Oshi, Cookie)
       const kamiEl = document.getElementById('mb-kami');
       if (kamiEl) { kamiEl.innerText = '0'; kamiEl.classList.add('skeleton', 'skeleton-stat'); }
       
@@ -569,11 +574,9 @@
       const scoreEl = document.getElementById('mb-score');
       if (scoreEl) { scoreEl.innerText = '0'; scoreEl.classList.add('skeleton', 'skeleton-stat'); }
 
-      // ลิสต์รายชื่อแฟนคลับ
       const fanContainer = document.getElementById('member-fans-content');
       if (fanContainer) {
         fanContainer.innerHTML = '';
-        // จำลองกล่องโหลดรายชื่อแฟนคลับ 3 อัน
         for(let i=0; i<3; i++) {
           fanContainer.innerHTML += `
             <div class="skeleton-fan">
@@ -593,15 +596,11 @@
       els.forEach(el => {
         el.classList.remove('skeleton', 'skeleton-avatar', 'skeleton-text', 'skeleton-stat', 'skeleton-fan-img', 'skeleton-fan-text');
       });
-      // เอาคำว่ากำลังโหลดออก เปลี่ยนเป็นชื่อจริง
       if(document.getElementById('mb-name')) document.getElementById('mb-name').innerText = memberName;
     }
 
     function loadMemberData() {
-      if (!memberName) {
-        window.location.href = 'index.html';
-        return;
-      }
+      if (!memberName) { window.location.href = 'index.html'; return; }
       user = getUserSession();
       showSkeleton();
       updateButtonStyles();
@@ -622,26 +621,18 @@
 
       if (currentKamioshi === searchName) {
         btnKami.innerHTML = '<i class="fas fa-heart-broken"></i> <span>REMOVE KAMI</span>';
-        btnKami.style.backgroundColor = "#ffe3e3"; 
-        btnKami.style.color = "#e03131";
-        btnKami.style.borderColor = "#ffa8a8";
+        btnKami.style.backgroundColor = "#ffe3e3"; btnKami.style.color = "#e03131"; btnKami.style.borderColor = "#ffa8a8";
       } else {
         btnKami.innerHTML = '<i class="fas fa-crown"></i> <span>+ KAMI</span>';
-        btnKami.style.backgroundColor = ""; 
-        btnKami.style.color = "";
-        btnKami.style.borderColor = "";
+        btnKami.style.backgroundColor = ""; btnKami.style.color = ""; btnKami.style.borderColor = "";
       }
 
       if (oshiArray.includes(searchName)) {
         btnOshi.innerHTML = '<i class="fas fa-heart-broken"></i> <span>UN-OSHI</span>';
-        btnOshi.style.backgroundColor = "#fff4e6"; 
-        btnOshi.style.color = "#d9480f";
-        btnOshi.style.borderColor = "#ffd8a8";
+        btnOshi.style.backgroundColor = "#fff4e6"; btnOshi.style.color = "#d9480f"; btnOshi.style.borderColor = "#ffd8a8";
       } else {
         btnOshi.innerHTML = '<i class="fas fa-heart"></i> <span>+ OSHI</span>';
-        btnOshi.style.backgroundColor = ""; 
-        btnOshi.style.color = "";
-        btnOshi.style.borderColor = "";
+        btnOshi.style.backgroundColor = ""; btnOshi.style.color = ""; btnOshi.style.borderColor = "";
       }
     }
 
@@ -649,23 +640,17 @@
 
     async function setOshi(type) {
       if (!checkLoginStatus()) return;
-
       const username = user.username;
       const searchName = memberName.toLowerCase();
-      
       const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
       const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
       const isAlreadyOshi = oshiArray.includes(searchName);
 
-      let action = "";
-      let confirmText = "";
-      let subTitle = "";
+      let action = "", confirmText = "", subTitle = "";
 
       if (type === 'kami') {
         if (currentKamioshi === searchName) {
-          action = "removeOshi";
-          confirmText = `คุณต้องการลบ ${memberName} ออกจากรายการ "คามิโอชิ" ใช่ไหมงับ?`;
-          subTitle = "ยกเลิกคามิโอชิ";
+          action = "removeOshi"; confirmText = `คุณต้องการลบ ${memberName} ออกจากรายการ "คามิโอชิ" ใช่ไหมงับ?`; subTitle = "ยกเลิกคามิโอชิ";
         } else {
           action = "setKamioshi"; 
           confirmText = user.kamioshi 
@@ -677,90 +662,47 @@
         if (currentKamioshi === searchName) {
           return Swal.fire('ข้อมูลซ้ำซ้อน', `${memberName} เป็นคามิโอชิหลักของคุณอยู่แล้วค่ะ 👑`, 'warning');
         }
-
         if (isAlreadyOshi) {
-          action = "removeOshi";
-          confirmText = `คุณต้องการเลิกติดตาม (Un-Oshi) ${memberName} ใช่ไหมงับ?`;
-          subTitle = "ยกเลิกการติดตาม";
+          action = "removeOshi"; confirmText = `คุณต้องการเลิกติดตาม (Un-Oshi) ${memberName} ใช่ไหมงับ?`; subTitle = "ยกเลิกการติดตาม";
         } else {
-          action = "setOshi";
-          confirmText = `ติดตาม (Oshi) ${memberName} ใช่หรือไม่?`;
-          subTitle = "ยืนยันรายการ";
+          action = "setOshi"; confirmText = `ติดตาม (Oshi) ${memberName} ใช่หรือไม่?`; subTitle = "ยืนยันรายการ";
         }
       }
 
       const finalConfirm = await Swal.fire({
-        title: subTitle,
-        text: confirmText,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#ff85a2',
-        cancelButtonColor: '#aaa',
-        confirmButtonText: 'ตกลง',
-        cancelButtonText: 'ยกเลิก'
+        title: subTitle, text: confirmText, icon: 'question', showCancelButton: true,
+        confirmButtonColor: '#ff85a2', cancelButtonColor: '#aaa', confirmButtonText: 'ตกลง', cancelButtonText: 'ยกเลิก'
       });
 
       if (!finalConfirm.isConfirmed) return;
 
-      Swal.fire({ 
-        title: 'กำลังอัปเดตข้อมูล...', 
-        allowOutsideClick: false, 
-        didOpen: () => Swal.showLoading() 
-      });
+      Swal.fire({ title: 'กำลังอัปเดตข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
       try {
         const resp = await fetch(scriptURL, {
           method: 'POST',
-          body: JSON.stringify({
-            action: action,
-            type: type,
-            username: username,
-            memberName: memberName
-          })
+          body: JSON.stringify({ action: action, type: type, username: username, memberName: memberName })
         });
-
         const res = await resp.json();
         if (res.status === "success") {
-          
           const kamiElement = document.getElementById('mb-kami');
           const oshiElement = document.getElementById('mb-oshi');
           let currentKamiNum = parseInt(kamiElement.innerText) || 0;
           let currentOshiNum = parseInt(oshiElement.innerText) || 0;
 
           if (type === 'kami') {
-            if (action === "removeOshi") {
-              kamiElement.innerText = Math.max(0, currentKamiNum - 1);
-            } else {
-              kamiElement.innerText = currentKamiNum + 1;
-            }
+            kamiElement.innerText = (action === "removeOshi") ? Math.max(0, currentKamiNum - 1) : currentKamiNum + 1;
           } else {
-            if (action === "removeOshi") {
-              oshiElement.innerText = Math.max(0, currentOshiNum - 1);
-            } else {
-              oshiElement.innerText = currentOshiNum + 1;
-            }
+            oshiElement.innerText = (action === "removeOshi") ? Math.max(0, currentOshiNum - 1) : currentOshiNum + 1;
           }
 
           await syncUserData(); 
-          
-          // ดึงข้อมูลใหม่แล้วใส่ Skeleton รอไว้ด้วย
           showSkeleton();
           await fetchLatestMemberStats();
 
-          Swal.fire({ 
-            icon: 'success', 
-            title: 'สำเร็จ!', 
-            text: res.message, 
-            timer: 1500, 
-            showConfirmButton: false  
-          });
-        } else {
-          Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้ค่ะ', 'error');
-        }
-      } catch (e) {
-        console.error(e);
-        Swal.fire('เกิดข้อผิดพลาด!', 'การเชื่อมต่อขัดข้อง หรือ Script URL ไม่ตอบสนอง', 'error');
-      }
+          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: res.message, timer: 1500, showConfirmButton: false });
+        } else { Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้ค่ะ', 'error'); }
+      } catch (e) { Swal.fire('เกิดข้อผิดพลาด!', 'การเชื่อมต่อขัดข้อง', 'error'); }
     }
 
     function actionKami() { setOshi('kami'); }
@@ -769,27 +711,16 @@
     function formatMemberScore(num) {
       if (!num || isNaN(num)) return '0';
       const number = Number(num);
-      
-      if (number >= 1000000) {
-        return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-      }
-      if (number >= 1000) {
-        return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-      }
+      if (number >= 1000000) { return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'; }
+      if (number >= 1000) { return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K'; }
       return number.toLocaleString(); 
     }
 
     function actionCookie() {
       if (!checkLoginStatus()) return;
-      
       if (!user.role || user.role.toLowerCase() !== 'user') {
-        Swal.fire({
-          title: 'สิทธิ์ไม่ถูกต้อง',
-          text: 'ขออภัยด้วยนะงับ ฟังก์ชันปาคุกกี้เปิดให้ใช้งานเฉพาะบัญชีประเภททั่วไปเท่านั้นค่ะ',
-          icon: 'error',
-          confirmButtonColor: '#ff85a2'
-        });
-        return; // สั่งหยุดทำงานทันที ไม่ให้หน้าต่างปาคุกกี้เด้งขึ้นมา
+        Swal.fire({ title: 'สิทธิ์ไม่ถูกต้อง', text: 'ขออภัยด้วยนะงับ ฟังก์ชันปาคุกกี้เปิดให้ใช้งานเฉพาะบัญชีประเภททั่วไปเท่านั้นค่ะ', icon: 'error', confirmButtonColor: '#ff85a2' });
+        return;
       }
 
       const userCookies = user.cookie || 0;
@@ -797,39 +728,21 @@
       Swal.fire({
         title: `ปาคุกกี้ให้ ${memberName}`,
         html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${userCookies.toLocaleString()}</b> ชิ้น</p>`,
-        input: 'number',
-        inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการส่ง',
-        showCancelButton: true,
-        confirmButtonColor: '#ff85a2',
-        confirmButtonText: 'ส่งคุกกี้',
-        cancelButtonText: 'ยกเลิก',
+        input: 'number', inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการส่ง', showCancelButton: true,
+        confirmButtonColor: '#ff85a2', confirmButtonText: 'ส่งคุกกี้', cancelButtonText: 'ยกเลิก',
         inputValidator: (value) => {
-          if (!value || parseInt(value) <= 0) {
-            return 'กรุณาระบุจำนวนคุกกี้ที่ถูกต้องด้วยงับ!';
-          }
-          if (parseInt(value) > userCookies) {
-            return `คุกกี้ไม่พอค่ะ! คุณมีคุกกี้เหลือแค่ ${userCookies.toLocaleString()} ชิ้นเท่านั้น`;
-          }
+          if (!value || parseInt(value) <= 0) { return 'กรุณาระบุจำนวนคุกกี้ที่ถูกต้องด้วยงับ!'; }
+          if (parseInt(value) > userCookies) { return `คุกกี้ไม่พอค่ะ! คุณมีคุกกี้เหลือแค่ ${userCookies.toLocaleString()} ชิ้นเท่านั้น`; }
         }
       }).then(async (result) => {
         if (result.value) {
           const amountSent = parseInt(result.value);
-
-          Swal.fire({
-            title: 'กำลังส่งคุกกี้ให้เมมเบอร์...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-          });
+          Swal.fire({ title: 'กำลังส่งคุกกี้ให้เมมเบอร์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
           try {
             const resp = await fetch(scriptURL, {
               method: 'POST',
-              body: JSON.stringify({
-                action: 'giveCookie', 
-                username: user.username,
-                memberName: memberName,
-                amount: amountSent
-              })
+              body: JSON.stringify({ action: 'giveCookie', username: user.username, memberName: memberName, amount: amountSent })
             });
             const res = await resp.json();
 
@@ -842,31 +755,148 @@
               showSkeleton();
               await fetchLatestMemberStats(); 
 
-              Swal.fire({
-                title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ',
-                text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`,
-                icon: 'success',
-                confirmButtonColor: '#ff85a2'
-              });
-            } else {
-              Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error');
-            }
-          } catch (e) {
-            console.error(e);
-            Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง กรุณาลองใหม่อีกครั้งงับ', 'error');
-          }
+              Swal.fire({ title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ', text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`, icon: 'success', confirmButtonColor: '#ff85a2' });
+            } else { Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error'); }
+          } catch (e) { Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง', 'error'); }
         }
       });
     }
-// =========================================
-    // 🌸 ระบบ MEMBER FEED (ดึงจาก Index มากรอง)
-    // =========================================
-    
+
+    // =========================================================================
+    // 👑 ADVANCED TIMELINE PORTED LOGIC (ระบบตรวจสอบสิทธิ์, สไลเดอร์แกลเลอรี่ และ เครื่องเล่นเสียง)
+    // =========================================================================
+    function hasManagementPermission(postAuthorUsername) {
+        if (!user) return false;
+        if (user.role === 'CEO' || user.role === 'Admin') return true;
+        return user.username === postAuthorUsername;
+    }
+
+    function renderPost(post) {
+      if (!post) return '';
+
+      const currentUser = getUserSession();
+      const canManage = hasManagementPermission(post.authorUsername);
+
+      const authorName = post.authorName || 'Anonymous Member';
+      const postContent = post.content || '';
+      const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
+      const postLikes = post.likes || 0;
+      const postId = post.id || ''; 
+      const displayImage = post.imageUrl || post.imageURL || '';
+      const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
+
+      const verifiedBadgeIcon = `
+        <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+          <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+        </svg>
+      `;
+      const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
+      let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
+
+      // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
+      let mediaHtml = '';
+      if (post.audioURL) {
+        mediaHtml += `
+          <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
+            <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
+            <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
+              <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
+            </button>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
+                <span>Voice Note</span>
+                <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
+              </div>
+              <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
+                <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (post.videoURL) {
+        mediaHtml += `
+          <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
+            <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
+          </div>
+        `;
+      }
+
+      // 📸 [จัดการแกลเลอรี่รูปภาพรองรับ Multi-Images]
+      let imagesHtml = '';
+      if (displayImage) {
+        const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
+        const visibleImages = imageUrls.slice(0, 4);
+        
+        imagesHtml += `<div class="post-gallery">`;
+        visibleImages.forEach((url, index) => {
+          imagesHtml += `<div class="img-container-box">`;
+          imagesHtml += `<img src="${url}" class="gallery-img-item" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])">`;
+          if (index === 3 && imageUrls.length > 4) {
+            imagesHtml += `<div class="more-overlay" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])">+${imageUrls.length - 4}</div>`;
+          }
+          imagesHtml += `</div>`;
+        });
+        imagesHtml += `</div>`;
+      }
+
+      const actionMenu = canManage ? `
+        <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px;">
+          <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
+          <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      ` : '';
+
+      const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
+
+      return `
+        <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left;">
+          ${actionMenu}
+          <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
+            <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+            <div>
+              <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
+              <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
+            </div>
+          </div>
+          
+          <div class="post-body" style="margin-bottom: 15px;">
+            <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; font-size: 14px;">${postContent}</p>
+            ${imagesHtml}
+            ${mediaHtml}
+          </div>
+          
+          <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
+            <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
+            </button>
+            <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
+            </button>
+          </div>
+
+          <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
+            <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
+              ${commentsHtml}
+            </div>
+            <div class="comment-input-box" style="display: flex; gap: 8px;">
+              <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
+              <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 🎯 ฟังก์ชันดึงไทม์ไลน์โพสต์และกรองเฉพาะของเมมเบอร์คนปัจจุบัน
     async function loadMemberTimelinePosts() {
+      if (window.isTimelineLoading) return;
       const container = document.getElementById('posts-container');
       if (!container) return;
 
       try {
+        window.isTimelineLoading = true;
         const currentUser = getUserSession();
         const username = currentUser ? currentUser.username : "";
         const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
@@ -880,7 +910,7 @@
             return;
         }
 
-        // 🌟 กรองเฉพาะโพสต์ของเมมเบอร์คนที่กำลังเปิดดูอยู่
+        // 🌟 จุดเด่น: กรองคัดแยกเฉพาะโพสต์ของเมมเบอร์ที่เรากำลังเปิดดูโปรไฟล์อยู่เท่านั้น!
         let memberPosts = posts.filter(post => 
             (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
             (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
@@ -891,21 +921,16 @@
             return;
         }
 
-        // กลับด้านข้อมูลให้เป็น (เก่าสุด -> ใหม่สุด) แล้วดันขึ้นบน
         memberPosts.reverse(); 
 
         memberPosts.forEach(post => {
           const existingPost = document.getElementById(`post-${post.id}`);
           if (existingPost) {
-            // อัปเดตข้อมูลแบบ Real-time ถ้ามีคนกดใจหรือคอมเมนต์
             const likeCountEl = document.getElementById(`like-count-${post.id}`);
             if (likeCountEl) likeCountEl.innerText = post.likes;
             
             const heartIcon = document.getElementById(`heart-${post.id}`);
             if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-            
-            const cmtCountEl = document.getElementById(`comment-count-${post.id}`);
-            if (cmtCountEl) cmtCountEl.innerText = post.comments ? post.comments.length : 0;
           } else {
             container.insertAdjacentHTML('afterbegin', renderPost(post));
           }
@@ -914,237 +939,289 @@
       } catch (error) {
         console.error("โหลดฟีดล้มเหลว:", error);
         container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
-      }
-    }
-
-    // ฟังก์ชัน Render โพสต์ (เหมือนของหน้า Index)
-    function renderPost(post) {
-      if (!post) return '';
-
-      const currentUser = getUserSession();
-      const currentUsername = currentUser ? currentUser.username : "";
-      const isOwner = post.authorUsername === currentUsername; 
-
-      const authorName = post.authorName || 'Anonymous Member';
-      const postContent = post.content || '';
-      const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
-      const postLikes = post.likes || 0;
-      const postId = post.id || ''; 
-      const displayImage = post.imageUrl || post.imageURL || '';
-      const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
-      const profilePic = post.profile_img || 'https://via.placeholder.com/40?text=🌸';
-
-      let commentCount = post.comments ? post.comments.length : 0;
-      let commentsHtml = '';
-
-      if (post.comments && post.comments.length > 0) {
-         post.comments.forEach(cmt => {
-          commentsHtml += `
-            <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
-              <img src="${cmt.profile_img}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-              <div style="font-size: 0.88rem;">
-                <b style="color: #ff85a2; margin-right: 4px;">${cmt.name}</b>
-                <span style="color: #333; word-break: break-word;">${cmt.text}</span>
-              </div>
-            </div>
-          `;
-        });
-      } else {
-        commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">No Comments yet</div>`;
-      }
-
-      // ระบบแก้ไข/ลบ จะขึ้นเฉพาะคนที่เป็นเจ้าของโพสต์ (Member)
-      const actionMenu = isOwner ? `
-        <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px;">
-          <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
-          <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      ` : '';
-
-      return `
-        <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left;">
-          ${actionMenu}
-          <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
-            <img src="${profilePic}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
-            <div>
-              <b style="color: #ff85a2;">${authorName}</b>
-              <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
-            </div>
-          </div>
-          
-          <div class="post-body" style="margin-bottom: 15px;">
-            <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; font-size: 14px;">${postContent}</p>
-           ${displayImage ? `<img src="${displayImage}" onclick="openImageViewer('${displayImage}')" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; margin-top: 10px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">` : ''}
-          </div>
-          
-          <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-            <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-              <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
-            </button>
-            <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-              <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${commentCount}</span>
-            </button>
-          </div>
-
-          <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-            <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
-              ${commentsHtml}
-            </div>
-            <div class="comment-input-box" style="display: flex; gap: 8px;">
-              <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-              <button onclick="submitComment('${postId}')" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    // ฟังก์ชัน Like, Comment, Edit, Delete
-    async function likePost(postId) {
-      if (!checkLoginStatus()) return;
-      const likeSpan = document.getElementById(`like-count-${postId}`);
-      const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
-      const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
-      
-      heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
-      heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
-      likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) - 1 : parseInt(likeSpan.innerText) + 1;
-
-      try {
-        const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(user.username)}`);
-        const result = await response.json();
-        if (result.status === "success") {
-          likeSpan.innerText = result.likes;
-          heartIcon.classList.toggle('fa-solid', result.isLiked);
-          heartIcon.classList.toggle('fa-regular', !result.isLiked);
-        }
-      } catch (error) {
-        heartIcon.classList.toggle('fa-solid', isCurrentlyLiked);
-        heartIcon.classList.toggle('fa-regular', !isCurrentlyLiked);
-        likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) + 1 : parseInt(likeSpan.innerText) - 1;
-      }
-    }
-
-    function toggleCommentSection(postId) {
-      const section = document.getElementById(`comment-section-${postId}`);
-      section.style.display = (section.style.display === "none" || section.style.display === "") ? "block" : "none";
-    }
-
-    async function submitComment(postId) {
-      if (!checkLoginStatus()) return;
-      const btn = event.target;
-      const inputEl = document.getElementById(`comment-input-${postId}`);
-      const commentText = inputEl.value.trim();
-      
-      if (btn.disabled || !commentText) return;
-      
-      const originalText = btn.innerText;
-      btn.innerText = "...";
-      btn.disabled = true;
-      inputEl.disabled = true;
-
-      try {
-        const resp = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'addComment', postId: postId, username: user.username, text: commentText })
-        });
-        const result = await resp.json();
-        
-        if (result.status === "success") {
-          const commentList = document.getElementById(`comment-list-${postId}`);
-          const noCommentMsg = document.getElementById(`no-comment-${postId}`);
-          if (noCommentMsg) noCommentMsg.remove();
-
-          const userProfilePic = user.profile_img || 'https://via.placeholder.com/40?text=🌸';
-          const userDisplayName = user.name || user.username;
-          const newCommentHtml = `
-            <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
-              <img src="${userProfilePic}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
-              <div style="font-size: 0.88rem;">
-                <b style="color: #ff85a2; margin-right: 4px;">${userDisplayName}</b>
-                <span style="color: #333; word-break: break-word;">${commentText}</span>
-              </div>
-            </div>`;
-          
-          commentList.insertAdjacentHTML('beforeend', newCommentHtml);
-          const countEl = document.getElementById(`comment-count-${postId}`);
-          if(countEl) countEl.innerText = parseInt(countEl.innerText || 0) + 1;
-          inputEl.value = ""; 
-          commentList.scrollTop = commentList.scrollHeight;
-        }
-      } catch (error) {
-        Swal.fire('ระบบขัดข้อง', 'เชื่อมต่อหลังบ้านไม่สำเร็จงับ', 'error');
       } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-        inputEl.disabled = false;
+        window.isTimelineLoading = false;
       }
     }
 
+    // 🔒 ฟังก์ชันระบบลบโพสต์ความปลอดภัยสูง (ส่ง Role ยืนยันสิทธิ์หลังบ้าน)
     async function deletePostUi(postId) {
       const result = await Swal.fire({
-        title: 'ลบโพสต์นี้?',
-        text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ff85a2',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'ลบเลย!'
+        title: 'ลบโพสต์นี้?', text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!", icon: 'warning',
+        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: '#d33', confirmButtonText: 'ลบเลย!'
       });
 
       if (result.isConfirmed) {
-        const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${user.username}`);
+        const currentUser = getUserSession();
+        const userRole = currentUser ? (currentUser.role || "") : "";
+        const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
         const data = await response.json();
         if (data.status === 'success') {
           document.getElementById(`post-${postId}`).remove();
-          Swal.fire('ลบแล้ว!', 'ลบโพสต์ของคุณเรียบร้อยงับ', 'success');
-        }
+          Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อยงับ', 'success');
+        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error'); }
       }
     }
 
+    // 🔒 ฟังก์ชันระบบแก้ไขโพสต์ความปลอดภัยสูง (ส่ง Role ยืนยันสิทธิ์หลังบ้าน)
     async function editPostUi(postId, encodedContent) {
       const oldContent = decodeURIComponent(encodedContent);
       const { value: newText } = await Swal.fire({
-        title: 'แก้ไขโพสต์',
-        input: 'textarea',
-        inputValue: oldContent,
-        showCancelButton: true,
-        confirmButtonColor: '#ff85a2',
-        cancelButtonColor: 'gray'
+        title: 'แก้ไขโพสต์', input: 'textarea', inputValue: oldContent,
+        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: 'gray'
       });
 
       if (newText && newText !== oldContent) {
-        const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${user.username}&newContent=${encodeURIComponent(newText)}`);
+        const currentUser = getUserSession();
+        const userRole = currentUser ? (currentUser.role || "") : "";
+        const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
         const data = await response.json();
         if (data.status === 'success') {
           document.getElementById(`content-${postId}`).innerText = newText;
           Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
+        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error'); }
+      }
+    }
+
+    // 🎵 เครื่องเล่นไฟล์เสียง Voice Note
+    function toggleBlmAudio(postId) {
+      const audio = document.getElementById(`audio-player-${postId}`);
+      const icon = document.getElementById(`audio-icon-${postId}`);
+      if (!audio) return;
+
+      document.querySelectorAll('audio').forEach(aud => {
+        if (aud.id !== `audio-player-${postId}` && !aud.paused) {
+          aud.pause();
+          const otherId = aud.id.replace('audio-player-', '');
+          const otherIcon = document.getElementById(`audio-icon-${otherId}`);
+          if (otherIcon) { otherIcon.className = 'fa-solid fa-play'; otherIcon.style.marginLeft = '2px'; }
         }
-      }
+      });
+
+      if (audio.paused) {
+        audio.play(); icon.className = 'fa-solid fa-pause'; icon.style.marginLeft = '0px';
+        audio.ontimeupdate = () => {
+          const progress = document.getElementById(`audio-progress-${postId}`);
+          const timeLabel = document.getElementById(`audio-time-${postId}`);
+          if (progress) progress.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+          if (timeLabel) timeLabel.innerText = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration || 0)}`;
+        };
+        audio.onended = () => {
+          icon.className = 'fa-solid fa-play'; icon.style.marginLeft = '2px';
+          const progress = document.getElementById(`audio-progress-${postId}`);
+          if (progress) progress.style.width = '0%';
+        };
+      } else { audio.pause(); icon.className = 'fa-solid fa-play'; icon.style.marginLeft = '2px'; }
     }
 
-    // Modal รูปภาพ
-    function openImageViewer(imageUrl) {
-      let modal = document.getElementById('image-viewer-modal');
-      if (!modal) {
-        document.body.insertAdjacentHTML('beforeend', `
-          <div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; cursor: pointer;">
-            <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 35px; font-weight: bold; cursor: pointer;">×</span>
-            <img id="full-size-image" src="" style="max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-          </div>
-        `);
-        modal = document.getElementById('image-viewer-modal');
-      }
-      document.getElementById('full-size-image').src = imageUrl;
-      modal.style.display = 'flex';
+    function seekBlmAudio(event, postId) {
+      const audio = document.getElementById(`audio-player-${postId}`);
+      const container = document.getElementById(`audio-progress-container-${postId}`);
+      if (!audio || !container) return;
+      const rect = container.getBoundingClientRect();
+      audio.currentTime = ((event.clientX - rect.left) / rect.width) * audio.duration;
     }
 
-    function closeImageViewer() {
-      const modal = document.getElementById('image-viewer-modal');
-      if (modal) modal.style.display = 'none';
+    function formatAudioTime(secs) {
+      if (isNaN(secs)) return "0:00";
+      const minutes = Math.floor(secs / 60); const seconds = Math.floor(secs % 60);
+      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
+
+    // 📸 ระบบแกลเลอรี่พรีวิวรูปภาพแบบสไลเดอร์เลื่อนซ้ายขวาได้
+    let currentGallery = [];
+    let currentIndex = 0;
+
+    function openImageViewer(index, galleryArray) {
+      currentGallery = Array.isArray(galleryArray) ? galleryArray : [galleryArray];
+      currentIndex = index;
+      updateViewer();
+      document.getElementById('image-viewer-modal').style.display = 'flex';
+    }
+
+    function updateViewer() {
+      const img = document.getElementById('full-size-image');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      img.src = currentGallery[currentIndex];
+      prevBtn.style.display = (currentIndex === 0) ? 'none' : 'block';
+      nextBtn.style.display = (currentIndex === currentGallery.length - 1) ? 'none' : 'block';
+    }
+
+    function changeImage(step) {
+      currentIndex += step;
+      if (currentIndex >= 0 && currentIndex < currentGallery.length) { updateViewer(); }
+    }
+
+    function closeImageViewer() { document.getElementById('image-viewer-modal').style.display = 'none'; }
 
     window.onload = loadMemberData;
 </script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+  import { getDatabase, ref as dbRef, push, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
+    authDomain: "blm48-official-site.firebaseapp.com",
+    projectId: "blm48-official-site",
+    databaseURL: "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    storageBucket: "blm48-official-site.firebasestorage.app",
+    messagingSenderId: "924510827472",
+    appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  window.firebaseDatabase = database;
+  window.fbRef = dbRef;       
+  window.fbPush = push;       
+  window.fbOnValue = onValue; 
+
+  window.toggleCommentSection = function(postId) {
+    const section = document.getElementById(`comment-section-${postId}`);
+    if (!section) return;
+    if (section.style.display === "none" || section.style.display === "") {
+      section.style.display = "block";
+      window.listenForComments(postId);
+    } else { section.style.display = "none"; }
+  }
+
+  // 💖 ระบบกดไลก์เรียลไทม์ผ่านเว็บบอร์ดหลังบ้าน
+  window.likePost = async function(postId) {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: '#ff85a2' });
+      return;
+    }
+    const likeSpan = document.getElementById(`like-count-${postId}`);
+    const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
+    if (!heartIcon || !likeSpan) return;
+    
+    const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
+    heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
+    heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
+    likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) - 1 : parseInt(likeSpan.innerText) + 1;
+    
+    try {
+      const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
+      const result = await response.json();
+      if (result.status === "success") {
+        likeSpan.innerText = result.likes;
+        heartIcon.classList.toggle('fa-solid', result.isLiked);
+        heartIcon.classList.toggle('fa-regular', !result.isLiked);
+      }
+    } catch (error) { console.error("Like Error:", error); }
+  }
+
+  // 💬 ดักฟังรายการคอมเมนต์สดจาก Firebase เรียลไทม์
+  window.listenForComments = function(postId) {
+    const db = window.firebaseDatabase;
+    const refFunc = window.fbRef;
+    const onValueFunc = window.fbOnValue;
+    const commentListEl = document.getElementById(`comment-list-${postId}`);
+    const commentCountEl = document.getElementById(`comment-count-${postId}`);
+    
+    if (!commentListEl || !db || !refFunc || !onValueFunc) return;
+    const commentRef = refFunc(db, `comments/${postId}`);
+
+    onValueFunc(commentRef, (snapshot) => {
+      commentListEl.innerHTML = ''; 
+      const data = snapshot.val();
+      
+      if (!data) {
+        commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาประเดิมคนแรกกันเถอะงับ!</div>`;
+        if (commentCountEl) commentCountEl.innerText = "0";
+        return;
+      }
+
+      const commentsArray = Object.values(data);
+      if (commentCountEl) commentCountEl.innerText = commentsArray.length;
+
+      const allowedRoles = ['member', 'admin', 'ceo'];
+      const verifiedBadgeIcon = `<svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24"><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/></svg>`;
+
+      commentsArray.forEach(cmt => {
+        const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
+        const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
+        const commentHtml = `
+          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
+            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+            <div style="font-size: 0.88rem; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <b style="color: #ff85a2;">${cmt.name}</b> ${isCmtVerified}
+                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${cmt.role || 'user'}</span>
+              </div>
+              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${cmt.text}</div>
+            </div>
+          </div>`;
+        commentListEl.insertAdjacentHTML('beforeend', commentHtml);
+      });
+      commentListEl.scrollTop = commentListEl.scrollHeight;
+    });
+  };
+
+  // 💬 ฟังชันส่งคอมเมนต์เข้าฐานข้อมูลคู่ขนาน (Firebase + Google Sheets)
+  window.submitComment = async function(postId, btnElement) {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนแสดงความคิดเห็นนะงับ', 'warning'); return;
+    }
+    const inputEl = document.getElementById(`comment-input-${postId}`);
+    if (!inputEl) return;
+    const commentText = inputEl.value.trim();
+    if (!commentText || (btnElement && btnElement.disabled)) return;
+
+    const db = window.firebaseDatabase;
+    const refFunc = window.fbRef;
+    const pushFunc = window.fbPush;
+    if (!db || !refFunc || !pushFunc) return;
+
+    let originalText = btnElement ? btnElement.innerText : "SEND";
+    if (btnElement) { btnElement.innerText = "..."; btnElement.disabled = true; }
+    inputEl.disabled = true;
+
+    try {
+      const commentPostRef = refFunc(db, `comments/${postId}`);
+      await pushFunc(commentPostRef, {
+        username: currentUser.username,
+        name: currentUser.name || currentUser.username || 'Anonymous',
+        role: currentUser.role || 'user',
+        profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
+        text: commentText, timestamp: Date.now()
+      });
+
+      // ดันแบคอัพลง Google Sheets เบื้องหลังแบบเงียบเชียบ
+      fetch(scriptURL, {
+        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'addComment', postId: postId, username: currentUser.username, text: commentText })
+      }).catch(e => console.error("Sheets Sync error:", e));
+
+      inputEl.value = ""; 
+    } catch (error) { Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error'); } 
+    finally { if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; } inputEl.disabled = false; }
+  };
+
+  /* 🔍 ระบบ Auto-Scanner เชื่อมต่อระบบคอมเมนต์เรียลไทม์อัตโนมัติ */
+  setInterval(() => {
+    document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
+      const postId = card.id.replace('post-', '');
+      if (postId && window.listenForComments) {
+        window.listenForComments(postId);
+        card.setAttribute('data-firebase-ready', 'true');
+      }
+    });
+  }, 300);
+</script>
+
+<div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
+  <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">×</span>
+  <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
+  <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
+  <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
+</div>
+
 </body>
 </html>
