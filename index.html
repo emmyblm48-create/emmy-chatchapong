@@ -31,6 +31,18 @@
  
   <style>
     
+    *, *::before, *::after {
+  box-sizing: border-box; /* บังคับให้คำนวณขนาดรวม padding แล้ว ไม่ให้ปูดเกินจอ */
+      }
+
+      html, body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden; /* สั่งตัดส่วนที่ล้นออกไปทางซ้าย-ขวาทิ้งทันที ไม่ให้จอขยับ */
+        margin: 0;
+        padding: 0;
+      }
+    
     :root {
       --primary-pink: #ff85a2;
       --soft-pink: #ffe4e1;
@@ -54,13 +66,13 @@
     #main-app {
       display: none; /* ซ่อนไว้ก่อนล็อกอินสำเร็จ */
       height: 100vh;
-      width: 100vw;
+      width: 100%; /* 🌟 เปลี่ยนจาก 100vw เป็น 100% */
       position: relative;
     }
 
     .swipe-container {
       display: flex;
-      overflow-x: auto;
+      overflow-x: hidden; /* 🌟 เปลี่ยนจาก auto เป็น hidden เพื่อล็อกไม่ให้ใช้นิ้วปัดหน้าหลักเลื่อนซ้ายขวา */
       scroll-snap-type: x mandatory;
       scrollbar-width: none; /* ซ่อนแถบเลื่อนบน Firefox */
       height: 100%;
@@ -71,9 +83,9 @@
       display: none; /* ซ่อนแถบเลื่อนบน Chrome/Safari */
     }
 
-    .page {
+   .page {
       flex: 0 0 100%;
-      width: 100vw;
+      width: 100%; /* 🌟 เปลี่ยนจาก 100vw เป็น 100% */
       height: 100vh;
       scroll-snap-align: start;
       display: flex;
@@ -316,6 +328,19 @@ body {
     font-size: 18px;
     font-weight: bold;
     color: #4a4a4a;
+}
+    
+    #image-viewer-modal {
+  display: none; 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; /* เปลี่ยนจาก 100vw เป็น 100% */
+  height: 100%; /* เปลี่ยนจาก 100vh เป็น 100% */
+  background: rgba(0,0,0,0.95); 
+  z-index: 9999; 
+  justify-content: center; 
+  align-items: center;
 }
     
     /* Dark Mode Classes */
