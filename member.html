@@ -16,7 +16,9 @@
     <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- 🌐 เปลี่ยนลิงก์ Google Fonts เป็น Quicksand และ Kanit เรียบร้อย -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
     /* 🌟 ล็อกขนาดรูปโปรไฟล์ไม่ให้ซูมหรือเบี้ยว และรองรับมือถือ */
@@ -49,17 +51,18 @@
       --bg-soft: #fcfcfc;
     }
 
+    /* 🎨 อัปเดต font-family ตามที่เอ็มมี่ชอบ */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Mitr', sans-serif;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
     }
 
     body {
       background: var(--bg-soft);
       display: flex;
-      justify-content: center;
+      justify(content): center;
       align-items: flex-start;
       min-height: 100vh;
       color: var(--dark-text);
@@ -318,9 +321,7 @@
       margin-top: 2px;
     }
 
-    /* =========================================
-       📸 TRENDING GALLERY & AUDIO PLAYERS (PORTED FROM INDEX)
-       ========================================= */
+    /* 📸 TRENDING GALLERY & AUDIO PLAYERS */
     .post-gallery {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -763,7 +764,7 @@
     }
 
     // =========================================================================
-    // 👑 ADVANCED TIMELINE PORTED LOGIC (ระบบตรวจสอบสิทธิ์, สไลเดอร์แกลเลอรี่ และ เครื่องเล่นเสียง)
+    // 👑 ADVANCED TIMELINE PORTED LOGIC
     // =========================================================================
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
@@ -889,7 +890,6 @@
       `;
     }
 
-    // 🎯 ฟังก์ชันดึงไทม์ไลน์โพสต์และกรองเฉพาะของเมมเบอร์คนปัจจุบัน
     async function loadMemberTimelinePosts() {
       if (window.isTimelineLoading) return;
       const container = document.getElementById('posts-container');
@@ -910,7 +910,6 @@
             return;
         }
 
-        // 🌟 จุดเด่น: กรองคัดแยกเฉพาะโพสต์ของเมมเบอร์ที่เรากำลังเปิดดูโปรไฟล์อยู่เท่านั้น!
         let memberPosts = posts.filter(post => 
             (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
             (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
@@ -944,7 +943,6 @@
       }
     }
 
-    // 🔒 ฟังก์ชันระบบลบโพสต์ความปลอดภัยสูง (ส่ง Role ยืนยันสิทธิ์หลังบ้าน)
     async function deletePostUi(postId) {
       const result = await Swal.fire({
         title: 'ลบโพสต์นี้?', text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!", icon: 'warning',
@@ -963,7 +961,6 @@
       }
     }
 
-    // 🔒 ฟังก์ชันระบบแก้ไขโพสต์ความปลอดภัยสูง (ส่ง Role ยืนยันสิทธิ์หลังบ้าน)
     async function editPostUi(postId, encodedContent) {
       const oldContent = decodeURIComponent(encodedContent);
       const { value: newText } = await Swal.fire({
@@ -983,7 +980,6 @@
       }
     }
 
-    // 🎵 เครื่องเล่นไฟล์เสียง Voice Note
     function toggleBlmAudio(postId) {
       const audio = document.getElementById(`audio-player-${postId}`);
       const icon = document.getElementById(`audio-icon-${postId}`);
@@ -1028,7 +1024,6 @@
       return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     }
 
-    // 📸 ระบบแกลเลอรี่พรีวิวรูปภาพแบบสไลเดอร์เลื่อนซ้ายขวาได้
     let currentGallery = [];
     let currentIndex = 0;
 
@@ -1058,6 +1053,9 @@
     window.onload = loadMemberData;
 </script>
 
+<!-- =========================================================================
+     📡 REALTIME FIREBASE MODULAR SYSTEM
+     ========================================================================= -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
   import { getDatabase, ref as dbRef, push, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
@@ -1089,7 +1087,6 @@
     } else { section.style.display = "none"; }
   }
 
-  // 💖 ระบบกดไลก์เรียลไทม์ผ่านเว็บบอร์ดหลังบ้าน
   window.likePost = async function(postId) {
     const currentUser = getUserSession();
     if (!currentUser || !currentUser.username) {
@@ -1116,7 +1113,6 @@
     } catch (error) { console.error("Like Error:", error); }
   }
 
-  // 💬 ดักฟังรายการคอมเมนต์สดจาก Firebase เรียลไทม์
   window.listenForComments = function(postId) {
     const db = window.firebaseDatabase;
     const refFunc = window.fbRef;
@@ -1163,7 +1159,6 @@
     });
   };
 
-  // 💬 ฟังชันส่งคอมเมนต์เข้าฐานข้อมูลคู่ขนาน (Firebase + Google Sheets)
   window.submitComment = async function(postId, btnElement) {
     const currentUser = getUserSession();
     if (!currentUser || !currentUser.username) {
@@ -1193,7 +1188,6 @@
         text: commentText, timestamp: Date.now()
       });
 
-      // ดันแบคอัพลง Google Sheets เบื้องหลังแบบเงียบเชียบ
       fetch(scriptURL, {
         method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'addComment', postId: postId, username: currentUser.username, text: commentText })
@@ -1204,7 +1198,6 @@
     finally { if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; } inputEl.disabled = false; }
   };
 
-  /* 🔍 ระบบ Auto-Scanner เชื่อมต่อระบบคอมเมนต์เรียลไทม์อัตโนมัติ */
   setInterval(() => {
     document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
       const postId = card.id.replace('post-', '');
