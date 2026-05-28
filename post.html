@@ -74,11 +74,12 @@
   
   <textarea id="post-content" placeholder="Text"></textarea>
   
-  <div class="upload-btn-wrapper">
-    <button class="btn-upload">Add image</button>
-    <input type="file" id="post-image" accept="image/*" onchange="previewImage(event)" />
+  <div class="mb-3">
+  <label for="post-image" class="form-label" style="font-weight: 600; color: #ff85a2;"> Add Image</label>
+  <input type="file" id="post-image" class="form-control" accept="image/*" multiple onchange="previewMultipleImages(this)" style="border-radius: 12px; border: 1px solid #ffc0cb;">
+  
+  <div id="image-preview-container" style="display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; padding: 4px;"></div>
   </div>
-  <img id="preview-img" />
 
   <button class="btn-submit-full" onclick="submitPost()">Share Post</button>
 </div>
@@ -142,99 +143,126 @@
     }
   }
 
-  // ฟังก์ชันแสดงตัวอย่างรูปภาพเมื่อเลือกไฟล์
-  window.previewImage = function(event) {
-    const file = event.target.files[0];
-    if (file) {
-      selectedFile = file; 
+// ฟังก์ชันแสดงตัวอย่างรูปภาพหลายๆ รูปพร้อมกันอย่างสวยงาม
+window.previewMultipleImages = function(input) {
+  const container = document.getElementById('image-preview-container');
+  container.innerHTML = ''; // ล้างรูปเก่าออกก่อนถ้ามีการเลือกใหม่
+  
+  if (input.files && input.files.length > 0) {
+    Array.from(input.files).forEach(file => {
       const reader = new FileReader();
       reader.onload = function(e) {
-        const preview = document.getElementById('preview-img');
-        preview.src = e.target.result;
-        preview.style.display = 'block';
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.width = '85px';
+        img.style.height = '85px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '12px';
+        img.style.border = '2px solid #ffccd5'; // กรอบสีชมพูพาสเทลน่ารักๆ
+        container.appendChild(img);
       }
       reader.readAsDataURL(file);
-    }
+    });
+  }
+}
+
+// ฟังก์ชันกดส่งโพสต์ (รวมระบบเช็ค User + อัปโหลดหลายรูป + ส่งเข้า Sheets)
+window.submitPost = async function() {
+  const content = document.getElementById('post-content').value.trim();
+  const currentUser = getUserSession();
+  console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอในหน้าโพสต์:", currentUser);
+
+  // 1. ตรวจสอบว่าล็อกอินอยู่หรือไม่
+  if (!currentUser || !currentUser.username) {
+    Swal.fire({
+      title: 'ไม่พบข้อมูลผู้ใช้งาน 😥',
+      text: 'ระบบหาประวัติการล็อกอินไม่เจอ หรือเซสชันหมดอายุแล้ว กรุณาล็อกอินใหม่อีกครั้งนะงับ',
+      icon: 'warning',
+      confirmButtonColor: '#ff85a2'
+    });
+    return;
   }
 
-  // ฟังก์ชันกดส่งโพสต์ (เวอร์ชันเซฟงบ: รูปไป ImgBB ข้อมูลวิ่งไป Google Sheets)
-  window.submitPost = async function() {
-    const content = document.getElementById('post-content').value.trim();
-    const currentUser = getUserSession();
-    console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอในหน้าโพสต์:", currentUser);
+  const activeUsername = currentUser.username;
+  
+  // 2. ดึงข้อมูลไฟล์รูปภาพทั้งหมดที่เลือกไว้
+  const imageInput = document.getElementById('post-image'); // เช็คให้ชัวร์ว่า id ตรงกับช่อง input ใน HTML นะงับ
+  const imageFiles = imageInput ? imageInput.files : [];
 
-    if (!currentUser || !currentUser.username) {
-      Swal.fire({
-        title: 'ไม่พบข้อมูลผู้ใช้งาน 😥',
-        text: 'ระบบหาประวัติการล็อกอินไม่เจอ หรือเซสชันหมดอายุแล้ว กรุณาล็อกอินใหม่อีกครั้งนะงับ',
-        icon: 'warning',
-        confirmButtonColor: '#ff85a2'
-      });
-      return;
+  // 3. ตรวจสอบว่ามีข้อความหรือรูปภาพอย่างน้อย 1 อย่างหรือไม่
+  if (!content && imageFiles.length === 0) {
+    Swal.fire('ข้อความว่างเปล่า', 'กรุณาพิมพ์ข้อความหรือเลือกรูปภาพก่อนแชร์น้า', 'info');
+    return;
+  }
+
+  // 4. แสดงหน้าต่างกำลังโหลดมินิมอลตามสไตล์วง
+  Swal.fire({
+    title: 'กำลังส่งโพสต์... 🌸',
+    text: 'ระบบกำลังนำโพสต์และรูปภาพขึ้นไทม์ไลน์นะงับ (ถ้าหลายรูปอาจจะใช้เวลาแป๊บนึงน้า)',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  let imageUrlString = ""; // ตัวแปรเก็บสายข้อความลิงก์รูปภาพทั้งหมด
+
+  try {
+    // 5. วนลูปอัปโหลดรูปภาพไป ImgBB ทีละรูป (ถ้ามีการเลือกรูปไว้)
+    if (imageFiles.length > 0) {
+      let uploadedUrls = [];
+      for (let i = 0; i < imageFiles.length; i++) {
+        try {
+          const url = await uploadImageToImgBB(imageFiles[i]);
+          if (url) {
+            uploadedUrls.push(url);
+            console.log(`📸 อัปโหลดรูปลำดับที่ ${i+1} สำเร็จ:`, url);
+          }
+        } catch (err) {
+          console.error(`เกิดข้อผิดพลาดในการอัปโหลดรูปภาพตำแหน่งที่ ${i+1}:`, err);
+        }
+      }
+      // นำลิงก์ทั้งหมดมารวมกัน คั่นด้วยเครื่องหมาย Comma (,)
+      imageUrlString = uploadedUrls.join(',');
     }
 
-    const activeUsername = currentUser.username;
-
-    if (!content && !selectedFile) {
-      Swal.fire('ข้อความว่างเปล่า', 'กรุณาพิมพ์ข้อความหรือเลือกรูปภาพก่อนแชร์น้า', 'info');
-      return;
-    }
-
-    // แสดงหน้าต่างกำลังโหลดมินิมอลตามสไตล์วง
-    Swal.fire({
-      title: 'กำลังส่งโพสต์... ',
-      text: 'ระบบกำลังนำโพสต์ขึ้นไทม์ไลน์นะงับ',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading()
+    // 6. ส่งข้อมูลทั้งหมดไปบันทึกที่ Google Sheets ผ่าน Apps Script ตัวแรงตัวเดิม
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    const resp = await fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'createPost',
+        username: activeUsername, 
+        content: content,
+        imageUrl: imageUrlString // ลิงก์รูปทั้งหมดจะถูกส่งไปแบบยาวๆ ในช่องเดียวงับ!
+      })
     });
 
-    let imageUrl = ""; 
+    const data = await resp.json();
+    console.log("ผลลัพธ์จาก Google Sheets:", data);
 
-    try {
-      // 1. สลับมาอัปโหลดรูปภาพไป ImgBB แทน (ถ้ามีไฟล์รูปที่เลือกไว้)
-      if (selectedFile) {
-        imageUrl = await uploadImageToImgBB(selectedFile);
-        console.log("📸 อัปโหลดรูปไป ImgBB สำเร็จ ได้ลิงก์ฟรีมาแล้วงับ:", imageUrl);
-      }
-
-      // 2. ส่งข้อมูลทั้งหมดไปบันทึกที่ Google Sheets ผ่าน Apps Script ตัวแรงตัวเดิม
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-      
-      const resp = await fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'createPost',
-          username: activeUsername, 
-          content: content,
-          imageUrl: imageUrl // ลิงก์ i.ibb.co จะถูกส่งไปบันทึกลง Sheets สวยๆ ทันทีงับ!
-        })
-      });
-
-      const data = await resp.json();
-      console.log("ผลลัพธ์จาก Google Sheets:", data);
-
-      if (data.status === "success") {
-        Swal.fire({
-          title: 'สำเร็จแล้ว',
-          text: 'โพสต์ของคุณถูกส่งไปยังไทม์ไลน์เรียบร้อยแล้ว',
-          icon: 'success',
-          confirmButtonColor: '#ff85a2'
-        }).then(() => {
-          window.location.href = "index.html"; 
-        });
-      } else {
-        Swal.fire('เกิดข้อผิดพลาดจากเซิร์ฟเวอร์', data.message || 'ไม่สามารถโพสต์ได้', 'error');
-      }
-
-    } catch (error) {
-      console.error("Post Submission Error:", error);
+    // 7. แจ้งเตือนผลลัพธ์การทำงาน
+    if (data.status === "success") {
       Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด 😥',
-        text: error.message || 'ระบบไม่สามารถอัปโหลดรูปภาพได้ กรุณลองใหม่อีกครั้งนะงับ'
+        title: 'สำเร็จแล้ว',
+        text: 'โพสต์ของคุณถูกส่งไปยังไทม์ไลน์เรียบร้อยแล้วงับ',
+        icon: 'success',
+        confirmButtonColor: '#ff85a2'
+      }).then(() => {
+        window.location.href = "index.html"; 
       });
+    } else {
+      Swal.fire('เกิดข้อผิดพลาดจากเซิร์ฟเวอร์', data.message || 'ไม่สามารถโพสต์ได้', 'error');
     }
+
+  } catch (error) {
+    console.error("Post Submission Error:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด 😥',
+      text: error.message || 'ระบบขัดข้องในการอัปโหลด กรุณาลองใหม่อีกครั้งนะงับ'
+    });
   }
+}
 </script>
 </body>
 </html>
