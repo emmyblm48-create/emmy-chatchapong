@@ -167,6 +167,16 @@
       font-size: 14px;
     }
     
+    .cookie-fall { 
+  position: fixed; 
+  top: -50px; 
+  z-index: 9999; /* 🌟 แก้จาก -1 เป็น 9999 เพื่อให้น้องลอยเด่นอยู่เหนือการ์ดโพสต์ทั้งหมด */
+  color: #e6b38a; 
+  pointer-events: none; 
+  animation: falling 5s linear forwards; /* 🌟 เพิ่มเลข 5s ไว้เป็นค่าตั้งต้น ไม่ให้เบราว์เซอร์งงจนวาร์ปลงไปกองที่พื้น */
+  opacity: 0.6; 
+}
+    
     /* สไตล์สำหรับแถบเมนูด้านล่างแบบแอป */
 .bottom-nav {
   position: fixed;
@@ -2405,32 +2415,45 @@ async function refreshAppData() {
   } 
 }
 
-// 🍪 ระบบแอนิเมชันคุกกี้ร่วง (ทำงานเฉพาะตอนล็อกอินแล้วและเปิดหน้านี้อยู่เท่านั้น)
+// 🌟 1. อย่าลืมประกาศตัวแปรนี้ไว้บนสุดของแท็ก <script> นอกฟังก์ชันใดๆ นะงับ
+let user = null; 
+
+// 🍪 ระบบแอนิเมชันคุกกี้ร่วง (ชุดปรับปรุงใหม่ล่าสุด)
 setInterval(() => {
     if (document.hidden || !user) return;
     
     const c = document.createElement('i');
     c.className = 'fas fa-cookie cookie-fall';
+    
+    const fallDuration = (Math.random() * 3 + 4); // สุ่มเวลา 4 - 7 วินาที
+    
     c.style.left = Math.random() * 100 + 'vw';
-    c.style.animationDuration = (Math.random() * 3 + 4) + 's';
+    
+    // 🔥 แก้ไขตรงนี้: สั่งเขียนทับโครงสร้าง Animation ทั้งชุดด้วยเวลาที่สุ่มได้ทันที!
+    c.style.animation = `falling ${fallDuration}s linear forwards`;
+    
     document.body.appendChild(c);
     
-    setTimeout(() => c.remove(), 6000);
-}, 5000);
+    // ลบตัวตนคุกกี้เมื่อร่วงพ้นจอไปแล้วจริงๆ
+    setTimeout(() => c.remove(), fallDuration * 1000);
+}, 4000);
   
-// 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
+// 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์ (เพิ่มระบบ Safety Guard)
 document.addEventListener("DOMContentLoaded", () => {
+  try {
+    // ดึงข้อมูลเซสชันล็อกอิน
+    user = getUserSession(); 
+    
+    // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
+    updateUI();
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการเตรียม UI แรกเริ่ม:", error);
+  } finally {
+    // 🔥 ไม่ว่าจะโหลดสำเร็จหรือติดขัดอะไร ต้องสั่งปิดหน้าโหลดสีขาวชมพูเสมอ! หน้าเว็บจะได้ไม่ค้าง
+    hideAppLoading(); 
+  }
   
-  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
-  user = getUserSession(); 
-  
-  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
-  updateUI();
-  
-  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
-  hideAppLoading(); 
-  
-  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
+  // 🧭 โหลดข้อมูลอันดับ และซิงค์ข้อมูลผู้ใช้จาก Google Sheets แบบเงียบๆ เบื้องหลัง (Silent Background)
   loadData();
   if (user) {
     syncUserData(); 
