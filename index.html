@@ -514,39 +514,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     /* Float Button */
     .btn-refresh-float { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background: var(--primary-pink); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 15px rgba(255,133,162,0.4); cursor: pointer; z-index: 99; border: none; font-size: 1.2rem; transition: 0.3s; }
     .btn-refresh-float:active { transform: scale(0.9) rotate(45deg); }
-    
-    /* ค่าเริ่มต้นของ Sidebar ให้ซ่อนไว้ทางซ้าย */
-#sidebar {
-  position: fixed;
-  left: -280px; /* ซ่อนไว้ */
-  top: 0;
-  width: 280px;
-  height: 100%;
-  background: white;
-  z-index: 2000; /* ต้องสูงกว่า Navbar */
-  transition: 0.3s ease-in-out;
-  box-shadow: 5px 0 15px rgba(0,0,0,0.1);
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-/* คลาสที่จะเพิ่มเข้าไปเมื่อกดปุ่ม เพื่อให้ Sidebar แสดงผล */
-#sidebar.active {
-  left: 0 !important;
-}
-
-/* ตัวบังหน้าจอเวลาเมนูเปิด */
-#sidebar-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(2px);
-  z-index: 1999;
-}
 
     /* Responsive */
     @media (max-width: 600px) {
@@ -1235,8 +1202,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </a>
     <span class="logo-text">BLM48</span>
 </div>
-</div>
-  </div>
   
   <div class="nav-btns">
     <!-- ปุ่มกระเป๋าแบบไอคอน -->
@@ -1317,6 +1282,8 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 
 <script>
+  
+  window.scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 // ==========================================
 // 👑 1. CONFIG & GLOBAL VARIABLES (ประกาศตัวแปรสากลไว้บนสุด)
 // ==========================================
@@ -1366,7 +1333,7 @@ function history() {
 }
 
 function hideSplashScreen() {
-  const splash = document.getElementById('splash-screen'); 
+  const splash = document.getElementById('app-loading-screen'); 
   if (splash) splash.style.display = 'none';
 }
 
@@ -2769,7 +2736,7 @@ window.listenForComments = function(postId) {
   });
 };
 
-// 3. ฟังก์ชันส่งคอมเมนต์เข้า Firebase (พร้อมระบบป้องกันกดเบิ้ล และดักจับความผิดพลาด)
+// 3. ฟังก์ชันส่งคอมเมนต์เข้า Firebase + ซิงค์ลง Google Sheets อัตโนมัติ
 window.submitComment = async function(postId, btnElement) {
   const currentUser = getUserSession();
   if (!currentUser || !currentUser.username) {
@@ -2788,7 +2755,7 @@ window.submitComment = async function(postId, btnElement) {
     return;
   }
 
-  // เปลี่ยนสถานะปุ่มและอินพุตเพื่อความลื่นไหลและกันสแปมส่งซ้ำ
+  // เปลี่ยนสถานะปุ่มและอินพุตเพื่อกันสแปมส่งซ้ำ
   let originalText = "";
   if (btnElement) {
     originalText = btnElement.innerText;
@@ -2798,6 +2765,9 @@ window.submitComment = async function(postId, btnElement) {
   inputEl.disabled = true;
 
   try {
+    // -----------------------------------------------------------------
+    // ทางที่ 1: ส่งเข้า Firebase Realtime Database (เพื่อให้หน้าเว็บเด้งเรียลไทม์ทันที)
+    // -----------------------------------------------------------------
     const db = window.firebaseDatabase; 
     const commentPostRef = typeof dbRef === "function" ? dbRef(db, `comments/${postId}`) : db.ref(`comments/${postId}`);
     
@@ -2810,7 +2780,6 @@ window.submitComment = async function(postId, btnElement) {
       timestamp: Date.now()
     };
 
-    // ตัวแปลงความปลอดภัยเพื่อรองรับโครงสร้างฐานข้อมูลทุกเจเนอเรชัน
     if (typeof push === "function") {
       await push(commentPostRef, newCommentData);
     } else if (commentPostRef.push) {
@@ -2819,7 +2788,29 @@ window.submitComment = async function(postId, btnElement) {
       await db.ref(`comments/${postId}`).push(newCommentData);
     }
 
-    inputEl.value = ""; // ล้างช่องพิมพ์เมื่อส่งข้อมูลสำเร็จ
+    // -----------------------------------------------------------------
+    // ทางที่ 2 🔥 [เพิ่มจุดนี้]: ส่งไปบันทึกแบ็คอัปที่ Google Sheets เบื้องหลัง
+    // -----------------------------------------------------------------
+    // นำสคริปต์ URL ของคุณมาใส่ตรงนี้ (หรือใช้ตัวแปรส่วนกลาง window.scriptURL)
+    const scriptURL = window.scriptURL || 'ใส่_URL_WEB_APP_GOOGLE_APPS_SCRIPT_ของคุณตรงนี้งับ';
+
+    // ยิงข้อมูลออกแบบจับคู่ Action 'addComment' ตามที่เขียนไว้ใน GAS หลังบ้าน
+    fetch(scriptURL, {
+      method: 'POST',
+      mode: 'no-cors', // ใช้ no-cors เพื่อไม่ให้ติดปัญหา CORS บล็อกข้ามโดเมน
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: 'addComment',
+        postId: postId,
+        username: currentUser.username,
+        text: commentText
+      })
+    }).catch(err => console.error("GAS Backup Error:", err)); // ดัก Error เผื่อเน็ตหลุดแต่ไม่ให้หน้าเว็บค้าง
+
+    inputEl.value = ""; // ล้างช่องพิมพ์เมื่อทำงานสำเร็จ
+    
   } catch (error) {
     console.error("Firebase Add Comment Error:", error);
     Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ อาจเกิดจากสิทธิ์ฐานข้อมูล', 'error');
