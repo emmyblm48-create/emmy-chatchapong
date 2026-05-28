@@ -2095,6 +2095,9 @@ function renderPost(post) {
   // =========================================================================
   // 💡 ปล่อยเนื้อหาในกล่องให้ว่าง หรือใส่ตัวโหลดไว้ชั่วคราว เพราะ Firebase v10 จะเป็นคนกวาดคอมเมนต์มาแปะให้อัตโนมัติเองงับ
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
+  setTimeout(() => {
+    listenToCommentsRealtime('${postId}');
+  }, 100);
 
   // =========================================================================
   // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
@@ -2563,12 +2566,12 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script type="module">
-  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (แก้ไข: เพิ่ม onValue เข้ามาในเซ็ตเรียบร้อยครับ)
+  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
   import { getDatabase, ref as dbRef, push, onChildAdded, get, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
   import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
-  // 2. ตั้งค่า Configuration ของ Firebase (ใช้ชุดหลักของ BLM48 เลิศที่สุดครับ)
+  // 2. ตั้งค่า Configuration ของ Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
     authDomain: "blm48-official-site.firebaseapp.com",
@@ -2588,9 +2591,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.firebaseApp = app;
   window.firebaseDatabase = database;
   window.firebaseStorage = storage;
-  window.fbRef = dbRef;       // ส่งต่อฟังก์ชันอ้างอิงตำแหน่ง
-  window.fbPush = push;       // ส่งต่อฟังก์ชันเพิ่มข้อมูล
-  window.fbOnValue = onValue; // ส่งต่อฟังก์ชันดักจับข้อมูลเรียลไทม์ (ใช้งานได้แล้วไม่แครช!)
+  window.fbRef = dbRef;       
+  window.fbPush = push;       
+  window.fbOnValue = onValue; 
 
   /* ==========================================
      🔒 ระบบจัดการ USER SESSION
@@ -2622,7 +2625,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!section) return;
     if (section.style.display === "none" || section.style.display === "") {
       section.style.display = "block";
-      window.listenForComments(postId); // สั่งดักฟังคอมเมนต์ทันทีที่เปิดกล่อง
+      window.listenForComments(postId); // ดักฟังซ้ำเพื่อความมั่นใจ
     } else {
       section.style.display = "none";
     }
@@ -2673,7 +2676,7 @@ document.addEventListener("DOMContentLoaded", () => {
      💬 [ระบบคอมเมนต์ Realtime มินิมอลพาสเทล - เวอร์ชันเชื่อมต่อแบบไร้รอยต่อ]
      ========================================================================= */
 
-  // ฟังก์ชันดักฟังคอมเมนต์จาก Firebase แบบเรียลไทม์
+  // ฟังก์ชันดักฟังคอมเมนต์และจำนวนยอดคอมเมนต์จาก Firebase แบบเรียลไทม์
   window.listenForComments = function(postId) {
     const db = window.firebaseDatabase;
     const refFunc = window.fbRef;
@@ -2684,8 +2687,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!commentListEl) return;
 
     if (!db || !refFunc || !onValueFunc) {
-      console.warn("ระบบฐานข้อมูล Firebase กำลังเตรียมการ กรุณารอสักครู่นะงับ...");
-      return;
+      return; // รอ Firebase พร้อมใช้งาน
     }
 
     const commentRef = refFunc(db, `comments/${postId}`);
@@ -2701,7 +2703,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const commentsArray = Object.values(data);
-      if (commentCountEl) commentCountEl.innerText = commentsArray.length;
+      if (commentCountEl) commentCountEl.innerText = commentsArray.length; // 🎯 ยอดคอมเมนต์อัปเดตเรียลไทม์ที่นี่!
 
       const allowedRoles = ['member', 'admin', 'ceo'];
       const verifiedBadgeIcon = `
@@ -2734,7 +2736,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // ฟังก์ชันส่งคอมเมนต์เข้าฐานข้อมูลคู่ขนาน (Firebase + Google Sheets)
+  // ฟังก์ชันส่งคอมเมนต์เข้าฐานข้อมูลคู่ขนาน
   window.submitComment = async function(postId, btnElement) {
     const currentUser = getUserSession();
     if (!currentUser || !currentUser.username) {
@@ -2782,10 +2784,10 @@ document.addEventListener("DOMContentLoaded", () => {
         timestamp: Date.now()
       };
 
-      // 🚀 ยิงทางที่ 1: ส่งเข้า Firebase เรียลไทม์
+      // 🚀 ทางที่ 1: ส่งเข้า Firebase เรียลไทม์ (เมื่อส่งสำเร็จ ตัวเลข UI จะเด้งขึ้นเองอัตโนมัติจาก listenForComments)
       await pushFunc(commentPostRef, newCommentData);
 
-      // 📡 ยิงทางที่ 2: ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
+      // 📡 ทางที่ 2: ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
       const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       fetch(scriptURL, {
         method: 'POST',
@@ -2833,8 +2835,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.refreshCountFromSheets = refreshCountFromSheets;
 
-  // รันรอบแรกเพื่อดึงยอดสมาชิก
   refreshCountFromSheets();
+
+  // 🔥 [เพิ่มส่วนนี้] ตรวจสอบโพสต์ที่มีอยู่บนจอ ณ ตอนนี้ แล้วสั่งให้ส่อง Firebase เรียลไทม์ทันที
+  setTimeout(() => {
+    document.querySelectorAll('.post-card').forEach(card => {
+      const postId = card.id.replace('post-', '');
+      if (postId && window.listenForComments) {
+        window.listenForComments(postId);
+      }
+    });
+  }, 500);
 </script>
 </body>
 </html>
