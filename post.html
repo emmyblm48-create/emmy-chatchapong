@@ -264,24 +264,26 @@
   }
 
   // ฟังก์ชันอัปโหลดไฟล์เสียงไปยัง Supabase Storage
-  async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
+    async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
     const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
     
     const { data, error } = await supabaseClient.storage
       .from('posts-media')
-      .upload(fileName, fileBlob);
+      .upload(fileName, fileBlob, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-    if (error) {
-      throw new Error("Supabase Storage Upload Error: " + error.message);
-    }
+    if (error) throw new Error("Upload Error: " + error.message);
 
+    // 🌟 อันนี้คือตัวการสำคัญ: getPublicUrl ต้องออกมาเป็นรูปแบบไม่มี /sign/ 
     const { data: publicUrlData } = supabaseClient.storage
       .from('posts-media')
       .getPublicUrl(fileName);
 
-    return publicUrlData.publicUrl;
+    return publicUrlData.publicUrl; 
   }
-
+  
   function getUserSession() {
     try {
       const sessionStr = localStorage.getItem('bnl_session');
