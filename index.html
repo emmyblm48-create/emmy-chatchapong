@@ -2031,9 +2031,13 @@ async function claimMonthly() {
 function renderPost(post) {
   if (!post) return '';
 
-  const authorName = post.author || post.username || 'Anonymous Member';
+  const currentUser = getUserSession();
+  const currentUsername = currentUser ? currentUser.username : "";
+  // 🌟 เช็คว่าคนที่ล็อกอินอยู่ คือเจ้าของโพสต์นี้หรือเปล่า
+  const isOwner = post.authorUsername === currentUsername; 
+
+  const authorName = post.authorName || 'Anonymous Member';
   const postContent = post.content || '';
-  const postComments = post.comments || [];
   const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
   const postLikes = post.likes || 0;
   const postId = post.id || ''; 
@@ -2041,26 +2045,19 @@ function renderPost(post) {
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
   const profilePic = post.profile_img || 'https://via.placeholder.com/40?text=🌸';
 
-  // 🔢 1. นับจำนวนคอมเมนต์จริงที่ส่งมาจากหลังบ้าน (Object หรือ Array ก็รองรับหมดงับ)
-  let commentCount = 0;
-  if (post.comments) {
-    commentCount = typeof post.comments === 'object' ? Object.keys(post.comments).length : post.comments.length;
-  }
-
-  // 💬 2. ส่วนการเตรียมรายการคอมเมนต์เพื่อเตรียมเอาไปแสดงผล
+  let commentCount = post.comments ? post.comments.length : 0;
   let commentsHtml = '';
-  if (post.comments && Object.keys(post.comments).length > 0) {
-    const commentsList = typeof post.comments === 'object' ? Object.values(post.comments) : post.comments;
-    
-     commentsList.forEach(cmt => {
-      // แทนที่จะใช้ cmt.username ตรงๆ ให้ใช้ค่าที่ต้องการแสดงแทนงับ
-      // หากหลังบ้านส่งชื่อมาให้แล้วใน cmt.name ก็ใช้ได้เลย
-      const displayName = cmt.name || cmt.username || 'Anonymous'; 
-      
+
+  if (post.comments && post.comments.length > 0) {
+     post.comments.forEach(cmt => {
+      // 🌟 ใส่รูปโปรไฟล์ในคอมเมนต์ และใช้ cmt.name ที่ส่งมาจากหลังบ้าน
       commentsHtml += `
-        <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; background: #fff5f7; padding: 8px 12px; border-radius: 12px;">
-          <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${cmt.name}</b>
-          <span style="color: #333; word-break: break-word;">${cmt.text}</span>
+        <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
+          <img src="${cmt.profile_img}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+          <div style="font-size: 0.88rem;">
+            <b style="color: #ff85a2; margin-right: 4px;">${cmt.name}:</b>
+            <span style="color: #333; word-break: break-word;">${cmt.text}</span>
+          </div>
         </div>
       `;
     });
@@ -2068,10 +2065,17 @@ function renderPost(post) {
     commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">No Comments yet</div>`;
   }
 
-  // 🎨 3. ส่งก้อน HTML Card ออกไปแสดงบนหน้าเว็บ
+  // 🌟 สร้างปุ่มลบ/แก้ไข เฉพาะถ้าเป็นเจ้าของโพสต์
+  const actionMenu = isOwner ? `
+    <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px;">
+      <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
+      <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+    </div>
+  ` : '';
+
   return `
-    <div class="post-card" id="post-${postId}" style="background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-      
+    <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+      ${actionMenu}
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
         <img src="${profilePic}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
         <div>
@@ -2081,18 +2085,16 @@ function renderPost(post) {
       </div>
       
       <div class="post-body" style="margin-bottom: 15px;">
-        <p style="margin: 0; white-space: pre-wrap;">${postContent}</p>
+        <p id="content-${postId}" style="margin: 0; white-space: pre-wrap;">${postContent}</p>
         ${displayImage ? `<img src="${displayImage}" style="width: 100%; border-radius: 10px; margin-top: 10px; object-fit: cover;">` : ''}
       </div>
       
       <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; padding: 5px;">
-          <i class="${heartClass} fa-heart" style="font-size: 1.1rem;"></i> 
-          <span id="like-count-${postId}">${postLikes}</span>
+        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
         </button>
-        
-        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; padding: 5px;">
-          <i class="fa-regular fa-comment" style="font-size: 1.1rem;"></i> <span id="comment-count-${postId}">${commentCount}</span>
+        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${commentCount}</span>
         </button>
       </div>
 
@@ -2100,52 +2102,105 @@ function renderPost(post) {
         <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
           ${commentsHtml}
         </div>
-        
         <div class="comment-input-box" style="display: flex; gap: 8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." 
-                 style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-          <button onclick="submitComment('${postId}')" 
-                  style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold; transition: 0.2s;"> SEND
-          </button>
+          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
+          <button onclick="submitComment('${postId}')" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
         </div>
       </div>
-
     </div>
   `;
 }
   
 async function loadTimelinePosts() {
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
   const container = document.getElementById('posts-container');
   if (!container) return;
-  
-  container.innerHTML = '<p style="text-align: center; color: #ff85a2; padding: 20px;">Loading...</p>';
-  
+
+  // เอา Loading ออก เพราะเราไม่อยากให้จอเคลียร์บ่อยๆ
   try {
-    // 🎯 1. ดึงข้อมูล User (ถ้าล็อกอินอยู่)
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
-
-    // 🎯 2. ส่ง username ไปด้วยใน URL เพื่อให้หลังบ้านเช็คสถานะไลก์และดึงคอมเมนต์ของโพสต์นั้นๆ
     const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
     const posts = await response.json();
     
-    container.innerHTML = ''; 
-    
-    if (!posts || posts.length === 0) {
-      container.innerHTML = '<p style="text-align: center; color: gray; padding: 20px;">Not Post</p>';
-      return;
+    // ถ้ามีโพสต์
+    if (posts && posts.length > 0) {
+      // เอาคำว่า Not Post ออกถ้ามี
+      const noPostMsg = document.getElementById('no-post-msg');
+      if (noPostMsg) noPostMsg.remove();
+
+      posts.forEach(post => {
+        const existingPost = document.getElementById(`post-${post.id}`);
+        
+        if (existingPost) {
+          // 🌟 ถ้ามีโพสต์นี้บนจอแล้ว อัปเดตแค่ยอดไลก์และคอมเมนต์ (หน้าเว็บจะไม่กะพริบ!)
+          const likeCountEl = document.getElementById(`like-count-${post.id}`);
+          if (likeCountEl) likeCountEl.innerText = post.likes;
+          
+          const heartIcon = document.getElementById(`heart-${post.id}`);
+          if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+          
+          const cmtCountEl = document.getElementById(`comment-count-${post.id}`);
+          if (cmtCountEl) cmtCountEl.innerText = post.comments ? post.comments.length : 0;
+        } else {
+          // 🌟 ถ้าเป็นโพสต์ใหม่ที่ยังไม่มีบนจอ ให้ดันลงไปในฟีด
+          container.insertAdjacentHTML('beforeend', renderPost(post));
+        }
+      });
     }
-    
-    // 🎯 3. วนลูปวาดการ์ด
-    posts.forEach(post => {
-      // ข้อมูล post ตอนนี้จะมี .comments และ .isLiked ติดมาด้วยจากหลังบ้านแล้วงับ!
-      container.innerHTML += renderPost(post);
-    });
-    
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
-    container.innerHTML = '<p style="text-align: center; color: red; padding: 20px;">โหลดฟีดไม่สำเร็จ</p>';
+  }
+}
+
+  // ฟังก์ชันลบโพสต์
+async function deletePostUi(postId) {
+  const result = await Swal.fire({
+    title: 'ลบโพสต์นี้?',
+    text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ff85a2',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'ลบเลย!'
+  });
+
+  if (result.isConfirmed) {
+    const currentUser = getUserSession();
+    const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}`);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      document.getElementById(`post-${postId}`).remove(); // เตะการ์ดออกจากหน้าจอทันที
+      Swal.fire('ลบแล้ว!', 'ลบโพสต์ของคุณเรียบร้อยงับ', 'success');
+    } else {
+      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่ใช่เจ้าของโพสต์', 'error');
+    }
+  }
+}
+
+// ฟังก์ชันแก้ไขโพสต์
+async function editPostUi(postId, encodedContent) {
+  const oldContent = decodeURIComponent(encodedContent);
+  const { value: newText } = await Swal.fire({
+    title: 'แก้ไขโพสต์',
+    input: 'textarea',
+    inputValue: oldContent,
+    showCancelButton: true,
+    confirmButtonColor: '#ff85a2',
+    cancelButtonColor: 'gray'
+  });
+
+  if (newText && newText !== oldContent) {
+    const currentUser = getUserSession();
+    const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&newContent=${encodeURIComponent(newText)}`);
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      document.getElementById(`content-${postId}`).innerText = newText; // เปลี่ยนข้อความบนจอทันที
+      Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
+    } else {
+      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาดในการแก้ไข', 'error');
+    }
   }
 }
   
