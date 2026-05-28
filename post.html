@@ -205,16 +205,6 @@
     <input type="file" id="post-image" class="hidden-input" accept="image/*" multiple onchange="previewMultipleImages(this)">
     <div id="image-preview-container"></div>
   </div>
-  
-  <div class="media-section">
-    <div class="section-label">
-      <i class="fa-regular fa-square-play"></i> Attach Video
-    </div>
-    <label for="video-input" class="custom-file-upload">
-      <i class="fa-solid fa-video"></i> Select Video File
-    </label>
-    <input type="file" id="video-input" class="hidden-input" accept="video/*">
-  </div>
 
   <div class="media-section">
     <div class="audio-recorder-box">
@@ -233,14 +223,14 @@
 
   <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 
-  // ตั้งค่าการเชื่อมต่อ Supabase ไว้ข้างใน module เลยงับเพื่อไม่ให้ติดปัญหาเรียกใช้ตัวแปรไม่ได้
-  const SUPABASE_URL = "https://ysfwhdtwmqwudhtrqavd.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZndoZHR3bXF3dWRodHJxYXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MTQ0MzYsImV4cCI6MjA5MzQ5MDQzNn0.3fDf22bCX1nMhnYn4urzscm0LKIs6uKZ8h5AILh6jK8";
+  const SUPABASE_URL = "https://kmolgfghbviwxqlhnlku.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imttb2xnZmdoYnZpd3hxbGhubGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzE2NzgsImV4cCI6MjA5NTU0NzY3OH0.BlGST7XnJKw5aIb1mlVx9-yMtOwVmWc0gSUNZr2gqw0";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const firebaseConfig = {
@@ -273,12 +263,10 @@
     }
   }
 
-  // 🌟 ฟังก์ชันสำหรับอัปโหลดไฟล์คลังสื่อไปยัง Supabase Storage (รองรับทั้งเสียงและวิดีโอ)
+  // ฟังก์ชันอัปโหลดไฟล์เสียงไปยัง Supabase Storage
   async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
-    // ตั้งชื่อไฟล์ไม่ให้ซ้ำกันโดยใช้เวลาปัจจุบันเป็นตัวกำหนด
     const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
     
-    // อัปโหลดไปยัง Bucket ชื่อ 'posts-media' (เอ็มมี่อย่าลืมสร้างคลังนี้ในเว็บ Supabase เป็น Public น้า)
     const { data, error } = await supabaseClient.storage
       .from('posts-media')
       .upload(fileName, fileBlob);
@@ -287,7 +275,6 @@
       throw new Error("Supabase Storage Upload Error: " + error.message);
     }
 
-    // เอา Public URL ออกมาเพื่อส่งไปบันทึกข้อมูลต่อ
     const { data: publicUrlData } = supabaseClient.storage
       .from('posts-media')
       .getPublicUrl(fileName);
@@ -316,10 +303,7 @@
   
   let mediaRecorder;
   let audioChunks = [];
-  
-  // 🌟 ปรับมาเก็บเป็นตัวแปรแบบ File/Blob แทน String Base64 งับ
   let recordedAudioBlob = null; 
-  let selectedVideoFile = null;
 
   const btnRecord = document.getElementById('btn-record');
   const recordIcon = document.getElementById('record-icon');
@@ -337,7 +321,6 @@
         
         mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
         mediaRecorder.onstop = () => {
-          // 🌟 บันทึกเป็นก้อน Blob ไฟล์เสียงดิบตรงๆ
           recordedAudioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
           audioPreview.src = URL.createObjectURL(recordedAudioBlob);
           audioPreview.style.display = "block";
@@ -358,22 +341,6 @@
       btnRecord.classList.remove('recording');
       recordIcon.className = "fa-solid fa-circle";
       recordBtnText.innerText = "Record";
-    }
-  });
-
-  // Video File Processing
-  document.getElementById('video-input').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if(file) {
-      // 🌟 เก็บก้อนไฟล์วิดีโอตัวจริงไว้ใช้งาน ไม่เอา Base64 แล้วงับ
-      selectedVideoFile = file;
-      Swal.fire({
-        icon: 'success',
-        title: 'Video Selected',
-        text: `เตรียมพร้อมอัปโหลดไฟล์: ${file.name}`,
-        timer: 1500,
-        showConfirmButton: false
-      });
     }
   });
 
@@ -419,7 +386,8 @@
     const imageInput = document.getElementById('post-image');
     const imageFiles = imageInput ? imageInput.files : [];
 
-    if (!content && imageFiles.length === 0 && !recordedAudioBlob && !selectedVideoFile) {
+    // แก้ไขเงื่อนไขการเช็กข้อมูลว่าง (ไม่มีวิดีโอแล้ว)
+    if (!content && imageFiles.length === 0 && !recordedAudioBlob) {
       Swal.fire('Empty Content', 'Please write a message or add media before publishing.', 'info');
       return;
     }
@@ -433,10 +401,9 @@
 
     let imageUrlString = "";
     let finalAudioUrl = "";
-    let finalVideoUrl = "";
 
     try {
-      // 1. อัปโหลดรูปภาพเข้า ImgBB (ตามระบบเดิมของเอ็มมี่)
+      // 1. อัปโหลดรูปภาพเข้า ImgBB
       if (imageFiles.length > 0) {
         let uploadedUrls = [];
         for (let i = 0; i < imageFiles.length; i++) {
@@ -450,29 +417,21 @@
         imageUrlString = uploadedUrls.join(',');
       }
 
-      // 2. 🌟 จุดสำคัญ: ถ้ามีไฟล์เสียง ให้อัปโหลดเข้า Supabase Storage
+      // 2. อัปโหลดไฟล์เสียงเข้า Supabase Storage
       if (recordedAudioBlob) {
         finalAudioUrl = await uploadToSupabaseStorage(recordedAudioBlob, 'audios', 'mp3');
       }
 
-      // 3. 🌟 จุดสำคัญ: ถ้ามีไฟล์วิดีโอ ให้อัปโหลดเข้า Supabase Storage
-      if (selectedVideoFile) {
-        // หาตัวนามสกุลไฟล์จริงของวิดีโอ (เช่น mp4, mov, avi)
-        const videoExt = selectedVideoFile.name.split('.').pop() || 'mp4';
-        finalVideoUrl = await uploadToSupabaseStorage(selectedVideoFile, 'videos', videoExt);
-      }
-
-      // 4. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่
+      // 3. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่ (ส่ง videoURL เป็นค่าว่างไปเลย)
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       
-      // เปลี่ยนมาใช้ URLSearchParams เพื่อส่งเป็น Parameter ที่ปลอดภัยและแน่นอนกว่างับ ✨
       const params = new URLSearchParams();
       params.append('action', 'createPost');
       params.append('username', activeUsername);
       params.append('content', content);
       params.append('imageUrl', imageUrlString);
       params.append('audioURL', finalAudioUrl);
-      params.append('videoURL', finalVideoUrl);
+      params.append('videoURL', ''); // ส่งค่าว่างไปที่คอลัมน์วิดีโอเพื่อไม่ให้โครงสร้างสคริปต์หลังบ้านพังงับ ✨
 
       const resp = await fetch(scriptURL, {
         method: 'POST',
