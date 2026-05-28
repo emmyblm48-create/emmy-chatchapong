@@ -233,9 +233,15 @@
 
   <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+
+  // ตั้งค่าการเชื่อมต่อ Supabase ไว้ข้างใน module เลยงับเพื่อไม่ให้ติดปัญหาเรียกใช้ตัวแปรไม่ได้
+  const SUPABASE_URL = "https://ysfwhdtwmqwudhtrqavd.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlzZndoZHR3bXF3dWRodHJxYXZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MTQ0MzYsImV4cCI6MjA5MzQ5MDQzNn0.3fDf22bCX1nMhnYn4urzscm0LKIs6uKZ8h5AILh6jK8";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const firebaseConfig = {
     apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
@@ -248,7 +254,6 @@
   };
 
   const app = initializeApp(firebaseConfig);
-
   const IMGBB_API_KEY = "80ad839da07973eeefee57af54fc9f6d";
 
   async function uploadImageToImgBB(file) {
@@ -266,6 +271,28 @@
     } else {
       throw new Error("ImgBB Upload Failed: " + result.error.message);
     }
+  }
+
+  // 🌟 ฟังก์ชันสำหรับอัปโหลดไฟล์คลังสื่อไปยัง Supabase Storage (รองรับทั้งเสียงและวิดีโอ)
+  async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
+    // ตั้งชื่อไฟล์ไม่ให้ซ้ำกันโดยใช้เวลาปัจจุบันเป็นตัวกำหนด
+    const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
+    
+    // อัปโหลดไปยัง Bucket ชื่อ 'posts-media' (เอ็มมี่อย่าลืมสร้างคลังนี้ในเว็บ Supabase เป็น Public น้า)
+    const { data, error } = await supabaseClient.storage
+      .from('posts-media')
+      .upload(fileName, fileBlob);
+
+    if (error) {
+      throw new Error("Supabase Storage Upload Error: " + error.message);
+    }
+
+    // เอา Public URL ออกมาเพื่อส่งไปบันทึกข้อมูลต่อ
+    const { data: publicUrlData } = supabaseClient.storage
+      .from('posts-media')
+      .getPublicUrl(fileName);
+
+    return publicUrlData.publicUrl;
   }
 
   function getUserSession() {
@@ -289,8 +316,10 @@
   
   let mediaRecorder;
   let audioChunks = [];
-  let audioBase64 = "";
-  let videoBase64 = "";
+  
+  // 🌟 ปรับมาเก็บเป็นตัวแปรแบบ File/Blob แทน String Base64 งับ
+  let recordedAudioBlob = null; 
+  let selectedVideoFile = null;
 
   const btnRecord = document.getElementById('btn-record');
   const recordIcon = document.getElementById('record-icon');
@@ -308,13 +337,10 @@
         
         mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
         mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-          audioPreview.src = URL.createObjectURL(audioBlob);
+          // 🌟 บันทึกเป็นก้อน Blob ไฟล์เสียงดิบตรงๆ
+          recordedAudioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+          audioPreview.src = URL.createObjectURL(recordedAudioBlob);
           audioPreview.style.display = "block";
-          
-          const reader = new FileReader();
-          reader.readAsDataURL(audioBlob);
-          reader.onloadend = () => { audioBase64 = reader.result; };
           recordStatus.innerText = "Audio recorded successfully";
         };
         
@@ -339,9 +365,15 @@
   document.getElementById('video-input').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if(file) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => { videoBase64 = reader.result; };
+      // 🌟 เก็บก้อนไฟล์วิดีโอตัวจริงไว้ใช้งาน ไม่เอา Base64 แล้วงับ
+      selectedVideoFile = file;
+      Swal.fire({
+        icon: 'success',
+        title: 'Video Selected',
+        text: `เตรียมพร้อมอัปโหลดไฟล์: ${file.name}`,
+        timer: 1500,
+        showConfirmButton: false
+      });
     }
   });
 
@@ -387,7 +419,7 @@
     const imageInput = document.getElementById('post-image');
     const imageFiles = imageInput ? imageInput.files : [];
 
-    if (!content && imageFiles.length === 0 && !audioBase64 && !videoBase64) {
+    if (!content && imageFiles.length === 0 && !recordedAudioBlob && !selectedVideoFile) {
       Swal.fire('Empty Content', 'Please write a message or add media before publishing.', 'info');
       return;
     }
@@ -400,8 +432,11 @@
     });
 
     let imageUrlString = "";
+    let finalAudioUrl = "";
+    let finalVideoUrl = "";
 
     try {
+      // 1. อัปโหลดรูปภาพเข้า ImgBB (ตามระบบเดิมของเอ็มมี่)
       if (imageFiles.length > 0) {
         let uploadedUrls = [];
         for (let i = 0; i < imageFiles.length; i++) {
@@ -415,6 +450,19 @@
         imageUrlString = uploadedUrls.join(',');
       }
 
+      // 2. 🌟 จุดสำคัญ: ถ้ามีไฟล์เสียง ให้อัปโหลดเข้า Supabase Storage
+      if (recordedAudioBlob) {
+        finalAudioUrl = await uploadToSupabaseStorage(recordedAudioBlob, 'audios', 'mp3');
+      }
+
+      // 3. 🌟 จุดสำคัญ: ถ้ามีไฟล์วิดีโอ ให้อัปโหลดเข้า Supabase Storage
+      if (selectedVideoFile) {
+        // หาตัวนามสกุลไฟล์จริงของวิดีโอ (เช่น mp4, mov, avi)
+        const videoExt = selectedVideoFile.name.split('.').pop() || 'mp4';
+        finalVideoUrl = await uploadToSupabaseStorage(selectedVideoFile, 'videos', videoExt);
+      }
+
+      // 4. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       
       const resp = await fetch(scriptURL, {
@@ -424,8 +472,8 @@
           username: activeUsername, 
           content: content,
           imageUrl: imageUrlString,
-          audioURL: audioBase64,  // 🌟 ส่ง Base64 ของไฟล์เสียงไปที่หลังบ้าน
-          videoURL: videoBase64   // 🌟 ส่ง Base64 ของไฟล์วิดีโอไปที่หลังบ้าน
+          audioURL: finalAudioUrl,  // 🌟 ส่งเป็นลิงก์ URL จริงจาก Supabase ไปแทน Base64
+          videoURL: finalVideoUrl   // 🌟 ส่งเป็นลิงก์ URL จริงจาก Supabase ไปแทน Base64
         })
       });
 
