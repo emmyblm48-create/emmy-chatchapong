@@ -2029,13 +2029,24 @@ async function claimMonthly() {
   }
 }
   
+  // ฟังก์ชันตรวจสอบสิทธิ์ระดับสูง
+    function hasManagementPermission(postAuthorUsername) {
+        if (!user) return false;
+        
+        // CEO และ Admin จัดการได้ทุกคน
+        if (user.role === 'CEO' || user.role === 'Admin') return true;
+        
+        // สมาชิกทั่วไปจัดการได้แค่ของตัวเอง
+        return user.username === postAuthorUsername;
+    }
+  
 function renderPost(post) {
   if (!post) return '';
 
   const currentUser = getUserSession();
   const currentUsername = currentUser ? currentUser.username : "";
   // 🌟 เช็คว่าคนที่ล็อกอินอยู่ คือเจ้าของโพสต์นี้หรือเปล่า
-  const isOwner = post.authorUsername === currentUsername; 
+  const canManage = hasManagementPermission(post.authorUsername);
 
   const authorName = post.authorName || 'Anonymous Member';
   const postContent = post.content || '';
@@ -2067,7 +2078,7 @@ function renderPost(post) {
   }
 
   // 🌟 สร้างปุ่มลบ/แก้ไข เฉพาะถ้าเป็นเจ้าของโพสต์
-  const actionMenu = isOwner ? `
+  const actionMenu = canManage ? `
     <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px;">
       <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
       <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
