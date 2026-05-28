@@ -2499,8 +2499,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 }
 
- /* ==========================================
-     💬 ระบบส่งคอมเมนต์ใหม่เข้าฐานข้อมูล (เวอร์ชันสมบูรณ์)
+/* ==========================================
+     💬 ระบบส่งคอมเมนต์ใหม่เข้าฐานข้อมูล (แก้ไขรูปโปรไฟล์ตอนกดส่ง)
      ========================================== */
   window.submitComment = async function(postId) {
     const currentUser = getUserSession();
@@ -2511,7 +2511,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const btn = event.target;
     const inputEl = document.getElementById(`comment-input-${postId}`);
-    const commentText = inputEl.value.trim(); // ประกาศครั้งเดียวพอแล้วงับ
+    const commentText = inputEl.value.trim();
     
     // ดักปุ่มที่โดน disable ไปแล้ว
     if (btn.disabled) return; 
@@ -2536,7 +2536,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({
           action: 'addComment',
           postId: postId,
-          username: currentUser.username, // หรือใช้ currentUser.name เพื่อความเป็นส่วนตัวงับ
+          username: currentUser.username, 
           text: commentText
         })
       });
@@ -2549,11 +2549,18 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (noCommentMsg) noCommentMsg.remove();
 
-        // 🎯 อัปเดต HTML คอมเมนต์ใหม่
+        // 🌟 1. ดึงรูปและชื่อจากข้อมูลคนที่กำลังล็อกอินอยู่
+        const userProfilePic = currentUser.profile_img || currentUser.profile || 'https://via.placeholder.com/40?text=🌸';
+        const userDisplayName = currentUser.name || currentUser.username || 'Anonymous';
+
+        // 🌟 2. อัปเดต HTML คอมเมนต์ใหม่ ให้มีรูปภาพและชื่อจริง (เหมือน renderPost)
         const newCommentHtml = `
-          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 8px; font-size: 0.88rem; background: #fff5f7; padding: 8px 12px; border-radius: 12px;">
-            <b style="color: #ff85a2; margin-right: 6px; min-width: max-content;">${currentUser.username}:</b>
-            <span style="color: #333; word-break: break-word;">${commentText}</span>
+          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
+            <img src="${userProfilePic}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+            <div style="font-size: 0.88rem;">
+              <b style="color: #ff85a2; margin-right: 4px;">${userDisplayName}:</b>
+              <span style="color: #333; word-break: break-word;">${commentText}</span>
+            </div>
           </div>
         `;
         
