@@ -2112,27 +2112,33 @@ function renderPost(post) {
 }
   
 async function loadTimelinePosts() {
-  const container = document.getElementById('posts-container');
-  if (!container) return;
-
-  // เอา Loading ออก เพราะเราไม่อยากให้จอเคลียร์บ่อยๆ
-  try {
-    const currentUser = getUserSession();
-    const username = currentUser ? currentUser.username : "";
-    const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
-    const posts = await response.json();
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    const container = document.getElementById('posts-container');
+    if (!container) return;
     
-    // ถ้ามีโพสต์
-    if (posts && posts.length > 0) {
-      // เอาคำว่า Not Post ออกถ้ามี
-      const noPostMsg = document.getElementById('no-post-msg');
-      if (noPostMsg) noPostMsg.remove();
+    // 🛑 ไม่ต้องเคลียร์ container.innerHTML = ''; แล้วนะงับ ปล่อยโพสต์เก่าค้างไว้เลย
+
+    try {
+      const currentUser = getUserSession();
+      const username = currentUser ? currentUser.username : "";
+      const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
+      
+      let posts = await response.json();
+      if (!posts || posts.length === 0) return;
+
+      // เคลียร์พวกข้อความ Loading หรือ Not Post (ถ้ามี) ออกไป
+      const loadingMsg = document.getElementById('loading-msg');
+      if (loadingMsg) loadingMsg.remove();
+
+      // 🌟 ทริคสำคัญ: กลับด้านข้อมูลให้เป็น (เก่าสุด -> ใหม่สุด)
+      // เพื่อเวลาเราเจอโพสต์ใหม่ เราจะดันมันไปแทรกไว้ "บนสุด" ของหน้าจอได้พอดีเป๊ะ
+      posts.reverse(); 
 
       posts.forEach(post => {
         const existingPost = document.getElementById(`post-${post.id}`);
         
         if (existingPost) {
-          // 🌟 ถ้ามีโพสต์นี้บนจอแล้ว อัปเดตแค่ยอดไลก์และคอมเมนต์ (หน้าเว็บจะไม่กะพริบ!)
+          // 🎯 1. โพสต์เก่าที่มีอยู่แล้ว: อัปเดตแค่เลขไลก์, ไอคอนหัวใจ, เลขคอมเมนต์ (หน้าจอไม่กะพริบ)
           const likeCountEl = document.getElementById(`like-count-${post.id}`);
           if (likeCountEl) likeCountEl.innerText = post.likes;
           
@@ -2140,17 +2146,19 @@ async function loadTimelinePosts() {
           if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
           
           const cmtCountEl = document.getElementById(`comment-count-${post.id}`);
-          if (cmtCountEl) cmtCountEl.innerText = post.comments ? post.comments.length : 0;
+          if (cmtCountEl) {
+            cmtCountEl.innerText = post.comments ? post.comments.length : 0;
+          }
         } else {
-          // 🌟 ถ้าเป็นโพสต์ใหม่ที่ยังไม่มีบนจอ ให้ดันลงไปในฟีด
-          container.insertAdjacentHTML('beforeend', renderPost(post));
+          // 🎯 2. โพสต์ใหม่ที่เพิ่งมา: ให้วาด HTML แล้วดันแทรกไป "บนสุด" (afterbegin)
+          container.insertAdjacentHTML('afterbegin', renderPost(post));
         }
       });
+      
+    } catch (error) {
+      console.error("โหลดฟีดล้มเหลว:", error);
     }
-  } catch (error) {
-    console.error("โหลดฟีดล้มเหลว:", error);
   }
-}
 
   // ฟังก์ชันลบโพสต์
 async function deletePostUi(postId) {
