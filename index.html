@@ -2199,55 +2199,50 @@ function renderPost(post) {
   `;
 }
   
-  
 async function loadTimelinePosts() {
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    const container = document.getElementById('posts-container');
-    if (!container) return;
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+  const container = document.getElementById('posts-container');
+  if (!container) return;
+  
+  // 🛑 ไม่ต้องเคลียร์ container.innerHTML = ''; แล้วนะงับ ปล่อยโพสต์เก่าค้างไว้เลย
+
+  try {
+    const currentUser = getUserSession();
+    const username = currentUser ? currentUser.username : "";
+    const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
     
-    // 🛑 ไม่ต้องเคลียร์ container.innerHTML = ''; แล้วนะงับ ปล่อยโพสต์เก่าค้างไว้เลย
+    let posts = await response.json();
+    if (!posts || posts.length === 0) return;
 
-    try {
-      const currentUser = getUserSession();
-      const username = currentUser ? currentUser.username : "";
-      const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
+    // เคลียร์พวกข้อความ Loading หรือ Not Post (ถ้ามี) ออกไป
+    const loadingMsg = document.getElementById('loading-msg');
+    if (loadingMsg) loadingMsg.remove();
+
+    // 🌟 ทริคสำคัญ: กลับด้านข้อมูลให้เป็น (เก่าสุด -> ใหม่สุด)
+    // เพื่อเวลาเราเจอโพสต์ใหม่ เราจะดันมันไปแทรกไว้ "บนสุด" ของหน้าจอได้พอดีเป๊ะ
+    posts.reverse(); 
+
+    posts.forEach(post => {
+      const existingPost = document.getElementById(`post-${post.id}`);
       
-      let posts = await response.json();
-      if (!posts || posts.length === 0) return;
-
-      // เคลียร์พวกข้อความ Loading หรือ Not Post (ถ้ามี) ออกไป
-      const loadingMsg = document.getElementById('loading-msg');
-      if (loadingMsg) loadingMsg.remove();
-
-      // 🌟 ทริคสำคัญ: กลับด้านข้อมูลให้เป็น (เก่าสุด -> ใหม่สุด)
-      // เพื่อเวลาเราเจอโพสต์ใหม่ เราจะดันมันไปแทรกไว้ "บนสุด" ของหน้าจอได้พอดีเป๊ะ
-      posts.reverse(); 
-
-      posts.forEach(post => {
-        const existingPost = document.getElementById(`post-${post.id}`);
+      if (existingPost) {
+        // 🎯 1. โพสต์เก่าที่มีอยู่แล้ว: อัปเดตแค่เลขไลก์ และไอคอนหัวใจ (หน้าจอไม่กะพริบ)
+        const likeCountEl = document.getElementById(`like-count-${post.id}`);
+        if (likeCountEl) likeCountEl.innerText = post.likes;
         
-        if (existingPost) {
-          // 🎯 1. โพสต์เก่าที่มีอยู่แล้ว: อัปเดตแค่เลขไลก์, ไอคอนหัวใจ, เลขคอมเมนต์ (หน้าจอไม่กะพริบ)
-          const likeCountEl = document.getElementById(`like-count-${post.id}`);
-          if (likeCountEl) likeCountEl.innerText = post.likes;
-          
-          const heartIcon = document.getElementById(`heart-${post.id}`);
-          if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-          
-          const cmtCountEl = document.getElementById(`comment-count-${post.id}`);
-          if (cmtCountEl) {
-            cmtCountEl.innerText = post.comments ? post.comments.length : 0;
-          }
-        } else {
-          // 🎯 2. โพสต์ใหม่ที่เพิ่งมา: ให้วาด HTML แล้วดันแทรกไป "บนสุด" (afterbegin)
-          container.insertAdjacentHTML('afterbegin', renderPost(post));
-        }
-      });
-      
-    } catch (error) {
-      console.error("โหลดฟีดล้มเหลว:", error);
-    }
+        const heartIcon = document.getElementById(`heart-${post.id}`);
+        if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+        
+      } else {
+        // 🎯 2. โพสต์ใหม่ที่เพิ่งมา: ให้วาด HTML แล้วดันแทรกไป "บนสุด" (afterbegin)
+        container.insertAdjacentHTML('afterbegin', renderPost(post));
+      }
+    });
+    
+  } catch (error) {
+    console.error("โหลดฟีดล้มเหลว:", error);
   }
+}
 
   // ฟังก์ชันลบโพสต์
 async function deletePostUi(postId) {
@@ -2564,14 +2559,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
-
 <script type="module">
   // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
   import { getDatabase, ref as dbRef, push, onChildAdded, get, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
   import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
-  // 2. ตั้งค่า Configuration ของ Firebase
+  // 2. ตั้งค่า Configuration ของ Firebase (ชุดหลักของ BLM48)
   const firebaseConfig = {
     apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
     authDomain: "blm48-official-site.firebaseapp.com",
@@ -2582,12 +2576,12 @@ document.addEventListener("DOMContentLoaded", () => {
     appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
   };
 
-  // เริ่มต้นเปิดใช้งาน Firebase ทั้ง Database และ Storage ไปพร้อมกัน
+  // เริ่มต้นเปิดใช้งาน Firebase
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
   const storage = getStorage(app);
 
-  // ส่งค่าออกไปที่ window ให้ระบบคอมเมนต์และจุดอื่นๆ เรียกใช้ได้อย่างปลอดภัย
+  // ส่งค่าออกไปที่ window ให้ระบบรอบนอกเรียกใช้ได้ปลอดภัย
   window.firebaseApp = app;
   window.firebaseDatabase = database;
   window.firebaseStorage = storage;
@@ -2625,7 +2619,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!section) return;
     if (section.style.display === "none" || section.style.display === "") {
       section.style.display = "block";
-      window.listenForComments(postId); // ดักฟังซ้ำเพื่อความมั่นใจ
+      window.listenForComments(postId); // ดักฟังซ้ำเพื่อความแม่นยำตอนเปิดกล่อง
     } else {
       section.style.display = "none";
     }
@@ -2673,10 +2667,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* =========================================================================
-     💬 [ระบบคอมเมนต์ Realtime มินิมอลพาสเทล - เวอร์ชันเชื่อมต่อแบบไร้รอยต่อ]
+     💬 [ระบบคอมเมนต์ Realtime มินิมอลพาสเทล - เวอร์ชันซิงค์อัตโนมัติ]
      ========================================================================= */
 
-  // ฟังก์ชันดักฟังคอมเมนต์และจำนวนยอดคอมเมนต์จาก Firebase แบบเรียลไทม์
+  // ฟังก์ชันดักฟังคอมเมนต์และจำนวนยอดจาก Firebase แบบเรียลไทม์
   window.listenForComments = function(postId) {
     const db = window.firebaseDatabase;
     const refFunc = window.fbRef;
@@ -2686,9 +2680,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const commentCountEl = document.getElementById(`comment-count-${postId}`);
     if (!commentListEl) return;
 
-    if (!db || !refFunc || !onValueFunc) {
-      return; // รอ Firebase พร้อมใช้งาน
-    }
+    if (!db || !refFunc || !onValueFunc) return;
 
     const commentRef = refFunc(db, `comments/${postId}`);
 
@@ -2698,12 +2690,12 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (!data) {
         commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาประเดิมคนแรกกันเถอะงับ!</div>`;
-        if (commentCountEl) commentCountEl.innerText = 0;
+        if (commentCountEl) commentCountEl.innerText = "0";
         return;
       }
 
       const commentsArray = Object.values(data);
-      if (commentCountEl) commentCountEl.innerText = commentsArray.length; // 🎯 ยอดคอมเมนต์อัปเดตเรียลไทม์ที่นี่!
+      if (commentCountEl) commentCountEl.innerText = commentsArray.length; // 🎯 อัปเดตยอดตัวเลขคอมเมนต์เรียลไทม์ทันที!
 
       const allowedRoles = ['member', 'admin', 'ceo'];
       const verifiedBadgeIcon = `
@@ -2748,7 +2740,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!inputEl) return;
 
     const commentText = inputEl.value.trim();
-
     if (btnElement && btnElement.disabled) return; 
     if (!commentText) {
       Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
@@ -2784,10 +2775,10 @@ document.addEventListener("DOMContentLoaded", () => {
         timestamp: Date.now()
       };
 
-      // 🚀 ทางที่ 1: ส่งเข้า Firebase เรียลไทม์ (เมื่อส่งสำเร็จ ตัวเลข UI จะเด้งขึ้นเองอัตโนมัติจาก listenForComments)
+      // 🚀 ส่งเข้า Firebase (ตัวเลขยอดคอมเมนต์จะเด้งบวกเองอัตโนมัติจากตัวฟังข้างบน)
       await pushFunc(commentPostRef, newCommentData);
 
-      // 📡 ทางที่ 2: ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
+      // 📡 ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
       const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       fetch(scriptURL, {
         method: 'POST',
@@ -2835,17 +2826,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.refreshCountFromSheets = refreshCountFromSheets;
 
+  // รันรอบแรกดึงยอดสมาชิก
   refreshCountFromSheets();
 
-  // 🔥 [เพิ่มส่วนนี้] ตรวจสอบโพสต์ที่มีอยู่บนจอ ณ ตอนนี้ แล้วสั่งให้ส่อง Firebase เรียลไทม์ทันที
-  setTimeout(() => {
-    document.querySelectorAll('.post-card').forEach(card => {
+  /* =========================================================================
+     🔍 [ระบบ Auto-Scanner ส่องจับโพสต์ใหม่เพื่อผูกระบบ Realtime อัตโนมัติ]
+     ========================================================================= */
+  // บล็อกนี้จะคอยสแกนหาโพสต์การ์ดที่เพิ่งโหลดขึ้นมาบนหน้าจอ แล้วสั่งให้ดึงข้อมูลคอมเมนต์ทันทีโดยไม่ต้องรอให้เอ็มมี่กดคลิกปุ่มเปิดกล่อง
+  setInterval(() => {
+    document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
       const postId = card.id.replace('post-', '');
       if (postId && window.listenForComments) {
-        window.listenForComments(postId);
+        window.listenForComments(postId); // เปิดระบบดักฟังยอดคอมเมนต์จาก Firebase ค้างไว้เลย
+        card.setAttribute('data-firebase-ready', 'true'); // ทำสัญลักษณ์ไว้เพื่อป้องกันไม่ให้ผูกซ้ำซ้อนงับ
       }
     });
-  }, 500);
+  }, 300); // ทำงานทุกๆ 0.3 วินาที (รวดเร็ว ทันใจ และไม่กินแรมเครื่อง)
 </script>
 </body>
 </html>
