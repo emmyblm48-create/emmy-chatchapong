@@ -2117,7 +2117,9 @@ function renderPost(post) {
         // ถ้า role เป็น member, Admin, หรือ CEO (ไม่สนตัวพิมพ์เล็ก-ใหญ่) จะได้ไอคอน Verified ทันที
         const allowedRoles = ['member', 'admin', 'ceo'];
         const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
-        const isCmtVerified = allowedRoles.includes(currentRole) ?'<i class="fa-solid fa-patched-check" style="color: #0095f6; font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>' : '';
+       const isCmtVerified = allowedRoles.includes(currentRole) 
+  ? '<i class="fa-solid fa-patched-check" style="color: #0095f6; font-size: 0.85rem; margin-left: 4px; vertical-align: middle;"></i>' 
+  : '';
 
         commentsHtml += `
           <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
@@ -2137,12 +2139,27 @@ function renderPost(post) {
   // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
   // =========================================================================
   let mediaHtml = '';
-
-  // 🎵 ถ้ามีเสียง Voice Note ให้โชว์เครื่องเล่นเสียงสไตล์มินิมอล
+ // ถ้ามีเสียง Voice Note ให้โชว์เครื่องเล่นเสียงสไตล์ BLM48 (Cute & Minimalist)
   if (post.audioURL) {
     mediaHtml += `
-      <div style="margin-top: 10px;">
-        <audio controls src="${post.audioURL}" style="width: 100%; max-width: 400px; height: 40px;"></audio>
+      <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
+        
+        <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
+        
+        <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
+          <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
+        </button>
+        
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
+            <span>Voice Note 🌸</span>
+            <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
+          </div>
+          <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
+            <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
+          </div>
+        </div>
+
       </div>
     `;
   }
@@ -2334,6 +2351,85 @@ async function editPostUi(postId, encodedContent) {
       Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาดในการแก้ไข', 'error');
     }
   }
+}
+  
+  // 🌟 ฟังก์ชัน เล่น/หยุด เสียงสไตล์ BLM48
+function toggleBlmAudio(postId) {
+  const audio = document.getElementById(`audio-player-${postId}`);
+  const btn = document.getElementById(`audio-btn-${postId}`);
+  const icon = document.getElementById(`audio-icon-${postId}`);
+  
+  if (!audio) return;
+
+  // หยุดเสียงตัวอื่นที่กำลังเล่นอยู่ก่อน (เผื่อเปิดพร้อมกันหลายเพลง)
+  document.querySelectorAll('audio').forEach(aud => {
+    if (aud.id !== `audio-player-${postId}` && !aud.paused) {
+      aud.pause();
+      const otherId = aud.id.replace('audio-player-', '');
+      const otherIcon = document.getElementById(`audio-icon-${otherId}`);
+      const otherBtn = document.getElementById(`audio-btn-${otherId}`);
+      if (otherIcon) {
+        otherIcon.className = 'fa-solid fa-play';
+        otherIcon.style.marginLeft = '2px';
+      }
+    }
+  });
+
+  if (audio.paused) {
+    audio.play();
+    icon.className = 'fa-solid fa-pause';
+    icon.style.marginLeft = '0px';
+    
+    // ตั้งค่าอัปเดตแถบ Progress และเวลาเมื่อเสียงกำลังเล่น
+    audio.ontimeupdate = () => {
+      const progress = document.getElementById(`audio-progress-${postId}`);
+      const timeLabel = document.getElementById(`audio-time-${postId}`);
+      
+      if (progress) {
+        const percentage = (audio.currentTime / audio.duration) * 100;
+        progress.style.width = `${percentage}%`;
+      }
+      
+      if (timeLabel) {
+        timeLabel.innerText = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration || 0)}`;
+      }
+    };
+    
+    // เมื่อเล่นจบให้รีเซ็ตปุ่มกลับเป็น Play
+    audio.onended = () => {
+      icon.className = 'fa-solid fa-play';
+      icon.style.marginLeft = '2px';
+      const progress = document.getElementById(`audio-progress-${postId}`);
+      if (progress) progress.style.width = '0%';
+    };
+    
+  } else {
+    audio.pause();
+    icon.className = 'fa-solid fa-play';
+    icon.style.marginLeft = '2px';
+  }
+}
+
+// 🌟 ฟังก์ชันสำหรับกดข้ามเวลาบนแถบ Progress
+function seekBlmAudio(event, postId) {
+  const audio = document.getElementById(`audio-player-${postId}`);
+  const container = document.getElementById(`audio-progress-container-${postId}`);
+  if (!audio || !container) return;
+  
+  const rect = container.getBoundingClientRect();
+  const clickX = event.clientX - rect.left;
+  const width = rect.width;
+  const clickPercentage = clickX / width;
+  
+  audio.currentTime = clickPercentage * audio.duration;
+}
+
+// 🌟 ฟังก์ชันแปลงวินาทีให้เป็นรูปแบบ นาที:วินาที (เช่น 0:45)
+function formatAudioTime(secs) {
+  if (isNaN(secs)) return "0:00";
+  const minutes = Math.floor(secs / 60);
+  const seconds = Math.floor(secs % 60);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
   
 // เก็บข้อมูลรูปภาพปัจจุบัน
