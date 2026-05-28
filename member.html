@@ -19,6 +19,27 @@
   <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
+      /* 🌟 ล็อกขนาดรูปโปรไฟล์ไม่ให้ซูมหรือเบี้ยว และรองรับมือถือ */
+    .member-profile-img {
+      width: 120px; /* ปรับขนาดความใหญ่ตามต้องการได้เลยงับ */
+      height: 120px;
+      border-radius: 50%; /* ทำให้เป็นวงกลม */
+      object-fit: cover; /* 🌟 หัวใจสำคัญ: ทำให้รูปซูมพอดีกรอบ ไม่ยืด ไม่เบี้ยว */
+      object-position: center; /* จัดให้อยู่กึ่งกลางเสมอ */
+      flex-shrink: 0; /* ป้องกันไม่ให้โดนบีบเวลามีพื้นที่น้อย */
+      border: 3px solid #ffccd7; /* เพิ่มขอบน่ารักๆ */
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    /* ทำให้หน้าเว็บไม่ล้นจอซ้ายขวาในมือถือ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+  
     :root {
       --blmem-pink: #ff85a2;
       --blmem-pink-light: #fff0f3;
@@ -336,8 +357,7 @@
 <body>
 
   <div class="app-layout">
-    <a href="#" class="back-circle-btn" onclick="history.back(); return false;"><i class="fas fa-chevron-left"></i>
-    </a>
+    <button class="back-circle-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
@@ -383,6 +403,10 @@
         <div id="member-fans-content" class="fan-list">
           </div>
       </div>
+      
+      <div id="member-posts-container" style="max-width: 600px; margin: 20px auto; padding: 0 15px;">
+  <p style="text-align: center; color: #ff85a2;">Loading...</p>
+</div>
 
     </div>
   </div>
@@ -747,6 +771,57 @@
         Swal.fire('เกิดข้อผิดพลาด!', 'การเชื่อมต่อขัดข้อง หรือ Script URL ไม่ตอบสนอง', 'error');
       }
     }
+  
+  // 🎯 ฟังก์ชันโหลดโพสต์ของเมมเบอร์คนนี้
+  async function loadMemberPosts(targetUsername) {
+    // ใส่ลิงก์ Apps Script ของคุณเอ็มมี่
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    const container = document.getElementById('member-posts-container');
+    if (!container) return;
+
+    try {
+      // สมมติว่ามีฟังก์ชัน getUserSession() เหมือนใน index.html
+      // ถ้าใน member.html ไม่มี ให้ข้ามหรือใช้ค่าว่างไปก่อนครับ
+      let viewerName = ""; 
+      if (typeof getUserSession === "function") {
+        const currentUser = getUserSession();
+        viewerName = currentUser ? currentUser.username : "";
+      }
+
+      // ดึงโพสต์ทั้งหมดมา
+      const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(viewerName)}`);
+      let posts = await response.json();
+
+      // 🌟 กรองเอาเฉพาะโพสต์ที่ authorUsername ตรงกับเป้าหมาย
+      let memberPosts = posts.filter(post => post.authorUsername === targetUsername || post.username === targetUsername);
+
+      container.innerHTML = ''; // เคลียร์ข้อความกำลังโหลด
+
+      if (!memberPosts || memberPosts.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: gray; padding: 20px;">Not Posts Yet</p>';
+        return;
+      }
+
+      // วนลูปวาดการ์ดโพสต์ (ต้องก๊อปฟังก์ชัน renderPost จาก index.html มาไว้ในไฟล์นี้ด้วยนะงับ)
+      memberPosts.reverse().forEach(post => {
+        container.insertAdjacentHTML('beforeend', renderPost(post));
+      });
+
+    } catch (error) {
+      console.error("โหลดฟีดล้มเหลว:", error);
+      container.innerHTML = '<p style="text-align: center; color: red;">โหลดโพสต์ไม่สำเร็จ</p>';
+    }
+  }
+
+  // 🌟 วิธีเรียกใช้งาน:
+  // คุณเอ็มมี่ต้องส่ง Username ของเมมเบอร์หน้านั้นๆ เข้าไปในฟังก์ชัน
+  // เช่น ถ้าหน้านี้คือหน้าของ 00-108 ให้เรียกใช้งานแบบนี้:
+  window.onload = function() {
+    // สมมติว่าดึง targetUsername มาจากข้อมูลในหน้าเว็บได้
+    // (หรือจะ hardcode ไว้ก่อนก็ได้ถ้าทำไฟล์แยกทีละคน)
+    const targetUsername = "00-108"; 
+    loadMemberPosts(targetUsername);
+  };
 
     function actionKami() { setOshi('kami'); }
     function actionOshi() { setOshi('oshi'); }
@@ -766,6 +841,16 @@
 
     function actionCookie() {
       if (!checkLoginStatus()) return;
+      
+      if (!user.role || user.role.toLowerCase() !== 'user') {
+        Swal.fire({
+          title: 'สิทธิ์ไม่ถูกต้อง',
+          text: 'ขออภัยด้วยนะงับ ฟังก์ชันปาคุกกี้เปิดให้ใช้งานเฉพาะบัญชีประเภททั่วไปเท่านั้นค่ะ',
+          icon: 'error',
+          confirmButtonColor: '#ff85a2'
+        });
+        return; // สั่งหยุดทำงานทันที ไม่ให้หน้าต่างปาคุกกี้เด้งขึ้นมา
+      }
 
       const userCookies = user.cookie || 0;
 
