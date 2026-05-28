@@ -2556,9 +2556,9 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script type="module">
-  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (ใช้คีย์ชุดเดียวกันทั้งหมด)
+  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (แก้ไข: เพิ่ม onValue เข้ามาในเซ็ตเรียบร้อยครับ)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-  import { getDatabase, ref as dbRef, push, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+  import { getDatabase, ref as dbRef, push, onChildAdded, get, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
   import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
 
   // 2. ตั้งค่า Configuration ของ Firebase (ใช้ชุดหลักของ BLM48 เลิศที่สุดครับ)
@@ -2581,9 +2581,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.firebaseApp = app;
   window.firebaseDatabase = database;
   window.firebaseStorage = storage;
-  window.fbRef = dbRef;      // ส่งต่อฟังก์ชันอ้างอิงตำแหน่ง
-  window.fbPush = push;      // ส่งต่อฟังก์ชันเพิ่มข้อมูล
-  window.fbOnValue = onValue; // ส่งต่อฟังก์ชันดักจับข้อมูลเรียลไทม์
+  window.fbRef = dbRef;       // ส่งต่อฟังก์ชันอ้างอิงตำแหน่ง
+  window.fbPush = push;       // ส่งต่อฟังก์ชันเพิ่มข้อมูล
+  window.fbOnValue = onValue; // ส่งต่อฟังก์ชันดักจับข้อมูลเรียลไทม์ (ใช้งานได้แล้วไม่แครช!)
 
   /* ==========================================
      🔒 ระบบจัดการ USER SESSION
@@ -2615,6 +2615,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!section) return;
     if (section.style.display === "none" || section.style.display === "") {
       section.style.display = "block";
+      window.listenForComments(postId); // สั่งดักฟังคอมเมนต์ทันทีที่เปิดกล่อง
     } else {
       section.style.display = "none";
     }
@@ -2632,6 +2633,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const likeSpan = document.getElementById(`like-count-${postId}`);
     const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
+    if (!heartIcon || !likeSpan) return;
+    
     const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
     
     heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
@@ -2659,167 +2662,150 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-/* =========================================================================
-   💬 [ระบบคอมเมนต์ Realtime มินิมอลพาสเทล - เวอร์ชันเชื่อมต่อแบบไร้รอยต่อ]
-   ========================================================================= */
+  /* =========================================================================
+     💬 [ระบบคอมเมนต์ Realtime มินิมอลพาสเทล - เวอร์ชันเชื่อมต่อแบบไร้รอยต่อ]
+     ========================================================================= */
 
-// 1. ฟังก์ชัน เปิด/ปิด กล่องคอมเมนต์เมื่อกดไอคอนคอมเมนต์บนหน้าการ์ด
-function toggleCommentSection(postId) {
-  const section = document.getElementById(`comment-section-${postId}`);
-  if (!section) return;
+  // ฟังก์ชันดักฟังคอมเมนต์จาก Firebase แบบเรียลไทม์
+  window.listenForComments = function(postId) {
+    const db = window.firebaseDatabase;
+    const refFunc = window.fbRef;
+    const onValueFunc = window.fbOnValue;
 
-  if (section.style.display === "none" || section.style.display === "") {
-    section.style.display = "block";
-    window.listenForComments(postId); // สั่งดักฟังคอมเมนต์ทันทีที่เปิดกล่อง
-  } else {
-    section.style.display = "none";
-  }
-}
+    const commentListEl = document.getElementById(`comment-list-${postId}`);
+    const commentCountEl = document.getElementById(`comment-count-${postId}`);
+    if (!commentListEl) return;
 
-// 2. ฟังก์ชันดักฟังคอมเมนต์จาก Firebase แบบเรียลไทม์
-window.listenForComments = function(postId) {
-  const db = window.firebaseDatabase;
-  const refFunc = window.fbRef;
-  const onValueFunc = window.fbOnValue;
-
-  const commentListEl = document.getElementById(`comment-list-${postId}`);
-  const commentCountEl = document.getElementById(`comment-count-${postId}`);
-  if (!commentListEl) return;
-
-  // ตรวจสอบความพร้อมของระบบเชื่อมต่อ
-  if (!db || !refFunc || !onValueFunc) {
-    console.warn("ระบบฐานข้อมูล Firebase กำลังเตรียมการ กรุณารอสักครู่นะงับ...");
-    return;
-  }
-
-  const commentRef = refFunc(db, `comments/${postId}`);
-
-  // ใช้ onValue ดักฟังเวอร์ชัน v10 ตรงๆ ปลอดภัยและเรียลไทม์แน่นอน
-  onValueFunc(commentRef, (snapshot) => {
-    commentListEl.innerHTML = ''; // ล้างข้อมูลเก่าก่อนเติมเซ็ตใหม่
-    const data = snapshot.val();
-    
-    if (!data) {
-      commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาประเดิมคนแรกกันเถอะงับ!</div>`;
-      if (commentCountEl) commentCountEl.innerText = 0;
+    if (!db || !refFunc || !onValueFunc) {
+      console.warn("ระบบฐานข้อมูล Firebase กำลังเตรียมการ กรุณารอสักครู่นะงับ...");
       return;
     }
 
-    const commentsArray = Object.values(data);
-    if (commentCountEl) commentCountEl.innerText = commentsArray.length;
+    const commentRef = refFunc(db, `comments/${postId}`);
 
-    const allowedRoles = ['member', 'admin', 'ceo'];
-    const verifiedBadgeIcon = `
-      <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-        <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-      </svg>
-    `;
+    onValueFunc(commentRef, (snapshot) => {
+      commentListEl.innerHTML = ''; 
+      const data = snapshot.val();
+      
+      if (!data) {
+        commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาประเดิมคนแรกกันเถอะงับ!</div>`;
+        if (commentCountEl) commentCountEl.innerText = 0;
+        return;
+      }
 
-    commentsArray.forEach(cmt => {
-      const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
-      const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
+      const commentsArray = Object.values(data);
+      if (commentCountEl) commentCountEl.innerText = commentsArray.length;
 
-      const commentHtml = `
-        <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-          <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
-          <div style="font-size: 0.88rem; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <b style="color: #ff85a2;">${cmt.name}</b>
-              ${isCmtVerified}
-              <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${cmt.role || 'user'}</span>
-            </div>
-            <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${cmt.text}</div>
-          </div>
-        </div>
+      const allowedRoles = ['member', 'admin', 'ceo'];
+      const verifiedBadgeIcon = `
+        <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+          <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+        </svg>
       `;
-      commentListEl.insertAdjacentHTML('beforeend', commentHtml);
+
+      commentsArray.forEach(cmt => {
+        const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
+        const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
+
+        const commentHtml = `
+          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
+            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+            <div style="font-size: 0.88rem; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <b style="color: #ff85a2;">${cmt.name}</b>
+                ${isCmtVerified}
+                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${cmt.role || 'user'}</span>
+              </div>
+              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${cmt.text}</div>
+            </div>
+          </div>
+        `;
+        commentListEl.insertAdjacentHTML('beforeend', commentHtml);
+      });
+
+      commentListEl.scrollTop = commentListEl.scrollHeight;
     });
+  };
 
-    // ดันหน้าจอลงล่างสุดอัตโนมัติเมื่อมีคอมเมนต์ใหม่
-    commentListEl.scrollTop = commentListEl.scrollHeight;
-  });
-};
-
-// 3. ฟังก์ชันส่งคอมเมนต์เข้าฐานข้อมูลคู่ขนาน (Firebase + Google Sheets)
-window.submitComment = async function(postId, btnElement) {
-  const currentUser = getUserSession();
-  if (!currentUser || !currentUser.username) {
-    Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนแสดงความคิดเห็นนะงับ', 'warning');
-    return;
-  }
-
-  const inputEl = document.getElementById(`comment-input-${postId}`);
-  if (!inputEl) return;
-
-  const commentText = inputEl.value.trim();
-
-  if (btnElement && btnElement.disabled) return; 
-  if (!commentText) {
-    Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
-    return;
-  }
-
-  const db = window.firebaseDatabase;
-  const refFunc = window.fbRef;
-  const pushFunc = window.fbPush;
-
-  if (!db || !refFunc || !pushFunc) {
-    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลปลายทางได้งับ', 'error');
-    return;
-  }
-
-  // ป้องกันการกดส่งซ้ำ
-  let originalText = "";
-  if (btnElement) {
-    originalText = btnElement.innerText;
-    btnElement.innerText = "กำลังส่ง...";
-    btnElement.disabled = true;
-  }
-  inputEl.disabled = true;
-
-  try {
-    const commentPostRef = refFunc(db, `comments/${postId}`);
-    
-    const newCommentData = {
-      username: currentUser.username,
-      name: currentUser.name || currentUser.username || 'Anonymous',
-      role: currentUser.role || 'user',
-      profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
-      text: commentText,
-      timestamp: Date.now()
-    };
-
-    // 🚀 ยิงทางที่ 1: ส่งเข้า Firebase เรียลไทม์ทันใจ
-    await pushFunc(commentPostRef, newCommentData);
-
-    // 📡 ยิงทางที่ 2: ซิงค์สำรองข้อมูลลง Google Sheets ผ่าน Web App URL เบื้องหลัง
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    fetch(scriptURL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'addComment',
-        postId: postId,
-        username: currentUser.username,
-        text: commentText
-      })
-    }).catch(err => console.error("GAS Sync Error:", err));
-
-    inputEl.value = ""; // ล้างช่องเมื่อส่งเสร็จเรียบร้อย
-    
-  } catch (error) {
-    console.error("Firebase Add Comment Error:", error);
-    Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error');
-  } finally {
-    if (btnElement) {
-      btnElement.innerText = originalText;
-      btnElement.disabled = false;
+  // ฟังก์ชันส่งคอมเมนต์เข้าฐานข้อมูลคู่ขนาน (Firebase + Google Sheets)
+  window.submitComment = async function(postId, btnElement) {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนแสดงความคิดเห็นนะงับ', 'warning');
+      return;
     }
-    inputEl.disabled = false;
-  }
-};
-  
+
+    const inputEl = document.getElementById(`comment-input-${postId}`);
+    if (!inputEl) return;
+
+    const commentText = inputEl.value.trim();
+
+    if (btnElement && btnElement.disabled) return; 
+    if (!commentText) {
+      Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
+      return;
+    }
+
+    const db = window.firebaseDatabase;
+    const refFunc = window.fbRef;
+    const pushFunc = window.fbPush;
+
+    if (!db || !refFunc || !pushFunc) {
+      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลปลายทางได้งับ', 'error');
+      return;
+    }
+
+    let originalText = "";
+    if (btnElement) {
+      originalText = btnElement.innerText;
+      btnElement.innerText = "กำลังส่ง...";
+      btnElement.disabled = true;
+    }
+    inputEl.disabled = true;
+
+    try {
+      const commentPostRef = refFunc(db, `comments/${postId}`);
+      
+      const newCommentData = {
+        username: currentUser.username,
+        name: currentUser.name || currentUser.username || 'Anonymous',
+        role: currentUser.role || 'user',
+        profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
+        text: commentText,
+        timestamp: Date.now()
+      };
+
+      // 🚀 ยิงทางที่ 1: ส่งเข้า Firebase เรียลไทม์
+      await pushFunc(commentPostRef, newCommentData);
+
+      // 📡 ยิงทางที่ 2: ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'addComment',
+          postId: postId,
+          username: currentUser.username,
+          text: commentText
+        })
+      }).catch(err => console.error("GAS Sync Error:", err));
+
+      inputEl.value = ""; 
+      
+    } catch (error) {
+      console.error("Firebase Add Comment Error:", error);
+      Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error');
+    } finally {
+      if (btnElement) {
+        btnElement.innerText = originalText;
+        btnElement.disabled = false;
+      }
+      inputEl.disabled = false;
+    }
+  };
+    
   // 🎯 ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets
   async function refreshCountFromSheets() {
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberCount';
