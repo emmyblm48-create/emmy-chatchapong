@@ -2104,7 +2104,7 @@ function renderPost(post) {
       
       <div class="post-body" style="margin-bottom: 15px;">
         <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
-        ${displayImage ? `<img src="${displayImage}" style="width: 100%; border-radius: 10px; margin-top: 10px; object-fit: cover;">` : ''}
+       ${displayImage ? `<img src="${displayImage}" onclick="openImageViewer('${displayImage}')" style="width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 10px; margin-top: 10px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">` : ''}
       </div>
       
       <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
@@ -2230,6 +2230,20 @@ async function editPostUi(postId, encodedContent) {
   }
 }
   
+  // 🌟 ฟังก์ชันเปิดรูปเต็มจอ
+  function openImageViewer(imageUrl) {
+    const modal = document.getElementById('image-viewer-modal');
+    const fullImg = document.getElementById('full-size-image');
+    
+    fullImg.src = imageUrl; // เอารูปมาใส่ในป๊อปอัป
+    modal.style.display = 'flex'; // โชว์ป๊อปอัปขึ้นมา
+  }
+
+  // 🌟 ฟังก์ชันปิดรูปเต็มจอ
+  function closeImageViewer() {
+    const modal = document.getElementById('image-viewer-modal');
+    modal.style.display = 'none'; // ซ่อนป๊อปอัปกลับไป
+  }
   
   async function redeemCode() {
     if (!user) return openLogin();
@@ -2615,5 +2629,9 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+<div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; cursor: pointer;">
+    <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 35px; font-weight: bold; cursor: pointer;">&times;</span>
+    <img id="full-size-image" src="" style="max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+  </div>
 </body>
 </html>
