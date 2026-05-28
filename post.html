@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,97 +10,233 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <style>
-    body { font-family: 'Quicksand', 'Kanit', sans-serif;  background-color: #fff0f5; padding: 20px; }
-    .post-container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(255, 133, 162, 0.2); }
-   .header {
-  position: relative;
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: #ff85a2;
-  margin-bottom: 15px;
-}
+    body { 
+      font-family: 'Quicksand', 'Kanit', sans-serif;  
+      background-color: #fff0f5; 
+      padding: 20px; 
+      margin: 0;
+    }
+    .post-container { 
+      max-width: 500px; 
+      margin: 40px auto; 
+      background: white; 
+      padding: 24px; 
+      border-radius: 24px; 
+      box-shadow: 0 8px 24px rgba(255, 133, 162, 0.12); 
+    }
+    .header {
+      position: relative;
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ff85a2;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
     .back-icon {
-  position: absolute;
-  left: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 28px; /* ตัวลูกศรใหญ่พอดีมือจิ้ม */
-  color: #ff85a2;
-  cursor: pointer;
-  padding: 0 10px;
-  line-height: 1;
-}
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: #ff85a2;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
     .back-icon:hover {
-  opacity: 0.7;
-}
-    textarea { width: 100%; height: 120px; border: 1px solid #ffc0cb; border-radius: 10px; padding: 10px; font-family: inherit; resize: none; box-sizing: border-box;}
-    textarea:focus { outline: none; border-color: #ff85a2; }
-    .upload-btn-wrapper { margin-top: 10px; overflow: hidden; position: relative; }
-    .btn-upload { border: 2px dashed #ffc0cb; color: #ff85a2; background-color: white; padding: 10px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; }
-    .upload-btn-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
-    #preview-img { width: 100%; border-radius: 10px; margin-top: 10px; display: none; object-fit: cover; max-height: 300px; }
-
-/* ปุ่มแชร์แบบเดี่ยว ยาวเต็มกล่อง ดูเรียบร้อยและลงตัว */
-.btn-submit-full {
-  width: 100%;
-  height: 44px;
-  background-color: #ff85a2;
-  color: white;
-  border: none;
-  border-radius: 22px;
-  font-weight: bold;
-  font-size: 16px;
-  margin-top: 20px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.btn-submit-full:hover {
-  background-color: #ff6b8b;
-}
+      opacity: 0.6;
+    }
+    textarea { 
+      width: 100%; 
+      height: 140px; 
+      border: 1px solid #ffccd5; 
+      border-radius: 16px; 
+      padding: 16px; 
+      font-family: inherit; 
+      font-size: 0.95rem;
+      resize: none; 
+      box-sizing: border-box;
+      background-color: #fffbfb;
+      transition: all 0.2s ease;
+    }
+    textarea:focus { 
+      outline: none; 
+      border-color: #ff85a2; 
+      background-color: white;
+      box-shadow: 0 0 0 3px rgba(255, 133, 162, 0.1);
+    }
+    
+    /* Media Sections styling */
+    .media-section {
+      margin-top: 20px;
+    }
+    .section-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ff85a2;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    /* Custom Upload Button & Wrappers */
+    .custom-file-upload {
+      border: 2px dashed #ffccd5;
+      color: #ff85a2;
+      background-color: #fffbfb;
+      padding: 12px;
+      border-radius: 14px;
+      width: 100%;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-sizing: border-box;
+      transition: all 0.2s;
+    }
+    .custom-file-upload:hover {
+      border-color: #ff85a2;
+      background-color: #fff5f7;
+    }
+    .hidden-input {
+      display: none;
+    }
+    
+    /* Image Preview Tray */
+    #image-preview-container {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      margin-top: 10px;
+      padding: 4px 0;
+    }
+    
+    /* Audio Recorder UI */
+    .audio-recorder-box {
+      background: #fff5f7;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px dashed #ff85a2;
+      box-sizing: border-box;
+    }
+    .recorder-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-record {
+      background: #ff85a2;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-record.recording {
+      background: #6c757d;
+    }
+    .record-status {
+      font-size: 0.85rem;
+      color: #7a7a7a;
+      font-weight: 500;
+    }
+    audio {
+      margin-top: 12px;
+      width: 100%;
+      height: 36px;
+    }
+    
+    /* Action Button */
+    .btn-submit-full {
+      width: 100%;
+      height: 48px;
+      background-color: #ff85a2;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-top: 28px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(255, 133, 162, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-submit-full:hover {
+      background-color: #ff6b8b;
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
 
 <div class="post-container">
   <div class="header">
-    <span class="back-icon" onclick="window.location.href='index.html'">‹</span>
+    <i class="fa-solid fa-chevron-left back-icon" onclick="window.location.href='index.html'"></i>
     New Post
   </div>
   
-  <textarea id="post-content" placeholder="Text"></textarea>
+  <textarea id="post-content" placeholder="Share something with the community..."></textarea>
   
-  <div class="mb-3">
-  <label for="post-image" class="form-label" style="font-weight: 600; color: #ff85a2;"> Add Image</label>
-  <input type="file" id="post-image" class="form-control" accept="image/*" multiple onchange="previewMultipleImages(this)" style="border-radius: 12px; border: 1px solid #ffc0cb;">
-  
-  <div id="image-preview-container" style="display: flex; gap: 10px; overflow-x: auto; margin-top: 12px; padding: 4px;"></div>
+  <div class="media-section">
+    <div class="section-label">
+      <i class="fa-regular fa-image"></i> Add Gallery
+    </div>
+    <label for="post-image" class="custom-file-upload">
+      <i class="fa-solid fa-cloud-arrow-up"></i> Choose Images
+    </label>
+    <input type="file" id="post-image" class="hidden-input" accept="image/*" multiple onchange="previewMultipleImages(this)">
+    <div id="image-preview-container"></div>
   </div>
   
-  <div style="margin-top: 15px;">
-  <label style="font-weight: bold; color: #ff85a2;">🎥 แนบคลิปวิดีโอ:</label>
-  <input type="file" id="video-input" accept="video/*" style="margin-top: 5px; display: block;">
-</div>
+  <div class="media-section">
+    <div class="section-label">
+      <i class="fa-regular fa-square-play"></i> Attach Video
+    </div>
+    <label for="video-input" class="custom-file-upload">
+      <i class="fa-solid fa-video"></i> Select Video File
+    </label>
+    <input type="file" id="video-input" class="hidden-input" accept="video/*">
+  </div>
 
-<div style="margin-top: 15px; background: #fff5f7; padding: 12px; border-radius: 12px; border: 1px dashed #ff85a2;">
-  <label style="font-weight: bold; color: #ff85a2; display: block; margin-bottom: 5px;">🎙️ อัดเสียง Voice Note:</label>
-  <button type="button" id="btn-record" style="background: #ff85a2; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer;">🔴 เริ่มอัดเสียง</button>
-  <span id="record-status" style="font-size: 0.85rem; color: gray; margin-left: 10px;">ยังไม่ได้อัด</span>
-  <audio id="audio-preview" controls style="display: none; margin-top: 10px; width: 100%; height: 30px;"></audio>
-</div>
+  <div class="media-section">
+    <div class="audio-recorder-box">
+      <div class="section-label">
+        <i class="fa-solid fa-microphone"></i> Voice Note
+      </div>
+      <div class="recorder-controls">
+        <button type="button" id="btn-record" class="btn-record">
+          <i class="fa-solid fa-circle" id="record-icon"></i> <span id="record-btn-text">Record</span>
+        </button>
+        <span id="record-status" class="record-status">Ready</span>
+      </div>
+      <audio id="audio-preview" controls style="display: none;"></audio>
+    </div>
+  </div>
 
-  <button class="btn-submit-full" onclick="submitPost()">Share Post</button>
+  <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
 </div>
 
 <script type="module">
-  // 1. นำเข้าฟังก์ชันจาก Firebase (เหลือแค่ตัวหลัก เพราะเรื่องรูปภาพเราจะโยนไปฝากที่ ImgBB ฟรีๆ งับ)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
 
-  // Config ของวง BLM48 ของคุณเอ็มมี่
   const firebaseConfig = {
     apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
     authDomain: "blm48-official-site.firebaseapp.com",
@@ -112,12 +248,9 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  let selectedFile = null;
 
-  // 🔑 API Key ของ ImgBB ที่คุณเอ็มมี่ส่งมาให้งับ
   const IMGBB_API_KEY = "80ad839da07973eeefee57af54fc9f6d";
 
-  // 📸 ฟังก์ชันอัปโหลดรูปภาพไปที่ ImgBB แบบฟรีๆ 0 บาท
   async function uploadImageToImgBB(file) {
     const formData = new FormData();
     formData.append("image", file);
@@ -129,13 +262,12 @@
 
     const result = await response.json();
     if (result.success) {
-      return result.data.url; // 🎉 ได้ลิ้งก์รูปภาพ https://i.ibb.co/... กลับมาใช้งานฟรีๆ
+      return result.data.url;
     } else {
       throw new Error("ImgBB Upload Failed: " + result.error.message);
     }
   }
 
-  // 🔐 ฟังก์ชันแกะ Session ตัวเทพของคุณเอ็มมี่
   function getUserSession() {
     try {
       const sessionStr = localStorage.getItem('bnl_session');
@@ -150,183 +282,177 @@
       
       return session.data || session.user || session;
     } catch (e) {
-      console.error("Session Parse Error ในหน้าโพสต์:", e);
+      console.error("Session Parse Error:", e);
       return null;
     }
   }
   
   let mediaRecorder;
-let audioChunks = [];
-let audioBase64 = "";
-let videoBase64 = "";
+  let audioChunks = [];
+  let audioBase64 = "";
+  let videoBase64 = "";
 
-const btnRecord = document.getElementById('btn-record');
-const recordStatus = document.getElementById('record-status');
-const audioPreview = document.getElementById('audio-preview');
+  const btnRecord = document.getElementById('btn-record');
+  const recordIcon = document.getElementById('record-icon');
+  const recordBtnText = document.getElementById('record-btn-text');
+  const recordStatus = document.getElementById('record-status');
+  const audioPreview = document.getElementById('audio-preview');
 
-// 🔴 ระบบอัดเสียงด้วยไมโครโฟน
-btnRecord.addEventListener('click', async () => {
-  if (!mediaRecorder || mediaRecorder.state === "inactive") {
-    // ขอสิทธิ์ใช้ไมค์และเริ่มอัด
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-      audioPreview.src = URL.createObjectURL(audioBlob);
-      audioPreview.style.display = "block";
-      
-      // แปลงไฟล์เสียงเป็น Base64 เตรียมส่งหลังบ้าน
-      const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
-      reader.onloadend = () => { audioBase64 = reader.result; };
-      recordStatus.innerText = "อัดเสร็จแล้วงับ 🎵";
-    };
-    
-    mediaRecorder.start();
-    btnRecord.innerText = "⏹️ หยุดอัด";
-    btnRecord.style.background = "gray";
-    recordStatus.innerText = "กำลังอัดเสียง...";
-  } else {
-    // สั่งหยุดอัด
-    mediaRecorder.stop();
-    btnRecord.innerText = "🔴 เริ่มอัดใหม่";
-    btnRecord.style.background = "#ff85a2";
-  }
-});
-
-// 🎥 ระบบดักฟังไฟล์วิดีโอเมื่อผู้ใช้เลือกไฟล์
-document.getElementById('video-input').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if(file) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => { videoBase64 = reader.result; };
-  }
-});
-
-// ฟังก์ชันแสดงตัวอย่างรูปภาพหลายๆ รูปพร้อมกันอย่างสวยงาม
-window.previewMultipleImages = function(input) {
-  const container = document.getElementById('image-preview-container');
-  container.innerHTML = ''; // ล้างรูปเก่าออกก่อนถ้ามีการเลือกใหม่
-  
-  if (input.files && input.files.length > 0) {
-    Array.from(input.files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        img.style.width = '85px';
-        img.style.height = '85px';
-        img.style.objectFit = 'cover';
-        img.style.borderRadius = '12px';
-        img.style.border = '2px solid #ffccd5'; // กรอบสีชมพูพาสเทลน่ารักๆ
-        container.appendChild(img);
+  // Audio Recording Controller
+  btnRecord.addEventListener('click', async () => {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+          audioPreview.src = URL.createObjectURL(audioBlob);
+          audioPreview.style.display = "block";
+          
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = () => { audioBase64 = reader.result; };
+          recordStatus.innerText = "Audio recorded successfully";
+        };
+        
+        mediaRecorder.start();
+        btnRecord.classList.add('recording');
+        recordIcon.className = "fa-solid fa-square";
+        recordBtnText.innerText = "Stop";
+        recordStatus.innerText = "Recording...";
+      } catch (err) {
+        console.error("Microphone access denied:", err);
+        Swal.fire('Permission Denied', 'Unable to access microphone.', 'error');
       }
-      reader.readAsDataURL(file);
-    });
-  }
-}
-
-// ฟังก์ชันกดส่งโพสต์ (รวมระบบเช็ค User + อัปโหลดหลายรูป + ส่งเข้า Sheets)
-window.submitPost = async function() {
-  const content = document.getElementById('post-content').value.trim();
-  const currentUser = getUserSession();
-  console.log("🌸 ข้อมูล User จากล็อกอินที่ระบบตรวจเจอในหน้าโพสต์:", currentUser);
-
-  // 1. ตรวจสอบว่าล็อกอินอยู่หรือไม่
-  if (!currentUser || !currentUser.username) {
-    Swal.fire({
-      title: 'ไม่พบข้อมูลผู้ใช้งาน 😥',
-      text: 'ระบบหาประวัติการล็อกอินไม่เจอ หรือเซสชันหมดอายุแล้ว กรุณาล็อกอินใหม่อีกครั้งนะงับ',
-      icon: 'warning',
-      confirmButtonColor: '#ff85a2'
-    });
-    return;
-  }
-
-  const activeUsername = currentUser.username;
-  
-  // 2. ดึงข้อมูลไฟล์รูปภาพทั้งหมดที่เลือกไว้
-  const imageInput = document.getElementById('post-image'); // เช็คให้ชัวร์ว่า id ตรงกับช่อง input ใน HTML นะงับ
-  const imageFiles = imageInput ? imageInput.files : [];
-
-  // 3. ตรวจสอบว่ามีข้อความหรือรูปภาพอย่างน้อย 1 อย่างหรือไม่
-  if (!content && imageFiles.length === 0) {
-    Swal.fire('ข้อความว่างเปล่า', 'กรุณาพิมพ์ข้อความหรือเลือกรูปภาพก่อนแชร์น้า', 'info');
-    return;
-  }
-
-  // 4. แสดงหน้าต่างกำลังโหลดมินิมอลตามสไตล์วง
-  Swal.fire({
-    title: 'กำลังส่งโพสต์... 🌸',
-    text: 'ระบบกำลังนำโพสต์และรูปภาพขึ้นไทม์ไลน์นะงับ (ถ้าหลายรูปอาจจะใช้เวลาแป๊บนึงน้า)',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
+    } else {
+      mediaRecorder.stop();
+      btnRecord.classList.remove('recording');
+      recordIcon.className = "fa-solid fa-circle";
+      recordBtnText.innerText = "Record";
+    }
   });
 
-  let imageUrlString = ""; // ตัวแปรเก็บสายข้อความลิงก์รูปภาพทั้งหมด
-
-  try {
-    // 5. วนลูปอัปโหลดรูปภาพไป ImgBB ทีละรูป (ถ้ามีการเลือกรูปไว้)
-    if (imageFiles.length > 0) {
-      let uploadedUrls = [];
-      for (let i = 0; i < imageFiles.length; i++) {
-        try {
-          const url = await uploadImageToImgBB(imageFiles[i]);
-          if (url) {
-            uploadedUrls.push(url);
-            console.log(`📸 อัปโหลดรูปลำดับที่ ${i+1} สำเร็จ:`, url);
-          }
-        } catch (err) {
-          console.error(`เกิดข้อผิดพลาดในการอัปโหลดรูปภาพตำแหน่งที่ ${i+1}:`, err);
-        }
-      }
-      // นำลิงก์ทั้งหมดมารวมกัน คั่นด้วยเครื่องหมาย Comma (,)
-      imageUrlString = uploadedUrls.join(',');
+  // Video File Processing
+  document.getElementById('video-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if(file) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => { videoBase64 = reader.result; };
     }
+  });
 
-    // 6. ส่งข้อมูลทั้งหมดไปบันทึกที่ Google Sheets ผ่าน Apps Script ตัวแรงตัวเดิม
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+  // Image Preview Renderer
+  window.previewMultipleImages = function(input) {
+    const container = document.getElementById('image-preview-container');
+    container.innerHTML = '';
     
-    const resp = await fetch(scriptURL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'createPost',
-        username: activeUsername, 
-        content: content,
-        imageUrl: imageUrlString // ลิงก์รูปทั้งหมดจะถูกส่งไปแบบยาวๆ ในช่องเดียวงับ!
-      })
-    });
-
-    const data = await resp.json();
-    console.log("ผลลัพธ์จาก Google Sheets:", data);
-
-    // 7. แจ้งเตือนผลลัพธ์การทำงาน
-    if (data.status === "success") {
-      Swal.fire({
-        title: 'สำเร็จแล้ว',
-        text: 'โพสต์ของคุณถูกส่งไปยังไทม์ไลน์เรียบร้อยแล้วงับ',
-        icon: 'success',
-        confirmButtonColor: '#ff85a2'
-      }).then(() => {
-        window.location.href = "index.html"; 
+    if (input.files && input.files.length > 0) {
+      Array.from(input.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.width = '80px';
+          img.style.height = '80px';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '12px';
+          img.style.border = '1px solid #ffccd5';
+          container.appendChild(img);
+        }
+        reader.readAsDataURL(file);
       });
-    } else {
-      Swal.fire('เกิดข้อผิดพลาดจากเซิร์ฟเวอร์', data.message || 'ไม่สามารถโพสต์ได้', 'error');
+    }
+  }
+
+  // Submit Logic
+  window.submitPost = async function() {
+    const content = document.getElementById('post-content').value.trim();
+    const currentUser = getUserSession();
+
+    if (!currentUser || !currentUser.username) {
+      Swal.fire({
+        title: 'Session Expired',
+        text: 'Please log in again to continue.',
+        icon: 'warning',
+        confirmButtonColor: '#ff85a2'
+      });
+      return;
     }
 
-  } catch (error) {
-    console.error("Post Submission Error:", error);
+    const activeUsername = currentUser.username;
+    const imageInput = document.getElementById('post-image');
+    const imageFiles = imageInput ? imageInput.files : [];
+
+    if (!content && imageFiles.length === 0 && !audioBase64 && !videoBase64) {
+      Swal.fire('Empty Content', 'Please write a message or add media before publishing.', 'info');
+      return;
+    }
+
     Swal.fire({
-      icon: 'error',
-      title: 'เกิดข้อผิดพลาด 😥',
-      text: error.message || 'ระบบขัดข้องในการอัปโหลด กรุณาลองใหม่อีกครั้งนะงับ'
+      title: 'Publishing Post',
+      text: 'Uploading media assets and updating timeline. Please wait...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
     });
+
+    let imageUrlString = "";
+
+    try {
+      if (imageFiles.length > 0) {
+        let uploadedUrls = [];
+        for (let i = 0; i < imageFiles.length; i++) {
+          try {
+            const url = await uploadImageToImgBB(imageFiles[i]);
+            if (url) uploadedUrls.push(url);
+          } catch (err) {
+            console.error(`Upload error on image ${i+1}:`, err);
+          }
+        }
+        imageUrlString = uploadedUrls.join(',');
+      }
+
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+      
+      const resp = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'createPost',
+          username: activeUsername, 
+          content: content,
+          imageUrl: imageUrlString,
+          audioURL: audioBase64,  // 🌟 ส่ง Base64 ของไฟล์เสียงไปที่หลังบ้าน
+          videoURL: videoBase64   // 🌟 ส่ง Base64 ของไฟล์วิดีโอไปที่หลังบ้าน
+        })
+      });
+
+      const data = await resp.json();
+
+      if (data.status === "success") {
+        Swal.fire({
+          title: 'Success',
+          text: 'Your post has been published successfully.',
+          icon: 'success',
+          confirmButtonColor: '#ff85a2'
+        }).then(() => {
+          window.location.href = "index.html"; 
+        });
+      } else {
+        Swal.fire('Server Error', data.message || 'Unable to complete request.', 'error');
+      }
+
+    } catch (error) {
+      console.error("Submission Failure:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error Occurred',
+        text: error.message || 'A system fault occurred during transmission. Please try again.'
+      });
+    }
   }
-}
 </script>
 </body>
 </html>
