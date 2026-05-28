@@ -397,6 +397,13 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .member-card:hover { 
       transform: translateY(-8px); 
       box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+.member-card .img-wrapper img {
+  width: 80px;      /* ปรับขนาดตามต้องการ */
+  height: 80px;     /* ต้องเท่ากับ width */
+  object-fit: cover; /* สั่งให้รูปตัดส่วนเกินออกโดยไม่บีบตัวรูป */
+  border-radius: 50%; /* ทำให้เป็นวงกลม */
+  flex-shrink: 0;    /* ป้องกันไม่ให้โดน Flexbox บีบ */
+}
 .rank-1 { height: 190px; border-color: var(--gold); background: linear-gradient(to bottom, #fffef0, #ffffff); }
 .rank-2 { height: 180px; border-color: var(--silver); }
 .rank-3 { height: 170px; border-color: var(--bronze); }
@@ -1818,7 +1825,7 @@ function renderRanking(data) {
     
     card.innerHTML = `
      <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
-        <img src="${getImg(m.profile_img)}" loading="lazy">
+        <img src="${getImg(m.profile_img)}" loading="lazy" style="width: 80px; height: 80px; object-fit: cover; border-radius: 50%; flex-shrink: 0;">
         <div class="rank-badge">${badgeContent}</div>
       </div>
       <div class="name-text" style="margin-bottom: 10px;">${m.name}</div>
