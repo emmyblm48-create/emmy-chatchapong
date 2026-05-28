@@ -2111,11 +2111,13 @@ function renderPost(post) {
 
   let commentCount = post.comments ? post.comments.length : 0;
   let commentsHtml = '';
-
   if (post.comments && post.comments.length > 0) {
        post.comments.forEach(cmt => {
-        // 👑 [จุดแก้ไขที่ 1] เช็คตรายืนยัน Verified สำหรับคนคอมเมนต์
-        const isCmtVerified = cmt.isVerified ? '<i class="fa-solid fa-circle-check" style="color: #4da6ff; font-size: 0.8rem; margin-left: 4px;"></i>' : '';
+        // 🌟 [จุดแก้ไข] เปลี่ยนมาเช็คจาก cmt.role แทน 
+        // ถ้า role เป็น member, Admin, หรือ CEO (ไม่สนตัวพิมพ์เล็ก-ใหญ่) จะได้ไอคอน Verified ทันที
+        const allowedRoles = ['member', 'admin', 'ceo'];
+        const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
+        const isCmtVerified = allowedRoles.includes(currentRole) ? '<i class="fa-solid fa-circle-check" style="color: #4da6ff; font-size: 0.8rem; margin-left: 4px;"></i>' : '';
 
         commentsHtml += `
           <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px;">
