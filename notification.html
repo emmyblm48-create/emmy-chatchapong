@@ -297,7 +297,6 @@
     <i class="fa-solid fa-user"></i>
   </a>
 </div>
-
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
@@ -310,7 +309,7 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec";
 
     // =========================================================
-    // 📦 1. ดึงข้อมูลเซสชันผู้ใช้ (เหมือนเดิม)
+    // 📦 1. ดึงข้อมูลเซสชันผู้ใช้
     // =========================================================
     let savedRole = "User";
     let savedName = "Admin";
@@ -337,7 +336,7 @@
     const checkRoleLower = savedRole.toLowerCase();
 
     // =========================================================
-    // 🛡️ 2. ตรวจสอบสิทธิ์แสดงกล่องโพสต์ (เหมือนเดิม)
+    // 🛡️ 2. ตรวจสอบสิทธิ์แสดงกล่องโพสต์
     // =========================================================
     if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
       if (adminInputBox) adminInputBox.style.display = "flex";
@@ -351,14 +350,12 @@
     // 🌸 3. ฟังก์ชันดึงข้อมูลจาก Google Sheet (API GET)
     // =========================================================
     async function fetchNotifications() {
-      // แสดงสถานะกำลังโหลดแบบน่ารักหมุนๆ
       notiListContainer.innerHTML = `
         <div class="empty-noti">
           <i class="fa-solid fa-spinner fa-spin"></i>
           <p>Loading notifications...</p>
         </div>`;
       
-      // หมุนปุ่ม refresh ระหว่างโหลดข้อมูล
       btnRefresh.querySelector('i').classList.add('fa-spin');
       btnRefresh.disabled = true;
 
@@ -376,7 +373,6 @@
             <p>Failed to update. Please try again! 🥺</p>
           </div>`;
       } finally {
-        // หยุดหมุนปุ่ม refresh หลังโหลดเสร็จ
         btnRefresh.querySelector('i').classList.remove('fa-spin');
         btnRefresh.disabled = false;
       }
@@ -389,7 +385,6 @@
       if (myNotifications && myNotifications.length > 0) {
         notiListContainer.innerHTML = ""; 
         
-        // จัดเรียงข้อมูลให้ประกาศใหม่ล่าสุดขึ้นก่อน
         const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
 
         sortedList.forEach(noti => {
@@ -423,7 +418,7 @@
     }
 
     // =========================================================
-    // ✍️ 5. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่ไปยัง Google Sheet (API POST)
+    // ✍️ 5. ระบบเพิ่มแจ้งเตือนใหม่ไปยัง Google Sheet และ Firebase (รวมโค้ดเรียบร้อย)
     // =========================================================
     if (btnAdd) {
       btnAdd.addEventListener("click", async () => {
@@ -434,7 +429,6 @@
           return;
         }
 
-        // ล็อกปุ่มป้องกันการกดย้ำๆ ระหว่างส่งข้อมูล
         btnAdd.disabled = true;
         btnAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
 
@@ -448,14 +442,23 @@
         };
 
         try {
-          // ไม่ตั้ง Header Content-Type เพื่อเลี่ยงปัญหา CORS Preflight ใน Apps Script
+          // 1. ส่งเข้า Google Sheets
           await fetch(SCRIPT_URL, {
             method: "POST",
             body: JSON.stringify(newNotification)
           });
 
+          // 2. ส่งสัญญาณ Realtime ไปให้ Firebase (ถ้าถูกสั่งเปิดใช้งานบนหน้านี้)
+          if (window.firebaseDatabase && window.fbPush && window.fbRef) {
+            const notiRef = window.fbRef(window.firebaseDatabase, 'notifications');
+            await window.fbPush(notiRef, {
+              writer: savedName,
+              type: "system_alert",
+              timestamp: Date.now()
+            });
+          }
+
           document.getElementById("input-action").value = "";
-          // หลังจากโพสต์สำเร็จให้ไปโหลดข้อมูลใหม่ทันที
           await fetchNotifications();
         } catch (error) {
           console.error("❌ Error posting notification:", error);
@@ -468,78 +471,49 @@
     }
 
     // =========================================================
-    // 🗑️ 6. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดออกจาก Google Sheet
+    // 🗑️ 6. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดออกจาก Google Sheet (แก้ไขให้ตรงปุ่ม Clear)
     // =========================================================
-    // โค้ดส่วนปุ่มกด Post Notification ในไฟล์ notification.html
-if (btnAdd) {
-  btnAdd.addEventListener("click", async () => {
-    const actionInput = document.getElementById("input-action").value.trim();
-    if (!actionInput) {
-      alert("Please enter a notification message! 🥺");
-      return;
-    }
+    if (btnReset) {
+      btnReset.addEventListener("click", async () => {
+        if (!confirm("Are you sure you want to clear all notifications? 🥺")) {
+          return;
+        }
 
-    btnAdd.disabled = true;
-    btnAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+        btnReset.disabled = true;
+        btnReset.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Clearing...';
 
-    // 1. ส่งเข้า Google Sheets (ของเดิมที่คุณทำไว้)
-    const newNotification = {
-      type: "add",
-      writer: savedName,
-      action: actionInput,
-      avatar: savedProfile,
-      role: savedRole, 
-      timestamp: Date.now()
-    };
+        try {
+          // ส่งประเภทเป็น "clear" ไปให้ฝั่ง Google Apps Script ของคุณจัดการลบแถวข้อมูล
+          await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ type: "clear", timestamp: Date.now() })
+          });
 
-    try {
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(newNotification)
+          await fetchNotifications();
+          alert("All notifications cleared successfully! ✨");
+        } catch (error) {
+          console.error("❌ Error clearing notifications:", error);
+          alert("Something went wrong, please try again! 😢");
+        } finally {
+          btnReset.disabled = false;
+          btnReset.innerHTML = '<i class="fa-solid fa-trash"></i> Clear All';
+        }
       });
-
-      // 🌟 2. [เพิ่มใหม่] กระจายสัญญาณผ่าน Firebase ให้ทุกคนเห็นจุดแดงพร้อมกันทันที
-      // (ต้องแน่ใจว่าในหน้า notification.html มีการ Initialize Firebase ไว้เหมือนหน้า index แล้วนะครับ)
-      if (window.firebaseDatabase && window.fbPush && window.fbRef) {
-        const notiRef = window.fbRef(window.firebaseDatabase, 'notifications');
-        await window.fbPush(notiRef, {
-          writer: "Admin",
-          type: "system_alert", // ระบุว่าเป็นประกาศระบบ
-          timestamp: Date.now()
-        });
-      }
-
-      document.getElementById("input-action").value = "";
-      await fetchNotifications();
-    } catch (error) {
-      console.error("❌ Error posting notification:", error);
-      alert("Something went wrong, please try again! 😢");
-    } finally {
-      btnAdd.disabled = false;
-      btnAdd.innerHTML = '<i class="fa-solid fa-plus"></i> Post Notification';
     }
-  });
-}
 
     // =========================================================
-    // 🔄 7. ผูกระบบเข้ากับปุ่ม Refresh และสั่งโหลดข้อมูลครั้งแรกตอนเปิดหน้าเว็บ
+    // 🔄 7. ปุ่ม Refresh และการทำงานเมื่อเข้าสู่หน้าเว็บครั้งแรก
     // =========================================================
     btnRefresh.addEventListener("click", fetchNotifications);
-    
-    // เรียกทำงานทันทีเมื่อเปิดเข้าหน้าเว็บมา เพื่อดึงแจ้งเตือนล่าสุดจากชีต
     fetchNotifications();
+
+    // เมื่อเปิดหน้านี้ ถือว่าอ่านแจ้งเตือนแล้ว ปิดจุดแจ้งเตือนภายในหน้า
+    localStorage.setItem("blm48_has_new_noti", "false");
+    const badgeElement = document.getElementById("noti-badge");
+    if (badgeElement) {
+      badgeElement.style.display = "none";
+    }
   });
-  
-  document.addEventListener("DOMContentLoaded", () => {
-  // เมื่อเปิดหน้านี้ ถือว่าผู้ใช้อ่านแจ้งเตือนแล้ว ให้เปลี่ยนสถานะเป็น false (ยังไม่มีแจ้งเตือนใหม่)
-  localStorage.setItem("blm48_has_new_noti", "false");
-  
-  // สั่งซ่อนจุดแดงที่ไอคอนกระดิ่งด้านล่างทันที
-  const badgeElement = document.getElementById("noti-badge");
-  if (badgeElement) {
-    badgeElement.style.display = "none";
-  }
-});
 </script>
 </body>
 </html>
