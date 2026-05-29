@@ -371,6 +371,24 @@
 body {
     padding-bottom: 110px !important;
 }
+    /* จัดตำแหน่งจุดแดงให้อยู่มุมขวาบนของกระดิ่ง */
+.icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.noti-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff4d6d; /* สีแดงสดตัดขอบขาว */
+  border-radius: 50%;
+  border: 1px solid white;
+  z-index: 10;
+}
   </style>
 </head>
 <body>
@@ -728,31 +746,41 @@ body {
 
     if (user) syncUserData();
   });
+
+  function checkNotificationBadge() {
+  const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
+  const badgeElement = document.getElementById("global-noti-badge");
+  
+  if (badgeElement) {
+    if (hasNewNoti === "true") {
+      badgeElement.style.display = "block"; // 🔴 มีแจ้งเตือนใหม่ -> แสดงจุดแดง
+    } else {
+      badgeElement.style.display = "none";  // ⚪ ไม่มีแจ้งเตือน -> ซ่อนไปเลย
+    }
+  }
+}
+
+// สั่งให้ระบบเช็กสถานะจุดแจ้งเตือนทุกครั้งที่เปิดหน้านี้ขึ้นมา
+document.addEventListener("DOMContentLoaded", checkNotificationBadge);
 </script>
-  <div class="bottom-tab-bar">
+<div class="bottom-tab-bar">
   <a href="index.html" class="tab-item">
     <i class="fa-solid fa-house"></i>
-    <span></span>
   </a>
-  
   <a href="kami.html" class="tab-item">
     <i class="fa-solid fa-star"></i>
-    <span></span>
   </a>
-  
   <a href="shop.html" class="tab-item">
     <i class="fa-solid fa-bag-shopping"></i>
-    <span></span>
   </a>
-  
-  <a href="#" class="tab-item" onclick="openNotificationComingSoon(event)">
-    <i class="fa-solid fa-bell"></i>
-    <span></span>
+  <a href="notification.html" class="tab-item active">
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-bell"></i>
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
+    </div>
   </a>
-  
-  <a href="profile.html" class="tab-item active">
+  <a href="profile.html" class="tab-item">
     <i class="fa-solid fa-user"></i>
-    <span></span>
   </a>
 </div>
 </body>
