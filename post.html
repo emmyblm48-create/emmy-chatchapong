@@ -113,14 +113,62 @@
       display: none;
     }
     
-    /* Image Preview Tray */
+    /* Image Preview Tray (ปรับปรุงใหม่ให้รองรับ Card คุมสไตล์) */
     #image-preview-container {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       overflow-x: auto;
-      margin-top: 10px;
-      padding: 4px 0;
+      margin-top: 12px;
+      padding: 6px 2px;
     }
+    .preview-image-wrapper {
+      position: relative;
+      flex-shrink: 0;
+      width: 85px;
+      height: 85px;
+      border-radius: 12px;
+      border: 1px solid #ffccd5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .preview-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 11px;
+    }
+    .img-action-overlay {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ff85a2;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.7rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .img-sort-btn {
+      position: absolute;
+      bottom: 2px;
+      background: rgba(255, 255, 255, 0.85);
+      color: #ff85a2;
+      border: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+    .img-sort-left { left: 4px; }
+    .img-sort-right { right: 4px; }
     
     /* Audio Recorder UI */
     .audio-recorder-box {
@@ -157,10 +205,10 @@
       color: #7a7a7a;
       font-weight: 500;
     }
-    audio {
+    
+    /* Custom Audio Player Container for Preview UI */
+    #custom-audio-preview-zone {
       margin-top: 12px;
-      width: 100%;
-      height: 36px;
     }
     
     /* Action Button */
@@ -202,7 +250,7 @@
     <label for="post-image" class="custom-file-upload">
       <i class="fa-solid fa-cloud-arrow-up"></i> Choose Images
     </label>
-    <input type="file" id="post-image" class="hidden-input" accept="image/*" multiple onchange="previewMultipleImages(this)">
+    <input type="file" id="post-image" class="hidden-input" accept="image/*" multiple>
     <div id="image-preview-container"></div>
   </div>
 
@@ -217,7 +265,8 @@
         </button>
         <span id="record-status" class="record-status">Ready</span>
       </div>
-      <audio id="audio-preview" controls style="display: none;"></audio>
+      
+      <div id="custom-audio-preview-zone"></div>
     </div>
   </div>
 
@@ -246,6 +295,10 @@
   const app = initializeApp(firebaseConfig);
   const IMGBB_API_KEY = "80ad839da07973eeefee57af54fc9f6d";
 
+  // 🌟 [ตัวแปรส่วนกลางสำหรับจัดการ State]
+  let selectedImageFiles = []; // เก็บ Array ของ Object รูปภาพ [{file: File, preview: base64/blob}]
+  let recordedAudioBlob = null; 
+
   async function uploadImageToImgBB(file) {
     const formData = new FormData();
     formData.append("image", file);
@@ -264,7 +317,7 @@
   }
 
   // ฟังก์ชันอัปโหลดไฟล์เสียงไปยัง Supabase Storage
-    async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
+  async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
     const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
     
     const { data, error } = await supabaseClient.storage
@@ -276,7 +329,6 @@
 
     if (error) throw new Error("Upload Error: " + error.message);
 
-    // 🌟 อันนี้คือตัวการสำคัญ: getPublicUrl ต้องออกมาเป็นรูปแบบไม่มี /sign/ 
     const { data: publicUrlData } = supabaseClient.storage
       .from('posts-media')
       .getPublicUrl(fileName);
@@ -305,13 +357,12 @@
   
   let mediaRecorder;
   let audioChunks = [];
-  let recordedAudioBlob = null; 
 
   const btnRecord = document.getElementById('btn-record');
   const recordIcon = document.getElementById('record-icon');
   const recordBtnText = document.getElementById('record-btn-text');
   const recordStatus = document.getElementById('record-status');
-  const audioPreview = document.getElementById('audio-preview');
+  const customAudioZone = document.getElementById('custom-audio-preview-zone');
 
   // Audio Recording Controller
   btnRecord.addEventListener('click', async () => {
@@ -324,9 +375,8 @@
         mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
         mediaRecorder.onstop = () => {
           recordedAudioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-          audioPreview.src = URL.createObjectURL(recordedAudioBlob);
-          audioPreview.style.display = "block";
           recordStatus.innerText = "Audio recorded successfully";
+          renderCustomAudioPreview(); // เรียกฟังก์ชันเรนเดอร์พรีวิวผู้จัดการวงคนสวยย
         };
         
         mediaRecorder.start();
@@ -346,27 +396,168 @@
     }
   });
 
-  // Image Preview Renderer
-  window.previewMultipleImages = function(input) {
-    const container = document.getElementById('image-preview-container');
-    container.innerHTML = '';
+  // 👑 [สร้างเครื่องเล่นคลิปเสียงจำลองในหน้าพรีวิวก่อนกดโพสต์]
+  function renderCustomAudioPreview() {
+    if (!recordedAudioBlob) {
+      customAudioZone.innerHTML = '';
+      return;
+    }
+    const blobUrl = URL.createObjectURL(recordedAudioBlob);
     
-    if (input.files && input.files.length > 0) {
-      Array.from(input.files).forEach(file => {
+    customAudioZone.innerHTML = `
+      <div class="blm-audio-player" style="margin-top: 16px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05); position: relative;">
+        <audio id="audio-player-preview-src" src="${blobUrl}"></audio>
+        <button type="button" id="play-preview-btn" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
+          <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-preview-icon"></i>
+        </button>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between; padding-right: 24px;">
+            <span>Voice Note Preview</span>
+            <span id="audio-preview-time" style="color: #999;">0:00 / 0:00</span>
+          </div>
+          <div id="audio-preview-progress-container" style="position: relative; width: calc(100% - 24px); height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;">
+            <div id="audio-preview-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px;"></div>
+          </div>
+        </div>
+        <button type="button" id="delete-preview-audio" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 1rem; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: opacity 0.2s;"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    `;
+
+    // ผูก Logic ตัวควบคุมการเล่นเสียงพรีวิว
+    const audioEl = document.getElementById('audio-player-preview-src');
+    const playBtn = document.getElementById('play-preview-btn');
+    const playIcon = document.getElementById('audio-preview-icon');
+    const timeDisplay = document.getElementById('audio-preview-time');
+    const progressBar = document.getElementById('audio-preview-progress');
+    const progressContainer = document.getElementById('audio-preview-progress-container');
+    const deleteAudioBtn = document.getElementById('delete-preview-audio');
+
+    playBtn.addEventListener('click', () => {
+      if (audioEl.paused) {
+        audioEl.play();
+        playIcon.className = "fa-solid fa-pause";
+      } else {
+        audioEl.pause();
+        playIcon.className = "fa-solid fa-play";
+      }
+    });
+
+    audioEl.addEventListener('timeupdate', () => {
+      const current = audioEl.currentTime || 0;
+      const duration = audioEl.duration || 0;
+      const pct = duration > 0 ? (current / duration) * 100 : 0;
+      progressBar.style.width = `${pct}%`;
+      
+      const formatTime = (t) => {
+        const m = Math.floor(t / 60);
+        const s = Math.floor(t % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+      };
+      timeDisplay.innerText = `${formatTime(current)} / ${formatTime(duration)}`;
+    });
+
+    audioEl.addEventListener('loadedmetadata', () => {
+      const duration = audioEl.duration || 0;
+      const formatTime = (t) => {
+        const m = Math.floor(t / 60);
+        const s = Math.floor(t % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+      };
+      timeDisplay.innerText = `0:00 / ${formatTime(duration)}`;
+    });
+
+    audioEl.addEventListener('ended', () => {
+      playIcon.className = "fa-solid fa-play";
+      progressBar.style.width = `0%`;
+    });
+
+    progressContainer.addEventListener('click', (e) => {
+      const rect = progressContainer.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const width = rect.width;
+      const duration = audioEl.duration || 0;
+      if (duration > 0) {
+        audioEl.currentTime = (clickX / width) * duration;
+      }
+    });
+
+    // ลบไฟล์เสียง
+    deleteAudioBtn.addEventListener('click', () => {
+      audioEl.pause();
+      recordedAudioBlob = null;
+      customAudioZone.innerHTML = '';
+      recordStatus.innerText = "Ready";
+    });
+  }
+
+  // 📸 [การจัดการรูปภาพ - ดักจับอีเวนต์เลือกภาพ]
+  const imageInput = document.getElementById('post-image');
+  imageInput.addEventListener('change', function() {
+    if (this.files && this.files.length > 0) {
+      Array.from(this.files).forEach(file => {
         const reader = new FileReader();
         reader.onload = function(e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.style.width = '80px';
-          img.style.height = '80px';
-          img.style.objectFit = 'cover';
-          img.style.borderRadius = '12px';
-          img.style.border = '1px solid #ffccd5';
-          container.appendChild(img);
+          // บันทึกเข้า Array ของหน้าเว็บ
+          selectedImageFiles.push({
+            file: file,
+            preview: e.target.result
+          });
+          renderImagePreviews();
         }
         reader.readAsDataURL(file);
       });
+      this.value = ''; // เคลียร์อินพุตดิบเพื่อให้กดเลือกรูปเดิมซ้ำได้
     }
+  });
+
+  // 📸 [การจัดการรูปภาพ - เรนเดอร์ UI Preview พร้อมปุ่มสลับ/ลบ]
+  function renderImagePreviews() {
+    const container = document.getElementById('image-preview-container');
+    container.innerHTML = '';
+    
+    selectedImageFiles.forEach((imgObj, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'preview-image-wrapper';
+      
+      // แทรกโครงสร้างปุ่มลบ และปุ่มเลื่อนซ้ายขวาสำหรับการจัดเรียงตำแหน่งรูปภาพคิวท์ๆ
+      wrapper.innerHTML = `
+        <img src="${imgObj.preview}">
+        <div class="img-action-overlay" data-index="${index}"><i class="fa-solid fa-xmark"></i></div>
+        ${index > 0 ? `<button type="button" class="img-sort-btn img-sort-left" data-index="${index}"><i class="fa-solid fa-angle-left"></i></button>` : ''}
+        ${index < selectedImageFiles.length - 1 ? `<button type="button" class="img-sort-btn img-sort-right" data-index="${index}"><i class="fa-solid fa-angle-right"></i></button>` : ''}
+      `;
+      
+      // ดักฟังก์ชันกด ลบรูปภาพ
+      wrapper.querySelector('.img-action-overlay').addEventListener('click', function() {
+        const idx = parseInt(this.getAttribute('data-index'));
+        selectedImageFiles.splice(idx, 1);
+        renderImagePreviews();
+      });
+
+      // ดักฟังก์ชันย้ายซ้าย
+      if (index > 0) {
+        wrapper.querySelector('.img-sort-left').addEventListener('click', function() {
+          const idx = parseInt(this.getAttribute('data-index'));
+          const temp = selectedImageFiles[idx];
+          selectedImageFiles[idx] = selectedImageFiles[idx - 1];
+          selectedImageFiles[idx - 1] = temp;
+          renderImagePreviews();
+        });
+      }
+
+      // ดักฟังก์ชันย้ายขวา
+      if (index < selectedImageFiles.length - 1) {
+        wrapper.querySelector('.img-sort-right').addEventListener('click', function() {
+          const idx = parseInt(this.getAttribute('data-index'));
+          const temp = selectedImageFiles[idx];
+          selectedImageFiles[idx] = selectedImageFiles[idx + 1];
+          selectedImageFiles[idx + 1] = temp;
+          renderImagePreviews();
+        });
+      }
+
+      container.appendChild(wrapper);
+    });
   }
 
   // Submit Logic
@@ -385,11 +576,9 @@
     }
 
     const activeUsername = currentUser.username;
-    const imageInput = document.getElementById('post-image');
-    const imageFiles = imageInput ? imageInput.files : [];
 
-    // แก้ไขเงื่อนไขการเช็กข้อมูลว่าง (ไม่มีวิดีโอแล้ว)
-    if (!content && imageFiles.length === 0 && !recordedAudioBlob) {
+    // แก้ไขเงื่อนไขเช็กข้อมูลว่างโดยอิงจากตัวแปร Array ของเราแทนไฟล์ดิบแล้ว
+    if (!content && selectedImageFiles.length === 0 && !recordedAudioBlob) {
       Swal.fire('Empty Content', 'Please write a message or add media before publishing.', 'info');
       return;
     }
@@ -405,12 +594,12 @@
     let finalAudioUrl = "";
 
     try {
-      // 1. อัปโหลดรูปภาพเข้า ImgBB
-      if (imageFiles.length > 0) {
+      // 1. อัปโหลดรูปภาพที่คัดสรรแล้วเข้า ImgBB (ดึงมาจากชุดที่จัดเรียงไว้ใน Array ล่าสุด)
+      if (selectedImageFiles.length > 0) {
         let uploadedUrls = [];
-        for (let i = 0; i < imageFiles.length; i++) {
+        for (let i = 0; i < selectedImageFiles.length; i++) {
           try {
-            const url = await uploadImageToImgBB(imageFiles[i]);
+            const url = await uploadImageToImgBB(selectedImageFiles[i].file);
             if (url) uploadedUrls.push(url);
           } catch (err) {
             console.error(`Upload error on image ${i+1}:`, err);
@@ -424,7 +613,7 @@
         finalAudioUrl = await uploadToSupabaseStorage(recordedAudioBlob, 'audios', 'mp3');
       }
 
-      // 3. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่ (ส่ง videoURL เป็นค่าว่างไปเลย)
+      // 3. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       
       const params = new URLSearchParams();
@@ -433,7 +622,7 @@
       params.append('content', content);
       params.append('imageUrl', imageUrlString);
       params.append('audioURL', finalAudioUrl);
-      params.append('videoURL', ''); // ส่งค่าว่างไปที่คอลัมน์วิดีโอเพื่อไม่ให้โครงสร้างสคริปต์หลังบ้านพังงับ ✨
+      params.append('videoURL', ''); 
 
       const resp = await fetch(scriptURL, {
         method: 'POST',
