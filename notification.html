@@ -261,25 +261,44 @@
     const btnReset = document.getElementById("btn-reset");
     const adminInputBox = document.getElementById("admin-input-box");
 
-    // ==========================================
-    // 🔑 ดึงค่าตรงๆ จากคีย์เดี่ยวที่ระบบล็อกอินเซฟไว้
-    // ==========================================
-    const savedRole = localStorage.getItem("role") || sessionStorage.getItem("role") || "";
-    const savedName = localStorage.getItem("name") || sessionStorage.getItem("name") || "Admin";
-    const savedProfile = localStorage.getItem("profile") || sessionStorage.getItem("profile") || "";
-    const savedUsername = localStorage.getItem("username") || sessionStorage.getItem("username") || "";
+   // 🔑 1. ดึงค่า Role แบบยืดหยุ่น (เช็กทั้งคีย์เดี่ยว และแกะจากก้อน Object)
+let savedRole = (localStorage.getItem("role") || sessionStorage.getItem("role") || "").trim();
+let savedName = localStorage.getItem("name") || sessionStorage.getItem("name") || "Admin";
+let savedProfile = localStorage.getItem("profile") || sessionStorage.getItem("profile") || "";
 
-    // แปลงตัวอักษรของ Role เป็นตัวพิมพ์เล็กทั้งหมดเพื่อป้องกันการพิมพ์ผิดพลาด
-    const currentRoleLower = savedRole.toLowerCase().trim();
-
-    // ตรวจสอบสิทธิ์: ถ้าเป็น admin หรือ ceo ให้เปิดกล่องโพสต์
-    if (currentRoleLower === "Admin" || currentRoleLower === "CEO") {
-      adminInputBox.style.display = "flex";
-      console.log(`✅ ยินดีต้อนรับคุณ (${savedName}): เปิดโพสต์เรียบร้อย!`);
-    } else {
-      adminInputBox.style.display = "none";
-      console.log("❌ สิทธิ์ของคุณไม่ใช่ Admin/CEO ระบบจึงซ่อนกล่องโพสต์ไว้ครับ");
+// 📦 2. กรณีที่ระบบล็อกอินเซฟมัดรวมไว้ในก้อน "user" หรือ "currentUser"
+if (!savedRole) {
+  const rawUser = localStorage.getItem("user") || localStorage.getItem("currentUser") || 
+                  sessionStorage.getItem("user") || sessionStorage.getItem("currentUser");
+  if (rawUser) {
+    try {
+      const userObj = JSON.parse(rawUser);
+      savedRole = userObj.role || userObj.Role || "";
+      savedName = userObj.name || userObj.Name || savedName;
+      savedProfile = userObj.profile || userObj.Profile || "";
+    } catch (e) {
+      console.error("⚠️ มีก้อนข้อมูลผู้ใช้แต่ไม่สามารถแปลงเป็น JSON ได้:", e);
     }
+  }
+}
+
+// ทำความสะอาดช่องว่างรอบๆ ข้อความอีกครั้ง
+savedRole = savedRole.trim();
+
+// 🛡️ 3. ตรวจสอบสิทธิ์ด้วยวิธีแปลงเป็นตัวพิมพ์เล็กชั่วคราวขณะเช็ก (เซฟสุดๆ ไม่ว่าในเครื่องจะเซฟ Admin หรือ admin ก็ผ่านฉลุย)
+const checkRoleLower = savedRole.toLowerCase();
+
+if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
+  if (typeof adminInputBox !== "undefined" && adminInputBox) {
+    adminInputBox.style.display = "flex";
+  }
+  console.log(`✅ ยินดีต้อนรับคุณ ${savedName} (${savedRole}): เปิดระบบหลังบ้านเรียบร้อยงับ!`);
+} else {
+  if (typeof adminInputBox !== "undefined" && adminInputBox) {
+    adminInputBox.style.display = "none";
+  }
+  console.log(`❌ สิทธิ์ของคุณคือ "${savedRole}" ไม่ใช่ Admin/CEO ระบบจึงซ่อนกล่องโพสต์ไว้ครับ`);
+}
 
     // โหลดข้อมูลแจ้งเตือนเดิมจากความจำเครื่อง
     let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [];
