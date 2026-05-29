@@ -1,598 +1,519 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta charset="UTF-8">
-    <title>BLM48 Membership | Inventory</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Notifications | BLM48</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
-    <meta name="theme-color" content="#ffc0cb">
-    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-    <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        :root {
-            --primary-pink: #ff85a2;
-            --soft-bg: #fffbfd;
-            --card-border: #ffeef2;
-            --text-dark: #444;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            background-color: #fff6f8;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            color: var(--text-dark);
-        }
-
-        /* ปรับ Layout ให้กางเต็มจอ 100% ลบข้อจำกัด max-width ออกทั้งหมดเพื่อความเต็มตา */
-        .app-wrapper {
-            width: 100%;
-            min-height: 100vh;
-            background: #ffffff;
-            padding: 20px 40px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (max-width: 768px) {
-            .app-wrapper {
-                padding: 16px;
-            }
-        }
-
-        /* แถบด้านบนสุด: รวมปุ่มย้อนกลับและโปรไฟล์ผู้ใช้แบบแสดงรูปภาพ + ชื่อ */
-        .top-navigation-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #ffeef2 0%, #fff6f8 100%);
-            border-radius: 20px;
-            padding: 10px 20px;
-            margin-bottom: 30px;
-            border: 1px solid var(--card-border);
-            gap: 15px;
-        }
-
-        .btn-back-top {
-            background: white;
-            color: var(--primary-pink);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 14px;
-            border: 1px solid var(--card-border);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 6px rgba(255,133,162,0.05);
-            transition: 0.2s;
-        }
-
-        .btn-back-top:hover {
-            background: var(--primary-pink);
-            color: white;
-            transform: translateX(-3px);
-        }
-
-        .user-profile-box {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar-img {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary-pink);
-            background: #fff;
-        }
-
-        .user-profile-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-display-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            line-height: 1.2;
-        }
-
-        .user-role-tag {
-            font-size: 11px;
-            color: #888;
-        }
-
-        .header-title-zone {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .header-title-zone h1 {
-            color: var(--primary-pink);
-            font-size: 28px;
-            margin: 0 0 6px 0;
-            font-weight: 700;
-        }
-
-        .header-title-zone p {
-            color: #999;
-            font-size: 13px;
-            margin: 0;
-        }
-
-        /* ✨ เพิ่มสไตล์สำหรับปุ่มสลับเลือกดูทีละคอลเลกชัน */
-        .collection-tabs-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-            padding-bottom: 8px;
-            overflow-x: auto;
-            white-space: nowrap;
-            /* ซ่อน Scrollbar */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
-        .collection-tabs-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
-        }
-
-        .btn-tab {
-            background: white;
-            color: #666;
-            border: 1px solid var(--card-border);
-            padding: 8px 16px;
-            border-radius: 16px;
-            font-family: 'Kanit', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
-
-        .btn-tab:hover {
-            border-color: var(--primary-pink);
-            color: var(--primary-pink);
-        }
-
-        .btn-tab.active {
-            background: var(--primary-pink);
-            color: white;
-            border-color: var(--primary-pink);
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(255,133,162,0.2);
-        }
-      
-            #tabs-container {
-    display: flex;
-    overflow-x: auto; /* ทำให้เลื่อนซ้ายขวาได้ */
-    white-space: nowrap; /* ไม่ให้ปุ่มขึ้นบรรทัดใหม่ */
-    padding: 10px;
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 1px solid #eee;
-    scrollbar-width: none; /* ซ่อน scrollbar ใน Firefox */
+  <meta name="theme-color" content="#ffc0cb">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body { 
+      font-family: 'Quicksand', 'Kanit', sans-serif;  
+      background-color: #fff0f5; 
+      padding: 20px; 
+      margin: 0;
+      padding-bottom: 110px; /* Space for floating bottom tab-bar */
     }
-    #tabs-container::-webkit-scrollbar {
-        display: none; /* ซ่อน scrollbar ใน Chrome/Safari */
+    .noti-container { 
+      max-width: 500px; 
+      margin: 20px auto; 
+      background: white; 
+      padding: 24px; 
+      border-radius: 24px; 
+      box-shadow: 0 8px 24px rgba(255, 133, 162, 0.12); 
+    }
+    .header {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ff85a2;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* จัดปุ่ม Refresh ไว้ขวาสุด */
+      border-bottom: 2px dashed #fff0f3;
+      padding-bottom: 12px;
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* 🔄 ปุ่ม Refresh สไตล์น่ารัก */
+    .btn-refresh {
+      background: none;
+      border: none;
+      color: #ff85a2;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .btn-refresh:hover {
+      background: #fff0f3;
+      color: #ff6b8b;
+    }
+    .btn-refresh:active {
+      transform: scale(0.9);
+    }
+    
+    /* ✍️ Manual Input Box (Cute & Minimalist) */
+    .manual-input-box {
+      background: #fff5f7;
+      border: 1px dashed #ffccd5;
+      padding: 16px;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .manual-input-box h3 {
+      margin: 0 0 4px 0;
+      font-size: 0.95rem;
+      color: #ff85a2;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .manual-input-box input {
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      padding: 12px 14px;
+      border: 1px solid #ffe3e8;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      color: #555;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .manual-input-box input:focus {
+      border-color: #ff85a2;
+      background: #fff;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-submit {
+      flex: 2;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      background: #ff85a2;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-submit:hover { background: #ff6b8b; }
+    .btn-submit:disabled { background: #ffb3c1; cursor: not-allowed; }
+    
+    .btn-clear {
+      flex: 1;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      background: #e0e0e0;
+      color: #666;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-clear:hover { background: #d0d0d0; }
+    .btn-clear:disabled { background: #f0f0f0; color: #ccc; cursor: not-allowed; }
+
+    /* Notification Cards Style 🌸 */
+    .noti-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .noti-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      background: #fffbfb;
+      border: 1px solid #fff0f3;
+      border-radius: 16px;
+      transition: all 0.2s ease;
+    }
+    .noti-item.unread {
+      background: #fff5f7;
+      border-color: #ffccd5;
+    }
+    .noti-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ff85a2;
+    }
+    .noti-content {
+      flex: 1;
+    }
+    .noti-text {
+      font-size: 0.9rem;
+      color: #444;
+      margin: 0 0 4px 0;
+      line-height: 1.4;
+    }
+    .noti-text strong {
+      color: #ff85a2;
+    }
+    .noti-time {
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+    
+    /* Empty State / Loading State ☁️ */
+    .empty-noti {
+      text-align: center;
+      padding: 40px 20px;
+      color: #ffb3c1;
+    }
+    .empty-noti i {
+      font-size: 3rem;
+      margin-bottom: 12px;
     }
 
-        /* คอลเลกชันกล่องเก็บการ์ดแบบ Responsive ขยายตามขนาดจอ */
-        .collection-section {
-            background: #fffcfd;
-            border: 1px solid #ffeef2;
-            border-radius: 22px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(255, 133, 162, 0.02);
-        }
-
-        .collection-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--primary-pink);
-            margin-bottom: 16px;
-            padding-left: 6px;
-            border-left: 4px solid var(--primary-pink);
-            line-height: 1.2;
-        }
-
-        /* ระบบ Grid อัจฉริยะ แสดงเป็นแถวเรียงสวยงามตามความกว้างของคอมพิวเตอร์และมือถือ */
-        .item-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 16px;
-        }
-
-        .item-card {
-            background: white;
-            border: 1.5px solid var(--card-border);
-            border-radius: 18px;
-            padding: 14px;
-            text-align: center;
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.01);
-        }
-
-        .item-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--primary-pink);
-            box-shadow: 0 6px 15px rgba(255, 133, 162, 0.08);
-        }
-
-        .item-qty {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(255,133,162,0.3);
-        }
-
-        .item-img {
-            width: 100%;
-            height: 110px;
-            object-fit: contain;
-            margin: 8px auto;
-            display: block;
-            border-radius: 10px;
-        }
-
-        .item-name {
-            font-size: 12px;
-            font-weight: 500;
-            color: #555;
-            margin-top: 8px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* Modal หน้าจอดูป๊อปอัพขยายภาพเต็ม + เพิ่มปุ่มเซฟรูป */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-            padding: 20px;
-        }
-
-        .modal-body-content {
-            background: white;
-            padding: 24px;
-            border-radius: 28px;
-            max-width: 380px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            border: 3px solid #ffeef2;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.2);
-            animation: zoomInSubtle 0.25s ease-out;
-        }
-
-        @keyframes zoomInSubtle {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-body-content img {
-            width: 100%;
-            max-height: 320px;
-            object-fit: contain;
-            border-radius: 18px;
-            background: #fafafa;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .modal-action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .btn-close-modal {
-            background: #eee;
-            color: #666;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-family: 'Kanit';
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-
-        /* ปุ่มเซฟรูปภาพสไตล์หวานละมุนเหมือนหน้า Shop */
-        .btn-save-image {
-            background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
-            color: white;
-            text-decoration: none;
-            padding: 10px 24px;
-            border-radius: 20px;
-            font-family: 'Kanit';
-            font-size: 13px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(255,133,162,0.3);
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-save-image:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 15px rgba(255,133,162,0.4);
-        }
-    </style>
+    /* Floating Tab-bar 🎀 */
+    .bottom-tab-bar {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 440px;
+        height: 68px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-radius: 35px;
+        border: 1px solid rgba(255, 204, 213, 0.5);
+        box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15);
+        z-index: 1000;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    .tab-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: #ffb3c1;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-family: 'Quicksand', 'Kanit', sans-serif;
+        font-weight: 600;
+        padding: 10px 14px;
+        border-radius: 25px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tab-item i { font-size: 1.25rem; }
+    .tab-item span { display: none; }
+    .tab-item.active { background-color: #fff0f3; color: #ff85a2; }
+    .tab-item.active span { display: inline-block; }
+    
+    .icon-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Instagram-Style Verified Badge CSS */
+    .verified-badge {
+      color: #1d9bf0;
+      margin-left: 5px;
+      font-size: 0.85rem;
+      vertical-align: middle;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="app-wrapper">
-        <div class="top-navigation-bar">
-            <a href="index.html" class="btn-back-top"><i class="fa-solid fa-house"></i> กลับหน้าหลัก</a>
-            <div class="user-profile-box">
-                <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Profile" class="user-avatar-img">
-                <div class="user-profile-info">
-                    <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
-                    <span id="user-role" class="user-role-tag"></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="header-title-zone">
-            <h1>My Inventory</h1>
-            <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
-        </div>
-
-        <div id="tabs-container" class="collection-tabs-container"></div> 
-    
-        <div id="inventory-container">
-            <p style="text-align:center; color:#aaa; font-size:13px;">กำลังหาคอลเลกชันของคุณ...</p>
-        </div>
+<div class="noti-container">
+  <div class="header">
+    <div class="header-title">
+      <i class="fa-solid fa-bell"></i> Notifications
     </div>
-
-    <div id="previewModal" class="modal-overlay" onclick="closePreview()">
-        <div class="modal-body-content" onclick="event.stopPropagation()">
-            <img id="previewImg" src="" alt="Item Preview">
-            <div class="modal-action-buttons">
-                <button type="button" class="btn-close-modal" onclick="closePreview()">ปิด</button>
-                <a id="saveImgBtn" href="" target="_blank" download="blm48_reward.png" class="btn-save-image">
-                    <i class="fa-solid fa-download"></i> บันทึกรูปภาพ
-                </a>
-            </div>
-        </div>
+    <button id="btn-refresh" class="btn-refresh" title="Refresh">
+      <i class="fa-solid fa-rotate"></i>
+    </button>
+  </div>
+  
+  <div class="manual-input-box" id="admin-input-box" style="display: none;">
+    <h3><i class="fa-solid fa-pen-to-square"></i> Create New Notification</h3>
+    <input type="text" id="input-action" placeholder="Enter notification message">
+    <div class="btn-group">
+      <button class="btn-submit" id="btn-add"><i class="fa-solid fa-plus"></i> Post Notification</button>
+      <button class="btn-clear" id="btn-reset"><i class="fa-solid fa-trash"></i> Clear All</button>
     </div>
-  <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
-  <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
-  <div>© 2026 Virtual Idol Cover Group</div>
-</footer>
+  </div>
+  
+  <div id="noti-list" class="noti-list"></div>
+</div>
 
-    <script>
-       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+<div class="bottom-tab-bar">
+  <a href="index.html" class="tab-item">
+    <i class="fa-solid fa-house"></i>
+  </a>
+  <a href="kami.html" class="tab-item">
+    <i class="fa-solid fa-star"></i>
+  </a>
+  <a href="shop.html" class="tab-item">
+    <i class="fa-solid fa-bag-shopping"></i>
+  </a>
+  <a href="notification.html" class="tab-item active">
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-bell"></i>
+    </div>
+  </a>
+  <a href="profile.html" class="tab-item">
+    <i class="fa-solid fa-user"></i>
+  </a>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const notiListContainer = document.getElementById("noti-list");
+    const btnAdd = document.getElementById("btn-add");
+    const btnReset = document.getElementById("btn-reset");
+    const btnRefresh = document.getElementById("btn-refresh");
+    const adminInputBox = document.getElementById("admin-input-box");
+
+    // ลิงก์ Google Apps Script Web App ของคุณ
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec";
+
+    // =========================================================
+    // 📦 1. ดึงข้อมูลเซสชันผู้ใช้
+    // =========================================================
+    let savedRole = "User";
+    let savedName = "Admin";
+    let savedProfile = "";
+    let savedUsername = "";
+
+    const sessionStr = localStorage.getItem('bnl_session');
+    if (sessionStr) {
+      try {
+        const sessionData = JSON.parse(sessionStr);
+        const userData = sessionData.data || sessionData.user || sessionData;
+        if (userData) {
+          savedRole = userData.role || userData.Role || "User";
+          savedName = userData.name || userData.Name || "Admin";
+          savedProfile = userData.profile_img || userData.profile || "";
+          savedUsername = userData.username || "";
+        }
+      } catch (e) {
+        console.error("❌ Error parsing bnl_session:", e);
+      }
+    }
+
+    savedRole = savedRole.toString().trim();
+    const checkRoleLower = savedRole.toLowerCase();
+
+    // =========================================================
+    // 🛡️ 2. ตรวจสอบสิทธิ์แสดงกล่องโพสต์
+    // =========================================================
+    if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
+      if (adminInputBox) adminInputBox.style.display = "flex";
+    } else {
+      if (adminInputBox) adminInputBox.style.display = "none";
+    }
+
+    let myNotifications = [];
+
+    // =========================================================
+    // 🌸 3. ฟังก์ชันดึงข้อมูลจาก Google Sheet (API GET)
+    // =========================================================
+    async function fetchNotifications() {
+      notiListContainer.innerHTML = `
+        <div class="empty-noti">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <p>Loading notifications...</p>
+        </div>`;
+      
+      btnRefresh.querySelector('i').classList.add('fa-spin');
+      btnRefresh.disabled = true;
+
+      try {
+        const response = await fetch(`${SCRIPT_URL}?action=getNotifications`);
+        if (!response.ok) throw new Error("Network response was not ok");
         
-        function getUserSession() {
-            const sessionStr = localStorage.getItem('bnl_session');
-            if (!sessionStr) return null;
-            const session = JSON.parse(sessionStr);
-            if (new Date().getTime() > session.expiry) {
-                localStorage.removeItem('bnl_session');
-                localStorage.removeItem(`blm48_inventory_cache_${session.data?.username}`);
-                localStorage.removeItem(`blm48_inventory_time_${session.data?.username}`);
-                return null;
-            }
-            return session.data;
+        myNotifications = await response.json();
+        renderUI();
+      } catch (error) {
+        console.error("❌ Error fetching notifications:", error);
+        notiListContainer.innerHTML = `
+          <div class="empty-noti" style="color:#ff6b8b;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <p>Failed to update. Please try again! 🥺</p>
+          </div>`;
+      } finally {
+        btnRefresh.querySelector('i').classList.remove('fa-spin');
+        btnRefresh.disabled = false;
+      }
+    }
+
+    // =========================================================
+    // 🎨 4. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
+    // =========================================================
+    function renderUI() {
+      if (myNotifications && myNotifications.length > 0) {
+        notiListContainer.innerHTML = ""; 
+        
+        const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
+
+        sortedList.forEach(noti => {
+          const notiDate = new Date(noti.timestamp);
+          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+          const checkRole = (noti.role || "").toLowerCase().trim();
+          const showVerified = (checkRole === "admin" || checkRole === "ceo");
+          const verifiedBadge = showVerified ? ` <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+      <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+    </svg>` : '';
+
+          const item = document.createElement("div");
+          item.className = "noti-item unread"; 
+          item.innerHTML = `
+            <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
+            <div class="noti-content">
+              <p class="noti-text"><strong>${noti.writer}</strong>${verifiedBadge} ${noti.action}</p>
+              <div class="noti-time">${timeString}</div>
+            </div>
+          `;
+          notiListContainer.appendChild(item);
+        });
+      } else {
+        notiListContainer.innerHTML = `
+          <div class="empty-noti">
+            <i class="fa-regular fa-bell-slashed"></i>
+            <p>No Notifications.</p>
+          </div>`;
+      }
+    }
+
+    // =========================================================
+    // ✍️ 5. ระบบเพิ่มแจ้งเตือนใหม่ไปยัง Google Sheet และ Firebase (รวมโค้ดเรียบร้อย)
+    // =========================================================
+    if (btnAdd) {
+      btnAdd.addEventListener("click", async () => {
+        const actionInput = document.getElementById("input-action").value.trim();
+
+        if (!actionInput) {
+          alert("Please enter a notification message! 🥺");
+          return;
         }
 
-        let user = getUserSession();
-        let currentUsername = user ? user.username : "";
-        
-        // ตัวแปรเก็บข้อมูลตู้ทั้งหมด และชื่อตู้ที่กำลังเลือกเปิดดูอยู่
-        let globalInventoryData = null;
-        let currentActiveTab = "all";
+        btnAdd.disabled = true;
+        btnAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
 
-        window.onload = async () => {
-            if (!user || !currentUsername) {
-                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การใช้งานกระเป๋า กรุณาล็อกอินก่อนนะงับ', 'error').then(() => {
-                    window.location.href = 'index.html';
-                });
-                return;
-            }
-            
-            if (user.profile_img && user.profile_img.toString().trim() !== "") {
-                document.getElementById('user-avatar').src = user.profile_img;
-            } else {
-                document.getElementById('user-avatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
-            }
-            
-            document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
-            
-            const userRole = user.role || user.position || "BLM48 Member";
-            document.getElementById('user-role').textContent = userRole;
-            
-            await loadMyInventory();
-             renderTabs();
+        const newNotification = {
+          type: "add",
+          writer: savedName,
+          action: actionInput,
+          avatar: savedProfile,
+          role: savedRole, 
+          timestamp: Date.now()
         };
 
-        async function loadMyInventory() {
-            const container = document.getElementById('inventory-container');
-            
-            const cacheKey = `blm48_inventory_cache_${currentUsername}`;
-            const cacheTimeKey = `blm48_inventory_time_${currentUsername}`;
-            const refreshInterval = 5 * 60 * 1000; 
-            
-            const cachedData = localStorage.getItem(cacheKey);
-            const cachedTime = localStorage.getItem(cacheTimeKey);
-            const now = new Date().getTime();
-            
-            if (cachedData && cachedTime && (now - cachedTime < refreshInterval)) {
-                console.log("⚡ ดึงข้อมูลคอลเลกชัน Inventory จาก Cache สำเร็จ!");
-                globalInventoryData = JSON.parse(cachedData);
-                renderTabs(); // สร้างปุ่ม Tabs
-                renderInventoryData(); // แสดงของในตู้
-                return;
-            }
-            
-            container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัล...</p>`;
-            
-            try {
-                const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}`);
-                const res = await response.json();
-                
-                if (res.status === "success") {
-                    globalInventoryData = res.inventory;
-                    
-                    localStorage.setItem(cacheKey, JSON.stringify(globalInventoryData));
-                    localStorage.setItem(cacheTimeKey, now.toString());
-                    
-                    renderTabs(); // สร้างปุ่ม Tabs
-                    renderInventoryData(); // แสดงของในตู้
-                } else {
-                    container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
-                }
-            } catch (err) {
-                console.error(err);
-                if (cachedData) {
-                    console.warn("⚠️ ระบบดึงข้อมูลสดขัดข้อง ใช้ข้อมูลจาก Cache แทน");
-                    globalInventoryData = JSON.parse(cachedData);
-                    renderTabs();
-                    renderInventoryData();
-                } else {
-                    container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
-                }
-            }
+        try {
+          // 1. ส่งเข้า Google Sheets
+          await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(newNotification)
+          });
+
+          // 2. ส่งสัญญาณ Realtime ไปให้ Firebase (ถ้าถูกสั่งเปิดใช้งานบนหน้านี้)
+          if (window.firebaseDatabase && window.fbPush && window.fbRef) {
+            const notiRef = window.fbRef(window.firebaseDatabase, 'notifications');
+            await window.fbPush(notiRef, {
+              writer: savedName,
+              type: "system_alert",
+              timestamp: Date.now()
+            });
+          }
+
+          document.getElementById("input-action").value = "";
+          await fetchNotifications();
+        } catch (error) {
+          console.error("❌ Error posting notification:", error);
+          alert("Something went wrong, please try again! 😢");
+        } finally {
+          btnAdd.disabled = false;
+          btnAdd.innerHTML = '<i class="fa-solid fa-plus"></i> Post Notification';
+        }
+      });
+    }
+
+    // =========================================================
+    // 🗑️ 6. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดออกจาก Google Sheet (แก้ไขให้ตรงปุ่ม Clear)
+    // =========================================================
+    if (btnReset) {
+      btnReset.addEventListener("click", async () => {
+        if (!confirm("Are you sure you want to clear all notifications? 🥺")) {
+          return;
         }
 
-        // ✨ ฟังก์ชันสร้างปุ่มเมนู Tabs สำหรับเลือกดู Collection (เวอร์ชันสร้าง Element โดยตรง)
-function renderTabs() {
-    const tabsContainer = document.getElementById('tabs-container');
-    if (!tabsContainer) return; // กัน Error กรณีหา element ไม่เจอ
-    
-    tabsContainer.innerHTML = ''; // ล้างปุ่มเก่าทิ้งก่อน
-    
-    if (!globalInventoryData || Object.keys(globalInventoryData).length === 0) return;
+        btnReset.disabled = true;
+        btnReset.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Clearing...';
 
-    // 1. สร้างปุ่ม "ทั้งหมด"
-    const allBtn = document.createElement('button');
-    allBtn.className = `btn-tab ${currentActiveTab === 'all' ? 'active' : ''}`;
-    allBtn.textContent = "ทั้งหมด";
-    allBtn.onclick = () => switchTab('all');
-    tabsContainer.appendChild(allBtn);
+        try {
+          // ส่งประเภทเป็น "clear" ไปให้ฝั่ง Google Apps Script ของคุณจัดการลบแถวข้อมูล
+          await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ type: "clear", timestamp: Date.now() })
+          });
 
-    // 2. วนลูปสร้างปุ่มคอลเลกชัน
-    Object.keys(globalInventoryData).forEach(colName => {
-        if (globalInventoryData[colName].length > 0) {
-            const btn = document.createElement('button');
-            btn.className = `btn-tab ${currentActiveTab === colName ? 'active' : ''}`;
-            btn.textContent = colName;
-            btn.onclick = () => switchTab(colName); // ผูก event ตรงนี้เลย
-            tabsContainer.appendChild(btn);
+          await fetchNotifications();
+          alert("All notifications cleared successfully! ✨");
+        } catch (error) {
+          console.error("❌ Error clearing notifications:", error);
+          alert("Something went wrong, please try again! 😢");
+        } finally {
+          btnReset.disabled = false;
+          btnReset.innerHTML = '<i class="fa-solid fa-trash"></i> Clear All';
         }
-    });
-}
+      });
+    }
 
-        // ✨ ฟังก์ชันเมื่อผู้ใช้กดคลิกเปลี่ยน Tab
-        function switchTab(tabName) {
-            currentActiveTab = tabName; // อัปเดตตู้ที่กำลังดู
-            renderTabs();               // อัปเดตสีของปุ่มที่ถูกกด
-            renderInventoryData();      // วาดหน้าจอโชว์ของใหม่
-        }
+    // =========================================================
+    // 🔄 7. ปุ่ม Refresh และการทำงานเมื่อเข้าสู่หน้าเว็บครั้งแรก
+    // =========================================================
+    btnRefresh.addEventListener("click", fetchNotifications);
+    fetchNotifications();
 
-        // 🛠️ ปรับปรุงฟังก์ชันวาดหน้าจอ ให้รองรับการซ่อน/โชว์ตู้ตามปุ่ม Tab
-        function renderInventoryData() {
-            const container = document.getElementById('inventory-container');
-            container.innerHTML = "";
-            
-            const inv = globalInventoryData;
-
-            if (!inv || Object.keys(inv).length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
-                return;
-            }
-
-            // วนลูปดึงทีละตู้คอลเลกชันออกมาวาดบนจอ
-            for (const colName in inv) {
-                // ถ้ากล่องไหนไม่มีของ ให้ข้ามไปเลย
-                if (inv[colName].length === 0) continue;
-                
-                // 🔍 ถ้ายูสเซอร์ไม่ได้เลือกดู "ทั้งหมด" และชื่อตู้ไม่ตรงกับปุ่ม Tab ที่กด ให้ข้ามการโชว์ตู้นี้ไปเลย
-                if (currentActiveTab !== 'all' && currentActiveTab !== colName) {
-                    continue; 
-                }
-
-                // ถ้าผ่านเงื่อนไขด้านบน แปลว่าให้แสดงตู้นี้
-                const section = document.createElement('div');
-                section.className = 'collection-section';
-                
-                const title = document.createElement('div');
-                title.className = 'collection-title';
-                title.textContent = colName;
-                section.appendChild(title);
-                
-                const grid = document.createElement('div');
-                grid.className = 'item-grid';
-                
-                inv[colName].forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'item-card';
-                    card.onclick = () => openPreview(item.img);
-                    
-                    card.innerHTML = `
-                        <span class="item-qty">x${item.qty}</span>
-                        <img class="item-img" src="${item.img}" alt="${item.name}">
-                        <div class="item-name">${item.name}</div>
-                    `;
-                    grid.appendChild(card);
-                });
-                
-                section.appendChild(grid);
-                container.appendChild(section);
-            }
-        }
-
-        function openPreview(src) {
-            document.getElementById('previewImg').src = src;
-            document.getElementById('saveImgBtn').href = src;
-            document.getElementById('previewModal').style.display = 'flex';
-        }
-        
-        function closePreview() {
-            document.getElementById('previewModal').style.display = 'none';
-        }
-    </script>
+    // เมื่อเปิดหน้านี้ ถือว่าอ่านแจ้งเตือนแล้ว ปิดจุดแจ้งเตือนภายในหน้า
+    localStorage.setItem("blm48_has_new_noti", "false");
+    const badgeElement = document.getElementById("noti-badge");
+    if (badgeElement) {
+      badgeElement.style.display = "none";
+    }
+  });
+</script>
 </body>
 </html>
