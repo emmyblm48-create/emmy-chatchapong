@@ -261,49 +261,55 @@
     const btnReset = document.getElementById("btn-reset");
     const adminInputBox = document.getElementById("admin-input-box");
 
-   // 🔑 1. ดึงค่า Role แบบยืดหยุ่น (เช็กทั้งคีย์เดี่ยว และแกะจากก้อน Object)
-let savedRole = (localStorage.getItem("role") || sessionStorage.getItem("role") || "").trim();
-let savedName = localStorage.getItem("name") || sessionStorage.getItem("name") || "Admin";
-let savedProfile = localStorage.getItem("profile") || sessionStorage.getItem("profile") || "";
+    // =========================================================
+    // 📦 1. ดึงข้อมูลจากคีย์เซสชันหลักของระบบ (bnl_session) ที่ index.html ใช้
+    // =========================================================
+    let savedRole = "User";
+    let savedName = "Admin";
+    let savedProfile = "";
+    let savedUsername = "";
 
-// 📦 2. กรณีที่ระบบล็อกอินเซฟมัดรวมไว้ในก้อน "user" หรือ "currentUser"
-if (!savedRole) {
-  const rawUser = localStorage.getItem("user") || localStorage.getItem("currentUser") || 
-                  sessionStorage.getItem("user") || sessionStorage.getItem("currentUser");
-  if (rawUser) {
-    try {
-      const userObj = JSON.parse(rawUser);
-      savedRole = userObj.role || userObj.Role || "";
-      savedName = userObj.name || userObj.Name || savedName;
-      savedProfile = userObj.profile || userObj.Profile || "";
-    } catch (e) {
-      console.error("⚠️ มีก้อนข้อมูลผู้ใช้แต่ไม่สามารถแปลงเป็น JSON ได้:", e);
+    // ดึงก้อนเซสชันหลักของแอปมาแกะ
+    const sessionStr = localStorage.getItem('bnl_session');
+    
+    if (sessionStr) {
+      try {
+        const sessionData = JSON.parse(sessionStr);
+        // แกะชั้นข้อมูล (รองรับโครงสร้างชั้น .data ตามโค้ด index.html)
+        const userData = sessionData.data || sessionData.user || sessionData;
+        
+        if (userData) {
+          savedRole = userData.role || userData.Role || "User";
+          savedName = userData.name || userData.Name || "Admin";
+          savedProfile = userData.profile_img || userData.profile || "";
+          savedUsername = userData.username || "";
+        }
+      } catch (e) {
+        console.error("❌ Error parsing bnl_session:", e);
+      }
     }
-  }
-}
 
-// ทำความสะอาดช่องว่างรอบๆ ข้อความอีกครั้ง
-savedRole = savedRole.trim();
+    // ทำความสะอาดข้อความและตัดช่องว่าง
+    savedRole = savedRole.toString().trim();
+    const checkRoleLower = savedRole.toLowerCase();
 
-// 🛡️ 3. ตรวจสอบสิทธิ์ด้วยวิธีแปลงเป็นตัวพิมพ์เล็กชั่วคราวขณะเช็ก (เซฟสุดๆ ไม่ว่าในเครื่องจะเซฟ Admin หรือ admin ก็ผ่านฉลุย)
-const checkRoleLower = savedRole.toLowerCase();
-
-if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
-  if (typeof adminInputBox !== "undefined" && adminInputBox) {
-    adminInputBox.style.display = "flex";
-  }
-  console.log(`✅ ยินดีต้อนรับคุณ ${savedName} (${savedRole}): เปิดระบบหลังบ้านเรียบร้อยงับ!`);
-} else {
-  if (typeof adminInputBox !== "undefined" && adminInputBox) {
-    adminInputBox.style.display = "none";
-  }
-  console.log(`❌ สิทธิ์ของคุณคือ "${savedRole}" ไม่ใช่ Admin/CEO ระบบจึงซ่อนกล่องโพสต์ไว้ครับ`);
-}
+    // =========================================================
+    // 🛡️ 2. ตรวจสอบสิทธิ์ (Case-Insensitive รองรับทั้งพิมพ์เล็ก-พิมพ์ใหญ่)
+    // =========================================================
+    if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
+      if (adminInputBox) adminInputBox.style.display = "flex";
+      console.log(`✅ Access Granted! Welcome ${savedName} (${savedRole})`);
+    } else {
+      if (adminInputBox) adminInputBox.style.display = "none";
+      console.log(`❌ สิทธิ์ของคุณคือ "${savedRole}" ไม่ใช่ Admin/CEO ระบบจึงซ่อนกล่องโพสต์ไว้ครับ`);
+    }
 
     // โหลดข้อมูลแจ้งเตือนเดิมจากความจำเครื่อง
     let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [];
 
-    // 2. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
+    // =========================================================
+    // 🌸 3. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
+    // =========================================================
     function renderUI() {
       if (myNotifications.length > 0) {
         notiListContainer.innerHTML = ""; 
@@ -315,8 +321,8 @@ if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
           const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
           // ใส่ติ๊กถูกสีฟ้าถ้าสิทธิ์ตอนโพสต์เป็น Admin หรือ CEO
-          const checkRole = (noti.role || "").toLowerCase();
-          const showVerified = (checkRole === "Admin" || checkRole === "CEO");
+          const checkRole = (noti.role || "").toLowerCase().trim();
+          const showVerified = (checkRole === "admin" || checkRole === "ceo");
           const verifiedBadge = showVerified ? `<i class="fa-solid fa-circle-check verified-badge" title="Verified Account" style="color: #1d9bf0; margin-left: 5px;"></i>` : '';
 
           const item = document.createElement("div");
@@ -334,43 +340,51 @@ if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
         notiListContainer.innerHTML = `
           <div class="empty-noti">
             <i class="fa-regular fa-bell-slashed"></i>
-            <p>No Notifications.</p>
+            <p>No notifications yet. New updates will appear here! ☁️</p>
           </div>`;
       }
     }
 
-    // 3. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่ (ใช้ข้อมูลผู้ใช้ที่ดึงมาตรงๆ)
-    btnAdd.addEventListener("click", () => {
-      const actionInput = document.getElementById("input-action").value.trim();
+    // =========================================================
+    // ✍️ 4. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่
+    // =========================================================
+    if (btnAdd) {
+      btnAdd.addEventListener("click", () => {
+        const actionInput = document.getElementById("input-action").value.trim();
 
-      if (!actionInput) {
-        alert("Please enter a notification message! 🥺");
-        return;
-      }
+        if (!actionInput) {
+          alert("Please enter a notification message! 🥺");
+          return;
+        }
 
-      const newNotification = {
-        writer: savedName,
-        action: actionInput,
-        avatar: savedProfile,
-        role: savedRole, // เซฟค่า Role ต้นฉบับเก็บไว้เช็กติ๊กถูกสีฟ้า
-        timestamp: Date.now()
-      };
+        const newNotification = {
+          writer: savedName,
+          action: actionInput,
+          avatar: savedProfile,
+          role: savedRole, 
+          timestamp: Date.now()
+        };
 
-      myNotifications.push(newNotification);
-      localStorage.setItem("manual_notis", JSON.stringify(myNotifications));
+        myNotifications.push(newNotification);
+        localStorage.setItem("manual_notis", JSON.stringify(myNotifications));
 
-      document.getElementById("input-action").value = "";
-      renderUI();
-    });
-
-    // 4. ระบบล้างข้อมูลแจ้งเตือนทั้งหมด
-    btnReset.addEventListener("click", () => {
-      if(confirm("Are you sure you want to clear all notifications?")) {
-        myNotifications = [];
-        localStorage.removeItem("manual_notis");
+        document.getElementById("input-action").value = "";
         renderUI();
-      }
-    });
+      });
+    }
+
+    // =========================================================
+    // 🗑️ 5. ระบบล้างข้อมูลแจ้งเตือนทั้งหมด
+    // =========================================================
+    if (btnReset) {
+      btnReset.addEventListener("click", () => {
+        if(confirm("Are you sure you want to clear all notifications?")) {
+          myNotifications = [];
+          localStorage.removeItem("manual_notis");
+          renderUI();
+        }
+      });
+    }
 
     renderUI();
   });
