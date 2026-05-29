@@ -286,6 +286,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+  import { getDatabase, ref, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
   const SUPABASE_URL = "https://kmolgfghbviwxqlhnlku.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imttb2xnZmdoYnZpd3hxbGhubGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzE2NzgsImV4cCI6MjA5NTU0NzY3OH0.BlGST7XnJKw5aIb1mlVx9-yMtOwVmWc0gSUNZr2gqw0";
@@ -302,6 +303,7 @@
   };
 
   const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
   const IMGBB_API_KEY = "80ad839da07973eeefee57af54fc9f6d";
 
   // สร้างตัวแปร Array ส่วนกลางเพื่อเก็บไฟล์และเรียงลำดับรูปภาพ 🌟
@@ -563,6 +565,18 @@
       const data = await resp.json();
 
       if (data.status === "success") {
+        try {
+          const notiRef = ref(db, 'notifications');
+          const newNotiRef = push(notiRef); // สร้างคีย์อัตโนมัติ
+          await set(newNotiRef, {
+            writer: activeUsername, // ชื่อเมมเบอร์ที่โพสต์
+            action: "ได้ลงโพสต์ใหม่แล้วนะ~ ",
+            avatar: currentUser.avatar || "https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000",
+            timestamp: serverTimestamp() // เวลาจากเซิร์ฟเวอร์ Firebase
+          });
+        } catch(e) {
+          console.error("Firebase Noti Error:", e);
+        }
         Swal.fire({
           title: 'Success',
           text: 'Your post has been published successfully.',
