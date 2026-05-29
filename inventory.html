@@ -450,53 +450,58 @@
 
         async function loadMyInventory() {
             const container = document.getElementById('inventory-container');
-            
             const cacheKey = `blm48_inventory_cache_${currentUsername}`;
             const cacheTimeKey = `blm48_inventory_time_${currentUsername}`;
-            const refreshInterval = 5 * 60 * 1000; 
             
             const cachedData = localStorage.getItem(cacheKey);
-            const cachedTime = localStorage.getItem(cacheTimeKey);
-            const now = new Date().getTime();
+            let hasCache = false;
             
-            if (cachedData && cachedTime && (now - cachedTime < refreshInterval)) {
-                console.log("⚡ ดึงข้อมูลคอลเลกชัน Inventory จาก Cache สำเร็จ!");
-                globalInventoryData = JSON.parse(cachedData);
-                renderTabs(); // สร้างปุ่ม Tabs
-                renderInventoryData(); // แสดงของในตู้
-                return;
+            // 🌸 STEP 1: หยิบของในกระเป๋าเก่าขึ้นมาโชว์ก่อนเลย! แฟนคลับเปิดมาปุ๊บเห็นปั๊บ
+            if (cachedData) {
+                try {
+                    globalInventoryData = JSON.parse(cachedData);
+                    if (globalInventoryData) {
+                        renderTabs(); 
+                        renderInventoryData(); 
+                        hasCache = true;
+                    }
+                } catch(e) {
+                    console.error("Error parsing inventory cache", e);
+                }
             }
             
-            container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัล...</p>`;
+            // ถ้าไม่เคยมีกระเป๋าในเครื่อง ค่อยขึ้นข้อความกำลังโหลด
+            if (!hasCache) {
+                container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px; margin-top:40px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัล...</p>`;
+            }
             
+            // 🌸 STEP 2: แอบวิ่งไปดึงของในกระเป๋าล่าสุดมาจากเซิร์ฟเวอร์
             try {
-                const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}`);
+                // เติม Date.now() ต่อท้าย URL เพื่อบังคับให้เบราว์เซอร์ไม่จำ Cache ของ Fetch
+                const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}&_=${Date.now()}`);
                 const res = await response.json();
                 
                 if (res.status === "success") {
                     globalInventoryData = res.inventory;
                     
+                    // เซฟทับแคชเดิมในเครื่อง
                     localStorage.setItem(cacheKey, JSON.stringify(globalInventoryData));
-                    localStorage.setItem(cacheTimeKey, now.toString());
+                    localStorage.setItem(cacheTimeKey, new Date().getTime().toString());
                     
-                    renderTabs(); // สร้างปุ่ม Tabs
-                    renderInventoryData(); // แสดงของในตู้
-                } else {
+                    // สั่งวาดปุ่มเมนูและหน้าจอแสดงผลของสะสมใหม่ (ถ้ามีของใหม่เพิ่มเข้ามา มันจะเด้งขึ้นมาเองเนียนๆ)
+                    renderTabs(); 
+                    renderInventoryData(); 
+                } else if (!hasCache) {
                     container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
                 }
             } catch (err) {
-                console.error(err);
-                if (cachedData) {
-                    console.warn("⚠️ ระบบดึงข้อมูลสดขัดข้อง ใช้ข้อมูลจาก Cache แทน");
-                    globalInventoryData = JSON.parse(cachedData);
-                    renderTabs();
-                    renderInventoryData();
-                } else {
+                console.error("Fetch Inventory Error:", err);
+                // ถ้ายิงเซิร์ฟไม่ติด แต่หน้าจอยังมีแคชของเดิมโชว์อยู่ ก็ปล่อยไว้ให้ดูของเก่าไปก่อนครับ
+                if (!hasCache) {
                     container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
                 }
             }
         }
-
         // ✨ ฟังก์ชันสร้างปุ่มเมนู Tabs สำหรับเลือกดู Collection (เวอร์ชันสร้าง Element โดยตรง)
 function renderTabs() {
     const tabsContainer = document.getElementById('tabs-container');
