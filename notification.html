@@ -262,52 +262,24 @@
     const adminInputBox = document.getElementById("admin-input-box");
 
     // ==========================================
-    // 🔍 [ระบบตรวจสอบข้อมูลการล็อกอินสำหรับคุณเอ็มมี่]
+    // 🔑 ดึงค่าตรงๆ จากคีย์เดี่ยวที่ระบบล็อกอินเซฟไว้
     // ==========================================
-    // ดึงข้อมูลดิบจากทุกคีย์และทุก Storage ที่ระบบล็อกอินมักจะใช้เก็บข้อมูล
-    const rawUserData = localStorage.getItem("currentUser") || 
-                        localStorage.getItem("user") || 
-                        sessionStorage.getItem("currentUser") || 
-                        sessionStorage.getItem("user");
+    const savedRole = localStorage.getItem("role") || sessionStorage.getItem("role") || "";
+    const savedName = localStorage.getItem("name") || sessionStorage.getItem("name") || "Admin";
+    const savedProfile = localStorage.getItem("profile") || sessionStorage.getItem("profile") || "";
+    const savedUsername = localStorage.getItem("username") || sessionStorage.getItem("username") || "";
 
-    // พิมพ์ค่าออกมาดูใน Console (กด F12 บนคีย์บอร์ดเพื่อตรวจเช็ก)
-    console.log("=== BLM48 Login Debugger ===");
-    console.log("Raw User Data Found:", rawUserData);
+    // แปลงตัวอักษรของ Role เป็นตัวพิมพ์เล็กทั้งหมดเพื่อป้องกันการพิมพ์ผิดพลาด
+    const currentRoleLower = savedRole.toLowerCase().trim();
 
-    let currentUser = null;
-
-    if (rawUserData) {
-      try {
-        currentUser = JSON.parse(rawUserData);
-        console.log("Parsed User Object:", currentUser);
-      } catch (e) {
-        console.error("Error parsing user JSON:", e);
-      }
-    } else {
-      console.log("⚠️ No user data found in Storage. Please check your login script.");
-    }
-
-    // ฟังก์ชันตรวจสอบสิทธิ์ (รองรับทั้งตัวพิมพ์เล็ก พิมพ์ใหญ่ และคีย์ชื่ออื่น)
-    let isAuthorized = false;
-    if (currentUser) {
-      // ดึงค่า role หรือ Role ออกมา แล้วแปลงเป็นตัวพิมพ์เล็กทั้งหมด
-      const userRole = (currentUser.role || currentUser.Role || currentUser.status || "").toLowerCase().trim();
-      console.log("Current User Role (Processed):", userRole);
-
-      if (userRole === "admin" || userRole === "ceo") {
-        isAuthorized = true;
-      }
-    }
-
-    // แสดงหรือซ่อนกล่องตามผลการตรวจสอบสิทธิ์
-    if (isAuthorized) {
+    // ตรวจสอบสิทธิ์: ถ้าเป็น admin หรือ ceo ให้เปิดกล่องโพสต์
+    if (currentRoleLower === "admin" || currentRoleLower === "ceo") {
       adminInputBox.style.display = "flex";
-      console.log("✅ Access Granted: Admin/CEO box is now visible.");
+      console.log(`✅ ยินดีต้อนรับคุณ (${savedName}): เปิดโพสต์เรียบร้อย!`);
     } else {
       adminInputBox.style.display = "none";
-      console.log("❌ Access Denied: Hide Admin/CEO box.");
+      console.log("❌ สิทธิ์ของคุณไม่ใช่ Admin/CEO ระบบจึงซ่อนกล่องโพสต์ไว้ครับ");
     }
-    console.log("=============================");
 
     // โหลดข้อมูลแจ้งเตือนเดิมจากความจำเครื่อง
     let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [];
@@ -323,10 +295,10 @@
           const notiDate = new Date(noti.timestamp);
           const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-          // ใส่ติ๊กถูกสีฟ้าถ้าสิทธิ์เป็น Admin หรือ CEO
-          const currentRoleLower = (noti.role || "").toLowerCase();
-          const showVerified = (currentRoleLower === "admin" || currentRoleLower === "ceo");
-          const verifiedBadge = showVerified ? `<i class="fa-solid fa-circle-check verified-badge" title="Verified Account"></i>` : '';
+          // ใส่ติ๊กถูกสีฟ้าถ้าสิทธิ์ตอนโพสต์เป็น Admin หรือ CEO
+          const checkRole = (noti.role || "").toLowerCase();
+          const showVerified = (checkRole === "admin" || checkRole === "ceo");
+          const verifiedBadge = showVerified ? `<i class="fa-solid fa-circle-check verified-badge" title="Verified Account" style="color: #1d9bf0; margin-left: 5px;"></i>` : '';
 
           const item = document.createElement("div");
           item.className = "noti-item unread"; 
@@ -343,12 +315,12 @@
         notiListContainer.innerHTML = `
           <div class="empty-noti">
             <i class="fa-regular fa-bell-slashed"></i>
-            <p>No Notificationsใ</p>
+            <p>No Notifications.</p>
           </div>`;
       }
     }
 
-    // 3. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่ (พิมพ์แค่ข้อความอย่างเดียว)
+    // 3. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่ (ใช้ข้อมูลผู้ใช้ที่ดึงมาตรงๆ)
     btnAdd.addEventListener("click", () => {
       const actionInput = document.getElementById("input-action").value.trim();
 
@@ -357,16 +329,11 @@
         return;
       }
 
-      // ตรวจสอบชื่อและรูปโปรไฟล์ หากไม่มีให้ใช้ค่า Default เป็น Admin
-      const writerName = currentUser ? (currentUser.name || currentUser.username || currentUser.display_name) : "Admin";
-      const userAvatar = currentUser ? (currentUser.profile || currentUser.avatar || currentUser.image) : "";
-      const userRole = currentUser ? (currentUser.role || currentUser.Role) : "Admin";
-
       const newNotification = {
-        writer: writerName,
+        writer: savedName,
         action: actionInput,
-        avatar: userAvatar,
-        role: userRole,
+        avatar: savedProfile,
+        role: savedRole, // เซฟค่า Role ต้นฉบับเก็บไว้เช็กติ๊กถูกสีฟ้า
         timestamp: Date.now()
       };
 
@@ -377,7 +344,7 @@
       renderUI();
     });
 
-    // 4. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดบนหน้าจอ
+    // 4. ระบบล้างข้อมูลแจ้งเตือนทั้งหมด
     btnReset.addEventListener("click", () => {
       if(confirm("Are you sure you want to clear all notifications?")) {
         myNotifications = [];
