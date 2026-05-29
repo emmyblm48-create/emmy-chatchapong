@@ -764,7 +764,7 @@
     }
 
     // =========================================================================
-    // 👑 ADVANCED TIMELINE PORTED LOGIC
+    // 👑 ADVANCED TIMELINE PORTED LOGIC (อัปเดตให้แสดงรูปเดียวเต็มจอเหมือนหน้าหลัก)
     // =========================================================================
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
@@ -824,22 +824,32 @@
         `;
       }
 
-      // 📸 [จัดการแกลเลอรี่รูปภาพรองรับ Multi-Images]
+      // 📸 [จัดการแกลเลอรี่รูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็มจอ)
       let imagesHtml = '';
       if (displayImage) {
         const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
         const visibleImages = imageUrls.slice(0, 4);
         
-        imagesHtml += `<div class="post-gallery">`;
-        visibleImages.forEach((url, index) => {
-          imagesHtml += `<div class="img-container-box">`;
-          imagesHtml += `<img src="${url}" class="gallery-img-item" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])">`;
-          if (index === 3 && imageUrls.length > 4) {
-            imagesHtml += `<div class="more-overlay" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])">+${imageUrls.length - 4}</div>`;
-          }
+        if (imageUrls.length === 1) {
+          // 🌟 กรณีมีรูปเดียว: แสดงเต็มความกว้างและจัดกึ่งกลาง
+          imagesHtml += `
+            <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
+              <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+            </div>
+          `;
+        } else {
+          // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์
+          imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+          visibleImages.forEach((url, index) => {
+            imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
+            imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
+            if (index === 3 && imageUrls.length > 4) {
+              imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
+            }
+            imagesHtml += `</div>`;
+          });
           imagesHtml += `</div>`;
-        });
-        imagesHtml += `</div>`;
+        }
       }
 
       const actionMenu = canManage ? `
@@ -890,10 +900,52 @@
       `;
     }
 
+  // =========================================================================
+    // ⚡ ฟังก์ชันโหลดโพสต์ของเมมเบอร์ (อัปเดตระบบแคชให้โหลดเร็วขึ้น)
+    // =========================================================================
     async function loadMemberTimelinePosts() {
       if (window.isTimelineLoading) return;
       const container = document.getElementById('posts-container');
       if (!container) return;
+
+      // 🌸 ขั้นตอนที่ A: ดึงโพสต์จากแคช (ถ้ามี) มาโชว์ก่อนทันที
+      const cachedPostsStr = localStorage.getItem('blm48_posts_cache');
+      const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
+
+      if (cachedPostsStr && isContainerEmpty) {
+        try {
+          let allCachedPosts = JSON.parse(cachedPostsStr);
+          // กรองเอาเฉพาะโพสต์ของเมมเบอร์คนนี้
+          let memberCachedPosts = allCachedPosts.filter(post => 
+              (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
+              (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
+          );
+          
+          if (memberCachedPosts.length > 0) {
+            let tempPosts = [...memberCachedPosts];
+            tempPosts.reverse();
+            const loadingMsg = document.getElementById('loading-msg');
+            if (loadingMsg) loadingMsg.remove(); // ลบข้อความ LOADING ออก
+            
+            tempPosts.forEach(post => {
+              container.insertAdjacentHTML('afterbegin', renderPost(post));
+            });
+          }
+        } catch (e) {
+          console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e);
+        }
+      }
+
+      const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
+
+      if (!hasExistingPosts) {
+        if (!document.getElementById('loading-msg')) {
+           container.innerHTML = `
+             <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
+               <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
+             </div>`;
+        }
+      }
 
       try {
         window.isTimelineLoading = true;
@@ -902,11 +954,19 @@
         const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
         
         let posts = await response.json();
+        
+        // 🌸 ขั้นตอนที่ B: อัปเดตแคชให้เป็นเวอร์ชันล่าสุด
+        if (posts && posts.length > 0) {
+          localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+        }
+        
         const loadingMsg = document.getElementById('loading-msg');
         if (loadingMsg) loadingMsg.remove();
 
         if (!posts || posts.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
+            if (!hasExistingPosts) {
+               container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
+            }
             return;
         }
 
@@ -916,7 +976,9 @@
         );
 
         if (memberPosts.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Not Posts Yet</div>';
+            if (!hasExistingPosts) {
+               container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Not Posts Yet</div>';
+            }
             return;
         }
 
@@ -937,12 +999,14 @@
         
       } catch (error) {
         console.error("โหลดฟีดล้มเหลว:", error);
-        container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
+        if (!hasExistingPosts) {
+           container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
+        }
       } finally {
         window.isTimelineLoading = false;
       }
     }
-
+  
     async function deletePostUi(postId) {
       const result = await Swal.fire({
         title: 'ลบโพสต์นี้?', text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!", icon: 'warning',
