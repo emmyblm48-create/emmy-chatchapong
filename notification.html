@@ -7,6 +7,20 @@
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <meta name="theme-color" content="#ffc0cb">
   
+  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+  <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+  <meta name="apple-mobile-web-app-title" content="BLM48">   
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+  
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -367,7 +381,20 @@
     let myNotifications = [];
 
     // =========================================================
-    // 💖 [เพิ่มใหม่] ฟังก์ชันสร้างกล่องยืนยัน (Custom Confirm) สุดหวาน
+    // ⚡ 2.5 โหลดข้อมูลแคชเก่ามาแสดงก่อนทันทีเพื่อลดความหน่วงหน้าจอ
+    // =========================================================
+    const cachedNoti = localStorage.getItem("blm48_notifications_cache");
+    if (cachedNoti) {
+      try {
+        myNotifications = JSON.parse(cachedNoti);
+        renderUI(); // Render ข้อมูลเก่าขึ้นจอก่อน ไม่ปล่อยให้หน้าขาวโล่งงับ 🎀
+      } catch (e) {
+        console.error("❌ Cache parse error:", e);
+      }
+    }
+
+    // =========================================================
+    // 💖 ฟังก์ชันสร้างกล่องยืนยัน (Custom Confirm) สุดหวาน
     // =========================================================
     const cuteConfirm = (message) => {
       return new Promise((resolve) => {
@@ -395,7 +422,7 @@
     };
 
     // =========================================================
-    // 💖 [เพิ่มใหม่] ฟังก์ชันสร้างสติกเกอร์แจ้งเตือนสั้นๆ (Cute Toast) เด้งบนจอ
+    // 💖 ฟังก์ชันสร้างสติกเกอร์แจ้งเตือนสั้นๆ (Cute Toast) เด้งบนจอ
     // =========================================================
     const cuteToast = (message, icon = "fa-circle-check") => {
       const toast = document.createElement('div');
@@ -421,11 +448,14 @@
     // 🌸 3. ฟังก์ชันดึงข้อมูลจาก Google Sheet (API GET)
     // =========================================================
     async function fetchNotifications() {
-      notiListContainer.innerHTML = `
-        <div class="empty-noti">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          <p>Loading notifications...</p>
-        </div>`;
+      // ถ้าไม่มีข้อมูลในแคชเก่าอยู่เลย ค่อยเปิดหน้าต่างปุ่มหมุนเพื่อความสวยงาม
+      if (!myNotifications || myNotifications.length === 0) {
+        notiListContainer.innerHTML = `
+          <div class="empty-noti">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Loading notifications...</p>
+          </div>`;
+      }
       
       btnRefresh.querySelector('i').classList.add('fa-spin');
       btnRefresh.disabled = true;
@@ -435,14 +465,23 @@
         if (!response.ok) throw new Error("Network response was not ok");
         
         myNotifications = await response.json();
+        
+        // 💾 อัปเดตบันทึกข้อมูลสดใหม่ลง Cache ทันที
+        localStorage.setItem("blm48_notifications_cache", JSON.stringify(myNotifications));
         renderUI();
       } catch (error) {
         console.error("❌ Error fetching notifications:", error);
-        notiListContainer.innerHTML = `
-          <div class="empty-noti" style="color:#ff6b8b;">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <p>Failed to update. Please try again!</p>
-          </div>`;
+        
+        // หากไม่มีข้อมูลในแคชอยู่ก่อนแล้ว ค่อยแจ้งความผิดพลาดบนการ์ดหลัก
+        if (!myNotifications || myNotifications.length === 0) {
+          notiListContainer.innerHTML = `
+            <div class="empty-noti" style="color:#ff6b8b;">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <p>Failed to update. Please try again!</p>
+            </div>`;
+        } else {
+          cuteToast("ไม่สามารถอัปเดตข้อมูลใหม่ได้ โปรดลองอีกครั้งนะคะ", "fa-triangle-exclamation");
+        }
       } finally {
         btnRefresh.querySelector('i').classList.remove('fa-spin');
         btnRefresh.disabled = false;
@@ -450,7 +489,7 @@
     }
     
     // =========================================================
-    // 🗑️ 4. ฟังก์ชันลบเดี่ยวแบบ Global (ใช้ Custom UI เรียบร้อย)
+    // 🗑️ 4. ฟังก์ชันลบเดี่ยวแบบ Global
     // =========================================================
     window.deleteSingleNoti = async function(timestamp) {
       const isConfirm = await cuteConfirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้? 🗑️");
@@ -520,7 +559,7 @@
     }
 
     // =========================================================
-    // ✍️ 6. ระบบเพิ่มแจ้งเตือนใหม่ (อัปเกรดใช้ Cute Toast)
+    // ✍️ 6. ระบบเพิ่มแจ้งเตือนใหม่
     // =========================================================
     if (btnAdd) {
       btnAdd.addEventListener("click", async () => {
@@ -572,7 +611,7 @@
     }
 
     // =========================================================
-    // 🗑️ 7. ระบบล้างข้อมูลแจ้งเตือนทั้งหมด (อัปเกรดใช้ Custom UI)
+    // 🗑️ 7. ระบบล้างข้อมูลแจ้งเตือนทั้งหมด
     // =========================================================
     if (btnReset) {
       btnReset.addEventListener("click", async () => {
