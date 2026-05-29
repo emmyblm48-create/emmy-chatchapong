@@ -2067,10 +2067,9 @@ function renderPost(post) {
   // =========================================================================
   // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
   // =========================================================================
-  // 💡 ปล่อยเนื้อหาในกล่องให้ว่าง หรือใส่ตัวโหลดไว้ชั่วคราว เพราะ Firebase v10 จะเป็นคนกวาดคอมเมนต์มาแปะให้อัตโนมัติเองงับ
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
   setTimeout(() => {
-    listenToCommentsRealtime('${postId}');
+    listenToCommentsRealtime(`${postId}`);
   }, 100);
 
   // =========================================================================
@@ -2106,23 +2105,33 @@ function renderPost(post) {
   }
 
   // =========================================================================
-  // 📸 [จัดการรูปภาพ]
+  // 📸 [จัดการรูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็ม)
   // =========================================================================
   let imagesHtml = '';
   if (displayImage) {
     const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
     const visibleImages = imageUrls.slice(0, 4);
     
-    imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
-    visibleImages.forEach((url, index) => {
-      imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
-      imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
-      if (index === 3 && imageUrls.length > 4) {
-        imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
-      }
+    if (imageUrls.length === 1) {
+      // 🌟 กรณีมีรูปเดียว: แสดงเต็มความกว้างและจัดกึ่งกลาง
+      imagesHtml += `
+        <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
+          <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+        </div>
+      `;
+    } else {
+      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์เหมือนเดิม
+      imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+      visibleImages.forEach((url, index) => {
+        imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
+        imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
+        if (index === 3 && imageUrls.length > 4) {
+          imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
+        }
+        imagesHtml += `</div>`;
+      });
       imagesHtml += `</div>`;
-    });
-    imagesHtml += `</div>`;
+    }
   }
 
   const actionMenu = canManage ? `
