@@ -252,6 +252,21 @@
       font-size: 0.85rem;
       vertical-align: middle;
     }
+    
+    .btn-del-item {
+      background: #fff0f3;
+      border: none;
+      color: #ff85a2;
+      padding: 8px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: 0.2s;
+    }
+    .btn-del-item:hover {
+      background: #ff85a2;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -377,45 +392,70 @@
         btnRefresh.disabled = false;
       }
     }
+    
+    async function deleteSingleNoti(timestamp) {
+      if (!confirm("ลบการแจ้งเตือนนี้ใช่ไหม?")) return;
 
+      try {
+        // ส่ง type: "delete" และค่า timestamp ไปที่ Google Apps Script
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ type: "delete", timestamp: timestamp })
+        });
+
+        if (response.ok) {
+          fetchNotifications(); // โหลดข้อมูลใหม่หลังจากลบ
+        }
+      } catch (error) {
+        alert("เกิดข้อผิดพลาดในการลบ");
+      }
+    }
+    
     // =========================================================
     // 🎨 4. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
     // =========================================================
     function renderUI() {
-      if (myNotifications && myNotifications.length > 0) {
-        notiListContainer.innerHTML = ""; 
-        
-        const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
+  if (myNotifications && myNotifications.length > 0) {
+    notiListContainer.innerHTML = ""; 
+    
+    const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
 
-        sortedList.forEach(noti => {
-          const notiDate = new Date(noti.timestamp);
-          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    sortedList.forEach(noti => {
+      const notiDate = new Date(noti.timestamp);
+      const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-          const checkRole = (noti.role || "").toLowerCase().trim();
-          const showVerified = (checkRole === "admin" || checkRole === "ceo");
-          const verifiedBadge = showVerified ? ` <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-      <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-    </svg>` : '';
+      // ตรวจสอบสิทธิ์สำหรับ badge
+      const checkRole = (noti.role || "").toLowerCase().trim();
+      const showVerified = (checkRole === "admin" || checkRole === "ceo");
+      const verifiedBadge = showVerified ? ` <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+        <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+      </svg>` : '';
 
-          const item = document.createElement("div");
-          item.className = "noti-item unread"; 
-          item.innerHTML = `
-            <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
-            <div class="noti-content">
-              <p class="noti-text"><strong>${noti.writer}</strong>${verifiedBadge} ${noti.action}</p>
-              <div class="noti-time">${timeString}</div>
-            </div>
-          `;
-          notiListContainer.appendChild(item);
-        });
-      } else {
-        notiListContainer.innerHTML = `
-          <div class="empty-noti">
-            <i class="fa-regular fa-bell-slashed"></i>
-            <p>No Notifications.</p>
-          </div>`;
-      }
-    }
+      // สร้างปุ่มลบ (แสดงเฉพาะ Admin/CEO ที่ดูหน้าเว็บอยู่)
+      const deleteBtn = (checkRoleLower === "admin" || checkRoleLower === "ceo") 
+        ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.timestamp})"><i class="fa-solid fa-trash-can"></i></button>` 
+        : '';
+
+      const item = document.createElement("div");
+      item.className = "noti-item unread"; 
+      item.innerHTML = `
+        <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
+        <div class="noti-content">
+          <p class="noti-text"><strong>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
+          <div class="noti-time">${timeString}</div>
+        </div>
+        ${deleteBtn}
+      `;
+      notiListContainer.appendChild(item);
+    });
+  } else {
+    notiListContainer.innerHTML = `
+      <div class="empty-noti">
+        <i class="fa-regular fa-bell-slashed"></i>
+        <p>No Notifications.</p>
+      </div>`;
+  }
+}
 
     // =========================================================
     // ✍️ 5. ระบบเพิ่มแจ้งเตือนใหม่ไปยัง Google Sheet และ Firebase (รวมโค้ดเรียบร้อย)
