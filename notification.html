@@ -226,7 +226,7 @@
   </div>
 
   <div class="sync-status-bar" id="sync-status">
-    <i class="fa-solid fa-spinner fa-spin"></i> Authorizing profile ...
+    <i class="fa-solid fa-spinner fa-spin"></i> Authorizing profile...
   </div>
   
   <div class="manual-input-box" id="input-panel">
@@ -261,7 +261,6 @@
     const btnAdd = document.getElementById("btn-add");
     const btnReset = document.getElementById("btn-reset");
 
-    // Google Sheets endpoint configuration
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     const activeUsername = localStorage.getItem("activeUsername") || localStorage.getItem("username") || "Guest";
 
@@ -272,14 +271,15 @@
         const sheetData = await response.json();
         
         if (sheetData.status === "success" || sheetData.role) {
-          // Store valid configurations fetched securely from database
-          localStorage.setItem("role", sheetData.role || "User");
+          // เซฟค่าที่ผ่านการคลีนข้อความและช่องว่างแล้วแบบปลอดภัย
+          const rawRole = sheetData.role ? sheetData.role.toString().trim() : "User";
+          localStorage.setItem("role", rawRole);
+          
           if(sheetData.nickname) localStorage.setItem("activeUsername", sheetData.nickname);
           if(sheetData.avatar) localStorage.setItem("avatar", sheetData.avatar);
           
-          syncStatus.innerHTML = `<i class="fa-solid fa-shield-solid" style="color: #2ec4b6;"></i> Role Verified via Google Sheets!`;
+          syncStatus.innerHTML = `<i class="fa-solid fa-shield-halved" style="color: #2ec4b6;"></i> Role Verified via Google Sheets!`;
         } else {
-          // If profile not found, fallback securely to User role
           localStorage.setItem("role", "User");
           syncStatus.innerHTML = `<i class="fa-solid fa-user-lock"></i> Standard User Mode Active.`;
         }
@@ -288,27 +288,29 @@
         syncStatus.innerHTML = `<i class="fa-solid fa-wifi-slash" style="color: #e63946;"></i> Live authorization offline.`;
       }
 
-      // Execute conditional layout check based on finalized roles
       checkRolePermission();
     }
 
-    // 🔒 Enforce Security Policy Layer 1: UI View Enforcement
+    // 🔒 ระบบตรวจสอบสิทธิ์ที่ได้รับการอัปเดต (Case-Insensitive 🛠️)
     function checkRolePermission() {
-      const currentRole = localStorage.getItem("role") || "User";
+      const rawRole = localStorage.getItem("role") || "User";
+      // แปลงเป็นตัวพิมพ์ใหญ่ทั้งหมดเพื่อป้องกันความผิดพลาดจากฐานข้อมูลหลังบ้าน
+      const currentRoleCleaned = rawRole.trim().toUpperCase(); 
       const currentName = localStorage.getItem("activeUsername") || activeUsername;
 
-      const hasVerified = (currentRole === "Admin" || currentRole === "CEO") ? `<i class="fa-solid fa-circle-check verified-icon"></i>` : "";
-      userPreview.innerHTML = `Posting as: <strong>${currentName} ${hasVerified}</strong> (${currentRole})`;
+      const isAuthorized = (currentRoleCleaned === "ADMIN" || currentRoleCleaned === "CEO");
+      const hasVerified = isAuthorized ? `<i class="fa-solid fa-circle-check verified-icon"></i>` : "";
+      
+      userPreview.innerHTML = `Posting as: <strong>${currentName} ${hasVerified}</strong> (${rawRole})`;
 
-      // ABSOLUTE BLOCK: ONLY Admin or CEO can change display style to flex
-      if (currentRole === "Admin" || currentRole === "CEO") {
+      // ยืดหยุ่นและปลอดภัยสูง
+      if (isAuthorized) {
         inputPanel.style.display = "flex";
       } else {
-        inputPanel.style.display = "none"; // Hard hide for User and Member roles
+        inputPanel.style.display = "none";
       }
     }
 
-    // Retrieve notifications feed from localStorage
     let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [
       {
         writer: "BLM48",
@@ -328,7 +330,8 @@
           const notiDate = new Date(noti.timestamp);
           const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-          const showVerified = (noti.role === "Admin" || noti.role === "CEO") 
+          const notiRoleCleaned = noti.role ? noti.role.toString().trim().toUpperCase() : "USER";
+          const showVerified = (notiRoleCleaned === "ADMIN" || notiRoleCleaned === "CEO") 
             ? `<i class="fa-solid fa-circle-check verified-icon" title="Verified Professional"></i>` 
             : "";
 
@@ -352,26 +355,25 @@
       }
     }
 
-    // 🔒 Enforce Security Policy Layer 2: Click Submission Interception
+    // 🔒 จัดการปุ่มส่งข้อความ (เคสตัวพิมพ์ใหญ่-เล็ก)
     btnAdd.addEventListener("click", () => {
-      const currentRole = localStorage.getItem("role") || "User";
+      const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
       
-      // CRITICAL BLOCKING: Throw error alert and abort process if non-authorized roles bypass UI
-      if (currentRole !== "Admin" && currentRole !== "CEO") {
+      if (currentRoleCleaned !== "ADMIN" && currentRoleCleaned !== "CEO") {
         alert("Access Denied: Only Admin or CEO roles possess broadcasting permissions. 🛑");
         return;
       }
 
       const actionInput = document.getElementById("input-action").value.trim();
       if (!actionInput) {
-        alert("Please enter a notification message before sending!");
+        alert("Please enter a notification message before sending! 🥺");
         return;
       }
 
       const newNotification = {
         writer: localStorage.getItem("activeUsername") || activeUsername,
         avatar: localStorage.getItem("avatar") || "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32",
-        role: currentRole,
+        role: localStorage.getItem("role") || "User", // บันทึกตามรูปแบบเดิม
         action: actionInput,
         timestamp: Date.now()
       };
@@ -383,10 +385,10 @@
       renderUI();
     });
 
-    // Clear Feed Action Guard
+    // ปุ่มเครียสิทธิ์ล้างจอ
     btnReset.addEventListener("click", () => {
-      const currentRole = localStorage.getItem("role") || "User";
-      if (currentRole !== "Admin" && currentRole !== "CEO") {
+      const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
+      if (currentRoleCleaned !== "ADMIN" && currentRoleCleaned !== "CEO") {
         alert("Access Denied: Action restricted to System Authorities.");
         return;
       }
@@ -398,7 +400,6 @@
       }
     });
 
-    // Start secure sequence upon load
     syncUserProfileFromSheet();
     renderUI();
   });
