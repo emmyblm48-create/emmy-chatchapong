@@ -2190,19 +2190,38 @@ async function loadTimelinePosts() {
   const container = document.getElementById('posts-container');
   if (!container) return;
 
-  // 🔍 1. ตรวจสอบว่า ณ ตอนนี้บนหน้าจอมีโพสต์เก่าแสดงอยู่แล้วหรือยัง
+  // 🌸 ขั้นตอนที่ A: ลองดึงโพสต์เก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (ถ้าหน้าจอยังว่างอยู่)
+  const cachedPosts = localStorage.getItem('blm48_posts_cache');
+  const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
+
+  if (cachedPosts && isContainerEmpty) {
+    try {
+      let posts = JSON.parse(cachedPosts);
+      // ใช้กลไกการกลับด้านข้อมูลเพื่อให้ของใหม่กว่าอยู่ด้านบนเหมือนเดิม
+      let tempPosts = [...posts];
+      tempPosts.reverse();
+      tempPosts.forEach(post => {
+        container.insertAdjacentHTML('afterbegin', renderPost(post));
+      });
+      console.log("🌸 [Cache] แสดงผลฟีดจากแคชในเครื่องเรียบร้อย (โหลดเร็วขึ้น!)");
+    } catch (e) {
+      console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e);
+    }
+  }
+
+  // 🔍 ตรวจสอบอีกครั้งว่า ณ ตอนนี้บนหน้าจอมีโพสต์ (จากแคช หรือจากฟังก์ชันอื่น) แสดงอยู่แล้วหรือยัง
+  // (เลือกใช้ .post-card เพื่อไม่ให้นับรวม div ข้อความ LOADING)
   const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
 
-  // 🔍 2. ถ้า "ยังไม่เคยมีโพสต์เลย" (เช่น เพิ่งเปิดเว็บครั้งแรกสุดในชีวิต) ค่อยแสดงข้อความกำลังโหลด
+  // 🔍 ถ้าไม่มีข้อมูลในแคช และ "ยังไม่เคยมีโพสต์เลยจริงๆ" ค่อยแสดงข้อความกำลังโหลด
   if (!hasExistingPosts) {
     if (!document.getElementById('loading-msg')) {
       container.innerHTML = `
         <div id="loading-msg" style="text-align: center; padding: 30px 20px; color: #ff85a2; font-size: 0.95rem;">
-          <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADIND...
+          <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
         </div>`;
     }
   }
-  // 💡 หมายเหตุ: ถ้ามีโพสต์เก่าอยู่แล้ว บล็อกข้างบนจะไม่ทำงาน ทำให้โพสต์เก่าค้างอยู่บนจอให้ผู้ใช้ไถอ่านได้ทันที!
 
   try {
     window.isTimelineLoading = true; // เปิดสถานะล็อกป้องกันการดึงข้อมูลซ้อนกัน
@@ -2213,7 +2232,7 @@ async function loadTimelinePosts() {
     
     let posts = await response.json();
     
-    // หากดึงข้อมูลมาแล้วไม่มีโพสต์เลย
+    // หากดึงข้อมูลจากเซอร์เวอร์มาแล้วไม่มีโพสต์เลย
     if (!posts || posts.length === 0) {
       if (!hasExistingPosts) {
         container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: gray; font-size: 0.9rem;">NOT POSTS YET</div>`;
@@ -2221,37 +2240,40 @@ async function loadTimelinePosts() {
       return;
     }
 
+    // 🌸 ขั้นตอนที่ B: ข้อมูลอัปเดตล่าสุดส่งมาถึงแล้ว บันทึกทับลงแคชเพื่อไว้ใช้ในรอบหน้า
+    localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+
     // ลบข้อความ "กำลังโหลด" ออกไป (ถ้ามีอยู่บนจอ)
     const loadingMsg = document.getElementById('loading-msg');
     if (loadingMsg) loadingMsg.remove();
 
-    // 🌟 ทริค: กลับด้านข้อมูลให้เป็น (เก่าสุด -> ใหม่สุด) เพื่อนำของใหม่ไปหยอดแทรกไว้ "บนสุด"
+    // 🌟 ทริคเดิมของคุณเอ็มมี่: กลับด้านข้อมูลเพื่อนำของใหม่ไปหยอดแทรกไว้ "บนสุด"
     posts.reverse(); 
 
     posts.forEach(post => {
       const existingPost = document.getElementById(`post-${post.id}`);
       
       if (existingPost) {
-        // 🎯 สถานการณ์ A (โพสต์เดิม): อัปเดตแค่ยอดไลก์และไอคอนหัวใจเงียบๆ (หน้าจอไม่กระพริบ ข้อมูลไม่หาย)
+        // 🎯 สถานการณ์ A (โพสต์เดิม): อัปเดตยอดไลก์และไอคอนหัวใจเงียบๆ (หน้าจอไม่กระพริบ)
         const likeCountEl = document.getElementById(`like-count-${post.id}`);
         if (likeCountEl) likeCountEl.innerText = post.likes;
         
         const heartIcon = document.getElementById(`heart-${post.id}`);
         if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
       } else {
-        // 🎯 สถานการณ์ B (โพสต์ใหม่แกะกล่อง): ให้วาด HTML แล้วแทรกดันไป "บนสุด" (afterbegin) ทันที!
+        // 🎯 สถานการณ์ B (มีโพสต์ใหม่แกะกล่องเพิ่งลง): เรนเดอร์ HTML แล้วแทรกดันไป "บนสุด" ทันที!
         container.insertAdjacentHTML('afterbegin', renderPost(post));
       }
     });
     
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
-    // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ ค่อยพ่นข้อความเตือน
+    // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ (ไม่มีทั้งแคชและข้อมูลเก่า) ค่อยแสดงข้อความเตือน
     if (!hasExistingPosts) {
       container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: #ff4d4d; font-size: 0.9rem;">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้งน้า 😥</div>`;
     }
   } finally {
-    window.isTimelineLoading = false; // ปลดล็อกเพื่อให้ระลอกถัดไปทำงานได้ปกติ
+    window.isTimelineLoading = false; // ปลดล็อกสถานะเสมอ ไม่ว่าจะดึงข้อมูลสำเร็จหรือพัง เพื่อให้กดโหลดรอบถัดไปได้ปกติ
   }
 }
 
