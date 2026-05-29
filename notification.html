@@ -16,7 +16,7 @@
       background-color: #fff0f5; 
       padding: 20px; 
       margin: 0;
-      padding-bottom: 110px; /* เผื่อพื้นที่ให้ Tab-bar ลอยตัวด้านล่าง */
+      padding-bottom: 110px; /* Space for floating tab-bar */
     }
     .noti-container { 
       max-width: 500px; 
@@ -37,8 +37,94 @@
       border-bottom: 2px dashed #fff0f3;
       padding-bottom: 12px;
     }
+
+    /* 🌐 Sheets Sync Status Bar */
+    .sync-status-bar {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fafafa;
+      padding: 6px 12px;
+      border-radius: 10px;
+    }
     
-    /* สไตล์การ์ดแจ้งเตือนแต่ละอัน 🌸 */
+    /* ✍️ Input Panel (Visible ONLY for Admin/CEO) */
+    .manual-input-box {
+      background: #fff5f7;
+      border: 1px dashed #ffccd5;
+      padding: 16px;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      display: none; /* Default hidden until role is verified */
+      flex-direction: column;
+      gap: 12px;
+    }
+    .manual-input-box h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #ff85a2;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .user-badge-preview {
+      font-size: 0.8rem;
+      color: #888;
+      background: rgba(255,255,255,0.7);
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    .manual-input-box input {
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      padding: 12px 14px;
+      border: 1px solid #ffe3e8;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      color: #555;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .manual-input-box input:focus {
+      border-color: #ff85a2;
+      background: #fff;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-submit {
+      flex: 2;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      background: #ff85a2;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { background: #ff6b8b; }
+    .btn-clear {
+      flex: 1;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      background: #e0e0e0;
+      color: #666;
+      border: none;
+      padding: 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-clear:hover { background: #d0d0d0; }
+
+    /* Notification Cards Feed 🌸 */
     .noti-list {
       display: flex;
       flex-direction: column;
@@ -52,11 +138,6 @@
       background: #fffbfb;
       border: 1px solid #fff0f3;
       border-radius: 16px;
-      transition: all 0.2s ease;
-    }
-    .noti-item.unread {
-      background: #fff5f7;
-      border-color: #ffccd5;
     }
     .noti-avatar {
       width: 48px;
@@ -76,22 +157,21 @@
     }
     .noti-text strong {
       color: #ff85a2;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
+    
+    /* 🔹 Instagram Verified Badge */
+    .verified-icon {
+      color: #0095f6;
+      font-size: 0.85rem;
+    }
+    
     .noti-time {
       font-size: 0.75rem;
       color: #aaa;
     }
-    .badge-tag {
-      font-size: 0.65rem;
-      background: #ff4d6d;
-      color: white;
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-weight: bold;
-      margin-left: 6px;
-    }
-    
-    /* หน้าจอว่างเปล่ากรณีไม่มีแจ้งเตือน ☁️ */
     .empty-noti {
       text-align: center;
       padding: 40px 20px;
@@ -102,7 +182,7 @@
       margin-bottom: 12px;
     }
 
-    /* Floating Tab-bar ดีไซน์ลอยตัวขอบมนตามบรีฟเด๊ะๆ 🎀 */
+    /* Floating Tab-bar 🎀 */
     .bottom-tab-bar {
         position: fixed;
         bottom: 24px;
@@ -128,39 +208,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
         color: #ffb3c1;
         text-decoration: none;
-        font-size: 0.85rem;
-        font-family: 'Quicksand', 'Kanit', sans-serif;
-        font-weight: 600;
         padding: 10px 14px;
         border-radius: 25px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        -webkit-tap-highlight-color: transparent;
     }
     .tab-item i { font-size: 1.25rem; }
-    .tab-item span { display: none; }
     .tab-item.active { background-color: #fff0f3; color: #ff85a2; }
-    .tab-item.active span { display: inline-block; }
-    
-    /* สไตล์สำหรับซ่อน/แสดงจุดแดงแจ้งเตือน 🔴 */
-    .icon-wrapper {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .noti-badge {
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      width: 8px;
-      height: 8px;
-      background-color: #ff4d6d;
-      border-radius: 50%;
-      border: 1px solid white;
-    }
   </style>
 </head>
 <body>
@@ -169,150 +224,185 @@
   <div class="header">
     <i class="fa-solid fa-bell"></i> Notifications
   </div>
+
+  <div class="sync-status-bar" id="sync-status">
+    <i class="fa-solid fa-spinner fa-spin"></i> Authorizing profile ...
+  </div>
   
-  <div id="noti-list" class="noti-list">
-    <div class="empty-noti">
-      <i class="fa-regular fa-bell-slashed"></i>
-      <p>No Notification</p>
+  <div class="manual-input-box" id="input-panel">
+    <h3><i class="fa-solid fa-bullhorn"></i> Broadcast New Notification</h3>
+    <div class="user-badge-preview" id="user-preview">
+      Verifying credentials...
+    </div>
+    <input type="text" id="input-action" placeholder="Type your notification message here...">
+    <div class="btn-group">
+      <button class="btn-submit" id="btn-add"><i class="fa-solid fa-paper-plane"></i> Send</button>
+      <button class="btn-clear" id="btn-reset"><i class="fa-solid fa-trash"></i> Clear All</button>
     </div>
   </div>
+  
+  <div id="noti-list" class="noti-list"></div>
 </div>
 
 <div class="bottom-tab-bar">
-  <a href="index.html" class="tab-item">
-    <i class="fa-solid fa-house"></i>
-  </a>
-  <a href="kami.html" class="tab-item">
-    <i class="fa-solid fa-star"></i>
-  </a>
-  <a href="shop.html" class="tab-item">
-    <i class="fa-solid fa-bag-shopping"></i>
-  </a>
-  <a href="notification.html" class="tab-item active">
-    <div class="icon-wrapper">
-      <i class="fa-solid fa-bell"></i>
-      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
-    </div>
-  </a>
-  <a href="member.html" class="tab-item">
-    <i class="fa-solid fa-user"></i>
-  </a>
+  <a href="index.html" class="tab-item"><i class="fa-solid fa-house"></i></a>
+  <a href="kami.html" class="tab-item"><i class="fa-solid fa-star"></i></a>
+  <a href="shop.html" class="tab-item"><i class="fa-solid fa-bag-shopping"></i></a>
+  <a href="notification.html" class="tab-item active"><i class="fa-solid fa-bell"></i></a>
+  <a href="member.html" class="tab-item"><i class="fa-solid fa-user"></i></a>
 </div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-  import { getDatabase, ref, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
-  // ค่าคอนฟิก Firebase หลักของ BLM48
-  const firebaseConfig = {
-    apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
-    authDomain: "blm48-official-site.firebaseapp.com",
-    projectId: "blm48-official-site",
-    databaseURL: "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    storageBucket: "blm48-official-site.firebasestorage.app",
-    messagingSenderId: "924510827472",
-    appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  localStorage.setItem("blm48_has_new_noti", "false");
-  loadRealtimeNotifications();
-
-  async function loadRealtimeNotifications() {
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
-    
-    // 🌐 ข้อมูลสำหรับเชื่อมต่อ Google Sheets หลังบ้านของเอ็มมี่
+    const inputPanel = document.getElementById("input-panel");
+    const userPreview = document.getElementById("user-preview");
+    const syncStatus = document.getElementById("sync-status");
+    const btnAdd = document.getElementById("btn-add");
+    const btnReset = document.getElementById("btn-reset");
+
+    // Google Sheets endpoint configuration
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    const activeUsername = localStorage.getItem("activeUsername") || localStorage.getItem("username") || "";
+    const activeUsername = localStorage.getItem("activeUsername") || localStorage.getItem("username") || "Guest";
 
-    // ดึงค่าสแตนด์บายจากเครื่องไว้ก่อนเผื่อเน็ตช้า
-    let savedKami = JSON.parse(localStorage.getItem("kami_members") || '[]');
-
-    // 🚀 สเตปพิเศษ: ยิงไปดึงรายชื่อคามิโอชิที่เป็นปัจจุบันที่สุดจากใจกลาง Google Sheet
-    if (activeUsername) {
+    // 🌐 Sync & Validate Role from Google Sheet
+    async function syncUserProfileFromSheet() {
       try {
-        const res = await fetch(`${scriptURL}?action=getKami&username=${encodeURIComponent(activeUsername)}`);
-        const sheetData = await res.json();
-        if (sheetData.status === "success" && sheetData.kami_members) {
-          savedKami = sheetData.kami_members;
-          localStorage.setItem("kami_members", JSON.stringify(savedKami)); // เซฟทับเก็บไว้ใช้งานต่อ
-          console.log("🔄 อัปเดตรายชื่อคามิโอชิจาก Google Sheets สำเร็จแล้ว!");
-        }
-      } catch (sheetError) {
-        console.error("❌ ดึงข้อมูลคามิจาก Sheets ไม่สำเร็จ ใช้ข้อมูลสำรองในเครื่องแทน:", sheetError);
-      }
-    }
-
-    // กรณีทดสอบระบบ หากไม่มีรายชื่อเลยให้ใช้ค่า Mock 
-    if (savedKami.length === 0) {
-      savedKami = ["Emmy", "Minnie", "Fame"];
-    }
-
-    console.log("📌 รายชื่อ Kami/Oshi ที่ใช้ในการกรอง:", savedKami);
-
-    try {
-      // ดึงแจ้งเตือนล่าสุด 30 อันดับแรก เรียงตามเวลาจาก Firebase
-      const notiQuery = query(ref(db, 'notifications'), orderByChild('timestamp'), limitToLast(30));
-      const snapshot = await get(notiQuery);
-
-      if (snapshot.exists()) {
-        const rawData = snapshot.val();
+        const response = await fetch(`${scriptURL}?action=getProfile&username=${encodeURIComponent(activeUsername)}`);
+        const sheetData = await response.json();
         
-        // แปลง Object ให้เป็น Array และเรียงลำดับจากใหม่สุดไปเก่าสุด
-        const notiList = Object.keys(rawData)
-          .map(key => rawData[key])
-          .sort((a, b) => b.timestamp - a.timestamp);
-
-        console.log("📡 ข้อมูลแจ้งเตือนทั้งหมดบน Firebase:", notiList);
-
-        // 🎯 ทำการกรองเอาเฉพาะโพสต์ของเมมเบอร์ที่เรากดคามิ/โอชิเอาไว้
-        const filteredNoti = notiList.filter(noti => {
-          return noti.writer && savedKami.map(k => k.trim().toLowerCase()).includes(noti.writer.trim().toLowerCase());
-        });
-
-        console.log("🎯 ข้อมูลแจ้งเตือนที่ผ่านตัวกรองคามิแล้ว:", filteredNoti);
-
-        if (filteredNoti.length > 0) {
-          notiListContainer.innerHTML = ""; // ล้างหน้าจอเพื่อเตรียมโชว์ข้อมูลจริง
+        if (sheetData.status === "success" || sheetData.role) {
+          // Store valid configurations fetched securely from database
+          localStorage.setItem("role", sheetData.role || "User");
+          if(sheetData.nickname) localStorage.setItem("activeUsername", sheetData.nickname);
+          if(sheetData.avatar) localStorage.setItem("avatar", sheetData.avatar);
           
-          filteredNoti.forEach(noti => {
-            let timeString = "เมื่อสักครู่";
-            if(noti.timestamp) {
-              const notiDate = new Date(noti.timestamp);
-              timeString = notiDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + " น.";
-            }
-
-            const item = document.createElement("div");
-            item.className = "noti-item unread"; 
-            item.innerHTML = `
-              <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32'}" class="noti-avatar" alt="avatar">
-              <div class="noti-content">
-                <p class="noti-text"><strong>${noti.writer}</strong> ${noti.action || 'ได้อัปเดตสถานะใหม่'}</p>
-                <div class="noti-time">${timeString}</div>
-              </div>
-            `;
-            notiListContainer.appendChild(item);
-          });
+          syncStatus.innerHTML = `<i class="fa-solid fa-shield-solid" style="color: #2ec4b6;"></i> Role Verified via Google Sheets!`;
         } else {
-          showEmptyState("ยังไม่มีการแจ้งเตือนใหม่จาก Kami หรือ Oshi ของคุณในขณะนี้~ 🌸");
+          // If profile not found, fallback securely to User role
+          localStorage.setItem("role", "User");
+          syncStatus.innerHTML = `<i class="fa-solid fa-user-lock"></i> Standard User Mode Active.`;
         }
-      } else {
-        showEmptyState("ยังไม่มีการแจ้งเตือนใดๆ ในระบบฐานข้อมูลเลยงับ~ ☁️");
+      } catch (error) {
+        console.error("❌ Database Connection Interrupted:", error);
+        syncStatus.innerHTML = `<i class="fa-solid fa-wifi-slash" style="color: #e63946;"></i> Live authorization offline.`;
       }
-    } catch (error) {
-      console.error("🔥 เกิด Error ระหว่างดึงข้อมูลแจ้งเตือน:", error);
-      showEmptyState("เกิดข้อผิดพลาดในการเชื่อมต่อระบบแจ้งเตือนงับ 😥");
-    }
-  }
 
-  function showEmptyState(message) {
-    document.getElementById("noti-list").innerHTML = `
-      <div class="empty-noti">
-        <i class="fa-regular fa-bell-slashed"></i>
-        <p>${message}</p>
-      </div>`;
-  }
+      // Execute conditional layout check based on finalized roles
+      checkRolePermission();
+    }
+
+    // 🔒 Enforce Security Policy Layer 1: UI View Enforcement
+    function checkRolePermission() {
+      const currentRole = localStorage.getItem("role") || "User";
+      const currentName = localStorage.getItem("activeUsername") || activeUsername;
+
+      const hasVerified = (currentRole === "Admin" || currentRole === "CEO") ? `<i class="fa-solid fa-circle-check verified-icon"></i>` : "";
+      userPreview.innerHTML = `Posting as: <strong>${currentName} ${hasVerified}</strong> (${currentRole})`;
+
+      // ABSOLUTE BLOCK: ONLY Admin or CEO can change display style to flex
+      if (currentRole === "Admin" || currentRole === "CEO") {
+        inputPanel.style.display = "flex";
+      } else {
+        inputPanel.style.display = "none"; // Hard hide for User and Member roles
+      }
+    }
+
+    // Retrieve notifications feed from localStorage
+    let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [
+      {
+        writer: "BLM48",
+        action: "welcomes everyone to the brand new notification service center! 🌸",
+        avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32",
+        role: "Admin",
+        timestamp: Date.now()
+      }
+    ];
+
+    function renderUI() {
+      if (myNotifications.length > 0) {
+        notiListContainer.innerHTML = "";
+        const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
+
+        sortedList.forEach(noti => {
+          const notiDate = new Date(noti.timestamp);
+          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+          const showVerified = (noti.role === "Admin" || noti.role === "CEO") 
+            ? `<i class="fa-solid fa-circle-check verified-icon" title="Verified Professional"></i>` 
+            : "";
+
+          const item = document.createElement("div");
+          item.className = "noti-item"; 
+          item.innerHTML = `
+            <img src="${noti.avatar || 'https://via.placeholder.com/150/ff4d6d/ffffff?text=BLM48'}" class="noti-avatar" alt="avatar">
+            <div class="noti-content">
+              <p class="noti-text"><strong>${noti.writer}${showVerified}</strong> ${noti.action}</p>
+              <div class="noti-time">${timeString}</div>
+            </div>
+          `;
+          notiListContainer.appendChild(item);
+        });
+      } else {
+        notiListContainer.innerHTML = `
+          <div class="empty-noti">
+            <i class="fa-regular fa-bell-slashed"></i>
+            <p>No new notifications at the moment~ ☁️</p>
+          </div>`;
+      }
+    }
+
+    // 🔒 Enforce Security Policy Layer 2: Click Submission Interception
+    btnAdd.addEventListener("click", () => {
+      const currentRole = localStorage.getItem("role") || "User";
+      
+      // CRITICAL BLOCKING: Throw error alert and abort process if non-authorized roles bypass UI
+      if (currentRole !== "Admin" && currentRole !== "CEO") {
+        alert("Access Denied: Only Admin or CEO roles possess broadcasting permissions. 🛑");
+        return;
+      }
+
+      const actionInput = document.getElementById("input-action").value.trim();
+      if (!actionInput) {
+        alert("Please enter a notification message before sending!");
+        return;
+      }
+
+      const newNotification = {
+        writer: localStorage.getItem("activeUsername") || activeUsername,
+        avatar: localStorage.getItem("avatar") || "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32",
+        role: currentRole,
+        action: actionInput,
+        timestamp: Date.now()
+      };
+
+      myNotifications.push(newNotification);
+      localStorage.setItem("manual_notis", JSON.stringify(myNotifications));
+
+      document.getElementById("input-action").value = "";
+      renderUI();
+    });
+
+    // Clear Feed Action Guard
+    btnReset.addEventListener("click", () => {
+      const currentRole = localStorage.getItem("role") || "User";
+      if (currentRole !== "Admin" && currentRole !== "CEO") {
+        alert("Access Denied: Action restricted to System Authorities.");
+        return;
+      }
+      
+      if(confirm("Are you sure you want to clear all notifications?")) {
+        myNotifications = [];
+        localStorage.removeItem("manual_notis");
+        renderUI();
+      }
+    });
+
+    // Start secure sequence upon load
+    syncUserProfileFromSheet();
+    renderUI();
+  });
 </script>
+
 </body>
 </html>
