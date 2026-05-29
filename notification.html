@@ -393,23 +393,40 @@
       }
     }
     
-    async function deleteSingleNoti(timestamp) {
-      if (!confirm("ลบการแจ้งเตือนนี้ใช่ไหม?")) return;
+     // =========================================================
+    // 🗑️ แก้ไขใหม่: ทำให้ฟังก์ชันลบเป็น Global เพื่อให้ปุ่ม HTML มองเห็น
+    // =========================================================
+    window.deleteSingleNoti = async function(timestamp) {
+      // 1. แจ้งเตือน Alert ยืนยันการลบ
+      if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้? 🗑️")) {
+        return; // ถ้ากดยกเลิก (Cancel) ให้หยุดการทำงาน
+      }
+
+      // แสดงสถานะโหลดที่ปุ่ม Refresh เพื่อให้รู้ว่ากำลังทำงาน
+      btnRefresh.querySelector('i').classList.add('fa-spin');
 
       try {
-        // ส่ง type: "delete" และค่า timestamp ไปที่ Google Apps Script
+        // ส่งคำสั่ง type: "delete" และค่า timestamp ไปที่ Google Apps Script
         const response = await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({ type: "delete", timestamp: timestamp })
         });
 
-        if (response.ok) {
-          fetchNotifications(); // โหลดข้อมูลใหม่หลังจากลบ
-        }
+        // ไม่ต้องเช็ค response.ok มากนักกับ Google Script เพราะบางครั้งติดเรื่อง CORS
+        // ให้สั่งโหลดข้อมูลใหม่เลย
+        fetchNotifications(); 
+        
+        // แจ้งเตือนเมื่อสั่งลบสำเร็จ (เป็นตัวเลือกเสริม ถ้าไม่ชอบลบออกได้ครับ)
+        alert("ลบการแจ้งเตือนสำเร็จ! ✨"); 
+
       } catch (error) {
-        alert("เกิดข้อผิดพลาดในการลบ");
+        console.error("❌ Delete Error:", error);
+        alert("เกิดข้อผิดพลาดในการลบ โปรดลองอีกครั้ง 🥺");
+      } finally {
+        // เอาสถานะหมุนๆ ออกจากปุ่ม Refresh
+        btnRefresh.querySelector('i').classList.remove('fa-spin');
       }
-    }
+    };
     
     // =========================================================
     // 🎨 4. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
@@ -433,7 +450,7 @@
 
       // สร้างปุ่มลบ (แสดงเฉพาะ Admin/CEO ที่ดูหน้าเว็บอยู่)
       const deleteBtn = (checkRoleLower === "admin" || checkRoleLower === "ceo") 
-        ? `<button class="btn-del-item" onclick="deleteSingleNoti('${noti.timestamp}')"><i class="fa-solid fa-trash-can"></i></button>` 
+        ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.timestamp})"><i class="fa-solid fa-trash-can"></i></button>` 
         : '';
 
       const item = document.createElement("div");
