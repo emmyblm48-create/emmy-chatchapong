@@ -2,7 +2,7 @@
 <html lang="en">
 
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>BLM48 Membership</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
@@ -60,6 +60,8 @@
       padding: 0;
       min-height: 100vh;
       overflow-x: hidden;
+      padding-top: 70px;    /* ระยะดันจากด้านบน (ปรับเพิ่ม/ลดตามความสูงของ Navbar เดิม) */
+      padding-bottom: 80px; /* ระยะเผื่อด้านล่างเพื่อไม่ให้ Tab-bar บังโพสต์สุดท้ายงับ 🎀 */
     }
     
     /* 📱 ระบบสไลด์หน้าจอหลัก (หลังล็อกอิน) */
@@ -274,6 +276,67 @@ body {
     .nav-btns { display: flex; gap: 15px; }
     .nav-icon { background: none; border: none; color: #ffb3c1; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
     .nav-icon:hover { color: var(--primary-pink); transform: scale(1.1); }
+    
+    .navbar, header { /* เปลี่ยนเป็นชื่อคลาสหรือแท็กที่เอ็มมี่ใช้สําหรับแถบบนสุดน้า */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-sizing: border-box;
+    background-color: #ffffff; /* ปรับสีตามดีไซน์เดิมได้เลยงับ */
+    box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
+}
+    
+    .bottom-tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #ffccd5;
+    box-shadow: 0 -4px 16px rgba(255, 133, 162, 0.08);
+    z-index: 1000;
+    /* รองรับ Safe Area สำหรับ iPhone รุ่นใหม่ๆ ที่มีรอยบากด้านล่าง */
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
+}
+    
+    .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffa3b1; /* สีตอนที่ยังไม่ได้กดเลือก */
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-family: 'Quicksand', 'Kanit', sans-serif;
+    font-weight: 500;
+    width: 20%;
+    height: 100%;
+    transition: all 0.2s ease;
+    touch-action: manipulation; /* ป้องกันหน้าจอซูมเมื่อแฟนคลับกดเมนูรัวๆ 🌟 */
+}
+
+    .tab-item i {
+        font-size: 1.3rem;
+        margin-bottom: 3px;
+        transition: transform 0.2s;
+    }
+
+    /* สไตล์เมื่ออยู่ในหน้านั้นๆ (Active) 💖 */
+    .tab-item.active {
+        color: #ff85a2;
+        font-weight: 700;
+    }
+
+    .tab-item.active i {
+        transform: scale(1.12); /* ขยายไอคอนขึ้นเล็กน้อยให้ดูมีมิติ */
+    }
     
     /* กำหนดความกว้างของ Scrollbar */
 ::-webkit-scrollbar {
@@ -2580,7 +2643,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = snapshot.val();
       
       if (!data) {
-        commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Not Comments Yet</div>`;
+        commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาประเดิมคนแรกกันเถอะงับ!</div>`;
         if (commentCountEl) commentCountEl.innerText = "0";
         return;
       }
@@ -2734,6 +2797,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }, 300); // ทำงานทุกๆ 0.3 วินาที (รวดเร็ว ทันใจ และไม่กินแรมเครื่อง)
 </script>
+<div class="bottom-tab-bar">
+  <a href="index.html" class="tab-item active">
+    <i class="fa-solid fa-house"></i>
+  </a>
+  
+  <a href="kami.html" class="tab-item">
+    <i class="fa-solid fa-star"></i>
+  </a>
+  
+  <a href="shop.html" class="tab-item">
+    <i class="fa-solid fa-bag-shopping"></i>
+  </a>
+  
+  <a href="#" class="tab-item">
+    <i class="fa-solid fa-bell"></i>
+  </a>
+  
+  <a href="member.html" class="tab-item">
+    <i class="fa-solid fa-user"></i>
+  </a>
+</div>
 </body>
 </html>
 <div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
