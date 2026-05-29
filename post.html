@@ -58,7 +58,7 @@
       border-radius: 16px; 
       padding: 16px; 
       font-family: inherit; 
-      font-size: 16px; /* ปรับเป็น 16px เพื่อล็อกไม่ให้ iOS ซูมหน้าจอเวลาพิมพ์ 🌸 */
+      font-size: 0.95rem;
       resize: none; 
       box-sizing: border-box;
       background-color: #fffbfb;
@@ -116,63 +116,10 @@
     /* Image Preview Tray */
     #image-preview-container {
       display: flex;
-      gap: 14px;
+      gap: 10px;
       overflow-x: auto;
       margin-top: 10px;
-      padding: 8px 4px;
-    }
-
-    /* สไตล์สำหรับการแสดงผลการ์ดพรีวิวรูปภาพและการจัดลำดับ 🎀 */
-    .preview-card {
-      position: relative;
-      display: inline-block;
-      flex-shrink: 0;
-      width: 80px;
-    }
-    .preview-card img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid #ffccd5;
-    }
-    .preview-controls {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 6px;
-    }
-    .btn-control {
-      background: rgba(255, 133, 162, 0.12);
-      color: #ff85a2;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.7rem;
-      cursor: pointer;
-      padding: 3px 8px;
-      font-weight: bold;
-      transition: all 0.2s;
-    }
-    .btn-control:hover {
-      background: #ff85a2;
-      color: white;
-    }
-    .btn-delete-img {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background: #ff4d6d;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      font-size: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      z-index: 10;
+      padding: 4px 0;
     }
     
     /* Audio Recorder UI */
@@ -236,11 +183,6 @@
       background-color: #ff6b8b;
       transform: translateY(-1px);
     }
-
-    /* ป้องกันเบิ้ลคลิกซูมบนปุ่มและช่องกรอกข้อมูล 🌸 */
-    button, input, textarea, a, .custom-file-upload {
-      touch-action: manipulation;
-    }
   </style>
 </head>
 <body>
@@ -286,13 +228,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-  import { getDatabase, ref, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
-  import { getDatabase, ref as dbRef, push as dbPush } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
   const SUPABASE_URL = "https://kmolgfghbviwxqlhnlku.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imttb2xnZmdoYnZpd3hxbGhubGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzE2NzgsImV4cCI6MjA5NTU0NzY3OH0.BlGST7XnJKw5aIb1mlVx9-yMtOwVmWc0gSUNZr2gqw0";
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const database = getDatabase(app);
 
   const firebaseConfig = {
     apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
@@ -305,11 +244,7 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
   const IMGBB_API_KEY = "80ad839da07973eeefee57af54fc9f6d";
-
-  // สร้างตัวแปร Array ส่วนกลางเพื่อเก็บไฟล์และเรียงลำดับรูปภาพ 🌟
-  let selectedFiles = [];
 
   async function uploadImageToImgBB(file) {
     const formData = new FormData();
@@ -328,7 +263,8 @@
     }
   }
 
-  async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
+  // ฟังก์ชันอัปโหลดไฟล์เสียงไปยัง Supabase Storage
+    async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
     const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
     
     const { data, error } = await supabaseClient.storage
@@ -340,6 +276,7 @@
 
     if (error) throw new Error("Upload Error: " + error.message);
 
+    // 🌟 อันนี้คือตัวการสำคัญ: getPublicUrl ต้องออกมาเป็นรูปแบบไม่มี /sign/ 
     const { data: publicUrlData } = supabaseClient.storage
       .from('posts-media')
       .getPublicUrl(fileName);
@@ -376,6 +313,7 @@
   const recordStatus = document.getElementById('record-status');
   const audioPreview = document.getElementById('audio-preview');
 
+  // Audio Recording Controller
   btnRecord.addEventListener('click', async () => {
     if (!mediaRecorder || mediaRecorder.state === "inactive") {
       try {
@@ -408,91 +346,30 @@
     }
   });
 
-  // ฟังก์ชันสแกนและจัดการไฟล์รูปภาพที่เลือกเพิ่มเข้ามา 📸
+  // Image Preview Renderer
   window.previewMultipleImages = function(input) {
-    if (input.files && input.files.length > 0) {
-      // เอาไฟล์ใหม่ใส่รวมเข้าไปใน Array ส่วนกลาง
-      Array.from(input.files).forEach(file => {
-        selectedFiles.push(file);
-      });
-      // เคลียร์ค่าที่ input เพื่อให้ผู้ใช้กดเลือกไฟล์ซ้ำหรือไฟล์เดิมเพิ่มได้
-      input.value = '';
-      // ทำการวาดหน้าต่างรีวิวรูปภาพใหม่
-      renderPreviews();
-    }
-  }
-
-  // ฟังก์ชันวาดองค์ประกอบพรีวิวพร้อมตัวควบคุมการเรียงลำดับ รูปภาพ 🛠️✨
-  function renderPreviews() {
     const container = document.getElementById('image-preview-container');
     container.innerHTML = '';
     
-    selectedFiles.forEach((file, index) => {
-      const card = document.createElement('div');
-      card.className = 'preview-card';
-      
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-      card.appendChild(img);
-      
-      // สร้างปุ่มลบรูปภาพ (X) ❌
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'btn-delete-img';
-      deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-      deleteBtn.type = 'button';
-      deleteBtn.onclick = function(e) {
-        e.preventDefault();
-        selectedFiles.splice(index, 1); // ลบไฟล์ออกจาก Array ตาม Index ที่คลิก
-        renderPreviews(); // วาดพรีวิวใหม่
-      };
-      card.appendChild(deleteBtn);
-      
-      // สร้างแถบปุ่มเลื่อนสลับซ้าย-ขวา ⬅️ ➡️
-      const controls = document.createElement('div');
-      controls.className = 'preview-controls';
-      
-      // ปุ่มเลื่อนซ้าย
-      const leftBtn = document.createElement('button');
-      leftBtn.className = 'btn-control';
-      leftBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-      leftBtn.type = 'button';
-      if (index === 0) {
-        leftBtn.style.visibility = 'hidden'; // ถ้ารูปแรกสุดไม่ต้องแสดงปุ่มซ้าย
-      }
-      leftBtn.onclick = function(e) {
-        e.preventDefault();
-        // สลับตำแหน่งกับรูปก่อนหน้าใน Array
-        const temp = selectedFiles[index];
-        selectedFiles[index] = selectedFiles[index - 1];
-        selectedFiles[index - 1] = temp;
-        renderPreviews();
-      };
-      controls.appendChild(leftBtn);
-      
-      // ปุ่มเลื่อนขวา
-      const rightBtn = document.createElement('button');
-      rightBtn.className = 'btn-control';
-      rightBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-      rightBtn.type = 'button';
-      if (index === selectedFiles.length - 1) {
-        rightBtn.style.visibility = 'hidden'; // ถ้ารูปสุดท้ายไม่ต้องแสดงปุ่มขวา
-      }
-      rightBtn.onclick = function(e) {
-        e.preventDefault();
-        // สลับตำแหน่งกับรูปถัดไปใน Array
-        const temp = selectedFiles[index];
-        selectedFiles[index] = selectedFiles[index + 1];
-        selectedFiles[index + 1] = temp;
-        renderPreviews();
-      };
-      controls.appendChild(rightBtn);
-      
-      card.appendChild(controls);
-      container.appendChild(card);
-    });
+    if (input.files && input.files.length > 0) {
+      Array.from(input.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          img.style.width = '80px';
+          img.style.height = '80px';
+          img.style.objectFit = 'cover';
+          img.style.borderRadius = '12px';
+          img.style.border = '1px solid #ffccd5';
+          container.appendChild(img);
+        }
+        reader.readAsDataURL(file);
+      });
+    }
   }
 
-  // ส่งข้อมูลชุดสุดท้ายโดยอิงตามลำดับใน ArrayselectedFiles ที่จัดไว้ 🚀
+  // Submit Logic
   window.submitPost = async function() {
     const content = document.getElementById('post-content').value.trim();
     const currentUser = getUserSession();
@@ -508,9 +385,11 @@
     }
 
     const activeUsername = currentUser.username;
+    const imageInput = document.getElementById('post-image');
+    const imageFiles = imageInput ? imageInput.files : [];
 
-    // เปลี่ยนมาเช็กเงื่อนไขความว่างจากตัวแปร selectedFiles แทนโค้ดตัวเดิม
-    if (!content && selectedFiles.length === 0 && !recordedAudioBlob) {
+    // แก้ไขเงื่อนไขการเช็กข้อมูลว่าง (ไม่มีวิดีโอแล้ว)
+    if (!content && imageFiles.length === 0 && !recordedAudioBlob) {
       Swal.fire('Empty Content', 'Please write a message or add media before publishing.', 'info');
       return;
     }
@@ -526,12 +405,12 @@
     let finalAudioUrl = "";
 
     try {
-      // 1. อัปโหลดรูปภาพเข้า ImgBB ตามลำดับใน Array ที่เอ็มมี่จัดไว้เรียบร้อยแล้ว
-      if (selectedFiles.length > 0) {
+      // 1. อัปโหลดรูปภาพเข้า ImgBB
+      if (imageFiles.length > 0) {
         let uploadedUrls = [];
-        for (let i = 0; i < selectedFiles.length; i++) {
+        for (let i = 0; i < imageFiles.length; i++) {
           try {
-            const url = await uploadImageToImgBB(selectedFiles[i]);
+            const url = await uploadImageToImgBB(imageFiles[i]);
             if (url) uploadedUrls.push(url);
           } catch (err) {
             console.error(`Upload error on image ${i+1}:`, err);
@@ -545,7 +424,7 @@
         finalAudioUrl = await uploadToSupabaseStorage(recordedAudioBlob, 'audios', 'mp3');
       }
 
-      // 3. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script
+      // 3. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่ (ส่ง videoURL เป็นค่าว่างไปเลย)
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       
       const params = new URLSearchParams();
@@ -554,7 +433,7 @@
       params.append('content', content);
       params.append('imageUrl', imageUrlString);
       params.append('audioURL', finalAudioUrl);
-      params.append('videoURL', ''); 
+      params.append('videoURL', ''); // ส่งค่าว่างไปที่คอลัมน์วิดีโอเพื่อไม่ให้โครงสร้างสคริปต์หลังบ้านพังงับ ✨
 
       const resp = await fetch(scriptURL, {
         method: 'POST',
@@ -567,21 +446,6 @@
       const data = await resp.json();
 
       if (data.status === "success") {
-        try {
-          const userSession = getUserSession();
-          const userAvatar = userSession ? userSession.profile_img : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
-
-          const notiRef = dbRef(database, 'notifications');
-          await dbPush(notiRef, {
-            writer: activeUsername,                                // ชื่อคนโพสต์
-            action: "New Post",     // ข้อความแจ้งเตือน
-            timestamp: Date.now(),                                 // เวลาปัจจุบัน
-            avatar: userAvatar                                     // รูปคนโพสต์
-          });
-          console.log("📡 ยิงแจ้งเตือนเข้า Firebase สำเร็จแล้ว!");
-        } catch (firebaseNotiError) {
-          console.error("Firebase Notification Error:", firebaseNotiError);
-        }
         Swal.fire({
           title: 'Success',
           text: 'Your post has been published successfully.',
