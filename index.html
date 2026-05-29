@@ -1144,7 +1144,24 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   font-weight: bold;
   cursor: pointer;
 }
-    
+    /* จัดตำแหน่งจุดแดงให้อยู่มุมขวาบนของกระดิ่ง */
+.icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.noti-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff4d6d; /* สีแดงสดตัดขอบขาว */
+  border-radius: 50%;
+  border: 1px solid white;
+  z-index: 10;
+}
   </style>
 </head>
 <body>
@@ -1175,10 +1192,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <!-- ปุ่มกระเป๋าแบบไอคอน -->
      <a href="inventory.html" class="nav-icon" title="Inventory">
       <i class="fas fa-briefcase"></i>
-    </a>
-    <!-- ปุ่ม Shop กระโดดไป shop.html -->
-    <a href="shop.html" class="nav-icon" title="Shop">
-      <i class="fas fa-shopping-cart"></i>
     </a>
     <a href="profile.html" class="nav-icon" title="Profile">
      <i class="fas fa-user"></i>
@@ -2290,6 +2303,22 @@ async function editPostUi(postId, encodedContent) {
     }
   }
 }
+
+  window.checkNotificationBadge = function() {
+  const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
+  const badgeElement = document.getElementById("global-noti-badge");
+  
+  if (badgeElement) {
+    if (hasNewNoti === "true") {
+      badgeElement.style.display = "block"; // 🔴 แสดงจุดแดง
+    } else {
+      badgeElement.style.display = "none";  // ⚪ ซ่อนจุดแดง
+    }
+  }
+}
+
+// สั่งให้รันเช็กทันทีตอนโหลดหน้าเสร็จ
+document.addEventListener("DOMContentLoaded", window.checkNotificationBadge);
   
   // 🌟 ฟังก์ชัน เล่น/หยุด เสียงสไตล์ BLM48
 function toggleBlmAudio(postId) {
@@ -2542,7 +2571,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <script type="module">
-  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0
+  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (รวมเอาไว้ที่บนสุดทั้งหมดงับ) 🌟
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
   import { getDatabase, ref as dbRef, push, onChildAdded, get, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
   import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
@@ -2651,8 +2680,6 @@ document.addEventListener("DOMContentLoaded", () => {
   /* =========================================================================
      💬 [ระบบคอมเมนต์ Realtime มินิมอลพาสเทล - เวอร์ชันซิงค์อัตโนมัติ]
      ========================================================================= */
-
-  // ฟังก์ชันดักฟังคอมเมนต์และจำนวนยอดจาก Firebase แบบเรียลไทม์
   window.listenForComments = function(postId) {
     const db = window.firebaseDatabase;
     const refFunc = window.fbRef;
@@ -2661,7 +2688,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const commentListEl = document.getElementById(`comment-list-${postId}`);
     const commentCountEl = document.getElementById(`comment-count-${postId}`);
     if (!commentListEl) return;
-
     if (!db || !refFunc || !onValueFunc) return;
 
     const commentRef = refFunc(db, `comments/${postId}`);
@@ -2677,7 +2703,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const commentsArray = Object.values(data);
-      if (commentCountEl) commentCountEl.innerText = commentsArray.length; // 🎯 อัปเดตยอดตัวเลขคอมเมนต์เรียลไทม์ทันที!
+      if (commentCountEl) commentCountEl.innerText = commentsArray.length; 
 
       const allowedRoles = ['member', 'admin', 'ceo'];
       const verifiedBadgeIcon = `
@@ -2757,10 +2783,9 @@ document.addEventListener("DOMContentLoaded", () => {
         timestamp: Date.now()
       };
 
-      // 🚀 ส่งเข้า Firebase (ตัวเลขยอดคอมเมนต์จะเด้งบวกเองอัตโนมัติจากตัวฟังข้างบน)
       await pushFunc(commentPostRef, newCommentData);
 
-      // 📡 ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
+      // ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
       const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       fetch(scriptURL, {
         method: 'POST',
@@ -2788,7 +2813,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
     
-  // 🎯 ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets
+  // ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets
   async function refreshCountFromSheets() {
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberCount';
     const countElement = document.getElementById('total-members-count');
@@ -2807,23 +2832,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   window.refreshCountFromSheets = refreshCountFromSheets;
-
-  // รันรอบแรกดึงยอดสมาชิก
   refreshCountFromSheets();
 
   /* =========================================================================
      🔍 [ระบบ Auto-Scanner ส่องจับโพสต์ใหม่เพื่อผูกระบบ Realtime อัตโนมัติ]
      ========================================================================= */
-  // บล็อกนี้จะคอยสแกนหาโพสต์การ์ดที่เพิ่งโหลดขึ้นมาบนหน้าจอ แล้วสั่งให้ดึงข้อมูลคอมเมนต์ทันทีโดยไม่ต้องรอให้เอ็มมี่กดคลิกปุ่มเปิดกล่อง
   setInterval(() => {
     document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
       const postId = card.id.replace('post-', '');
       if (postId && window.listenForComments) {
-        window.listenForComments(postId); // เปิดระบบดักฟังยอดคอมเมนต์จาก Firebase ค้างไว้เลย
-        card.setAttribute('data-firebase-ready', 'true'); // ทำสัญลักษณ์ไว้เพื่อป้องกันไม่ให้ผูกซ้ำซ้อนงับ
+        window.listenForComments(postId); 
+        card.setAttribute('data-firebase-ready', 'true'); 
       }
     });
-  }, 300); // ทำงานทุกๆ 0.3 วินาที (รวดเร็ว ทันใจ และไม่กินแรมเครื่อง)
+  }, 300);
+
+  /* =========================================================================
+     🔔 [ระบบ Realtime Notification Listener สำหรับ Kami / Oshi]
+     ========================================================================= */
+  // บันทึกเวลาที่ผู้ใช้เปิดหน้าเว็บ เพื่อไม่ให้เอาโพสต์ในอดีตมาแจ้งเตือนซ้ำงับ
+  const pageLoadTime = Date.now(); 
+
+  // เปิดระบบดักฟังข้อมูลใน Node 'notifications' แบบ Real-time ตัวแปรใช้ตามชุดหลัก
+  onChildAdded(dbRef(database, 'notifications'), (snapshot) => {
+    const notiData = snapshot.val();
+    if (!notiData) return;
+
+    // ดึงรายชื่อคามิ/โอชิ จากเครื่องของผู้ใช้คนนี้มาเช็ก
+    const savedKami = JSON.parse(localStorage.getItem("kami_members") || '[]');
+    
+    // เช็กชื่อตัวเองเพื่อไม่ให้มันเด้งเตือนเวลาตัวเองโพสต์
+    const session = getUserSession();
+    const myName = session ? session.username : "";
+
+    // เงื่อนไข: ต้องเป็นโพสต์ใหม่หลังเปิดจอ + เป็นคนที่เรากด Kami/Oshi ไว้ + ไม่ใช่โพสต์ตัวเอง
+    if (notiData.timestamp > pageLoadTime && savedKami.includes(notiData.writer) && notiData.writer !== myName) {
+      
+      // สั่งเปิดสถานะว่า "มีแจ้งเตือนใหม่นะ!" เก็บไว้ในเครื่อง
+      localStorage.setItem("blm48_has_new_noti", "true");
+      
+      // สั่งให้ฟังก์ชันแสดงจุดสีแดง 🔴 ทำงานทันที
+      if (typeof window.checkNotificationBadge === 'function') {
+        window.checkNotificationBadge();
+      }
+    }
+  });
 </script>
 <div class="bottom-tab-bar">
   <a href="index.html" class="tab-item active">
@@ -2842,8 +2895,11 @@ document.addEventListener("DOMContentLoaded", () => {
     <i class="fa-solid fa-bell"></i>
   </a>
   
-  <a href="profile.html" class="tab-item">
-    <i class="fa-solid fa-user"></i>
+  <a href="notification.html" class="tab-item">
+  <div class="icon-wrapper">
+    <i class="fa-solid fa-bell"></i>
+    <span class="noti-badge" id="global-noti-badge" style="display: none;"></span>
+  </div>
   </a>
 </div>
 </body>
