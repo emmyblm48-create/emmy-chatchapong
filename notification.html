@@ -250,11 +250,10 @@
       <i class="fa-solid fa-bell"></i>
     </div>
   </a>
-  <a href="profile.html" class="tab-item">
+  <a href="member.html" class="tab-item">
     <i class="fa-solid fa-user"></i>
   </a>
 </div>
-
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
@@ -262,15 +261,53 @@
     const btnReset = document.getElementById("btn-reset");
     const adminInputBox = document.getElementById("admin-input-box");
 
-    // 1. ตรวจเช็คข้อมูลการ Login จาก localStorage ของระบบคุณ
-    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || JSON.parse(localStorage.getItem("user")) || null;
+    // ==========================================
+    // 🔍 [ระบบตรวจสอบข้อมูลการล็อกอินสำหรับคุณเอ็มมี่]
+    // ==========================================
+    // ดึงข้อมูลดิบจากทุกคีย์และทุก Storage ที่ระบบล็อกอินมักจะใช้เก็บข้อมูล
+    const rawUserData = localStorage.getItem("currentUser") || 
+                        localStorage.getItem("user") || 
+                        sessionStorage.getItem("currentUser") || 
+                        sessionStorage.getItem("user");
 
-    // ตรวจสอบสิทธิ์: แสดงกล่องอินพุตเฉพาะ Admin และ CEO เท่านั้น
-    if (currentUser && (currentUser.role === "Admin" || currentUser.role === "CEO")) {
+    // พิมพ์ค่าออกมาดูใน Console (กด F12 บนคีย์บอร์ดเพื่อตรวจเช็ก)
+    console.log("=== BLM48 Login Debugger ===");
+    console.log("Raw User Data Found:", rawUserData);
+
+    let currentUser = null;
+
+    if (rawUserData) {
+      try {
+        currentUser = JSON.parse(rawUserData);
+        console.log("Parsed User Object:", currentUser);
+      } catch (e) {
+        console.error("Error parsing user JSON:", e);
+      }
+    } else {
+      console.log("⚠️ No user data found in Storage. Please check your login script.");
+    }
+
+    // ฟังก์ชันตรวจสอบสิทธิ์ (รองรับทั้งตัวพิมพ์เล็ก พิมพ์ใหญ่ และคีย์ชื่ออื่น)
+    let isAuthorized = false;
+    if (currentUser) {
+      // ดึงค่า role หรือ Role ออกมา แล้วแปลงเป็นตัวพิมพ์เล็กทั้งหมด
+      const userRole = (currentUser.role || currentUser.Role || currentUser.status || "").toLowerCase().trim();
+      console.log("Current User Role (Processed):", userRole);
+
+      if (userRole === "admin" || userRole === "ceo") {
+        isAuthorized = true;
+      }
+    }
+
+    // แสดงหรือซ่อนกล่องตามผลการตรวจสอบสิทธิ์
+    if (isAuthorized) {
       adminInputBox.style.display = "flex";
+      console.log("✅ Access Granted: Admin/CEO box is now visible.");
     } else {
       adminInputBox.style.display = "none";
+      console.log("❌ Access Denied: Hide Admin/CEO box.");
     }
+    console.log("=============================");
 
     // โหลดข้อมูลแจ้งเตือนเดิมจากความจำเครื่อง
     let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [];
@@ -278,17 +315,17 @@
     // 2. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
     function renderUI() {
       if (myNotifications.length > 0) {
-        notiListContainer.innerHTML = ""; // ล้างข้อมูลเก่า
+        notiListContainer.innerHTML = ""; 
         
-        // เรียงลำดับเวลาล่าสุดอยู่ด้านบนสุด
         const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
 
         sortedList.forEach(noti => {
           const notiDate = new Date(noti.timestamp);
-          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + " ";
+          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-          // ตรวจสอบข้อมูลว่าโพสต์นี้มาจาก Admin หรือ CEO เพื่อใส่ติ๊กถูกสีฟ้าแบบ Instagram
-          const showVerified = (noti.role === "Admin" || noti.role === "CEO");
+          // ใส่ติ๊กถูกสีฟ้าถ้าสิทธิ์เป็น Admin หรือ CEO
+          const currentRoleLower = (noti.role || "").toLowerCase();
+          const showVerified = (currentRoleLower === "admin" || currentRoleLower === "ceo");
           const verifiedBadge = showVerified ? `<i class="fa-solid fa-circle-check verified-badge" title="Verified Account"></i>` : '';
 
           const item = document.createElement("div");
@@ -306,7 +343,7 @@
         notiListContainer.innerHTML = `
           <div class="empty-noti">
             <i class="fa-regular fa-bell-slashed"></i>
-            <p>No Notifications</p>
+            <p>No Notificationsใ</p>
           </div>`;
       }
     }
@@ -320,23 +357,23 @@
         return;
       }
 
-      // ดึงข้อมูลบัญชีผู้เขียน (ชื่อ, รูปโปรไฟล์, และสิทธิ์) ไปใส่ใน Object ทันทีโดยไม่ต้องกรอกเอง
+      // ตรวจสอบชื่อและรูปโปรไฟล์ หากไม่มีให้ใช้ค่า Default เป็น Admin
+      const writerName = currentUser ? (currentUser.name || currentUser.username || currentUser.display_name) : "Admin";
+      const userAvatar = currentUser ? (currentUser.profile || currentUser.avatar || currentUser.image) : "";
+      const userRole = currentUser ? (currentUser.role || currentUser.Role) : "Admin";
+
       const newNotification = {
-        writer: currentUser ? (currentUser.name || currentUser.username) : "Admin",
+        writer: writerName,
         action: actionInput,
-        avatar: currentUser ? (currentUser.profile || currentUser.avatar) : "",
-        role: currentUser ? currentUser.role : "Admin",
+        avatar: userAvatar,
+        role: userRole,
         timestamp: Date.now()
       };
 
-      // บันทึกลงอาเรย์และเซฟเข้า localStorage
       myNotifications.push(newNotification);
       localStorage.setItem("manual_notis", JSON.stringify(myNotifications));
 
-      // ล้างค่าในช่องกรอกข้อความ
       document.getElementById("input-action").value = "";
-
-      // อัปเดตหน้าจอทันที
       renderUI();
     });
 
@@ -349,10 +386,8 @@
       }
     });
 
-    // สั่งวาดหน้าจอแสดงผลครั้งแรกตอนโหลดไฟล์สำเร็จ
     renderUI();
   });
 </script>
-
 </body>
 </html>
