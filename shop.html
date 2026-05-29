@@ -775,7 +775,24 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     border: 2px solid #ffccd5;
     box-shadow: 0 2px 5px rgba(255, 133, 162, 0.15);
 }
-      
+      /* จัดตำแหน่งจุดแดงให้อยู่มุมขวาบนของกระดิ่ง */
+.icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.noti-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff4d6d; /* สีแดงสดตัดขอบขาว */
+  border-radius: 50%;
+  border: 1px solid white;
+  z-index: 10;
+}
     </style>
 </head>
 <body>
@@ -895,7 +912,27 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
   <div>© 2026 Virtual Idol Cover Group</div>
 </footer>
-      
+    
+<div class="bottom-tab-bar">
+  <a href="index.html" class="tab-item">
+    <i class="fa-solid fa-house"></i>
+  </a>
+  <a href="kami.html" class="tab-item">
+    <i class="fa-solid fa-star"></i>
+  </a>
+  <a href="shop.html" class="tab-item active">
+    <i class="fa-solid fa-bag-shopping"></i>
+  </a>
+  <a href="notification.html" class="tab-item">
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-bell"></i>
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
+    </div>
+  </a>
+  <a href="profile.html" class="tab-item">
+    <i class="fa-solid fa-user"></i>
+  </a>
+</div>
 <script>
 const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 let userData = null;
@@ -1260,8 +1297,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, remainingTime);
     }
 });
-/* 💡 ข้อควรระวัง: หากเอ็มมี่มีฟังก์ชันอื่นๆ ของเดิม เช่น closeModal(), toggleSidebar(), หรือ showHistory() 
-   ที่ถูกเรียกใช้จากปุ่มต่างๆ ในหน้า HTML แนะนำให้วางต่อท้ายไฟล์ตรงด้านล่างนี้ด้วยนะงับ อย่าเผลอลบทิ้งน้า */
+
+    function checkNotificationBadge() {
+  const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
+  const badgeElement = document.getElementById("global-noti-badge");
+  
+  if (badgeElement) {
+    if (hasNewNoti === "true") {
+      badgeElement.style.display = "block"; // 🔴 มีแจ้งเตือนใหม่ -> แสดงจุดแดง
+    } else {
+      badgeElement.style.display = "none";  // ⚪ ไม่มีแจ้งเตือน -> ซ่อนไปเลย
+    }
+  }
+}
+
+// สั่งให้ระบบเช็กสถานะจุดแจ้งเตือนทุกครั้งที่เปิดหน้านี้ขึ้นมา
+document.addEventListener("DOMContentLoaded", checkNotificationBadge);
 </script>
 </body>
 </html>
