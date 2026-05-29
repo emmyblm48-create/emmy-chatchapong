@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Notifications | BLM48</title>
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+  <meta name="theme-color" content="#ffc0cb">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body { 
+      font-family: 'Quicksand', 'Kanit', sans-serif;  
+      background-color: #fff0f5; 
+      padding: 20px; 
+      margin: 0;
+      padding-bottom: 110px; /* เผื่อพื้นที่ให้ Tab-bar ลอยตัวด้านล่าง */
+    }
+    .noti-container { 
+      max-width: 500px; 
+      margin: 20px auto; 
+      background: white; 
+      padding: 24px; 
+      border-radius: 24px; 
+      box-shadow: 0 8px 24px rgba(255, 133, 162, 0.12); 
+    }
+    .header {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #ff85a2;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px dashed #fff0f3;
+      padding-bottom: 12px;
+    }
+    
+    /* สไตล์การ์ดแจ้งเตือนแต่ละอัน 🌸 */
+    .noti-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .noti-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      background: #fffbfb;
+      border: 1px solid #fff0f3;
+      border-radius: 16px;
+      transition: all 0.2s ease;
+    }
+    .noti-item.unread {
+      background: #fff5f7;
+      border-color: #ffccd5;
+    }
+    .noti-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ff85a2;
+    }
+    .noti-content {
+      flex: 1;
+    }
+    .noti-text {
+      font-size: 0.9rem;
+      color: #444;
+      margin: 0 0 4px 0;
+      line-height: 1.4;
+    }
+    .noti-text strong {
+      color: #ff85a2;
+    }
+    .noti-time {
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+    .badge-tag {
+      font-size: 0.65rem;
+      background: #ff4d6d;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: bold;
+      margin-left: 6px;
+    }
+    
+    /* หน้าจอว่างเปล่ากรณีไม่มีแจ้งเตือน ☁️ */
+    .empty-noti {
+      text-align: center;
+      padding: 40px 20px;
+      color: #ffb3c1;
+    }
+    .empty-noti i {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    /* Floating Tab-bar ดีไซน์ลอยตัวขอบมนตามบรีฟเด๊ะๆ 🎀 */
+    .bottom-tab-bar {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 440px;
+        height: 68px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-radius: 35px;
+        border: 1px solid rgba(255, 204, 213, 0.5);
+        box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15);
+        z-index: 1000;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+    .tab-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: #ffb3c1;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-family: 'Quicksand', 'Kanit', sans-serif;
+        font-weight: 600;
+        padding: 10px 14px;
+        border-radius: 25px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        -webkit-tap-highlight-color: transparent;
+    }
+    .tab-item i { font-size: 1.25rem; }
+    .tab-item span { display: none; }
+    .tab-item.active { background-color: #fff0f3; color: #ff85a2; }
+    .tab-item.active span { display: inline-block; }
+    
+    /* สไตล์สำหรับซ่อน/แสดงจุดแดงแจ้งเตือน 🔴 */
+    .icon-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .noti-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background-color: #ff4d6d;
+      border-radius: 50%;
+      border: 1px solid white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="noti-container">
+  <div class="header">
+    <i class="fa-solid fa-bell"></i> Notifications
+  </div>
+  
+  <div id="noti-list" class="noti-list">
+    <div class="empty-noti">
+      <i class="fa-regular fa-bell-slashed"></i>
+      <p>ยังไม่มีการแจ้งเตือนใหม่จาก Kami หรือ Oshi ของคุณในขณะนี้~ 🌸</p>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-tab-bar">
+  <a href="index.html" class="tab-item">
+    <i class="fa-solid fa-house"></i>
+    <span>Home</span>
+  </a>
+  <a href="kami.html" class="tab-item">
+    <i class="fa-solid fa-star"></i>
+    <span>Kami</span>
+  </a>
+  <a href="shop.html" class="tab-item">
+    <i class="fa-solid fa-bag-shopping"></i>
+    <span>Shop</span>
+  </a>
+  <a href="notification.html" class="tab-item active">
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-bell"></i>
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
+    </div>
+    <span>Noti</span>
+  </a>
+  <a href="member.html" class="tab-item">
+    <i class="fa-solid fa-user"></i>
+    <span>Profile</span>
+  </a>
+</div>
+
+<script>
+  // ฟังก์ชันจำลองเมื่อกดเข้าหน้านี้แล้ว ให้เคลียร์สถานะจุดแดงออกทันที 🔴✨
+  document.addEventListener("DOMContentLoaded", () => {
+    localStorage.setItem("blm48_has_new_noti", "false");
+    loadNotifications();
+  });
+
+  function loadNotifications() {
+    // ดึงรายชื่อ Kami/Oshi ที่ผู้ใช้บันทึกไว้ในเครื่อง (ถ้าไม่มีจะใช้ Mockup สำหรับเทสดีไซน์)
+    const savedKami = JSON.parse(localStorage.getItem("kami_members") || '["Emmy", "Minnie", "Fame"]');
+    const notiListContainer = document.getElementById("noti-list");
+
+    // ตัวอย่างฐานข้อมูลแจ้งเตือน (สามารถเชื่อมต่อดึงจาก Firebase Database Node /notifications ได้เลยงับ)
+    const mockNotifications = [
+      { id: 1, writer: "Emmy", action: "ได้ลงโพสต์ใหม่บนไทม์ไลน์!", avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32", time: "5 นาทีที่แล้ว", type: "Kami" },
+      { id: 2, writer: "Minnie", action: "แวะมาอัปเดตเสียงทักทายตอนเช้าจ้า", avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180", time: "1 ชั่วโมงที่แล้ว", type: "Oshi" },
+      { id: 3, writer: "Tarwaan", action: "แชร์โพสต์ใหม่ในคอมมูนิตี้", avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192", time: "2 วันที่แล้ว", type: "Member" }
+    ];
+
+    // กรองเอาเฉพาะโพสต์ที่เป็น Kami หรือ Oshi ของผู้ใช้งานเท่านั้น!ตามเงื่อนไข 🎯
+    const filteredNoti = mockNotifications.filter(noti => savedKami.includes(noti.writer));
+
+    if (filteredNoti.length > 0) {
+      notiListContainer.innerHTML = "";
+      filteredNoti.forEach(noti => {
+        const item = document.createElement("div");
+        item.className = "noti-item unread"; // ใส่คลาส unread เพื่อให้เป็นพื้นหลังสีชมพูอ่อนเด่นๆ
+        item.innerHTML = `
+          <img src="${noti.avatar}" class="noti-avatar" alt="avatar">
+          <div class="noti-content">
+            <p class="noti-text"><strong>${noti.writer}</strong> (${noti.type}) ${noti.action}</p>
+            <div class="noti-time">${noti.time}</div>
+          </div>
+        `;
+        notiListContainer.appendChild(item);
+      });
+    }
+  }
+</script>
+</body>
+</html>
