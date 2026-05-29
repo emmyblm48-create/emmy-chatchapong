@@ -33,9 +33,36 @@
       margin-bottom: 20px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between; /* จัดปุ่ม Refresh ไว้ขวาสุด */
       border-bottom: 2px dashed #fff0f3;
       padding-bottom: 12px;
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* 🔄 ปุ่ม Refresh สไตล์น่ารัก */
+    .btn-refresh {
+      background: none;
+      border: none;
+      color: #ff85a2;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .btn-refresh:hover {
+      background: #fff0f3;
+      color: #ff6b8b;
+    }
+    .btn-refresh:active {
+      transform: scale(0.9);
     }
     
     /* ✍️ Manual Input Box (Cute & Minimalist) */
@@ -87,8 +114,14 @@
       cursor: pointer;
       font-size: 0.85rem;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
     .btn-submit:hover { background: #ff6b8b; }
+    .btn-submit:disabled { background: #ffb3c1; cursor: not-allowed; }
+    
     .btn-clear {
       flex: 1;
       font-family: 'Quicksand', 'Kanit', sans-serif;
@@ -100,8 +133,13 @@
       font-weight: 600;
       cursor: pointer;
       font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
     .btn-clear:hover { background: #d0d0d0; }
+    .btn-clear:disabled { background: #f0f0f0; color: #ccc; cursor: not-allowed; }
 
     /* Notification Cards Style 🌸 */
     .noti-list {
@@ -147,7 +185,7 @@
       color: #aaa;
     }
     
-    /* Empty State ☁️ */
+    /* Empty State / Loading State ☁️ */
     .empty-noti {
       text-align: center;
       padding: 40px 20px;
@@ -220,7 +258,12 @@
 
 <div class="noti-container">
   <div class="header">
-    <i class="fa-solid fa-bell"></i> Notifications
+    <div class="header-title">
+      <i class="fa-solid fa-bell"></i> Notifications
+    </div>
+    <button id="btn-refresh" class="btn-refresh" title="Refresh">
+      <i class="fa-solid fa-rotate"></i>
+    </button>
   </div>
   
   <div class="manual-input-box" id="admin-input-box" style="display: none;">
@@ -254,30 +297,31 @@
     <i class="fa-solid fa-user"></i>
   </a>
 </div>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
     const btnAdd = document.getElementById("btn-add");
     const btnReset = document.getElementById("btn-reset");
+    const btnRefresh = document.getElementById("btn-refresh");
     const adminInputBox = document.getElementById("admin-input-box");
 
+    // ลิงก์ Google Apps Script Web App ของคุณ
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec";
+
     // =========================================================
-    // 📦 1. ดึงข้อมูลจากคีย์เซสชันหลักของระบบ (bnl_session) ที่ index.html ใช้
+    // 📦 1. ดึงข้อมูลเซสชันผู้ใช้ (เหมือนเดิม)
     // =========================================================
     let savedRole = "User";
     let savedName = "Admin";
     let savedProfile = "";
     let savedUsername = "";
 
-    // ดึงก้อนเซสชันหลักของแอปมาแกะ
     const sessionStr = localStorage.getItem('bnl_session');
-    
     if (sessionStr) {
       try {
         const sessionData = JSON.parse(sessionStr);
-        // แกะชั้นข้อมูล (รองรับโครงสร้างชั้น .data ตามโค้ด index.html)
         const userData = sessionData.data || sessionData.user || sessionData;
-        
         if (userData) {
           savedRole = userData.role || userData.Role || "User";
           savedName = userData.name || userData.Name || "Admin";
@@ -289,38 +333,69 @@
       }
     }
 
-    // ทำความสะอาดข้อความและตัดช่องว่าง
     savedRole = savedRole.toString().trim();
     const checkRoleLower = savedRole.toLowerCase();
 
     // =========================================================
-    // 🛡️ 2. ตรวจสอบสิทธิ์ (Case-Insensitive รองรับทั้งพิมพ์เล็ก-พิมพ์ใหญ่)
+    // 🛡️ 2. ตรวจสอบสิทธิ์แสดงกล่องโพสต์ (เหมือนเดิม)
     // =========================================================
     if (checkRoleLower === "admin" || checkRoleLower === "ceo") {
       if (adminInputBox) adminInputBox.style.display = "flex";
-      console.log(`✅ Access Granted! Welcome ${savedName} (${savedRole})`);
     } else {
       if (adminInputBox) adminInputBox.style.display = "none";
-      console.log(`❌ สิทธิ์ของคุณคือ "${savedRole}" ไม่ใช่ Admin/CEO ระบบจึงซ่อนกล่องโพสต์ไว้ครับ`);
     }
 
-    // โหลดข้อมูลแจ้งเตือนเดิมจากความจำเครื่อง
-    let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [];
+    let myNotifications = [];
 
     // =========================================================
-    // 🌸 3. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
+    // 🌸 3. ฟังก์ชันดึงข้อมูลจาก Google Sheet (API GET)
+    // =========================================================
+    async function fetchNotifications() {
+      // แสดงสถานะกำลังโหลดแบบน่ารักหมุนๆ
+      notiListContainer.innerHTML = `
+        <div class="empty-noti">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <p>Loading notifications...</p>
+        </div>`;
+      
+      // หมุนปุ่ม refresh ระหว่างโหลดข้อมูล
+      btnRefresh.querySelector('i').classList.add('fa-spin');
+      btnRefresh.disabled = true;
+
+      try {
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error("Network response was not ok");
+        
+        myNotifications = await response.json();
+        renderUI();
+      } catch (error) {
+        console.error("❌ Error fetching notifications:", error);
+        notiListContainer.innerHTML = `
+          <div class="empty-noti" style="color:#ff6b8b;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <p>Failed to update. Please try again! 🥺</p>
+          </div>`;
+      } finally {
+        // หยุดหมุนปุ่ม refresh หลังโหลดเสร็จ
+        btnRefresh.querySelector('i').classList.remove('fa-spin');
+        btnRefresh.disabled = false;
+      }
+    }
+
+    // =========================================================
+    // 🎨 4. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
     // =========================================================
     function renderUI() {
-      if (myNotifications.length > 0) {
+      if (myNotifications && myNotifications.length > 0) {
         notiListContainer.innerHTML = ""; 
         
+        // จัดเรียงข้อมูลให้ประกาศใหม่ล่าสุดขึ้นก่อน
         const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
 
         sortedList.forEach(noti => {
           const notiDate = new Date(noti.timestamp);
           const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-          // ใส่ติ๊กถูกสีฟ้าถ้าสิทธิ์ตอนโพสต์เป็น Admin หรือ CEO
           const checkRole = (noti.role || "").toLowerCase().trim();
           const showVerified = (checkRole === "admin" || checkRole === "ceo");
           const verifiedBadge = showVerified ? ` <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
@@ -348,10 +423,10 @@
     }
 
     // =========================================================
-    // ✍️ 4. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่
+    // ✍️ 5. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่ไปยัง Google Sheet (API POST)
     // =========================================================
     if (btnAdd) {
-      btnAdd.addEventListener("click", () => {
+      btnAdd.addEventListener("click", async () => {
         const actionInput = document.getElementById("input-action").value.trim();
 
         if (!actionInput) {
@@ -359,7 +434,12 @@
           return;
         }
 
+        // ล็อกปุ่มป้องกันการกดย้ำๆ ระหว่างส่งข้อมูล
+        btnAdd.disabled = true;
+        btnAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+
         const newNotification = {
+          type: "add",
           writer: savedName,
           action: actionInput,
           avatar: savedProfile,
@@ -367,28 +447,59 @@
           timestamp: Date.now()
         };
 
-        myNotifications.push(newNotification);
-        localStorage.setItem("manual_notis", JSON.stringify(myNotifications));
+        try {
+          // ไม่ตั้ง Header Content-Type เพื่อเลี่ยงปัญหา CORS Preflight ใน Apps Script
+          await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(newNotification)
+          });
 
-        document.getElementById("input-action").value = "";
-        renderUI();
-      });
-    }
-
-    // =========================================================
-    // 🗑️ 5. ระบบล้างข้อมูลแจ้งเตือนทั้งหมด
-    // =========================================================
-    if (btnReset) {
-      btnReset.addEventListener("click", () => {
-        if(confirm("Are you sure you want to clear all notifications?")) {
-          myNotifications = [];
-          localStorage.removeItem("manual_notis");
-          renderUI();
+          document.getElementById("input-action").value = "";
+          // หลังจากโพสต์สำเร็จให้ไปโหลดข้อมูลใหม่ทันที
+          await fetchNotifications();
+        } catch (error) {
+          console.error("❌ Error posting notification:", error);
+          alert("Something went wrong, please try again! 😢");
+        } finally {
+          btnAdd.disabled = false;
+          btnAdd.innerHTML = '<i class="fa-solid fa-plus"></i> Post Notification';
         }
       });
     }
 
-    renderUI();
+    // =========================================================
+    // 🗑️ 6. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดออกจาก Google Sheet
+    // =========================================================
+    if (btnReset) {
+      btnReset.addEventListener("click", async () => {
+        if(confirm("Are you sure you want to clear all notifications from Google Sheet?")) {
+          btnReset.disabled = true;
+          btnReset.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Clearing...';
+
+          try {
+            await fetch(SCRIPT_URL, {
+              method: "POST",
+              body: JSON.stringify({ type: "clear" })
+            });
+            await fetchNotifications();
+          } catch (error) {
+            console.error("❌ Error clearing notifications:", error);
+            alert("Could not clear data. Please try again! 😢");
+          } finally {
+            btnReset.disabled = false;
+            btnReset.innerHTML = '<i class="fa-solid fa-trash"></i> Clear All';
+          }
+        }
+      });
+    }
+
+    // =========================================================
+    // 🔄 7. ผูกระบบเข้ากับปุ่ม Refresh และสั่งโหลดข้อมูลครั้งแรกตอนเปิดหน้าเว็บ
+    // =========================================================
+    btnRefresh.addEventListener("click", fetchNotifications);
+    
+    // เรียกทำงานทันทีเมื่อเปิดเข้าหน้าเว็บมา เพื่อดึงแจ้งเตือนล่าสุดจากชีต
+    fetchNotifications();
   });
 </script>
 </body>
