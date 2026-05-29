@@ -33,7 +33,7 @@
       margin-bottom: 20px;
       display: flex;
       align-items: center;
-      justify-content: space-between; /* จัดปุ่ม Refresh ไว้ขวาสุด */
+      justify-content: space-between; 
       border-bottom: 2px dashed #fff0f3;
       padding-bottom: 12px;
     }
@@ -43,7 +43,7 @@
       gap: 10px;
     }
     
-    /* 🔄 ปุ่ม Refresh สไตล์น่ารัก */
+    /* 🔄 ปุ่ม Refresh */
     .btn-refresh {
       background: none;
       border: none;
@@ -65,7 +65,7 @@
       transform: scale(0.9);
     }
     
-    /* ✍️ Manual Input Box (Cute & Minimalist) */
+    /* ✍️ Manual Input Box */
     .manual-input-box {
       background: #fff5f7;
       border: 1px dashed #ffccd5;
@@ -245,14 +245,6 @@
       justify-content: center;
     }
     
-    /* Instagram-Style Verified Badge CSS */
-    .verified-badge {
-      color: #1d9bf0;
-      margin-left: 5px;
-      font-size: 0.85rem;
-      vertical-align: middle;
-    }
-    
     .btn-del-item {
       background: #fff0f3;
       border: none;
@@ -266,6 +258,12 @@
     .btn-del-item:hover {
       background: #ff85a2;
       color: white;
+    }
+
+    /* Animate สำหรับ Custom UI 🌸 */
+    @keyframes cuteFadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
     }
   </style>
 </head>
@@ -312,6 +310,7 @@
     <i class="fa-solid fa-user"></i>
   </a>
 </div>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
@@ -362,6 +361,57 @@
     let myNotifications = [];
 
     // =========================================================
+    // 💖 [เพิ่มใหม่] ฟังก์ชันสร้างกล่องยืนยัน (Custom Confirm) สุดหวาน
+    // =========================================================
+    const cuteConfirm = (message) => {
+      return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.style = `
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(255, 180, 193, 0.2); backdrop-filter: blur(4px);
+          display: flex; align-items: center; justify-content: center;
+          z-index: 9999; font-family: 'Quicksand', 'Kanit', sans-serif;
+        `;
+        modal.innerHTML = `
+          <div style="background: white; padding: 24px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(255,133,162,0.2); border: 2px solid #fff0f3; animation: cuteFadeIn 0.25s ease-out;">
+            <div style="color: #ff85a2; font-size: 2.5rem; margin-bottom: 12px;"><i class="fa-solid fa-heart-crack"></i></div>
+            <p style="margin: 0 0 20px 0; font-size: 0.95rem; color: #555; font-weight: 600; line-height: 1.5;">${message}</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              <button id="btn-cute-cancel" style="flex: 1; padding: 10px; border: none; background: #e0e0e0; color: #666; border-radius: 12px; font-weight: 600; cursor: pointer; font-family: inherit;">ยกเลิก</button>
+              <button id="btn-cute-ok" style="flex: 1; padding: 10px; border: none; background: #ff85a2; color: white; border-radius: 12px; font-weight: 600; cursor: pointer; font-family: inherit;">ตกลง</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('#btn-cute-ok').onclick = () => { modal.remove(); resolve(true); };
+        modal.querySelector('#btn-cute-cancel').onclick = () => { modal.remove(); resolve(false); };
+      });
+    };
+
+    // =========================================================
+    // 💖 [เพิ่มใหม่] ฟังก์ชันสร้างสติกเกอร์แจ้งเตือนสั้นๆ (Cute Toast) เด้งบนจอ
+    // =========================================================
+    const cuteToast = (message, icon = "fa-circle-check") => {
+      const toast = document.createElement('div');
+      toast.style = `
+        position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+        background: #ff85a2; color: white; padding: 12px 24px; border-radius: 50px;
+        font-size: 0.9rem; font-weight: 600; box-shadow: 0 8px 20px rgba(255,133,162,0.3);
+        z-index: 10000; font-family: 'Quicksand', 'Kanit', sans-serif;
+        opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        display: flex; align-items: center; gap: 8px; white-space: nowrap;
+      `;
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '1'; toast.style.top = '40px'; }, 50);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.top = '30px';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    };
+
+    // =========================================================
     // 🌸 3. ฟังก์ชันดึงข้อมูลจาก Google Sheet (API GET)
     // =========================================================
     async function fetchNotifications() {
@@ -393,96 +443,85 @@
       }
     }
     
-     // =========================================================
-    // 🗑️ แก้ไขใหม่: ทำให้ฟังก์ชันลบเป็น Global เพื่อให้ปุ่ม HTML มองเห็น
+    // =========================================================
+    // 🗑️ 4. ฟังก์ชันลบเดี่ยวแบบ Global (ใช้ Custom UI เรียบร้อย)
     // =========================================================
     window.deleteSingleNoti = async function(timestamp) {
-      // 1. แจ้งเตือน Alert ยืนยันการลบ
-      if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้? 🗑️")) {
-        return; // ถ้ากดยกเลิก (Cancel) ให้หยุดการทำงาน
-      }
+      const isConfirm = await cuteConfirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้? 🗑️");
+      if (!isConfirm) return; 
 
-      // แสดงสถานะโหลดที่ปุ่ม Refresh เพื่อให้รู้ว่ากำลังทำงาน
       btnRefresh.querySelector('i').classList.add('fa-spin');
 
       try {
-        // ส่งคำสั่ง type: "delete" และค่า timestamp ไปที่ Google Apps Script
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({ type: "delete", timestamp: timestamp })
         });
 
-        // ไม่ต้องเช็ค response.ok มากนักกับ Google Script เพราะบางครั้งติดเรื่อง CORS
-        // ให้สั่งโหลดข้อมูลใหม่เลย
         fetchNotifications(); 
-        
-        // แจ้งเตือนเมื่อสั่งลบสำเร็จ (เป็นตัวเลือกเสริม ถ้าไม่ชอบลบออกได้ครับ)
-        alert("ลบการแจ้งเตือนสำเร็จ! ✨"); 
+        cuteToast("ลบการแจ้งเตือนสำเร็จแล้ว! ✨"); 
 
       } catch (error) {
         console.error("❌ Delete Error:", error);
-        alert("เกิดข้อผิดพลาดในการลบ โปรดลองอีกครั้ง 🥺");
+        cuteToast("เกิดข้อผิดพลาดในการลบ โปรดลองอีกครั้ง 🥺", "fa-circle-xmark");
       } finally {
-        // เอาสถานะหมุนๆ ออกจากปุ่ม Refresh
         btnRefresh.querySelector('i').classList.remove('fa-spin');
       }
     };
     
     // =========================================================
-    // 🎨 4. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
+    // 🎨 5. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
     // =========================================================
     function renderUI() {
-  if (myNotifications && myNotifications.length > 0) {
-    notiListContainer.innerHTML = ""; 
-    
-    const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
+      if (myNotifications && myNotifications.length > 0) {
+        notiListContainer.innerHTML = ""; 
+        
+        const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
 
-    sortedList.forEach(noti => {
-      const notiDate = new Date(noti.timestamp);
-      const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        sortedList.forEach(noti => {
+          const notiDate = new Date(noti.timestamp);
+          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-      // ตรวจสอบสิทธิ์สำหรับ badge
-      const checkRole = (noti.role || "").toLowerCase().trim();
-      const showVerified = (checkRole === "admin" || checkRole === "ceo");
-      const verifiedBadge = showVerified ? ` <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-        <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-      </svg>` : '';
+          const checkRole = (noti.role || "").toLowerCase().trim();
+          const showVerified = (checkRole === "admin" || checkRole === "ceo");
+          const verifiedBadge = showVerified ? ` <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+            <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+          </svg>` : '';
 
-      // สร้างปุ่มลบ (แสดงเฉพาะ Admin/CEO ที่ดูหน้าเว็บอยู่)
-      const deleteBtn = (checkRoleLower === "admin" || checkRoleLower === "ceo") 
-        ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.timestamp})"><i class="fa-solid fa-trash-can"></i></button>` 
-        : '';
+          const deleteBtn = (checkRoleLower === "admin" || checkRoleLower === "ceo") 
+            ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.timestamp})"><i class="fa-solid fa-trash-can"></i></button>` 
+            : '';
 
-      const item = document.createElement("div");
-      item.className = "noti-item unread"; 
-      item.innerHTML = `
-        <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
-        <div class="noti-content">
-          <p class="noti-text"><strong>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
-          <div class="noti-time">${timeString}</div>
-        </div>
-        ${deleteBtn}
-      `;
-      notiListContainer.appendChild(item);
-    });
-  } else {
-    notiListContainer.innerHTML = `
-      <div class="empty-noti">
-        <i class="fa-regular fa-bell-slashed"></i>
-        <p>No Notifications.</p>
-      </div>`;
-  }
-}
+          const item = document.createElement("div");
+          item.className = "noti-item unread"; 
+          item.innerHTML = `
+            <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
+            <div class="noti-content">
+              <p class="noti-text"><strong>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
+              <div class="noti-time">${timeString}</div>
+            </div>
+            ${deleteBtn}
+          `;
+          notiListContainer.appendChild(item);
+        });
+      } else {
+        notiListContainer.innerHTML = `
+          <div class="empty-noti">
+            <i class="fa-regular fa-bell-slashed"></i>
+            <p>No Notifications.</p>
+          </div>`;
+      }
+    }
 
     // =========================================================
-    // ✍️ 5. ระบบเพิ่มแจ้งเตือนใหม่ไปยัง Google Sheet และ Firebase (รวมโค้ดเรียบร้อย)
+    // ✍️ 6. ระบบเพิ่มแจ้งเตือนใหม่ (อัปเกรดใช้ Cute Toast)
     // =========================================================
     if (btnAdd) {
       btnAdd.addEventListener("click", async () => {
         const actionInput = document.getElementById("input-action").value.trim();
 
         if (!actionInput) {
-          alert("Please enter a notification message! 🥺");
+          cuteToast("โปรดระบุข้อความแจ้งเตือนด้วยนะคะ! 🥺", "fa-pen-to-square");
           return;
         }
 
@@ -499,13 +538,11 @@
         };
 
         try {
-          // 1. ส่งเข้า Google Sheets
           await fetch(SCRIPT_URL, {
             method: "POST",
             body: JSON.stringify(newNotification)
           });
 
-          // 2. ส่งสัญญาณ Realtime ไปให้ Firebase (ถ้าถูกสั่งเปิดใช้งานบนหน้านี้)
           if (window.firebaseDatabase && window.fbPush && window.fbRef) {
             const notiRef = window.fbRef(window.firebaseDatabase, 'notifications');
             await window.fbPush(notiRef, {
@@ -517,9 +554,10 @@
 
           document.getElementById("input-action").value = "";
           await fetchNotifications();
+          cuteToast("โพสต์แจ้งเตือนสำเร็จแล้วค่ะ! 📣✨");
         } catch (error) {
           console.error("❌ Error posting notification:", error);
-          alert("Something went wrong, please try again! 😢");
+          cuteToast("เกิดข้อผิดพลาดในการโพสต์ข้อมูล 😢", "fa-circle-xmark");
         } finally {
           btnAdd.disabled = false;
           btnAdd.innerHTML = '<i class="fa-solid fa-plus"></i> Post Notification';
@@ -528,29 +566,27 @@
     }
 
     // =========================================================
-    // 🗑️ 6. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดออกจาก Google Sheet (แก้ไขให้ตรงปุ่ม Clear)
+    // 🗑️ 7. ระบบล้างข้อมูลแจ้งเตือนทั้งหมด (อัปเกรดใช้ Custom UI)
     // =========================================================
     if (btnReset) {
       btnReset.addEventListener("click", async () => {
-        if (!confirm("Are you sure you want to clear all notifications? 🥺")) {
-          return;
-        }
+        const isConfirm = await cuteConfirm("คุณแน่ใจไหมที่จะล้างประวัติการแจ้งเตือนทั้งหมด? 🥺🔥");
+        if (!isConfirm) return;
 
         btnReset.disabled = true;
         btnReset.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Clearing...';
 
         try {
-          // ส่งประเภทเป็น "clear" ไปให้ฝั่ง Google Apps Script ของคุณจัดการลบแถวข้อมูล
           await fetch(SCRIPT_URL, {
             method: "POST",
             body: JSON.stringify({ type: "clear", timestamp: Date.now() })
           });
 
           await fetchNotifications();
-          alert("All notifications cleared successfully! ✨");
+          cuteToast("ล้างข้อมูลแจ้งเตือนทั้งหมดเรียบร้อยแล้ว! ✨");
         } catch (error) {
           console.error("❌ Error clearing notifications:", error);
-          alert("Something went wrong, please try again! 😢");
+          cuteToast("เกิดข้อผิดพลาดในการล้างข้อมูล 😢", "fa-circle-xmark");
         } finally {
           btnReset.disabled = false;
           btnReset.innerHTML = '<i class="fa-solid fa-trash"></i> Clear All';
@@ -559,12 +595,11 @@
     }
 
     // =========================================================
-    // 🔄 7. ปุ่ม Refresh และการทำงานเมื่อเข้าสู่หน้าเว็บครั้งแรก
+    // 🔄 8. ปุ่ม Refresh และการทำงานเมื่อเข้าสู่หน้าเว็บครั้งแรก
     // =========================================================
     btnRefresh.addEventListener("click", fetchNotifications);
     fetchNotifications();
 
-    // เมื่อเปิดหน้านี้ ถือว่าอ่านแจ้งเตือนแล้ว ปิดจุดแจ้งเตือนภายในหน้า
     localStorage.setItem("blm48_has_new_noti", "false");
     const badgeElement = document.getElementById("noti-badge");
     if (badgeElement) {
