@@ -132,44 +132,56 @@
     // =========================================================
     // ✍️ 5. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่ไปยัง Google Sheet (API POST)
     // =========================================================
-    if (btnAdd) {
-      btnAdd.addEventListener("click", async () => {
-        const actionInput = document.getElementById("input-action").value.trim();
-
-        if (!actionInput) {
-          alert("Please enter a notification message! 🥺");
-          return;
-        }
-
-        btnAdd.disabled = true;
-        btnAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
-
-        const newNotification = {
-          type: "add",
-          writer: savedName,
-          action: actionInput,
-          avatar: savedProfile,
-          role: savedRole, 
-          timestamp: Date.now()
-        };
-
-        try {
-          await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify(newNotification)
-          });
-
-          document.getElementById("input-action").value = "";
-          await fetchNotifications();
-        } catch (error) {
-          console.error("❌ Error posting notification:", error);
-          alert("Something went wrong, please try again! 😢");
-        } finally {
-          btnAdd.disabled = false;
-          btnAdd.innerHTML = '<i class="fa-solid fa-plus"></i> Post Notification';
-        }
-      });
+    // โค้ดส่วนปุ่มกด Post Notification ในไฟล์ notification.html
+if (btnAdd) {
+  btnAdd.addEventListener("click", async () => {
+    const actionInput = document.getElementById("input-action").value.trim();
+    if (!actionInput) {
+      alert("Please enter a notification message! 🥺");
+      return;
     }
+
+    btnAdd.disabled = true;
+    btnAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+
+    // 1. ส่งเข้า Google Sheets (ของเดิมที่คุณทำไว้)
+    const newNotification = {
+      type: "add",
+      writer: savedName,
+      action: actionInput,
+      avatar: savedProfile,
+      role: savedRole, 
+      timestamp: Date.now()
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(newNotification)
+      });
+
+      // 🌟 2. [เพิ่มใหม่] กระจายสัญญาณผ่าน Firebase ให้ทุกคนเห็นจุดแดงพร้อมกันทันที
+      // (ต้องแน่ใจว่าในหน้า notification.html มีการ Initialize Firebase ไว้เหมือนหน้า index แล้วนะครับ)
+      if (window.firebaseDatabase && window.fbPush && window.fbRef) {
+        const notiRef = window.fbRef(window.firebaseDatabase, 'notifications');
+        await window.fbPush(notiRef, {
+          writer: "Admin",
+          type: "system_alert", // ระบุว่าเป็นประกาศระบบ
+          timestamp: Date.now()
+        });
+      }
+
+      document.getElementById("input-action").value = "";
+      await fetchNotifications();
+    } catch (error) {
+      console.error("❌ Error posting notification:", error);
+      alert("Something went wrong, please try again! 😢");
+    } finally {
+      btnAdd.disabled = false;
+      btnAdd.innerHTML = '<i class="fa-solid fa-plus"></i> Post Notification';
+    }
+  });
+}
 
     // =========================================================
     // 🗑️ 6. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดออกจาก Google Sheet
