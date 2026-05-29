@@ -15,7 +15,8 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
     :root {
       --blmem-pink: #ff85a2;
@@ -38,6 +39,7 @@
     /* พื้นหลังแบบไล่เฉดสีชมพู-เหลือง-ขาว นุ่มๆ ละมุนสายตา */
     body {
       background: linear-gradient(135deg, #fff5f7 0%, #ffffff 50%, #fffdf0 100%);
+      font-family: 'Quicksand', 'Kanit', sans-serif; 
       display: flex;
       justify-content: center;
       align-items: center;
@@ -343,64 +345,20 @@
         return url;
     }
 
-   // =========================================================================
-    // ⚡ ฟังก์ชันโหลดรายชื่อเมมเบอร์ (โชว์แคชทันที + อัปเดตเบื้องหลัง)
-    // =========================================================================
     async function fetchAllMembers() {
-      const listContainer = document.getElementById('memberList');
-      const cacheKey = 'blm48_all_members_cache';
-      const cachedDataStr = localStorage.getItem(cacheKey);
-      let hasCache = false;
-
-      // 🌸 STEP 1: ลองดึงรายชื่อเก่าจากแคชขึ้นมาโชว์ก่อนทันที
-      if (cachedDataStr) {
-        try {
-          allMembers = JSON.parse(cachedDataStr);
-          if (allMembers && allMembers.length > 0) {
-            renderMembers(allMembers);
-            hasCache = true;
-          }
-        } catch (e) {
-          console.error("Cache parsing error:", e);
-        }
-      }
-
-      // ถ้าไม่มีแคชในเครื่องจริงๆ (เช่น เข้าครั้งแรก) ค่อยโชว์วงกลมโหลดดิ้งหมุนๆ
-      if (!hasCache) {
-        listContainer.innerHTML = `
-          <div class="loading-state" id="loadingState">
-            <i class="fas fa-circle-notch loading-spinner"></i>
-            <p>กำลังโหลดข้อมูลเมมเบอร์...</p>
-          </div>`;
-      }
-
-      // 🌸 STEP 2: แอบวิ่งไปเช็กข้อมูลล่าสุดจาก Google Sheets
       try {
         const resp = await fetch(`${scriptURL}?action=getAllMembers&_=${Date.now()}`);
         const res = await resp.json();
         
         if (res.status === "success" && res.data) {
           allMembers = res.data;
-          
-          // อัปเดตแคชลงเครื่องให้เป็นเวอร์ชันล่าสุด
-          localStorage.setItem(cacheKey, JSON.stringify(allMembers));
-          
-          // รีเรนเดอร์หน้าจอใหม่แบบเงียบๆ
-          // (ถ้าใครเพิ่งพิมพ์ค้นหาค้างไว้ เราจะอัปเดตหน้าจอผ่าน filter แทนเพื่อไม่ให้พิมพ์ขัดจังหวะ)
-          const searchTerm = document.getElementById('searchInput').value;
-          if (searchTerm) {
-            filterMembers();
-          } else {
-            renderMembers(allMembers);
-          }
-        } else if (!hasCache) {
-          listContainer.innerHTML = '<div class="empty-state">ไม่พบฐานข้อมูลเมมเบอร์</div>';
+          renderMembers(allMembers);
+        } else {
+          document.getElementById('memberList').innerHTML = '<div class="empty-state">ไม่พบฐานข้อมูลเมมเบอร์</div>';
         }
       } catch (e) {
         console.error("Error fetching members:", e);
-        if (!hasCache) {
-          listContainer.innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
-        }
+        document.getElementById('memberList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
       }
     }
 
