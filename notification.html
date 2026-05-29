@@ -173,7 +173,7 @@
   <div id="noti-list" class="noti-list">
     <div class="empty-noti">
       <i class="fa-regular fa-bell-slashed"></i>
-      <p>ยังไม่มีการแจ้งเตือนใหม่จาก Kami หรือ Oshi ของคุณในขณะนี้~ 🌸</p>
+      <p>No Notification</p>
     </div>
   </div>
 </div>
@@ -181,66 +181,106 @@
 <div class="bottom-tab-bar">
   <a href="index.html" class="tab-item">
     <i class="fa-solid fa-house"></i>
-    <span>Home</span>
   </a>
   <a href="kami.html" class="tab-item">
     <i class="fa-solid fa-star"></i>
-    <span>Kami</span>
   </a>
   <a href="shop.html" class="tab-item">
     <i class="fa-solid fa-bag-shopping"></i>
-    <span>Shop</span>
   </a>
   <a href="notification.html" class="tab-item active">
     <div class="icon-wrapper">
       <i class="fa-solid fa-bell"></i>
       <span class="noti-badge" id="noti-badge" style="display: none;"></span>
     </div>
-    <span>Noti</span>
   </a>
   <a href="member.html" class="tab-item">
     <i class="fa-solid fa-user"></i>
-    <span>Profile</span>
   </a>
 </div>
 
-<script>
-  // ฟังก์ชันจำลองเมื่อกดเข้าหน้านี้แล้ว ให้เคลียร์สถานะจุดแดงออกทันที 🔴✨
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+  import { getDatabase, ref, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+
+  // ใส่ค่า config ของเอ็มมี่ให้เหมือนกับหน้าอื่นๆ
+  const firebaseConfig = {
+    apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
+    authDomain: "blm48-official-site.firebaseapp.com",
+    projectId: "blm48-official-site",
+    databaseURL: "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    storageBucket: "blm48-official-site.firebasestorage.app",
+    messagingSenderId: "924510827472",
+    appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
   document.addEventListener("DOMContentLoaded", () => {
+    // เมื่อกดเข้ามาหน้านี้แล้ว ให้เคลียร์สถานะจุดแดงในเครื่องออกทันที 🔴 -> ⚪
     localStorage.setItem("blm48_has_new_noti", "false");
-    loadNotifications();
+    loadRealtimeNotifications();
   });
 
-  function loadNotifications() {
-    // ดึงรายชื่อ Kami/Oshi ที่ผู้ใช้บันทึกไว้ในเครื่อง (ถ้าไม่มีจะใช้ Mockup สำหรับเทสดีไซน์)
-    const savedKami = JSON.parse(localStorage.getItem("kami_members") || '["Emmy", "Minnie", "Fame"]');
+  async function loadRealtimeNotifications() {
+    // ดึงรายชื่อเมมเบอร์ที่เครื่องนี้กด Kami/Oshi เอาไว้
+    const savedKami = JSON.parse(localStorage.getItem("kami_members") || '[]');
     const notiListContainer = document.getElementById("noti-list");
 
-    // ตัวอย่างฐานข้อมูลแจ้งเตือน (สามารถเชื่อมต่อดึงจาก Firebase Database Node /notifications ได้เลยงับ)
-    const mockNotifications = [
-      { id: 1, writer: "Emmy", action: "ได้ลงโพสต์ใหม่บนไทม์ไลน์!", avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32", time: "5 นาทีที่แล้ว", type: "Kami" },
-      { id: 2, writer: "Minnie", action: "แวะมาอัปเดตเสียงทักทายตอนเช้าจ้า", avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180", time: "1 ชั่วโมงที่แล้ว", type: "Oshi" },
-      { id: 3, writer: "Tarwaan", action: "แชร์โพสต์ใหม่ในคอมมูนิตี้", avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192", time: "2 วันที่แล้ว", type: "Member" }
-    ];
+    try {
+      // ดึงแจ้งเตือนล่าสุด 30 อันดับแรก เรียงตามเวลา
+      const notiQuery = query(ref(db, 'notifications'), orderByChild('timestamp'), limitToLast(30));
+      const snapshot = await get(notiQuery);
 
-    // กรองเอาเฉพาะโพสต์ที่เป็น Kami หรือ Oshi ของผู้ใช้งานเท่านั้น!ตามเงื่อนไข 🎯
-    const filteredNoti = mockNotifications.filter(noti => savedKami.includes(noti.writer));
+      if (snapshot.exists()) {
+        const rawData = snapshot.val();
+        
+        // แปลง Object ให้เป็น Array และเรียงลำดับจากใหม่สุดไปเก่าสุด
+        const notiList = Object.keys(rawData)
+          .map(key => rawData[key])
+          .sort((a, b) => b.timestamp - a.timestamp);
 
-    if (filteredNoti.length > 0) {
-      notiListContainer.innerHTML = "";
-      filteredNoti.forEach(noti => {
-        const item = document.createElement("div");
-        item.className = "noti-item unread"; // ใส่คลาส unread เพื่อให้เป็นพื้นหลังสีชมพูอ่อนเด่นๆ
-        item.innerHTML = `
-          <img src="${noti.avatar}" class="noti-avatar" alt="avatar">
-          <div class="noti-content">
-            <p class="noti-text"><strong>${noti.writer}</strong> (${noti.type}) ${noti.action}</p>
-            <div class="noti-time">${noti.time}</div>
-          </div>
-        `;
-        notiListContainer.appendChild(item);
-      });
+        // กรอง (Filter) เอาเฉพาะแจ้งเตือนที่เป็น Kami หรือ Oshi ของผู้ใช้งานคนนี้เท่านั้น! 🎯
+        const filteredNoti = notiList.filter(noti => savedKami.includes(noti.writer));
+
+        if (filteredNoti.length > 0) {
+          notiListContainer.innerHTML = ""; // ล้างหน้าจอรอรับข้อมูลจริง
+          
+          filteredNoti.forEach(noti => {
+            // แปลงเวลา Timestamp ของ Firebase ให้เป็นเวลาไทยอ่านง่ายๆ
+            const notiDate = new Date(noti.timestamp);
+            const timeString = notiDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + " น.";
+
+            const item = document.createElement("div");
+            item.className = "noti-item unread"; 
+            item.innerHTML = `
+              <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32'}" class="noti-avatar" alt="avatar">
+              <div class="noti-content">
+                <p class="noti-text"><strong>${noti.writer}</strong> ${noti.action}</p>
+                <div class="noti-time">${timeString}</div>
+              </div>
+            `;
+            notiListContainer.appendChild(item);
+          });
+        } else {
+          showEmptyState();
+        }
+      } else {
+        showEmptyState();
+      }
+    } catch (error) {
+      console.error("Error loading real-time notifications:", error);
+      showEmptyState();
     }
+  }
+
+  function showEmptyState() {
+    document.getElementById("noti-list").innerHTML = `
+      <div class="empty-noti">
+        <i class="fa-regular fa-bell-slashed"></i>
+        <p>ยังไม่มีการแจ้งเตือนใหม่จาก Kami หรือ Oshi ของคุณในขณะนี้~ 🌸</p>
+      </div>`;
   }
 </script>
 </body>
