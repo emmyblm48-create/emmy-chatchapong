@@ -271,12 +271,12 @@
         const sheetData = await response.json();
         
         if (sheetData.status === "success" || sheetData.role) {
-          // เซฟค่าที่ผ่านการคลีนข้อความและช่องว่างแล้วแบบปลอดภัย
+          // ดึงและเซฟค่าข้อมูลตามชื่อคอลัมน์ในตาราง users (name, profile, role)
           const rawRole = sheetData.role ? sheetData.role.toString().trim() : "User";
           localStorage.setItem("role", rawRole);
           
-          if(sheetData.nickname) localStorage.setItem("activeUsername", sheetData.nickname);
-          if(sheetData.avatar) localStorage.setItem("avatar", sheetData.avatar);
+          if(sheetData.name) localStorage.setItem("name", sheetData.name);
+          if(sheetData.profile) localStorage.setItem("profile", sheetData.profile);
           
           syncStatus.innerHTML = `<i class="fa-solid fa-shield-halved" style="color: #2ec4b6;"></i> Role Verified via Google Sheets!`;
         } else {
@@ -289,21 +289,20 @@
       }
 
       checkRolePermission();
+      renderUI(); // สั่งเรนเดอร์ใหม่หลังเช็คสิทธิ์เสร็จเพื่ออัปเดตตัวกรองประกาศงับ ✨
     }
 
-    // 🔒 ระบบตรวจสอบสิทธิ์ที่ได้รับการอัปเดต (Case-Insensitive 🛠️)
+    // 🔒 ระบบตรวจสอบสิทธิ์ (Case-Insensitive 🛠️)
     function checkRolePermission() {
       const rawRole = localStorage.getItem("role") || "User";
-      // แปลงเป็นตัวพิมพ์ใหญ่ทั้งหมดเพื่อป้องกันความผิดพลาดจากฐานข้อมูลหลังบ้าน
       const currentRoleCleaned = rawRole.trim().toUpperCase(); 
-      const currentName = localStorage.getItem("activeUsername") || activeUsername;
+      const currentName = localStorage.getItem("name") || activeUsername;
 
       const isAuthorized = (currentRoleCleaned === "ADMIN" || currentRoleCleaned === "CEO");
       const hasVerified = isAuthorized ? `<i class="fa-solid fa-circle-check verified-icon"></i>` : "";
       
       userPreview.innerHTML = `Posting as: <strong>${currentName} ${hasVerified}</strong> (${rawRole})`;
 
-      // ยืดหยุ่นและปลอดภัยสูง
       if (isAuthorized) {
         inputPanel.style.display = "flex";
       } else {
@@ -322,40 +321,58 @@
     ];
 
     function renderUI() {
+      const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
+      
       if (myNotifications.length > 0) {
         notiListContainer.innerHTML = "";
-        const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
+        let sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
 
-        sortedList.forEach(noti => {
-          const notiDate = new Date(noti.timestamp);
-          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        // 🛡️ [เงื่อนไขหลัก] หากเป็นทั่วไป (USER/MEMBER) ให้กรองเห็นเฉพาะโพสต์จาก ADMIN และ CEO เท่านั้นงับ
+        if (currentRoleCleaned === "USER" || currentRoleCleaned === "MEMBER") {
+          sortedList = sortedList.filter(noti => {
+            const notiRoleCleaned = noti.role ? noti.role.toString().trim().toUpperCase() : "USER";
+            return notiRoleCleaned === "ADMIN" || notiRoleCleaned === "CEO";
+          });
+        }
 
-          const notiRoleCleaned = noti.role ? noti.role.toString().trim().toUpperCase() : "USER";
-          const showVerified = (notiRoleCleaned === "ADMIN" || notiRoleCleaned === "CEO") 
-            ? `<i class="fa-solid fa-circle-check verified-icon" title="Verified Professional"></i>` 
-            : "";
+        if (sortedList.length > 0) {
+          sortedList.forEach(noti => {
+            const notiDate = new Date(noti.timestamp);
+            const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 
-          const item = document.createElement("div");
-          item.className = "noti-item"; 
-          item.innerHTML = `
-            <img src="${noti.avatar || 'https://via.placeholder.com/150/ff4d6d/ffffff?text=BLM48'}" class="noti-avatar" alt="avatar">
-            <div class="noti-content">
-              <p class="noti-text"><strong>${noti.writer}${showVerified}</strong> ${noti.action}</p>
-              <div class="noti-time">${timeString}</div>
-            </div>
-          `;
-          notiListContainer.appendChild(item);
-        });
+            const notiRoleCleaned = noti.role ? noti.role.toString().trim().toUpperCase() : "USER";
+            const showVerified = (notiRoleCleaned === "ADMIN" || notiRoleCleaned === "CEO") 
+              ? `<i class="fa-solid fa-circle-check verified-icon" title="Verified Professional"></i>` 
+              : "";
+
+            const item = document.createElement("div");
+            item.className = "noti-item"; 
+            item.innerHTML = `
+              <img src="${noti.avatar || 'https://via.placeholder.com/150/ff4d6d/ffffff?text=BLM48'}" class="noti-avatar" alt="avatar">
+              <div class="noti-content">
+                <p class="noti-text"><strong>${noti.writer}${showVerified}</strong> ${noti.action}</p>
+                <div class="noti-time">${timeString}</div>
+              </div>
+            `;
+            notiListContainer.appendChild(item);
+          });
+        } else {
+          showEmptyNoti();
+        }
       } else {
-        notiListContainer.innerHTML = `
-          <div class="empty-noti">
-            <i class="fa-regular fa-bell-slashed"></i>
-            <p>No new notifications at the moment~ ☁️</p>
-          </div>`;
+        showEmptyNoti();
       }
     }
 
-    // 🔒 จัดการปุ่มส่งข้อความ (เคสตัวพิมพ์ใหญ่-เล็ก)
+    function showEmptyNoti() {
+      notiListContainer.innerHTML = `
+        <div class="empty-noti">
+          <i class="fa-regular fa-bell-slashed"></i>
+          <p>No new notifications at the moment~ ☁️</p>
+        </div>`;
+    }
+
+    // 🔒 จัดการปุ่มส่งข้อความ
     btnAdd.addEventListener("click", () => {
       const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
       
@@ -371,9 +388,9 @@
       }
 
       const newNotification = {
-        writer: localStorage.getItem("activeUsername") || activeUsername,
-        avatar: localStorage.getItem("avatar") || "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32",
-        role: localStorage.getItem("role") || "User", // บันทึกตามรูปแบบเดิม
+        writer: localStorage.getItem("name") || activeUsername,
+        avatar: localStorage.getItem("profile") || "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32",
+        role: localStorage.getItem("role") || "User", 
         action: actionInput,
         timestamp: Date.now()
       };
@@ -385,7 +402,7 @@
       renderUI();
     });
 
-    // ปุ่มเครียสิทธิ์ล้างจอ
+    // ปุ่มเคลียร์หน้าจอทั้งหมด
     btnReset.addEventListener("click", () => {
       const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
       if (currentRoleCleaned !== "ADMIN" && currentRoleCleaned !== "CEO") {
