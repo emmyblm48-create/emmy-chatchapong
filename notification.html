@@ -16,7 +16,7 @@
       background-color: #fff0f5; 
       padding: 20px; 
       margin: 0;
-      padding-bottom: 110px; /* Space for floating tab-bar */
+      padding-bottom: 110px; /* Space for floating bottom tab-bar */
     }
     .noti-container { 
       max-width: 500px; 
@@ -37,46 +37,25 @@
       border-bottom: 2px dashed #fff0f3;
       padding-bottom: 12px;
     }
-
-    /* 🌐 Sheets Sync Status Bar */
-    .sync-status-bar {
-      font-size: 0.75rem;
-      color: #888;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #fafafa;
-      padding: 6px 12px;
-      border-radius: 10px;
-    }
     
-    /* ✍️ Input Panel (Visible ONLY for Admin/CEO) */
+    /* ✍️ Manual Input Box (Cute & Minimalist) */
     .manual-input-box {
       background: #fff5f7;
       border: 1px dashed #ffccd5;
       padding: 16px;
       border-radius: 18px;
       margin-bottom: 24px;
-      display: none; /* Default hidden until role is verified */
+      display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
     .manual-input-box h3 {
-      margin: 0;
+      margin: 0 0 4px 0;
       font-size: 0.95rem;
       color: #ff85a2;
       display: flex;
       align-items: center;
       gap: 6px;
-    }
-    .user-badge-preview {
-      font-size: 0.8rem;
-      color: #888;
-      background: rgba(255,255,255,0.7);
-      padding: 6px 12px;
-      border-radius: 8px;
-      display: inline-block;
     }
     .manual-input-box input {
       font-family: 'Quicksand', 'Kanit', sans-serif;
@@ -124,7 +103,7 @@
     }
     .btn-clear:hover { background: #d0d0d0; }
 
-    /* Notification Cards Feed 🌸 */
+    /* Notification Cards Style 🌸 */
     .noti-list {
       display: flex;
       flex-direction: column;
@@ -138,6 +117,11 @@
       background: #fffbfb;
       border: 1px solid #fff0f3;
       border-radius: 16px;
+      transition: all 0.2s ease;
+    }
+    .noti-item.unread {
+      background: #fff5f7;
+      border-color: #ffccd5;
     }
     .noti-avatar {
       width: 48px;
@@ -157,21 +141,13 @@
     }
     .noti-text strong {
       color: #ff85a2;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
     }
-    
-    /* 🔹 Instagram Verified Badge */
-    .verified-icon {
-      color: #0095f6;
-      font-size: 0.85rem;
-    }
-    
     .noti-time {
       font-size: 0.75rem;
       color: #aaa;
     }
+    
+    /* Empty State ☁️ */
     .empty-noti {
       text-align: center;
       padding: 40px 20px;
@@ -208,14 +184,36 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
         color: #ffb3c1;
         text-decoration: none;
+        font-size: 0.85rem;
+        font-family: 'Quicksand', 'Kanit', sans-serif;
+        font-weight: 600;
         padding: 10px 14px;
         border-radius: 25px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        -webkit-tap-highlight-color: transparent;
     }
     .tab-item i { font-size: 1.25rem; }
+    .tab-item span { display: none; }
     .tab-item.active { background-color: #fff0f3; color: #ff85a2; }
+    .tab-item.active span { display: inline-block; }
+    
+    .icon-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Instagram-Style Verified Badge CSS */
+    .verified-badge {
+      color: #1d9bf0;
+      margin-left: 5px;
+      font-size: 0.85rem;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -224,19 +222,12 @@
   <div class="header">
     <i class="fa-solid fa-bell"></i> Notifications
   </div>
-
-  <div class="sync-status-bar" id="sync-status">
-    <i class="fa-solid fa-spinner fa-spin"></i> Authorizing profile...
-  </div>
   
-  <div class="manual-input-box" id="input-panel">
-    <h3><i class="fa-solid fa-bullhorn"></i> Broadcast New Notification</h3>
-    <div class="user-badge-preview" id="user-preview">
-      Verifying credentials...
-    </div>
-    <input type="text" id="input-action" placeholder="Type your notification message here...">
+  <div class="manual-input-box" id="admin-input-box" style="display: none;">
+    <h3><i class="fa-solid fa-pen-to-square"></i> Create New Notification</h3>
+    <input type="text" id="input-action" placeholder="Enter notification message (e.g., is now live 🔴, updated status)">
     <div class="btn-group">
-      <button class="btn-submit" id="btn-add"><i class="fa-solid fa-paper-plane"></i> Send</button>
+      <button class="btn-submit" id="btn-add"><i class="fa-solid fa-plus"></i> Post Notification</button>
       <button class="btn-clear" id="btn-reset"><i class="fa-solid fa-trash"></i> Clear All</button>
     </div>
   </div>
@@ -245,171 +236,112 @@
 </div>
 
 <div class="bottom-tab-bar">
-  <a href="index.html" class="tab-item"><i class="fa-solid fa-house"></i></a>
-  <a href="kami.html" class="tab-item"><i class="fa-solid fa-star"></i></a>
-  <a href="shop.html" class="tab-item"><i class="fa-solid fa-bag-shopping"></i></a>
-  <a href="notification.html" class="tab-item active"><i class="fa-solid fa-bell"></i></a>
-  <a href="member.html" class="tab-item"><i class="fa-solid fa-user"></i></a>
+  <a href="index.html" class="tab-item">
+    <i class="fa-solid fa-house"></i>
+  </a>
+  <a href="kami.html" class="tab-item">
+    <i class="fa-solid fa-star"></i>
+  </a>
+  <a href="shop.html" class="tab-item">
+    <i class="fa-solid fa-bag-shopping"></i>
+  </a>
+  <a href="notification.html" class="tab-item active">
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-bell"></i>
+    </div>
+  </a>
+  <a href="member.html" class="tab-item">
+    <i class="fa-solid fa-user"></i>
+  </a>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
-    const inputPanel = document.getElementById("input-panel");
-    const userPreview = document.getElementById("user-preview");
-    const syncStatus = document.getElementById("sync-status");
     const btnAdd = document.getElementById("btn-add");
     const btnReset = document.getElementById("btn-reset");
+    const adminInputBox = document.getElementById("admin-input-box");
 
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    const activeUsername = localStorage.getItem("activeUsername") || localStorage.getItem("username") || "Guest";
+    // 1. ตรวจเช็คข้อมูลการ Login จาก localStorage ของระบบคุณ
+    const currentUser = JSON.parse(localStorage.getItem("currentUser")) || JSON.parse(localStorage.getItem("user")) || null;
 
-    // 🌐 Sync & Validate Role from Google Sheet
-    async function syncUserProfileFromSheet() {
-      try {
-        const response = await fetch(`${scriptURL}?action=getProfile&username=${encodeURIComponent(activeUsername)}`);
-        const sheetData = await response.json();
-        
-        if (sheetData.status === "success" || sheetData.role) {
-          // ดึงและเซฟค่าข้อมูลตามชื่อคอลัมน์ในตาราง users (name, profile, role)
-          const rawRole = sheetData.role ? sheetData.role.toString().trim() : "User";
-          localStorage.setItem("role", rawRole);
-          
-          if(sheetData.name) localStorage.setItem("name", sheetData.name);
-          if(sheetData.profile) localStorage.setItem("profile", sheetData.profile);
-          
-          syncStatus.innerHTML = `<i class="fa-solid fa-shield-halved" style="color: #2ec4b6;"></i> Role Verified via Google Sheets!`;
-        } else {
-          localStorage.setItem("role", "User");
-          syncStatus.innerHTML = `<i class="fa-solid fa-user-lock"></i> Standard User Mode Active.`;
-        }
-      } catch (error) {
-        console.error("❌ Database Connection Interrupted:", error);
-        syncStatus.innerHTML = `<i class="fa-solid fa-wifi-slash" style="color: #e63946;"></i> Live authorization offline.`;
-      }
-
-      checkRolePermission();
-      renderUI(); // สั่งเรนเดอร์ใหม่หลังเช็คสิทธิ์เสร็จเพื่ออัปเดตตัวกรองประกาศงับ ✨
+    // ตรวจสอบสิทธิ์: แสดงกล่องอินพุตเฉพาะ Admin และ CEO เท่านั้น
+    if (currentUser && (currentUser.role === "Admin" || currentUser.role === "CEO")) {
+      adminInputBox.style.display = "flex";
+    } else {
+      adminInputBox.style.display = "none";
     }
 
-    // 🔒 ระบบตรวจสอบสิทธิ์ (Case-Insensitive 🛠️)
-    function checkRolePermission() {
-      const rawRole = localStorage.getItem("role") || "User";
-      const currentRoleCleaned = rawRole.trim().toUpperCase(); 
-      const currentName = localStorage.getItem("name") || activeUsername;
+    // โหลดข้อมูลแจ้งเตือนเดิมจากความจำเครื่อง
+    let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [];
 
-      const isAuthorized = (currentRoleCleaned === "ADMIN" || currentRoleCleaned === "CEO");
-      const hasVerified = isAuthorized ? `<i class="fa-solid fa-circle-check verified-icon"></i>` : "";
-      
-      userPreview.innerHTML = `Posting as: <strong>${currentName} ${hasVerified}</strong> (${rawRole})`;
-
-      if (isAuthorized) {
-        inputPanel.style.display = "flex";
-      } else {
-        inputPanel.style.display = "none";
-      }
-    }
-
-    let myNotifications = JSON.parse(localStorage.getItem("manual_notis")) || [
-      {
-        writer: "BLM48",
-        action: "welcomes everyone to the brand new notification service center! 🌸",
-        avatar: "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32",
-        role: "Admin",
-        timestamp: Date.now()
-      }
-    ];
-
+    // 2. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
     function renderUI() {
-      const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
-      
       if (myNotifications.length > 0) {
-        notiListContainer.innerHTML = "";
-        let sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
+        notiListContainer.innerHTML = ""; // ล้างข้อมูลเก่า
+        
+        // เรียงลำดับเวลาล่าสุดอยู่ด้านบนสุด
+        const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
 
-        // 🛡️ [เงื่อนไขหลัก] หากเป็นทั่วไป (USER/MEMBER) ให้กรองเห็นเฉพาะโพสต์จาก ADMIN และ CEO เท่านั้นงับ
-        if (currentRoleCleaned === "USER" || currentRoleCleaned === "MEMBER") {
-          sortedList = sortedList.filter(noti => {
-            const notiRoleCleaned = noti.role ? noti.role.toString().trim().toUpperCase() : "USER";
-            return notiRoleCleaned === "ADMIN" || notiRoleCleaned === "CEO";
-          });
-        }
+        sortedList.forEach(noti => {
+          const notiDate = new Date(noti.timestamp);
+          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + " ";
 
-        if (sortedList.length > 0) {
-          sortedList.forEach(noti => {
-            const notiDate = new Date(noti.timestamp);
-            const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+          // ตรวจสอบข้อมูลว่าโพสต์นี้มาจาก Admin หรือ CEO เพื่อใส่ติ๊กถูกสีฟ้าแบบ Instagram
+          const showVerified = (noti.role === "Admin" || noti.role === "CEO");
+          const verifiedBadge = showVerified ? `<i class="fa-solid fa-circle-check verified-badge" title="Verified Account"></i>` : '';
 
-            const notiRoleCleaned = noti.role ? noti.role.toString().trim().toUpperCase() : "USER";
-            const showVerified = (notiRoleCleaned === "ADMIN" || notiRoleCleaned === "CEO") 
-              ? `<i class="fa-solid fa-circle-check verified-icon" title="Verified Professional"></i>` 
-              : "";
-
-            const item = document.createElement("div");
-            item.className = "noti-item"; 
-            item.innerHTML = `
-              <img src="${noti.avatar || 'https://via.placeholder.com/150/ff4d6d/ffffff?text=BLM48'}" class="noti-avatar" alt="avatar">
-              <div class="noti-content">
-                <p class="noti-text"><strong>${noti.writer}${showVerified}</strong> ${noti.action}</p>
-                <div class="noti-time">${timeString}</div>
-              </div>
-            `;
-            notiListContainer.appendChild(item);
-          });
-        } else {
-          showEmptyNoti();
-        }
+          const item = document.createElement("div");
+          item.className = "noti-item unread"; 
+          item.innerHTML = `
+            <img src="${noti.avatar || 'https://via.placeholder.com/150/ff4d6d/ffffff?text=BLM48'}" class="noti-avatar" alt="avatar">
+            <div class="noti-content">
+              <p class="noti-text"><strong>${noti.writer}</strong>${verifiedBadge} ${noti.action}</p>
+              <div class="noti-time">${timeString}</div>
+            </div>
+          `;
+          notiListContainer.appendChild(item);
+        });
       } else {
-        showEmptyNoti();
+        notiListContainer.innerHTML = `
+          <div class="empty-noti">
+            <i class="fa-regular fa-bell-slashed"></i>
+            <p>No Notifications</p>
+          </div>`;
       }
     }
 
-    function showEmptyNoti() {
-      notiListContainer.innerHTML = `
-        <div class="empty-noti">
-          <i class="fa-regular fa-bell-slashed"></i>
-          <p>No new notifications at the moment~ ☁️</p>
-        </div>`;
-    }
-
-    // 🔒 จัดการปุ่มส่งข้อความ
+    // 3. ระบบกดปุ่มเพิ่มแจ้งเตือนใหม่ (พิมพ์แค่ข้อความอย่างเดียว)
     btnAdd.addEventListener("click", () => {
-      const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
-      
-      if (currentRoleCleaned !== "ADMIN" && currentRoleCleaned !== "CEO") {
-        alert("Access Denied: Only Admin or CEO roles possess broadcasting permissions. 🛑");
-        return;
-      }
-
       const actionInput = document.getElementById("input-action").value.trim();
+
       if (!actionInput) {
-        alert("Please enter a notification message before sending! 🥺");
+        alert("Please enter a notification message! 🥺");
         return;
       }
 
+      // ดึงข้อมูลบัญชีผู้เขียน (ชื่อ, รูปโปรไฟล์, และสิทธิ์) ไปใส่ใน Object ทันทีโดยไม่ต้องกรอกเอง
       const newNotification = {
-        writer: localStorage.getItem("name") || activeUsername,
-        avatar: localStorage.getItem("profile") || "https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32",
-        role: localStorage.getItem("role") || "User", 
+        writer: currentUser ? (currentUser.name || currentUser.username) : "Admin",
         action: actionInput,
+        avatar: currentUser ? (currentUser.profile || currentUser.avatar) : "",
+        role: currentUser ? currentUser.role : "Admin",
         timestamp: Date.now()
       };
 
+      // บันทึกลงอาเรย์และเซฟเข้า localStorage
       myNotifications.push(newNotification);
       localStorage.setItem("manual_notis", JSON.stringify(myNotifications));
 
+      // ล้างค่าในช่องกรอกข้อความ
       document.getElementById("input-action").value = "";
+
+      // อัปเดตหน้าจอทันที
       renderUI();
     });
 
-    // ปุ่มเคลียร์หน้าจอทั้งหมด
+    // 4. ระบบล้างข้อมูลแจ้งเตือนทั้งหมดบนหน้าจอ
     btnReset.addEventListener("click", () => {
-      const currentRoleCleaned = (localStorage.getItem("role") || "User").trim().toUpperCase();
-      if (currentRoleCleaned !== "ADMIN" && currentRoleCleaned !== "CEO") {
-        alert("Access Denied: Action restricted to System Authorities.");
-        return;
-      }
-      
       if(confirm("Are you sure you want to clear all notifications?")) {
         myNotifications = [];
         localStorage.removeItem("manual_notis");
@@ -417,7 +349,7 @@
       }
     });
 
-    syncUserProfileFromSheet();
+    // สั่งวาดหน้าจอแสดงผลครั้งแรกตอนโหลดไฟล์สำเร็จ
     renderUI();
   });
 </script>
