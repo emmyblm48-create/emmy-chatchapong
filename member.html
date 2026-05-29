@@ -481,14 +481,14 @@
         const res = await resp.json();
         
         if (res.status === "success") {
+          // อัปเดตข้อมูลทับลงในเครื่อง
           if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
           if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
           
-          removeSkeleton();
-          renderMemberStatsAndFans();
+          removeSkeleton(); // มั่นใจว่าลบ Skeleton แล้วแน่นอน
+          renderMemberStatsAndFans(); // สั่งรีเฟรชตัวเลขและรายชื่อแฟนคลับแบบเงียบๆ
         } else {
           removeSkeleton();
-          Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลของเมมเบอร์คนนี้ได้', 'error');
         }
       } catch (e) {
         console.error("Error fetching latest member stats:", e);
@@ -600,13 +600,37 @@
       if(document.getElementById('mb-name')) document.getElementById('mb-name').innerText = memberName;
     }
 
-    function loadMemberData() {
+   function loadMemberData() {
       if (!memberName) { window.location.href = 'index.html'; return; }
       user = getUserSession();
-      showSkeleton();
+      
+      // 🌸 1. ลองดึงข้อมูลแคชที่หน้า index แอบฝากไว้ตอนกดเข้ามา
+      const savedStatsStr = localStorage.getItem('current_member_stats');
+      let hasValidCache = false;
+      
+      if (savedStatsStr) {
+        try {
+          const savedStats = JSON.parse(savedStatsStr);
+          // เช็กว่าแคชในเครื่อง ตรงกับชื่อเมมเบอร์ที่เปิดอยู่ตอนนี้หรือไม่
+          if (savedStats && savedStats.name && savedStats.name.toLowerCase() === memberName.toLowerCase()) {
+             hasValidCache = true;
+          }
+        } catch(e) {}
+      }
+
+      if (hasValidCache) {
+        // 🎯 ถ้ามีข้อมูลแคช: ให้ลบ Skeleton ทิ้ง และวาดข้อมูลขึ้นจอทันที (เร็วปรื๊ด 0.01 วิ!)
+        removeSkeleton();
+        document.getElementById('mb-name').innerText = memberName;
+        renderMemberStatsAndFans(); 
+      } else {
+        // 🎯 ถ้าไม่มีแคช (เช่น ก้อปลิงก์มาเปิดตรงๆ): ค่อยเปิดโหมด Skeleton โหลดรอ
+        showSkeleton();
+      }
+
       updateButtonStyles();
-      fetchLatestMemberStats();
-      loadMemberTimelinePosts();
+      fetchLatestMemberStats(); // แอบดึงยอดอัปเดตล่าสุดเบื้องหลังเงียบๆ
+      loadMemberTimelinePosts(); // โหลดโพสต์แบบมีแคช (ฟังก์ชันที่เราทำไปก่อนหน้า)
     }
 
     function updateButtonStyles() {
