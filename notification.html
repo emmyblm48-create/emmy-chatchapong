@@ -216,20 +216,43 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // 🚀 [แก้ไข] สั่งทำงานทันทีไม่ต้องรอ DOMContentLoaded ป้องกันบั๊กใน Script Module
   localStorage.setItem("blm48_has_new_noti", "false");
   loadRealtimeNotifications();
 
   async function loadRealtimeNotifications() {
-    // ดึงรายชื่อเมมเบอร์ที่เครื่องนี้กด Kami/Oshi เอาไว้ (ถ้าไม่มีให้ตั้ง Mock ค่าเริ่มต้นไว้เทสก่อนงับ)
-    const savedKami = JSON.parse(localStorage.getItem("kami_members") || '["Emmy", "Minnie", "Fame"]');
     const notiListContainer = document.getElementById("noti-list");
+    
+    // 🌐 ข้อมูลสำหรับเชื่อมต่อ Google Sheets หลังบ้านของเอ็มมี่
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    const activeUsername = localStorage.getItem("activeUsername") || localStorage.getItem("username") || "";
 
-    // 🕵️‍♂️ Debug Log จุดที่ 1: เช็กว่าเครื่องเราบันทึกคามิคนไหนไว้บ้าง
-    console.log("📌 รายชื่อ Kami/Oshi ในเครื่องนี้:", savedKami);
+    // ดึงค่าสแตนด์บายจากเครื่องไว้ก่อนเผื่อเน็ตช้า
+    let savedKami = JSON.parse(localStorage.getItem("kami_members") || '[]');
+
+    // 🚀 สเตปพิเศษ: ยิงไปดึงรายชื่อคามิโอชิที่เป็นปัจจุบันที่สุดจากใจกลาง Google Sheet
+    if (activeUsername) {
+      try {
+        const res = await fetch(`${scriptURL}?action=getKami&username=${encodeURIComponent(activeUsername)}`);
+        const sheetData = await res.json();
+        if (sheetData.status === "success" && sheetData.kami_members) {
+          savedKami = sheetData.kami_members;
+          localStorage.setItem("kami_members", JSON.stringify(savedKami)); // เซฟทับเก็บไว้ใช้งานต่อ
+          console.log("🔄 อัปเดตรายชื่อคามิโอชิจาก Google Sheets สำเร็จแล้ว!");
+        }
+      } catch (sheetError) {
+        console.error("❌ ดึงข้อมูลคามิจาก Sheets ไม่สำเร็จ ใช้ข้อมูลสำรองในเครื่องแทน:", sheetError);
+      }
+    }
+
+    // กรณีทดสอบระบบ หากไม่มีรายชื่อเลยให้ใช้ค่า Mock 
+    if (savedKami.length === 0) {
+      savedKami = ["Emmy", "Minnie", "Fame"];
+    }
+
+    console.log("📌 รายชื่อ Kami/Oshi ที่ใช้ในการกรอง:", savedKami);
 
     try {
-      // ดึงแจ้งเตือนล่าสุด 30 อันดับแรก เรียงตามเวลา
+      // ดึงแจ้งเตือนล่าสุด 30 อันดับแรก เรียงตามเวลาจาก Firebase
       const notiQuery = query(ref(db, 'notifications'), orderByChild('timestamp'), limitToLast(30));
       const snapshot = await get(notiQuery);
 
@@ -241,23 +264,19 @@
           .map(key => rawData[key])
           .sort((a, b) => b.timestamp - a.timestamp);
 
-        // 🕵️‍♂️ Debug Log จุดที่ 2: ดูว่าดึงข้อมูลดิบจาก Firebase สำเร็จไหม และมีใครโพสต์บ้าง
         console.log("📡 ข้อมูลแจ้งเตือนทั้งหมดบน Firebase:", notiList);
 
-        // กรองเอาเฉพาะแจ้งเตือนที่เป็น Kami หรือ Oshi ของผู้ใช้งานคนนี้เท่านั้น!
+        // 🎯 ทำการกรองเอาเฉพาะโพสต์ของเมมเบอร์ที่เรากดคามิ/โอชิเอาไว้
         const filteredNoti = notiList.filter(noti => {
-          // ใส่ .trim() เพื่อป้องกันปัญหาช่องว่างหลงมางับ
           return noti.writer && savedKami.map(k => k.trim().toLowerCase()).includes(noti.writer.trim().toLowerCase());
         });
 
-        // 🕵️‍♂️ Debug Log จุดที่ 3: ดูผลลัพธ์หลังจากผ่านตัวกรองคามิ
-        console.log("🎯 ข้อมูลแจ้งเตือนที่ผ่านตัวกรองคามิแล้ว (ที่จะแสดงบนจอ):", filteredNoti);
+        console.log("🎯 ข้อมูลแจ้งเตือนที่ผ่านตัวกรองคามิแล้ว:", filteredNoti);
 
         if (filteredNoti.length > 0) {
           notiListContainer.innerHTML = ""; // ล้างหน้าจอเพื่อเตรียมโชว์ข้อมูลจริง
           
           filteredNoti.forEach(noti => {
-            // แปลงเวลา Timestamp ของ Firebase ให้เป็นเวลาไทย
             let timeString = "เมื่อสักครู่";
             if(noti.timestamp) {
               const notiDate = new Date(noti.timestamp);
@@ -265,7 +284,6 @@
             }
 
             const item = document.createElement("div");
-            // เช็กดูว่าต้องการเน้นสีชมพูอ่อนไหม ถ้าใช่ใส่คลาส unread ทิ้งไว้ได้เลยงับ
             item.className = "noti-item unread"; 
             item.innerHTML = `
               <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32'}" class="noti-avatar" alt="avatar">
@@ -280,7 +298,6 @@
           showEmptyState("ยังไม่มีการแจ้งเตือนใหม่จาก Kami หรือ Oshi ของคุณในขณะนี้~ 🌸");
         }
       } else {
-        console.log("❌ ไม่พบ Node 'notifications' หรือยังไม่มีใครเคยโพสต์เลยในฐานข้อมูล");
         showEmptyState("ยังไม่มีการแจ้งเตือนใดๆ ในระบบฐานข้อมูลเลยงับ~ ☁️");
       }
     } catch (error) {
