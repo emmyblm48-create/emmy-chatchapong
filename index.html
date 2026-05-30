@@ -1286,6 +1286,53 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+    /* 👑 กรอบโพสต์เอฟเฟกต์พิเศษสไตล์แชมป์ประจำเดือน */
+.post-card.special-thanks-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fffdf0 100%) !important;
+  border: 2px solid #ffd700 !important; /* ขอบสีทองคำแท้ */
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3) !important;
+  position: relative;
+  overflow: hidden;
+  animation: goldGlow 3s infinite alternate;
+}
+
+/* เพิ่มตราสัญลักษณ์มุมขวาบนของการ์ดโพสต์ */
+.post-card.special-thanks-card::before {
+  content: '👑 Champ Of The Month';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #ffd700, #ff85a2);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 2;
+}
+
+/* เอฟเฟกต์แสงเลเซอร์วิบวับเลื่อนผ่านการ์ดโพสต์ตลอดเวลา */
+.special-thanks-card .shimmer-line {
+  position: absolute;
+  top: 0; left: -150%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.25), transparent);
+  transform: skewX(-30deg);
+  animation: shineMoving 4s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes goldGlow {
+  0% { box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2); }
+  100% { box-shadow: 0 12px 35px rgba(212, 175, 55, 0.45); }
+}
+
+@keyframes shineMoving {
+  0% { left: -150%; }
+  50% { left: 150%; }
+  100% { left: 150%; }
+}
   </style>
 </head>
 <body>
@@ -2302,19 +2349,28 @@ function renderPost(post) {
   // =========================================================================
   // 👑 [ตรวจสอบเงื่อนไขและเตรียมป้ายพิเศษสำหรับ Champ of the Month]
   // =========================================================================
-  const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
-  const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
-  
-  // สร้างริบบิ้นแบนเนอร์สีทองติดที่มุมซ้ายบนของโพสต์
+  // 💡 ปรับปรุง: ตรวจเช็คค่า Flag จากฐานข้อมูลหลังบ้าน (รองรับ post.postType หรือคำว่า 'special_thanks')
+  const isChampPost = post.isSpecialThanks === true || 
+                     post.type === 'special_thanks' || 
+                     post.postType === 'special_thanks' || 
+                     (post.content && post.content.includes("👑 [Special Thanks"));
+
+  // 💡 ปรับปรุง: เปลี่ยนคลาสการ์ดเป็น 'special-thanks-card' เพื่อให้ตรงกับ CSS เอฟเฟกต์เรืองแสง
+  const postContainerClass = isChampPost ? 'post-card special-thanks-card' : 'post-card';
+   
+  // 💡 ปรับปรุง: สร้างเอฟเฟกต์เส้นแสงเลเซอร์วิบวับเลื่อนผ่านตัวโพสต์
+  const shimmerElement = isChampPost ? '<div class="shimmer-line"></div>' : '';
+
+  // สร้างริบบิ้นแบนเนอร์ติดที่มุมซ้ายบนของโพสต์ (ปรับดีไซน์ไล่เฉดสีชมพูทองหรูหรา)
   const specialBadge = isChampPost ? `
-    <div class="champ-post-badge" style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #fff; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 0 0 10px 0; position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
+    <div class="champ-post-badge" style="background: linear-gradient(135deg, #ffd700, #ff85a2); color: #fff; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 0 0 10px 0; position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 5px; box-shadow: 2px 2px 8px rgba(0,0,0,0.15); z-index: 10;">
       <i class="fas fa-crown"></i> Champ of the Month Special Thanks
     </div>
   ` : '';
 
-  // กำหนดสไตล์ของการ์ดโพสต์ (ถ้าเป็นแชมป์ จะได้การ์ดธีมทอง-ครีม ไล่เฉดสีหรูหรา)
+  // กำหนดสไตล์ของการ์ดโพสต์ (ถ้าเป็นแชมป์ จะได้โครงสร้างขอบทองเรืองแสงอนิเมชัน)
   const champCardStyle = isChampPost 
-    ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
+    ? `background: linear-gradient(135deg, #ffffff 0%, #fffdf0 100%) !important; border: 2px solid #ffd700 !important; margin-top: 25px; overflow: hidden;` 
     : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
 
   const verifiedBadgeIcon = `
@@ -2329,7 +2385,9 @@ function renderPost(post) {
   // =========================================================================
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
   setTimeout(() => {
-    listenToCommentsRealtime(`${postId}`);
+    if (typeof listenToCommentsRealtime === 'function') {
+      listenToCommentsRealtime(`${postId}`);
+    }
   }, 100);
 
   // =========================================================================
@@ -2402,8 +2460,10 @@ function renderPost(post) {
 
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
+  // 💡 นำ ${shimmerElement} ไปแทรกไว้เป็น Element แรกข้างในโครงสร้างการ์ดโพสต์เพื่อให้เลเซอร์วิ่งผ่านพื้นหลังได้สวยงาม
   return `
     <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
+      ${shimmerElement}
       ${specialBadge}
       ${actionMenu}
       
