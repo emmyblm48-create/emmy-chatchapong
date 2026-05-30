@@ -98,6 +98,52 @@
       position: relative;
     }
 
+    /* จัดการกล่องครอบหัวข้อและปุ่มให้อยู่แถวเดียวกัน */
+.ranking-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 4px;
+}
+
+/* ปรับแต่งหัวข้อให้ดูละมุนและมีสไตล์ */
+.ranking-header-container .section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #6e6e6e; /* สีเทาเข้มแบบซอฟต์ ไม่ดำสนิทเกินไป */
+    display: flex;
+    align-items: center;
+}
+
+/* ปรับแต่งปุ่ม Special Fans Day ให้มีความ Cute & Dreamy */
+.special-fans-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px; /* เว้นระยะไอคอนกับข้อความ */
+    background: linear-gradient(135deg, #ffccd5, #ffb6c1); /* ไล่เฉดชมพูนมพาสเทล */
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: 25px; /* มนกลมแบบละมุน */
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4); /* เงาฟุ้งโทนชมพู */
+    transition: all 0.3s ease; /* ทำให้ทุกเอฟเฟกต์เคลื่อนไหวสมูท */
+}
+
+/* ✨ เอฟเฟกต์ตอนเมาส์ชี้ (Hover) ให้ปุ่มลอยและเรืองแสง */
+.special-fans-btn:hover {
+    transform: translateY(-2px); /* ลอยขึ้นเล็กน้อย */
+    box-shadow: 0 6px 18px rgba(255, 182, 193, 0.6); /* เงานุ่มขึ้น กว้างขึ้น */
+    filter: brightness(1.03); /* สว่างขึ้นนิดนึงเพิ่มมิติ */
+}
+
+/* ตอนกดลงไป */
+.special-fans-btn:active {
+    transform: translateY(1px);
+}
+
     /* Page 1: UI หลัก */
     #main-ui-page {
       background-color: var(--bg-color);
@@ -1239,10 +1285,14 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </div>
 </div>
 
-<div class="section-title"> Member Ranking</div>
-  <a href="specialfansday.html" class="special-fans-btn" style="display: inline-flex; align-items: center; background: #ffc0cb; color: #fff; padding: 6px 16px; border-radius: 20px; text-decoration: none; font-size: 0.85rem; font-weight: bold; box-shadow: 0 4px 10px rgba(255, 192, 203, 0.4); transition: transform 0.2s;">
-        <i class="fa-solid fa-star" style="margin-right: 6px;"></i> Special Fans Day
+<div class="ranking-header-container">
+    <div class="section-title">
+        <i class="fa-solid fa-trophy" style="color: #ffb6c1; margin-right: 4px;"></i> Member Ranking
+    </div>
+    <a href="specialfansday.html" class="special-fans-btn">
+        <i class="fa-solid fa-star"></i> Special Fans Day
     </a>
+</div>
   
 <div class="ranking-wrapper">
   <div id="ranking-list" class="horizontal-list"></div>
@@ -2529,41 +2579,48 @@ function closeImageViewer() {
     }
   }
 
-  // ฟังก์ชันดึงข้อมูล Champ ประจำเดือน
-    async function loadChampOfMonth() {
-        try {
-            // ใส่ URL ของ Google Apps Script (อย่าลืม /exec ต่อท้าย และพารามิเตอร์ที่ต้องใช้)
-            const apiUrl = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getChampOfMonth';  
+  // 🏆 ฟังก์ชันดึงข้อมูล แชมป์ประจำเดือนล่าสุดมาแสดงบนหน้าแรก
+async function loadChampOfMonth() {
+    try {
+        // URL สำหรับดึงข้อมูลแชมป์ประจำเดือนจาก Google Apps Script Web App ตัวจริงของคุณ
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getChampOfMonth';  
 
-            // 1. สั่ง fetch เพื่อไปดึงข้อมูลจากหลังบ้าน
-            const response = await fetch(apiUrl);
-            
-            // 2. แปลงผลลัพธ์ที่ได้กลับมาให้อยู่ในรูปแบบ JSON เข้าตัวแปร data
-            const data = await response.json();
+        // 1. ส่งคำขอไปดึงข้อมูลแบบ Async
+        const response = await fetch(apiUrl);
+        
+        // 2. แปลงผลลัพธ์ที่ได้กลับมาเป็น JSON
+        const data = await response.json();
 
-            // ตรวจสอบว่ามีข้อมูลส่งกลับมาและสำเร็จหรือไม่
-            if (data.status === 'success') {
-                // Map ข้อมูลลงไปแทนที่ใน HTML
-                document.getElementById('champ-month-name').textContent = data.champName;
-                document.getElementById('champ-month-img').src = data.profileUrl;
+        // 3. ตรวจสอบว่าดึงข้อมูลสำเร็จหรือไม่
+        if (data.status === 'success') {
+            const nameElem = document.getElementById('champ-month-name');
+            const imgElem = document.getElementById('champ-month-img');
+            const banner = document.getElementById('month-champ-banner');
 
-                // อัปเดตลิงก์ของแบนเนอร์เพื่อให้กดแล้วไปหน้า Special Thanks ถูกคน
-                const banner = document.getElementById('month-champ-banner');
+            // แสดงผลชื่อและรูปแชมป์ (เช็คความปลอดภัยเผื่อไม่มีอิลิเมนต์ในหน้านั้น)
+            if (nameElem) nameElem.textContent = data.champName;
+            if (imgElem) imgElem.src = data.profileUrl;
+
+            // 🔥 ผูกอีเวนต์คลิกที่แบนเนอร์เพื่อส่ง index แชมป์คนล่าสุดไปยังหน้าแสดงความขอบคุณตัวจริง
+            if (banner) {
                 banner.onclick = function() {
                     window.location.href = `specialthanks.html?index=${data.champIndex}`;
                 };
-            } else {
-                document.getElementById('champ-month-name').textContent = 'No Data';
+                banner.style.cursor = "pointer"; // เปลี่ยนเมาส์เป็นรูปมือเวลาผู้ใช้ชี้ที่แบนเนอร์
             }
-
-        } catch (error) {
-            console.error('Error fetching champ data:', error);
-            document.getElementById('champ-month-name').textContent = 'Error';
+            
+        } else {
+            console.warn('Backend response error:', data.message);
+            const nameElem = document.getElementById('champ-month-name');
+            if (nameElem) nameElem.textContent = 'No Data';
         }
-    }
 
-    // เรียกให้ฟังก์ชันทำงานทันทีที่โหลดโครงสร้างหน้าเว็บเสร็จ
-    document.addEventListener('DOMContentLoaded', loadChampOfMonth);
+    } catch (error) {
+        console.error('Error fetching champ data:', error);
+        const nameElem = document.getElementById('champ-month-name');
+        if (nameElem) nameElem.textContent = 'Error';
+    }
+}
   
   async function doLogin() {
     const u = document.getElementById('login-user').value;
@@ -2653,19 +2710,22 @@ async function refreshAppData() {
   } 
 }
 
-// 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
+// ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์ (มัดรวมคำสั่งทั้งหมดไว้ที่นี่ที่เดียว)
 document.addEventListener("DOMContentLoaded", () => {
   
-  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
+  // 1. ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
   user = getUserSession(); 
   
-  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
+  // 2. สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันทีจากข้อมูลเซสชันที่มี
   updateUI();
   
-  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
+  // 3. 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
   hideAppLoading(); 
   
-  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
+  // 4. 🏆 สั่งดึงข้อมูล แชมป์ประจำเดือนล่าสุด มาแสดงบน Banner หน้าแรก
+  loadChampOfMonth();
+
+  // 5. ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
   loadData();
   if (user) {
     syncUserData(); 
