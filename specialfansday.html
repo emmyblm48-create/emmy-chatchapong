@@ -3,152 +3,525 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BLM48 | Special Fans Day</title>
+    <title>BLM48 | Special Fans Day Ranking</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        :root {
+            --iam-dark: #3a3a3a;
+            --blm-pink: #ffb6c1;
+            --blm-pink-light: #fff5f7;
+            --blm-gradient: linear-gradient(135deg, #ffccd5, #ffb6c1);
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #fff5f7;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--blm-pink-light);
             margin: 0;
             padding: 16px;
-            padding-bottom: 80px;
+            padding-bottom: 100px;
+            color: var(--iam-dark);
         }
+
+        /* Header Styleสไตล์ IAM48 x BLM48 */
         .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(255, 182, 193, 0.2);
         }
+
         .page-title {
-            font-size: 1.4rem;
-            color: #333;
-            margin: 0;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--iam-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .champ-week-btn {
-            background: #ffc0cb;
+
+        .page-title i {
+            color: var(--blm-pink);
+        }
+
+        .back-home-btn {
+            background: var(--blm-gradient);
             color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
             text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 20px;
             font-size: 0.85rem;
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 8px rgba(255, 182, 193, 0.3);
+            transition: transform 0.2s;
         }
-        .member-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+
+        .back-home-btn:hover {
+            transform: translateY(-2px);
         }
-        .member-card {
+
+        /* แท็บเลือกเดือนสไตล์ IAM48 */
+        .month-selector-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 4px 12px 4px;
+            margin-bottom: 16px;
+            scrollbar-width: none; /* ซ่อน scrollbar */
+        }
+        .month-selector-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .month-tab {
+            flex: 0 0 auto;
+            padding: 8px 16px;
             background: #fff;
-            padding: 12px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #8e8e8e;
+            cursor: pointer;
+            border: 1px solid rgba(255, 182, 193, 0.3);
+            transition: all 0.2s ease;
         }
-        .member-info {
+
+        .month-tab.active {
+            background: var(--blm-gradient);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 10px rgba(255, 182, 193, 0.4);
+        }
+
+        /* 👑 โพเดียมอันดับ Top 3 ไฮไลท์แบบ IAM48 */
+        .podium-container {
             display: flex;
-            align-items: center;
+            justify-content: center;
+            align-items: flex-end;
+            margin: 24px 0;
+            padding: 10px;
             gap: 12px;
         }
-        .avatar-frame {
+
+        .podium-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
             position: relative;
-            width: 50px;
-            height: 50px;
+            box-shadow: 0 6px 15px rgba(255, 182, 193, 0.15);
+            flex: 1;
+            max-width: 110px;
+            transition: transform 0.2s;
         }
-        .member-avatar {
+
+        .podium-card.rank-1 {
+            max-width: 125px;
+            padding: 20px 12px 16px 12px;
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            transform: translateY(-10px);
+        }
+        .podium-card.rank-1:hover { transform: translateY(-12px); }
+        .podium-card.rank-2 { border: 1.5px solid rgba(192, 192, 192, 0.4); }
+        .podium-card.rank-3 { border: 1.5px solid rgba(205, 127, 50, 0.4); }
+
+        .podium-avatar-wrapper {
+            position: relative;
+            width: 65px;
+            height: 65px;
+            margin: 0 auto 8px auto;
+        }
+        .rank-1 .podium-avatar-wrapper { width: 75px; height: 75px; }
+
+        .podium-avatar {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #ffc0cb;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .member-name {
-            margin: 0;
-            font-size: 1rem;
-            color: #333;
+
+        .crown-icon {
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.3rem;
         }
-        .give-cookie-btn {
-            background: #ff6b8b;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.85rem;
+        .rank-1 .crown-icon { color: var(--gold); font-size: 1.6rem; }
+        .rank-2 .crown-icon { color: var(--silver); }
+        .rank-3 .crown-icon { color: var(--bronze); }
+
+        .podium-name {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin: 4px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .podium-cookies {
+            font-size: 0.75rem;
+            color: #e67e22;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .podium-badge {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            background: #333;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rank-1 .podium-badge { background: var(--gold); color: #333; }
+        .rank-2 .podium-badge { background: var(--silver); }
+        .rank-3 .podium-badge { background: var(--bronze); }
+
+        /* 📋 รายการอันดับ 4 ลงไป สไตล์ List View ของ IAM48 */
+        .ranking-list {
+            background: #fff;
+            border-radius: 20px;
+            padding: 8px;
+            box-shadow: 0 6px 18px rgba(255, 182, 193, 0.15);
+        }
+
+        .ranking-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 8px;
+            border-bottom: 1px solid #fff0f2;
             transition: background 0.2s;
         }
-        .give-cookie-btn:hover {
-            background: #ff4770;
+        .ranking-row:last-child { border-bottom: none; }
+        .ranking-row:hover { background: #fffcfd; }
+
+        .row-rank {
+            width: 30px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            text-align: center;
+            color: #8e8e8e;
+        }
+
+        .row-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 12px;
+            border: 2px solid var(--blm-pink-light);
+        }
+
+        .row-info {
+            flex: 1;
+        }
+
+        .row-name {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+        }
+
+        .row-cookies {
+            font-size: 0.8rem;
+            color: #e67e22;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ปุ่มส่งคุกกี้สไตล์ BLM48 น่ารักๆ */
+        .action-cookie-btn {
+            background: var(--blm-gradient);
+            border: none;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 18px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 3px 8px rgba(255, 182, 193, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .action-cookie-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 182, 193, 0.5);
+        }
+
+        .action-cookie-btn active {
+            transform: scale(0.98);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--blm-pink);
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
     <div class="header-container">
-        <h1 class="page-title">Special Fans Day</h1>
-        <a href="champ.html" class="champ-week-btn">
-            <i class="fa-solid fa-crown"></i> Champ of the week
+        <div class="page-title">
+            <i class="fa-solid fa-trophy"></i> Member Ranking
+        </div>
+        <a href="index.html" class="back-home-btn">
+            <i class="fa-solid fa-house"></i> หน้าแรก
         </a>
     </div>
 
-    <div class="member-list" id="member-container">
+    <div class="month-selector-container" id="month-tabs-wrapper">
+        <div class="month-tab active" onclick="changeMonth('May')">May</div>
+        <div class="month-tab" onclick="changeMonth('April')">April</div>
+        <div class="month-tab" onclick="changeMonth('March')">March</div>
+        <div class="month-tab" onclick="changeMonth('February')">February</div>
+        <div class="month-tab" onclick="changeMonth('January')">January</div>
+    </div>
+
+    <div id="podium-section" class="podium-container">
         </div>
 
+    <div class="ranking-list" id="ranking-rows-wrapper">
+        <div class="loading-state">
+            <i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดตารางอันดับ...
+        </div>
+    </div>
+
     <script>
-        // ข้อมูลจำลองของผู้ใช้ปัจจุบัน (ดึงข้อมูลจริงจากระบบล็อกอินหรือ LocalStorage ของคุณ)
-        const currentUser = {
-            username: "Fanclub01",
-            role: "user" // สามารถลองเปลี่ยนเป็น 'admin' เพื่อทดสอบเงื่อนไขล็อกสิทธิ์ได้
-        };
+        // กำหนด URL ของระบบหลังบ้าน Web App ตัวจริงของคุณ
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+        
+        let allRankingData = []; // เก็บข้อมูลเมมเบอร์ทั้งหมดที่ดึงมา
+        let currentSelectedMonth = 'May'; // เดือนเริ่มต้นตั้งต้น
+        let currentUser = null;
 
-        // รายชื่อเมมเบอร์เริ่มต้น (เชื่อมต่อกับ Database หรือ API หลักของคุณ)
-        const members = [
-            { id: 1, name: "Member 1", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" },
-            { id: 2, name: "Member 2", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" },
-            { id: 3, name: "Member 3", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" }
-        ];
+        // ดึงข้อมูลผู้ใช้และโครงสร้างเมื่อหน้าเว็บโหลดเสร็จสิ้น
+        document.addEventListener("DOMContentLoaded", async () => {
+            // ดึงเซสชันผู้ใช้ตามโครงสร้างหน้าแรกของคุณ
+            if (typeof getUserSession === 'function') {
+                currentUser = getUserSession();
+            } else {
+                // กรณีดึงตรงผ่าน localStorage แบบทั่วไป
+                try {
+                    currentUser = JSON.parse(localStorage.getItem('bnl_session'));
+                } catch(e) { console.error(e); }
+            }
+            
+            await fetchRankingBackend();
+        });
 
-        function displayMembers() {
-            const container = document.getElementById('member-container');
-            container.innerHTML = members.map(member => `
-                <div class="member-card">
-                    <div class="member-info">
-                        <div class="avatar-frame">
-                            <img class="member-avatar" src="${member.image}" alt="${member.name}">
-                        </div>
-                        <h3 class="member-name">${member.name}</h3>
-                    </div>
-                    <button class="give-cookie-btn" onclick="sendCookie('${member.name}')">
-                        <i class="fa-solid fa-cookie"></i> ส่งคุกกี้
-                    </button>
-                </div>
-            `).join('');
+        // ฟังก์ชันดึงข้อมูลจากชีตรวมของ Google Apps Script
+        async function fetchRankingBackend() {
+            try {
+                // เรียก action ดึงสถิติอันดับ (อ้างอิงโครงสร้างเดียวกับหน้าหลักของคุณ)
+                const response = await fetch(`${WEB_APP_URL}?action=getRanking`);
+                const data = await response.json();
+                
+                if (data.status === 'success' || Array.isArray(data)) {
+                    allRankingData = Array.isArray(data) ? data : data.rankings;
+                    renderRankingGrid();
+                } else {
+                    showErrorMessage('ไม่สามารถโหลดข้อมูลสำเร็จ');
+                }
+            } catch (error) {
+                console.error("Error fetching rankings:", error);
+                showErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อระบบหลังบ้าน');
+            }
         }
 
-        // ฟังก์ชันจัดการระบบส่งคุกกี้ และตรวจสอบสิทธิ์ผู้ใช้งาน
-        function sendCookie(memberName) {
-            // ตรวจสอบสิทธิ์: ต้องเป็น role 'user' เท่านั้น
-            if (!currentUser || currentUser.role !== 'user') {
-                alert('❌ เฉพาะบัญชีประเภท User เท่านั้นที่สามารถกดให้คุกกี้ได้!');
+        // ฟังก์ชันสลับการดูข้อมูลรายเดือน
+        function changeMonth(monthName) {
+            currentSelectedMonth = monthName;
+            
+            // อัปเดต UI ไฮไลท์แท็บที่เลือก
+            const tabs = document.querySelectorAll('.month-tab');
+            tabs.forEach(tab => {
+                if(tab.textContent.trim().toLowerCase() === monthName.toLowerCase()) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            renderRankingGrid();
+        }
+
+        // ฟังก์ชันจัดอันดับและประมวลผลวาดลงบน UI ทั้งโพเดียมและลิสต์รายการ
+        function renderRankingGrid() {
+            if (!allRankingData || allRankingData.length === 0) return;
+
+            // คัดกรองและเรียงอันดับเมมเบอร์ตามคะแนนคุกกี้ของเดือนที่ถูกเลือก (มาก -> น้อย)
+            // เช็คชื่อฟิลด์เดือนใน Data Object (คอลัมน์เช่น January, February, March)
+            const sortedMembers = [...allRankingData].sort((a, b) => {
+                const scoreA = parseInt(a[currentSelectedMonth] || a[currentSelectedMonth.toLowerCase()] || 0);
+                const scoreB = parseInt(b[currentSelectedMonth] || b[currentSelectedMonth.toLowerCase()] || 0);
+                return scoreB - scoreA;
+            });
+
+            // แยกสร้างกลุ่ม Top 3 และกลุ่มที่เหลือทั้งหมด
+            const top3 = sortedMembers.slice(0, 3);
+            const remaining = sortedMembers.slice(3);
+
+            // 1. วาดโครงสร้างโพเดียม Top 3 (จัดเรียงสไตล์สากล: อันดับ 2 อยู่ซ้าย, อันดับ 1 อยู่กลาง, อันดับ 3 อยู่ขวา)
+            const podiumWrapper = document.getElementById('podium-section');
+            let podiumHTML = '';
+
+            // สร้างโครงตามลำดับซ้ายไปขวา [อันดับ 2, อันดับ 1, อันดับ 3]
+            const order = [1, 0, 2]; // map ดัชนีในอาเรย์ top3
+            
+            order.forEach(idx => {
+                const member = top3[idx];
+                if (member) {
+                    const rankNum = idx + 1;
+                    const cookiesCount = parseInt(member[currentSelectedMonth] || member[currentSelectedMonth.toLowerCase()] || 0).toLocaleString();
+                    const profileImg = member.profile || member.profileImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150';
+
+                    podiumHTML += `
+                        <div class="podium-card rank-${rankNum}">
+                            <i class="fa-solid fa-crown crown-icon"></i>
+                            <div class="podium-avatar-wrapper">
+                                <img class="podium-avatar" src="${profileImg}" alt="${member.name}">
+                            </div>
+                            <div class="podium-name">${member.name}</div>
+                            <div class="podium-cookies"><i class="fa-solid fa-cookie"></i> ${cookiesCount}</div>
+                            <div class="podium-badge">${rankNum}</div>
+                            <button class="action-cookie-btn" style="margin: 8px auto 0 auto;" onclick="submitCookieToMember('${member.name}')">
+                                <i class="fa-solid fa-cookie"></i> ส่ง
+                            </button>
+                        </div>
+                    `;
+                }
+            });
+            podiumWrapper.innerHTML = podiumHTML;
+
+            // 2. วาดส่วนแถวรายการอันดับที่เหลือ (อันดับ 4 เป็นต้นไป)
+            const listWrapper = document.getElementById('ranking-rows-wrapper');
+            if (sortedMembers.length === 0) {
+                listWrapper.innerHTML = '<div class="loading-state">ไม่มีข้อมูลการจัดอันดับในเดือนนี้</div>';
                 return;
             }
 
-            // ทำงานต่อหากเป็นประเภท User จริง (เช่นอัปเดตข้อมูลขึ้นฐานข้อมูล/Supabase)
-            alert(`🎉 คุณได้ส่งคุกกี้ให้ ${memberName} เรียบร้อยแล้ว!`);
+            let listHTML = '';
+            sortedMembers.forEach((member, index) => {
+                // ข้ามการซ้ำซ้อนการวาดหลักบนลิสต์ถ้าต้องการ หรือโชว์ต่อเนื่องยาวลงมาได้เลย (แนะนำโชว์ยาวทั้งหมดเพื่อความชัดเจนแบบ IAM48)
+                const rankNum = index + 1;
+                const cookiesCount = parseInt(member[currentSelectedMonth] || member[currentSelectedMonth.toLowerCase()] || 0).toLocaleString();
+                const profileImg = member.profile || member.profileImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150';
+
+                listHTML += `
+                    <div class="ranking-row">
+                        <div class="row-rank">${rankNum}</div>
+                        <img class="row-avatar" src="${profileImg}" alt="${member.name}" loading="lazy">
+                        <div class="row-info">
+                            <h4 class="row-name">${member.name}</h4>
+                            <div class="row-cookies"><i class="fa-solid fa-cookie"></i> ${cookiesCount} Cookies</div>
+                        </div>
+                        <button class="action-cookie-btn" onclick="submitCookieToMember('${member.name}')">
+                            <i class="fa-solid fa-cookie"></i> ส่งคุกกี้
+                        </button>
+                    </div>
+                `;
+            });
+            listWrapper.innerHTML = listHTML;
         }
 
-        // เริ่มแสดงรายการเมมเบอร์ตอนเปิดหน้า
-        displayMembers();
+        // 🔥 ฟังก์ชันการทำงานระบบส่งคุกกี้ ดึงและทำงานเชื่อมกับระบบหลังบ้านแบบหน้าหลักของแอป
+        async function submitCookieToMember(memberName) {
+            // 1. ตรวจสอบสิทธิ์ผู้ใช้จำกัดเฉพาะกลุ่มสิทธิ์ 'user' ตามกติกาแอปพลิเคชัน
+            if (!currentUser) {
+                alert('❌ กรุณาเข้าสู่ระบบก่อนร่วมส่งคุกกี้ให้เมมเบอร์!');
+                return;
+            }
+            if (currentUser.role !== 'user') {
+                alert('❌ เฉพาะบัญชีประเภทแฟนคลับ (User) เท่านั้นที่สามารถส่งคุกกี้ได้งับ!');
+                return;
+            }
+
+            // สอบถามจำนวนที่แฟนคลับต้องการมอบให้
+            const amountInput = prompt(`🎉 ป้อนจำนวนคุกกี้ที่ต้องการส่งให้คุณ "${memberName}":`, "10");
+            if (amountInput === null) return; // กดยกเลิก
+            
+            const cookieAmount = parseInt(amountInput);
+            if (isNaN(cookieAmount) || cookieAmount <= 0) {
+                alert('❌ กรุณากรอกจำนวนคุกกี้ที่ถูกต้องและมากกว่า 0 ชิ้นครับ');
+                return;
+            }
+
+            // ตรวจสอบกระเป๋าคุกกี้ของผู้ใช้ในปัจจุบันก่อนส่ง (อ้างอิงฟิลด์ข้อมูลหน้าหลัก)
+            const userAvailableCookies = parseInt(currentUser.cookie || 0);
+            if (cookieAmount > userAvailableCookies) {
+                alert(`❌ คุกกี้ไม่พอส่งงับ! ปัจจุบันคุณมีอยู่ ${userAvailableCookies} คุกกี้`);
+                return;
+            }
+
+            try {
+                // เปิดเอฟเฟกต์ประมวลผลชั่วคราว
+                alert('⏳ ระบบกำลังประมวลผลการโหวตส่งมอบคุกกี้...');
+
+                // ส่งข้อมูลคำขอไปยัง API โครงสร้างเดียวกับการกดหน้าหลัก
+                const response = await fetch(`${WEB_APP_URL}`, {
+                    method: 'POST',
+                    mode: 'no-cors', // ตามรูปแบบการ Deployment ทั่วไปบน Apps Script Web App
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        'action': 'giveCookie',
+                        'username': currentUser.username,
+                        'target': memberName,
+                        'amount': cookieAmount,
+                        'month': currentSelectedMonth // ส่งคีย์เดือนเพื่อให้ระบบหลังบ้านนำไปสะสมในคอลัมน์ได้แม่นยำ
+                    })
+                });
+
+                // อัปเดตจำนวนคงเหลือในเซสชันเครื่องผู้ใช้ทันทีเพื่อให้ลื่นไหลแบบสากล
+                currentUser.cookie = userAvailableCookies - cookieAmount;
+                localStorage.setItem('bnl_session', JSON.stringify(currentUser));
+                
+                // แจ้งผลสำเร็จและทำการดึงตารางใหม่อีกครั้งเพื่ออัปเดตสถิติคลิกหลัก
+                alert(`🎉 สำเร็จ! มอบให้ ${cookieAmount} คุกกี้แก่คุณ ${memberName} ในรอบเดือน ${currentSelectedMonth} เรียบร้อยแล้วงับ ✨`);
+                
+                // โหลดซิงค์ตารางสถิติใหม่เบื้องหลัง
+                await fetchRankingBackend();
+
+            } catch (error) {
+                console.error("Error giving cookie:", error);
+                alert('❌ ไม่สามารถทำรายการได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        function showErrorMessage(msg) {
+            document.getElementById('ranking-rows-wrapper').innerHTML = `
+                <div class="loading-state" style="color: #ff4d6d;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> ${msg}
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
