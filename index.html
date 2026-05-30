@@ -1946,24 +1946,42 @@ function renderGlobalFans(rawData) {
 }
 
 function updateChampBannerUI(latestChamp) {
-    // 1. อัปเดตชื่อและเดือน
+    // 1. ใส่ชื่อและเดือนสแตนด์บายไว้ก่อนเลย
     document.getElementById('home-champ-name').innerText = latestChamp.name || latestChamp.Name || "";
     document.getElementById('home-champ-month').innerText = latestChamp.monthYear || latestChamp.Month_Year || "";
     
-    // 2. ดึง URL รูปภาพ (ดักไว้ให้ครบทุกชื่อที่อาจจะมาจาก Sheets เช่น postimage, profileImage, profile)
-    const imgUrl = latestChamp.postimage || latestChamp.profileImage || latestChamp.profile || latestChamp.ImageURL;
+    // 2. ตรวจสอบคอลัมน์รูปภาพจากข้อมูลหลังบ้าน (เช็กทั้ง postimage และคอลัมน์ภาษาไทย)
+    let imgUrl = latestChamp.postimage || latestChamp.profileImage || latestChamp.profile || latestChamp.รูปจากไดร์ฟ || latestChamp.ImageURL;
     const imgElement = document.getElementById('home-champ-img');
 
     if (imgElement) {
         if (imgUrl && imgUrl.trim() !== "") {
+            imgUrl = imgUrl.trim();
+
+            // 🔥 [ทีเด็ด] ถ้าตรวจพบว่าเป็นลิงก์ Google Drive ทั่วไป แปลงเป็น Direct Link ให้โหลดเร็วขึ้นทันที
+            if (imgUrl.includes('drive.google.com')) {
+                const driveIdMatch = imgUrl.match(/\/d\/([^/]+)/) || imgUrl.match(/id=([^&]+)/);
+                if (driveIdMatch && driveIdMatch[1]) {
+                    // แปลงรูปแบบลิงก์ให้กลายเป็น CDN ของ Google ที่โหลดรูปภาพได้ไวที่สุด
+                    imgUrl = `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}`;
+                }
+            }
+
+            // สั่งโหลดรูปภาพจริง
             imgElement.src = imgUrl;
+
+            // 🛠️ ถ้ารูปภาพโหลดนานเกินไปแล้วพัง หรือลิงก์เสีย ดักให้เปลี่ยนเป็นรูป Default ทันทีหน้าเว็บจะไม่ค้าง
+            imgElement.onerror = function() {
+                this.src = "https://i.ibb.co/Q7xY9sX9/profile.jpg"; // ใส่ URL รูปภาพเริ่มต้นของคุณตรงนี้
+            };
+
         } else {
-            // fallback: ถ้ารูปในชีตว่างเปล่า ให้ใส่รูป Default ป้องกันรูปแตก
-            imgElement.src = "https://i.ibb.co/Q7xY9sX9/profile.jpg"; 
+            // ถ้าระบบหลังบ้านไม่มีข้อมูลรูปภาพ ให้แสดงรูป Default
+            imgElement.src = "https://i.ibb.co/Q7xY9sX9/profile.jpg";
         }
     }
 
-    // 3. ตั้งค่าปุ่มกดลิงก์
+    // 3. ตั้งค่าปุ่มลิงก์เปลี่ยนหน้า
     const champBanner = document.querySelector('.champ-banner');
     if (champBanner) {
         champBanner.onclick = () => {
