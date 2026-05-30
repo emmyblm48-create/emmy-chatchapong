@@ -1206,6 +1206,31 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   border: 1px solid white;
   z-index: 10;
 }
+    
+    /* แถบสีทองอ้างอิงจาก image_4a20a1.jpg */
+.champ-golden-header {
+  background: linear-gradient(90deg, #fcd571 0%, #f6b93b 100%);
+  color: #ffffff;
+  font-weight: 800;
+  padding: 8px 15px;
+  text-transform: uppercase;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px 12px 0 0;
+  margin: -15px -15px 15px -15px; /* ดึงขอบให้ติดกับกรอบนอก */
+  box-shadow: 0 2px 5px rgba(246, 185, 59, 0.3);
+  letter-spacing: 1px;
+}
+
+/* ปรับสีพื้นหลังคอมเมนต์อ้างอิงจาก image_4a209e.jpg */
+.champ-comment-section {
+  background-color: #fffaf0 !important; /* สีครีมอ่อนๆ */
+  border-radius: 12px;
+  padding: 10px;
+}
+    
   </style>
 </head>
 <body>
@@ -1949,6 +1974,29 @@ function openMemberProfile(name) {
       Swal.close();
     } catch (error) { Swal.fire('ผิดพลาด', 'ไม่สามารถดึงข้อมูลล่าสุดได้', 'error'); }
   }
+  
+  function loadChampBanner() {
+  google.script.run.withSuccessHandler(function(champ) {
+    if (champ) {
+      document.getElementById('home-champ-name').innerText = champ.name;
+      document.getElementById('home-champ-img').src = champ.profileImg;
+      
+      // ถ้าโพสต์แล้วให้โชว์ข้อความสั้นๆ ถ้ายังให้โชว์ Stay tuned!
+      const msgElement = document.getElementById('home-champ-msg');
+      if (champ.hasPosted) {
+        msgElement.innerText = "ขอบคุณสำหรับทุกคะแนนโหวตนะคะ 💕"; // หรือ champ.shortMessage
+      } else {
+        msgElement.innerText = "Stay tuned! รอติดตามโพสต์พิเศษเร็วๆ นี้นะคะ ✨";
+      }
+    }
+  }).getChampOfTheMonth();
+}
+
+// อย่าลืมเรียกใช้
+window.onload = function() {
+  loadChampBanner();
+  // ... โค้ดโหลดโพสต์อื่นๆ ของคุณ ...
+};
 
 function confirmLogout() {
   // 1. ถ้าไม่มี user ล็อกอินอยู่แล้ว ให้ดีดไปหน้าล็อกอินทันที
@@ -2189,58 +2237,68 @@ function renderPost(post) {
 
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
-  // =========================================================================
-  // 🏆 [ตรวจสอบโพสต์ฉลองแชมป์]
+ // =========================================================================
+  // 🏆 [ตรวจสอบโพสต์ฉลองแชมป์ อ้างอิงดีไซน์จากภาพ]
   // =========================================================================
   const isChampPost = post.isChampPost === true || post.isChampPost === "true";
   
-  // สร้าง Wrapper สำหรับการ์ด
-  const cardClass = isChampPost ? 'champ-special-post' : '';
-  const champBadge = isChampPost ? `<div class="champ-badge-post"><i class="fas fa-crown"></i> Champ of the Month</div>` : '';
-  const wrapperStart = isChampPost 
-    ? `<div class="champ-special-inner" onclick="fireChampConfetti(this)">` 
-    : `<div style="background: white; border-radius: 15px; padding: 15px; height: 100%;">`;
+  let champGoldenBar = '';
+  let cardBackground = 'white';
+  let commentBackgroundClass = '';
+
+  if (isChampPost) {
+    champGoldenBar = `
+      <div class="champ-golden-header">
+        <span>SPECIAL FANS DAY</span>
+        <i class="fas fa-star"></i>
+      </div>
+    `;
+    cardBackground = '#fffefb'; // พื้นหลังอมเหลืองไข่ไก่นิดๆ ให้ดูอบอุ่น
+    commentBackgroundClass = 'champ-comment-section';
+  }
 
   return `
-    <div class="post-card ${cardClass}" id="post-${postId}" style="position: relative; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left;">
-      ${champBadge}
-      ${wrapperStart}
-        ${actionMenu}
-        <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
-          <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
-          <div>
-            <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
-            <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
-          </div>
+    <div class="post-card" id="post-${postId}" style="position: relative; background: ${cardBackground}; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: left; border: ${isChampPost ? '2px solid #fada80' : 'none'};">
+      
+      <!-- แถบสีทองจะโชว์เฉพาะโพสต์แชมป์ -->
+      ${champGoldenBar}
+      
+      ${actionMenu}
+      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 15px;">
+        <img src="${authorProfileImg}" style="width: 45px; height: 45px; border-radius: 50%; margin-right: 12px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div>
+          <b style="color: ${isChampPost ? '#d99d1c' : '#ff85a2'}; font-size: 15px;">${authorName} ${isPostVerified}</b>
+          <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
         </div>
-        
-        <div class="post-body" style="margin-bottom: 15px;">
-          <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 14px;">${postContent}</p>
-          ${imagesHtml}
-          ${mediaHtml}
-        </div>
-        
-        <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-          <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-            <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
-          </button>
-          <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-            <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
-          </button>
-        </div>
+      </div>
+      
+      <div class="post-body" style="margin-bottom: 15px;">
+        <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 14.5px; line-height: 1.5; color: #333;">${postContent}</p>
+        ${imagesHtml}
+        ${mediaHtml}
+      </div>
+      
+      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 12px; display: flex; gap: 20px;">
+        <button onclick="likePost('${postId}')" style="background: none; border: none; color: ${isChampPost ? '#f6b93b' : '#ff85a2'}; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: bold;">
+          <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
+        </button>
+        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: bold;">
+          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
+        </button>
+      </div>
 
-        <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-          <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
-            ${commentsHtml}
-          </div>
-          <div class="comment-input-box" style="display: flex; gap: 8px;">
-            <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-            <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
-          </div>
+      <!-- ส่วนคอมเมนต์ -->
+      <div id="comment-section-${postId}" class="${commentBackgroundClass}" style="display: none; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 12px;">
+        <div id="comment-list-${postId}" style="max-height: 250px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
+          ${commentsHtml}
         </div>
-      </div> </div>
+        <div class="comment-input-box" style="display: flex; gap: 8px;">
+          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 8px 14px; font-size: 0.85rem; outline: none; background: #fff;">
+          <button onclick="submitComment('${postId}', this)" style="background: ${isChampPost ? '#f6b93b' : '#ff85a2'}; color: white; border: none; border-radius: 20px; padding: 0 16px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
+        </div>
+      </div>
+    </div>
   `;
-}
   
   function fireChampConfetti(element) {
   if (!element.dataset.confettiFired) {
