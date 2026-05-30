@@ -1234,14 +1234,14 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="champ-banner" onclick="window.location.href='champ.html'">
       <div class="champ-info">
         <div class="champ-badge"><i class="fas fa-crown"></i> Champ of the Month</div>
-        <div class="champ-title" id="home-champ-name">Mushroom</div>
-        <div class="champ-month" id="home-champ-month">ประจำเดือนกุมภาพันธ์</div>
+        <div class="champ-title" id="home-champ-name"></div>
+        <div class="champ-month" id="home-champ-month"></div>
         <button class="champ-btn-view">view more <i class="fas fa-chevron-right"></i></button>
       </div>
       <div class="champ-img-container">
-        <img src="https://lh3.googleusercontent.com/d/1h1eW8OP8UOaJm8kRK-13t-1Z_WhNluy9=s400" id="home-champ-img" class="champ-img" alt="Champ">
+        <img src="https://i.ibb.co/Q7xY9sX9/profile.jpg" id="home-champ-img" class="champ-img" alt="Champ">
       </div>
-    </div>
+</div>
 
 <div class="section-title"> Member Ranking</div>
 <div class="ranking-wrapper">
@@ -1907,31 +1907,58 @@ function renderGlobalFans(rawData) {
   
   async function loadLatestChampForBanner() {
     try {
-        // เรียกใช้ API เดียวกับหน้า champ.html เพื่อดึงข้อมูลแชมป์
+        const now = new Date().getTime();
+        const cacheKey = 'blm_latest_champ_data';
+        const cacheTimeKey = 'blm_latest_champ_timestamp';
+        
+        // ⏳ ตั้งเวลาล้าง Cache อัตโนมัติ (เช่น 3600000 มิลลิวินาที = 1 ชั่วโมง)
+        // ถ้าอยากให้อยู่ได้ 1 วันเต็มๆ ให้เปลี่ยนเป็น: 24 * 60 * 60 * 1000
+        const CACHE_DURATION = 1 * 60 * 60 * 1000; 
+
+        // 1. ตรวจสอบว่าเคยเซฟข้อมูลไว้ในเครื่องหรือยัง และหมดอายุหรือยัง?
+        const cachedData = localStorage.getItem(cacheKey);
+        const cachedTime = localStorage.getItem(cacheTimeKey);
+
+        if (cachedData && cachedTime && (now - cachedTime < CACHE_DURATION)) {
+            // 🔥 ดึงข้อมูลจากความจำเครื่องมาใช้ทันทีหน้าเว็บจะขึ้นไวมาก!
+            const latestChamp = JSON.parse(cachedData);
+            updateChampBannerUI(latestChamp);
+            return; // จบการทำงาน ไม่ต้องโหลดเซิร์ฟเวอร์
+        }
+
+        // 2. ถ้าไม่มีข้อมูลในเครื่อง หรือข้อมูลหมดอายุแล้ว ค่อยไปเรียก API ตัวจริง
         const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
         const result = await response.json();
 
         if (result.status === "success" && result.data.length > 0) {
-            // ดึงข้อมูลคนแรก (แชมป์ล่าสุด)
             const latestChamp = result.data[0]; 
             
-            // อัปเดตข้อมูลบนป้าย
-            document.getElementById('home-champ-name').innerText = latestChamp.name;
-            document.getElementById('home-champ-month').innerText = latestChamp.monthYear;
-            
-            if (latestChamp.profileImage) {
-                document.getElementById('home-champ-img').src = latestChamp.profileImage;
-            }
+            // 💾 เซฟข้อมูลและเวลาปัจจุบันเก็บลงเครื่องผู้ใช้
+            localStorage.setItem(cacheKey, JSON.stringify(latestChamp));
+            localStorage.setItem(cacheTimeKey, now.toString());
 
-            // เปลี่ยนการทำงานเมื่อกดป้าย ให้ไปหน้า specialthanks.html ของคนนั้นๆ
-            // โดยส่ง index=0 หรือส่งชื่อไปเป็น Parameter
-            const champBanner = document.querySelector('.champ-banner');
-            champBanner.onclick = () => {
-                window.location.href = `specialthanks.html?index=0&name=${encodeURIComponent(latestChamp.name)}`;
-            };
+            // สั่งอัปเดตหน้าจอ
+            updateChampBannerUI(latestChamp);
         }
     } catch (error) {
         console.error("Load Champ Banner Error:", error);
+    }
+}
+
+// 🎨 แยกฟังก์ชันวาดหน้าจอแสดงผลออกมาเพื่อให้โค้ดอ่านง่ายขึ้น
+function updateChampBannerUI(latestChamp) {
+    document.getElementById('home-champ-name').innerText = latestChamp.name;
+    document.getElementById('home-champ-month').innerText = latestChamp.monthYear;
+    
+    if (latestChamp.profileImage) {
+        document.getElementById('home-champ-img').src = latestChamp.profileImage;
+    }
+
+    const champBanner = document.querySelector('.champ-banner');
+    if (champBanner) {
+        champBanner.onclick = () => {
+            window.location.href = `specialthanks.html?index=0&name=${encodeURIComponent(latestChamp.name)}`;
+        };
     }
 }
 
