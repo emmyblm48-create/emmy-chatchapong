@@ -1945,19 +1945,29 @@ function renderGlobalFans(rawData) {
     }
 }
 
-// 🎨 แยกฟังก์ชันวาดหน้าจอแสดงผลออกมาเพื่อให้โค้ดอ่านง่ายขึ้น
 function updateChampBannerUI(latestChamp) {
-    document.getElementById('home-champ-name').innerText = latestChamp.name;
-    document.getElementById('home-champ-month').innerText = latestChamp.monthYear;
+    // 1. อัปเดตชื่อและเดือน
+    document.getElementById('home-champ-name').innerText = latestChamp.name || latestChamp.Name || "";
+    document.getElementById('home-champ-month').innerText = latestChamp.monthYear || latestChamp.Month_Year || "";
     
-    if (latestChamp.profileImage) {
-        document.getElementById('home-champ-img').src = latestChamp.profileImage;
+    // 2. ดึง URL รูปภาพ (ดักไว้ให้ครบทุกชื่อที่อาจจะมาจาก Sheets เช่น postimage, profileImage, profile)
+    const imgUrl = latestChamp.postimage || latestChamp.profileImage || latestChamp.profile || latestChamp.ImageURL;
+    const imgElement = document.getElementById('home-champ-img');
+
+    if (imgElement) {
+        if (imgUrl && imgUrl.trim() !== "") {
+            imgElement.src = imgUrl;
+        } else {
+            // fallback: ถ้ารูปในชีตว่างเปล่า ให้ใส่รูป Default ป้องกันรูปแตก
+            imgElement.src = "https://i.ibb.co/Q7xY9sX9/profile.jpg"; 
+        }
     }
 
+    // 3. ตั้งค่าปุ่มกดลิงก์
     const champBanner = document.querySelector('.champ-banner');
     if (champBanner) {
         champBanner.onclick = () => {
-            window.location.href = `specialthanks.html?index=0&name=${encodeURIComponent(latestChamp.name)}`;
+            window.location.href = `specialthanks.html?index=0&name=${encodeURIComponent(latestChamp.name || latestChamp.Name)}`;
         };
     }
 }
