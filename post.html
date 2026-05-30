@@ -786,32 +786,37 @@
     }
   }
 
-  // 👑 --- ฟังก์ชันเช็กสิทธิ์ Champ และผูก Event เพื่อคุมสลับการเปิด-ปิดหน้าปุ่ม ---
+ // 👑 --- ฟังก์ชันเช็กสิทธิ์ Champ จาก Google Sheet ---
   async function checkChampStatus() {
     const currentUser = getUserSession();
+    // ดึงชื่อของคนที่ล็อกอินอยู่ (ใช้ name หรือ username ตามระบบของพี่เอ็มมี่)
     const currentName = currentUser ? (currentUser.name || currentUser.username) : null; 
     
     if (!currentName) return;
 
     try {
-      const { data, error } = await supabaseClient
-        .from('champofthemonth')
-        .select('*')
-        .order('Month_Year', { ascending: false })
-        .limit(1);
+      // ลิงก์ Web App Script ตัวเดียวกับที่พี่ใช้ส่งโพสต์นั่นเองครับ
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+      
+      // ส่งรีเควสไปขอข้อมูลแชมป์ล่าสุดจาก Google Sheet
+      // (ระบบหลังบ้านของพี่ต้องรองรับ action: 'getLatestChamp' หรือปรับตามที่สคริปต์หลังบ้านตั้งไว้)
+      const resp = await fetch(`${scriptURL}?action=getLatestChamp`);
+      const result = await resp.json();
 
-      if (data && data.length > 0) {
-        const latestChamp = data[0];
+      if (result && result.status === "success" && result.data) {
+        const latestChamp = result.data; // ข้อมูลแถวแชมป์ล่าสุดจาก Google Sheet
         
-        // หากคนล็อกอินคือแชมป์ปัจจุบัน และ ยังไม่เคยพิมพ์คำขอบคุณลงฐานข้อมูล
-        if (latestChamp.Name === currentName && (!latestChamp.message || latestChamp.message === "")) {
+        // ตรวจสอบว่า ชื่อตรงกับคนล็อกอินไหม และยังไม่เคยพิมพ์คำขอบคุณ (ฟิลด์ message ว่าง)
+        if (latestChamp.Name === currentName && (!latestChamp.message || latestChamp.message.trim() === "")) {
           const champBox = document.getElementById('champ-option-box');
           const toggleInput = document.getElementById('champ-toggle');
           const normalBtn = document.getElementById('btn-submit-normal');
           const specialBtn = document.getElementById('btn-submit-special');
 
+          // โชว์กล่องสวิตช์สีหวานขึ้นมาทันที
           if (champBox) champBox.style.display = 'flex';
 
+          // ดักฟังตอนเปิด-ปิดสวิตช์เพื่อสลับปุ่มโพสต์
           if (toggleInput) {
             toggleInput.addEventListener('change', function() {
               if (this.checked) {
@@ -826,10 +831,11 @@
         }
       }
     } catch (err) {
-      console.error("Error checking champ status:", err);
+      console.error("Error checking champ status from Google Sheet:", err);
     }
   }
 
+  // เรียกทำงานเมื่อโหลดหน้าเว็บเสร็จ
   document.addEventListener('DOMContentLoaded', () => {
     checkChampStatus();
   });
