@@ -1,497 +1,243 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>iAM48 Style | Special Fans Day</title>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <title>BLM48 | Special Fans Day</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        :root {
-            --iam-primary: #ff85a2;
-            --iam-gradient: linear-gradient(135deg, #ff85a2 0%, #ffc0cb 100%);
-            --iam-bg: #f6f7f9;
-            --iam-card-bg: #ffffff;
-            --iam-text-dark: #222222;
-            --iam-text-muted: #8e8e93;
-            --gold: #ffd700;
-            --silver: #c0c0c0;
-            --bronze: #cd7f32;
+        /* 📱 ปรับแต่งการคำนวณขนาดหน้าจอเพื่อป้องกันการปูดล้นตามโครงสร้างเว็บหลัก */
+        *, *::before, *::after {
+            box-sizing: border-box;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
-            background-color: var(--iam-bg);
-            color: var(--iam-text-dark);
-            margin: 0;
-            padding: 0;
+            background-color: #fff5f7;
+            padding: 16px;
+            padding-bottom: 80px;
             display: flex;
             justify-content: center;
         }
 
-        /* App Container Emulator */
+        /* Responsive Wrapper: ควบคุมหน้าจอให้ออกมาเป็นสไตล์แอปมือถือ ไม่ว่าจะเปิดบนอุปกรณ์ใด */
         .app-container {
             width: 100%;
-            max-width: 440px;
-            min-height: 100vh;
-            background-color: var(--iam-bg);
-            position: relative;
-            padding-bottom: 90px;
+            max-width: 500px;
         }
 
-        /* Top Header Navigation */
-        .iam-header {
-            position: sticky;
-            top: 0;
-            background-color: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .page-title {
+            font-size: 1.4rem;
+            color: #333;
+            margin: 0;
+        }
+        .champ-week-btn {
+            background: #ffc0cb;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            transition: transform 0.1s ease;
+        }
+        .champ-week-btn:active {
+            transform: scale(0.95);
+        }
+        .member-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .member-card {
+            background: #fff;
+            padding: 12px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 16px;
-            z-index: 100;
-            border-bottom: 1px solid #e5e5ea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-
-        .iam-header .btn-back {
-            color: var(--iam-text-dark);
-            text-decoration: none;
-            font-size: 1.1rem;
+        .member-info {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-weight: 600;
+            gap: 12px;
         }
-
-        .iam-header .page-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--iam-text-dark);
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .iam-header .header-action {
-            color: var(--iam-primary);
-            font-size: 1.2rem;
-            text-decoration: none;
-        }
-
-        /* Season Banner Box */
-        .season-badge-container {
-            padding: 16px 16px 0 16px;
-            text-align: center;
-        }
-        .season-title {
-            background: var(--iam-gradient);
-            color: white;
-            display: inline-block;
-            padding: 6px 20px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            box-shadow: 0 4px 10px rgba(255, 133, 162, 0.2);
-        }
-
-        /* iAM48 Top 3 Podium Style */
-        .podium-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            padding: 24px 16px;
-            margin-bottom: 10px;
-            background: linear-gradient(to bottom, #ffffff 0%, var(--iam-bg) 100%);
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-        }
-
-        .podium-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 30%;
+        .avatar-frame {
             position: relative;
+            width: 50px;
+            height: 50px;
         }
-
-        .podium-item.rank-1 { width: 36%; margin: 0 8px; }
-
-        .podium-avatar-wrapper {
-            position: relative;
-            margin-bottom: 8px;
-        }
-
-        .podium-avatar {
-            width: 75px;
-            height: 75px;
+        .member-avatar {
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            background-color: #fff;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid #ffc0cb;
         }
-
-        .rank-1 .podium-avatar { 
-            width: 95px; 
-            height: 95px;
-            border-color: var(--gold);
-            box-shadow: 0 6px 15px rgba(255, 215, 0, 0.3);
+        .member-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
-        .rank-2 .podium-avatar { border-color: var(--silver); }
-        .rank-3 .podium-avatar { border-color: var(--bronze); }
-
-        .podium-crown {
-            position: absolute;
-            top: -14px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.3rem;
-            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));
+        .member-name {
+            margin: 0;
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
         }
-        .rank-1 .podium-crown { color: var(--gold); font-size: 1.6rem; top: -18px;}
-        .rank-2 .podium-crown { color: var(--silver); }
-        .rank-3 .podium-crown { color: var(--bronze); }
-
-        .podium-name {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--iam-text-dark);
-            margin: 4px 0 2px 0;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-        }
-        .rank-1 .podium-name { font-size: 1.05rem; }
-
-        .podium-cookies {
-            font-size: 0.75rem;
-            color: #ff9500;
-            font-weight: 600;
+        .cookie-count {
+            font-size: 0.8rem;
+            color: #888;
             display: flex;
             align-items: center;
             gap: 3px;
-            background: #fffdf0;
-            padding: 2px 8px;
-            border-radius: 12px;
-            border: 1px solid #ffe8b3;
         }
-
-        /* iAM48 App Style Standard Rows (Rank 4+) */
-        .list-container {
-            padding: 0 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .cookie-count i {
+            color: #ffb703;
         }
-
-        .iam-member-row {
-            background-color: var(--iam-card-bg);
-            border-radius: 16px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-            border: 1px solid #efeff4;
-        }
-
-        .row-rank {
-            width: 32px;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--iam-text-muted);
-            text-align: center;
-        }
-
-        .row-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-0 12px;
-            border: 1.5px solid #efeff4;
-        }
-
-        .row-info {
-            flex: 1;
-            margin-left: 12px;
-        }
-
-        .row-name {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--iam-text-dark);
-            margin: 0 0 3px 0;
-        }
-
-        .row-cookies {
-            font-size: 0.8rem;
-            color: #ff9500;
-            font-weight: 500;
+        .give-cookie-btn {
+            background: #ff6b8b;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
             display: flex;
             align-items: center;
             gap: 4px;
+            transition: background 0.2s, transform 0.1s ease;
         }
-
-        .btn-iam-send {
-            background: var(--iam-gradient);
-            color: white;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-family: 'Quicksand', sans-serif;
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            box-shadow: 0 3px 8px rgba(255, 133, 162, 0.15);
-            transition: all 0.2s ease;
+        .give-cookie-btn:hover {
+            background: #ff4770;
         }
-
-        .btn-iam-send:active {
+        .give-cookie-btn:active {
             transform: scale(0.95);
-            opacity: 0.9;
-        }
-
-        /* Bottom Tab Bar (iAM48 Style Emulator) */
-        .iam-bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 440px;
-            height: 64px;
-            background-color: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(15px);
-            border-top: 1px solid #e5e5ea;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .nav-item {
-            color: #a1a1aa;
-            font-size: 1.35rem;
-            text-decoration: none;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 50px;
-            height: 100%;
-        }
-
-        .nav-item.active {
-            color: var(--iam-primary);
-        }
-
-        /* Red Dot Notification Badge */
-        .iam-noti-badge {
-            position: absolute;
-            top: 14px;
-            right: 12px;
-            width: 8px;
-            height: 8px;
-            background-color: #ff3b30;
-            border-radius: 50%;
-            border: 1.5px solid white;
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div class="iam-header">
-            <a href="index.html" class="btn-back"><i class="fa-solid fa-chevron-left"></i></a>
+        <div class="header-container">
             <h1 class="page-title">Special Fans Day</h1>
-            <a href="champ.html" class="header-action"><i class="fa-solid fa-trophy"></i></a>
-        </div>
-
-        <div class="season-badge-container">
-            <div class="season-title" id="season-display">LOADING SEASON...</div>
-        </div>
-
-        <div class="podium-container" id="podium-section" style="display: none;">
-            <div class="podium-item rank-2" id="podium-r2" style="visibility: hidden;">
-                <div class="podium-avatar-wrapper">
-                    <i class="fa-solid fa-crown podium-crown"></i>
-                    <img src="" class="podium-avatar" id="avatar-r2">
-                </div>
-                <div class="podium-name" id="name-r2">-</div>
-                <div class="podium-cookies" id="cookies-r2"><i class="fa-solid fa-cookie-bite"></i> 0</div>
-                <button class="btn-iam-send" style="margin-top:8px; padding:4px 10px; font-size:0.7rem;" id="btn-r2">SEND</button>
-            </div>
-
-            <div class="podium-item rank-1" id="podium-r1" style="visibility: hidden;">
-                <div class="podium-avatar-wrapper">
-                    <i class="fa-solid fa-crown podium-crown"></i>
-                    <img src="" class="podium-avatar" id="avatar-r1">
-                </div>
-                <div class="podium-name" id="name-r1">-</div>
-                <div class="podium-cookies" id="cookies-r1"><i class="fa-solid fa-cookie-bite"></i> 0</div>
-                <button class="btn-iam-send" style="margin-top:8px; padding:5px 14px; font-size:0.75rem;" id="btn-r1">SEND</button>
-            </div>
-
-            <div class="podium-item rank-3" id="podium-r3" style="visibility: hidden;">
-                <div class="podium-avatar-wrapper">
-                    <i class="fa-solid fa-crown podium-crown"></i>
-                    <img src="" class="podium-avatar" id="avatar-r3">
-                </div>
-                <div class="podium-name" id="name-r3">-</div>
-                <div class="podium-cookies" id="cookies-r3"><i class="fa-solid fa-cookie-bite"></i> 0</div>
-                <button class="btn-iam-send" style="margin-top:8px; padding:4px 10px; font-size:0.7rem;" id="btn-r3">SEND</button>
-            </div>
-        </div>
-
-        <div class="list-container" id="iam-ranking-list">
-            </div>
-
-        <div class="iam-bottom-nav">
-            <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
-            <a href="kami.html" class="nav-item"><i class="fa-solid fa-star"></i></a>
-            <a href="shop.html" class="nav-item"><i class="fa-solid fa-bag-shopping"></i></a>
-            <a href="notification.html" class="nav-item">
-                <i class="fa-solid fa-bell"></i>
-                <span class="iam-noti-badge" id="nav-noti-badge" style="display: none;"></span>
+            <a href="champ.html" class="champ-week-btn">
+                <i class="fa-solid fa-crown"></i> Champ of the week
             </a>
-            <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i></a>
         </div>
+
+        <div class="member-list" id="member-container">
+            </div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-        let currentUser = JSON.parse(localStorage.getItem('bnl_session'))?.data || null;
+        // ข้อมูลจำลองของผู้ใช้ปัจจุบัน
+        const currentUser = {
+            username: "Fanclub01",
+            role: "user" 
+        };
 
-        // ฟังก์ชันดึงชื่อเดือนปัจจุบันแบบสากล
-        function setSeasonTitle() {
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const currentMonth = months[new Date().getMonth()];
-            document.getElementById('season-display').innerText = `${currentMonth.toUpperCase()} 2026 SEASON`;
-        }
+        // รายชื่อเมมเบอร์เริ่มต้น (เพิ่มคุณสมบัติ cookies และตัวอย่างคนที่มี 0 คุกกี้)
+        const members = [
+            { id: 1, name: "Member 1", cookies: 150, image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" },
+            { id: 2, name: "Member 2", cookies: 45, image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" },
+            { id: 3, name: "Member 3", cookies: 92, image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" },
+            { id: 4, name: "Member 4 (0 Cookies)", cookies: 0, image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" }
+        ];
 
-        // โหลดข้อมูลแบบคัดกรอง > 0 คุกกี้ และจัดลงเลย์เอาต์ iAM48
-        async function fetchAndRenderRankings() {
-            try {
-                const response = await fetch(`${API_URL}?action=getRanking`);
-                const data = await response.json();
-                
-                const listContainer = document.getElementById('iam-ranking-list');
-                listContainer.innerHTML = '';
-
-                // คัดกรองเอาเฉพาะคนที่มียอดคุกกี้มากกว่า 0
-                // ตรวจสอบทั้งฟีลด์คู่ขนานเพื่อความปลอดภัย (มักเก็บใน .cookie หรือชื่อเดือนปัจจุบัน)
-                const currentMonthName = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][new Date().getMonth()];
-                
-                const sortedActive = data
-                    .map(m => {
-                        // ดึงค่าคุกกี้ให้แม่นยำจากคอลัมน์ชีต
-                        const cookies = Number(m[currentMonthName] || m.monthly_cookies || m.cookie || 0);
-                        return {
-                            name: m.name,
-                            avatar: m.profile || m.profile_img || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400',
-                            cookies: cookies
-                        };
-                    })
-                    .filter(m => m.cookies > 0)
-                    .sort((a, b) => b.cookies - a.cookies); // เรียงจากมากไปน้อย
-
-                if (sortedActive.length === 0) {
-                    listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#8e8e93; font-size:0.9rem;">No data available for this season.</div>';
-                    document.getElementById('podium-section').style.display = 'none';
-                    return;
-                }
-
-                document.getElementById('podium-section').style.display = 'flex';
-
-                // จัดใส่แท่น Podium (อันดับ 1, 2, 3)
-                if (sortedActive[0]) {
-                    setupPodiumItem('r1', sortedActive[0]);
-                }
-                if (sortedActive[1]) {
-                    setupPodiumItem('r2', sortedActive[1]);
-                } else {
-                    document.getElementById('podium-r2').style.visibility = 'hidden';
-                }
-                if (sortedActive[2]) {
-                    setupPodiumItem('r3', sortedActive[2]);
-                } else {
-                    document.getElementById('podium-r3').style.visibility = 'hidden';
-                }
-
-                // อันดับ 4 เป็นต้นไป แสดงเป็นรายการแถวข้างล่างสไตล์แอป
-                for (let i = 3; i < sortedActive.length; i++) {
-                    const member = sortedActive[i];
-                    const row = document.createElement('div');
-                    row.className = 'iam-member-row';
-                    row.innerHTML = `
-                        <div class="row-rank">${i + 1}</div>
-                        <img src="${member.avatar}" class="row-avatar" onerror="this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400'">
-                        <div class="row-info">
-                            <h3 class="row-name">${member.name}</h3>
-                            <div class="row-cookies"><i class="fa-solid fa-cookie-bite"></i> ${member.cookies.toLocaleString()}</div>
+        function displayMembers() {
+            const container = document.getElementById('member-container');
+            // ทำการแสดงผลโดยไม่มีการกรองข้อมูล เพื่อให้เมมเบอร์ 0 คุกกี้แสดงผลด้วยเสมอ
+            container.innerHTML = members.map(member => `
+                <div class="member-card">
+                    <div class="member-info">
+                        <div class="avatar-frame">
+                            <img class="member-avatar" src="${member.image}" alt="${member.name}">
                         </div>
-                        <button class="btn-iam-send" onclick="handleSendCookie('${member.name}')">SEND</button>
-                    `;
-                    listContainer.appendChild(row);
+                        <div class="member-details">
+                            <h3 class="member-name">${member.name}</h3>
+                            <span class="cookie-count">
+                                <i class="fa-solid fa-cookie"></i> ${member.cookies.toLocaleString()} Cookies
+                            </span>
+                        </div>
+                    </div>
+                    <button class="give-cookie-btn" onclick="sendCookie('${member.name}')">
+                        <i class="fa-solid fa-cookie"></i> ส่งคุกกี้
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // ฟังก์ชันจัดการระบบส่งคุกกี้ พร้อมระบบแจ้งเตือนสไตล์ SweetAlert2
+        function sendCookie(memberName) {
+            // ตรวจสอบสิทธิ์บัญชีผู้ใช้
+            if (!currentUser || currentUser.role !== 'user') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'เฉพาะบัญชีประเภท User เท่านั้นที่สามารถกดให้คุกกี้ได้!',
+                    confirmButtonColor: '#ff6b8b'
+                });
+                return;
+            }
+
+            // แสดงกล่องยืนยันก่อนทำรายการ (Confirmation Dialogue)
+            Swal.fire({
+                title: 'ยืนยันการส่งคุกกี้?',
+                text: `คุณต้องการส่งคุกกี้ให้แก่เมมเบอร์ "${memberName}" ใช่หรือไม่?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ff6b8b',
+                cancelButtonColor: '#cccccc',
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 🌟 [ส่วนเพิ่มเติมในอนาคต]: ใส่ Logic การเขียนข้อมูลอัปเดตลง Supabase หรือ API ต่อได้เลยครับ
+                    
+                    // แจ้งเตือนเมื่อทำรายการสำเร็จเรียบร้อยแล้ว
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ส่งคุกกี้สำเร็จ!',
+                        text: `🎉 คุณได้ส่งคุกกี้ให้ ${memberName} เรียบร้อยแล้ว!`,
+                        confirmButtonColor: '#ff6b8b',
+                        timer: 2000
+                    });
                 }
-
-            } catch (error) {
-                console.error("Error fetching rankings:", error);
-            }
+            });
         }
 
-        function setupPodiumItem(id, member) {
-            const element = document.getElementById(`podium-${id}`);
-            element.style.visibility = 'visible';
-            document.getElementById(`avatar-${id}`).src = member.avatar;
-            document.getElementById(`name-${id}`).innerText = member.name;
-            document.getElementById(`cookies-${id}`).innerHTML = `<i class="fa-solid fa-cookie-bite"></i> ${member.cookies.toLocaleString()}`;
-            document.getElementById(`btn-${id}`).onclick = () => handleSendCookie(member.name);
-        }
-
-        // ระบบส่งคุกกี้สากล
-        function handleSendCookie(memberName) {
-            if (!currentUser) { window.location.href = 'login.html'; return; }
-            if (currentUser.role !== 'user') {
-                alert('Only User accounts can gift cookies!');
-                return;
-            }
-
-            const amount = prompt(`Enter cookies amount to gift ${memberName}:`, "10");
-            if (!amount || isNaN(amount) || amount <= 0) return;
-
-            if (Number(currentUser.cookie || 0) < Number(amount)) {
-                alert('Insufficient cookies balancing!');
-                return;
-            }
-
-            alert(`Processing: Sending ${amount} cookies to ${memberName}...`);
-            // ลอจิกยิง POST ไปเซฟลงฐานข้อมูลเดิมของคุณทำงานต่อตรงนี้...
-        }
-
-        // อัปเดตจุดแจ้งเตือนธุรกรรม (Red Dot) จากหน้าหลัก
-        function updateNotificationBadge() {
-            const hasNewNoti = localStorage.getItem("blm48_has_new_noti") || localStorage.getItem("has_new_noti");
-            const badge = document.getElementById("nav-noti-badge");
-            if (badge) {
-                badge.style.display = (hasNewNoti === "true") ? "block" : "none";
-            }
-        }
-
-        // ทำงานทันทีเมื่อหน้าเพจพร้อม
-        document.addEventListener('DOMContentLoaded', () => {
-            setSeasonTitle();
-            fetchAndRenderRankings();
-            updateNotificationBadge();
-        });
+        // เริ่มแรนเดอร์รายชื่อเมมเบอร์เมื่อเปิดหน้าเว็บ
+        displayMembers();
     </script>
 </body>
 </html>
