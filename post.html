@@ -295,6 +295,94 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(20px);
 }
+    /* --- สไตล์กล่องแจ้งเตือนสิทธิ์แชมป์แสนหวาน --- */
+.champ-option-box {
+  display: none; /* คุมเปิดด้วย JavaScript */
+  margin-top: 24px;
+  background: linear-gradient(135deg, #fff5f8, #fff0f5);
+  padding: 16px;
+  border-radius: 18px;
+  border: 2px dashed #ffb6c1;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(255, 133, 162, 0.05);
+}
+.champ-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.champ-title {
+  color: #ff85a2;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.champ-subtitle {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+/* --- สไตล์ปุ่ม Special Thanks สีทองเหลือมอร่ามตา แบบบัตรสมาชิกระดับพรีเมียม --- */
+.btn-submit-special {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+  background-size: 400% 400%;
+  color: #3d2a04;
+  border: none;
+  border-radius: 24px;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 24px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(170, 119, 28, 0.35);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  animation: goldShineGradient 8s ease infinite;
+}
+.btn-submit-special:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(170, 119, 28, 0.5);
+  filter: brightness(1.05);
+}
+.btn-submit-special:active {
+  transform: translateY(0);
+}
+
+/* เอฟเฟกต์สะท้อนแสงเลเซอร์วิ่งผ่านตัวปุ่มสีทองเพิ่มความพรีเมียม */
+.btn-submit-special::after {
+  content: '';
+  position: absolute;
+  top: -50%; left: -60%;
+  width: 30%; height: 200%;
+  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+  transform: rotate(25deg);
+  animation: laserShine 3.5s infinite ease-in-out;
+}
+
+/* คีย์เฟรมควบคุมการขยับของแสงและสี */
+@keyframes goldShineGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes laserShine {
+  0% { left: -60%; }
+  20% { left: 130%; }
+  100% { left: 130%; }
+}
+
+/* ปรับระยะขอบปุ่มปกติข้างล่างให้กระชับพอดี */
+.btn-submit-full {
+  margin-top: 12px !important;
+}
   </style>
 </head>
 <body>
@@ -332,9 +420,24 @@ input:checked + .slider:before {
       
       <div id="custom-audio-preview-zone"></div>
     </div>
-  </div>https://github.com/emmyblm48-create/emmy-chatchapong/blob/main/post.html
+  </div>
   
-  <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
+  <div id="champ-option-box" class="champ-option-box">
+    <div class="champ-option-text">
+      <span class="champ-title"><i class="fas fa-crown" style="color: #d4af37;"></i> Champ Special Thanks Post</span>
+      <span class="champ-subtitle">มีสิทธิ์โพสต์เพียง 1  ครั้งเท่านั้น</span>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="champ-toggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <button id="btn-submit-special" class="btn-submit-special" onclick="submitPost()" style="display: none;">
+    <i class="fas fa-crown"></i> Publish Champ Special Thanks
+  </button>
+  
+  <button id="btn-submit-normal" class="btn-submit-full" onclick="submitPost()">Publish Post</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -743,7 +846,6 @@ input:checked + .slider:before {
   // 👑 ฟังก์ชันเช็กสิทธิ์ Champ of the Month
   async function checkChampStatus() {
     const currentUser = getUserSession();
-    // สมมติว่าใน session ของคุณเก็บชื่อเมมเบอร์ไว้ที่ currentUser.name หรือ username
     const currentName = currentUser ? (currentUser.name || currentUser.username) : null; 
     
     if (!currentName) return;
@@ -759,10 +861,31 @@ input:checked + .slider:before {
       if (data && data.length > 0) {
         const latestChamp = data[0];
         
-        // ถ้าชื่อตรงกับแชมป์ && ฟิลด์ message ยังว่างอยู่ (แปลว่ายังไม่เคยโพสต์ขอบคุณ)
+        // ถ้าชื่อตรงกับแชมป์ && ฟิลด์ message ยังว่างอยู่ (แปลว่ายังไม่เคยโพสต์สิทธิ์แชมป์)
         if (latestChamp.Name === currentName && (!latestChamp.message || latestChamp.message === "")) {
-          // โชว์กล่องตัวเลือกให้เปิด/ปิดได้
-          document.getElementById('champ-option-box').style.display = 'flex';
+          
+          const champBox = document.getElementById('champ-option-box');
+          const toggleInput = document.getElementById('champ-toggle');
+          const normalBtn = document.getElementById('btn-submit-normal');
+          const specialBtn = document.getElementById('btn-submit-special');
+
+          // แสดงกล่องสวิตช์ตัวเลือกขึ้นมา
+          if (champBox) champBox.style.display = 'flex';
+
+          // ดักเหตุการณ์เวลากดเลื่อนเปิด-ปิดสวิตช์โหมด
+          if (toggleInput) {
+            toggleInput.addEventListener('change', function() {
+              if (this.checked) {
+                // เมื่อเปิดสวิตช์แชมป์ -> แสดงปุ่มทองพรีเมียม และซ่อนปุ่มเดิม
+                if (specialBtn) specialBtn.style.display = 'flex';
+                if (normalBtn) normalBtn.style.display = 'none';
+              } else {
+                // เมื่อปิดสวิตช์แชมป์ -> กลับมาโชว์ปุ่มปกติ ซ่อนปุ่มทอง
+                if (specialBtn) specialBtn.style.display = 'none';
+                if (normalBtn) normalBtn.style.display = 'block';
+              }
+            });
+          }
         }
       }
     } catch (err) {
