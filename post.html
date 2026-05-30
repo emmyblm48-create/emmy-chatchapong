@@ -231,6 +231,70 @@
       background-color: #ff6b8b;
       transform: translateY(-1px);
     }
+    /* --- Toggle Switch สำหรับ Champ --- */
+.champ-option-box {
+  display: none; /* ซ่อนไว้ก่อน จะโชว์แค่คนที่เป็นแชมป์ */
+  margin-top: 20px;
+  background: #fff0f5;
+  padding: 16px;
+  border-radius: 16px;
+  border: 2px dashed #ffb6c1;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+.champ-option-text {
+  display: flex;
+  flex-direction: column;
+}
+.champ-title {
+  color: #ff85a2;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+.champ-subtitle {
+  color: #777;
+  font-size: 0.75rem;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ffccd5;
+  transition: .4s;
+  border-radius: 26px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input:checked + .slider {
+  background-color: #ff85a2;
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
   </style>
 </head>
 <body>
@@ -269,7 +333,17 @@
       <div id="custom-audio-preview-zone"></div>
     </div>
   </div>
-
+  
+  <div id="champ-option-box" class="champ-option-box">
+    <div class="champ-option-text">
+      <span class="champ-title"><i class="fa-solid fa-crown"></i> Champ of the Month Post</span>
+      <span class="champ-subtitle">ใช้สิทธิ์โพสต์พิเศษ (โพสต์ได้ 1 ครั้งเท่านั้น)</span>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="champ-toggle">
+      <span class="slider"></span>
+    </label>
+  </div>
   <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
 </div>
 
@@ -576,6 +650,9 @@
     }
 
     const activeUsername = currentUser.username;
+    
+    // 🌟 [เพิ่ม] เช็กสถานะสวิตช์ว่าเปิดทำเป็นโพสต์ Champ หรือไม่
+    const isChampPost = document.getElementById('champ-toggle')?.checked;
 
     // แก้ไขเงื่อนไขเช็กข้อมูลว่างโดยอิงจากตัวแปร Array ของเราแทนไฟล์ดิบแล้ว
     if (!content && selectedImageFiles.length === 0 && !recordedAudioBlob) {
@@ -623,6 +700,9 @@
       params.append('imageUrl', imageUrlString);
       params.append('audioURL', finalAudioUrl);
       params.append('videoURL', ''); 
+      
+      // 🌟 [เพิ่ม] ส่งประเภทโพสต์ไปบอก Google Apps Script เพื่อให้รู้ว่าเป็นโพสต์แบบไหน
+      params.append('post_type', isChampPost ? 'champ_thanks' : 'normal');
 
       const resp = await fetch(scriptURL, {
         method: 'POST',
@@ -635,9 +715,22 @@
       const data = await resp.json();
 
       if (data.status === "success") {
+        
+        // 🌟 [เพิ่ม] ถ้าเปิดสวิตช์โพสต์ Champ และโพสต์สำเร็จ ให้อัปเดตตารางเพื่อตัดสิทธิ์การโพสต์ซ้ำ
+        if (isChampPost) {
+           await supabaseClient
+            .from('champofthemonth')
+            .update({ 
+               message: content || "ส่งรูปภาพ/เสียงขอบคุณแฟนๆ", // กรณีลงแค่รูปหรือเสียง ไม่ได้พิมพ์ข้อความ
+               postimage: imageUrlString 
+            })
+            // ใช้ชื่อเมมเบอร์ในการอ้างอิงเพื่ออัปเดตให้ถูกคน
+            .eq('Name', currentUser.name || activeUsername); 
+        }
+
         Swal.fire({
           title: 'Success',
-          text: 'Your post has been published successfully.',
+          text: isChampPost ? 'Your Champ of the Month post has been published! 👑' : 'Your post has been published successfully.',
           icon: 'success',
           confirmButtonColor: '#ff85a2'
         }).then(() => {
@@ -656,6 +749,41 @@
       });
     }
   }
+  
+  // 👑 ฟังก์ชันเช็กสิทธิ์ Champ of the Month
+  async function checkChampStatus() {
+    const currentUser = getUserSession();
+    // สมมติว่าใน session ของคุณเก็บชื่อเมมเบอร์ไว้ที่ currentUser.name หรือ username
+    const currentName = currentUser ? (currentUser.name || currentUser.username) : null; 
+    
+    if (!currentName) return;
+
+    try {
+      // ดึงข้อมูลแชมป์ล่าสุดจาก Supabase
+      const { data, error } = await supabaseClient
+        .from('champofthemonth')
+        .select('*')
+        .order('Month_Year', { ascending: false })
+        .limit(1);
+
+      if (data && data.length > 0) {
+        const latestChamp = data[0];
+        
+        // ถ้าชื่อตรงกับแชมป์ && ฟิลด์ message ยังว่างอยู่ (แปลว่ายังไม่เคยโพสต์ขอบคุณ)
+        if (latestChamp.Name === currentName && (!latestChamp.message || latestChamp.message === "")) {
+          // โชว์กล่องตัวเลือกให้เปิด/ปิดได้
+          document.getElementById('champ-option-box').style.display = 'flex';
+        }
+      }
+    } catch (err) {
+      console.error("Error checking champ status:", err);
+    }
+  }
+
+  // เรียกใช้งานตอนโหลดหน้าเว็บ
+  document.addEventListener('DOMContentLoaded', () => {
+    checkChampStatus();
+  });
 </script>
 </body>
 </html>
