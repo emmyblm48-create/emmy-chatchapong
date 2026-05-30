@@ -24,7 +24,6 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
   </head>
     
@@ -741,126 +740,83 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     background: #ff8fa3;
 }
     
-/* =========================================
-   👑 CHAMP OF THE MONTH BANNER (DREAMY STYLE)
-   ========================================= */
-.champ-banner-dreamy {
-  background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 100%);
-  border-radius: 25px;
-  padding: 15px 20px;
-  margin: 15px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 10px 25px rgba(238, 156, 167, 0.4);
-  position: relative;
-  overflow: hidden;
-  border: 2px solid #ffffff;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.champ-banner-dreamy:active { transform: scale(0.98); }
+    /* =========================================
+       👑 CHAMP OF THE MONTH BANNER (HOME PAGE)
+       ========================================= */
+    .champ-banner {
+      background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+      border: 2px solid #d4af37; /* ขอบสีทอง */
+      border-radius: 20px;
+      padding: 15px 20px;
+      margin: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+    .champ-banner:active { transform: scale(0.98); }
+    
+    /* เอฟเฟกต์แสงวิบวับพื้นหลัง */
+    .champ-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
+      animation: rotateGlow 10s linear infinite;
+    }
+    @keyframes rotateGlow { 100% { transform: rotate(360deg); } }
 
-.champ-banner-dreamy::before {
-  content: '';
-  position: absolute;
-  top: -50%; left: -50%; width: 200%; height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 60%);
-  animation: rotateGlow 8s linear infinite;
-}
-
-.champ-img-dreamy-container {
-  position: relative;
-  width: 75px; height: 75px;
-  z-index: 2;
-  flex-shrink: 0;
-}
-
-.champ-img-dreamy {
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #ffffff;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-}
-
-.crown-icon-dreamy {
-  position: absolute; top: -10px; left: -10px;
-  font-size: 22px; color: #ffd700;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-  transform: rotate(-20deg);
-}
-
-.champ-info-dreamy {
-  flex: 1; z-index: 2; padding-left: 15px; color: #fff;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.champ-speech-bubble {
-  background: rgba(255,255,255,0.9);
-  color: #ff6b81;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 11px;
-  margin-top: 5px;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  display: inline-block;
-  font-weight: 600;
-}
-
-.champ-speech-bubble::before {
-  content: ''; position: absolute; top: 10px; left: -5px;
-  border-width: 5px 5px 5px 0; border-style: solid;
-  border-color: transparent rgba(255,255,255,0.9) transparent transparent;
-}
-
-/* =========================================
-   ✨ SPECIAL CHAMP POST (ANIMATED BORDER)
-   ========================================= */
-@keyframes gradientBorder {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.champ-special-post {
-  position: relative;
-  border-radius: 18px;
-  padding: 4px; /* สร้างระยะห่างให้เห็นขอบขยับ */
-  z-index: 1;
-  margin-bottom: 25px;
-}
-
-.champ-special-post::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(45deg, #ff9a9e, #fecfef, #ff9a9e, #fecfef);
-  background-size: 300% 300%;
-  z-index: -1;
-  border-radius: 18px;
-  animation: gradientBorder 4s ease infinite;
-  box-shadow: 0 5px 15px rgba(255, 154, 158, 0.4);
-}
-
-.champ-badge-post {
-  position: absolute; top: -12px; right: 15px;
-  background: linear-gradient(135deg, #ffd700, #ffae00);
-  color: white; padding: 4px 12px; border-radius: 20px;
-  font-size: 11px; font-weight: bold;
-  box-shadow: 0 4px 10px rgba(255, 174, 0, 0.4);
-  z-index: 10;
-  letter-spacing: 0.5px;
-}
-
-.champ-special-inner {
-  background: rgba(255, 255, 255, 0.95);
-  background-image: radial-gradient(#ffe3e8 1px, transparent 1px); /* ลายจุดน่ารักๆ */
-  background-size: 20px 20px;
-  border-radius: 14px;
-  padding: 15px;
-  height: 100%;
-  position: relative;
-}
+    .champ-info {
+      position: relative;
+      z-index: 2;
+      color: #fff;
+      flex: 1;
+    }
+    .champ-badge {
+      font-size: 12px;
+      color: #d4af37;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .champ-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .champ-month {
+      font-size: 12px;
+      color: #aaaaaa;
+    }
+    .champ-btn-view {
+      margin-top: 10px;
+      background: #d4af37;
+      color: #111;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .champ-img-container {
+      position: relative;
+      z-index: 2;
+      width: 70px;
+      height: 70px;
+    }
+    .champ-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #d4af37;
+    }
     
 /* ===================================================
    🌸 BLM48 CUTE LOGIN STYLE (VERSION 2 - QUICKSAND & KANIT)
@@ -1206,31 +1162,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   border: 1px solid white;
   z-index: 10;
 }
-    
-    /* แถบสีทองอ้างอิงจาก image_4a20a1.jpg */
-.champ-golden-header {
-  background: linear-gradient(90deg, #fcd571 0%, #f6b93b 100%);
-  color: #ffffff;
-  font-weight: 800;
-  padding: 8px 15px;
-  text-transform: uppercase;
-  font-size: 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 12px 12px 0 0;
-  margin: -15px -15px 15px -15px; /* ดึงขอบให้ติดกับกรอบนอก */
-  box-shadow: 0 2px 5px rgba(246, 185, 59, 0.3);
-  letter-spacing: 1px;
-}
-
-/* ปรับสีพื้นหลังคอมเมนต์อ้างอิงจาก image_4a209e.jpg */
-.champ-comment-section {
-  background-color: #fffaf0 !important; /* สีครีมอ่อนๆ */
-  border-radius: 12px;
-  padding: 10px;
-}
-    
   </style>
 </head>
 <body>
@@ -1272,19 +1203,17 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 <div id="user-bar" class="user-profile-bar"></div>
   
-<div class="champ-banner-dreamy" onclick="window.location.href='champ.html'">
-  <div class="champ-img-dreamy-container">
-    <i class="fas fa-crown crown-icon-dreamy"></i>
-    <img src="https://lh3.googleusercontent.com/d/1h1eW8OP8UOaJm8kRK-13t-1Z_WhNluy9=s400" id="home-champ-img" class="champ-img-dreamy" alt="Champ">
-  </div>
-  <div class="champ-info-dreamy">
-    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.9);">
-      Champ of the Month
+<div class="champ-banner" onclick="window.location.href='champ.html'">
+      <div class="champ-info">
+        <div class="champ-badge"><i class="fas fa-crown"></i> Champ of the Month</div>
+        <div class="champ-title" id="home-champ-name">Mushroom</div>
+        <div class="champ-month" id="home-champ-month">ประจำเดือนกุมภาพันธ์</div>
+        <button class="champ-btn-view">view more <i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="champ-img-container">
+        <img src="https://lh3.googleusercontent.com/d/1h1eW8OP8UOaJm8kRK-13t-1Z_WhNluy9=s400" id="home-champ-img" class="champ-img" alt="Champ">
+      </div>
     </div>
-    <div style="font-size: 20px; font-weight: 700; margin-bottom: 2px;" id="home-champ-name">Mushroom</div>
-    <div class="champ-speech-bubble" id="home-champ-msg">ขอบคุณสำหรับทุกคะแนนโหวตนะคะ 💕</div>
-  </div>
-</div>
 
 <div class="section-title"> Member Ranking</div>
 <div class="ranking-wrapper">
@@ -1974,29 +1903,6 @@ function openMemberProfile(name) {
       Swal.close();
     } catch (error) { Swal.fire('ผิดพลาด', 'ไม่สามารถดึงข้อมูลล่าสุดได้', 'error'); }
   }
-  
-  function loadChampBanner() {
-  google.script.run.withSuccessHandler(function(champ) {
-    if (champ) {
-      document.getElementById('home-champ-name').innerText = champ.name;
-      document.getElementById('home-champ-img').src = champ.profileImg;
-      
-      // ถ้าโพสต์แล้วให้โชว์ข้อความสั้นๆ ถ้ายังให้โชว์ Stay tuned!
-      const msgElement = document.getElementById('home-champ-msg');
-      if (champ.hasPosted) {
-        msgElement.innerText = "ขอบคุณสำหรับทุกคะแนนโหวตนะคะ 💕"; // หรือ champ.shortMessage
-      } else {
-        msgElement.innerText = "Stay tuned! รอติดตามโพสต์พิเศษเร็วๆ นี้นะคะ ✨";
-      }
-    }
-  }).getChampOfTheMonth();
-}
-
-// อย่าลืมเรียกใช้
-window.onload = function() {
-  loadChampBanner();
-  // ... โค้ดโหลดโพสต์อื่นๆ ของคุณ ...
-};
 
 function confirmLogout() {
   // 1. ถ้าไม่มี user ล็อกอินอยู่แล้ว ให้ดีดไปหน้าล็อกอินทันที
@@ -2237,80 +2143,43 @@ function renderPost(post) {
 
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
-// =========================================================================
-  // 🏆 [ตรวจสอบโพสต์ฉลองแชมป์ อ้างอิงดีไซน์จากภาพ]
-  // =========================================================================
-  const isChampPost = post.isChampPost === true || post.isChampPost === "true";
-  
-  let champGoldenBar = '';
-  let cardBackground = 'white';
-  let commentBackgroundClass = '';
-
-  if (isChampPost) {
-    champGoldenBar = `
-      <div class="champ-golden-header">
-        <span>SPECIAL FANS DAY</span>
-        <i class="fas fa-star"></i>
-      </div>
-    `;
-    cardBackground = '#fffefb'; // พื้นหลังอมเหลืองไข่ไก่นิดๆ ให้ดูอบอุ่น
-    commentBackgroundClass = 'champ-comment-section';
-  }
-
   return `
-    <div class="post-card" id="post-${postId}" style="position: relative; background: ${cardBackground}; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); text-align: left; border: ${isChampPost ? '2px solid #fada80' : 'none'};">
-      
-      <!-- แถบสีทองจะโชว์เฉพาะโพสต์แชมป์ -->
-      ${champGoldenBar}
-      
+    <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       ${actionMenu}
-      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 15px;">
-        <img src="${authorProfileImg}" style="width: 45px; height: 45px; border-radius: 50%; margin-right: 12px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
         <div>
-          <b style="color: ${isChampPost ? '#d99d1c' : '#ff85a2'}; font-size: 15px;">${authorName} ${isPostVerified}</b>
+          <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
           <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
         </div>
       </div>
       
       <div class="post-body" style="margin-bottom: 15px;">
-        <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 14.5px; line-height: 1.5; color: #333;">${postContent}</p>
+        <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
         ${imagesHtml}
         ${mediaHtml}
       </div>
       
-      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 12px; display: flex; gap: 20px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: ${isChampPost ? '#f6b93b' : '#ff85a2'}; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: bold;">
+      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
+        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
           <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
         </button>
-        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: bold;">
+        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
           <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
         </button>
       </div>
 
-      <!-- ส่วนคอมเมนต์ -->
-      <div id="comment-section-${postId}" class="${commentBackgroundClass}" style="display: none; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 12px;">
-        <div id="comment-list-${postId}" style="max-height: 250px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
+      <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
+        <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
           ${commentsHtml}
         </div>
         <div class="comment-input-box" style="display: flex; gap: 8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 8px 14px; font-size: 0.85rem; outline: none; background: #fff;">
-          <button onclick="submitComment('${postId}', this)" style="background: ${isChampPost ? '#f6b93b' : '#ff85a2'}; color: white; border: none; border-radius: 20px; padding: 0 16px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
+          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
+          <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
         </div>
       </div>
     </div>
   `;
-}
-  
-  function fireChampConfetti(element) {
-  if (!element.dataset.confettiFired) {
-    confetti({
-      particleCount: 120,
-      spread: 80,
-      origin: { y: 0.6 },
-      colors: ['#ff85a2', '#ffd700', '#87ceeb', '#ffb6c1']
-    });
-    element.dataset.confettiFired = "true"; // ยิงแค่ครั้งเดียวต่อการโหลดหน้าจอเพื่อไม่ให้รบกวนการอ่าน
-  }
 }
   
 async function loadTimelinePosts() {
