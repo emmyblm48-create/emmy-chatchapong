@@ -1189,7 +1189,108 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     z-index: 10;
 }
-    
+    /* =========================================
+   🍪 CUTE MONTHLY COOKIE COUNTDOWN WIDGET
+   ========================================= */
+.cookie-countdown-container {
+  background: linear-gradient(135deg, #fff0f3 0%, #fffbf2 100%);
+  border: 2px dashed #ffb6c1;
+  border-radius: 20px;
+  padding: 15px 20px;
+  margin: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 16px rgba(255, 133, 162, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+/* เอฟเฟกต์วิบวับเบาๆ ด้านหลัง */
+.cookie-countdown-container::after {
+  content: '✨';
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.countdown-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 2px;
+}
+
+.countdown-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff6b8b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.countdown-label i {
+  animation: cookieBounce 1.2s infinite ease-in-out;
+}
+
+.countdown-subtitle {
+  font-size: 10px;
+  color: #a39095;
+}
+
+/* กล่องตัวเลขนับถอยหลังทรงแคปซูล */
+.countdown-timer-box {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.time-segment {
+  background: #ffffff;
+  border: 1px solid #ffe1e7;
+  border-radius: 10px;
+  padding: 6px 8px;
+  min-width: 40px;
+  text-align: center;
+  box-shadow: 0 3px 6px rgba(255, 133, 162, 0.04);
+}
+
+.time-val {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff85a2;
+  display: block;
+  line-height: 1.2;
+}
+
+.time-lbl {
+  font-size: 8px;
+  color: #ccb2b7;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.time-separator {
+  color: #ffb6c1;
+  font-weight: bold;
+  font-size: 14px;
+  animation: blink 1s infinite;
+}
+
+/* แอนิเมชันน่ารักๆ */
+@keyframes cookieBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(15deg); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
   </style>
 </head>
 <body>
@@ -1241,6 +1342,38 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       <div class="champ-img-container">
         <img id="home-champ-img" class="champ-img" alt="Champ">
       </div>
+</div>
+
+  <div class="cookie-countdown-container">
+  <div class="countdown-info">
+    <div class="countdown-label">
+      <i class="fas fa-cookie-bite" style="color: #d2691e;"></i> 
+      <span>MONTHLY FINALE!</span>
+    </div>
+    <div class="countdown-subtitle" id="countdown-month-text">Calculating cycle...</div>
+  </div>
+  
+  <div class="countdown-timer-box">
+    <div class="time-segment">
+      <span class="time-val" id="cd-days">00</span>
+      <span class="time-lbl">Days</span>
+    </div>
+    <span class="time-separator">:</span>
+    <div class="time-segment">
+      <span class="time-val" id="cd-hours">00</span>
+      <span class="time-lbl">Hrs</span>
+    </div>
+    <span class="time-separator">:</span>
+    <div class="time-segment">
+      <span class="time-val" id="cd-mins">00</span>
+      <span class="time-lbl">Mins</span>
+    </div>
+    <span class="time-separator">:</span>
+    <div class="time-segment">
+      <span class="time-val" id="cd-secs">00</span>
+      <span class="time-lbl">Secs</span>
+    </div>
+  </div>
 </div>
 
 <div class="section-title"> Member Ranking</div>
@@ -2483,6 +2616,65 @@ async function editPostUi(postId, encodedContent) {
 
 // สั่งให้รันเช็กทันทีตอนโหลดหน้าเสร็จ
 document.addEventListener("DOMContentLoaded", window.checkNotificationBadge);
+
+// =========================================
+// ⏰ INTERNATIONAL COOKIE COUNTDOWN SYSTEM
+// =========================================
+function startCookieCountdown() {
+  const monthNamesEn = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  function updateTimer() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0 = Jan, 11 = Dec
+
+    // Set deadline to the last second of the current month (23:59:59)
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
+    
+    // Dynamically update the subtitle text in English
+    const monthTextElem = document.getElementById('countdown-month-text');
+    if (monthTextElem) {
+      monthTextElem.innerText = `${monthNamesEn[currentMonth]} voting ends in:`;
+    }
+
+    const diff = lastDayOfMonth - now;
+
+    if (diff <= 0) {
+      // Time is up for this month
+      document.getElementById('cd-days').innerText = "00";
+      document.getElementById('cd-hours').innerText = "00";
+      document.getElementById('cd-mins').innerText = "00";
+      document.getElementById('cd-secs').innerText = "00";
+      return;
+    }
+
+    // Calculate time metrics
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+    // Render values with padded leading zeros
+    document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+    document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+    document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
+    document.getElementById('cd-secs').innerText = String(secs).padStart(2, '0');
+  }
+
+  // Execute immediately and then update every single second
+  updateTimer();
+  setInterval(updateTimer, 1000);
+}
+
+// Initialize countdown when DOM is fully loaded
+window.addEventListener('DOMContentLoaded', () => {
+  if (typeof startCookieCountdown === 'function') {
+    startCookieCountdown();
+  }
+});
   
   // 🌟 ฟังก์ชัน เล่น/หยุด เสียงสไตล์ BLM48
 function toggleBlmAudio(postId) {
