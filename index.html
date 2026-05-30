@@ -1224,13 +1224,13 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
     <div style="display: flex; align-items: center; gap: 15px; z-index: 1;">
         <div style="position: relative;">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" alt="Champ Profile" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);">
+            <img id="champ-month-img" src="https://via.placeholder.com/56/cccccc/ffffff?text=..." alt="Champ Profile" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);">
             <i class="fa-solid fa-crown" style="position: absolute; top: -10px; right: -8px; color: #ffd700; font-size: 1.3rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));"></i>
         </div>
         
         <div>
             <span style="font-size: 0.75rem; color: #e6c253; display: block; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px;">Winner This Month</span>
-            <h3 style="margin: 0; font-size: 1.3rem; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); font-weight: 600;">Emmy</h3>
+            <h3 id="champ-month-name" style="margin: 0; font-size: 1.3rem; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); font-weight: 600;">Loading...</h3>
         </div>
     </div>
     
@@ -2532,6 +2532,42 @@ function closeImageViewer() {
     }
   }
 
+  // ฟังก์ชันดึงข้อมูล Champ ประจำเดือน
+    async function loadChampOfMonth() {
+        try {
+            // ใส่ URL ของ Google Apps Script (อย่าลืม /exec ต่อท้าย และพารามิเตอร์ที่ต้องใช้)
+            const apiUrl = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getChampOfMonth';  
+
+            // 1. สั่ง fetch เพื่อไปดึงข้อมูลจากหลังบ้าน
+            const response = await fetch(apiUrl);
+            
+            // 2. แปลงผลลัพธ์ที่ได้กลับมาให้อยู่ในรูปแบบ JSON เข้าตัวแปร data
+            const data = await response.json();
+
+            // ตรวจสอบว่ามีข้อมูลส่งกลับมาและสำเร็จหรือไม่
+            if (data.status === 'success') {
+                // Map ข้อมูลลงไปแทนที่ใน HTML
+                document.getElementById('champ-month-name').textContent = data.champName;
+                document.getElementById('champ-month-img').src = data.profileUrl;
+
+                // อัปเดตลิงก์ของแบนเนอร์เพื่อให้กดแล้วไปหน้า Special Thanks ถูกคน
+                const banner = document.getElementById('month-champ-banner');
+                banner.onclick = function() {
+                    window.location.href = `specialthanks.html?index=${data.champIndex}`;
+                };
+            } else {
+                document.getElementById('champ-month-name').textContent = 'No Data';
+            }
+
+        } catch (error) {
+            console.error('Error fetching champ data:', error);
+            document.getElementById('champ-month-name').textContent = 'Error';
+        }
+    }
+
+    // เรียกให้ฟังก์ชันทำงานทันทีที่โหลดโครงสร้างหน้าเว็บเสร็จ
+    document.addEventListener('DOMContentLoaded', loadChampOfMonth);
+  
   async function doLogin() {
     const u = document.getElementById('login-user').value;
     const p = document.getElementById('login-pass').value;
