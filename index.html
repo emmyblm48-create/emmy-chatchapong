@@ -1162,6 +1162,34 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   border: 1px solid white;
   z-index: 10;
 }
+    
+    /* 🌟 สไตล์กล่องโพสต์สำหรับ Champ of the Month */
+.champ-special-post {
+    background: linear-gradient(to bottom, #fffdf0, #ffffff) !important;
+    border: 2px solid #d4af37 !important; /* ขอบสีทอง */
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 👑 ป้ายแบนเนอร์เล็กๆ บนโพสต์ */
+.champ-post-badge {
+    background: linear-gradient(135deg, #d4af37, #ffd700);
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 0 0 10px 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+    
   </style>
 </head>
 <body>
@@ -1876,6 +1904,36 @@ function renderGlobalFans(rawData) {
     list.appendChild(card);
   });
 }
+  
+  async function loadLatestChampForBanner() {
+    try {
+        // เรียกใช้ API เดียวกับหน้า champ.html เพื่อดึงข้อมูลแชมป์
+        const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
+        const result = await response.json();
+
+        if (result.status === "success" && result.data.length > 0) {
+            // ดึงข้อมูลคนแรก (แชมป์ล่าสุด)
+            const latestChamp = result.data[0]; 
+            
+            // อัปเดตข้อมูลบนป้าย
+            document.getElementById('home-champ-name').innerText = latestChamp.name;
+            document.getElementById('home-champ-month').innerText = latestChamp.monthYear;
+            
+            if (latestChamp.profileImage) {
+                document.getElementById('home-champ-img').src = latestChamp.profileImage;
+            }
+
+            // เปลี่ยนการทำงานเมื่อกดป้าย ให้ไปหน้า specialthanks.html ของคนนั้นๆ
+            // โดยส่ง index=0 หรือส่งชื่อไปเป็น Parameter
+            const champBanner = document.querySelector('.champ-banner');
+            champBanner.onclick = () => {
+                window.location.href = `specialthanks.html?index=0&name=${encodeURIComponent(latestChamp.name)}`;
+            };
+        }
+    } catch (error) {
+        console.error("Load Champ Banner Error:", error);
+    }
+}
 
 // เอาฟังก์ชันนี้ไปวางใน <script> ของหน้า index.html แทนตัวเดิมนะงับ
 function openMemberProfile(name) {
@@ -2057,6 +2115,24 @@ function renderPost(post) {
   const displayImage = post.imageUrl || post.imageURL || '';
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
 
+  // =========================================================================
+  // 👑 [ตรวจสอบเงื่อนไขและเตรียมป้ายพิเศษสำหรับ Champ of the Month]
+  // =========================================================================
+  const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
+  const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
+  
+  // สร้างริบบิ้นแบนเนอร์สีทองติดที่มุมซ้ายบนของโพสต์
+  const specialBadge = isChampPost ? `
+    <div class="champ-post-badge" style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #fff; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 0 0 10px 0; position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
+      <i class="fas fa-crown"></i> Champ of the Month Special Thanks
+    </div>
+  ` : '';
+
+  // กำหนดสไตล์ของการ์ดโพสต์ (ถ้าเป็นแชมป์ จะได้การ์ดธีมทอง-ครีม ไล่เฉดสีหรูหรา)
+  const champCardStyle = isChampPost 
+    ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
+    : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
+
   const verifiedBadgeIcon = `
     <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
       <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
@@ -2113,14 +2189,12 @@ function renderPost(post) {
     const visibleImages = imageUrls.slice(0, 4);
     
     if (imageUrls.length === 1) {
-      // 🌟 กรณีมีรูปเดียว: แสดงเต็มความกว้างและจัดกึ่งกลาง
       imagesHtml += `
         <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
           <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
         </div>
       `;
     } else {
-      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์เหมือนเดิม
       imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
       visibleImages.forEach((url, index) => {
         imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
@@ -2134,8 +2208,9 @@ function renderPost(post) {
     }
   }
 
+  // ขยับปุ่มจัดการลงมานิดหน่อยถ้าเป็นโพสต์ของแชมป์ เพื่อไม่ให้ปุ่มทับริบบิ้นทอง
   const actionMenu = canManage ? `
-    <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px;">
+    <div style="position: absolute; top: ${isChampPost ? '35px' : '15px'}; right: 15px; display: flex; gap: 10px; z-index: 11;">
       <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
       <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
     </div>
@@ -2144,9 +2219,11 @@ function renderPost(post) {
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
   return `
-    <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+    <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
+      ${specialBadge}
       ${actionMenu}
-      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
+      
+      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
         <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
         <div>
           <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
@@ -2600,6 +2677,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (user) {
     syncUserData(); 
   }
+
+  // 👑 เรียกใช้งานฟังก์ชันโหลดป้าย Champ of the Month ตรงนี้เลยงับ!
+  loadLatestChampForBanner();
 });
 </script>
 <script type="module">
