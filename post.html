@@ -113,7 +113,7 @@
       display: none;
     }
     
-    /* Image Preview Tray */
+    /* Image Preview Tray (ปรับปรุงใหม่ให้รองรับ Card คุมสไตล์) */
     #image-preview-container {
       display: flex;
       gap: 12px;
@@ -211,7 +211,7 @@
       margin-top: 12px;
     }
     
-    /* Action Button (ปุ่มโพสต์ปกติ) */
+    /* Action Button */
     .btn-submit-full {
       width: 100%;
       height: 48px;
@@ -221,7 +221,7 @@
       border-radius: 24px;
       font-weight: 700;
       font-size: 1rem;
-      margin-top: 12px; /* ปรับให้ชิดกระชับกับปุ่มทองด้านบน */
+      margin-top: 28px;
       cursor: pointer;
       letter-spacing: 0.5px;
       box-shadow: 0 4px 12px rgba(255, 133, 162, 0.25);
@@ -230,119 +230,6 @@
     .btn-submit-full:hover {
       background-color: #ff6b8b;
       transform: translateY(-1px);
-    }
-
-    /* 👑 --- เพิ่มสไตล์สำหรับกล่องสวิตช์เปิดสิทธิ์แชมป์ --- */
-    .champ-option-box {
-      display: none; /* คุมเปิด-ปิดด้วยระบบตรวจสอบสิทธิ์แชมป์ */
-      margin-top: 24px;
-      background: linear-gradient(135deg, #fff5f8, #fff0f5);
-      padding: 16px;
-      border-radius: 18px;
-      border: 2px dashed #ffb6c1;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(255, 133, 162, 0.05);
-      box-sizing: border-box;
-    }
-    .champ-option-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .champ-title {
-      color: #ff85a2;
-      font-weight: 700;
-      font-size: 0.95rem;
-    }
-    .champ-subtitle {
-      color: #888;
-      font-size: 0.75rem;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 46px;
-      height: 26px;
-      flex-shrink: 0;
-    }
-    .switch input { 
-      opacity: 0; width: 0; height: 0;
-    }
-    .slider {
-      position: absolute; cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ffccd5;
-      transition: .4s; border-radius: 26px;
-    }
-    .slider:before {
-      position: absolute; content: "";
-      height: 18px; width: 18px;
-      left: 4px; bottom: 4px;
-      background-color: white;
-      transition: .4s; border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    input:checked + .slider {
-      background-color: #ff85a2;
-    }
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-
-    /* 👑 --- เพิ่มสไตล์ปุ่ม Special Thanks สีทองเหลือบหรูหราแบบ Membership Card --- */
-    .btn-submit-special {
-      width: 100%;
-      height: 48px;
-      background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
-      background-size: 400% 400%;
-      color: #3d2a04;
-      border: none;
-      border-radius: 24px;
-      font-weight: 700;
-      font-size: 1rem;
-      margin-top: 24px;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 15px rgba(170, 119, 28, 0.35);
-      position: relative;
-      overflow: hidden;
-      display: none; /* คุมเปิดด้วย JavaScript */
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-      transition: all 0.3s ease;
-      animation: goldShineGradient 8s ease infinite;
-    }
-    .btn-submit-special:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(170, 119, 28, 0.5);
-      filter: brightness(1.05);
-    }
-    .btn-submit-special:active {
-      transform: translateY(0);
-    }
-    /* เอฟเฟกต์แสงเลเซอร์วิ่งผ่านปุ่ม */
-    .btn-submit-special::after {
-      content: '';
-      position: absolute;
-      top: -50%; left: -60%;
-      width: 30%; height: 200%;
-      background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
-      transform: rotate(25deg);
-      animation: laserShine 3.5s infinite ease-in-out;
-    }
-
-    @keyframes goldShineGradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    @keyframes laserShine {
-      0% { left: -60%; }
-      20% { left: 130%; }
-      100% { left: 130%; }
     }
   </style>
 </head>
@@ -383,22 +270,7 @@
     </div>
   </div>
 
-  <div id="champ-option-box" class="champ-option-box">
-    <div class="champ-option-text">
-      <span class="champ-title"><i class="fas fa-crown" style="color: #d4af37;"></i> Champ Special Thanks Mode</span>
-      <span class="champ-subtitle">เปิดสวิตช์นี้เพื่อใช้สิทธิ์โพสต์ขอบคุณประจำตำแหน่งแชมป์</span>
-    </div>
-    <label class="switch">
-      <input type="checkbox" id="champ-toggle">
-      <span class="slider"></span>
-    </label>
-  </div>
-
-  <button id="btn-submit-special" class="btn-submit-special" onclick="submitPost()">
-    <i class="fas fa-crown"></i> Publish Champ Special Thanks
-  </button>
-
-  <button id="btn-submit-normal" class="btn-submit-full" onclick="submitPost()">Publish Post</button>
+  <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -423,7 +295,8 @@
   const app = initializeApp(firebaseConfig);
   const IMGBB_API_KEY = "80ad839da07973eeefee57af54fc9f6d";
 
-  let selectedImageFiles = []; 
+  // 🌟 [ตัวแปรส่วนกลางสำหรับจัดการ State]
+  let selectedImageFiles = []; // เก็บ Array ของ Object รูปภาพ [{file: File, preview: base64/blob}]
   let recordedAudioBlob = null; 
 
   async function uploadImageToImgBB(file) {
@@ -443,6 +316,7 @@
     }
   }
 
+  // ฟังก์ชันอัปโหลดไฟล์เสียงไปยัง Supabase Storage
   async function uploadToSupabaseStorage(fileBlob, folderName, fileExtension) {
     const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExtension}`;
     
@@ -490,6 +364,7 @@
   const recordStatus = document.getElementById('record-status');
   const customAudioZone = document.getElementById('custom-audio-preview-zone');
 
+  // Audio Recording Controller
   btnRecord.addEventListener('click', async () => {
     if (!mediaRecorder || mediaRecorder.state === "inactive") {
       try {
@@ -501,7 +376,7 @@
         mediaRecorder.onstop = () => {
           recordedAudioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
           recordStatus.innerText = "Audio recorded successfully";
-          renderCustomAudioPreview(); 
+          renderCustomAudioPreview(); // เรียกฟังก์ชันเรนเดอร์พรีวิวผู้จัดการวงคนสวยย
         };
         
         mediaRecorder.start();
@@ -521,6 +396,7 @@
     }
   });
 
+  // 👑 [สร้างเครื่องเล่นคลิปเสียงจำลองในหน้าพรีวิวก่อนกดโพสต์]
   function renderCustomAudioPreview() {
     if (!recordedAudioBlob) {
       customAudioZone.innerHTML = '';
@@ -547,6 +423,7 @@
       </div>
     `;
 
+    // ผูก Logic ตัวควบคุมการเล่นเสียงพรีวิว
     const audioEl = document.getElementById('audio-player-preview-src');
     const playBtn = document.getElementById('play-preview-btn');
     const playIcon = document.getElementById('audio-preview-icon');
@@ -604,6 +481,7 @@
       }
     });
 
+    // ลบไฟล์เสียง
     deleteAudioBtn.addEventListener('click', () => {
       audioEl.pause();
       recordedAudioBlob = null;
@@ -612,12 +490,14 @@
     });
   }
 
+  // 📸 [การจัดการรูปภาพ - ดักจับอีเวนต์เลือกภาพ]
   const imageInput = document.getElementById('post-image');
   imageInput.addEventListener('change', function() {
     if (this.files && this.files.length > 0) {
       Array.from(this.files).forEach(file => {
         const reader = new FileReader();
         reader.onload = function(e) {
+          // บันทึกเข้า Array ของหน้าเว็บ
           selectedImageFiles.push({
             file: file,
             preview: e.target.result
@@ -626,10 +506,11 @@
         }
         reader.readAsDataURL(file);
       });
-      this.value = ''; 
+      this.value = ''; // เคลียร์อินพุตดิบเพื่อให้กดเลือกรูปเดิมซ้ำได้
     }
   });
 
+  // 📸 [การจัดการรูปภาพ - เรนเดอร์ UI Preview พร้อมปุ่มสลับ/ลบ]
   function renderImagePreviews() {
     const container = document.getElementById('image-preview-container');
     container.innerHTML = '';
@@ -638,6 +519,7 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'preview-image-wrapper';
       
+      // แทรกโครงสร้างปุ่มลบ และปุ่มเลื่อนซ้ายขวาสำหรับการจัดเรียงตำแหน่งรูปภาพคิวท์ๆ
       wrapper.innerHTML = `
         <img src="${imgObj.preview}">
         <div class="img-action-overlay" data-index="${index}"><i class="fa-solid fa-xmark"></i></div>
@@ -645,12 +527,14 @@
         ${index < selectedImageFiles.length - 1 ? `<button type="button" class="img-sort-btn img-sort-right" data-index="${index}"><i class="fa-solid fa-angle-right"></i></button>` : ''}
       `;
       
+      // ดักฟังก์ชันกด ลบรูปภาพ
       wrapper.querySelector('.img-action-overlay').addEventListener('click', function() {
         const idx = parseInt(this.getAttribute('data-index'));
         selectedImageFiles.splice(idx, 1);
         renderImagePreviews();
       });
 
+      // ดักฟังก์ชันย้ายซ้าย
       if (index > 0) {
         wrapper.querySelector('.img-sort-left').addEventListener('click', function() {
           const idx = parseInt(this.getAttribute('data-index'));
@@ -661,6 +545,7 @@
         });
       }
 
+      // ดักฟังก์ชันย้ายขวา
       if (index < selectedImageFiles.length - 1) {
         wrapper.querySelector('.img-sort-right').addEventListener('click', function() {
           const idx = parseInt(this.getAttribute('data-index'));
@@ -675,7 +560,7 @@
     });
   }
 
-  // 👑 --- อัปเดตระบุประเภทโพสต์ส่งไปยังระบบหลังบ้าน ---
+  // Submit Logic
   window.submitPost = async function() {
     const content = document.getElementById('post-content').value.trim();
     const currentUser = getUserSession();
@@ -691,17 +576,15 @@
     }
 
     const activeUsername = currentUser.username;
-    
-    // เช็กว่าเปิดสวิตช์ส่งแบบ Champ Mode อยู่หรือไม่
-    const isChampPost = document.getElementById('champ-toggle')?.checked;
 
+    // แก้ไขเงื่อนไขเช็กข้อมูลว่างโดยอิงจากตัวแปร Array ของเราแทนไฟล์ดิบแล้ว
     if (!content && selectedImageFiles.length === 0 && !recordedAudioBlob) {
       Swal.fire('Empty Content', 'Please write a message or add media before publishing.', 'info');
       return;
     }
 
     Swal.fire({
-      title: isChampPost ? 'Publishing Champ Special Thanks' : 'Publishing Post',
+      title: 'Publishing Post',
       text: 'Uploading media assets and updating timeline. Please wait...',
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
@@ -711,6 +594,7 @@
     let finalAudioUrl = "";
 
     try {
+      // 1. อัปโหลดรูปภาพที่คัดสรรแล้วเข้า ImgBB (ดึงมาจากชุดที่จัดเรียงไว้ใน Array ล่าสุด)
       if (selectedImageFiles.length > 0) {
         let uploadedUrls = [];
         for (let i = 0; i < selectedImageFiles.length; i++) {
@@ -724,10 +608,12 @@
         imageUrlString = uploadedUrls.join(',');
       }
 
+      // 2. อัปโหลดไฟล์เสียงเข้า Supabase Storage
       if (recordedAudioBlob) {
         finalAudioUrl = await uploadToSupabaseStorage(recordedAudioBlob, 'audios', 'mp3');
       }
 
+      // 3. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       
       const params = new URLSearchParams();
@@ -737,9 +623,6 @@
       params.append('imageUrl', imageUrlString);
       params.append('audioURL', finalAudioUrl);
       params.append('videoURL', ''); 
-      
-      // 🌟 ส่งค่า post_type ไปหลังบ้านเพื่อให้แยกสไตล์กรอบเลเซอร์หน้าบ้านถูก
-      params.append('post_type', isChampPost ? 'champ_thanks' : 'normal');
 
       const resp = await fetch(scriptURL, {
         method: 'POST',
@@ -752,21 +635,9 @@
       const data = await resp.json();
 
       if (data.status === "success") {
-        
-        // 🌟 อัปเดตข้อมูลบันทึกประวัติกลับไปที่โต๊ะ Champ เพื่อปิดสิทธิ์การโพสต์ซ้ำประจำเดือนนี้
-        if (isChampPost) {
-           await supabaseClient
-            .from('champofthemonth')
-            .update({ 
-               message: content || "ส่งรูปภาพ/เสียงขอบคุณแฟนๆ", 
-               postimage: imageUrlString 
-            })
-            .eq('Name', currentUser.name || activeUsername); 
-        }
-
         Swal.fire({
           title: 'Success',
-          text: isChampPost ? 'Your Champ Special Thanks post has been published! 👑' : 'Your post has been published successfully.',
+          text: 'Your post has been published successfully.',
           icon: 'success',
           confirmButtonColor: '#ff85a2'
         }).then(() => {
@@ -785,60 +656,6 @@
       });
     }
   }
-
- // 👑 --- ฟังก์ชันเช็กสิทธิ์ Champ จาก Google Sheet ---
-  async function checkChampStatus() {
-    const currentUser = getUserSession();
-    // ดึงชื่อของคนที่ล็อกอินอยู่ (ใช้ name หรือ username ตามระบบของพี่เอ็มมี่)
-    const currentName = currentUser ? (currentUser.name || currentUser.username) : null; 
-    
-    if (!currentName) return;
-
-    try {
-      // ลิงก์ Web App Script ตัวเดียวกับที่พี่ใช้ส่งโพสต์นั่นเองครับ
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-      
-      // ส่งรีเควสไปขอข้อมูลแชมป์ล่าสุดจาก Google Sheet
-      // (ระบบหลังบ้านของพี่ต้องรองรับ action: 'getLatestChamp' หรือปรับตามที่สคริปต์หลังบ้านตั้งไว้)
-      const resp = await fetch(`${scriptURL}?action=getLatestChamp`);
-      const result = await resp.json();
-
-      if (result && result.status === "success" && result.data) {
-        const latestChamp = result.data; // ข้อมูลแถวแชมป์ล่าสุดจาก Google Sheet
-        
-        // ตรวจสอบว่า ชื่อตรงกับคนล็อกอินไหม และยังไม่เคยพิมพ์คำขอบคุณ (ฟิลด์ message ว่าง)
-        if (latestChamp.Name === currentName && (!latestChamp.message || latestChamp.message.trim() === "")) {
-          const champBox = document.getElementById('champ-option-box');
-          const toggleInput = document.getElementById('champ-toggle');
-          const normalBtn = document.getElementById('btn-submit-normal');
-          const specialBtn = document.getElementById('btn-submit-special');
-
-          // โชว์กล่องสวิตช์สีหวานขึ้นมาทันที
-          if (champBox) champBox.style.display = 'flex';
-
-          // ดักฟังตอนเปิด-ปิดสวิตช์เพื่อสลับปุ่มโพสต์
-          if (toggleInput) {
-            toggleInput.addEventListener('change', function() {
-              if (this.checked) {
-                if (specialBtn) specialBtn.style.display = 'flex';
-                if (normalBtn) normalBtn.style.display = 'none';
-              } else {
-                if (specialBtn) specialBtn.style.display = 'none';
-                if (normalBtn) normalBtn.style.display = 'block';
-              }
-            });
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Error checking champ status from Google Sheet:", err);
-    }
-  }
-
-  // เรียกทำงานเมื่อโหลดหน้าเว็บเสร็จ
-  document.addEventListener('DOMContentLoaded', () => {
-    checkChampStatus();
-  });
 </script>
 </body>
 </html>
