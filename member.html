@@ -140,11 +140,16 @@
         padding: 0 24px 35px 24px !important;
         margin-top: -50px !important;
       }
+      .back-circle-btn {
+        position: absolute; /* บน PC ให้กลับไปอิงตามกรอบมือถือ */
+        top: 20px;
+        left: 20px;
+      }
     }
 
     /* ปุ่มย้อนกลับ */
     .back-circle-btn {
-      position: absolute;
+      position: fixed; /* 🌟 เปลี่ยนจาก absolute เป็น fixed เพื่อให้ปุ่มลอยตามจอ */
       top: 20px;
       left: 20px;
       background: rgba(255, 255, 255, 0.9);
@@ -158,7 +163,7 @@
       color: var(--blmem-pink);
       cursor: pointer;
       backdrop-filter: blur(8px);
-      z-index: 10;
+      z-index: 999; /* 🌟 ใส่ค่า z-index สูงๆ เพื่อให้ปุ่มอยู่บนสุดเสมอ */
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       transition: 0.2s;
     }
@@ -815,7 +820,7 @@
             <div class="member-thanks-msg" id="msg-${champ.monthYear.replace(/\s/g, '')}">
                 ${thankYouMessage}
             </div>
-            <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">...more</div>
+            <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">แสดงเพิ่มเติม</div>
             ${imgHtml}
         </div>
     `;
@@ -828,10 +833,16 @@
         const el = document.getElementById('msg-' + id);
         const btn = el.nextElementSibling;
         el.classList.toggle('expanded');
-        btn.innerText = el.classList.contains('expanded') ? '...less' : '...more';
+        btn.innerText = el.classList.contains('expanded') ? 'แสดงน้อยลง' : 'แสดงเพิ่มเติม';
     }
 
-    function goBack() { window.location.href = 'index.html'; }
+    function goBack() { 
+      if (window.history.length > 1) {
+        window.history.back(); // ย้อนกลับไปหน้าก่อนหน้า
+      } else {
+        window.location.href = 'index.html'; // ถ้าไม่มีประวัติให้กลับหน้าแรก
+      }
+    }
 
     async function setOshi(type) {
       if (!checkLoginStatus()) return;
