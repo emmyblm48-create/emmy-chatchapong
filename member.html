@@ -400,6 +400,50 @@
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     z-index: 10;
 }
+  
+    /* 🌟 สไตล์กล่อง Special Thanks ประจำตัวเมมเบอร์ */
+    .member-thanks-card {
+        background: linear-gradient(to bottom, #fffdf0, #ffffff);
+        border: 2px solid #d4af37;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+        text-align: center;
+        position: relative;
+    }
+    .member-thanks-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fff9db;
+        color: #d4af37;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        border: 1px solid #fce899;
+    }
+    .member-thanks-msg {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #555;
+        background: #fff;
+        padding: 16px;
+        border-radius: 12px;
+        border-left: 4px solid #d4af37;
+        text-align: left;
+        margin-bottom: 15px;
+        white-space: pre-line;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .member-thanks-img {
+        width: 100%;
+        border-radius: 12px;
+        object-fit: cover;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
 </style>
 </head>
 <body>
@@ -449,6 +493,11 @@
       <div class="leaderboard-section">
         <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans</div>
         <div id="member-fans-content" class="fan-list"></div>
+      </div>
+      
+      <div id="champ-thanks-container" style="display: none; margin-top: 25px;">
+        <div class="leaderboard-title"><i class="fas fa-crown" style="color: #d4af37;"></i>Special Fans Day</div>
+        <div id="champ-thanks-content"></div>
       </div>
       
       <div class="member-feed-section" style="margin-top: 25px;">
@@ -627,7 +676,7 @@
       if(document.getElementById('mb-name')) document.getElementById('mb-name').innerText = memberName;
     }
 
-   function loadMemberData() {
+  function loadMemberData() {
       if (!memberName) { window.location.href = 'index.html'; return; }
       user = getUserSession();
       
@@ -657,7 +706,10 @@
 
       updateButtonStyles();
       fetchLatestMemberStats(); // แอบดึงยอดอัปเดตล่าสุดเบื้องหลังเงียบๆ
-      loadMemberTimelinePosts(); // โหลดโพสต์แบบมีแคช (ฟังก์ชันที่เราทำไปก่อนหน้า)
+      loadMemberTimelinePosts(); // โหลดโพสต์แบบมีแคช
+      
+      // ✨ วางตรงนี้ค่ะ! ให้มันโหลดประวัติแชมป์พร้อมๆ กับโพสต์ไทม์ไลน์
+      loadMemberSpecialThanks(); 
     }
 
     function updateButtonStyles() {
@@ -686,6 +738,69 @@
         btnOshi.innerHTML = '<i class="fas fa-heart"></i> <span>+ OSHI</span>';
         btnOshi.style.backgroundColor = ""; btnOshi.style.color = ""; btnOshi.style.borderColor = "";
       }
+    }
+  
+    // =========================================================================
+    // 👑 ดึงประวัติแชมป์และข้อความ Special Thanks ประจำตัวเมมเบอร์
+    // =========================================================================
+    async function loadMemberSpecialThanks() {
+        const container = document.getElementById('champ-thanks-container');
+        const content = document.getElementById('champ-thanks-content');
+        if (!container || !content || !memberName) return;
+
+        let champData = [];
+        // โหลดจาก Cache ในเครื่องก่อนเพื่อความไว (เหมือนหน้า champ.html)
+        const localData = sessionStorage.getItem('blm_champ_history');
+        
+        if (localData) {
+            champData = JSON.parse(localData);
+        } else {
+            try {
+                const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
+                const result = await response.json();
+                if (result.status === "success" && result.data) {
+                    champData = result.data;
+                    sessionStorage.setItem('blm_champ_history', JSON.stringify(champData));
+                }
+            } catch (e) {
+                console.error("Failed to load champ history", e);
+            }
+        }
+
+        // คัดกรองเฉพาะข้อมูลของเมมเบอร์คนที่กำลังเปิดหน้านี้อยู่
+        const memberChamps = champData.filter(c => c.name && c.name.toLowerCase() === memberName.toLowerCase());
+
+        // ถ้าเมมเบอร์คนนี้เคยได้เป็นแชมป์ ให้แสดงกล่องข้อความ
+        if (memberChamps.length > 0) {
+            container.style.display = 'block';
+            content.innerHTML = '';
+            
+            memberChamps.forEach(champ => {
+                const formatCookie = Number(champ.totalCookie).toLocaleString();
+                const thankYouMessage = champ.message ? champ.message : "ขอบคุณสำหรับทุกๆ คะแนนโหวตและทุกแรงสนับสนุนที่ส่งมาให้กันในเดือนนี้นะคะ 💕";
+                
+                let imgHtml = '';
+                if (champ.postImage && champ.postImage.trim() !== "") {
+                    imgHtml = `<img src="${champ.postImage}" class="member-thanks-img" alt="Special Thanks Art">`;
+                }
+
+                const card = `
+                    <div class="member-thanks-card">
+                        <div class="member-thanks-badge">
+                            <i class="fas fa-crown"></i> Champ of the Month (${champ.monthYear})
+                        </div>
+                        <div style="font-size: 0.95rem; color: var(--blmem-pink); font-weight: bold; margin-bottom: 14px;">
+                            <i class="fas fa-cookie-bite"></i> ${formatCookie} Cookies
+                        </div>
+                        <div class="member-thanks-msg">
+                            ${thankYouMessage}
+                        </div>
+                        ${imgHtml}
+                    </div>
+                `;
+                content.insertAdjacentHTML('beforeend', card);
+            });
+        }
     }
 
     function goBack() { window.location.href = 'index.html'; }
