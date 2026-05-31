@@ -400,9 +400,18 @@
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     z-index: 10;
 }
-  
+    /* 🌟 ปรับกล่องให้อยู่ในแถวแนวนอน (Horizontal Scroll) */
+    #champ-thanks-content {
+        display: flex;
+        overflow-x: auto;
+        gap: 15px;
+        padding-bottom: 10px;
+        scroll-snap-type: x mandatory;
+    }
     /* 🌟 สไตล์กล่อง Special Thanks ประจำตัวเมมเบอร์ */
     .member-thanks-card {
+        flex: 0 0 85%; /* ให้การ์ดกว้าง 85% ของหน้าจอ */
+        scroll-snap-align: center;
         background: linear-gradient(to bottom, #fffdf0, #ffffff);
         border: 2px solid #d4af37;
         border-radius: 20px;
@@ -437,12 +446,28 @@
         margin-bottom: 15px;
         white-space: pre-line;
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* โชว์แค่ 3 บรรทัดแรก */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .member-thanks-msg.expanded {
+        -webkit-line-clamp: unset; /* ถ้ากดแล้วให้แสดงทั้งหมด */
     }
     .member-thanks-img {
         width: 100%;
         border-radius: 12px;
         object-fit: cover;
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+  .more-btn {
+        color: #d4af37;
+        font-size: 0.8rem;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 5px;
+        display: inline-block;
     }
 </style>
 </head>
@@ -785,22 +810,25 @@
                 }
 
                 const card = `
-                    <div class="member-thanks-card">
-                        <div class="member-thanks-badge">
-                            <i class="fas fa-crown"></i> Champ of the Month (${champ.monthYear})
-                        </div>
-                        <div style="font-size: 0.95rem; color: var(--blmem-pink); font-weight: bold; margin-bottom: 14px;">
-                            <i class="fas fa-cookie-bite"></i> ${formatCookie} Cookies
-                        </div>
-                        <div class="member-thanks-msg">
-                            ${thankYouMessage}
-                        </div>
-                        ${imgHtml}
-                    </div>
-                `;
+        <div class="member-thanks-card">
+            <div class="member-thanks-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
+            <div class="member-thanks-msg" id="msg-${champ.monthYear.replace(/\s/g, '')}">
+                ${thankYouMessage}
+            </div>
+            <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">...more</div>
+            ${imgHtml}
+        </div>
+    `;
                 content.insertAdjacentHTML('beforeend', card);
             });
         }
+    }
+  
+   function toggleMsg(id) {
+        const el = document.getElementById('msg-' + id);
+        const btn = el.nextElementSibling;
+        el.classList.toggle('expanded');
+        btn.innerText = el.classList.contains('expanded') ? '...less' : '...more';
     }
 
     function goBack() { window.location.href = 'index.html'; }
