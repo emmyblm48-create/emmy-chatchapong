@@ -812,8 +812,40 @@ async function fetchAndRenderUserOshiBoard() {
   }
 }
 
-// สั่งให้ระบบเช็กสถานะจุดแจ้งเตือนทุกครั้งที่เปิดหน้านี้ขึ้นมา
-document.addEventListener("DOMContentLoaded", checkNotificationBadge);
+// สั่งให้ระบบทำงานทุกอย่างพร้อมกันเมื่อโหลดหน้าเว็บเสร็จสมบูรณ์
+document.addEventListener("DOMContentLoaded", function() {
+  
+  // 1. เช็กสถานะจุดแจ้งเตือน
+  if (typeof checkNotificationBadge === 'function') {
+    checkNotificationBadge();
+  }
+
+  // 2. ดึงรูปโปรไฟล์มาแสดงที่ Tab Bar ด้านล่าง
+  const tabProfileImg = document.getElementById('tab-profile-img');
+  if (tabProfileImg) {
+    // พยายามดึงข้อมูลผู้ใช้จาก Session ของระบบ
+    let currentUser = null;
+    
+    // เช็กว่ามีตัวแปร user (Global) อยู่ไหม ถ้าไม่มีให้ไปดึงจาก localStorage
+    if (typeof user !== 'undefined' && user) {
+      currentUser = user;
+    } else {
+      const sessionStr = localStorage.getItem("bnl_session"); // ใช้ bnl_session ตามระบบหลัก
+      if (sessionStr) {
+        try {
+          const session = JSON.parse(sessionStr);
+          currentUser = session.data || session.user || session; 
+        } catch (e) {}
+      }
+    }
+
+    // ถ้ามีข้อมูลผู้ใช้และมีรูปโปรไฟล์ ให้จัดการแสดงผล
+    if (currentUser && currentUser.profile_img) {
+      tabProfileImg.src = typeof getImg === 'function' ? getImg(currentUser.profile_img) : currentUser.profile_img;
+    }
+  }
+  
+});
     </script>
 </body>
 </html>
