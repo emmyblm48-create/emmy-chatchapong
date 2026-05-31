@@ -1359,7 +1359,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
  
 <div class="section-title"> Top Fans</div>
 <div class="ranking-wrapper">
-  <div id="global-fan-list" class="horizontal-list"></div>
+  <div id="top-fans-container" class="horizontal-list"></div>
 </div>
 
         <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
@@ -1525,8 +1525,11 @@ async function loadData() {
 
     // อัปเดต UI อีกครั้งแบบเงียบๆ
     if (typeof renderRanking === 'function') renderRanking(currentRankingData);
-    if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
-  } catch(e) { 
+    if (typeof loadMonthlyTopFans === 'function') {
+        // สมมติว่าตัวแปรที่เก็บข้อมูลประวัติการปาชื่อ fanLogsData หรือข้อมูลจากไฟล์ fanLogs.csv
+        loadMonthlyTopFans(allFanLogsData); 
+    }
+} catch(e) { 
     console.error("Load Data Error:", e); 
   }
 } 
@@ -1576,8 +1579,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if (Array.isArray(currentRankingData) && currentRankingData.length > 0) {
       renderRanking(currentRankingData);
     }
-    if (currentTopFansData && Object.keys(currentTopFansData).length > 0) {
-      renderGlobalFans(currentTopFansData);
+    if (Array.isArray(currentFanLogsData)) { 
+      loadMonthlyTopFans(currentFanLogsData);
     }
 
     // 🚀 2. ซ่อนหน้าต่างโหลดเพื่อให้ผู้ใช้ใช้งานได้ทันที
