@@ -389,6 +389,12 @@ body {
   border: 1px solid white;
   z-index: 10;
 }
+    
+    .bonus-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+    .btn-bonus { height: 48px; border: none; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; color: white; }
+    .btn-monthly { background: var(--blmem-pink); box-shadow: 0 4px 12px rgba(255,133,162,0.3); }
+    .btn-redeem { background: #4dabf7; box-shadow: 0 4px 12px rgba(77,171,247,0.3); }
+    .btn-locked { background: #ccc !important; cursor: not-allowed; opacity: 0.7; }
   </style>
 </head>
 <body>
@@ -446,6 +452,14 @@ body {
           <div class="stat-num" style="color: #4dabf7;"><i class="fas fa-gem"></i> <span id="pf-getokens">0</span></div>
           <div class="stat-title">GETokens</div>
         </div>
+        <div class="bonus-container">
+        <button id="btn-claim-monthly" class="btn-bonus btn-monthly"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
+        <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
+        
+        <button onclick="showMembershipCardModal()" class="btn-bonus btn-membership" style="grid-column: span 2; background: linear-gradient(135deg, #e0b953 0%, #fff5c3 45%, #fff5c3 55%, #cba034 100%); box-shadow: 0 4px 12px rgba(224, 185, 83, 0.4); color: #5e470c; border: 1px solid #fce899; font-weight: bold;">
+          <i class="fas fa-id-card"></i> Membership Card
+        </button>
+      </div>
       </div>
 
       <div class="menu-section">
@@ -560,6 +574,23 @@ body {
     if (user.role && user.role.toLowerCase() === 'user') {
       document.getElementById('edit-name-btn').style.display = 'inline-flex';
     }
+    // เพิ่มการจัดการปุ่มรับคุกกี้ตามสถานะ Member
+    const btnClaim = document.getElementById('btn-claim-monthly');
+    if (btnClaim) {
+      if (isUserMember()) {
+        btnClaim.onclick = () => Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info');
+        btnClaim.classList.add('btn-locked');
+      } else {
+        btnClaim.onclick = claimMonthly;
+        btnClaim.classList.remove('btn-locked');
+      }
+    }
+
+    // อัปเดตรูปโปรไฟล์ตรง Tab Bar ด้านล่าง
+    const tabProfileImg = document.getElementById('tab-profile-img');
+    if (tabProfileImg) {
+      tabProfileImg.src = document.getElementById('pf-avatar').src; // ใช้รูปที่แปลงแล้วจาก pf-avatar ได้เลย
+    }
   }
 
   async function syncUserData() {
@@ -671,6 +702,183 @@ body {
     };
     reader.readAsDataURL(file);
   }
+  
+  // เช็กว่าเป็น Member หรือไม่
+  function isUserMember() {
+    return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
+  }
+
+  // --- ฟังก์ชันรับคุกกี้ ---
+  async function claimMonthly() {
+    const btnClaim = document.getElementById('btn-claim-monthly');
+    if (btnClaim && btnClaim.disabled) return; 
+    if (btnClaim) btnClaim.disabled = true;
+
+    Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const resp = await fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'claimMonthlyCookie', username: user.username })
+      }); 
+      const res = await resp.json();
+      if (res.status === "success") { 
+        await syncUserData(); 
+        Swal.fire('สำเร็จ!', res.message, 'success'); 
+      } else { 
+        Swal.fire('ขออภัย', res.message, 'info'); 
+        if (btnClaim) btnClaim.disabled = false; 
+      }
+    } catch (e) { 
+      Swal.fire('Error', 'ระบบขัดข้อง', 'error'); 
+      if (btnClaim) btnClaim.disabled = false; 
+    }
+  }
+
+  // --- ฟังก์ชัน Redeem Code ---
+  async function redeemCode() {
+    const { value: code } = await Swal.fire({ 
+      title: 'Redeem Code', 
+      input: 'text', 
+      inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...', 
+      showCancelButton: true,
+      confirmButtonColor: '#ff85a2'
+    });
+    if (code) {
+      Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading() });
+      try {
+        const resp = await fetch(scriptURL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'redeemCode', username: user.username, code: code })
+        });
+        const res = await resp.json();
+        if (res.status === "success") { 
+          await syncUserData(); 
+          Swal.fire('สำเร็จ!', res.message, 'success'); 
+        } else { Swal.fire('ผิดพลาด', res.message, 'error'); }
+      } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+    }
+  }
+
+  // --- ฟังก์ชันสร้างการ์ด Membership ---
+  function showMembershipCardModal() {
+    if (!user) return;
+    Swal.fire({
+      title: 'Loading...',
+      html: '<div style="font-size: 14px; color: #666; margin-top: 10px;">กรุณารอสักครู่</div>',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+        const bgImg = new Image();
+        bgImg.crossOrigin = "anonymous"; 
+        bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; 
+
+        bgImg.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = bgImg.width || 1200;
+          canvas.height = bgImg.height || 675;
+
+          const radius = canvas.width * 0.04; 
+          ctx.beginPath();
+          ctx.moveTo(radius, 0); ctx.lineTo(canvas.width - radius, 0); ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+          ctx.lineTo(canvas.width, canvas.height - radius); ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+          ctx.lineTo(radius, canvas.height); ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+          ctx.lineTo(0, radius); ctx.quadraticCurveTo(0, 0, radius, 0);
+          ctx.closePath(); ctx.clip(); 
+
+          ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+          ctx.textBaseline = 'middle'; 
+
+          const textX = canvas.width * 0.08; 
+          const line1_Y = canvas.height * 0.80; 
+          const line2_Y = canvas.height * 0.87; 
+
+          // ชื่อ
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#ffffff'; 
+          ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
+          ctx.fillText(user.name, textX, line1_Y);
+
+          // Role
+          const nameWidth = ctx.measureText(user.name).width; 
+          const roleText = (user.role || 'MEMBER').toUpperCase();
+          ctx.font = '600 ' + Math.floor(canvas.height * 0.035) + 'px "Kanit", sans-serif';
+          const roleWidth = ctx.measureText(roleText).width;
+          
+          const badgeX = textX + nameWidth + (canvas.width * 0.02); 
+          const badgePadX = canvas.width * 0.015;
+          const badgePadY = canvas.height * 0.025;
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+          ctx.beginPath();
+          ctx.roundRect(badgeX, line1_Y - badgePadY, roleWidth + (badgePadX * 2), badgePadY * 2, canvas.height * 0.02);
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(roleText, badgeX + badgePadX, line1_Y);
+
+          // Username Masking
+          ctx.textAlign = 'left';
+          ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Quicksand", "Kanit", sans-serif';
+          let rawUsername = user.username || "blm48_member";
+          let maskedUsername = rawUsername;
+          if (rawUsername.length > 4) {
+            maskedUsername = rawUsername.substring(0, 2) + "7x48x" + rawUsername.substring(rawUsername.length - 2);
+          } else if (rawUsername.length > 2) {
+            maskedUsername = rawUsername.substring(0, 1) + "xx" + rawUsername.substring(rawUsername.length - 1);
+          }
+          ctx.fillText("@" + maskedUsername, textX, line2_Y);
+
+          // Status
+          ctx.textAlign = 'right';
+          const statusX = canvas.width - (canvas.width * 0.08); 
+          const statusText = "Status: Active";
+          ctx.font = '600 ' + Math.floor(canvas.height * 0.04) + 'px "Quicksand", "Kanit", sans-serif';
+          const statusWidth = ctx.measureText(statusText).width;
+          
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(statusText, statusX, line2_Y);
+
+          const dotRadius = canvas.height * 0.012;
+          ctx.fillStyle = '#55efc4'; 
+          ctx.beginPath();
+          ctx.arc(statusX - statusWidth - (canvas.width * 0.015), line2_Y, dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          const cardDataUrl = canvas.toDataURL('image/png');
+
+          Swal.fire({
+            title: 'BLM48 Official Membership',
+            html: `
+              <div style="font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                <img src="${cardDataUrl}" style="width: 100%; max-width: 420px; box-shadow: 0 8px 26px rgba(255,133,162,0.25);">
+                
+               <a href="${cardDataUrl}" download="BLM48_Member_${user.username || 'card'}.png" style="
+                display: inline-flex; align-items: center; gap: 8px; padding: 12px 32px;
+                background: linear-gradient(135deg, #e0b953 0%, #fff5c3 45%, #fff5c3 55%, #cba034 100%);
+                color: #5e470c; border: 1px solid #fce899; text-decoration: none; border-radius: 25px;
+                font-weight: bold; font-size: 15px; box-shadow: 0 4px 12px rgba(224, 185, 83, 0.4); transition: all 0.2s;
+              " onclick="Swal.close();">
+                <i class="fas fa-download"></i> Save Card
+              </a>
+              </div>
+            `,
+            showConfirmButton: false, 
+            showCloseButton: true,
+            background: '#ffffff',
+            didOpen: () => {
+              const popup = Swal.getPopup();
+              if (popup) popup.style.borderRadius = '28px';
+            }
+          });
+        };
+        bgImg.onerror = function() {
+          Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถค้นหาไฟล์ดีไซน์หลักได้สำเร็จ กรุณาตรวจสอบลิงก์รูปภาพอีกครั้งค่ะ', 'error');
+        };
+      }
+    });
+  }
 
   // --- ส่งรูปเข้าคลัง ImgBB & อัปเดต Google Sheets ---
   async function proceedToUploadProfile(blobFile) {
@@ -746,6 +954,8 @@ body {
 
     if (user) syncUserData();
   });
+  
+  
 
   function checkNotificationBadge() {
   const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
@@ -784,7 +994,7 @@ document.addEventListener("DOMContentLoaded", checkNotificationBadge);
     </div>
   </a>
   <a href="profile.html" class="tab-item active">
-    <i class="fa-solid fa-user"></i>
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
     <span>Profile</span>
   </a>
 </div>
