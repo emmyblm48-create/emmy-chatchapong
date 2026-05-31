@@ -1353,15 +1353,33 @@ if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'funct
 // 🚀 เริ่มต้นทำงานทันทีที่โครงสร้าง HTML (DOM) พร้อม ไม่ต้องรอโหลดรูปภาพจนเสร็จ
 document.addEventListener("DOMContentLoaded", async () => {
     // 1. เปิดหน้าจอโหลดทันทีที่ DOM พร้อมทำงาน
-    showAppLoading();
+    if (typeof showAppLoading === 'function') showAppLoading();
     
     // บันทึกเวลาเริ่มโหลด เพื่อเอาไปคำนวณเวลาเปิด Splash Screen ให้พอดีสวยๆ
     const startTime = Date.now();
 
+    // 🌟 [จุดที่แก้ไข] ย้ายโค้ดดึงรูปโปรไฟล์เข้ามาไว้ข้างในนี้ และเปลี่ยนเป็น bnl_session
+    const tabProfileImg = document.getElementById('tab-profile-img');
+    if (tabProfileImg) {
+        const sessionStr = localStorage.getItem("bnl_session");
+        if (sessionStr) {
+            try {
+                const session = JSON.parse(sessionStr);
+                const currentUser = session.data || session.user || session; 
+                
+                if (currentUser && currentUser.profile_img) {
+                    tabProfileImg.src = typeof getImg === 'function' ? getImg(currentUser.profile_img) : currentUser.profile_img;
+                }
+            } catch (e) {
+                console.error("โหลดรูปโปรไฟล์ที่ Tab Bar ไม่สำเร็จ:", e);
+            }
+        }
+    }
+
     try {
         // 2. ✨ [จุดไม้ตาย]: สั่งให้โหลดข้อมูลคอลเลกชันกาก้า และ ระบบ Shop/เซสชัน ไปพร้อมๆ กันขนานกันไปเลย (เร็วขึ้น 2 เท่า!)
         await Promise.all([
-            loadGachaCollections(),
+            typeof loadGachaCollections === 'function' ? loadGachaCollections() : Promise.resolve(),
             typeof initShop === 'function' ? initShop() : Promise.resolve()
         ]);
     } catch (error) {
@@ -1371,11 +1389,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         const elapsedTime = Date.now() - startTime;
         
         // ถ้าโหลดเสร็จไวมาก ให้หน่วงเวลาโชว์ Splash Screen ไว้แค่ 500ms พอสวยงามแจกความสดใส 
-        // แต่ถ้าโหลดช้าเกิน 500ms อยู่แล้ว ก็สั่งปิดหน้าจอโหลดทันที ไม่ต้องบวกเพิ่มอีก 2 วินาทีงับ!
+        // แต่ถ้าโหลดช้าเกิน 500ms อยู่แล้ว ก็สั่งปิดหน้าจอโหลดทันที ไม่ต้องบวกเพิ่มอีก
         const remainingTime = Math.max(0, 500 - elapsedTime); 
         
         setTimeout(() => {
-            hideSplashScreen();
+            if (typeof hideSplashScreen === 'function') {
+                hideSplashScreen();
+            } else if (typeof hideAppLoading === 'function') {
+                hideAppLoading();
+            }
         }, remainingTime);
     }
 });
