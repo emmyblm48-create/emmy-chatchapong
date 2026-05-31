@@ -1297,8 +1297,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <i class="fas fa-search"></i> </a>
     </div>
 </nav>
-
-<div id="user-bar" class="user-profile-bar"></div>
   
 <div class="champ-banner" onclick="window.location.href='champ.html'">
       <div class="champ-info">
@@ -1544,8 +1542,9 @@ async function refreshAppData() {
 // 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอ)
 // ==========================================
 window.addEventListener('pageshow', function(event) {
-  if (user && typeof refreshAppData === 'function') {
-    refreshAppData();
+  if (event.persisted && user) {
+    loadData();
+    syncUserData();
   }
 });
 
@@ -1597,82 +1596,21 @@ window.addEventListener('load', () => {
 });
  
 function updateUI() {
-  console.log("ฟังก์ชัน updateUI ทำงาน! ค่า user ณ ตอนนี้คือ:", user);
-
-  const bar = document.getElementById('user-bar');
-  if (!bar) return; // ถ้าหาแถบโปรไฟล์ไม่เจอ ให้หยุดทำงานทันที ไม่ต้องทำต่อ
-
-  // 🎯 หากไม่มีข้อมูลผู้ใช้ (เช่น กำลังเปลี่ยนหน้าไป Login) ให้หยุดทำงานทันที ไม่ต้องแสดงหน้า Guest อีกต่อไป
   if (!user) return;
-
-  // 1. ดึงปุ่ม Logout มาจัดการแสดงผล
-  const logoutBtn = document.querySelector('button[onclick="confirmLogout()"]');
-  if (logoutBtn) logoutBtn.style.display = 'inline-block'; 
 
   const isMember = isUserMember();
 
-  // =========================================================================
-  // 🌸 [จุดเพิ่มใหม่] ระบบเปิด-ปิดปุ่มสร้างโพสต์ตามสิทธิ์เมมเบอร์ BLM48
-  // =========================================================================
+  // 1. ระบบเปิด-ปิดปุ่มสร้างโพสต์ตามสิทธิ์เมมเบอร์
   const btnCreatePost = document.getElementById('btn-create-post');
   if (btnCreatePost) {
-    if (isMember) { 
-      // ถ้าเป็นเมมเบอร์ ให้แสดงปุ่มไอคอน + ขึ้นมางับ
-      btnCreatePost.style.display = 'inline-block';
-    } else {
-      // ถ้าเป็น User/แฟนคลับทั่วไป ให้ซ่อนปุ่มนี้ไว้
-      btnCreatePost.style.display = 'none';
-    }
+    btnCreatePost.style.display = isMember ? 'inline-block' : 'none';
   }
-  // =========================================================================
 
-  // 🌸 จัดการเลย์เอาต์การแสดงผล คามิโอชิ และ โอชิ
-  const kamiTag = user.kamioshi ? `
-    <span class="tag tag-kami" style="display: inline-flex; align-items: center; gap: 5px; background: #ffd700; color: #333; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; margin: 3px;">
-      <i class="fas fa-crown"></i> ${user.kamioshi}
-      <i class="fas fa-times-circle" onclick="removeOshiFromUI('kami', '${user.kamioshi}')" style="cursor: pointer; color: rgba(0,0,0,0.5); margin-left: 4px;"></i>
-    </span>
-  ` : '';
-
-  const sortedOshis = (user.oshi || [])
-    .map(o => o ? o.toString().trim() : "")
-    .filter(o => o !== "" && o.toLowerCase() !== (user.kamioshi || "").toLowerCase())
-    .sort((a, b) => a.localeCompare(b, 'th', { sensitivity: 'base' }));
-
-  const oshiTags = sortedOshis.map(o => `
-    <span class="tag tag-oshi" style="display: inline-flex; align-items: center; gap: 5px; background: #87ceeb; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin: 3px;">
-      <i class="fas fa-heart"></i> ${o}
-      <i class="fas fa-times-circle" onclick="removeOshiFromUI('oshi', '${o}')" style="cursor: pointer; color: rgba(255,255,255,0.7); margin-left: 4px;"></i>
-    </span>
-  `).join('');
-
-  // 👑 วาดหน้าจอแสดงผลข้อมูลโปรไฟล์ บัญชีผู้ใช้ และ กระเป๋าเงิน
-  bar.innerHTML = `
-    <div class="user-info-header">
-      <a href="profile.html" class="profile-img-container nav-icon" title="Profile">
-        <img src="${getImg(user.profile_img)}" class="user-avatar-img">
-      </a>
-      <div style="flex:1">
-        <div class="user-name">
-          <span id="user-display-name">${user.name}</span> 
-          <span class="role-badge">${user.role}</span>
-        </div>
-      </div>
-    </div>
-    <div class="wallet">
-      <div class="wallet-item"><div style="font-size:10px; color:#aaa;">Tokens</div><i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(user.token || 0).toLocaleString()}</div>
-      <div class="wallet-item"><div style="font-size:10px; color:#aaa;">Cookies</div><i class="fas fa-cookie-bite" style="color: #d2691e;"></i> ${Number(user.cookie || 0).toLocaleString()}</div>
-      <div class="wallet-item"><div style="font-size:10px; color:#aaa;">GE Tokens</div><i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(user.geToken || 0).toLocaleString()}</div>
-    </div>
-    <div class="bonus-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-      <button onclick="${isMember ? "Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info')" : "claimMonthly()"}" class="btn-bonus btn-monthly ${isMember ? 'btn-locked' : ''}"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
-      <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
-      
-      <button onclick="showMembershipCardModal()" class="btn-bonus btn-membership" style="grid-column: span 2; background: linear-gradient(135deg, #e0b953 0%, #fff5c3 45%, #fff5c3 55%, #cba034 100%); box-shadow: 0 4px 12px rgba(224, 185, 83, 0.4); color: #5e470c; border: 1px solid #fce899; font-weight: bold;">
-        <i class="fas fa-id-card"></i> Membership Card
-      </button>
-    </div>
-  `;
+  // 2. อัปเดตรูปโปรไฟล์ตรง Tab Bar ด้านล่างให้เป็นรูปของผู้ใช้
+  const tabProfileImg = document.getElementById('tab-profile-img');
+  if (tabProfileImg && user.profile_img) {
+    tabProfileImg.src = getImg(user.profile_img);
+  }
 }
   
 // ข้อมูล MV ของ BLM48 (ใส่รูปปก ชื่อเพลง และลิงก์ YouTube ได้เลย)
@@ -3119,8 +3057,8 @@ document.addEventListener("DOMContentLoaded", () => {
       <span>Notification</span>
     </div>
   </a>
-  <a href="profile.html" class="tab-item">
-    <i class="fa-solid fa-user"></i>
+ <a href="profile.html" class="tab-item">
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
     <span>Profile</span>
   </a>
 </div>
