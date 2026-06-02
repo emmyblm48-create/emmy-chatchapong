@@ -1517,6 +1517,48 @@ async function loadData() {
   }
 }
 
+// ==========================================================
+// 4. ฟังก์ชันดึงและฟังข้อมูลคอมเมนต์แบบ Realtime จาก Firebase
+// ==========================================================
+function listenToCommentsRealtime() {
+  // 1. ตรวจสอบก่อนว่าตัวแปร Firebase SDK พร้อมใช้งานหรือไม่
+  if (typeof firebase === 'undefined') {
+    console.warn("⚠️ Firebase SDK ยังโหลดไม่เสร็จสมบูรณ์ หรือไม่ได้เปิดใช้งาน");
+    return;
+  }
+
+  try {
+    const db = firebase.database();
+    // อ้างอิงไปยังโหนด 'comments' ใน Firebase ของระบบ
+    const commentsRef = db.ref('comments');
+
+    console.log("📡 เริ่มต้นเชื่อมต่อ Realtime Listener สำหรับคอมเมนต์...");
+
+    // ใช้ .on('value') เพื่อดักจับทุกครั้งที่มีการพิมพ์คอมเมนต์ใหม่เข้ามา
+    commentsRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      console.log("💬 ข้อมูลคอมเมนต์อัปเดตจาก Firebase แบบ Realtime:", data);
+
+      // เก็บข้อมูลไว้ในตัวแปรระดับ Global เพื่อให้ส่วนอื่นของแอปเรียกใช้ได้
+      window.currentCommentsData = data || {};
+
+      // 🎯 สั่งให้ฟังก์ชันวาดคอมเมนต์ (Render) ทำงานใหม่ทันทีเมื่อมีการเปลี่ยนแปลง
+      // (ถ้าชื่อฟังก์ชันแสดงผลคอมเมนต์เป็นชื่ออื่น สามารถเปลี่ยนตรง renderComments ได้เลยครับ)
+      if (typeof renderComments === 'function') {
+        renderComments(window.currentCommentsData);
+      } else if (typeof updateUI === 'function') {
+        // หากไม่มีแยกฟังก์ชันเรนเดอร์คอมเมนต์เฉพาะ ให้สั่งอัปเดต UI ภาพรวมแทน
+        updateUI();
+      }
+    }, (error) => {
+      console.error("❌ Firebase Realtime Comments Error:", error);
+    });
+
+  } catch (error) {
+    console.error("❌ ไม่สามารถเปิดระบบ Realtime Comments ได้:", error);
+  }
+}
+
 // ฟังก์ชันรวมรีเฟรชข้อมูลทั้งหมด (เรียกใช้ตอนเลื่อนจอดึงข้อมูล หรือกดปุ่มรีเฟรช)
 async function refreshAppData() {
   if (typeof showAppLoading === 'function') showAppLoading();
@@ -2470,9 +2512,6 @@ async function editPostUi(postId, encodedContent) {
     }
   }
 }
-
-// สั่งให้รันเช็กทันทีตอนโหลดหน้าเสร็จ
-document.addEventListener("DOMContentLoaded", window.checkNotificationBadge);
   
   // 🌟 ฟังก์ชัน เล่น/หยุด เสียงสไตล์ BLM48
 function toggleBlmAudio(postId) {
@@ -2706,19 +2745,18 @@ async function refreshAppData() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
   user = getUserSession(); 
-  
-  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
   updateUI();
-  
-  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
   hideAppLoading(); 
-  
-  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
   loadData();
+  
   if (user) {
     syncUserData(); 
+  }
+
+  // 🔥 เรียกให้ทำงานตั้งแต่หน้าเว็บเริ่มโหลดโครงสร้างเสร็จ
+  if (typeof listenToCommentsRealtime === 'function') {
+    listenToCommentsRealtime();
   }
 });
 
