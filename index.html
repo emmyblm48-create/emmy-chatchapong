@@ -1521,47 +1521,6 @@ async function loadData() {
   }
 }
 
-// ==========================================================
-// 4. ฟังก์ชันดึงและฟังข้อมูลคอมเมนต์แบบ Realtime จาก Firebase
-// ==========================================================
-function listenToCommentsRealtime() {
-  // 🎯 ดึงฟังก์ชันดักฟังแบบ Modular ที่ส่งออกมาจากหน้าต่าง window
-  const db = window.firebaseDatabase;
-  const refFunc = window.fbRef;
-  const onValueFunc = window.fbOnValue;
-
-  // ดักจับ: ถ้าโมดูลด้านบนยังโหลดไม่เสร็จ ให้รอแป๊บนึงแล้วลองใหม่
-  if (!db || !refFunc || !onValueFunc) {
-    console.warn("⏳ กำลังรอให้ Firebase Modular เปิดใช้งานสักครู่...");
-    setTimeout(listenToCommentsRealtime, 500); // อีก 0.5 วินาทีค่อยกลับมาลองเรียกฟังก์ชันนี้ใหม่
-    return;
-  }
-
-  try {
-    // 🎯 เปลี่ยนวิธีประกาศ Reference ให้ตรงตามหลัก v10 Modular ผ่านตัวแปร Window
-    const commentsRef = refFunc(db, 'comments');
-
-    console.log("📡 เริ่มต้นเชื่อมต่อ Realtime Listener สำหรับคอมเมนต์ (แก้ไขเป็นระบบ Modular แล้ว) ✨");
-
-    // ใช้ onValueFunc ในการดักจับการเปลี่ยนแปลงแบบเรียลไทม์
-    onValueFunc(commentsRef, (snapshot) => {
-      const data = snapshot.val();
-      window.currentCommentsData = data || {};
-
-      if (typeof renderComments === 'function') {
-        renderComments(window.currentCommentsData);
-      } else if (typeof updateUI === 'function') {
-        updateUI();
-      }
-    }, (error) => {
-      console.error("❌ Firebase Realtime Comments Error:", error);
-    });
-
-  } catch (error) {
-    console.error("❌ ไม่สามารถเปิดระบบ Realtime Comments ได้:", error);
-  }
-}
-
 // ฟังก์ชันรวมรีเฟรชข้อมูลทั้งหมด (เรียกใช้ตอนเลื่อนจอดึงข้อมูล หรือกดปุ่มรีเฟรช)
 async function refreshAppData() {
   if (typeof showAppLoading === 'function') showAppLoading();
@@ -2234,10 +2193,17 @@ function renderPost(post) {
   // =========================================================================
   // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
   // =========================================================================
-  let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-  setTimeout(() => {
-    listenToCommentsRealtime(`${postId}`);
-  }, 100);
+ let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
+
+// 🎯 หน่วงเวลาเล็กน้อยเพื่อให้ HTML เรนเดอร์ลงหน้าจอเสร็จ แล้วเรียกใช้ฟังก์ชัน v10 ตัวที่ถูกต้อง
+setTimeout(() => {
+  if (typeof window.listenForComments === 'function') {
+    window.listenForComments(`${postId}`); 
+    console.log(`📡 ผูกระบบ Realtime สำหรับโพสต์ ${postId} สำเร็จผ่าน Modular v10 แล้วงับ!`);
+  } else {
+    console.warn("⏳ กำลังรอให้สคริปต์ Firebase Module โหลดสักครู่...");
+  }
+}, 100);
 
   // =========================================================================
   // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
@@ -2757,10 +2723,6 @@ document.addEventListener("DOMContentLoaded", () => {
     syncUserData(); 
   }
 
-  // เรียกทำงานดักฟังคอมเมนต์หลังจากโครงสร้างเว็บพร้อม
-  if (typeof listenToCommentsRealtime === 'function') {
-    listenToCommentsRealtime();
-  }
 });
 
 // 🔄 ระบบตรวจสอบและอัปเดตข้อมูลจาก Google Sheets ใหม่ล่าสุดอัตโนมัติทุก ๆ 30 วินาที
