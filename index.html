@@ -1465,21 +1465,18 @@ async function syncUserData() {
     const res = await resp.json();
     
     if (res.status === "success") {
-      // ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนแบน / ไม่ได้เข้ากลุ่ม)
+      // 🎯 ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนระงับสิทธิ์ / ไม่ได้เข้ากลุ่ม)
       if (res.data.password === "") {
-        Swal.fire({
-          icon: 'warning',
-          title: 'กรุณาติดต่อ BLM48 Line Official',
-          text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
-          confirmButtonColor: '#ff85a2',
-          allowOutsideClick: false
-        }).then(() => {
-          localStorage.removeItem('bnl_session');
-          sessionStorage.clear();
-          user = null;
-          if (typeof updateUI === 'function') updateUI();
-          window.location.href = 'login.html'; 
-        });
+        // เคลียร์เซสชันในเครื่องออกทันที
+        localStorage.removeItem('bnl_session');
+        sessionStorage.clear();
+        user = null;
+        
+        // ล้างเนื้อหาบนหน้าจอทิ้งทันทีเพื่อป้องกันการแอบดูข้อมูลหลังบ้าน
+        document.body.innerHTML = `<div style="text-align:center; margin-top:20%; font-family:'Kanit'; color:#ff85a2;">กำลังกลับไปหน้าล็อกอิน...</div>`;
+        
+        // วาร์ปเตะออกไปหน้าล็อกอินทันที!
+        window.location.href = 'login.html?error=suspended';
         return;
       }
 
@@ -1490,7 +1487,6 @@ async function syncUserData() {
     } else {
       localStorage.removeItem('bnl_session');
       user = null;
-      if (typeof updateUI === 'function') updateUI();
       window.location.href = 'login.html';
     }
   } catch (e) { 
@@ -1499,16 +1495,6 @@ async function syncUserData() {
 }
 
 async function loadData() {
-  // เช็คเวลาอัปเดตล่าสุด
-  const lastSync = localStorage.getItem('bnl_last_sync');
-  const now = Date.now();
-  
-  // ถ้าเพิ่งดึงข้อมูลมาไม่เกิน 3 นาที (180,000 มิลลิวินาที) ให้ข้ามการดึงข้อมูลใหม่ไปเลย
-  if (lastSync && (now - parseInt(lastSync)) < 180000) {
-    console.log("ใช้ข้อมูลจากแคชที่ยังมีอายุอยู่");
-    return;
-  }
-
   try {
     const [rankingResp, topFansResp] = await Promise.all([
       fetch(`${scriptURL}?_=${Date.now()}`),
@@ -1518,18 +1504,18 @@ async function loadData() {
     currentRankingData = await rankingResp.json();
     currentTopFansData = await topFansResp.json();
 
-    // บันทึกข้อมูลและประทับเวลาใหม่ลงเครื่อง
+    // บันทึกข้อมูลลงแคชของเครื่องเพื่อสำรองไว้ใช้งาน
     localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
     localStorage.setItem('bnl_topfans_cache', JSON.stringify(currentTopFansData));
-    localStorage.setItem('bnl_last_sync', now.toString());
+    localStorage.setItem('bnl_last_sync', Date.now().toString());
 
-    // อัปเดต UI อีกครั้งแบบเงียบๆ
+    // สั่งวาดข้อมูลใหม่ลงหน้าเว็บทันทีแบบเงียบ ๆ
     if (typeof renderRanking === 'function') renderRanking(currentRankingData);
     if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
   } catch(e) { 
     console.error("Load Data Error:", e); 
   }
-} 
+}
 
 // ฟังก์ชันรวมรีเฟรชข้อมูลทั้งหมด (เรียกใช้ตอนเลื่อนจอดึงข้อมูล หรือกดปุ่มรีเฟรช)
 async function refreshAppData() {
@@ -2719,9 +2705,7 @@ async function refreshAppData() {
   } 
 }
 
-// 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
-  
   // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
   user = getUserSession(); 
   
@@ -2737,6 +2721,13 @@ document.addEventListener("DOMContentLoaded", () => {
     syncUserData(); 
   }
 });
+
+// 🔄 ระบบตรวจสอบและอัปเดตข้อมูลจาก Google Sheets ใหม่ล่าสุดอัตโนมัติทุก ๆ 30 วินาที
+setInterval(() => {
+  console.log("🔄 Loading...");
+  if (typeof loadData === 'function') loadData();
+  if (typeof refreshCountFromSheets === 'function') refreshCountFromSheets();
+}, 30000);
 </script>
 <script type="module">
   // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (รวมเอาไว้ที่บนสุดทั้งหมดงับ) 🌟
