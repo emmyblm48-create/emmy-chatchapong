@@ -24,6 +24,10 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
+  <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.x.x/firebase-database-compat.js"></script>
+
+  <script src="js/app.js"></script>
     
   </head>
     
@@ -1521,33 +1525,32 @@ async function loadData() {
 // 4. ฟังก์ชันดึงและฟังข้อมูลคอมเมนต์แบบ Realtime จาก Firebase
 // ==========================================================
 function listenToCommentsRealtime() {
-  // 1. ตรวจสอบก่อนว่าตัวแปร Firebase SDK พร้อมใช้งานหรือไม่
-  if (typeof firebase === 'undefined') {
-    console.warn("⚠️ Firebase SDK ยังโหลดไม่เสร็จสมบูรณ์ หรือไม่ได้เปิดใช้งาน");
+  // 🎯 ดึงฟังก์ชันดักฟังแบบ Modular ที่ส่งออกมาจากหน้าต่าง window
+  const db = window.firebaseDatabase;
+  const refFunc = window.fbRef;
+  const onValueFunc = window.fbOnValue;
+
+  // ดักจับ: ถ้าโมดูลด้านบนยังโหลดไม่เสร็จ ให้รอแป๊บนึงแล้วลองใหม่
+  if (!db || !refFunc || !onValueFunc) {
+    console.warn("⏳ กำลังรอให้ Firebase Modular เปิดใช้งานสักครู่...");
+    setTimeout(listenToCommentsRealtime, 500); // อีก 0.5 วินาทีค่อยกลับมาลองเรียกฟังก์ชันนี้ใหม่
     return;
   }
 
   try {
-    const db = firebase.database();
-    // อ้างอิงไปยังโหนด 'comments' ใน Firebase ของระบบ
-    const commentsRef = db.ref('comments');
+    // 🎯 เปลี่ยนวิธีประกาศ Reference ให้ตรงตามหลัก v10 Modular ผ่านตัวแปร Window
+    const commentsRef = refFunc(db, 'comments');
 
-    console.log("📡 เริ่มต้นเชื่อมต่อ Realtime Listener สำหรับคอมเมนต์...");
+    console.log("📡 เริ่มต้นเชื่อมต่อ Realtime Listener สำหรับคอมเมนต์ (แก้ไขเป็นระบบ Modular แล้ว) ✨");
 
-    // ใช้ .on('value') เพื่อดักจับทุกครั้งที่มีการพิมพ์คอมเมนต์ใหม่เข้ามา
-    commentsRef.on('value', (snapshot) => {
+    // ใช้ onValueFunc ในการดักจับการเปลี่ยนแปลงแบบเรียลไทม์
+    onValueFunc(commentsRef, (snapshot) => {
       const data = snapshot.val();
-      console.log("💬 ข้อมูลคอมเมนต์อัปเดตจาก Firebase แบบ Realtime:", data);
-
-      // เก็บข้อมูลไว้ในตัวแปรระดับ Global เพื่อให้ส่วนอื่นของแอปเรียกใช้ได้
       window.currentCommentsData = data || {};
 
-      // 🎯 สั่งให้ฟังก์ชันวาดคอมเมนต์ (Render) ทำงานใหม่ทันทีเมื่อมีการเปลี่ยนแปลง
-      // (ถ้าชื่อฟังก์ชันแสดงผลคอมเมนต์เป็นชื่ออื่น สามารถเปลี่ยนตรง renderComments ได้เลยครับ)
       if (typeof renderComments === 'function') {
         renderComments(window.currentCommentsData);
       } else if (typeof updateUI === 'function') {
-        // หากไม่มีแยกฟังก์ชันเรนเดอร์คอมเมนต์เฉพาะ ให้สั่งอัปเดต UI ภาพรวมแทน
         updateUI();
       }
     }, (error) => {
@@ -2754,7 +2757,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncUserData(); 
   }
 
-  // 🔥 เรียกให้ทำงานตั้งแต่หน้าเว็บเริ่มโหลดโครงสร้างเสร็จ
+  // เรียกทำงานดักฟังคอมเมนต์หลังจากโครงสร้างเว็บพร้อม
   if (typeof listenToCommentsRealtime === 'function') {
     listenToCommentsRealtime();
   }
