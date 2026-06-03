@@ -22,6 +22,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
     
   </head>
     
@@ -292,7 +294,7 @@ body {
         bottom: 24px; /* ลอยขึ้นมาจากขอบล่างให้มีช่องไฟสวยๆ */
         left: 50%;
         transform: translateX(-50%); /* จัดให้อยู่กึ่งกลางหน้าจอเสมอ */
-        width: 90%; /* ความกว้างยื่นหยุ่นตามหน้าจอมือถือ */
+        width: 90%; /* ความกว้างยืดหยุ่นตามหน้าจอมือถือ */
         max-width: 440px; /* จำกัดความกว้างสูงสุดไม่ให้แผ่กว้างเกินไปบนแท็บเล็ต */
         height: 68px;
         background: rgba(255, 255, 255, 0.92); /* ขาวนวลแบบโปร่งแสงนิดๆ */
@@ -1012,7 +1014,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     margin-top: 20px !important;
     font-family: 'Quicksand', 'Kanit', sans-serif !important;
 }
-    /* จัดแต่งคอนเทนเนอร์หลัก */
+    /* ตกแต่งคอนเทนเนอร์หลัก */
 .trending-container {
   margin: 20px auto;
   padding: 15px;
@@ -1403,7 +1405,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 // ==========================================
 // 👑 1. CONFIG & GLOBAL VARIABLES (ประกาศตัวแปรสากลไว้บนสุด)
 // ==========================================
-const APP_VERSION = '1.0.6'; // ✨ เปลี่ยนเลขเวอร์ชันเพื่อบังคับล้างประวัติเบราว์เซอร์เก่า
+const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่มีการอัปเดตโค้ดสำคัญ
 const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
 var user = null;
@@ -1411,78 +1413,14 @@ var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) |
 var currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
 
 // ==========================================
-// 🛡️ 1.5 USER SESSION NORMALIZER (แก้ไขพิมพ์เล็กพิมพ์ใหญ่ค้างจากคอลัมน์ Excel)
+// 👑 2. SESSION MANAGEMENT (ระบบจัดการเซสชันและล็อกอิน)
 // ==========================================
-function normalizeUser(userData) {
-  if (!userData) return null;
-  const normalized = { ...userData };
-  
-  // จัดพอร์ตตรวจสอบ Username
-  const u = normalized.username || normalized.Username || "";
-  if (u) {
-    normalized.username = u;
-    normalized.Username = u;
-  }
-  
-  // จัดพอร์ตตรวจสอบ Password
-  const p = normalized.password || normalized.Password || "";
-  if (p) {
-    normalized.password = p;
-    normalized.Password = p;
-  }
-  
-  // จัดพอร์ตตรวจสอบ Name
-  const n = normalized.name || normalized.Name || "";
-  if (n) {
-    normalized.name = n;
-    normalized.Name = n;
-  }
-  
-  // จัดพอร์ตตรวจสอบ Role
-  const r = normalized.role || normalized.Role || "";
-  if (r) {
-    normalized.role = r;
-    normalized.Role = r;
-  }
-  
-  // จัดพอร์ตตรวจสอบ Profile Image
-  const img = normalized.profile_img || normalized.Profile_img || "";
-  if (img) {
-    normalized.profile_img = img;
-    normalized.Profile_img = img;
-  }
-  
-  return normalized;
-}
-
-function getUserSession() {
-  try {
-    const sessionStr = localStorage.getItem('bnl_session');
-    if (!sessionStr) return null;
-    
-    const session = JSON.parse(sessionStr);
-    const expiryTime = session.expiry || session.expire;
-    if (expiryTime && new Date().getTime() > expiryTime) {
-      localStorage.removeItem('bnl_session');
-      return null;
-    }
-    const rawUser = session.data || session.user || session;
-    return normalizeUser(rawUser);
-  } catch (e) {
-    console.error("Session Parse Error:", e);
-    return null;
-  }
-}
-
 function saveUserSession(userData) {
-  const normalized = normalizeUser(userData);
+  // ตั้งเวลาหมดอายุเซสชันล่วงหน้า 90 วัน
   const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
-  localStorage.setItem('bnl_session', JSON.stringify({ data: normalized, expiry: expiry }));
+  localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
 }
 
-// ==========================================
-// 👑 2. SESSION MANAGEMENT
-// ==========================================
 function isUserMember() {
   return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
 }
@@ -1522,45 +1460,38 @@ function hideSplashScreen() {
 // ==========================================
 async function syncUserData() {
   if (!user) return;
-  const currentUsername = user.username || user.Username || "";
-  if (!currentUsername) return;
-
   try {
-    const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}&_=${Date.now()}`);
+    const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
     const res = await resp.json();
     
-    if (res.status === "success" && res.data) {
-      const fetchedData = res.data;
-      const fetchedPassword = fetchedData.password !== undefined ? fetchedData.password : fetchedData.Password;
-      
-      // 🎯 ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนระงับสิทธิ์ / ไม่ได้เข้ากลุ่ม / รหัสผ่านเป็นค่าว่าง)
-      if (fetchedPassword === "" || fetchedPassword === null || fetchedPassword === undefined) {
-        // เคลียร์เซสชันในเครื่องออกทันที
-        localStorage.removeItem('bnl_session');
-        sessionStorage.clear();
-        user = null;
-        
-        // ล้างเนื้อหาบนหน้าจอทิ้งทันทีเพื่อความปลอดภัยไม่ให้แอบดูข้อมูลหลังบ้านค้างจอ
-        document.body.innerHTML = `<div style="text-align:center; margin-top:20%; font-family:'Kanit'; color:#ff85a2;">กำลังกลับไปหน้าล็อกอิน...</div>`;
-        
-        // วาร์ปเตะออกไปหน้าล็อกอินทันที!
-        window.location.href = 'login.html?error=suspended';
+    if (res.status === "success") {
+      // ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนแบน / ไม่ได้เข้ากลุ่ม)
+      if (res.data.password === "") {
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณาติดต่อ BLM48 Line Official',
+          text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
+          confirmButtonColor: '#ff85a2',
+          allowOutsideClick: false
+        }).then(() => {
+          localStorage.removeItem('bnl_session');
+          sessionStorage.clear();
+          user = null;
+          if (typeof updateUI === 'function') updateUI();
+          window.location.href = 'login.html'; 
+        });
         return;
       }
 
-      // ปรับปรุงข้อมูลที่ดึงมาใหม่ให้มีความยืดหยุ่นในพิมพ์เล็กพิมพ์ใหญ่
-      const normalizedData = normalizeUser(fetchedData);
-      user = { ...user, ...normalizedData }; 
+      user = { ...user, ...res.data }; 
       saveUserSession(user); 
       if (typeof updateUI === 'function') updateUI(); 
 
     } else {
-      // 🎯 หากสเตตัสตอบกลับมาไม่สำเร็จ (เช่น ยูสเซอร์โดนลบไปแล้ว) ให้เตะออกทันทีเช่นกัน
       localStorage.removeItem('bnl_session');
-      sessionStorage.clear();
       user = null;
-      document.body.innerHTML = `<div style="text-align:center; margin-top:20%; font-family:'Kanit'; color:#ff85a2;">กำลังกลับไปหน้าล็อกอิน...</div>`;
-      window.location.href = 'login.html?error=suspended';
+      if (typeof updateUI === 'function') updateUI();
+      window.location.href = 'login.html';
     }
   } catch (e) { 
     console.error("Sync User Error:", e); 
@@ -1568,6 +1499,16 @@ async function syncUserData() {
 }
 
 async function loadData() {
+  // เช็คเวลาอัปเดตล่าสุด
+  const lastSync = localStorage.getItem('bnl_last_sync');
+  const now = Date.now();
+  
+  // ถ้าเพิ่งดึงข้อมูลมาไม่เกิน 3 นาที (180,000 มิลลิวินาที) ให้ข้ามการดึงข้อมูลใหม่ไปเลย
+  if (lastSync && (now - parseInt(lastSync)) < 180000) {
+    console.log("ใช้ข้อมูลจากแคชที่ยังมีอายุอยู่");
+    return;
+  }
+
   try {
     const [rankingResp, topFansResp] = await Promise.all([
       fetch(`${scriptURL}?_=${Date.now()}`),
@@ -1577,18 +1518,18 @@ async function loadData() {
     currentRankingData = await rankingResp.json();
     currentTopFansData = await topFansResp.json();
 
-    // บันทึกข้อมูลลงแคชของเครื่องเพื่อสำรองไว้ใช้งาน
+    // บันทึกข้อมูลและประทับเวลาใหม่ลงเครื่อง
     localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
     localStorage.setItem('bnl_topfans_cache', JSON.stringify(currentTopFansData));
-    localStorage.setItem('bnl_last_sync', Date.now().toString());
+    localStorage.setItem('bnl_last_sync', now.toString());
 
-    // สั่งวาดข้อมูลใหม่ลงหน้าเว็บทันทีแบบเงียบ ๆ
+    // อัปเดต UI อีกครั้งแบบเงียบๆ
     if (typeof renderRanking === 'function') renderRanking(currentRankingData);
     if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
   } catch(e) { 
     console.error("Load Data Error:", e); 
   }
-}
+} 
 
 // ฟังก์ชันรวมรีเฟรชข้อมูลทั้งหมด (เรียกใช้ตอนเลื่อนจอดึงข้อมูล หรือกดปุ่มรีเฟรช)
 async function refreshAppData() {
@@ -1618,7 +1559,7 @@ window.addEventListener('pageshow', function(event) {
 
 window.addEventListener('DOMContentLoaded', () => {
   try {
-    // 🔐 ตรวจสอบเซสชันผู้ใช้แบบ Normalize
+    // 🔐 ตรวจสอบเซสชันผู้ใช้
     user = getUserSession(); 
 
     if (!user) {
@@ -2035,7 +1976,7 @@ function renderGlobalFans(rawData) {
     return acc;
   }, {});
 
-  // @ts-ignore แปลงกลับเป็น Array และเรียงลำดับจากมากไปน้อย
+  // แปลงกลับเป็น Array และเรียงลำดับจากมากไปน้อย
   const finalFans = Object.values(groupedFans).sort((a, b) => b.total - a.total);
 
   // --- แสดงผล ---
@@ -2060,7 +2001,7 @@ function renderGlobalFans(rawData) {
         box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap;">
         ${isTop3 ? rankIcon + ' ' : ''}อันดับ ${i + 1}
       </div>
-      <img src="${getImg(f.img)}" style="width:65px; height:65px; border-radius:50%; border:3px solid #fef5f7; margin-top:5px; object-fit:cover;" onerror="this.src='https://placehold.co/150'">
+      <img src="${getImg(f.img)}" style="width:65px; height:65px; border-radius:50%; border:3px solid #fef5f7; margin-top:5px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/150'">
       <div style="font-weight:700; font-size:14px; color:#444; margin-top:8px; white-space: nowrap; overflow:hidden; text-overflow:ellipsis;">
         ${f.name || f.username}
       </div>
@@ -2263,15 +2204,8 @@ function renderPost(post) {
   // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
   // =========================================================================
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-
-  // 🎯 หน่วงเวลาเล็กน้อยเพื่อให้ HTML เรนเดอร์ลงหน้าจอเสร็จ แล้วเรียกใช้ฟังก์ชัน v10 ตัวที่ถูกต้อง
   setTimeout(() => {
-    if (typeof window.listenForComments === 'function') {
-      window.listenForComments(`${postId}`); 
-      console.log(`📡 ผูกระบบ Realtime สำหรับโพสต์ ${postId} สำเร็จผ่าน Modular v10 แล้วงับ!`);
-    } else {
-      console.warn("⏳ กำลังรอให้สคริปต์ Firebase Module โหลดสักครู่...");
-    }
+    listenToCommentsRealtime(`${postId}`);
   }, 100);
 
   // =========================================================================
@@ -2307,7 +2241,7 @@ function renderPost(post) {
   }
 
   // =========================================================================
-  // 📸 [จัดการรูปภาพ] (รูปเดียวโชว์เต็ม รูปเยอะแยก Grid โค้งมน)
+  // 📸 [จัดการรูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็ม)
   // =========================================================================
   let imagesHtml = '';
   if (displayImage) {
@@ -2322,7 +2256,7 @@ function renderPost(post) {
         </div>
       `;
     } else {
-      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์
+      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์เหมือนเดิม
       imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
       visibleImages.forEach((url, index) => {
         imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
@@ -2343,7 +2277,7 @@ function renderPost(post) {
     </div>
   ` : '';
 
-  const authorProfileImg = post.profile_img || 'https://placehold.co/150';
+  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
   return `
     <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
@@ -2385,19 +2319,21 @@ function renderPost(post) {
 }
   
 async function loadTimelinePosts() {
+  // 🛡️ ป้องกันการโหลดซ้อน (ถ้ากดสลับแท็บรัวๆ แล้วตัวเก่ากำลัง Fetch อยู่ ให้ข้ามฟังก์ชันนี้ไปเลย)
   if (window.isTimelineLoading) return;
 
   const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
   const container = document.getElementById('posts-container');
   if (!container) return;
 
-  // 🌸 ขั้นตอนที่ A: ลองดึงโพสต์เก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที
+  // 🌸 ขั้นตอนที่ A: ลองดึงโพสต์เก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (ถ้าหน้าจอยังว่างอยู่)
   const cachedPosts = localStorage.getItem('blm48_posts_cache');
   const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
 
   if (cachedPosts && isContainerEmpty) {
     try {
       let posts = JSON.parse(cachedPosts);
+      // ใช้กลไกการกลับด้านข้อมูลเพื่อให้ของใหม่กว่าอยู่ด้านบนเหมือนเดิม
       let tempPosts = [...posts];
       tempPosts.reverse();
       tempPosts.forEach(post => {
@@ -2409,8 +2345,11 @@ async function loadTimelinePosts() {
     }
   }
 
+  // 🔍 ตรวจสอบอีกครั้งว่า ณ ตอนนี้บนหน้าจอมีโพสต์ (จากแคช หรือจากฟังก์ชันอื่น) แสดงอยู่แล้วหรือยัง
+  // (เลือกใช้ .post-card เพื่อไม่ให้นับรวม div ข้อความ LOADING)
   const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
 
+  // 🔍 ถ้าไม่มีข้อมูลในแคช และ "ยังไม่เคยมีโพสต์เลยจริงๆ" ค่อยแสดงข้อความกำลังโหลด
   if (!hasExistingPosts) {
     if (!document.getElementById('loading-msg')) {
       container.innerHTML = `
@@ -2421,7 +2360,7 @@ async function loadTimelinePosts() {
   }
 
   try {
-    window.isTimelineLoading = true; 
+    window.isTimelineLoading = true; // เปิดสถานะล็อกป้องกันการดึงข้อมูลซ้อนกัน
 
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
@@ -2429,6 +2368,7 @@ async function loadTimelinePosts() {
     
     let posts = await response.json();
     
+    // หากดึงข้อมูลจากเซอร์เวอร์มาแล้วไม่มีโพสต์เลย
     if (!posts || posts.length === 0) {
       if (!hasExistingPosts) {
         container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: gray; font-size: 0.9rem;">NOT POSTS YET</div>`;
@@ -2436,41 +2376,44 @@ async function loadTimelinePosts() {
       return;
     }
 
-    // บันทึกทับลงแคช
+    // 🌸 ขั้นตอนที่ B: ข้อมูลอัปเดตล่าสุดส่งมาถึงแล้ว บันทึกทับลงแคชเพื่อไว้ใช้ในรอบหน้า
     localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
 
+    // ลบข้อความ "กำลังโหลด" ออกไป (ถ้ามีอยู่บนจอ)
     const loadingMsg = document.getElementById('loading-msg');
     if (loadingMsg) loadingMsg.remove();
 
+    // 🌟 ทริคเดิมของคุณเอ็มมี่: กลับด้านข้อมูลเพื่อนำของใหม่ไปหยอดแทรกไว้ "บนสุด"
     posts.reverse(); 
 
     posts.forEach(post => {
       const existingPost = document.getElementById(`post-${post.id}`);
       
       if (existingPost) {
-        // อัปเดตยอดไลก์และไอคอนหัวใจเงียบ ๆ 
+        // 🎯 สถานการณ์ A (โพสต์เดิม): อัปเดตยอดไลก์และไอคอนหัวใจเงียบๆ (หน้าจอไม่กระพริบ)
         const likeCountEl = document.getElementById(`like-count-${post.id}`);
         if (likeCountEl) likeCountEl.innerText = post.likes;
         
         const heartIcon = document.getElementById(`heart-${post.id}`);
         if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
       } else {
-        // แทรกโพสต์ใหม่ไปบนสุดทันที!
+        // 🎯 สถานการณ์ B (มีโพสต์ใหม่แกะกล่องเพิ่งลง): เรนเดอร์ HTML แล้วแทรกดันไป "บนสุด" ทันที!
         container.insertAdjacentHTML('afterbegin', renderPost(post));
       }
     });
     
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
+    // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ (ไม่มีทั้งแคชและข้อมูลเก่า) ค่อยแสดงข้อความเตือน
     if (!hasExistingPosts) {
       container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: #ff4d4d; font-size: 0.9rem;">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้งน้า 😥</div>`;
     }
   } finally {
-    window.isTimelineLoading = false; 
+    window.isTimelineLoading = false; // ปลดล็อกสถานะเสมอ ไม่ว่าจะดึงข้อมูลสำเร็จหรือพัง เพื่อให้กดโหลดรอบถัดไปได้ปกติ
   }
 }
 
-// ฟังก์ชันลบโพสต์
+// ฟังก์ชันลบโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
 async function deletePostUi(postId) {
   const result = await Swal.fire({
     title: 'ลบโพสต์นี้หรือไม่?',
@@ -2484,13 +2427,14 @@ async function deletePostUi(postId) {
 
   if (result.isConfirmed) {
     const currentUser = getUserSession();
-    const userRole = currentUser ? (currentUser.role || "") : "";
+    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
     
+    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL
     const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
     const data = await response.json();
     
     if (data.status === 'success') {
-      document.getElementById(`post-${postId}`).remove();
+      document.getElementById(`post-${postId}`).remove(); // เตะการ์ดออกจากหน้าจอทันที
       Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อย', 'success');
     } else {
       Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error');
@@ -2498,7 +2442,7 @@ async function deletePostUi(postId) {
   }
 }
 
-// ฟังก์ชันแก้ไขโพสต์
+// ฟังก์ชันแก้ไขโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
 async function editPostUi(postId, encodedContent) {
   const oldContent = decodeURIComponent(encodedContent);
   const { value: newText } = await Swal.fire({
@@ -2512,13 +2456,14 @@ async function editPostUi(postId, encodedContent) {
 
   if (newText && newText !== oldContent) {
     const currentUser = getUserSession();
-    const userRole = currentUser ? (currentUser.role || "") : "";
+    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
     
+    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL พร้อมกับเนื้อหาใหม่
     const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
     const data = await response.json();
 
     if (data.status === 'success') {
-      document.getElementById(`content-${postId}`).innerText = newText;
+      document.getElementById(`content-${postId}`).innerText = newText; // เปลี่ยนข้อความบนจอทันที
       Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
     } else {
       Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error');
@@ -2528,6 +2473,7 @@ async function editPostUi(postId, encodedContent) {
 
   window.checkNotificationBadge = function() {
   const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
+  // 🎯 แก้ไขชื่อ ID ให้ตรงกับใน HTML ของแท็บเมนูด้านล่าง
   const badgeElement = document.getElementById("noti-badge");
   
   if (badgeElement) {
@@ -2550,7 +2496,7 @@ function toggleBlmAudio(postId) {
   
   if (!audio) return;
 
-  // หยุดเสียงตัวอื่นที่กำลังเล่นอยู่ก่อน
+  // หยุดเสียงตัวอื่นที่กำลังเล่นอยู่ก่อน (เผื่อเปิดพร้อมกันหลายเพลง)
   document.querySelectorAll('audio').forEach(aud => {
     if (aud.id !== `audio-player-${postId}` && !aud.paused) {
       aud.pause();
@@ -2569,6 +2515,7 @@ function toggleBlmAudio(postId) {
     icon.className = 'fa-solid fa-pause';
     icon.style.marginLeft = '0px';
     
+    // ตั้งค่าอัปเดตแถบ Progress และเวลาเมื่อเสียงกำลังเล่น
     audio.ontimeupdate = () => {
       const progress = document.getElementById(`audio-progress-${postId}`);
       const timeLabel = document.getElementById(`audio-time-${postId}`);
@@ -2583,6 +2530,7 @@ function toggleBlmAudio(postId) {
       }
     };
     
+    // เมื่อเล่นจบให้รีเซ็ตปุ่มกลับเป็น Play
     audio.onended = () => {
       icon.className = 'fa-solid fa-play';
       icon.style.marginLeft = '2px';
@@ -2597,7 +2545,7 @@ function toggleBlmAudio(postId) {
   }
 }
 
-// ฟังก์ชันสำหรับกดข้ามเวลาบนแถบ Progress
+// 🌟 ฟังก์ชันสำหรับกดข้ามเวลาบนแถบ Progress
 function seekBlmAudio(event, postId) {
   const audio = document.getElementById(`audio-player-${postId}`);
   const container = document.getElementById(`audio-progress-container-${postId}`);
@@ -2611,7 +2559,7 @@ function seekBlmAudio(event, postId) {
   audio.currentTime = clickPercentage * audio.duration;
 }
 
-// ฟังก์ชันแปลงวินาทีให้เป็นรูปแบบ นาที:วินาที (เช่น 0:45)
+// 🌟 ฟังก์ชันแปลงวินาทีให้เป็นรูปแบบ นาที:วินาที (เช่น 0:45)
 function formatAudioTime(secs) {
   if (isNaN(secs)) return "0:00";
   const minutes = Math.floor(secs / 60);
@@ -2623,8 +2571,9 @@ function formatAudioTime(secs) {
 let currentGallery = [];
 let currentIndex = 0;
 
-// ฟังก์ชันเปิดรูปเต็มจอ (แบบรองรับ Slider)
+// 🌟 ฟังก์ชันเปิดรูปเต็มจอ (แบบรองรับ Slider)
 function openImageViewer(index, galleryArray) {
+  // ตรวจสอบว่า galleryArray เป็น Array หรือไม่ (เผื่อกรณีส่งมาแค่รูปเดียว)
   currentGallery = Array.isArray(galleryArray) ? galleryArray : [galleryArray];
   currentIndex = index;
   
@@ -2632,7 +2581,7 @@ function openImageViewer(index, galleryArray) {
   document.getElementById('image-viewer-modal').style.display = 'flex';
 }
 
-// ฟังก์ชันอัปเดตรูปและปุ่มลูกศร
+// 🌟 ฟังก์ชันอัปเดตรูปและปุ่มลูกศร
 function updateViewer() {
   const img = document.getElementById('full-size-image');
   const prevBtn = document.getElementById('prev-btn');
@@ -2640,11 +2589,12 @@ function updateViewer() {
   
   img.src = currentGallery[currentIndex];
   
+  // ซ่อนปุ่มถ้าเป็นรูปแรก หรือ รูปสุดท้าย
   prevBtn.style.display = (currentIndex === 0) ? 'none' : 'block';
   nextBtn.style.display = (currentIndex === currentGallery.length - 1) ? 'none' : 'block';
 }
 
-// ฟังก์ชันกดปุ่มซ้าย-ขวา
+// 🌟 ฟังก์ชันกดปุ่มซ้าย-ขวา
 function changeImage(step) {
   currentIndex += step;
   if (currentIndex >= 0 && currentIndex < currentGallery.length) {
@@ -2652,7 +2602,7 @@ function changeImage(step) {
   }
 }
 
-// ฟังก์ชันปิดรูปเต็มจอ
+// 🌟 ฟังก์ชันปิดรูปเต็มจอ
 function closeImageViewer() {
   document.getElementById('image-viewer-modal').style.display = 'none';
 }
@@ -2702,13 +2652,14 @@ function closeImageViewer() {
   
 // หลังจาก Login หรือดึงข้อมูลผู้ใช้สำเร็จ
 function setupUserProfile(user) {
-  if (!user) return; 
+  if (!user) return; // 🎯 ดักเอาไว้ก่อน ถ้าไม่มีข้อมูลผู้ใช้ (เป็น Guest) จะได้ไม่เกิด Error ค้างหน้าจอครับ
   
   const nameElement = document.getElementById('user-display-name');
   const editBtn = document.getElementById('edit-name-btn');
 
   if (nameElement) nameElement.innerText = user.name;
 
+  // ถ้าเป็น role user ให้แสดงไอคอนดินสอ
   if (user.role && user.role.toLowerCase() === 'user') {
     if (editBtn) editBtn.style.display = 'inline-block';
   } else {
@@ -2719,11 +2670,12 @@ function setupUserProfile(user) {
   function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
    function getImg(url) {
-    if (!url) return 'https://placehold.co/150';
+    if (!url) return 'https://via.placeholder.com/150';
 
     if (url.includes('drive.google.com')) {
       const match = url.match(/[-\w]{25,}/);
-      return match ? `https://lh3.googleusercontent.com/u/0/d/${match[0]}` : url;
+      // 🎯 แก้ไข: เติม $ และกำหนดตัวแปรดึงค่า Array ตัวแรก [0] เพื่อให้ระบบแปลงลิงก์รูปภาพได้อย่างถูกต้อง
+      return match ? `https://lh3.googleusercontent.com/u/0/d/$${match[0]}` : url;
     }
 
     if (url.startsWith('data:image')) return url;
@@ -2752,7 +2704,9 @@ function hideAppLoading() {
 async function refreshAppData() {
   showAppLoading();
   try {
+    // โหลดข้อมูล Ranking และ Top Fans ใหม่
     await loadData(); 
+    // ถ้ามี User ล็อกอินอยู่ ให้ซิงค์ข้อมูลกระเป๋าเงินด้วย
     if (typeof user !== 'undefined' && user) {
       await syncUserData(); 
     }
@@ -2760,29 +2714,30 @@ async function refreshAppData() {
   } catch (error) {
     console.error("Refresh Error:", error);
   } finally {
+    // หน่วงเวลาเล็กน้อยเพื่อให้ดูเหมือนแอปกำลังโหลดจริงๆ (เลือกปรับได้)
     setTimeout(hideAppLoading, 1000);
   } 
 }
 
+// 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
-  user = getUserSession(); 
-  updateUI();
-  hideAppLoading(); 
-  loadData();
   
+  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
+  user = getUserSession(); 
+  
+  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
+  updateUI();
+  
+  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
+  hideAppLoading(); 
+  
+  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
+  loadData();
   if (user) {
     syncUserData(); 
   }
 });
-
-// 🔄 ระบบตรวจสอบและอัปเดตข้อมูลจาก Google Sheets ใหม่ล่าสุดอัตโนมัติทุก ๆ 30 วินาที
-setInterval(() => {
-  console.log("🔄 กำลังตรวจสอบข้อมูลอัปเดตล่าสุดจาก Google Sheets...");
-  if (typeof loadData === 'function') loadData();
-  if (typeof refreshCountFromSheets === 'function') refreshCountFromSheets();
-}, 30000);
 </script>
-
 <script type="module">
   // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (รวมเอาไว้ที่บนสุดทั้งหมดงับ) 🌟
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
@@ -2812,6 +2767,28 @@ setInterval(() => {
   window.fbRef = dbRef;       
   window.fbPush = push;       
   window.fbOnValue = onValue; 
+
+  /* ==========================================
+     🔒 ระบบจัดการ USER SESSION
+     ========================================== */
+  function getUserSession() {
+    try {
+      const sessionStr = localStorage.getItem('bnl_session');
+      if (!sessionStr) return null;
+      
+      const session = JSON.parse(sessionStr);
+      const expiryTime = session.expiry || session.expire;
+      if (expiryTime && new Date().getTime() > expiryTime) {
+        localStorage.removeItem('bnl_session');
+        return null;
+      }
+      return session.data || session.user || session;
+    } catch (e) {
+      console.error("Session Parse Error:", e);
+      return null;
+    }
+  }
+  window.getUserSession = getUserSession;
 
   /* ==========================================
      🔄 ระบบเปิด-ปิดลิ้นชักคอมเมนต์
@@ -2909,7 +2886,7 @@ setInterval(() => {
 
         const commentHtml = `
           <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;" onerror="this.src='https://placehold.co/40x40/fff5f7/ff85a2?text=🌸'">
+            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
             <div style="font-size: 0.88rem; width: 100%;">
               <div style="display: flex; align-items: center; gap: 4px;">
                 <b style="color: #ff85a2;">${cmt.name}</b>
@@ -2969,7 +2946,7 @@ setInterval(() => {
         username: currentUser.username,
         name: currentUser.name || currentUser.username || 'Anonymous',
         role: currentUser.role || 'user',
-        profile_img: currentUser.profile_img || 'https://placehold.co/40x40/fff5f7/ff85a2?text=🌸',
+        profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
         text: commentText,
         timestamp: Date.now()
       };
@@ -3069,7 +3046,6 @@ setInterval(() => {
     }
   });
 </script>
-
 <div class="bottom-tab-bar">
   <a href="index.html" class="tab-item active">
     <i class="fa-solid fa-house"></i>
@@ -3091,7 +3067,7 @@ setInterval(() => {
     </div>
   </a>
  <a href="profile.html" class="tab-item">
-    <img id="tab-profile-img" src="https://placehold.co/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;" onerror="this.src='https://placehold.co/40x40/fff5f7/ff85a2?text=🌸'">
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
     <span>Profile</span>
   </a>
 </div>
