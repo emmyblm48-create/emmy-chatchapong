@@ -1012,7 +1012,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     margin-top: 20px !important;
     font-family: 'Quicksand', 'Kanit', sans-serif !important;
 }
-    /* ตกแต่งคอนเทนเนอร์หลัก */
+    /* จัดแต่งคอนเทนเนอร์หลัก */
 .trending-container {
   margin: 20px auto;
   padding: 15px;
@@ -1403,7 +1403,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 // ==========================================
 // 👑 1. CONFIG & GLOBAL VARIABLES (ประกาศตัวแปรสากลไว้บนสุด)
 // ==========================================
-const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่มีการอัปเดตโค้ดสำคัญ
+const APP_VERSION = '1.0.6'; // ✨ เปลี่ยนเลขเวอร์ชันเพื่อบังคับล้างประวัติเบราว์เซอร์เก่า
 const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
 var user = null;
@@ -1411,14 +1411,78 @@ var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) |
 var currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
 
 // ==========================================
-// 👑 2. SESSION MANAGEMENT (ระบบจัดการเซสชันและล็อกอิน)
+// 🛡️ 1.5 USER SESSION NORMALIZER (แก้ไขพิมพ์เล็กพิมพ์ใหญ่ค้างจากคอลัมน์ Excel)
 // ==========================================
-function saveUserSession(userData) {
-  // ตั้งเวลาหมดอายุเซสชันล่วงหน้า 90 วัน
-  const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
-  localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
+function normalizeUser(userData) {
+  if (!userData) return null;
+  const normalized = { ...userData };
+  
+  // จัดพอร์ตตรวจสอบ Username
+  const u = normalized.username || normalized.Username || "";
+  if (u) {
+    normalized.username = u;
+    normalized.Username = u;
+  }
+  
+  // จัดพอร์ตตรวจสอบ Password
+  const p = normalized.password || normalized.Password || "";
+  if (p) {
+    normalized.password = p;
+    normalized.Password = p;
+  }
+  
+  // จัดพอร์ตตรวจสอบ Name
+  const n = normalized.name || normalized.Name || "";
+  if (n) {
+    normalized.name = n;
+    normalized.Name = n;
+  }
+  
+  // จัดพอร์ตตรวจสอบ Role
+  const r = normalized.role || normalized.Role || "";
+  if (r) {
+    normalized.role = r;
+    normalized.Role = r;
+  }
+  
+  // จัดพอร์ตตรวจสอบ Profile Image
+  const img = normalized.profile_img || normalized.Profile_img || "";
+  if (img) {
+    normalized.profile_img = img;
+    normalized.Profile_img = img;
+  }
+  
+  return normalized;
 }
 
+function getUserSession() {
+  try {
+    const sessionStr = localStorage.getItem('bnl_session');
+    if (!sessionStr) return null;
+    
+    const session = JSON.parse(sessionStr);
+    const expiryTime = session.expiry || session.expire;
+    if (expiryTime && new Date().getTime() > expiryTime) {
+      localStorage.removeItem('bnl_session');
+      return null;
+    }
+    const rawUser = session.data || session.user || session;
+    return normalizeUser(rawUser);
+  } catch (e) {
+    console.error("Session Parse Error:", e);
+    return null;
+  }
+}
+
+function saveUserSession(userData) {
+  const normalized = normalizeUser(userData);
+  const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
+  localStorage.setItem('bnl_session', JSON.stringify({ data: normalized, expiry: expiry }));
+}
+
+// ==========================================
+// 👑 2. SESSION MANAGEMENT
+// ==========================================
 function isUserMember() {
   return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
 }
@@ -1458,13 +1522,19 @@ function hideSplashScreen() {
 // ==========================================
 async function syncUserData() {
   if (!user) return;
+  const currentUsername = user.username || user.Username || "";
+  if (!currentUsername) return;
+
   try {
-    const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
+    const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}&_=${Date.now()}`);
     const res = await resp.json();
     
-    if (res.status === "success") {
+    if (res.status === "success" && res.data) {
+      const fetchedData = res.data;
+      const fetchedPassword = fetchedData.password !== undefined ? fetchedData.password : fetchedData.Password;
+      
       // 🎯 ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนระงับสิทธิ์ / ไม่ได้เข้ากลุ่ม / รหัสผ่านเป็นค่าว่าง)
-      if (!res.data || res.data.password === "" || res.data.password === null || res.data.password === undefined) {
+      if (fetchedPassword === "" || fetchedPassword === null || fetchedPassword === undefined) {
         // เคลียร์เซสชันในเครื่องออกทันที
         localStorage.removeItem('bnl_session');
         sessionStorage.clear();
@@ -1478,7 +1548,9 @@ async function syncUserData() {
         return;
       }
 
-      user = { ...user, ...res.data }; 
+      // ปรับปรุงข้อมูลที่ดึงมาใหม่ให้มีความยืดหยุ่นในพิมพ์เล็กพิมพ์ใหญ่
+      const normalizedData = normalizeUser(fetchedData);
+      user = { ...user, ...normalizedData }; 
       saveUserSession(user); 
       if (typeof updateUI === 'function') updateUI(); 
 
@@ -1546,7 +1618,7 @@ window.addEventListener('pageshow', function(event) {
 
 window.addEventListener('DOMContentLoaded', () => {
   try {
-    // 🔐 ตรวจสอบเซสชันผู้ใช้
+    // 🔐 ตรวจสอบเซสชันผู้ใช้แบบ Normalize
     user = getUserSession(); 
 
     if (!user) {
@@ -2740,28 +2812,6 @@ setInterval(() => {
   window.fbRef = dbRef;       
   window.fbPush = push;       
   window.fbOnValue = onValue; 
-
-  /* ==========================================
-     🔒 ระบบจัดการ USER SESSION
-     ========================================== */
-  function getUserSession() {
-    try {
-      const sessionStr = localStorage.getItem('bnl_session');
-      if (!sessionStr) return null;
-      
-      const session = JSON.parse(sessionStr);
-      const expiryTime = session.expiry || session.expire;
-      if (expiryTime && new Date().getTime() > expiryTime) {
-        localStorage.removeItem('bnl_session');
-        return null;
-      }
-      return session.data || session.user || session;
-    } catch (e) {
-      console.error("Session Parse Error:", e);
-      return null;
-    }
-  }
-  window.getUserSession = getUserSession;
 
   /* ==========================================
      🔄 ระบบเปิด-ปิดลิ้นชักคอมเมนต์
