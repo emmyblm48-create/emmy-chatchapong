@@ -62,7 +62,7 @@
     body {
       background: var(--bg-soft);
       display: flex;
-      justify(): center;
+      justify(content): center;
       align-items: flex-start;
       min-height: 100vh;
       color: var(--dark-text);
@@ -158,7 +158,7 @@
       height: 40px;
       border-radius: 50%;
       display: flex;
-      justify-: center;
+      justify-content: center;
       align-items: center;
       color: var(--blmem-pink);
       cursor: pointer;
@@ -211,7 +211,7 @@
       text-align: center;
       display: flex;
       flex-direction: column;
-      justify-: center;
+      justify-content: center;
     }
     .stat-box:not(:last-child) { border-right: 1px solid #ffe5ec; }
     .stat-num {
@@ -352,7 +352,7 @@
       background: rgba(0, 0, 0, 0.6);
       border-radius: 12px !important;
       display: flex;
-      justify-: center;
+      justify-content: center;
       align-items: center;
       color: white;
       font-size: 1.5rem;
@@ -406,7 +406,7 @@
     z-index: 10;
 }
     /* 🌟 ปรับกล่องให้อยู่ในแถวแนวนอน (Horizontal Scroll) */
-    #champ-thanks- {
+    #champ-thanks-content {
         display: flex;
         overflow-x: auto;
         gap: 15px;
@@ -522,7 +522,7 @@
 
       <div class="leaderboard-section">
         <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans</div>
-        <div id="member-fans-" class="fan-list"></div>
+        <div id="member-fans-content" class="fan-list"></div>
       </div>
       
       <div id="champ-thanks-container" style="display: none; margin-top: 25px;">
@@ -807,7 +807,7 @@
             
             memberChamps.forEach(champ => {
                 const formatCookie = Number(champ.totalCookie).toLocaleString();
-                const thankYouMessage = champ.message ? champ.message : "ขอบคุณสำหรับทุกๆ คะแนนโหวตและทุกแรงสนับสนุนที่ส่งมาให้กันในเดือนนี้นะ 💕";
+                const thankYouMessage = champ.message ? champ.message : "";
                 
                 let imgHtml = '';
                 if (champ.postImage && champ.postImage.trim() !== "") {
@@ -968,7 +968,7 @@
       });
     }
 
-// =========================================================================
+    // =========================================================================
     // 👑 ADVANCED TIMELINE PORTED LOGIC (อัปเดตให้แสดงรูปเดียวเต็มจอเหมือนหน้าหลัก)
     // =========================================================================
     function hasManagementPermission(postAuthorUsername) {
@@ -977,179 +977,164 @@
         return user.username === postAuthorUsername;
     }
 
-    function renderPost(post) {
-      if (!post) return '';
+   function renderPost(post) {
+  if (!post) return '';
 
-      const currentUser = getUserSession();
-      const currentUsername = currentUser ? currentUser.username : "";
-      
-      // ดึงค่าไอดีและข้อมูลต่างๆ รองรับทั้งพิมพ์เล็ก-ใหญ่จาก Data Source
-      const postId = post.id || post.PostID || ''; 
-      const postContent = post.content || post.Content || '';
-      const authorUsername = post.authorUsername || post.Author || '';
-      
-      // ตรวจสอบสิทธิ์ผู้มีอำนาจจัดการ (เจ้าของโพสต์, Admin หรือ CEO)
-      const canManage = hasManagementPermission(authorUsername);
+  const currentUser = getUserSession();
+  const currentUsername = currentUser ? currentUser.username : "";
+  const canManage = hasManagementPermission(post.authorUsername);
 
-      const authorName = post.authorName || 'Anonymous Member';
-      const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
-      const postLikes = post.likes || 0;
-      const displayImage = post.imageUrl || post.imageURL || '';
-      const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
+  const authorName = post.authorName || 'Anonymous Member';
+  const postContent = post.content || '';
+  const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
+  const postLikes = post.likes || 0;
+  const postId = post.id || ''; 
+  const displayImage = post.imageUrl || post.imageURL || '';
+  const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
 
-      // =========================================================================
-      // 👑 [ตรวจสอบเงื่อนไขและเตรียมป้ายพิเศษสำหรับ Champ of the Month]
-      // =========================================================================
-      const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
-      const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
-      
-      // สร้างริบบิ้นแบนเนอร์สีทองติดที่มุมซ้ายบนของโพสต์
-      const specialBadge = isChampPost ? `
-        <div class="champ-post-badge" style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #fff; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 0 0 10px 0; position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
-          <i class="fas fa-crown"></i> Champ of the Month Special Thanks
-        </div>
-      ` : '';
+  // =========================================================================
+  // 👑 [ตรวจสอบเงื่อนไขและเตรียมป้ายพิเศษสำหรับ Champ of the Month]
+  // =========================================================================
+  const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
+  const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
+  
+  // สร้างริบบิ้นแบนเนอร์สีทองติดที่มุมซ้ายบนของโพสต์
+  const specialBadge = isChampPost ? `
+    <div class="champ-post-badge" style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #fff; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 0 0 10px 0; position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
+      <i class="fas fa-crown"></i> Champ of the Month Special Thanks
+    </div>
+  ` : '';
 
-      // กำหนดสไตล์ของการ์ดโพสต์ (ถ้าเป็นแชมป์ จะได้การ์ดธีมทอง-ครีม ไล่เฉดสีหรูหรา)
-      const champCardStyle = isChampPost 
-        ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
-        : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
+  // กำหนดสไตล์ของการ์ดโพสต์ (ถ้าเป็นแชมป์ จะได้การ์ดธีมทอง-ครีม ไล่เฉดสีหรูหรา)
+  const champCardStyle = isChampPost 
+    ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
+    : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
 
-      const verifiedBadgeIcon = `
-        <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-          <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-        </svg>
-      `;
-      const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
+  const verifiedBadgeIcon = `
+    <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+      <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+    </svg>
+  `;
+  const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
 
-      // =========================================================================
-      // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
-      // =========================================================================
-      let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-      setTimeout(() => {
-        if (typeof listenToCommentsRealtime === 'function') {
-          listenToCommentsRealtime(`${postId}`);
-        }
-      }, 100);
+  // =========================================================================
+  // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
+  // =========================================================================
+  let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
+  setTimeout(() => {
+    listenToCommentsRealtime(`${postId}`);
+  }, 100);
 
-      // =========================================================================
-      // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
-      // =========================================================================
-      let mediaHtml = '';
-      if (post.audioURL) {
-        mediaHtml += `
-          <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
-            <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
-            <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
-              <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
-            </button>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-              <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
-                <span>Voice Note</span>
-                <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
-              </div>
-              <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
-                <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
-              </div>
-            </div>
+  // =========================================================================
+  // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
+  // =========================================================================
+  let mediaHtml = '';
+  if (post.audioURL) {
+    mediaHtml += `
+      <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
+        <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
+        <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
+          <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
+        </button>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
+            <span>Voice Note</span>
+            <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
           </div>
-        `;
-      }
-
-      if (post.videoURL) {
-        mediaHtml += `
-          <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
-            <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
-          </div>
-        `;
-      }
-
-      // =========================================================================
-      // 📸 [จัดการรูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็ม)
-      // =========================================================================
-      let imagesHtml = '';
-      if (displayImage) {
-        const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
-        const visibleImages = imageUrls.slice(0, 4);
-        
-        if (imageUrls.length === 1) {
-          imagesHtml += `
-            <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
-              <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
-            </div>
-          `;
-        } else {
-          imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
-          visibleImages.forEach((url, index) => {
-            imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
-            imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
-            if (index === 3 && imageUrls.length > 4) {
-              imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
-            }
-            imagesHtml += `</div>`;
-          });
-          imagesHtml += `</div>`;
-        }
-      }
-
-      // =========================================================================
-      // ⚙️ [จัดการปุ่มเมนู Dropdown แฟนซีจุดสามจุด]
-      // =========================================================================
-      let actionMenuHtml = '';
-      if (canManage) {
-        actionMenuHtml = `
-          <div class="post-action-menu" style="position: absolute; top: ${isChampPost ? '35px' : '15px'}; right: 15px; z-index: 11; margin-left: auto;">
-            <button onclick="toggleActionDropdown(event, '${postId}')" style="background: none; border: none; color: #888; font-size: 16px; cursor: pointer; padding: 5px 10px;"><i class="fa-solid fa-ellipsis-v"></i></button>
-            <div id="dropdown-${postId}" class="action-dropdown" style="display: none; position: absolute; right: 0; top: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 120px; border: 1px solid #f0f0f0; overflow: hidden;">
-              <button onclick="openEditModal('${postId}', \`${encodeURIComponent(postContent)}\`)" style="width: 100%; text-align: left; background: none; border: none; padding: 10px 15px; font-size: 14px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-pen" style="color: #4a90e2;"></i> แก้ไข</button>
-              <button onclick="deletePostProcess('${postId}')" style="width: 100%; text-align: left; background: none; border: none; padding: 10px 15px; font-size: 14px; color: #e03e2d; cursor: pointer; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-trash" style="color: #e03e2d;"></i> ลบโพสต์</button>
-            </div>
-          </div>
-        `;
-      }
-
-      const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
-
-      return `
-        <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
-          ${specialBadge}
-          ${actionMenuHtml}
-          
-          <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
-            <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
-            <div>
-              <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
-              <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
-            </div>
-          </div>
-          
-          <div class="post-body" style="margin-bottom: 15px;">
-            <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
-            ${imagesHtml}
-            ${mediaHtml}
-          </div>
-          
-          <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-            <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-              <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
-            </button>
-            <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-              <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
-            </button>
-          </div>
-
-          <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-            <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
-              ${commentsHtml}
-            </div>
-            <div class="comment-input-box" style="display: flex; gap: 8px;">
-              <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-              <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
-            </div>
+          <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
+            <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
           </div>
         </div>
+      </div>
+    `;
+  }
+
+  if (post.videoURL) {
+    mediaHtml += `
+      <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
+        <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
+      </div>
+    `;
+  }
+
+  // =========================================================================
+  // 📸 [จัดการรูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็ม)
+  // =========================================================================
+  let imagesHtml = '';
+  if (displayImage) {
+    const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
+    const visibleImages = imageUrls.slice(0, 4);
+    
+    if (imageUrls.length === 1) {
+      imagesHtml += `
+        <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
+          <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+        </div>
       `;
+    } else {
+      imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+      visibleImages.forEach((url, index) => {
+        imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
+        imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
+        if (index === 3 && imageUrls.length > 4) {
+          imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
+        }
+        imagesHtml += `</div>`;
+      });
+      imagesHtml += `</div>`;
     }
+  }
+
+  // ขยับปุ่มจัดการลงมานิดหน่อยถ้าเป็นโพสต์ของแชมป์ เพื่อไม่ให้ปุ่มทับริบบิ้นทอง
+  const actionMenu = canManage ? `
+    <div style="position: absolute; top: ${isChampPost ? '35px' : '15px'}; right: 15px; display: flex; gap: 10px; z-index: 11;">
+      <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
+      <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
+    </div>
+  ` : '';
+
+  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
+
+  return `
+    <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
+      ${specialBadge}
+      ${actionMenu}
+      
+      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
+        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
+        <div>
+          <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
+          <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
+        </div>
+      </div>
+      
+      <div class="post-body" style="margin-bottom: 15px;">
+        <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
+        ${imagesHtml}
+        ${mediaHtml}
+      </div>
+      
+      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
+        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
+        </button>
+        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
+        </button>
+      </div>
+
+      <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
+        <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
+          ${commentsHtml}
+        </div>
+        <div class="comment-input-box" style="display: flex; gap: 8px;">
+          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
+          <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
   // =========================================================================
     // ⚡ ฟังก์ชันโหลดโพสต์ของเมมเบอร์ (อัปเดตระบบแคชให้โหลดเร็วขึ้น)
@@ -1257,175 +1242,44 @@
         window.isTimelineLoading = false;
       }
     }
-
-// =========================================================================
-// ⚙️ [1. ฟังก์ชันสำหรับการจัดการ Dropdown สามจุด]
-// =========================================================================
-function toggleActionDropdown(event, postId) {
-  event.stopPropagation();
   
-  // ซ่อน dropdown อันอื่นก่อนเพื่อไม่ให้เปิดซ้อนกันหน้าจอพัง
-  document.querySelectorAll('.action-dropdown').forEach(el => {
-    if (el.id !== 'dropdown-' + postId) el.style.display = 'none';
-  });
-  
-  const dropdown = document.getElementById('dropdown-' + postId);
-  if (dropdown) {
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-  }
-}
-
-// คลิกพื้นที่อื่นข้างนอกเพื่อซ่อน Dropdown อัตโนมัติ (Aesthetic UI Experience)
-document.addEventListener('click', function() {
-  document.querySelectorAll('.action-dropdown').forEach(el => el.style.display = 'none');
-});
-
-
-// =========================================================================
-// ⚙️ [2. ฟังก์ชันระบบแก้ไขโพสต์ (Edit Post) - รูปแบบ Modal + Google Sheets & Firebase]
-// =========================================================================
-function openEditModal(postId, encodedContent) {
-  // ซ่อน Dropdown ทันทีเมื่อคลิกเลือกแก้ไขเพื่อความเนียนตา
-  const dropdown = document.getElementById('dropdown-' + postId);
-  if (dropdown) dropdown.style.display = 'none';
-
-  const content = decodeURIComponent(encodedContent);
-  document.getElementById('edit-post-id').value = postId;
-  document.getElementById('edit-post-text').value = content;
-  document.getElementById('edit-post-modal').style.display = 'flex';
-}
-
-function closeEditModal() {
-  document.getElementById('edit-post-modal').style.display = 'none';
-}
-
-async function submitEditPost() {
-  const postId = document.getElementById('edit-post-id').value;
-  const newText = document.getElementById('edit-post-text').value.trim();
-  const saveBtn = document.getElementById('save-edit-btn');
-  
-  if (!newText) {
-    Swal.fire('คำเตือน', 'กรุณากรอกข้อความคอนเทนต์ที่ต้องการแก้ไขด้วยนะคะ', 'warning');
-    return;
-  }
-  
-  // ดึงเซสชันผู้ใช้เพื่อส่งไปตรวจสอบสิทธิ์หลังบ้านป้องกันบอทหรือสวมรอย
-  const currentUser = getUserSession();
-  const userRole = currentUser ? (currentUser.role || "") : "";
-  const username = currentUser ? (currentUser.username || "") : "";
-
-  try {
-    saveBtn.innerText = "กำลังบันทึก...";
-    saveBtn.disabled = true;
-    
-    // 1. อัปเดตข้อมูลขึ้นระบบ Google Sheets หลังบ้าน (ถอด no-cors ออกเพื่อการตรวจสอบสถานะที่ถูกต้อง)
-    await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        action: "editPost",
-        postId: postId,
-        newContent: newText,
-        username: username,
-        role: userRole
-      })
-    });
-    
-    // 2. อัปเดตข้อมูลแบบเรียลไทม์บนฐานข้อมูล Firebase ให้แฟนคลับเห็นทันที
-    if (window.db) {
-      await firebase.database().ref('posts/' + postId).update({
-        Content: newText
+    async function deletePostUi(postId) {
+      const result = await Swal.fire({
+        title: 'ลบโพสต์นี้?', text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!", icon: 'warning',
+        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: '#d33', confirmButtonText: 'ลบเลย!'
       });
-    }
-    
-    closeEditModal(); // ปิดหน้าต่างเมื่อเซฟข้อมูลทั้งหมดสมบูรณ์เรียบร้อย
-    Swal.fire({
-      title: 'แก้ไขสำเร็จ!',
-      text: 'ปรับปรุงข้อความโพสต์เรียบร้อยแล้วค่ะ 🌸',
-      icon: 'success',
-      confirmButtonColor: '#ff85a2'
-    }).then(() => {
-      window.location.reload(); // รีโหลดหน้าจอเพื่อแสดงข้อความใหม่ร้อยเปอร์เซ็นต์
-    });
-    
-  } catch (error) {
-    console.error("Edit post error:", error);
-    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเพื่อแก้ไขข้อมูลได้ในขณะนี้งับ', 'error');
-  } finally {
-    saveBtn.innerText = "บันทึกการแก้ไข";
-    saveBtn.disabled = false;
-  }
-}
 
-
-// =========================================================================
-// ⚙️ [3. ฟังก์ชันระบบลบโพสต์ (Delete Post) - ลบผ่าน Google Sheets & Firebase]
-// =========================================================================
-function deletePostProcess(postId) {
-  // ซ่อน Dropdown ทันทีเมื่อคลิกเลือกลบ
-  const dropdown = document.getElementById('dropdown-' + postId);
-  if (dropdown) dropdown.style.display = 'none';
-
-  Swal.fire({
-    title: 'ยืนยันการลบโพสต์?',
-    text: "หากลบแล้วข้อมูลโพสต์และยอดไลก์จะหายไปจากระบบทันที ไม่สามารถกู้คืนได้นะงับ!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#e03e2d',
-    cancelButtonColor: '#aaa',
-    confirmButtonText: 'ลบเลย!',
-    cancelButtonText: 'ยกเลิก'
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      
-      // ดึงเซสชันผู้ใช้เพื่อส่งไปตรวจสอบสิทธิ์ป้องกันความปลอดภัยหลังบ้าน
-      const currentUser = getUserSession();
-      const userRole = currentUser ? (currentUser.role || "") : "";
-      const username = currentUser ? (currentUser.username || "") : "";
-
-      try {
-        Swal.fire({ 
-          title: 'กำลังลบโพสต์...', 
-          allowOutsideClick: false, 
-          didOpen: () => { Swal.showLoading(); } 
-        });
-        
-        // 1. ส่งคำสั่งลบไปที่ระบบ Google Sheets หลังบ้าน พร้อมชุดข้อมูลสิทธิ์
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            action: "deletePost",
-            postId: postId,
-            username: username,
-            role: userRole
-          })
-        });
-        
-        // 2. ลบ Node ข้อมูลโพสต์ คอมเมนต์ และยอดไลก์ ออกจากระบบ Firebase ทั้งหมดเพื่อเคลียร์พื้นที่คลาวด์
-        if (window.db) {
-          await firebase.database().ref('posts/' + postId).remove();
-          await firebase.database().ref('comments/' + postId).remove();
-          await firebase.database().ref('likes/' + postId).remove();
-        }
-        
-        Swal.fire({
-          title: 'ลบโพสต์เสร็จสิ้น!',
-          text: 'ระบบได้นำโพสต์นี้ออกจากแอปพลิเคชันเรียบร้อยแล้วค่ะ',
-          icon: 'success',
-          confirmButtonColor: '#ff85a2'
-        }).then(() => {
-          window.location.reload(); // รีโหลดหน้าเพื่อรีเซ็ตหน้าแสดงผลไทม์ไลน์ล่าสุด
-        });
-        
-      } catch (error) {
-        console.error("Delete post error:", error);
-        Swal.fire('เกิดข้อผิดพลาด', 'ลบโพสต์ไม่สำเร็จเนื่องจากระบบเครือข่ายขัดข้องงับ', 'error');
+      if (result.isConfirmed) {
+        const currentUser = getUserSession();
+        const userRole = currentUser ? (currentUser.role || "") : "";
+        const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
+        const data = await response.json();
+        if (data.status === 'success') {
+          document.getElementById(`post-${postId}`).remove();
+          Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อยงับ', 'success');
+        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error'); }
       }
     }
-  });
-}
-  
+
+    async function editPostUi(postId, encodedContent) {
+      const oldContent = decodeURIComponent(encodedContent);
+      const { value: newText } = await Swal.fire({
+        title: 'แก้ไขโพสต์', input: 'textarea', inputValue: oldContent,
+        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: 'gray'
+      });
+
+      if (newText && newText !== oldContent) {
+        const currentUser = getUserSession();
+        const userRole = currentUser ? (currentUser.role || "") : "";
+        const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
+        const data = await response.json();
+        if (data.status === 'success') {
+          document.getElementById(`content-${postId}`).innerText = newText;
+          Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
+        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error'); }
+      }
+    }
+
     function toggleBlmAudio(postId) {
       const audio = document.getElementById(`audio-player-${postId}`);
       const icon = document.getElementById(`audio-icon-${postId}`);
@@ -1660,21 +1514,6 @@ function deletePostProcess(postId) {
   <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
   <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
   <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
-</div>
-
-  <div id="edit-post-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
-  <div style="background: white; width: 100%; max-width: 500px; border-radius: 16px; padding: 20px; box-sizing: border-box; position: relative; animation: slideUp 0.3s ease-out;">
-    <h3 style="margin-top: 0; margin-bottom: 15px; color: #333; font-size: 18px; text-align: center; font-weight: 600;">แก้ไขโพสต์</h3>
-    <span onclick="closeEditModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; color: #aaa; cursor: pointer; font-weight: bold;">&times;</span>
-    
-    <input type="hidden" id="edit-post-id">
-    <textarea id="edit-post-text" style="width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-sizing: border-box; font-family: inherit; font-size: 15px; resize: none; outline: none; margin-bottom: 15px;" placeholder="พิมพ์ข้อความใหม่ที่นี่..."></textarea>
-    
-    <div style="display: flex; gap: 10px;">
-      <button onclick="closeEditModal()" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 25px; background: #f5f5f5; color: #666; font-size: 15px; font-weight: bold; cursor: pointer;">ยกเลิก</button>
-      <button id="save-edit-btn" onclick="submitEditPost()" style="flex: 1; padding: 12px; border: none; border-radius: 25px; background: linear-gradient(135deg, #ff85a2, #ffb3c1); color: white; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3);">บันทึกการแก้ไข</button>
-    </div>
-  </div>
 </div>
 
 </body>
