@@ -337,7 +337,55 @@
   }
 
   async function loadMyTicketsHistory() {
-    // เชื่อมต่อการคัดแยกประเภทข้อมูลและประวัติคลังส่วนตัวผ่านระบบฐานข้อมูลเดิมของคุณเอ็มมี่ได้ทันทีค่ะ
+    const container = document.getElementById('my-tickets-container');
+    if (!user || !user.username) {
+      container.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ไม่พบข้อมูลผู้ใช้งาน กรุณาล็อกอินใหม่';
+      return;
+    }
+    
+    try {
+      container.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading Inventory / กำลังโหลดคลังตั๋วของคุณ...';
+      
+      // ส่ง Request ไปเรียก action=getInventory พร้อมระบุ username
+      const resp = await fetch(`${scriptURL}?action=getInventory&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
+      const res = await resp.json();
+      
+      if (res.status !== "success") {
+        container.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${res.message || 'ไม่สามารถดึงข้อมูลคลังตั๋วได้'}`;
+        return;
+      }
+      
+      if (!res.data || res.data.length === 0) {
+        container.innerHTML = '<i class="fa-solid fa-folder-open"></i> No Data Found / ไม่พบประวัติการสำรองบัตรในระบบคลัง';
+        return;
+      }
+      
+      container.innerHTML = ''; // เคลียร์ข้อความ Loading
+      
+      // วนลูปสร้างการ์ดตั๋วในคลัง
+      res.data.forEach(ticket => {
+        // แปลงรูปแบบวันที่ให้ละมุนอ่านง่ายขึ้น
+        const formattedDate = new Date(ticket.Timestamp).toLocaleDateString('th-TH', {
+          year: 'numeric', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+
+        container.innerHTML += `
+          <div class="ticket-stub">
+            <img src="${ticket.ImageURL || 'https://via.placeholder.com/70'}" class="ticket-stub-img" onerror="this.src='https://via.placeholder.com/70'">
+            <div class="ticket-stub-details">
+              <div class="ticket-stub-title" style="font-weight: 600; color: var(--text-main);">${ticket.ItemName}</div>
+              <div class="ticket-stub-time" style="font-size: 12px; color: var(--text-sub); margin-top: 6px;">
+                <i class="fa-regular fa-clock"></i> ได้รับเมื่อ: ${formattedDate} น.
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+    } catch (err) {
+      container.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Network error / เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
+    }
   }
 
   window.addEventListener('DOMContentLoaded', () => {
