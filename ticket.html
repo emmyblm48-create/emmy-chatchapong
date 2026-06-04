@@ -336,7 +336,7 @@
 
   <div class="container">
     <div id="shop-section" class="page-section active">
-      <h2 class="section-title">คอนเสิร์ตและอีเวนต์ทั้งหมด <span id="sync-status" style="font-size: 11px; font-weight: normal; color: #ffb6c1; margin-left: 8px; display: none;"><i class="fa-solid fa-rotate fa-spin"></i> กำลังอัปเดตข้อมูล...</span></h2>
+      <h2 class="section-title">Theaters & Concerts <span id="sync-status" style="font-size: 11px; font-weight: normal; color: #ffb6c1; margin-left: 8px; display: none;"><i class="fa-solid fa-rotate fa-spin"></i> กำลังอัปเดตข้อมูล...</span></h2>
       <div id="concert-list-container">
         <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading tickets...</div>
       </div>
@@ -400,14 +400,6 @@
         <div class="wallet-item">
           <span style="font-size: 10px; color: #888; display: block;">Tokens</span>
           <i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(userData.token || 0).toLocaleString()}
-        </div>
-        <div class="wallet-item">
-          <span style="font-size: 10px; color: #888; display: block;">Cookies</span>
-          <i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> ${Number(userData.cookie || 0).toLocaleString()}
-        </div>
-        <div class="wallet-item">
-          <span style="font-size: 10px; color: #888; display: block;">GE Tokens</span>
-          <i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(userData.geToken || 0).toLocaleString()}
         </div>
       </div>
     `;
@@ -505,7 +497,7 @@
             </p>
             
             <div style="width: 100%; margin-bottom: 10px;">
-              <label style="font-size: 11px; font-weight: 600; color: #ff6b8b; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">เลือกประเภทบัตร / โซนที่นั่ง</label>
+              <label style="font-size: 11px; font-weight: 600; color: #ff6b8b; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Selet Benefit Tiers</label>
               <select class="tier-select" onchange="updateTierDetails(this, ${index})" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ffe4e8; font-family: 'Kanit', sans-serif; font-size: 13px; color: #4a4a4a; background: #fffcfd; cursor: pointer; outline: none;">
                 ${event.Tiers.map((t, tIdx) => `<option value="${tIdx}">${t.BenefitTier || t.TierName} (${Number(t.CostTokens).toLocaleString()} Tokens)</option>`).join('')}
               </select>
@@ -516,12 +508,12 @@
                 <i class="fa-solid fa-circle-check" style="color:var(--primary-pink)"></i> <span>${benefitText}</span>
               </p>
               <div class="stock-text" style="font-size: 11px; color: #718096; font-weight: 600;">
-                <i class="fa-solid fa-boxes-stacked"></i> คงเหลือในระบบ: <span style="color: #ff527b; font-weight: 700;">${defaultTier.Stock}</span> ที่นั่ง
+                <i class="fa-solid fa-boxes-stacked"></i><span style="color: #ff527b; font-weight: 700;">${defaultTier.Stock}</span> seats left 
               </div>
             </div>
 
             <button class="merch-button buy-btn" ${!isAvailable ? 'disabled' : ''} onclick="triggerBuyTicket('${defaultTier.TicketID || defaultTier.TierID}', '${defaultTier.BenefitTier || defaultTier.TierName}', ${defaultTier.CostTokens})" style="margin-top: auto;">
-              <i class="fas fa-coins"></i> <span>ซื้อบัตร • ${Number(defaultTier.CostTokens).toLocaleString()} Tokens</span>
+              <i class="fas fa-coins"></i> <span> ${Number(defaultTier.CostTokens).toLocaleString()} Tokens</span>
             </button>
           </div>
         </div>
@@ -546,12 +538,12 @@
     buyBtn.disabled = !isAvailable;
     
     buyBtn.setAttribute('onclick', `triggerBuyTicket('${tierData.TicketID || tierData.TierID}', '${tierData.BenefitTier || tierData.TierName}', ${tierData.CostTokens})`);
-    buyBtn.querySelector('span').textContent = `ซื้อบัตร • ${Number(tierData.CostTokens).toLocaleString()} Tokens`;
+    buyBtn.querySelector('span').textContent = ` ${Number(tierData.CostTokens).toLocaleString()} Tokens`;
   }
 
   function triggerBuyTicket(ticketId, tier, cost) {
     Swal.fire({
-      title: 'Confirm Ticket Order / ยืนยันการสั่งซื้อ',
+      title: 'Confirm Ticket Order?',
       html: `คุณต้องการใช้ Tokens จำนวน <strong>${Number(cost).toLocaleString()} Tokens</strong> เพื่อจองบัตรระดับ <strong>${tier}</strong> ใช่หรือไม่?`,
       icon: 'question',
       showCancelButton: true,
