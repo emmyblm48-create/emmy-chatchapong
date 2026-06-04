@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <title>BLM48 Official Ticket Store</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
-  <meta name="theme-color" content="#ffcad4">
+  <meta name="theme-color" content="#ffc0cb">
   
   <!-- สำหรับ iOS Home Screen Icon -->
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -22,214 +22,517 @@
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+    
   <style>
-    /* คุมโทนสีชมพูพาสเทล ละมุน สไตล์ดรีมมี่มินิมอล */
     :root {
-      --primary-pink: #ffb3c6;
-      --secondary-pink: #ffcad4;
-      --soft-pink: #ffe5ec;
-      --gradient-pastel: linear-gradient(135deg, #ffb3c6, #ffcad4);
-      --soft-bg: #fffcfc;
-      --card-bg: #ffffff;
-      --text-main: #4a5568;
-      --text-sub: #718096;
-      --border-light: #ffe5ec;
+      --primary-pink: #ff85a2;
+      --soft-pink: #ffe4e1;
+      --bg-color: #fffdf5;
+      --cookie-brown: #d2691e;
     }
-    
-    body {
-      font-family: 'Quicksand', 'Kanit', sans-serif;
-      background-color: var(--soft-bg);
-      margin: 0; padding: 0; padding-bottom: 80px;
-      color: var(--text-main);
+
+    body { 
+      font-family: 'Quicksand', 'Kanit', sans-serif; 
+      background-color: var(--bg-color); 
+      margin: 0; padding: 0; min-height: 100vh;
+      padding-bottom: 110px !important;
     }
-    
-    .navbar {
-      background: #ffffff; padding: 15px 25px;
-      display: flex; justify-content: space-between; align-items: center;
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 4px 20px rgba(255, 179, 198, 0.15);
-      border-bottom: 1px solid var(--border-light);
+
+    /* --- Custom Top Bar Design --- */
+    .custom-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background-color: #ffffff;
+      border-bottom: 1px solid #ffe4e8;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 10px rgba(255, 192, 203, 0.1);
     }
-    
-    .brand { 
-      font-size: 18px; font-weight: 700; color: var(--primary-pink); 
-      text-decoration: none; display: flex; align-items: center; gap: 10px;
+
+    .top-bar-back-btn {
+      background: none;
+      border: none;
+      color: #ff85a2;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s, transform 0.2s;
+    }
+
+    .top-bar-back-btn:hover {
+      background-color: #fff0f2;
+      transform: scale(1.05);
+    }
+
+    .top-bar-profile-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #333333;
+      transition: opacity 0.2s;
+    }
+
+    .top-bar-user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .top-bar-name {
+      font-size: 14px;
+      font-weight: bold;
+      color: #4a4a4a;
+    }
+
+    .top-bar-role {
+      font-size: 10px;
+      color: #ff85a2;
+      background-color: #fff0f2;
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-top: 2px;
+      font-weight: 600;
+      text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    
-    .token-display { 
-      font-size: 14px; font-weight: 600; color: #ff758f; 
-      background: #fff0f3; padding: 8px 16px; border-radius: 20px;
-      border: 1px solid var(--soft-pink); display: flex; align-items: center; gap: 6px;
+
+    .top-bar-avatar-img {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ffccd5;
+      box-shadow: 0 2px 5px rgba(255, 133, 162, 0.15);
     }
-    
-    /* แท็บเมนูกึ่งไทยกึ่งอังกฤษ */
+
+    /* Wallet Section */
+    .user-profile-bar { 
+      max-width: 900px; margin: 15px auto; background: white; border-radius: 20px; 
+      padding: 15px; border: 2px solid var(--soft-pink); box-shadow: 0 5px 15px rgba(255,133,162,0.05);
+    }
+    .wallet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .wallet-item { 
+      background: #fffcfd; border: 1px solid #ffeef2; padding: 10px; 
+      border-radius: 12px; font-size: 13px; text-align: center; font-weight: 700; color: #555; 
+    }
+
+    /* แท็บเมนูย่อยแบบแคปซูลนุ่มนวล */
     .toggle-tabs {
-      display: flex; justify-content: center; gap: 0; margin: 30px auto; 
-      max-width: 480px; border: 2px solid var(--border-light); border-radius: 16px; 
-      overflow: hidden; box-shadow: 0 4px 15px rgba(255, 179, 198, 0.05);
+      display: flex; justify-content: center; margin: 20px auto; max-width: 340px;
+      background: #fff0f3; padding: 5px; border-radius: 30px;
+      border: 1px solid rgba(255, 204, 213, 0.5);
     }
     
     .tab-btn {
-      flex: 1; padding: 14px; border: none; background: #ffffff; color: var(--text-sub);
-      font-weight: 500; cursor: pointer; transition: all 0.3s ease; font-family: 'Kanit', 'Quicksand';
-      font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
+      flex: 1; border: none; background: transparent; padding: 10px; border-radius: 25px;
+      color: #ffb3c1; font-weight: 600; cursor: pointer; transition: 0.3s;
+      font-family: 'Kanit', 'Quicksand', sans-serif; font-size: 13.5px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    
-    .tab-btn:not(:last-child) { border-right: 2px solid var(--border-light); }
     
     .tab-btn.active {
-      background: var(--gradient-pastel); color: #ffffff; font-weight: 600;
+      background: #ffffff; color: #ff5376; box-shadow: 0 4px 12px rgba(255, 83, 118, 0.12);
     }
 
-    .container { max-width: 650px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
-    .page-section { display: none; }
-    .page-section.active { display: block; animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+    /* --- Shop Layout & Grid --- */
+    .section-title { 
+      font-family: 'Kanit'; 
+      font-weight: 600; 
+      color: #444; 
+      margin: 25px 0 15px 20px; 
+      font-size: 18px; 
+      border-left: 5px solid var(--primary-pink); 
+      padding-left: 12px; 
+    }
 
-    /* โครงสร้างการ์ดคอนเสิร์ตพาสเทลคุมโทน */
-    .concert-card {
-      background: var(--card-bg); border-radius: 24px; border: 2px solid var(--border-light);
-      overflow: hidden; margin-bottom: 35px; box-shadow: 0 8px 25px rgba(255, 179, 198, 0.08);
-      position: relative;
+    .merch-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 12px !important;
+      padding: 15px !important;
+      box-sizing: border-box;
     }
-    
-    .concert-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
-      background: var(--gradient-pastel);
-    }
-    
-    .poster-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-    .concert-info { padding: 30px; }
-    .concert-title { font-size: 20px; font-weight: 600; color: var(--text-main); margin: 0 0 10px 0; }
-    .concert-date { font-size: 13.5px; color: #ff758f; font-weight: 500; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
-    .concert-desc { font-size: 14px; color: var(--text-main); line-height: 1.7; margin-bottom: 25px; }
-    
-    .section-divider-title { 
-      font-weight: 600; font-size: 13.5px; color: var(--primary-pink); 
-      margin-bottom: 16px; border-bottom: 2px dashed var(--border-light); 
-      padding-bottom: 8px; letter-spacing: 0.5px;
-      display: flex; align-items: center; gap: 6px;
-    }
-    
-    /* กล่องรายการระดับที่นั่งและของแถม */
-    .benefit-tier-box {
-      background: #fffcfd; border: 1px solid var(--border-light); border-radius: 16px;
-      padding: 18px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;
-      transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(255, 179, 198, 0.02);
-    }
-    
-    .benefit-tier-box:hover { 
-      border-color: var(--primary-pink); background: #fff8f9;
-      transform: scale(1.01);
-    }
-    
-    .benefit-details { flex: 1; padding-right: 15px; }
-    
-    .tier-badge {
-      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 8px; font-size: 11.5px;
-      font-weight: bold; color: #ff758f; background: var(--soft-pink); margin-bottom: 8px;
-    }
-    
-    .tier-desc { font-size: 13px; color: var(--text-main); line-height: 1.5; }
-    .benefit-item-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--text-sub); }
-    .tier-stock { font-size: 11.5px; color: #a0aec0; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
-    
-    /* ปุ่มจองตั๋วแบบพาสเทลหวานๆ */
-    .buy-btn {
-      background: var(--gradient-pastel); color: #ffffff; border: none; padding: 12px 18px;
-      border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; min-width: 110px; font-family: 'Quicksand', 'Kanit'; gap: 4px;
-      box-shadow: 0 4px 12px rgba(255, 179, 198, 0.2); transition: all 0.2s ease;
-    }
-    
-    .buy-btn:hover:not(:disabled) {
-      transform: translateY(-2px); box-shadow: 0 6px 18px rgba(255, 179, 198, 0.35);
-    }
-    
-    .buy-btn:disabled { 
-      background: #cbd5e1; box-shadow: none; cursor: not-allowed; color: #94a3b8;
-    }
-    
-    .buy-btn .price-text { font-size: 14px; display: flex; align-items: center; gap: 4px; }
-    .buy-btn .action-text { font-size: 11px; font-weight: 500; letter-spacing: 0.5px; }
 
-    /* ประวัติตั๋วคลังส่วนตัว */
-    .ticket-stub {
-      background: #ffffff; border-radius: 16px; border: 1px solid var(--border-light);
-      border-left: 6px solid var(--primary-pink); padding: 18px; display: flex; gap: 18px;
-      align-items: center; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    .merch-card {
+      background: #ffffff !important;
+      border-radius: 16px !important; 
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important; 
+      width: 100% !important;           
+      max-width: 100% !important; 
+      margin: 0 auto !important;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(255, 182, 193, 0.2) !important; 
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .merch-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(255, 182, 193, 0.2) !important;
+    }
+
+    .merch-image-container {
+      width: 100% !important;
+      aspect-ratio: 1 / 1 !important;   
+      background: #fff9fa !important; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 !important; 
+      overflow: hidden; 
+      box-sizing: border-box;
+    }
+
+    .merch-image {
+      width: 100% !important; 
+      height: 100% !important; 
+      object-fit: cover !important;     
+    }
+
+    .merch-info {
+      background: #ffffff;
+      padding: 12px 10px !important;    
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex-grow: 1;
+      box-sizing: border-box;
+    }
+
+    .merch-category {
+      font-size: 0.8rem !important;
+      font-weight: bold;
+      color: #ff6b8b !important;
+      margin-bottom: 4px;
+    }
+
+    .merch-title {
+      font-size: 0.95rem !important; 
+      font-weight: 700;
+      color: #2b2b2b;
+      margin: 0 0 6px 0 !important;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; 
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 36px !important;          
+    }
+
+    .merch-subtitle {
+      font-size: 0.75rem !important;
+      color: #8e8e8e;
+      margin: 0 0 12px 0 !important;
+      width: 100%;
+    }
+
+    .merch-button {
+      width: 100% !important;
+      background: #fff0f2 !important;
+      color: #ff527b !important;
+      border: none !important;
+      border-radius: 10px !important; 
+      padding: 10px 0 !important;       
+      font-size: 0.9rem !important;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    .merch-button:hover:not(:disabled) {
+      background: #ff527b !important;
+      color: #ffffff !important;
+    }
+
+    /* Loading Screen Screen Styles */
+    .shop-loading-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle, #ffffff 60%, #fff0f2 100%);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 9999; font-family: 'Kanit', sans-serif;
+      transition: opacity 0.5s ease;
+    }
+
+    .shop-loading-content {
+      text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+
+    .cookie-spinner-wrapper {
+      width: 90px; height: 90px; background: #ffffff;
+      border: 2px solid #ffb6c1; border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: 0 8px 20px rgba(255, 182, 193, 0.25); margin-bottom: 5px;
+    }
+
+    .shop-loading-icon {
+      font-size: 2rem; color: #ff5376;
+      animation: shop-smooth-spin 3s linear infinite;
+    }
+
+    .shop-loading-sub {
+      font-size: 0.85rem; color: #ffb6c1; font-weight: 500; letter-spacing: 1px;
+    }
+
+    @keyframes shop-smooth-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Floating Bottom Tab Bar */
+    .bottom-tab-bar {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 440px; height: 68px;
+      background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      display: flex; justify-content: space-around; align-items: center;
+      border-radius: 35px; border: 1px solid rgba(255, 204, 213, 0.5);
+      box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15); z-index: 1000;
+      padding: 0 10px; box-sizing: border-box;
+    }
+
+    .tab-item {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      color: #ffb3c1; text-decoration: none; font-size: 0.85rem; font-weight: 600;
+      padding: 10px 14px; border-radius: 25px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-item i { font-size: 1.25rem; }
+    .tab-item span { display: none; }
+
+    .tab-item.active {
+      background-color: #fff0f3; color: #ff85a2;
+    }
+
+    .tab-item.active span {
+      display: inline-block; animation: fadeInText 0.2s ease-in-out;
+    }
+
+    @keyframes fadeInText {
+      from { opacity: 0; transform: translateX(-4px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .loading-text {
+      text-align: center; color: #ffb6c1; padding: 50px 0; font-size: 15px; font-weight: 500;
+    }
+
+    @media (min-width: 768px) {
+      .merch-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+        gap: 20px !important; padding: 20px !important;
+      }
+      .merch-info { padding: 20px !important; }
+      .merch-title { font-size: 1.1rem !important; height: 44px !important; }
     }
     
-    .ticket-stub-img { width: 70px; height: 70px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border-light); }
-    .ticket-stub-details { flex: 1; text-align: left; }
-    .ticket-stub-title { font-size: 15px; font-weight: 600; color: var(--text-main); margin: 0; }
-    .ticket-stub-time { font-size: 12px; color: var(--text-sub); margin-top: 6px; display: flex; align-items: center; gap: 4px; }
-    
-    .loading-text { text-align: center; color: var(--text-sub); padding: 50px 0; font-size: 14.5px; }
-
-    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #fff5f7; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; border: 2px solid #fff5f7; }
+    ::-webkit-scrollbar-thumb:hover { background: #ff85a2; }
   </style>
 </head>
 <body>
 
-  <nav class="navbar">
-    <a href="index.html" class="brand">
-      <i class="fa-solid fa-angle-left"></i> <span>BLM48 Ticket Store</span>
-    </a>
-    <div class="token-display">
-      <i class="fa-solid fa-coins"></i> Balance: <span id="my-tokens">0</span> Tokens
+  <!-- Loading Screen Overlay -->
+  <div id="shop-loading-overlay" class="shop-loading-screen" style="display: flex; opacity: 1;">
+    <div class="shop-loading-content">
+      <div class="cookie-spinner-wrapper">
+        <i class="fa-solid fa-ticket shop-loading-icon"></i> 
+      </div>
+      <div class="shop-loading-title">
+        <h2 style="color: #ff5376; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-ticket"></i> BLM48 TICKET
+        </h2>
+      </div>
+      <div class="shop-loading-sub">LOADING STORE...</div>
     </div>
-  </nav>
+  </div>
 
+  <!-- Top Bar -->
+  <div class="custom-top-bar">
+    <button class="top-bar-back-btn" onclick="window.history.back();" aria-label="ย้อนกลับ">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    
+    <a href="profile.html" class="top-bar-profile-link">
+      <div class="top-bar-user-info">
+        <span id="top-bar-username" class="top-bar-name">Loading...</span>
+        <span id="top-bar-user-role" class="top-bar-role">BLM48 Membership</span>
+      </div>
+      <img id="top-bar-avatar" src="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32" alt="User Profile" class="top-bar-avatar-img">
+    </a>
+  </div>
+
+  <!-- Wallet Bar -->
+  <div class="user-profile-bar" id="shop-wallet-bar">
+    <div class="wallet">
+      <div class="wallet-item">Tokens: -</div>
+      <div class="wallet-item">Cookies: -</div>
+      <div class="wallet-item">GE Tokens: -</div>
+    </div>
+  </div>
+
+  <!-- Sub Tabs สลับหน้าเว็บบนคอนเทนเนอร์หลัก -->
   <div class="toggle-tabs">
     <button class="tab-btn active" onclick="switchTab('shop')">
       <i class="fa-solid fa-ticket"></i> Tickets
     </button>
+    <button class="tab-btn" onclick="switchTab('history')">
+      <i class="fa-solid fa-boxes-stacked"></i> My Inventory
+    </button>
   </div>
 
+  <!-- Main Container -->
   <div class="container">
     <!-- หน้าจำหน่ายบัตร -->
     <div id="shop-section" class="page-section active">
-      <div id="concert-list-container" class="loading-text">
-        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+      <div id="concert-list-container">
+        <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading tickets...</div>
+      </div>
+    </div>
+
+    <!-- หน้าคลังตั๋วส่วนตัว -->
+    <div id="history-section" class="page-section" style="display: none;">
+      <div id="my-tickets-container">
+        <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading inventory...</div>
       </div>
     </div>
   </div>
 
-<script>
-  const scriptURL = window.scriptURL || 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-  const sessionData = JSON.parse(localStorage.getItem('bnl_session')) || null;
-  const user = sessionData ? sessionData.data : null;
+  <!-- Floating Bottom Tab Bar -->
+  <div class="bottom-tab-bar">
+    <a href="index.html" class="tab-item">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="kami.html" class="tab-item">
+      <i class="fa-solid fa-star"></i>
+      <span>My Oshi</span>
+    </a>
+    <a href="shop.html" class="tab-item active">
+      <i class="fa-solid fa-bag-shopping"></i>
+      <span>Shop</span>
+    </a>
+    <a href="notification.html" class="tab-item">
+      <div style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-bell"></i>
+        <span id="global-noti-badge" style="display: none; position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ff4d6d; border-radius: 50%; border: 1px solid white;"></span>
+      </div>
+      <span>Notification</span>
+    </a>
+    <a href="profile.html" class="tab-item">
+      <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
+      <span>Profile</span>
+    </a>
+  </div>
 
-  if (!user) {
-    window.location.href = 'login.html';
-  } else {
-    document.getElementById('my-tokens').innerText = Number(user.token || 0).toLocaleString();
+<script>
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+  let userData = null;
+
+  function initStore() {
+    const session = localStorage.getItem('bnl_session');
+    if (!session) {
+      Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณากลับไปหน้าแรกเพื่อ Login', 'warning').then(() => {
+        window.location.href = 'login.html';
+      });
+      return;
+    }
+    userData = JSON.parse(session).data;
+    
+    updateWalletUI();
+    setupTopBarProfile(); 
+    loadConcertsStore();
+  }
+  
+  function setupTopBarProfile() {
+    if (!userData) return;
+    try {
+      const avatarImg = document.getElementById('top-bar-avatar');
+      const tabProfileImg = document.getElementById('tab-profile-img');
+      const usernameTxt = document.getElementById('top-bar-username');
+      const roleTxt = document.getElementById('top-bar-user-role');
+      
+      if (usernameTxt) usernameTxt.textContent = userData.name || userData.username || 'Guest';
+      if (roleTxt && userData.role) roleTxt.textContent = userData.role;
+      
+      const userPhoto = userData.profile_img || userData.profile;
+      const fallbackPhoto = "https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000";
+      
+      if (avatarImg) avatarImg.src = (userPhoto && userPhoto.trim() !== "") ? userPhoto : fallbackPhoto;
+      if (tabProfileImg) tabProfileImg.src = (userPhoto && userPhoto.trim() !== "") ? userPhoto : fallbackPhoto;
+    } catch (error) {
+      console.error("ไม่สามารถโหลดข้อมูลโปรไฟล์สำหรับ Top Bar ได้:", error);
+    }
+  }
+
+  function updateWalletUI() {
+    const walletBar = document.getElementById('shop-wallet-bar');
+    if (!userData || !walletBar) return;
+    
+    walletBar.innerHTML = `
+      <div class="wallet">
+        <div class="wallet-item">
+          <span style="font-size: 10px; color: #888; display: block;">Tokens</span>
+          <i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(userData.token || 0).toLocaleString()}
+        </div>
+        <div class="wallet-item">
+          <span style="font-size: 10px; color: #888; display: block;">Cookies</span>
+          <i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> ${Number(userData.cookie || 0).toLocaleString()}
+        </div>
+        <div class="wallet-item">
+          <span style="font-size: 10px; color: #888; display: block;">GE Tokens</span>
+          <i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(userData.geToken || 0).toLocaleString()}
+        </div>
+      </div>
+    `;
   }
 
   function switchTab(target) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+    document.querySelectorAll('.page-section').forEach(sec => {
+      sec.classList.remove('active');
+      sec.style.display = 'none';
+    });
     
     if(target === 'shop') {
       document.querySelectorAll('.tab-btn')[0].classList.add('active');
       document.getElementById('shop-section').classList.add('active');
+      document.getElementById('shop-section').style.display = 'block';
       loadConcertsStore();
     } else {
       document.querySelectorAll('.tab-btn')[1].classList.add('active');
       document.getElementById('history-section').classList.add('active');
+      document.getElementById('history-section').style.display = 'block';
       loadMyTicketsHistory();
     }
   }
 
   async function loadConcertsStore() {
+    showAppLoading();
     const container = document.getElementById('concert-list-container');
     try {
       const resp = await fetch(`${scriptURL}?action=getTickets&_=${Date.now()}`);
       const res = await resp.json();
       if(res.status !== "success") { 
-        container.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Error: ${res.message || 'ไม่สามารถเรียกข้อมูลได้'}`; 
+        container.innerHTML = `<div class="loading-text"><i class="fa-solid fa-circle-exclamation"></i> Error: ${res.message || 'ไม่สามารถเรียกข้อมูลได้'}</div>`; 
         return; 
       }
       
@@ -244,45 +547,51 @@
       Object.values(grouped).forEach(event => {
         const info = event.info;
         const eventTitle = info.EventName_TH || info.ConcertName;
-        const eventDesc = info.Description_TH || info.Description;
-        const locationText = info.Location_TH ? `<br><i class="fa-solid fa-location-dot"></i>Location ${info.Location_TH}` : '';
+        const locationText = info.Location_TH ? ` | Location: ${info.Location_TH}` : '';
 
-        let cardHtml = `
-          <div class="concert-card">
-            <img src="${info.PosterURL}" class="poster-img" onerror="this.src='https://via.placeholder.com/600x330'">
-            <div class="concert-info">
-              <div class="concert-title">${eventTitle}</div>
-              <div class="concert-date"><i class="fa-regular fa-calendar-days"></i> Schedule ${info.DateTime}${locationText}</div>
-              <div class="concert-desc">${eventDesc}</div>
-              <div class="section-divider-title"><i class="fa-solid fa-list-check"></i> Select Tier & Benefits</div>
+        let eventSectionHtml = `
+          <h2 class="section-title">
+            ${eventTitle}
+            <span style="font-size: 11px; font-weight: normal; color: #888; display: block; margin-top: 4px;">
+              <i class="fa-regular fa-calendar-days"></i> ${info.DateTime}${locationText}
+            </span>
+          </h2>
+          <div class="merch-grid">
         `;
 
         event.Tiers.forEach(t => {
           const isAvailable = Number(t.Stock) > 0;
           const benefitText = t.Benefits_TH || t.BenefitDetails;
           
-          cardHtml += `
-            <div class="benefit-tier-box">
-              <div class="benefit-details">
-                <span class="tier-badge"><i class="fa-solid fa-award"></i> ${t.BenefitTier || t.TierName}</span>
-                <div class="tier-desc">
-                  <div class="benefit-item-row"><i class="fa-solid fa-circle-check" style="color:var(--primary-pink)"></i> ${benefitText}</div>
-                </div>
-                <div class="tier-stock"><i class="fa-solid fa-boxes-stacked"></i> Stock ${t.Stock} ที่นั่ง</div>
+          eventSectionHtml += `
+            <div class="merch-card">
+              <div class="merch-image-container">
+                <img src="${info.PosterURL}" class="merch-image" onerror="this.src='https://via.placeholder.com/500x500/fff0f2/ff85a2?text=BLM48+Ticket'">
               </div>
-              <button class="buy-btn" ${!isAvailable ? 'disabled' : ''} onclick="triggerBuyTicket('${t.TicketID || t.TierID}', '${t.BenefitTier || t.TierName}', ${t.CostTokens})">
-                <span class="price-text"><i class="fa-solid fa-coins"></i> ${t.CostTokens}</span>
-                <span class="action-text">${isAvailable ? 'Select' : 'Sold Out'}</span>
-              </button>
+              <div class="merch-info">
+                <span class="merch-category">[Ticket Tier]</span>
+                <h3 class="merch-title">${t.BenefitTier || t.TierName}</h3>
+                <p class="merch-subtitle" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 32px; margin-bottom: 6px;">
+                  <i class="fa-solid fa-circle-check" style="color:var(--primary-pink)"></i> ${benefitText}
+                </p>
+                <div style="font-size: 11px; color: #a0aec0; margin-bottom: 10px; font-weight: 600;">
+                  <i class="fa-solid fa-boxes-stacked"></i> คลัง: ${t.Stock} ที่นั่ง
+                </div>
+                <button class="merch-button" ${!isAvailable ? 'disabled' : ''} onclick="triggerBuyTicket('${t.TicketID || t.TierID}', '${t.BenefitTier || t.TierName}', ${t.CostTokens})">
+                  <i class="fas fa-coins"></i> ${t.CostTokens} Tokens
+                </button>
+              </div>
             </div>
           `;
         });
 
-        cardHtml += `</div></div>`;
-        container.innerHTML += cardHtml;
+        eventSectionHtml += `</div>`;
+        container.innerHTML += eventSectionHtml;
       });
     } catch (err) {
-      container.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Network error';
+      container.innerHTML = '<div class="loading-text"><i class="fa-solid fa-triangle-exclamation"></i> Network error</div>';
+    } finally {
+      hideAppLoading();
     }
   }
 
@@ -292,15 +601,15 @@
       html: `คุณต้องการใช้ Tokens จำนวน <strong>${cost} Tokens</strong> เพื่อจองบัตรระดับ <strong>${tier}</strong> ใช่หรือไม่?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#ffb3c6',
+      confirmButtonColor: '#ff85a2',
       cancelButtonColor: '#95a5a6',
       confirmButtonText: 'Confirm',
       cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.showLoading();
+        Swal.fire({ title: 'กำลังซื้อบัตร...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         try {
-          const response = await fetch(`${scriptURL}?action=buyTicket&username=${encodeURIComponent(user.username)}&ticketId=${encodeURIComponent(ticketId)}&benefitTier=${encodeURIComponent(tier)}`);
+          const response = await fetch(`${scriptURL}?action=buyTicket&username=${encodeURIComponent(userData.username)}&ticketId=${encodeURIComponent(ticketId)}&benefitTier=${encodeURIComponent(tier)}`);
           const res = await response.json();
           
           if(res.status === "success") {
@@ -308,11 +617,11 @@
               title: 'Success',
               text: 'ระบบได้นำส่งเอกสารสิทธิ์และสิทธิประโยชน์เข้าสู่คลังส่วนตัวเรียบร้อยแล้วค่ะ',
               icon: 'success',
-              confirmButtonColor: '#ffb3c6'
+              confirmButtonColor: '#ff85a2'
             }).then(() => {
-              user.token = Number(user.token) - cost;
+              userData.token = Number(userData.token) - cost;
               const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
-              sessionUpdate.data.token = user.token;
+              sessionUpdate.data.token = userData.token;
               localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
               window.location.reload();
             });
@@ -328,58 +637,86 @@
 
   async function loadMyTicketsHistory() {
     const container = document.getElementById('my-tickets-container');
-    if (!user || !user.username) {
-      container.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ไม่พบข้อมูลผู้ใช้งาน กรุณาล็อกอินใหม่';
+    if (!userData || !userData.username) {
+      container.innerHTML = '<div class="loading-text"><i class="fa-solid fa-circle-exclamation"></i> ไม่พบข้อมูลผู้ใช้งาน กรุณาล็อกอินใหม่</div>';
       return;
     }
     
     try {
-      container.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading Inventory...';
+      container.innerHTML = '<div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading Inventory...</div>';
       
-      // ส่ง Request ไปเรียก action=getInventory พร้อมระบุ username
-      const resp = await fetch(`${scriptURL}?action=getInventory&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
+      const resp = await fetch(`${scriptURL}?action=getInventory&username=${encodeURIComponent(userData.username)}&_=${Date.now()}`);
       const res = await resp.json();
       
       if (res.status !== "success") {
-        container.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${res.message || 'ไม่สามารถดึงข้อมูลคลังตั๋วได้'}`;
+        container.innerHTML = `<div class="loading-text"><i class="fa-solid fa-circle-exclamation"></i> ${res.message || 'ไม่สามารถดึงข้อมูลคลังตั๋วได้'}</div>`;
         return;
       }
       
       if (!res.data || res.data.length === 0) {
-        container.innerHTML = '<i class="fa-solid fa-folder-open"></i> No Data Found';
+        container.innerHTML = '<div class="loading-text"><i class="fa-solid fa-folder-open"></i> ไม่พบประวัติการถือครองตั๋วในคลัง</div>';
         return;
       }
       
-      container.innerHTML = ''; // เคลียร์ข้อความ Loading
+      let historyHtml = '<h2 class="section-title">My Purchased Tickets</h2><div class="merch-grid">';
       
-      // วนลูปสร้างการ์ดตั๋วในคลัง
       res.data.forEach(ticket => {
-        // แปลงรูปแบบวันที่ให้ละมุนอ่านง่ายขึ้น
         const formattedDate = new Date(ticket.Timestamp).toLocaleDateString('th-TH', {
           year: 'numeric', month: 'short', day: 'numeric',
           hour: '2-digit', minute: '2-digit'
         });
 
-        container.innerHTML += `
-          <div class="ticket-stub">
-            <img src="${ticket.ImageURL || 'https://via.placeholder.com/70'}" class="ticket-stub-img" onerror="this.src='https://via.placeholder.com/70'">
-            <div class="ticket-stub-details">
-              <div class="ticket-stub-title" style="font-weight: 600; color: var(--text-main);">${ticket.ItemName}</div>
-              <div class="ticket-stub-time" style="font-size: 12px; color: var(--text-sub); margin-top: 6px;">
-                <i class="fa-regular fa-clock"></i> ได้รับเมื่อ ${formattedDate} น.
-              </div>
+        historyHtml += `
+          <div class="merch-card">
+            <div class="merch-image-container">
+              <img src="${ticket.ImageURL || 'https://via.placeholder.com/500x500/fff0f2/ff85a2?text=Ticket'}" class="merch-image" onerror="this.src='https://via.placeholder.com/500x500/fff0f2/ff85a2?text=Ticket'">
+            </div>
+            <div class="merch-info">
+              <span class="merch-category" style="color:#4dabf7;">[Owned]</span>
+              <h3 class="merch-title" style="font-size:0.9rem; -webkit-line-clamp: 3;">${ticket.ItemName}</h3>
+              <p class="merch-subtitle" style="font-size:11px; color:#a0aec0; margin-top:5px;">
+                <i class="fa-regular fa-clock"></i> ได้รับเมื่อ<br>${formattedDate} น.
+              </p>
             </div>
           </div>
         `;
       });
       
+      historyHtml += '</div>';
+      container.innerHTML = historyHtml;
+      
     } catch (err) {
-      container.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Network error / เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
+      container.innerHTML = '<div class="loading-text"><i class="fa-solid fa-triangle-exclamation"></i> Network error / เกิดข้อผิดพลาดในการเชื่อมต่อ</div>';
     }
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    loadConcertsStore();
+  function showAppLoading() {
+    const loader = document.getElementById('shop-loading-overlay');
+    if (loader) {
+      loader.style.display = 'flex';
+      setTimeout(() => { loader.style.opacity = '1'; }, 10);
+    }
+  }
+
+  function hideAppLoading() {
+    const loader = document.getElementById('shop-loading-overlay');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => { loader.style.display = 'none'; }, 500);
+    }
+  }
+
+  function checkNotificationBadge() {
+    const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
+    const badgeElement = document.getElementById("global-noti-badge");
+    if (badgeElement) {
+      badgeElement.style.display = (hasNewNoti === "true") ? "block" : "none";
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    initStore();
+    checkNotificationBadge();
   });
 </script>
 </body>
