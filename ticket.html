@@ -6,7 +6,7 @@
   <title>BLM48 Official Ticket Store</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <meta name="theme-color" content="#ffc0cb">
-  
+    
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
   <link icon sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
   
@@ -309,7 +309,8 @@
   </div>
 
   <div class="custom-top-bar">
-    <button class="top-bar-back-btn" onclick="window.history.back();" aria-label="ย้อนกลับ">
+    <!-- ปรับปรุงฟังก์ชันการย้อนกลับให้เป็นระบบอัจฉริยะก้าวหน้า -->
+    <button class="top-bar-back-btn" onclick="goBack();" aria-label="ย้อนกลับ">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="19" y1="12" x2="5" y2="12"></line>
         <polyline points="12 19 5 12 12 5"></polyline>
@@ -335,7 +336,7 @@
 
   <div class="container">
     <div id="shop-section" class="page-section active">
-      <h2 class="section-title">คอนเสิร์ตและอีเวนต์ทั้งหมด</h2>
+      <h2 class="section-title">คอนเสิร์ตและอีเวนต์ทั้งหมด <span id="sync-status" style="font-size: 11px; font-weight: normal; color: #ffb6c1; margin-left: 8px; display: none;"><i class="fa-solid fa-rotate fa-spin"></i> กำลังอัปเดตข้อมูล...</span></h2>
       <div id="concert-list-container">
         <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading tickets...</div>
       </div>
@@ -345,8 +346,16 @@
 <script>
   const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
   let userData = null;
-  // อาร์เรย์สำหรับเก็บชุดข้อมูล Tiers ของแต่ละคอนเสิร์ตชั่วคราวบนหน้าเว็บ
   window.concertStoreData = [];
+
+  // ฟังก์ชันย้อนกลับอัจฉริยะ ตรวจสอบประวัติเบราว์เซอร์
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'index.html'; // ลิงก์ปลายทางกรณีไม่มีประวัติย้อนกลับ
+    }
+  }
 
   function initStore() {
     const session = localStorage.getItem('bnl_session');
@@ -404,86 +413,123 @@
     `;
   }
 
+  // ปรับแต่งระบบการเรนเดอร์และดึงข้อมูลแคชแบบ Real-time
   async function loadConcertsStore() {
-    showAppLoading();
     const container = document.getElementById('concert-list-container');
+    const syncStatus = document.getElementById('sync-status');
+    const cacheKey = 'blm48_tickets_cache';
+    const cachedData = localStorage.getItem(cacheKey);
+
+    // ขั้นตอนที่ 1: ดึงแคชเก่ามาแสดงผลก่อนทันที (ถ้าเคยเข้ามาแล้ว)
+    if (cachedData) {
+      try {
+        const cachedResult = JSON.parse(cachedData);
+        if (cachedResult && cachedResult.data) {
+          renderConcertsGrid(cachedResult.data);
+          hideAppLoading(); // ปิดหน้าจอโหลดใหญ่ทันทีเพราะผู้ใช้เห็นข้อมูลแล้ว
+          if (syncStatus) syncStatus.style.display = 'inline'; // แสดงปุ่มกำลัง sync ลับๆ
+        }
+      } catch (e) {
+        console.error("เกิดข้อผิดพลาดในการอ่านข้อมูลแคช:", e);
+        showAppLoading();
+      }
+    } else {
+      showAppLoading(); // ถ้าไม่เคยเข้ามาเลย ให้เปิด Loading บังหน้าจอไว้ปกติ
+    }
+
+    // ขั้นตอนที่ 2: สั่ง fetch ดึงข้อมูลสดจาก Server แอบคุยลับๆ ข้างหลัง
     try {
       const resp = await fetch(`${scriptURL}?action=getTickets&_=${Date.now()}`);
       const res = await resp.json();
-      if(res.status !== "success") { 
-        container.innerHTML = `<div class="loading-text"><i class="fa-solid fa-circle-exclamation"></i> Error: ${res.message || 'ไม่สามารถเรียกข้อมูลได้'}</div>`; 
-        return; 
-      }
       
-      // จัดกลุ่มข้อมูลหลังบ้านแยกตามชื่อคอนเสิร์ต
-      const grouped = {};
-      res.data.forEach(item => {
-        const key = item.EventName_TH || item.ConcertName;
-        if(!grouped[key]) grouped[key] = { info: item, Tiers: [] };
-        grouped[key].Tiers.push(item);
-      });
-
-      container.innerHTML = '<div class="merch-grid"></div>';
-      const grid = container.querySelector('.merch-grid');
-      window.concertStoreData = [];
-
-      // วนลูปสร้างการ์ดคอนเสิร์ต (1 คอนเสิร์ตต่อ 1 การ์ด)
-      Object.values(grouped).forEach((event, index) => {
-        window.concertStoreData[index] = event.Tiers; // เก็บข้อมูลชุด Tiers ของคอนเสิร์ตนี้ลงตัวแปร Global index
-        const info = event.info;
-        const eventTitle = info.EventName_TH || info.ConcertName;
-        const locationText = info.Location_TH ? ` | <i class="fa-solid fa-location-dot"></i> ${info.Location_TH}` : '';
+      if(res.status === "success") {
+        const newDataString = JSON.stringify(res);
         
-        // ดึงข้อมูลแถวแรกสุดขึ้นมาเป็นค่าเริ่มต้นตอนโหลดหน้าเว็บบางส่วน
-        const defaultTier = event.Tiers[0];
-        const isAvailable = Number(defaultTier.Stock) > 0;
-        const benefitText = defaultTier.Benefits_TH || defaultTier.BenefitDetails;
-
-        let cardHtml = `
-          <div class="merch-card" data-concert-index="${index}">
-            <div class="merch-image-container">
-              <img src="${info.PosterURL}" class="merch-image" onerror="this.src='https://via.placeholder.com/500x500/fff0f2/ff85a2?text=BLM48+Ticket'">
-            </div>
-            <div class="merch-info" style="align-items: flex-start; text-align: left; padding: 14px 12px !important;">
-              <span class="merch-category" style="font-size: 11px !important;">[ CONCERT & EVENT ]</span>
-              <h3 class="merch-title" style="height: auto; -webkit-line-clamp: unset; text-align: left; margin-bottom: 4px; width: 100%; font-size: 1rem; line-height: 1.3;">${eventTitle}</h3>
-              
-              <p style="font-size: 11px; color: #718096; margin: 0 0 12px 0; line-height: 1.4; width: 100%;">
-                <i class="fa-regular fa-calendar-days"></i> ${info.DateTime}${locationText}
-              </p>
-              
-              <div style="width: 100%; margin-bottom: 10px;">
-                <label style="font-size: 11px; font-weight: 600; color: #ff6b8b; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">เลือกประเภทบัตร / โซนที่นั่ง</label>
-                <select class="tier-select" onchange="updateTierDetails(this, ${index})" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ffe4e8; font-family: 'Kanit', sans-serif; font-size: 13px; color: #4a4a4a; background: #fffcfd; cursor: pointer; outline: none;">
-                  ${event.Tiers.map((t, tIdx) => `<option value="${tIdx}">${t.BenefitTier || t.TierName} (${Number(t.CostTokens).toLocaleString()} Tokens)</option>`).join('')}
-                </select>
-              </div>
-
-              <div class="tier-details-container" style="width: 100%; background: #fff5f7; padding: 10px; border-radius: 10px; margin-bottom: 14px; box-sizing: border-box; border: 1px dashed #ffccd5; min-height: 72px; display: flex; flex-direction: column; justify-content: center;">
-                <p class="benefit-text" style="font-size: 0.78rem; color: #5a5a5a; margin: 0 0 6px 0; line-height: 1.4;">
-                  <i class="fa-solid fa-circle-check" style="color:var(--primary-pink)"></i> <span>${benefitText}</span>
-                </p>
-                <div class="stock-text" style="font-size: 11px; color: #718096; font-weight: 600;">
-                  <i class="fa-solid fa-boxes-stacked"></i> คงเหลือในระบบ: <span style="color: #ff527b; font-weight: 700;">${defaultTier.Stock}</span> ที่นั่ง
-                </div>
-              </div>
-
-              <button class="merch-button buy-btn" ${!isAvailable ? 'disabled' : ''} onclick="triggerBuyTicket('${defaultTier.TicketID || defaultTier.TierID}', '${defaultTier.BenefitTier || defaultTier.TierName}', ${defaultTier.CostTokens})" style="margin-top: auto;">
-                <i class="fas fa-coins"></i> <span>ซื้อบัตร • ${Number(defaultTier.CostTokens).toLocaleString()} Tokens</span>
-              </button>
-            </div>
-          </div>
-        `;
-        grid.innerHTML += cardHtml;
-      });
+        // ขั้นตอนที่ 3: ถ้าข้อมูลใน Google Sheets เปลี่ยนไปจากเดิม ให้เขียน UI ทับทันที!
+        if (newDataString !== cachedData) {
+          localStorage.setItem(cacheKey, newDataString);
+          renderConcertsGrid(res.data);
+        }
+      } else {
+        if (!cachedData) {
+          container.innerHTML = `<div class="loading-text"><i class="fa-solid fa-circle-exclamation"></i> Error: ${res.message || 'ไม่สามารถเรียกข้อมูลได้'}</div>`; 
+        }
+      }
     } catch (err) {
-      container.innerHTML = '<div class="loading-text"><i class="fa-solid fa-triangle-exclamation"></i> Network error</div>';
+      console.error("Network Fetch Error:", err);
+      if (!cachedData) {
+        container.innerHTML = '<div class="loading-text"><i class="fa-solid fa-triangle-exclamation"></i> Network error</div>';
+      }
     } finally {
       hideAppLoading();
+      if (syncStatus) syncStatus.style.display = 'none'; // ซ่อนสถานะ sync ข้างหลัง
     }
   }
 
-  // ฟังก์ชันสลับการแสดงผลข้อมูลแบบ Real-time เมื่อเลือก Dropdown เปลี่ยนอัน
+  // แยกฟังก์ชันการประกอบโครงสร้างการ์ดคอนเสิร์ตออกมาเพื่อให้เรียกใช้ซ้ำได้ทันที
+  function renderConcertsGrid(data) {
+    const container = document.getElementById('concert-list-container');
+    const grouped = {};
+    
+    data.forEach(item => {
+      const key = item.EventName_TH || item.ConcertName;
+      if(!grouped[key]) grouped[key] = { info: item, Tiers: [] };
+      grouped[key].Tiers.push(item);
+    });
+
+    container.innerHTML = '<div class="merch-grid"></div>';
+    const grid = container.querySelector('.merch-grid');
+    window.concertStoreData = [];
+
+    Object.values(grouped).forEach((event, index) => {
+      window.concertStoreData[index] = event.Tiers;
+      const info = event.info;
+      const eventTitle = info.EventName_TH || info.ConcertName;
+      const locationText = info.Location_TH ? ` | <i class="fa-solid fa-location-dot"></i> ${info.Location_TH}` : '';
+      
+      const defaultTier = event.Tiers[0];
+      const isAvailable = Number(defaultTier.Stock) > 0;
+      const benefitText = defaultTier.Benefits_TH || defaultTier.BenefitDetails;
+
+      let cardHtml = `
+        <div class="merch-card" data-concert-index="${index}">
+          <div class="merch-image-container">
+            <img src="${info.PosterURL}" class="merch-image" onerror="this.src='https://via.placeholder.com/500x500/fff0f2/ff85a2?text=BLM48+Ticket'">
+          </div>
+          <div class="merch-info" style="align-items: flex-start; text-align: left; padding: 14px 12px !important;">
+            <span class="merch-category" style="font-size: 11px !important;">[ CONCERT & EVENT ]</span>
+            <h3 class="merch-title" style="height: auto; -webkit-line-clamp: unset; text-align: left; margin-bottom: 4px; width: 100%; font-size: 1rem; line-height: 1.3;">${eventTitle}</h3>
+            
+            <p style="font-size: 11px; color: #718096; margin: 0 0 12px 0; line-height: 1.4; width: 100%;">
+              <i class="fa-regular fa-calendar-days"></i> ${info.DateTime}${locationText}
+            </p>
+            
+            <div style="width: 100%; margin-bottom: 10px;">
+              <label style="font-size: 11px; font-weight: 600; color: #ff6b8b; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">เลือกประเภทบัตร / โซนที่นั่ง</label>
+              <select class="tier-select" onchange="updateTierDetails(this, ${index})" style="width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ffe4e8; font-family: 'Kanit', sans-serif; font-size: 13px; color: #4a4a4a; background: #fffcfd; cursor: pointer; outline: none;">
+                ${event.Tiers.map((t, tIdx) => `<option value="${tIdx}">${t.BenefitTier || t.TierName} (${Number(t.CostTokens).toLocaleString()} Tokens)</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="tier-details-container" style="width: 100%; background: #fff5f7; padding: 10px; border-radius: 10px; margin-bottom: 14px; box-sizing: border-box; border: 1px dashed #ffccd5; min-height: 72px; display: flex; flex-direction: column; justify-content: center;">
+              <p class="benefit-text" style="font-size: 0.78rem; color: #5a5a5a; margin: 0 0 6px 0; line-height: 1.4;">
+                <i class="fa-solid fa-circle-check" style="color:var(--primary-pink)"></i> <span>${benefitText}</span>
+              </p>
+              <div class="stock-text" style="font-size: 11px; color: #718096; font-weight: 600;">
+                <i class="fa-solid fa-boxes-stacked"></i> คงเหลือในระบบ: <span style="color: #ff527b; font-weight: 700;">${defaultTier.Stock}</span> ที่นั่ง
+              </div>
+            </div>
+
+            <button class="merch-button buy-btn" ${!isAvailable ? 'disabled' : ''} onclick="triggerBuyTicket('${defaultTier.TicketID || defaultTier.TierID}', '${defaultTier.BenefitTier || defaultTier.TierName}', ${defaultTier.CostTokens})" style="margin-top: auto;">
+              <i class="fas fa-coins"></i> <span>ซื้อบัตร • ${Number(defaultTier.CostTokens).toLocaleString()} Tokens</span>
+            </button>
+          </div>
+        </div>
+      `;
+      grid.innerHTML += cardHtml;
+    });
+  }
+
   function updateTierDetails(selectElement, concertIndex) {
     const tierIndex = selectElement.value;
     const tierData = window.concertStoreData[concertIndex][tierIndex];
@@ -491,19 +537,14 @@
     
     if (!tierData || !card) return;
     
-    // 1. อัปเดตข้อความ Benefit สิทธิประโยชน์
     const benefitText = tierData.Benefits_TH || tierData.BenefitDetails;
     card.querySelector('.benefit-text span').textContent = benefitText;
-    
-    // 2. อัปเดตจำนวนที่นั่งคงเหลือในคลัง
     card.querySelector('.stock-text span').textContent = tierData.Stock;
     
-    // 3. จัดการปุ่มซื้อ (เปิด/ปิดปุ่มเมื่อตั๋วหมด)
     const buyBtn = card.querySelector('.buy-btn');
     const isAvailable = Number(tierData.Stock) > 0;
     buyBtn.disabled = !isAvailable;
     
-    // 4. ผูกฟังก์ชันซื้อตัวใหม่ให้ส่งค่าตัวแปร ID และยอดราคาที่อัปเดตไปหลังบ้าน
     buyBtn.setAttribute('onclick', `triggerBuyTicket('${tierData.TicketID || tierData.TierID}', '${tierData.BenefitTier || tierData.TierName}', ${tierData.CostTokens})`);
     buyBtn.querySelector('span').textContent = `ซื้อบัตร • ${Number(tierData.CostTokens).toLocaleString()} Tokens`;
   }
@@ -536,6 +577,9 @@
               const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
               sessionUpdate.data.token = userData.token;
               localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
+              
+              // เคลียร์แคชตั๋วเพื่อให้ตอนรีโหลด บังคับดึงข้อมูล Stock ใหม่ล่าสุดร้อยเปอร์เซ็นต์
+              localStorage.removeItem('blm48_tickets_cache');
               window.location.reload();
             });
           } else {
