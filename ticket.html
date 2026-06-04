@@ -175,7 +175,7 @@
 
   <nav class="navbar">
     <a href="index.html" class="brand">
-      <i class="fa-solid fa-angle-left"></i> <span>BLM48 Ticket Store / ระบบจำหน่ายบัตร</span>
+      <i class="fa-solid fa-angle-left"></i> <span>BLM48 Ticket Store</span>
     </a>
     <div class="token-display">
       <i class="fa-solid fa-coins"></i> Balance: <span id="my-tokens">0</span> Tokens
@@ -184,10 +184,7 @@
 
   <div class="toggle-tabs">
     <button class="tab-btn active" onclick="switchTab('shop')">
-      <i class="fa-solid fa-ticket"></i> Tickets / จองบัตรคอนเสิร์ต
-    </button>
-    <button class="tab-btn" onclick="switchTab('history')">
-      <i class="fa-solid fa-box-archive"></i> Inventory / คลังตั๋วของฉัน
+      <i class="fa-solid fa-ticket"></i> Tickets
     </button>
   </div>
 
@@ -195,14 +192,7 @@
     <!-- หน้าจำหน่ายบัตร -->
     <div id="shop-section" class="page-section active">
       <div id="concert-list-container" class="loading-text">
-        <i class="fa-solid fa-spinner fa-spin"></i> Loading Data / กำลังโหลดข้อมูลกิจกรรม...
-      </div>
-    </div>
-
-    <!-- หน้าประวัติการซื้อบัตร -->
-    <div id="history-section" class="page-section">
-      <div id="my-tickets-container" class="loading-text">
-        <i class="fa-solid fa-folder-open"></i> No Data Found / ไม่พบประวัติการสำรองบัตรในระบบคลัง
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
       </div>
     </div>
   </div>
@@ -255,16 +245,16 @@
         const info = event.info;
         const eventTitle = info.EventName_TH || info.ConcertName;
         const eventDesc = info.Description_TH || info.Description;
-        const locationText = info.Location_TH ? `<br><i class="fa-solid fa-location-dot"></i> Venue / สถานที่: ${info.Location_TH}` : '';
+        const locationText = info.Location_TH ? `<br><i class="fa-solid fa-location-dot"></i>Location ${info.Location_TH}` : '';
 
         let cardHtml = `
           <div class="concert-card">
             <img src="${info.PosterURL}" class="poster-img" onerror="this.src='https://via.placeholder.com/600x330'">
             <div class="concert-info">
               <div class="concert-title">${eventTitle}</div>
-              <div class="concert-date"><i class="fa-regular fa-calendar-days"></i> Schedule / วันเวลาแสดง: ${info.DateTime}${locationText}</div>
+              <div class="concert-date"><i class="fa-regular fa-calendar-days"></i> Schedule ${info.DateTime}${locationText}</div>
               <div class="concert-desc">${eventDesc}</div>
-              <div class="section-divider-title"><i class="fa-solid fa-list-check"></i> Select Tier & Benefits / เลือกระดับที่นั่งและสิทธิประโยชน์</div>
+              <div class="section-divider-title"><i class="fa-solid fa-list-check"></i> Select Tier & Benefits</div>
         `;
 
         event.Tiers.forEach(t => {
@@ -278,11 +268,11 @@
                 <div class="tier-desc">
                   <div class="benefit-item-row"><i class="fa-solid fa-circle-check" style="color:var(--primary-pink)"></i> ${benefitText}</div>
                 </div>
-                <div class="tier-stock"><i class="fa-solid fa-boxes-stacked"></i> Stock / คงเหลือ: ${t.Stock} ที่นั่ง</div>
+                <div class="tier-stock"><i class="fa-solid fa-boxes-stacked"></i> Stock ${t.Stock} ที่นั่ง</div>
               </div>
               <button class="buy-btn" ${!isAvailable ? 'disabled' : ''} onclick="triggerBuyTicket('${t.TicketID || t.TierID}', '${t.BenefitTier || t.TierName}', ${t.CostTokens})">
                 <span class="price-text"><i class="fa-solid fa-coins"></i> ${t.CostTokens}</span>
-                <span class="action-text">${isAvailable ? 'Select / เลือกซื้อ' : 'Sold Out / หมด'}</span>
+                <span class="action-text">${isAvailable ? 'Select' : 'Sold Out'}</span>
               </button>
             </div>
           `;
@@ -292,20 +282,20 @@
         container.innerHTML += cardHtml;
       });
     } catch (err) {
-      container.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Network error / เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์';
+      container.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Network error';
     }
   }
 
   function triggerBuyTicket(ticketId, tier, cost) {
     Swal.fire({
       title: 'Confirm Ticket Order / ยืนยันการสั่งซื้อ',
-      html: `คุณต้องการใช้คะแนนจำนวน <strong>${cost} Tokens</strong> เพื่อจองบัตรระดับ <strong>${tier}</strong> ใช่หรือไม่?`,
+      html: `คุณต้องการใช้ Tokens จำนวน <strong>${cost} Tokens</strong> เพื่อจองบัตรระดับ <strong>${tier}</strong> ใช่หรือไม่?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#ffb3c6',
       cancelButtonColor: '#95a5a6',
-      confirmButtonText: 'Confirm / ยืนยันชำระเงิน',
-      cancelButtonText: 'Cancel / ยกเลิก'
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
         Swal.showLoading();
@@ -315,7 +305,7 @@
           
           if(res.status === "success") {
             Swal.fire({
-              title: 'Success / ทำรายการสำเร็จ',
+              title: 'Success',
               text: 'ระบบได้นำส่งเอกสารสิทธิ์และสิทธิประโยชน์เข้าสู่คลังส่วนตัวเรียบร้อยแล้วค่ะ',
               icon: 'success',
               confirmButtonColor: '#ffb3c6'
@@ -327,10 +317,10 @@
               window.location.reload();
             });
           } else {
-            Swal.fire('Error / ล้มเหลว', res.message, 'error');
+            Swal.fire('Error', res.message, 'error');
           }
         } catch (e) {
-          Swal.fire('Network Error / ข้อผิดพลาดระบบ', 'ไม่สามารถเชื่อมต่อฐานข้อมูล Google Sheets หลังบ้านได้สำเร็จ', 'error');
+          Swal.fire('Network Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูล Google Sheets หลังบ้านได้สำเร็จ', 'error');
         }
       }
     });
@@ -344,7 +334,7 @@
     }
     
     try {
-      container.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading Inventory / กำลังโหลดคลังตั๋วของคุณ...';
+      container.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading Inventory...';
       
       // ส่ง Request ไปเรียก action=getInventory พร้อมระบุ username
       const resp = await fetch(`${scriptURL}?action=getInventory&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
@@ -356,7 +346,7 @@
       }
       
       if (!res.data || res.data.length === 0) {
-        container.innerHTML = '<i class="fa-solid fa-folder-open"></i> No Data Found / ไม่พบประวัติการสำรองบัตรในระบบคลัง';
+        container.innerHTML = '<i class="fa-solid fa-folder-open"></i> No Data Found';
         return;
       }
       
@@ -376,7 +366,7 @@
             <div class="ticket-stub-details">
               <div class="ticket-stub-title" style="font-weight: 600; color: var(--text-main);">${ticket.ItemName}</div>
               <div class="ticket-stub-time" style="font-size: 12px; color: var(--text-sub); margin-top: 6px;">
-                <i class="fa-regular fa-clock"></i> ได้รับเมื่อ: ${formattedDate} น.
+                <i class="fa-regular fa-clock"></i> ได้รับเมื่อ ${formattedDate} น.
               </div>
             </div>
           </div>
