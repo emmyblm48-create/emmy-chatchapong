@@ -290,6 +290,50 @@
     ::-webkit-scrollbar-track { background: #fff5f7; border-radius: 10px; }
     ::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; border: 2px solid #fff5f7; }
     ::-webkit-scrollbar-thumb:hover { background: #ff85a2; }
+
+    /* จัดการให้โซนขวาเรียงตัวแนวนอนกึ่งกลางเสมอ */
+.top-bar-right-zone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ดีไซน์แถบกระเป๋าเงินแบบมินิแคปซูล */
+.top-bar-wallet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff5f7;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid #ffccd5;
+  box-shadow: inset 0 1px 3px rgba(255, 182, 193, 0.2);
+}
+
+/* ไอเทมเหรียญ/คุกกี้แต่ละประเภทภายในแคปซูล */
+.top-bar-wallet-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #555555;
+}
+
+.top-bar-wallet-item i {
+  font-size: 13px;
+}
+
+/* ซ่อนชื่อบทบาทบนหน้าจอขนาดเล็กมากเพื่อป้องกันปัญหารูปแบบเบียดกัน */
+@media (max-width: 375px) {
+  .top-bar-user-info {
+    display: none;
+  }
+  .top-bar-wallet {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+}
   </style>
 </head>
 <body>
@@ -406,14 +450,20 @@
     const walletBar = document.getElementById('shop-wallet-bar');
     if (!userData || !walletBar) return;
     
-    walletBar.innerHTML = `
-      <div class="wallet">
-        <div class="wallet-item">
-          <span style="font-size: 10px; color: #888; display: block;">Tokens</span>
-          <i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(userData.token || 0).toLocaleString()}
-        </div>
-      </div>
-    `;
+   walletBar.innerHTML = `
+    <div class="top-bar-wallet-item" title="Tokens">
+      <i class="fas fa-coins" style="color: #ffb347;"></i>
+      <span>${Number(userData.token || 0).toLocaleString()}</span>
+    </div>
+    <div class="top-bar-wallet-item" title="Cookies">
+      <i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i>
+      <span>${Number(userData.cookie || 0).toLocaleString()}</span>
+    </div>
+    <div class="top-bar-wallet-item" title="GE Tokens">
+      <i class="fas fa-gem" style="color: #4dabf7;"></i>
+      <span>${Number(userData.geToken || 0).toLocaleString()}</span>
+    </div>
+  `;
   }
 
   // ปรับแต่งระบบการเรนเดอร์และดึงข้อมูลแคชแบบ Real-time
