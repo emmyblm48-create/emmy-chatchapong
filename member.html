@@ -474,6 +474,86 @@
         margin-top: 5px;
         display: inline-block;
     }
+  /* 🌸 Dropdown เมนูจัดการโพสต์ (ปุ่ม 3 จุด) */
+.post-menu-container {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 100;
+}
+
+/* ขยับลงมาหลบบนริบบิ้นทองสำหรับโพสต์พิเศษของแชมป์ */
+.champ-special-post .post-menu-container {
+  top: 35px;
+}
+
+.post-menu-btn {
+  background: none;
+  border: none;
+  color: #bbb;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-menu-btn:hover {
+  background: var(--blmem-pink-light);
+  color: var(--blmem-pink);
+}
+
+.post-dropdown-menu {
+  display: none; /* ซ่อนไว้ก่อน */
+  position: absolute;
+  right: 0;
+  top: 32px;
+  background: #ffffff;
+  border: 1px solid #ffe3e8;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(255, 133, 162, 0.1);
+  min-width: 120px;
+  overflow: hidden;
+  animation: fadeInMenu 0.15s ease-out;
+}
+
+@keyframes fadeInMenu {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.post-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.post-dropdown-item:hover {
+  background: var(--blmem-pink-light);
+  color: var(--blmem-pink);
+}
+
+/* สไตล์พิเศษสำหรับปุ่มลบโพสต์ */
+.post-dropdown-item.delete-item {
+  color: #ff5c7c;
+}
+
+.post-dropdown-item.delete-item:hover {
+  background: #fff0f2;
+  color: #ff335c;
+}
 </style>
 </head>
 <body>
@@ -1086,13 +1166,22 @@
   }
 
   // ขยับปุ่มจัดการลงมานิดหน่อยถ้าเป็นโพสต์ของแชมป์ เพื่อไม่ให้ปุ่มทับริบบิ้นทอง
-  const actionMenu = canManage ? `
-    <div style="position: absolute; top: ${isChampPost ? '35px' : '15px'}; right: 15px; display: flex; gap: 10px; z-index: 11;">
-      <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
-      <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
-    </div>
-  ` : '';
-
+ const actionMenu = canManage ? `
+<div class="post-menu-container">
+  <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </button>
+  <div class="post-dropdown-menu" id="dropdown-${postId}">
+    <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
+      <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
+    </button>
+    <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
+      <i class="fa-solid fa-trash"></i> ลบโพสต์
+    </button>
+  </div>
+</div>
+` : '';
+     
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
   return `
@@ -1242,6 +1331,36 @@
         window.isTimelineLoading = false;
       }
     }
+
+  // ฟังก์ชันสำหรับเปิด-ปิดเมนู 3 จุดของโพสต์
+function togglePostMenu(event, postId) {
+  event.stopPropagation(); // หยุดการส่งผ่าน Event ไม่ให้ไปกระตุ้นการคลิกของหน้าจอหลัก
+  
+  const targetMenu = document.getElementById(`dropdown-${postId}`);
+  
+  // 🌸 สั่งปิดเมนูของโพสต์อื่นๆ ที่อาจเปิดค้างไว้ก่อนหน้านี้
+  document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
+    if (menu !== targetMenu) {
+      menu.style.display = 'none';
+    }
+  });
+
+  // สลับสถานะเปิด-ปิดเมนูที่ถูกกด
+  if (targetMenu) {
+    if (targetMenu.style.display === 'block') {
+      targetMenu.style.display = 'none';
+    } else {
+      targetMenu.style.display = 'block';
+    }
+  }
+}
+
+// 🌸 ตรวจจับเมื่อผู้ใช้เอานิ้วไปจิ้มหรือคลิกพื้นที่อื่นนอกเมนู ให้ทำการซ่อนกล่อง Dropdown ทันที
+document.addEventListener('click', function() {
+  document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
+    menu.style.display = 'none';
+  });
+});
   
     async function deletePostUi(postId) {
       const result = await Swal.fire({
