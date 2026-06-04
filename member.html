@@ -1447,6 +1447,79 @@ function deletePostProcess(postId) {
       } else { audio.pause(); icon.className = 'fa-solid fa-play'; icon.style.marginLeft = '2px'; }
     }
 
+  // 1. ฟังก์ชันสำหรับเปิด Modal และดึงข้อความเดิมมาใส่ใน textarea
+function openEditModal(postId, currentText) {
+  document.getElementById('edit-post-id').value = postId;
+  document.getElementById('edit-post-text').value = currentText;
+  
+  const modal = document.getElementById('edit-post-modal');
+  if (modal) {
+    modal.style.display = 'flex'; // แสดง Modal ขึ้นมา
+  }
+}
+
+// 2. ฟังก์ชันสำหรับปิด Modal
+function closeEditModal() {
+  const modal = document.getElementById('edit-post-modal');
+  if (modal) {
+    modal.style.display = 'none'; // ซ่อน Modal
+  }
+}
+
+// 3. ฟังก์ชันสำหรับส่งข้อมูลการแก้ไขไปบันทึกที่หลังบ้าน
+async function submitEditPost() {
+  const postId = document.getElementById('edit-post-id').value;
+  const newText = document.getElementById('edit-post-text').value;
+  const btnElement = document.getElementById('btn-save-edit');
+
+  if (!newText.trim()) {
+    Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อความก่อนบันทึกนะงับ', 'warning');
+    return;
+  }
+
+  // เปลี่ยนสถานะปุ่มตอนกำลังโหลด
+  if (btnElement) {
+    btnElement.innerText = "กำลังบันทึก...";
+    btnElement.disabled = true;
+  }
+
+  try {
+    // 💡 ตรงนี้ให้เปลี่ยน URL เป็น API Web App ของ Google Sheets หรือ Endpoint หลังบ้านที่คุณใช้งานอยู่
+    const response = await fetch('YOUR_BACKEND_API_URL', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'editPost', // หรือคำสั่งที่หลังบ้านคุณตั้งไว้
+        postId: postId,
+        text: newText
+      })
+    });
+
+    const res = await response.json();
+
+    if (res.status === 'success' || res.result === 'success') {
+      Swal.fire({
+        title: 'สำเร็จ!',
+        text: 'แก้ไขโพสต์เรียบร้อยแล้วงับ',
+        icon: 'success',
+        confirmButtonColor: '#ff85a2'
+      }).then(() => {
+        window.location.reload(); // รีโหลดหน้าเว็บเพื่ออัปเดตข้อความใหม่
+      });
+    } else {
+      Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถแก้ไขโพสต์ได้', 'error');
+    }
+  } catch (error) {
+    console.error("Edit post error:", error);
+    Swal.fire('Network Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้สำเร็จ', 'error');
+  } finally {
+    // คืนค่าสถานะปุ่ม
+    if (btnElement) {
+      btnElement.innerText = "บันทึก";
+      btnElement.disabled = false;
+    }
+  }
+}
+
     function seekBlmAudio(event, postId) {
       const audio = document.getElementById(`audio-player-${postId}`);
       const container = document.getElementById(`audio-progress-container-${postId}`);
@@ -1653,7 +1726,7 @@ function deletePostProcess(postId) {
   <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
 </div>
 
-  <div id="edit-post-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+<div id="edit-post-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
   <div style="background: white; width: 100%; max-width: 500px; border-radius: 16px; padding: 20px; box-sizing: border-box; position: relative; animation: slideUp 0.3s ease-out;">
     <h3 style="margin-top: 0; margin-bottom: 15px; color: #333; font-size: 18px; text-align: center; font-weight: 600;">แก้ไขโพสต์</h3>
     <span onclick="closeEditModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; color: #aaa; cursor: pointer; font-weight: bold;">&times;</span>
@@ -1662,8 +1735,8 @@ function deletePostProcess(postId) {
     <textarea id="edit-post-text" style="width: 100%; height: 120px; border: 1px solid #ddd; border-radius: 12px; padding: 12px; box-sizing: border-box; font-family: inherit; font-size: 15px; resize: none; outline: none; margin-bottom: 15px;" placeholder="พิมพ์ข้อความใหม่ที่นี่..."></textarea>
     
     <div style="display: flex; gap: 10px;">
-      <button onclick="closeEditModal()" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 25px; background: #f5f5f5; color: #666; font-size: 15px; font-weight: bold; cursor: pointer;">ยกเลิก</button>
-      <button id="save-edit-btn" onclick="submitEditPost()" style="flex: 1; padding: 12px; border: none; border-radius: 25px; background: linear-gradient(135deg, #ff85a2, #ffb3c1); color: white; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3);">บันทึกการแก้ไข</button>
+      <button onclick="closeEditModal()" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 12px; background: #f5f5f5; cursor: pointer;">ยกเลิก</button>
+      <button id="btn-save-edit" onclick="submitEditPost()" style="flex: 1; padding: 12px; border: none; border-radius: 12px; background: #ff85a2; color: white; cursor: pointer; font-weight: bold;">บันทึก</button>
     </div>
   </div>
 </div>
