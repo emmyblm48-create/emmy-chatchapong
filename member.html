@@ -1258,145 +1258,13 @@
       }
     }
 
-  // --- ฟังก์ชันสำหรับการจัดการ Dropdown สามจุด ---
-function toggleActionDropdown(event, postId) {
-  event.stopPropagation();
-  // ซ่อน dropdown อันอื่นก่อน
-  document.querySelectorAll('.action-dropdown').forEach(el => {
-    if (el.id !== 'dropdown-' + postId) el.style.display = 'none';
-  });
-  
-  const dropdown = document.getElementById('dropdown-' + postId);
-  if (dropdown) {
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-  }
-}
-
-// คลิกข้างนอกเพื่อซ่อน Dropdown อัตโนมัติ
-document.addEventListener('click', function() {
-  document.querySelectorAll('.action-dropdown').forEach(el => el.style.display = 'none');
-});
-
-// --- ฟังก์ชันระบบแก้ไขโพสต์ (Edit Post) ---
-function openEditModal(postId, encodedContent) {
-  const content = decodeURIComponent(encodedContent);
-  document.getElementById('edit-post-id').value = postId;
-  document.getElementById('edit-post-text').value = content;
-  document.getElementById('edit-post-modal').style.display = 'flex';
-}
-
-function closeEditModal() {
-  document.getElementById('edit-post-modal').style.display = 'none';
-}
-
-async function submitEditPost() {
-  const postId = document.getElementById('edit-post-id').value;
-  const newText = document.getElementById('edit-post-text').value.trim();
-  const saveBtn = document.getElementById('save-edit-btn');
-  
-  if (!newText) {
-    Swal.fire('คำเตือน', 'กรุณากรอกข้อความคอนเทนต์ที่ต้องการแก้ไขด้วยนะคะ', 'warning');
-    return;
-  }
-  
-  try {
-    saveBtn.innerText = "กำลังบันทึก...";
-    saveBtn.disabled = true;
-    
-    // 1. อัปเดตข้อมูลขึ้นระบบ Google Sheets หลังบ้าน
-    const response = await fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        action: "editPost",
-        postId: postId,
-        content: newText
-      })
-    });
-    
-    // 2. อัปเดตข้อมูลแบบเรียลไทม์บนฐานข้อมูล Firebase
-    if (window.db) {
-      await firebase.database().ref('posts/' + postId).update({
-        Content: newText
-      });
-    }
-    
-    closeEditModal();
-    Swal.fire({
-      title: 'แก้ไขสำเร็จ!',
-      text: 'ปรับปรุงข้อความโพสต์ของเอ็มมี่เรียบร้อยแล้วค่ะ',
-      icon: 'success',
-      confirmButtonColor: '#ff85a2'
-    }).then(() => {
-      window.location.reload(); // รีโหลดเพื่ออัปเดตข้อมูลหน้าเว็บล่าสุด
-    });
-    
-  } catch (error) {
-    console.error("Edit post error:", error);
-    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเพื่อแก้ไขข้อมูลได้ในขณะนี้งับ', 'error');
-  } finally {
-    saveBtn.innerText = "บันทึกการแก้ไข";
-    saveBtn.disabled = false;
-  }
-}
-
-// --- ฟังก์ชันระบบลบโพสต์ (Delete Post) ---
-function deletePostProcess(postId) {
-  Swal.fire({
-    title: 'ยืนยันการลบโพสต์?',
-    text: "หากลบแล้วข้อมูลโพสต์และยอดไลก์จะหายไปจากระบบทันที ไม่สามารถกู้คืนได้นะคะ",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#e03e2d',
-    cancelButtonColor: '#aaa',
-    confirmButtonText: 'ใช่, ฉันต้องการลบ',
-    cancelButtonText: 'ยกเลิก'
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        Swal.fire({ title: 'กำลังลบโพสต์...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-        
-        // 1. ส่งคำสั่งลบไปที่ระบบ Google Sheets หลังบ้าน
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            action: "deletePost",
-            postId: postId
-          })
-        });
-        
-        // 2. ลบNode ข้อมูลโพสต์และคอมเมนต์นั้นออกจาก Firebase Realtime Database
-        if (window.db) {
-          await firebase.database().ref('posts/' + postId).remove();
-          await firebase.database().ref('comments/' + postId).remove();
-        }
-        
-        Swal.fire({
-          title: 'ลบโพสต์เสร็จสิ้น!',
-          text: 'ระบบได้นำโพสต์นี้ออกจากแอปพลิเคชันเรียบร้อยแล้วค่ะ',
-          icon: 'success',
-          confirmButtonColor: '#ff85a2'
-        }).then(() => {
-          window.location.reload();
-        });
-        
-      } catch (error) {
-        console.error("Delete post error:", error);
-        Swal.fire('เกิดข้อผิดพลาด', 'ลบโพสต์ไม่สำเร็จเนื่องจากระบบเครือข่ายขัดข้องงับ', 'error');
-      }
-    }
-  });
-}
-  
 // =========================================================================
 // ⚙️ [1. ฟังก์ชันสำหรับการจัดการ Dropdown สามจุด]
 // =========================================================================
 function toggleActionDropdown(event, postId) {
   event.stopPropagation();
-  // ซ่อน dropdown อันอื่นก่อนเพื่อไม่ให้เปิดซ้อนกัน
+  
+  // ซ่อน dropdown อันอื่นก่อนเพื่อไม่ให้เปิดซ้อนกันหน้าจอพัง
   document.querySelectorAll('.action-dropdown').forEach(el => {
     if (el.id !== 'dropdown-' + postId) el.style.display = 'none';
   });
@@ -1407,17 +1275,17 @@ function toggleActionDropdown(event, postId) {
   }
 }
 
-// คลิกพื้นที่อื่นข้างนอกเพื่อซ่อน Dropdown อัตโนมัติ
+// คลิกพื้นที่อื่นข้างนอกเพื่อซ่อน Dropdown อัตโนมัติ (Aesthetic UI Experience)
 document.addEventListener('click', function() {
   document.querySelectorAll('.action-dropdown').forEach(el => el.style.display = 'none');
 });
 
 
 // =========================================================================
-// ⚙️ [2. ฟังก์ชันระบบแก้ไขโพสต์ (Edit Post) - ใช้รูปแบบ Modal + Google Sheets & Firebase]
+// ⚙️ [2. ฟังก์ชันระบบแก้ไขโพสต์ (Edit Post) - รูปแบบ Modal + Google Sheets & Firebase]
 // =========================================================================
 function openEditModal(postId, encodedContent) {
-  // ซ่อน Dropdown ทันทีเมื่อคลิกเลือกแก้ไข
+  // ซ่อน Dropdown ทันทีเมื่อคลิกเลือกแก้ไขเพื่อความเนียนตา
   const dropdown = document.getElementById('dropdown-' + postId);
   if (dropdown) dropdown.style.display = 'none';
 
@@ -1441,7 +1309,7 @@ async function submitEditPost() {
     return;
   }
   
-  // ดึงเซสชันผู้ใช้เพื่อส่งไปตรวจสอบสิทธิ์หลังบ้าน
+  // ดึงเซสชันผู้ใช้เพื่อส่งไปตรวจสอบสิทธิ์หลังบ้านป้องกันบอทหรือสวมรอย
   const currentUser = getUserSession();
   const userRole = currentUser ? (currentUser.role || "") : "";
   const username = currentUser ? (currentUser.username || "") : "";
@@ -1450,10 +1318,9 @@ async function submitEditPost() {
     saveBtn.innerText = "กำลังบันทึก...";
     saveBtn.disabled = true;
     
-    // 1. อัปเดตข้อมูลขึ้นระบบ Google Sheets หลังบ้าน (ส่งสิทธิ์และชื่อผู้ใช้ไปด้วยเพื่อความปลอดภัย)
+    // 1. อัปเดตข้อมูลขึ้นระบบ Google Sheets หลังบ้าน (ถอด no-cors ออกเพื่อการตรวจสอบสถานะที่ถูกต้อง)
     await fetch(SCRIPT_URL, {
       method: "POST",
-      mode: "no-cors",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         action: "editPost",
@@ -1464,21 +1331,21 @@ async function submitEditPost() {
       })
     });
     
-    // 2. อัปเดตข้อมูลแบบเรียลไทม์บนฐานข้อมูล Firebase
+    // 2. อัปเดตข้อมูลแบบเรียลไทม์บนฐานข้อมูล Firebase ให้แฟนคลับเห็นทันที
     if (window.db) {
       await firebase.database().ref('posts/' + postId).update({
         Content: newText
       });
     }
     
-    closeEditModal();
+    closeEditModal(); // ปิดหน้าต่างเมื่อเซฟข้อมูลทั้งหมดสมบูรณ์เรียบร้อย
     Swal.fire({
       title: 'แก้ไขสำเร็จ!',
-      text: 'ปรับปรุงข้อความโพสต์เรียบร้อยแล้วค่ะ',
+      text: 'ปรับปรุงข้อความโพสต์เรียบร้อยแล้วค่ะ 🌸',
       icon: 'success',
       confirmButtonColor: '#ff85a2'
     }).then(() => {
-      window.location.reload(); // รีโหลดเพื่ออัปเดตข้อมูลหน้าเว็บล่าสุด
+      window.location.reload(); // รีโหลดหน้าจอเพื่อแสดงข้อความใหม่ร้อยเปอร์เซ็นต์
     });
     
   } catch (error) {
@@ -1511,7 +1378,7 @@ function deletePostProcess(postId) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       
-      // ดึงเซสชันผู้ใช้เพื่อส่งไปตรวจสอบสิทธิ์หลังบ้าน
+      // ดึงเซสชันผู้ใช้เพื่อส่งไปตรวจสอบสิทธิ์ป้องกันความปลอดภัยหลังบ้าน
       const currentUser = getUserSession();
       const userRole = currentUser ? (currentUser.role || "") : "";
       const username = currentUser ? (currentUser.username || "") : "";
@@ -1523,10 +1390,9 @@ function deletePostProcess(postId) {
           didOpen: () => { Swal.showLoading(); } 
         });
         
-        // 1. ส่งคำสั่งลบไปที่ระบบ Google Sheets หลังบ้าน (พร้อมข้อมูลสิทธิ์ผู้ใช้)
+        // 1. ส่งคำสั่งลบไปที่ระบบ Google Sheets หลังบ้าน พร้อมชุดข้อมูลสิทธิ์
         await fetch(SCRIPT_URL, {
           method: "POST",
-          mode: "no-cors",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             action: "deletePost",
@@ -1536,11 +1402,10 @@ function deletePostProcess(postId) {
           })
         });
         
-        // 2. ลบ Node ข้อมูลโพสต์และคอมเมนต์ออกจาก Firebase Realtime Database
+        // 2. ลบ Node ข้อมูลโพสต์ คอมเมนต์ และยอดไลก์ ออกจากระบบ Firebase ทั้งหมดเพื่อเคลียร์พื้นที่คลาวด์
         if (window.db) {
           await firebase.database().ref('posts/' + postId).remove();
           await firebase.database().ref('comments/' + postId).remove();
-          // ลบข้อมูลยอดไลก์สะสมของโพสต์นั้นบน Firebase (ถ้ามี)
           await firebase.database().ref('likes/' + postId).remove();
         }
         
@@ -1550,7 +1415,7 @@ function deletePostProcess(postId) {
           icon: 'success',
           confirmButtonColor: '#ff85a2'
         }).then(() => {
-          window.location.reload(); // รีโหลดเพื่อให้หน้าจออัปเดตข้อมูลล่าสุดร้อยเปอร์เซ็นต์
+          window.location.reload(); // รีโหลดหน้าเพื่อรีเซ็ตหน้าแสดงผลไทม์ไลน์ล่าสุด
         });
         
       } catch (error) {
@@ -1560,6 +1425,7 @@ function deletePostProcess(postId) {
     }
   });
 }
+  
     function toggleBlmAudio(postId) {
       const audio = document.getElementById(`audio-player-${postId}`);
       const icon = document.getElementById(`audio-icon-${postId}`);
