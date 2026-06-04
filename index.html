@@ -1271,75 +1271,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
-
-/* =========================================
-   ✨ 3-DOTS DROPDOWN MENU STYLES (สไตล์เมนูจุด 3 จุดสำหรับแก้ไข/ลบโพสต์)
-   ========================================= */
-.post-menu-container {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 10;
-}
-
-.post-menu-btn {
-  background: none;
-  border: none;
-  color: #b0b0b0;
-  cursor: pointer;
-  font-size: 1.2rem;
-  padding: 6px 10px;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-
-.post-menu-btn:hover {
-  background: #fff0f3;
-  color: #ff85a2;
-}
-
-.post-menu-dropdown {
-  display: none;
-  position: absolute;
-  right: 0;
-  top: 35px;
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 4px 15px rgba(255, 133, 162, 0.15);
-  border: 1px solid #ffe4e8;
-  min-width: 120px;
-  overflow: hidden;
-  z-index: 100;
-  animation: fadeInMenu 0.2s ease;
-}
-
-.post-menu-item {
-  padding: 10px 16px;
-  font-size: 13px;
-  color: #555;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: 'Kanit', sans-serif;
-  transition: background 0.2s;
-  text-align: left;
-}
-
-.post-menu-item:hover {
-  background: #fff0f3;
-}
-
-.post-menu-item.delete {
-  color: #ff85a2;
-  border-top: 1px solid #fff0f3;
-}
-
-@keyframes fadeInMenu {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
   </style>
 </head>
 <body>
@@ -2339,20 +2270,10 @@ function renderPost(post) {
     }
   }
 
-  // 🌟 ปรับแต่งจากปุ่มแก้ไข/ลบเดิม ให้เป็นจุด 3 จุดแนวตั้งและเมนู Dropdown
   const actionMenu = canManage ? `
-    <div class="post-menu-container">
-      <button onclick="togglePostMenu(event, '${postId}')" class="post-menu-btn">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
-      </button>
-      <div id="post-dropdown-${postId}" class="post-menu-dropdown">
-        <div onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" class="post-menu-item">
-          <i class="fa-solid fa-pen" style="color: gray;"></i> แก้ไข
-        </div>
-        <div onclick="deletePostUi('${postId}')" class="post-menu-item delete">
-          <i class="fa-solid fa-trash" style="color: #ff85a2;"></i> ลบ
-        </div>
-      </div>
+    <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px;">
+      <button onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')" style="background: none; border: none; color: gray; cursor: pointer;"><i class="fa-solid fa-pen"></i></button>
+      <button onclick="deletePostUi('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer;"><i class="fa-solid fa-trash"></i></button>
     </div>
   ` : '';
 
@@ -2483,45 +2404,681 @@ async function loadTimelinePosts() {
     
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
+    // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ (ไม่มีทั้งแคชและข้อมูลเก่า) ค่อยแสดงข้อความเตือน
     if (!hasExistingPosts) {
-       container.innerHTML = `<div style="text-align: center; padding: 30px; color: gray;">ไม่สามารถโหลดข้อมูลได้ในขณะนี้</div>`;
+      container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: #ff4d4d; font-size: 0.9rem;">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้งน้า 😥</div>`;
     }
   } finally {
-    window.isTimelineLoading = false;
+    window.isTimelineLoading = false; // ปลดล็อกสถานะเสมอ ไม่ว่าจะดึงข้อมูลสำเร็จหรือพัง เพื่อให้กดโหลดรอบถัดไปได้ปกติ
   }
 }
 
-// 🌟 ฟังก์ชันจัดการ เปิด-ปิด Dropdown เมนูจุด 3 จุดแนวตั้งของแต่ละโพสต์
-function togglePostMenu(event, postId) {
-  event.stopPropagation(); // ห้ามไม่ให้ Event บับเบิ้ลกระเด็นไปโดนคลิกของ Card หลัก
+// ฟังก์ชันลบโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
+async function deletePostUi(postId) {
+  const result = await Swal.fire({
+    title: 'ลบโพสต์นี้หรือไม่?',
+    text: "ลบแล้วไม่สามารถกู้คืนได้!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ff85a2',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Delete!'
+  });
+
+  if (result.isConfirmed) {
+    const currentUser = getUserSession();
+    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
+    
+    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL
+    const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      document.getElementById(`post-${postId}`).remove(); // เตะการ์ดออกจากหน้าจอทันที
+      Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อย', 'success');
+    } else {
+      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error');
+    }
+  }
+}
+
+// ฟังก์ชันแก้ไขโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
+async function editPostUi(postId, encodedContent) {
+  const oldContent = decodeURIComponent(encodedContent);
+  const { value: newText } = await Swal.fire({
+    title: 'แก้ไขโพสต์',
+    input: 'textarea',
+    inputValue: oldContent,
+    showCancelButton: true,
+    confirmButtonColor: '#ff85a2',
+    cancelButtonColor: 'gray'
+  });
+
+  if (newText && newText !== oldContent) {
+    const currentUser = getUserSession();
+    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
+    
+    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL พร้อมกับเนื้อหาใหม่
+    const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      document.getElementById(`content-${postId}`).innerText = newText; // เปลี่ยนข้อความบนจอทันที
+      Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
+    } else {
+      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error');
+    }
+  }
+}
+
+  window.checkNotificationBadge = function() {
+  const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
+  // 🎯 แก้ไขชื่อ ID ให้ตรงกับใน HTML ของแท็บเมนูด้านล่าง
+  const badgeElement = document.getElementById("noti-badge");
   
-  // สั่งปิดกล่องจุด 3 จุดอันอื่นที่อาจเปิดค้างอยู่บนหน้าจอทั้งหมดก่อน
-  document.querySelectorAll('.post-menu-dropdown').forEach(dropdown => {
-    if (dropdown.id !== `post-dropdown-${postId}`) {
-      dropdown.style.display = 'none';
+  if (badgeElement) {
+    if (hasNewNoti === "true") {
+      badgeElement.style.display = "block"; // 🔴 แสดงจุดแดง
+    } else {
+      badgeElement.style.display = "none";  // ⚪ ซ่อนจุดแดง
+    }
+  }
+}
+
+// สั่งให้รันเช็กทันทีตอนโหลดหน้าเสร็จ
+document.addEventListener("DOMContentLoaded", window.checkNotificationBadge);
+  
+  // 🌟 ฟังก์ชัน เล่น/หยุด เสียงสไตล์ BLM48
+function toggleBlmAudio(postId) {
+  const audio = document.getElementById(`audio-player-${postId}`);
+  const btn = document.getElementById(`audio-btn-${postId}`);
+  const icon = document.getElementById(`audio-icon-${postId}`);
+  
+  if (!audio) return;
+
+  // หยุดเสียงตัวอื่นที่กำลังเล่นอยู่ก่อน (เผื่อเปิดพร้อมกันหลายเพลง)
+  document.querySelectorAll('audio').forEach(aud => {
+    if (aud.id !== `audio-player-${postId}` && !aud.paused) {
+      aud.pause();
+      const otherId = aud.id.replace('audio-player-', '');
+      const otherIcon = document.getElementById(`audio-icon-${otherId}`);
+      const otherBtn = document.getElementById(`audio-btn-${otherId}`);
+      if (otherIcon) {
+        otherIcon.className = 'fa-solid fa-play';
+        otherIcon.style.marginLeft = '2px';
+      }
     }
   });
-  
-  // สลับการเปิด-ปิดอันที่เราคลิกล่าสุด
-  const targetMenu = document.getElementById(`post-dropdown-${postId}`);
-  if (targetMenu) {
-    if (targetMenu.style.display === 'block') {
-      targetMenu.style.display = 'none';
-    } else {
-      targetMenu.style.display = 'block';
-    }
+
+  if (audio.paused) {
+    audio.play();
+    icon.className = 'fa-solid fa-pause';
+    icon.style.marginLeft = '0px';
+    
+    // ตั้งค่าอัปเดตแถบ Progress และเวลาเมื่อเสียงกำลังเล่น
+    audio.ontimeupdate = () => {
+      const progress = document.getElementById(`audio-progress-${postId}`);
+      const timeLabel = document.getElementById(`audio-time-${postId}`);
+      
+      if (progress) {
+        const percentage = (audio.currentTime / audio.duration) * 100;
+        progress.style.width = `${percentage}%`;
+      }
+      
+      if (timeLabel) {
+        timeLabel.innerText = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration || 0)}`;
+      }
+    };
+    
+    // เมื่อเล่นจบให้รีเซ็ตปุ่มกลับเป็น Play
+    audio.onended = () => {
+      icon.className = 'fa-solid fa-play';
+      icon.style.marginLeft = '2px';
+      const progress = document.getElementById(`audio-progress-${postId}`);
+      if (progress) progress.style.width = '0%';
+    };
+    
+  } else {
+    audio.pause();
+    icon.className = 'fa-solid fa-play';
+    icon.style.marginLeft = '2px';
   }
 }
 
-// สั่งปิด Dropdown ทุกตัวในระบบ เมื่อผู้ใช้นิ้วไปแตะตรงไหนก็ตามบนหน้าจอเว็บ (นอกกล่องเมนู)
-window.addEventListener('click', function(e) {
-  if (!e.target.closest('.post-menu-container')) {
-    document.querySelectorAll('.post-menu-dropdown').forEach(dropdown => {
-      dropdown.style.display = 'none';
+// 🌟 ฟังก์ชันสำหรับกดข้ามเวลาบนแถบ Progress
+function seekBlmAudio(event, postId) {
+  const audio = document.getElementById(`audio-player-${postId}`);
+  const container = document.getElementById(`audio-progress-container-${postId}`);
+  if (!audio || !container) return;
+  
+  const rect = container.getBoundingClientRect();
+  const clickX = event.clientX - rect.left;
+  const width = rect.width;
+  const clickPercentage = clickX / width;
+  
+  audio.currentTime = clickPercentage * audio.duration;
+}
+
+// 🌟 ฟังก์ชันแปลงวินาทีให้เป็นรูปแบบ นาที:วินาที (เช่น 0:45)
+function formatAudioTime(secs) {
+  if (isNaN(secs)) return "0:00";
+  const minutes = Math.floor(secs / 60);
+  const seconds = Math.floor(secs % 60);
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+  
+// เก็บข้อมูลรูปภาพปัจจุบัน
+let currentGallery = [];
+let currentIndex = 0;
+
+// 🌟 ฟังก์ชันเปิดรูปเต็มจอ (แบบรองรับ Slider)
+function openImageViewer(index, galleryArray) {
+  // ตรวจสอบว่า galleryArray เป็น Array หรือไม่ (เผื่อกรณีส่งมาแค่รูปเดียว)
+  currentGallery = Array.isArray(galleryArray) ? galleryArray : [galleryArray];
+  currentIndex = index;
+  
+  updateViewer();
+  document.getElementById('image-viewer-modal').style.display = 'flex';
+}
+
+// 🌟 ฟังก์ชันอัปเดตรูปและปุ่มลูกศร
+function updateViewer() {
+  const img = document.getElementById('full-size-image');
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  
+  img.src = currentGallery[currentIndex];
+  
+  // ซ่อนปุ่มถ้าเป็นรูปแรก หรือ รูปสุดท้าย
+  prevBtn.style.display = (currentIndex === 0) ? 'none' : 'block';
+  nextBtn.style.display = (currentIndex === currentGallery.length - 1) ? 'none' : 'block';
+}
+
+// 🌟 ฟังก์ชันกดปุ่มซ้าย-ขวา
+function changeImage(step) {
+  currentIndex += step;
+  if (currentIndex >= 0 && currentIndex < currentGallery.length) {
+    updateViewer();
+  }
+}
+
+// 🌟 ฟังก์ชันปิดรูปเต็มจอ
+function closeImageViewer() {
+  document.getElementById('image-viewer-modal').style.display = 'none';
+}
+  
+  async function redeemCode() {
+    if (!user) return openLogin();
+    const { value: code } = await Swal.fire({ 
+      title: 'Redeem Code', 
+      input: 'text', 
+      inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...', 
+      showCancelButton: true 
     });
+    if (code) {
+      Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading() });
+      try {
+        const resp = await fetch(scriptURL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'redeemCode', username: user.username, code: code })
+        });
+        const res = await resp.json();
+        if (res.status === "success") { 
+          await syncUserData(); 
+          Swal.fire('สำเร็จ!', res.message, 'success'); 
+        } else { Swal.fire('ผิดพลาด', res.message, 'error'); }
+      } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+    }
+  }
+
+  async function doLogin() {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    if(!u || !p) return Swal.fire('เตือน', 'กรุณากรอกข้อมูลให้ครบค่ะ', 'warning');
+    Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', didOpen: () => Swal.showLoading() });
+    try {
+      const resp = await fetch(`${scriptURL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
+      const result = await resp.json();
+      if (result.status === "success") { 
+        user = result.data; saveUserSession(user); closeModal(); updateUI(); loadData();
+        Swal.fire('ยินดีต้อนรับ', `สวัสดีค่ะคุณ ${user.name}`, 'success');
+      } else { Swal.fire('ล้มเหลว', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error'); }
+    } catch(e) { Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'); }
+  }
+  
+  function openLogin() { 
+    window.location.href = 'login.html';
+  }
+  
+// หลังจาก Login หรือดึงข้อมูลผู้ใช้สำเร็จ
+function setupUserProfile(user) {
+  if (!user) return; // 🎯 ดักเอาไว้ก่อน ถ้าไม่มีข้อมูลผู้ใช้ (เป็น Guest) จะได้ไม่เกิด Error ค้างหน้าจอครับ
+  
+  const nameElement = document.getElementById('user-display-name');
+  const editBtn = document.getElementById('edit-name-btn');
+
+  if (nameElement) nameElement.innerText = user.name;
+
+  // ถ้าเป็น role user ให้แสดงไอคอนดินสอ
+  if (user.role && user.role.toLowerCase() === 'user') {
+    if (editBtn) editBtn.style.display = 'inline-block';
+  } else {
+    if (editBtn) editBtn.style.display = 'none';
+  }
+}
+  
+  function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+   function getImg(url) {
+    if (!url) return 'https://via.placeholder.com/150';
+
+    if (url.includes('drive.google.com')) {
+      const match = url.match(/[-\w]{25,}/);
+      // 🎯 แก้ไข: เติม $ และกำหนดตัวแปรดึงค่า Array ตัวแรก [0] เพื่อให้ระบบแปลงลิงก์รูปภาพได้อย่างถูกต้อง
+      return match ? `https://lh3.googleusercontent.com/u/0/d/$${match[0]}` : url;
+    }
+
+    if (url.startsWith('data:image')) return url;
+    return url;
+  }
+  
+  // ฟังก์ชันแสดงหน้าโหลด
+function showAppLoading() {
+  const loader = document.getElementById('app-loading-screen');
+  if (loader) {
+    loader.style.display = 'flex';
+    loader.style.opacity = '1';
+  }
+}
+
+// ฟังก์ชันซ่อนหน้าโหลด
+function hideAppLoading() {
+  const loader = document.getElementById('app-loading-screen');
+  if (loader) {
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 500);
+  }
+}
+  
+// ฟังก์ชันรีเฟรชข้อมูลทั้งหมด
+async function refreshAppData() {
+  showAppLoading();
+  try {
+    // โหลดข้อมูล Ranking และ Top Fans ใหม่
+    await loadData(); 
+    // ถ้ามี User ล็อกอินอยู่ ให้ซิงค์ข้อมูลกระเป๋าเงินด้วย
+    if (typeof user !== 'undefined' && user) {
+      await syncUserData(); 
+    }
+    console.log("Data Refreshed!");
+  } catch (error) {
+    console.error("Refresh Error:", error);
+  } finally {
+    // หน่วงเวลาเล็กน้อยเพื่อให้ดูเหมือนแอปกำลังโหลดจริงๆ (เลือกปรับได้)
+    setTimeout(hideAppLoading, 1000);
+  } 
+}
+
+// 2. ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
+document.addEventListener("DOMContentLoaded", () => {
+  
+  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
+  user = getUserSession(); 
+  
+  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
+  updateUI();
+  
+  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
+  hideAppLoading(); 
+  
+  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
+  loadData();
+  if (user) {
+    syncUserData(); 
   }
 });
-
 </script>
+<script type="module">
+  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (รวมเอาไว้ที่บนสุดทั้งหมดงับ) 🌟
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+  import { getDatabase, ref as dbRef, push, onChildAdded, get, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+  import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
+
+  // 2. ตั้งค่า Configuration ของ Firebase (ชุดหลักของ BLM48)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
+    authDomain: "blm48-official-site.firebaseapp.com",
+    projectId: "blm48-official-site",
+    databaseURL: "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    storageBucket: "blm48-official-site.firebasestorage.app",
+    messagingSenderId: "924510827472",
+    appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
+  };
+
+  // เริ่มต้นเปิดใช้งาน Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const storage = getStorage(app);
+
+  // ส่งค่าออกไปที่ window ให้ระบบรอบนอกเรียกใช้ได้ปลอดภัย
+  window.firebaseApp = app;
+  window.firebaseDatabase = database;
+  window.firebaseStorage = storage;
+  window.fbRef = dbRef;       
+  window.fbPush = push;       
+  window.fbOnValue = onValue; 
+
+  /* ==========================================
+     🔒 ระบบจัดการ USER SESSION
+     ========================================== */
+  function getUserSession() {
+    try {
+      const sessionStr = localStorage.getItem('bnl_session');
+      if (!sessionStr) return null;
+      
+      const session = JSON.parse(sessionStr);
+      const expiryTime = session.expiry || session.expire;
+      if (expiryTime && new Date().getTime() > expiryTime) {
+        localStorage.removeItem('bnl_session');
+        return null;
+      }
+      return session.data || session.user || session;
+    } catch (e) {
+      console.error("Session Parse Error:", e);
+      return null;
+    }
+  }
+  window.getUserSession = getUserSession;
+
+  /* ==========================================
+     🔄 ระบบเปิด-ปิดลิ้นชักคอมเมนต์
+     ========================================== */
+  window.toggleCommentSection = function(postId) {
+    const section = document.getElementById(`comment-section-${postId}`);
+    if (!section) return;
+    if (section.style.display === "none" || section.style.display === "") {
+      section.style.display = "block";
+      window.listenForComments(postId); // ดักฟังซ้ำเพื่อความแม่นยำตอนเปิดกล่อง
+    } else {
+      section.style.display = "none";
+    }
+  }
+
+  /* ==========================================
+     💖 ระบบกดใจโพสต์ (ซิงค์หลังบ้าน Google Sheets)
+     ========================================== */
+  window.likePost = async function(postId) {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: '#ff85a2' });
+      return;
+    }
+
+    const likeSpan = document.getElementById(`like-count-${postId}`);
+    const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
+    if (!heartIcon || !likeSpan) return;
+    
+    const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
+    
+    heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
+    heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
+    likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) - 1 : parseInt(likeSpan.innerText) + 1;
+
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    try {
+      const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
+      const result = await response.json();
+      
+      if (result.status === "success") {
+        likeSpan.innerText = result.likes;
+        heartIcon.classList.toggle('fa-solid', result.isLiked);
+        heartIcon.classList.toggle('fa-regular', !result.isLiked);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      heartIcon.classList.toggle('fa-solid', isCurrentlyLiked);
+      heartIcon.classList.toggle('fa-regular', !isCurrentlyLiked);
+      likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) + 1 : parseInt(likeSpan.innerText) - 1;
+      console.error("Like Error:", error);
+    }
+  }
+
+  /* =========================================================================
+     💬 [ระบบคอมเมนต์ Realtime มินิมอลพาสเทล - เวอร์ชันซิงค์อัตโนมัติ]
+     ========================================================================= */
+  window.listenForComments = function(postId) {
+    const db = window.firebaseDatabase;
+    const refFunc = window.fbRef;
+    const onValueFunc = window.fbOnValue;
+
+    const commentListEl = document.getElementById(`comment-list-${postId}`);
+    const commentCountEl = document.getElementById(`comment-count-${postId}`);
+    if (!commentListEl) return;
+    if (!db || !refFunc || !onValueFunc) return;
+
+    const commentRef = refFunc(db, `comments/${postId}`);
+
+    onValueFunc(commentRef, (snapshot) => {
+      commentListEl.innerHTML = ''; 
+      const data = snapshot.val();
+      
+      if (!data) {
+        commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">NOT COMMENTS YET.</div>`;
+        if (commentCountEl) commentCountEl.innerText = "0";
+        return;
+      }
+
+      const commentsArray = Object.values(data);
+      if (commentCountEl) commentCountEl.innerText = commentsArray.length; 
+
+      const allowedRoles = ['member', 'admin', 'ceo'];
+      const verifiedBadgeIcon = `
+        <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+          <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+        </svg>
+      `;
+
+      commentsArray.forEach(cmt => {
+        const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
+        const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
+
+        const commentHtml = `
+          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
+            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+            <div style="font-size: 0.88rem; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <b style="color: #ff85a2;">${cmt.name}</b>
+                ${isCmtVerified}
+                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${cmt.role || 'user'}</span>
+              </div>
+              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${cmt.text}</div>
+            </div>
+          </div>
+        `;
+        commentListEl.insertAdjacentHTML('beforeend', commentHtml);
+      });
+
+      commentListEl.scrollTop = commentListEl.scrollHeight;
+    });
+  };
+
+  // ฟังก์ชันส่งคอมเมนต์เข้าฐานข้อมูลคู่ขนาน
+  window.submitComment = async function(postId, btnElement) {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนแสดงความคิดเห็นนะงับ', 'warning');
+      return;
+    }
+
+    const inputEl = document.getElementById(`comment-input-${postId}`);
+    if (!inputEl) return;
+
+    const commentText = inputEl.value.trim();
+    if (btnElement && btnElement.disabled) return; 
+    if (!commentText) {
+      Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
+      return;
+    }
+
+    const db = window.firebaseDatabase;
+    const refFunc = window.fbRef;
+    const pushFunc = window.fbPush;
+
+    if (!db || !refFunc || !pushFunc) {
+      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลปลายทางได้งับ', 'error');
+      return;
+    }
+
+    let originalText = "";
+    if (btnElement) {
+      originalText = btnElement.innerText;
+      btnElement.innerText = "กำลังส่ง...";
+      btnElement.disabled = true;
+    }
+    inputEl.disabled = true;
+
+    try {
+      const commentPostRef = refFunc(db, `comments/${postId}`);
+      
+      const newCommentData = {
+        username: currentUser.username,
+        name: currentUser.name || currentUser.username || 'Anonymous',
+        role: currentUser.role || 'user',
+        profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
+        text: commentText,
+        timestamp: Date.now()
+      };
+
+      await pushFunc(commentPostRef, newCommentData);
+
+      // ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+      fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'addComment',
+          postId: postId,
+          username: currentUser.username,
+          text: commentText
+        })
+      }).catch(err => console.error("GAS Sync Error:", err));
+
+      inputEl.value = ""; 
+      
+    } catch (error) {
+      console.error("Firebase Add Comment Error:", error);
+      Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error');
+    } finally {
+      if (btnElement) {
+        btnElement.innerText = originalText;
+        btnElement.disabled = false;
+      }
+      inputEl.disabled = false;
+    }
+  };
+    
+  // ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets
+  async function refreshCountFromSheets() {
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberCount';
+    const countElement = document.getElementById('total-members-count');
+    if (!countElement) return;
+
+    try {
+      const response = await fetch(scriptURL);
+      const data = await response.json();
+      if (data && data.success) {
+        countElement.textContent = Number(data.total).toLocaleString();
+      } else {
+        countElement.textContent = "0";
+      }
+    } catch (error) {
+      countElement.textContent = "...";
+    }
+  }
+  window.refreshCountFromSheets = refreshCountFromSheets;
+  refreshCountFromSheets();
+
+  /* =========================================================================
+     🔍 [ระบบ Auto-Scanner ส่องจับโพสต์ใหม่เพื่อผูกระบบ Realtime อัตโนมัติ]
+     ========================================================================= */
+  setInterval(() => {
+    document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
+      const postId = card.id.replace('post-', '');
+      if (postId && window.listenForComments) {
+        window.listenForComments(postId); 
+        card.setAttribute('data-firebase-ready', 'true'); 
+      }
+    });
+  }, 300);
+
+  /* =========================================================================
+     🔔 [ระบบ Realtime Notification Listener สำหรับ Kami / Oshi]
+     ========================================================================= */
+  // บันทึกเวลาที่ผู้ใช้เปิดหน้าเว็บ เพื่อไม่ให้เอาโพสต์ในอดีตมาแจ้งเตือนซ้ำงับ
+  const pageLoadTime = Date.now(); 
+
+  // เปิดระบบดักฟังข้อมูลใน Node 'notifications' แบบ Real-time ตัวแปรใช้ตามชุดหลัก
+  onChildAdded(dbRef(database, 'notifications'), (snapshot) => {
+    const notiData = snapshot.val();
+    if (!notiData) return;
+
+    // ดึงรายชื่อคามิ/โอชิ จากเครื่องของผู้ใช้คนนี้มาเช็ก
+    const savedKami = JSON.parse(localStorage.getItem("kami_members") || '[]');
+    
+    // เช็กชื่อตัวเองเพื่อไม่ให้มันเด้งเตือนเวลาตัวเองโพสต์
+    const session = getUserSession();
+    const myName = session ? session.username : "";
+
+    // เงื่อนไข: ต้องเป็นโพสต์ใหม่หลังเปิดจอ + เป็นคนที่เรากด Kami/Oshi ไว้ + ไม่ใช่โพสต์ตัวเอง
+    if (notiData.timestamp > pageLoadTime && savedKami.includes(notiData.writer) && notiData.writer !== myName) {
+      
+      // สั่งเปิดสถานะว่า "มีแจ้งเตือนใหม่นะ!" เก็บไว้ในเครื่อง
+      localStorage.setItem("blm48_has_new_noti", "true");
+      
+      // สั่งให้ฟังก์ชันแสดงจุดสีแดง 🔴 ทำงานทันที
+      if (typeof window.checkNotificationBadge === 'function') {
+        window.checkNotificationBadge();
+      }
+    }
+  });
+</script>
+<div class="bottom-tab-bar">
+  <a href="index.html" class="tab-item active">
+    <i class="fa-solid fa-house"></i>
+    <span>Home</span>
+  </a>
+  <a href="kami.html" class="tab-item">
+    <i class="fa-solid fa-star"></i>
+    <span>My Oshi</span>
+  </a>
+  <a href="shop.html" class="tab-item">
+    <i class="fa-solid fa-bag-shopping"></i>
+    <span>Shop</span>
+  </a>
+  <a href="notification.html" class="tab-item">
+    <div class="icon-wrapper">
+      <i class="fa-solid fa-bell"></i>
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
+      <span>Notification</span>
+    </div>
+  </a>
+ <a href="profile.html" class="tab-item">
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
+    <span>Profile</span>
+  </a>
+</div>
+</body>
+</html>
+<div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
+  <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">&times;</span>
+  
+  <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
+  <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
+  <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
+</div>
 </body>
 </html>
