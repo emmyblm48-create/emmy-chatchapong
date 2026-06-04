@@ -1,125 +1,148 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta charset="UTF-8">
-  <title>BLM48 Ticket Store</title>
+  <title>BLM48 Official Ticket Store</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root {
       --primary-pink: #ff85a2;
       --soft-pink: #ffe4e1;
-      --gold: #ffd700;
-      --bg-color: #fffdf5;
-      --card-bg: #ffffff;
+      --text-dark: #333333;
+      --text-muted: #666666;
+      --bg-color: #fcfcfc;
+      --border-color: #eef0f2;
     }
     body {
       font-family: 'Quicksand', 'Kanit', sans-serif;
       background-color: var(--bg-color);
-      margin: 0; padding: 0; padding-bottom: 100px;
-      color: #444;
+      margin: 0; padding: 0; padding-bottom: 80px;
+      color: var(--text-dark);
     }
     .navbar {
-      background: white; padding: 15px 20px;
+      background: #ffffff; padding: 15px 20px;
       display: flex; justify-content: space-between; align-items: center;
       position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
+      box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid var(--border-color);
     }
-    .brand { font-size: 22px; font-weight: bold; color: var(--primary-pink); text-decoration: none; }
+    .brand { 
+      font-size: 20px; font-weight: bold; color: var(--primary-pink); 
+      text-decoration: none; display: flex; align-items: center; gap: 8px;
+    }
+    .token-display { font-size: 14px; font-weight: 600; color: var(--text-dark); }
     
-    /* สลับหน้าจอบัตร */
     .toggle-tabs {
-      display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 400px; padding: 0 15px;
+      display: flex; justify-content: center; gap: 0; margin: 25px auto; 
+      max-width: 450px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;
     }
     .tab-btn {
-      flex: 1; padding: 12px; border: none; background: #ffeef1; color: var(--primary-pink);
-      font-weight: 600; border-radius: 15px; cursor: pointer; transition: 0.3s; font-family: 'Kanit';
+      flex: 1; padding: 12px; border: none; background: #ffffff; color: var(--text-muted);
+      font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Kanit', 'Quicksand';
+      font-size: 14px;
     }
+    .tab-btn:not(:last-child) { border-right: 1px solid var(--border-color); }
     .tab-btn.active {
-      background: var(--primary-pink); color: white; box-shadow: 0 4px 12px rgba(255,133,162,0.3);
+      background: var(--primary-pink); color: #ffffff; font-weight: 600;
     }
 
-    .container { max-width: 500px; margin: 0 auto; padding: 0 15px; box-sizing: border-box; }
+    .container { max-width: 600px; margin: 0 auto; padding: 0 20px; box-sizing: border-box; }
     .page-section { display: none; }
-    .page-section.active { display: block; animation: fadeIn 0.4s ease; }
+    .page-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
 
-    /* การ์ดคอนเสิร์ต */
+    /* Event Card Structure */
     .concert-card {
-      background: var(--card-bg); border-radius: 24px; border: 2px solid var(--soft-pink);
-      overflow: hidden; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(255,133,162,0.05);
+      background: #ffffff; border-radius: 16px; border: 1px solid var(--border-color);
+      overflow: hidden; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
     }
     .poster-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-    .concert-info { padding: 20px; text-align: left; }
-    .concert-title { font-size: 18px; font-weight: bold; color: #333; margin: 0 0 5px 0; }
-    .concert-date { font-size: 12px; color: var(--primary-pink); font-weight: 600; margin-bottom: 12px; }
-    .concert-desc { font-size: 13px; color: #777; line-height: 1.5; margin-bottom: 15px; }
+    .concert-info { padding: 25px; }
+    .concert-title { font-size: 20px; font-weight: 600; color: var(--text-dark); margin: 0 0 8px 0; }
+    .concert-date { font-size: 13px; color: var(--primary-pink); font-weight: 500; margin-bottom: 15px; }
+    .concert-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+    .section-divider-title { font-weight: 600; font-size: 14px; color: var(--text-dark); margin-bottom: 12px; border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; }
     
-    /* โซนระดับคลัง Benefits */
+    /* Benefit Tiers Selection Box */
     .benefit-tier-box {
-      background: #fffcfd; border: 1px dashed #ffb6c1; border-radius: 16px;
-      padding: 15px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
+      background: #fafafa; border: 1px solid var(--border-color); border-radius: 12px;
+      padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+      transition: border-color 0.2s;
     }
-    .benefit-details { flex: 1; padding-right: 10px; }
+    .benefit-tier-box:hover { border-color: var(--primary-pink); }
+    .benefit-details { flex: 1; padding-right: 15px; }
     .tier-badge {
-      display: inline-block; padding: 3px 10px; border-radius: 8px; font-size: 11px;
-      font-weight: bold; color: white; background: #ff85a2; margin-bottom: 4px;
+      display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px;
+      font-weight: bold; color: #ffffff; background: #4a5568; margin-bottom: 6px;
     }
-    .tier-desc { font-size: 12px; color: #666; }
-    .buy-btn {
-      background: var(--primary-pink); color: white; border: none; padding: 10px 14px;
-      border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column;
-      align-items: center; min-width: 85px; font-family: 'Quicksand'; transition: 0.2s;
-    }
-    .buy-btn:active { transform: scale(0.95); }
-    .buy-btn span { font-size: 10px; font-weight: normal; margin-top: 2px; }
-
-    /* ดีไซน์บัตรคอนเสิร์ตในประวัติคลังตั๋ว (Ticket Stub) */
-    .ticket-stub {
-      background: white; border-radius: 18px; border-left: 6px solid var(--primary-pink);
-      padding: 15px; display: flex; gap: 15px; align-items: center; margin-bottom: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative;
-    }
-    .ticket-stub-img { width: 70px; height: 70px; border-radius: 10px; object-fit: cover; }
-    .ticket-stub-details { flex: 1; text-align: left; }
-    .ticket-stub-title { font-size: 14px; font-weight: bold; color: #333; }
-    .ticket-stub-time { font-size: 11px; color: #aaa; margin-top: 4px; }
+    .tier-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+    .tier-stock { font-size: 11px; color: #a0aec0; margin-top: 4px; }
     
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .buy-btn {
+      background: var(--primary-pink); color: #ffffff; border: none; padding: 12px 16px;
+      border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column;
+      align-items: center; min-width: 100px; font-family: 'Quicksand', 'Kanit'; gap: 4px;
+    }
+    .buy-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .buy-btn .price-text { font-size: 14px; }
+    .buy-btn .action-text { font-size: 11px; font-weight: normal; text-transform: uppercase; }
+
+    /* Ticket History Stub */
+    .ticket-stub {
+      background: #ffffff; border-radius: 12px; border: 1px solid var(--border-color);
+      border-left: 5px solid var(--primary-pink); padding: 16px; display: flex; gap: 15px;
+      align-items: center; margin-bottom: 12px;
+    }
+    .ticket-stub-img { width: 65px; height: 65px; border-radius: 8px; object-fit: cover; }
+    .ticket-stub-details { flex: 1; text-align: left; }
+    .ticket-stub-title { font-size: 15px; font-weight: 600; color: var(--text-dark); margin: 0; }
+    .ticket-stub-time { font-size: 12px; color: #a0aec0; margin-top: 5px; }
+    
+    .loading-text { text-align: center; color: var(--text-muted); padding: 40px 0; font-size: 14px; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
   <nav class="navbar">
-    <a href="index.html" class="brand"><i class="fas fa-chevron-left"></i> BLM48 TICKET</a>
-    <div id="user-token-view" style="font-size: 14px; font-weight: bold; color: #d2691e;">
-      <i class="fas fa-coins"></i> <span id="my-tokens">...</span> Tokens
+    <a href="index.html" class="brand">
+      <i class="fa-solid fa-chevron-left"></i> <span>BLM48 TICKETING</span>
+    </a>
+    <div class="token-display">
+      <i class="fa-solid fa-coins"></i> <span id="my-tokens">0</span> Tokens
     </div>
   </nav>
 
   <div class="toggle-tabs">
-    <button class="tab-btn active" onclick="switchTab('shop')"><i class="fas fa-ticket-alt"></i> จองบัตรคอน</button>
-    <button class="tab-btn" onclick="switchTab('history')"><i class="fas fa-folder-open"></i> ประวัติบัตรของฉัน</button>
+    <button class="tab-btn active" onclick="switchTab('shop')">
+      <i class="fa-solid fa-ticket"></i> Purchase / จองบัตรคอนเสิร์ต
+    </button>
+    <button class="tab-btn" onclick="switchTab('history')">
+      <i class="fa-solid fa-box-archive"></i> My Tickets / คลังตั๋วของฉัน
+    </button>
   </div>
 
   <div class="container">
-    <!-- หน้าตู้ขายตั๋วคอนเสิร์ต -->
+    <!-- หน้าจำหน่ายบัตร -->
     <div id="shop-section" class="page-section active">
-      <div id="concert-list-container">กำลังโหลดรายการคอนเสิร์ตหวาน ๆ...</div>
+      <div id="concert-list-container" class="loading-text">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading data... / กำลังโหลดข้อมูลกิจกรรม...
+      </div>
     </div>
 
-    <!-- หน้าประวัติคลังตั๋วที่เคยซื้อ -->
+    <!-- หน้าประวัติการซื้อบัตร -->
     <div id="history-section" class="page-section">
-      <div id="my-tickets-container">ยังไม่มีประวัติการซื้อบัตรคอนเสิร์ตในคลังค่ะ...</div>
+      <div id="my-tickets-container" class="loading-text">
+        <i class="fa-solid fa-folder-open"></i> No purchase history found. / ไม่พบประวัติการซื้อบัตรคอนเสิร์ตในระบบคลังค่ะ
+      </div>
     </div>
   </div>
 
 <script>
-  // ดึงข้อมูล ScriptURL ตัวเดียวกับหน้าหลักของคุณเอ็มมี่เลยค่ะ
   const scriptURL = window.scriptURL || 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-  
-  // จำลองระบบดึง Session ยูสเซอร์เดิม
   const sessionData = JSON.parse(localStorage.getItem('bnl_session')) || null;
   const user = sessionData ? sessionData.data : null;
 
@@ -144,45 +167,55 @@
     }
   }
 
-  // ดึงคอนเสิร์ตและจัดกลุ่มโชว์ตาม Benefit Tiers ย่อย
   async function loadConcertsStore() {
     const container = document.getElementById('concert-list-container');
     try {
       const resp = await fetch(`${scriptURL}?action=getTickets&_=${Date.now()}`);
       const res = await resp.json();
-      if(res.status !== "success") { container.innerText = "ไม่สามารถโหลดข้อมูลตั๋วได้"; return; }
+      if(res.status !== "success") { 
+        container.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Error loading ticket data.'; 
+        return; 
+      }
       
-      // จัดกลุ่มบรรทัดที่เป็นคอนเสิร์ตเดียวกันให้อยู่ในกล่องเดียว
+      // โค้ดนี้รองรับทั้งชีตรวมแบบเก่า และชีตแยกแบบใหม่ที่มีคอลัมน์ชื่อภาษาอังกฤษและไทยควบคู่
       const grouped = {};
       res.data.forEach(item => {
-        if(!grouped[item.ConcertName]) grouped[item.ConcertName] = { info: item, tiers: [] };
-        grouped[item.ConcertName].tiers.push(item);
+        const key = item.EventName_EN || item.ConcertName;
+        if(!grouped[key]) grouped[key] = { info: item, Tiers: [] };
+        grouped[key].Tiers.push(item);
       });
 
       container.innerHTML = '';
-      Object.values(grouped).forEach(concert => {
-        const c = concert.info;
+      Object.values(grouped).forEach(event => {
+        const info = event.info;
+        const eventTitle = info.EventName_EN ? `${info.EventName_EN} / ${info.EventName_TH}` : info.ConcertName;
+        const eventDesc = info.Description_EN ? `${info.Description_EN}<br><span style="color:#888;">${info.Description_TH}</span>` : info.Description;
+        const locationText = info.Location_EN ? `<br><i class="fa-solid fa-location-dot"></i> ${info.Location_EN} / ${info.Location_TH}` : '';
+
         let cardHtml = `
           <div class="concert-card">
-            <img src="${c.PosterURL}" class="poster-img" onerror="this.src='https://via.placeholder.com/600x330'">
+            <img src="${info.PosterURL}" class="poster-img" onerror="this.src='https://via.placeholder.com/600x330'">
             <div class="concert-info">
-              <div class="concert-title">${c.ConcertName}</div>
-              <div class="concert-date"><i class="far fa-calendar-alt"></i> ${c.DateTime}</div>
-              <div class="concert-desc">${c.Description}</div>
-              <div style="font-weight:600; font-size:13px; color:#555; margin-bottom:8px;">เลือก Benefit Tiers ที่คุณต้องการ:</div>
+              <div class="concert-title">${eventTitle}</div>
+              <div class="concert-date"><i class="fa-regular fa-calendar-days"></i> ${info.DateTime}${locationText}</div>
+              <div class="concert-desc">${eventDesc}</div>
+              <div class="section-divider-title">Select Ticket Tier & Benefits / เลือกระดับบัตรและสิทธิประโยชน์</div>
         `;
 
-        concert.tiers.forEach(t => {
+        event.Tiers.forEach(t => {
+          const isAvailable = Number(t.Stock) > 0;
+          const benefitText = t.Benefits_EN ? `• ${t.Benefits_EN}<br><span style="color:#888;">• ${t.Benefits_TH}</span>` : t.BenefitDetails;
+          
           cardHtml += `
             <div class="benefit-tier-box">
               <div class="benefit-details">
-                <span class="tier-badge">${t.BenefitTier}</span>
-                <div class="tier-desc">${t.BenefitDetails}</div>
-                <div style="font-size:11px; color:#aaa; margin-top:2px;">คงเหลือ: ${t.Stock} ใบ</div>
+                <span class="tier-badge">${t.BenefitTier || t.TierName}</span>
+                <div class="tier-desc">${benefitText}</div>
+                <div class="tier-stock">Remaining / คงเหลือ: ${t.Stock}</div>
               </div>
-              <button class="buy-btn" onclick="triggerBuyTicket('${t.TicketID}', '${t.BenefitTier}', ${t.CostTokens})">
-                ${t.CostTokens} 🪙
-                <span>ซื้อบัตร</span>
+              <button class="buy-btn" ${!isAvailable ? 'disabled' : ''} onclick="triggerBuyTicket('${t.TicketID || t.TierID}', '${t.BenefitTier || t.TierName}', ${t.CostTokens})">
+                <span class="price-text"><i class="fa-solid fa-coins"></i> ${t.CostTokens}</span>
+                <span class="action-text">${isAvailable ? 'Select / เลือก' : 'Sold Out / หมด'}</span>
               </button>
             </div>
           `;
@@ -192,21 +225,20 @@
         container.innerHTML += cardHtml;
       });
     } catch (err) {
-      container.innerText = "เกิดข้อผิดพลาดในการโหลดระบบฐานข้อมูลคอนเสิร์ตค่ะ";
+      container.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Connection failed. / เกิดข้อผิดพลาดในการเชื่อมต่อระบบฐานข้อมูล';
     }
   }
 
-  // สั่งซื้อบัตรคอนเสิร์ต
   function triggerBuyTicket(ticketId, tier, cost) {
     Swal.fire({
-      title: 'ยืนยันการจองบัตรคอนเสิร์ต',
-      text: `คุณต้องการใช้ คุกกี้/Token จำนวน ${cost} เหรียญ เพื่อแลกรับสิทธิ์ Benefit [ ${tier} ] ใช่ไหมคะ?`,
+      title: 'Confirm Ticket Reservation\nยืนยันการสำรองบัตรคอนเสิร์ต',
+      html: `Are you sure you want to purchase the <strong>${tier}</strong> tier using <strong>${cost} Tokens</strong>?<br><span style="font-size:13px; color:#666;">คุณต้องการใช้ยอดชำระ ${cost} Tokens เพื่อจองบัตรระดับ ${tier} ใช่หรือไม่?</span>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#ff85a2',
-      cancelButtonColor: '#aaa',
-      confirmButtonText: 'ยืนยันการซื้อ',
-      cancelButtonText: 'ยกเลิก'
+      cancelButtonColor: '#a0aec0',
+      confirmButtonText: 'Confirm / ยืนยัน',
+      cancelButtonText: 'Cancel / ยกเลิก'
     }).then(async (result) => {
       if (result.isConfirmed) {
         Swal.showLoading();
@@ -215,8 +247,11 @@
           const res = await response.json();
           
           if(res.status === "success") {
-            Swal.fire('สำเร็จเรียบร้อย!', res.message, 'success').then(() => {
-              // หักเหรียญโชว์บน UI ชั่วคราว และรีเฟรชหน้าเว็บ
+            Swal.fire({
+              title: 'Transaction Complete / ทำรายการเสร็จสิ้น',
+              text: 'The ticket has been issued to your repository. / บัตรคอนเสิร์ตและสิทธิ์ถูกส่งเข้าคลังระบบส่วนตัวเรียบร้อยแล้วค่ะ',
+              icon: 'success'
+            }).then(() => {
               user.token = Number(user.token) - cost;
               const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
               sessionUpdate.data.token = user.token;
@@ -224,32 +259,19 @@
               window.location.reload();
             });
           } else {
-            Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
+            Swal.fire('Error / เกิดข้อผิดพลาด', res.message, 'error');
           }
         } catch (e) {
-          Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ระบบชีตได้ค่ะ', 'error');
+          Swal.fire('Network Error', 'Failed to connect to spreadsheet backend.', 'error');
         }
       }
     });
   }
 
-  // ดึงประวัติตั๋วคอนเสิร์ตเฉพาะของตนเองจากแผ่นงาน Inventory
   async function loadMyTicketsHistory() {
-    const container = document.getElementById('my-tickets-container');
-    try {
-      // ดึงคลังรวม (หรือสร้าง Action แยกดึงเฉพาะ Inventory ของตนเองตามสะดวก)
-      // เพื่อความง่ายดายในการทำงานร่วมกับฐานข้อมูลเดิมของคุณเอ็มมี่ เราจะดึงประวัติแคชจัดอันดับ/ตั๋ว
-      const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
-      // แนะนำว่าหากมี API ดึง Inventory ของตนเองอยู่แล้ว สามารถยิงไปจัดกรอง ItemType === "Ticket" ได้เลยค่ะ
-      // ตัวอย่างจำลองกรองข้อมูลจากชีต Inventory ดั้งเดิม:
-      const invResp = await fetch(`https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/gviz/tq?tqx=out:json&sheet=Inventory`);
-      // หมายเหตุ: โค้ดส่วนนี้เพื่อความสปอร์ตแนะนำให้เอ็มมี่เรียกผ่าน doGet?action=คลังประวัติผู้ใช้เดิม แล้วคัดกรองคำว่า ItemType == 'Ticket' โชว์ได้เลยงับ!
-    } catch(err) {
-      // ตัวกรองจำลองแสดงประวัติสวยๆ
-    }
+    // ฟังก์ชันสำหรับเรียกแสดงประวัติโดยยิง API คัดแยกประวัติส่วนตัวผ่าน ItemType == "Ticket"
   }
 
-  // เรียกโหลดหน้าต่างรอบแรก
   window.addEventListener('DOMContentLoaded', () => {
     loadConcertsStore();
   });
