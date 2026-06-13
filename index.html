@@ -1548,7 +1548,8 @@ async function syncUserData() {
     const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
     const res = await resp.json();
     
-    if (res.status === "success") {
+    // 🟢 เคสที่ 1: ดึงข้อมูลสำเร็จ (บัญชียังใช้งานได้ปกติ)
+    if (res.success && res.status === "success") {
       // ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนแบน / ไม่ได้เข้ากลุ่ม)
       if (res.data.password === "") {
         Swal.fire({
@@ -1556,13 +1557,17 @@ async function syncUserData() {
           title: 'กรุณาติดต่อ BLM48 Line Official',
           text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
           confirmButtonColor: '#ff85a2',
-          allowOutsideClick: false
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
+            Swal.getPopup().style.borderRadius = "20px";
+          }
         }).then(() => {
           localStorage.removeItem('bnl_session');
           sessionStorage.clear();
           user = null;
           if (typeof updateUI === 'function') updateUI();
-          window.location.href = 'login.html'; 
+          window.location.replace('login.html'); 
         });
         return;
       }
@@ -1571,12 +1576,38 @@ async function syncUserData() {
       saveUserSession(user); 
       if (typeof updateUI === 'function') updateUI(); 
 
-    } else {
+    } 
+    // 🚨 เคสที่ 2: ดักจับ Error จากหลังบ้าน (แอดมินลบชีต หรือระงับบัญชี)
+    else if (res.status === "error") {
+      // 1. ล้างแคชและเซสชันทั้งหมดทิ้งทันที
       localStorage.removeItem('bnl_session');
-      sessionStorage.clear(); // 🌟 เพิ่มคำสั่งนี้เพื่อล้างแคชชั่วคราว
+      sessionStorage.clear();
       user = null;
       if (typeof updateUI === 'function') updateUI();
-      window.location.replace('login.html'); // 🌟 ใช้ replace เตะออกแบบไม่ให้กดย้อนหลัง
+      
+      // 2. แสดงแจ้งเตือนอย่างนุ่มนวลว่าบัญชีถูกระงับ
+      Swal.fire({
+        icon: 'error',
+        title: 'เซสชันหมดอายุหรือถูกระงับ',
+        text: res.message || 'บัญชีของคุณถูกระงับการใช้งาน หรือไม่มีอยู่ในระบบแล้ว',
+        confirmButtonColor: '#ff85a2',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
+          Swal.getPopup().style.borderRadius = "20px";
+        }
+      }).then(() => {
+        // 3. เตะเด้งกลับไปหน้า login ทันที (ใช้ replace เพื่อไม่ให้กดย้อนหลังได้)
+        window.location.replace('login.html');
+      });
+    } 
+    // ⚪ เคสที่ 3: เกิดข้อผิดพลาดอื่นๆ ที่ไม่คาดคิด (เตะออกเงียบๆ)
+    else {
+      localStorage.removeItem('bnl_session');
+      sessionStorage.clear(); 
+      user = null;
+      if (typeof updateUI === 'function') updateUI();
+      window.location.replace('login.html');
     }
   } catch (e) { 
     console.error("Sync User Error:", e); 
