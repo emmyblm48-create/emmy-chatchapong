@@ -1538,6 +1538,33 @@ function hideSplashScreen() {
   const splash = document.getElementById('app-loading-screen'); 
   if (splash) splash.style.display = 'none';
 }
+  
+// เพิ่มฟังก์ชันนี้ไว้ในส่วน <script> ของ index.html
+async function verifySession() {
+  const session = localStorage.getItem('bnl_session');
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const userData = JSON.parse(session);
+  // เรียกไปที่ Google Apps Script เพื่อเช็กว่า username นี้ยังมีอยู่ในระบบจริงไหม
+  const response = await fetch(`${scriptURL}?action=checkUser&username=${userData.username}`);
+  const data = await response.json();
+
+  if (data.status !== 'exists') {
+    // ถ้าไม่พบชื่อในระบบแล้ว ให้ล้างแคชและเด้งไปหน้า Login
+    localStorage.removeItem('bnl_session');
+    localStorage.removeItem('blm48_posts_cache'); // ล้างแคชโพสต์ด้วย
+    window.location.href = 'login.html';
+  }
+}
+
+// และสั่งให้เช็กทุกครั้งที่โหลดหน้าเว็บ
+window.onload = () => {
+  verifySession();
+  loadTimelinePosts();
+};
 
 // ==========================================
 // 👑 5. ASYNC DATA SYNC (ระบบดึงข้อมูล Google Sheets)
