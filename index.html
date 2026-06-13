@@ -1575,7 +1575,13 @@ async function syncUserData() {
 
     // เคสปกติ: หลังบ้านแจ้งว่าสำเร็จ (แปลว่ามียูสเซอร์ และในชีทมีรหัสผ่านถูกต้อง)
     if (result.success && result.status === "success") {
-      localStorage.setItem('bnl_session', JSON.stringify(result.data));
+  
+    // 💡 แก้ไขบรรทัดนี้: ห่อให้มี success, status และ data เหมือนโครงสร้างดั้งเดิม
+    localStorage.setItem('bnl_session', JSON.stringify({ 
+      success: true, 
+      status: "success", 
+      data: result.data 
+    }));
       user = result.data; // อัปเดตตัวแปร Global ในหน้าเว็บ
       if (typeof updateUI === 'function') updateUI(); // อัปเดตแต้ม/รูปโปรไฟล์ล่าสุดบนหน้าจอ
     } 
