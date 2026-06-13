@@ -1483,7 +1483,6 @@ async function buyGacha(collectionId) {
   const iconSparklePink = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#ffb7c5" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
   const iconStar = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#ffd700" style="display: inline-block; vertical-align: middle; margin: 0 2px;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
   const iconGachaBall = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#ff69b4" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2zm0 2c3.65 0 6.7 2.45 7.64 5.82H4.36A7.93 7.93 0 0 1 12 4zm0 16a7.93 7.93 0 0 1-7.64-5.82h15.28A7.93 7.93 0 0 1 12 20z"/></svg>`;
-  const iconCrown = `<svg width="22" height="22" viewBox="0 0 24 24" fill="#ffd700" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.55 18.55 20 18 20H6C5.45 20 5 19.55 5 19V18H19V19Z"/></svg>`;
 
   // 🌸 STEP 1: หน้าต่างยืนยันการซื้อ (เปลี่ยนดาววิบวับเป็นไอคอน SVG)
   const confirmResult = await Swal.fire({
@@ -1491,8 +1490,8 @@ async function buyGacha(collectionId) {
     html: `<div style="font-size: 15px; color: #555; line-height: 1.5;">คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #999; font-size: 12px;">(ระบบจะหัก Token ทันทีเมื่อกดยืนยัน)</span></div>`,
     icon: 'question',
     showCancelButton: true,
-    confirmButtonText: `${iconSparkleGold} สุ่มเลย! ${iconSparkleGold}`,
-    cancelButtonText: 'ยกเลิก',
+    confirmButtonText: `Confirm`,
+    cancelButtonText: 'Cancle',
     confirmButtonColor: '#ff69b4', 
     cancelButtonColor: '#e0e0e0',
     background: '#ffffff',
@@ -1506,7 +1505,7 @@ async function buyGacha(collectionId) {
 
   // 🎬 STEP 2: หน้าต่างตอนกำลังหมุน (ใช้ไอคอนตู้กาชาปอง SVG คลีนๆ แทนลูกแก้วเดิม)
   Swal.fire({
-    title: `${iconGachaBall} กำลังหมุนกาชาปอง... ${iconGachaBall}`,
+    title: `กำลังหมุนกาชาปอง...`,
     html: `
       <style>
         .blm-cute-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
@@ -1515,7 +1514,7 @@ async function buyGacha(collectionId) {
       </style>
       <div class="blm-cute-loading-box">
         <div class="blm-gacha-capsule"></div>
-        <div class="blm-text-bounce">ตู้กำลังเขย่า ลุ้นรับเมมเบอร์กันเถอะนะ!</div>
+        <div class="blm-text-bounce">กำลังสุ่มสินค้า BLM48 Official</div>
       </div>
     `,
     allowOutsideClick: false,
@@ -1552,7 +1551,7 @@ async function buyGacha(collectionId) {
       localStorage.removeItem(`blm48_inventory_time_${username}`);
       
       Swal.fire({
-        title: `${iconCrown} CONGRATULATIONS! ${iconCrown}`,
+        title: `CONGRATULATIONS!`,
         html: `
           <style>
             .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
@@ -1564,7 +1563,6 @@ async function buyGacha(collectionId) {
           </style>
           
           <div class="blm-cute-reveal-container">
-            <div class="blm-cute-title">${iconSparklePink} ยินดีด้วยน้า! ได้รับไอเทมใหม่ ${iconSparklePink}</div>
             <div class="blm-cute-name">${res.itemName}</div>
             <div class="blm-cute-sub">${iconStar} [${res.itemType}] จากตู้ ${res.collectionName}</div>
           </div>
@@ -1573,7 +1571,7 @@ async function buyGacha(collectionId) {
         imageWidth: 240,
         imageHeight: 240,
         imageAlt: res.itemName,
-        confirmButtonText: `${iconHeartPink} เก็บเข้าคลังไอเทม ${iconHeartPink}`,
+        confirmButtonText: `Collect`,
         confirmButtonColor: '#ff5376',
         background: '#ffffff',
         borderRadius: '24px'
