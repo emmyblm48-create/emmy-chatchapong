@@ -24,17 +24,164 @@
     
     <style>
         :root {
-            --primary-pink: #ff85a2;
-            --soft-pink: #ffe4e1;
-            --bg-color: #fffdf5;
-            --cookie-brown: #d2691e;
-        }
+          --primary-pink: #ff69b4;
+          --pastel-pink: #ffc0cb;
+          --light-pink: #fff0f5;
+          --dark-pink: #c71585;
+          --glass-bg: rgba(255, 255, 255, 0.75);
+          --gold: #ffd700;
+      }
 
         body { 
             font-family: 'Quicksand', 'Kanit', sans-serif; 
-            background-color: var(--bg-color); 
+            background: linear-gradient(135deg, var(--light-pink) 0%, #fff 100%);
             margin: 0; padding: 0; min-height: 100vh;
         }
+      
+      /* ปรับแต่งการ์ดตู้กาชาและตั๋วให้ดูมีมิติเหมือนตู้เกมส์จริง */
+.shop-card, .gacha-container, .ticket-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 3px solid var(--pastel-pink);
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(255, 105, 180, 0.15);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.shop-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-pink);
+    box-shadow: 0 12px 30px rgba(255, 105, 180, 0.3);
+}
+
+/* ปุ่มกดสไตล์นุ่มฟู น่ารัก */
+.btn-shop-buy, .btn-gacha-spin {
+    background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 24px;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.btn-shop-buy:active, .btn-gacha-spin:active {
+    transform: scale(0.95);
+}
+
+/* --- UI ใหม่สำหรับ Modal ยืนยัน และ อนิเมชันกาชา --- */
+.blm-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.blm-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* กล่องยืนยันการซื้อ */
+.confirm-box {
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    width: 90%;
+    max-width: 360px;
+    text-align: center;
+    border: 4px solid var(--pastel-pink);
+    transform: scale(0.8);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.blm-overlay.active .confirm-box {
+    transform: scale(1);
+}
+
+/* โซนตู้กาชาและไข่สุ่ม */
+.gacha-machine-anim {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    margin: 0 auto 20px;
+}
+
+/* อนิเมชันไข่สั่น */
+.gacha-capsule-main {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(to bottom, #ff4081 50%, #ffffff 50%);
+    border-radius: 50%;
+    border: 4px solid #333;
+    position: absolute;
+    top: 50%; left: 50%;
+    margin-left: -50px; margin-top: -50px;
+    box-shadow: inset -10px -10px 0 rgba(0,0,0,0.1);
+}
+
+/* อนิเมชันการสั่นแบบรุนแรงตอนลุ้น */
+@keyframes shakeGacha {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    10% { transform: translate(-5px, -2px) rotate(-5deg); }
+    30% { transform: translate(5px, 2px) rotate(5deg); }
+    50% { transform: translate(-5px, 2px) rotate(-3deg); }
+    70% { transform: translate(5px, -2px) rotate(3deg); }
+    90% { transform: translate(-2px, -2px) rotate(-1deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.shake-active {
+    animation: shakeGacha 0.15s infinite;
+}
+
+/* หน้าจอแสดงผลลัพธ์ไอเทมที่สุ่มได้ */
+.gacha-result-card {
+    display: none;
+    text-align: center;
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.gacha-result-card img {
+    width: 150px;
+    height: 150px;
+    border-radius: 16px;
+    border: 4px solid var(--gold);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    margin-bottom: 15px;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* เอฟเฟกต์แสงกระจายรอบๆ ไอเทม */
+.light-ray {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 300px; height: 300px;
+    margin-top: -150px; margin-left: -150px;
+    background: radial-gradient(circle, rgba(255,235,59,0.6) 0%, rgba(255,255,255,0) 70%);
+    z-index: -1;
+    animation: spinRay 6s linear infinite;
+}
+
+@keyframes spinRay {
+    100% { transform: rotate(360deg); }
+}
       
           .navbar {
     display: flex;
@@ -870,6 +1017,62 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 body {
     padding-bottom: 110px !important;
 }
+      
+      /* --- อนิเมชันไข่กาชาปองสั่นลุ้นรางวัล --- */
+.blm-gacha-capsule {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto;
+  background: linear-gradient(to bottom, #ff69b4 50%, #ffffff 50%);
+  border-radius: 50%;
+  border: 4px solid #333;
+  box-shadow: inset -10px -10px 0 rgba(0,0,0,0.1), 0 8px 20px rgba(255,105,180,0.3);
+  position: relative;
+  /* เรียกใช้อนิเมชันสั่นรัวๆ */
+  animation: blmShake 0.15s infinite alternate;
+}
+
+/* รอยต่อกึ่งกลางไข่กาชา */
+.blm-gacha-capsule::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 0;
+  width: 100%; height: 4px;
+  background: #333;
+  transform: translateY(-50%);
+}
+
+/* คีย์เฟรมคำสั่งเขย่าตู้สุ่ม */
+@keyframes blmShake {
+  0% { transform: translate(0, 0) rotate(-4deg); }
+  100% { transform: translate(4px, 3px) rotate(4deg); }
+}
+
+/* เอฟเฟกต์เรืองแสงกระจายรอบๆ ไอเทมที่สุ่มได้ตอนเฉลย */
+.blm-result-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+.blm-light-ray {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 280px; height: 280px;
+  margin-top: -100px; margin-left: -140px;
+  background: radial-gradient(circle, rgba(255,192,203,0.5) 0%, rgba(255,255,255,0) 70%);
+  z-index: -1;
+  animation: blmSpin 10s linear infinite;
+}
+
+@keyframes blmSpin {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
     </style>
 </head>
 <body>
@@ -1014,6 +1217,39 @@ body {
     <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
     <span>Profile</span>
   </a>
+</div>
+  
+  <div id="blm-confirm-modal" class="blm-overlay">
+    <div class="confirm-box">
+        <div style="font-size: 50px; margin-bottom: 10px;">🛍️</div>
+        <h3 id="confirm-title" style="color: var(--dark-pink); margin-bottom: 8px;">ยืนยันการแลกซื้อ</h3>
+        <p id="confirm-detail" style="color: #666; margin-size: 14px; margin-bottom: 24px;">คุณต้องการแลกเปลี่ยนไอเทมนี้ใช่หรือไม่?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="btn-confirm-cancel" style="background: #e0e0e0; color: #333; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100px;">ยกเลิก</button>
+            <button id="btn-confirm-submit" style="background: linear-gradient(45deg, #ff4081, #ff69b4); color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100px; box-shadow: 0 4px 10px rgba(255,64,129,0.3);">ตกลง</button>
+        </div>
+    </div>
+</div>
+
+<div id="blm-gacha-modal" class="blm-overlay">
+    <div style="text-align: center; position: relative; width: 100%; max-width: 400px; padding: 20px;">
+        
+        <div id="gacha-acting-zone">
+            <div class="gacha-machine-anim">
+                <div id="main-capsule" class="gacha-capsule-main"></div>
+            </div>
+            <h3 style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-weight: normal; letter-spacing: 1px;">กำลังหมุนกาชาปอง...</h3>
+        </div>
+
+        <div id="gacha-result-zone" class="gacha-result-card">
+            <div class="light-ray"></div>
+            <div style="color: #ffd700; font-size: 24px; font-weight: bold; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">✨ CONGRATULATIONS ✨</div>
+            <img id="result-item-img" src="" alt="Item Image">
+            <h2 id="result-item-name" style="color: white; text-shadow: 0 2px 6px rgba(0,0,0,0.8); margin-bottom: 20px;">Item Name</h2>
+            <button id="btn-gacha-close" style="background: white; color: var(--dark-pink); border: none; padding: 12px 35px; border-radius: 50px; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">รับไอเทม</button>
+        </div>
+
+    </div>
 </div>
 <script>
 const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
@@ -1207,19 +1443,52 @@ async function buyCookies(tokenPrice, cookieReward) {
     }
 }
   
-// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด
+// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด (เวอร์ชันอัปเกรดมีระบบยืนยัน + อนิเมชันลุ้นไอเทม)
 async function buyGacha(collectionId) {
   if(!userData) return;
   const username = userData.username;
   
-  Swal.fire({
-    title: 'กำลังสุ่มไอเทม...',
-    text: 'ตู้กำลังหมุน ลุ้นรับเมมเบอร์กันเถอะ!',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
+  // 🌸 STEP 1: หน้าต่างยืนยันการซื้อ (Idol Theme Confirmation)
+  const confirmResult = await Swal.fire({
+    title: '💖 ยืนยันการหมุนกาชาปอง 💖',
+    html: `คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #666; font-size: 13px;">(ระบบจะหัก Token ตามเงื่อนไขของตู้สุ่มทันที)</span>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: '✨ สุ่มเลย! ✨',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#ff69b4', // สีชมพูธีมแอป
+    cancelButtonColor: '#cccccc',
+    background: '#fff5f7',         // สีพื้นพาสเทลหวานๆ
+    borderRadius: '24px'
   });
 
+  // ถ้าผู้ใช้กดเลิก หรือปิดหน้าต่าง ให้หยุดทำงานทันที ไม่ส่งข้อมูลไปเซิร์ฟเวอร์
+  if (!confirmResult.isConfirmed) return;
+
+  // 🎬 STEP 2: แสดงอนิเมชันตู้กาชาปองกำลังเขย่า/หมุน (สร้าง Suspense บิ้วอารมณ์ลุ้น)
+  Swal.fire({
+    title: '🔮 กำลังหมุนกาชาปอง... 🔮',
+    html: `
+      <div style="margin: 20px 0;">
+        <div class="blm-gacha-capsule"></div>
+      </div>
+      <div style="color: #ff5376; font-weight: bold; animation: pulse 1s infinite;">ตู้กำลังเขย่า ลุ้นรับเมมเบอร์กันเถอะ!</div>
+    `,
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    background: '#fff5f7',
+    borderRadius: '24px',
+    didOpen: () => {
+      // สามารถเปิด Loading Bar เล็กๆ ด้านล่างควบคู่กันได้
+      Swal.showLoading();
+    }
+  });
+
+  // จับเวลาเริ่มต้น เพื่อเอาไว้หน่วงเวลาอนิเมชันให้แสดงอย่างน้อย 2.5 วินาที (ไม่ให้ผลลัพธ์โผล่มาไวเกินไปจนหมดสนุก)
+  const startTime = Date.now();
+
   try {
+    // 💾 STEP 3: ฟังก์ชันเดิมของท่าน ส่งข้อมูลไป Google Apps Script (ห้ามแตะต้อง)
     const response = await fetch(`${scriptURL}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1228,22 +1497,41 @@ async function buyGacha(collectionId) {
     
     const res = await response.json();
     
+    // คำนวณเวลาที่เซิร์ฟเวอร์ใช้ไป ถ้าใช้ไปน้อยกว่า 2.5 วินาที ให้หน่วงเวลาต่อจนครบ เพื่อให้ภาพอนิเมชันไข่สั่นแสดงผลได้สวยงาม
+    const elapsedTime = Date.now() - startTime;
+    const minimumAnimationTime = 2500; // 2.5 วินาที
+    if (elapsedTime < minimumAnimationTime) {
+      await new Promise(resolve => setTimeout(resolve, minimumAnimationTime - elapsedTime));
+    }
+    
+    // 🌟 STEP 4: ตรวจสอบผลลัพธ์จากเซิร์ฟเวอร์
     if (res.status === "success") {
-      // เคลียร์ Cache ของคลังไอเทมเพื่อให้ดึงค่าใหม่
+      // เคลียร์ Cache ของคลังไอเทมเพื่อให้ดึงค่าใหม่ (โค้ดเดิม)
       localStorage.removeItem(`blm48_inventory_cache_${username}`);
       localStorage.removeItem(`blm48_inventory_time_${username}`);
       
+      // แสดงผลลัพธ์แบบอลังการ มีแสงกระจาย (Idol Congratulations Theme)
       Swal.fire({
-        title: 'Congratulations!',
-        html: `คุณได้รับ <b>${res.itemName}</b> [${res.itemType}]<br>จากตู้สุ่ม ${res.collectionName}`,
+        title: '🎉 CONGRATULATIONS! 🎉',
+        html: `
+          <div class="blm-result-wrapper">
+            <div class="blm-light-ray"></div>
+            <div style="font-size: 16px; color: #c71585; font-weight: bold; margin-bottom: 5px;">✨ คุณได้รับไอเทมพิเศษ ✨</div>
+            <div style="font-size: 22px; color: #ff1493; font-weight: bold; margin-bottom: 10px;">${res.itemName}</div>
+            <div style="color: #666; font-size: 14px; margin-bottom: 15px;">[${res.itemType}] จากตู้สุ่ม ${res.collectionName}</div>
+          </div>
+        `,
         imageUrl: res.itemImg,
         imageWidth: 250,
         imageHeight: 250,
         imageAlt: res.itemName,
-        confirmButtonText: 'Collect',
-        confirmButtonColor: '#ff5376'
+        confirmButtonText: '💖 รับเข้าคลังไอเทม 💖',
+        confirmButtonColor: '#ff5376',
+        background: '#fffbfb',
+        borderRadius: '24px'
       });
       
+      // อัปเดต Token บนหน้าจอของผู้ใช้ (โค้ดเดิม)
       if(res.newToken !== undefined) {
           userData.token = res.newToken;
           const session = JSON.parse(localStorage.getItem('bnl_session'));
@@ -1252,10 +1540,22 @@ async function buyGacha(collectionId) {
           updateWalletUI();
       }
     } else {
-      Swal.fire('สุ่มไม่สำเร็จ', res.message, 'warning');
+      // กรณีแต้มไม่พอ หรือระบบหลังบ้านส่ง Error กลับมา (โค้ดเดิม)
+      Swal.fire({
+        title: 'สุ่มไม่สำเร็จ',
+        text: res.message,
+        icon: 'warning',
+        confirmButtonColor: '#ff5376'
+      });
     }
   } catch (error) {
-    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้', 'error');
+    // กรณีเน็ตหลุด หรือเชื่อมต่อสคริปต์ไม่ได้ (โค้ดเดิม)
+    Swal.fire({
+      title: 'เกิดข้อผิดพลาด',
+      text: 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้',
+      icon: 'error',
+      confirmButtonColor: '#ff5376'
+    });
   }
 }
   
@@ -1401,6 +1701,57 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, remainingTime);
     }
 });
+  
+  // ฟังก์ชันกลางในการเรียกใช้ Popup ยืนยันการซื้อ
+function openConfirmModal(title, detail, onConfirmCallback) {
+    const modal = document.getElementById('blm-confirm-modal');
+    document.getElementById('confirm-title').innerText = title;
+    document.getElementById('confirm-detail').innerText = detail;
+    
+    modal.classList.add('active');
+    
+    // ตั้งค่าปุ่มกด
+    document.getElementById('btn-confirm-cancel').onclick = function() {
+        modal.classList.remove('active');
+    };
+    
+    document.getElementById('btn-confirm-submit').onclick = function() {
+        modal.classList.remove('active');
+        if(onConfirmCallback) onConfirmCallback(); // รันฟังก์ชันเดิมที่ส่งมา
+    };
+}
+  
+function playGachaAnimation(itemName, itemImg, onCloseCallback) {
+    const gachaModal = document.getElementById('blm-gacha-modal');
+    const actingZone = document.getElementById('gacha-acting-zone');
+    const resultZone = document.getElementById('gacha-result-zone');
+    const capsule = document.getElementById('main-capsule');
+    
+    // รีเซ็ตการแสดงผลย้อนกลับไปตอนแรก
+    actingZone.style.display = 'block';
+    resultZone.style.display = 'none';
+    gachaModal.classList.add('active');
+    capsule.classList.add('shake-active'); // ไข่เริ่มสั่นลุ้นเรียกร้องความสนใจ
+    
+    // ตั้งเวลาลุ้น 2.5 วินาที ก่อนที่ไข่จะฟักตัวออก
+    setTimeout(() => {
+        capsule.classList.remove('shake-active');
+        actingZone.style.display = 'none';
+        
+        // โหลดข้อมูลผลลัพธ์มาใส่ชิ้นงาน
+        document.getElementById('result-item-img').src = itemImg || 'https://lh3.googleusercontent.com/d/1Zoxx_r9xvfsItVGkd7OZkJU2FcO6zOoW=s1000,Random';
+        document.getElementById('result-item-name').innerText = itemName;
+        
+        // เปิดหน้าต่างผลลัพธ์เฉลย
+        resultZone.style.display = 'block';
+    }, 2500);
+    
+    // เมื่อกดปุ่มรับไอเทมปิดหน้าต่างลง
+    document.getElementById('btn-gacha-close').onclick = function() {
+        gachaModal.classList.remove('active');
+        if(onCloseCallback) onCloseCallback(); // รีเฟรชข้อมูลเหรียญ/หน้าเว็บตามระบบเดิมของคุณ
+    };
+}
 
     function checkNotificationBadge() {
   const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
