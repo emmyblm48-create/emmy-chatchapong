@@ -1547,24 +1547,31 @@ async function verifySession() {
     return;
   }
 
-  const userData = JSON.parse(session);
-  // เรียกไปที่ Google Apps Script เพื่อเช็กว่า username นี้ยังมีอยู่ในระบบจริงไหม
-  const response = await fetch(`${scriptURL}?action=checkUser&username=${userData.username}`);
-  const data = await response.json();
+  const sessionObj = JSON.parse(session);
+  // 🟢 แก้ไข: เจาะเข้าไปเอา username จากภายใน property 'data' ให้ถูกต้อง
+  const currentUsername = sessionObj.data ? sessionObj.data.username : null;
 
-  if (data.status !== 'exists') {
-    // ถ้าไม่พบชื่อในระบบแล้ว ให้ล้างแคชและเด้งไปหน้า Login
+  if (!currentUsername) {
     localStorage.removeItem('bnl_session');
-    localStorage.removeItem('blm48_posts_cache'); // ล้างแคชโพสต์ด้วย
     window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    // ส่ง username ที่ถูกต้องไปเช็กที่หลังบ้าน
+    const response = await fetch(`${scriptURL}?action=checkUser&username=${encodeURIComponent(currentUsername)}`);
+    const data = await response.json();
+
+    if (data.status !== 'exists') {
+      localStorage.removeItem('bnl_session');
+      localStorage.removeItem('blm48_posts_cache'); 
+      window.location.href = 'login.html';
+    }
+  } catch (error) {
+    console.error("Verify Session Error:", error);
+    // แนะนำว่าหากเกิด Network Error ชั่วคราว ไม่ควรเพิ่งเตะผู้ใช้ออกทันที เพื่อป้องกันระบบล่มแล้วยูสเซอร์หลุดทุกคน
   }
 }
-
-// และสั่งให้เช็กทุกครั้งที่โหลดหน้าเว็บ
-window.onload = () => {
-  verifySession();
-  loadTimelinePosts();
-};
 
 // ==========================================
 // 👑 5. ASYNC DATA SYNC (ระบบดึงข้อมูล Google Sheets)
@@ -1691,31 +1698,26 @@ async function refreshAppData() {
 }
 
 // ==========================================
-// 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอ)
+// 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชัน)
 // ==========================================
-window.addEventListener('pageshow', function(event) {
-  if (event.persisted && user) {
-    loadData();
-    syncUserData();
-  }
-});
 
-window.addEventListener('DOMContentLoaded', () => {
+// ✨ จุดที่ 1: ดักจับตอนโครงสร้างหน้าเว็บโหลดเสร็จ (จัดการระบบล็อกอิน ซิงค์ข้อมูล)
+document.addEventListener('DOMContentLoaded', async () => {
   try {
-    // 🔐 ตรวจสอบเซสชันผู้ใช้แบบรัดกุมที่สุด
+    // 🔐 1. ตรวจสอบเซสชันผู้ใช้เบื้องต้นจากเครื่องก่อน
     user = getUserSession(); 
 
-    // 🌟 ดักจับ: ถ้าไม่มี user หรือ username เป็นค่าว่าง ให้เตะออกทันที
+    // 🚨 ดักจับ: ถ้าไม่มี user หรือ username เป็นค่าว่าง ให้เตะออกทันที
     if (!user || !user.username || user.username.trim() === "") {
       localStorage.removeItem('bnl_session'); // ล้างเซสชันขยะทิ้ง
-      window.location.replace('login.html'); // ใช้ .replace() เพื่อป้องกันไม่ให้กดย้อนกลับมาหน้า index ได้
+      window.location.replace('login.html'); // ป้องกันไม่ให้กดย้อนกลับมาหน้า index
       return; 
     }
 
-    // 🔄 ตรวจสอบเวอร์ชันแอป
+    // 🔄 2. ตรวจสอบเวอร์ชันแอปเพื่อเคลียร์แคชเก่า
     checkVersion(); 
     
-    // 🎨 1. วาดหน้าจอด้วยข้อมูลจาก Cache ทันที (แอปเข้าปุ๊บติดปั๊บ)
+    // 🎨 3. วาดหน้าจอด้วยข้อมูลจาก Cache ทันทีเพื่อให้แอปเปิดไว (แอปเข้าปุ๊บติดปั๊บ)
     if (typeof updateUI === 'function') updateUI();
     if (typeof renderTrendingMVs === 'function') renderTrendingMVs();
     if (Array.isArray(currentRankingData) && currentRankingData.length > 0) {
@@ -1725,14 +1727,15 @@ window.addEventListener('DOMContentLoaded', () => {
       renderGlobalFans(currentTopFansData);
     }
 
-    // 🚀 2. ซ่อนหน้าต่างโหลดเพื่อให้ผู้ใช้ใช้งานได้ทันที
+    // 🚀 4. ซ่อนหน้าต่างโหลดหลัก เพื่อให้ผู้ใช้เริ่มกดปุ่มต่าง ๆ บนหน้าเว็บได้ทันที
     if (typeof hideAppLoading === 'function') hideAppLoading();
 
-    // 📡 3. แอบดึงข้อมูลสดจาก Sheets และโหลดข้อมูลไทม์ไลน์เบื้องหลัง
-    if (typeof loadData === 'function') loadData();
-    if (typeof syncUserData === 'function') syncUserData(); 
+    // 📡 5. ตรวจสอบความถูกต้องและซิงค์ข้อมูลสดจาก Google Sheets (เรียงลำดับด้วย await ป้องกันบั๊กดีดออก)
+    await verifySession();      // เช็กหลังบ้านว่า Username นี้ยังมีอยู่จริงในระบบไหม (แก้บั๊ก undefined แล้ว)
+    await syncUserData();       // ซิงค์ข้อมูลกระเป๋าเงิน สิทธิ์กลุ่ม และดักเคสโดนแบน/พาสเวิร์ดว่าง
     
-    // 🔥 เรียกใช้งานฟังก์ชันโหลดฟีดโพสต์ไทม์ไลน์เมมเบอร์ BLM48 ตรงนี้เลยงับ!
+    // 6. โหลดข้อมูลอันดับและฟีดโพสต์ไทม์ไลน์เบื้องหลัง
+    if (typeof loadData === 'function') await loadData();
     if (typeof loadTimelinePosts === 'function') {
       loadTimelinePosts(); 
     }
@@ -1743,10 +1746,24 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ตรวจสอบธีมและปิด Splash Screen โหลดตอนเริ่มรอบแรก
+// ✨ จุดที่ 2: ดักจับตอนไฟล์ทั้งหมด (รวมถึงรูปภาพ) โหลดเสร็จสมบูรณ์ (เก็บไว้เช็กธีม + ปิดหน้าโหลดแรกสุด)
 window.addEventListener('load', () => {
-  if (localStorage.getItem('theme') === 'dark') toggleDarkMode();
-  setTimeout(hideSplashScreen, 2000); 
+  // ตรวจสอบและเปิดใช้งาน Dark Mode
+  if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'function') {
+    toggleDarkMode();
+  }
+  // หน่วงเวลา 2 วินาทีแล้วปิด Splash Screen หน้าโหลดเริ่มต้นสีขาวชมพู
+  if (typeof hideSplashScreen === 'function') {
+    setTimeout(hideSplashScreen, 2000); 
+  }
+});
+
+// ✨ จุดที่ 3: ดักจับตอนผู้ใช้กดย้อนกลับมาจากหน้าอื่น (Pageshow)
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted && user) {
+    if (typeof loadData === 'function') loadData();
+    if (typeof syncUserData === 'function') syncUserData();
+  }
 });
  
 function updateUI() {
