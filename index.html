@@ -1543,74 +1543,65 @@ function hideSplashScreen() {
 // 👑 5. ASYNC DATA SYNC (ระบบดึงข้อมูล Google Sheets)
 // ==========================================
 async function syncUserData() {
-  if (!user) return;
+  // 1. ดึงข้อมูลเซสชันล่าสุดในเครื่องขึ้นมาเช็กก่อน
+  const sessionData = localStorage.getItem('bnl_session');
+  if (!sessionData) {
+    window.location.replace('login.html');
+    return;
+  }
+  
+  let currentUser;
   try {
-    const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
-    const res = await resp.json();
-    
-    // 🟢 เคสที่ 1: ดึงข้อมูลสำเร็จ (บัญชียังใช้งานได้ปกติ)
-    if (res.success && res.status === "success") {
-      // ดักเคสถ้ายูสเซอร์ไม่มีพาสเวิร์ด (โดนแบน / ไม่ได้เข้ากลุ่ม)
-      if (res.data.password === "") {
-        Swal.fire({
-          icon: 'warning',
-          title: 'กรุณาติดต่อ BLM48 Line Official',
-          text: 'สิทธิ์การใช้งานถูกระงับเนื่องจากไม่เข้ากลุ่ม BLM48 Membership ค่ะ',
-          confirmButtonColor: '#ff85a2',
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
-            Swal.getPopup().style.borderRadius = "20px";
-          }
-        }).then(() => {
-          localStorage.removeItem('bnl_session');
-          sessionStorage.clear();
-          user = null;
-          if (typeof updateUI === 'function') updateUI();
-          window.location.replace('login.html'); 
-        });
-        return;
-      }
+    currentUser = JSON.parse(sessionData);
+  } catch(e) {
+    localStorage.removeItem('bnl_session');
+    window.location.replace('login.html');
+    return;
+  }
+  
+  // ตรวจสอบดักหา username (รองรับโครงสร้างข้อมูลเซสชันทุกแบบ)
+  const currentUsername = currentUser.username || (currentUser.data && currentUser.data.username);
+  
+  if (!currentUsername) {
+    localStorage.removeItem('bnl_session');
+    window.location.replace('login.html');
+    return;
+  }
 
-      user = { ...user, ...res.data }; 
-      saveUserSession(user); 
-      if (typeof updateUI === 'function') updateUI(); 
+  try {
+    // 2. ยิงไปถามหลังบ้านเพื่อดึงสถานะล่าสุดจาก Google Sheets
+    const response = await fetch(`${SCRIPT_URL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
+    const result = await response.json();
 
+    // เคสปกติ: ข้อมูลในชีทยังอยู่ครบถ้วน ปลอดภัยดี
+    if (result.success && result.status === "success") {
+      localStorage.setItem('bnl_session', JSON.stringify(result.data));
+      user = result.data; // อัปเดตตัวแปร Global ในหน้าเว็บ
+      if (typeof updateUI === 'function') updateUI(); // อัปเดตแต้ม/รูปโปรไฟล์ล่าสุดบนหน้าจอ
     } 
-    // 🚨 เคสที่ 2: ดักจับ Error จากหลังบ้าน (แอดมินลบชีต หรือระงับบัญชี)
-    else if (res.status === "error") {
-      // 1. ล้างแคชและเซสชันทั้งหมดทิ้งทันที
-      localStorage.removeItem('bnl_session');
-      sessionStorage.clear();
-      user = null;
-      if (typeof updateUI === 'function') updateUI();
-      
-      // 2. แสดงแจ้งเตือนอย่างนุ่มนวลว่าบัญชีถูกระงับ
-      Swal.fire({
-        icon: 'error',
-        title: 'เซสชันหมดอายุหรือถูกระงับ',
-        text: res.message || 'บัญชีของคุณถูกระงับการใช้งาน หรือไม่มีอยู่ในระบบแล้ว',
-        confirmButtonColor: '#ff85a2',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
-          Swal.getPopup().style.borderRadius = "20px";
-        }
-      }).then(() => {
-        // 3. เตะเด้งกลับไปหน้า login ทันที (ใช้ replace เพื่อไม่ให้กดย้อนหลังได้)
-        window.location.replace('login.html');
-      });
-    } 
-    // ⚪ เคสที่ 3: เกิดข้อผิดพลาดอื่นๆ ที่ไม่คาดคิด (เตะออกเงียบๆ)
+    // เคสโดนลบ: 🚨 แอดมินลบชื่อ, ลบรหัสผ่าน หรือลบทั้งแถว (หลังบ้านจะส่ง success: false กลับมา)
     else {
-      localStorage.removeItem('bnl_session');
-      sessionStorage.clear(); 
-      user = null;
-      if (typeof updateUI === 'function') updateUI();
-      window.location.replace('login.html');
+      localStorage.removeItem('bnl_session'); // 🚫 ล้างข้อมูลการเข้าสู่ระบบในเครื่องทิ้งทันที!
+      
+      // แสดงกล่องแจ้งเตือนผู้ใช้ก่อนดีดออก (เช็กว่าหน้าเว็บใช้ SweetAlert2 ไหม ถ้าไม่มีจะใช้ alert ปกติ)
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: 'เซสชันหมดอายุ',
+          text: result.message || 'บัญชีของคุณถูกระงับการใช้งานแล้ว',
+          confirmButtonColor: '#ffb3c1',
+          allowOutsideClick: false
+        }).then(() => {
+          window.location.replace('login.html'); // เตะไปหน้า login
+        });
+      } else {
+        alert(result.message || 'บัญชีของคุณถูกระงับการใช้งานแล้ว');
+        window.location.replace('login.html'); // เตะไปหน้า login
+      }
     }
-  } catch (e) { 
-    console.error("Sync User Error:", e); 
+  } catch (error) {
+    console.error("ระบบตรวจสอบสถานะผู้ใช้เบื้องหลังขัดข้อง:", error);
+    // กรณีเน็ตหลุดชั่วคราว ไม่ต้องเตะออก ให้รอรอบตรวจสอบถัดไปทำงานแทน
   }
 }
 
@@ -2900,8 +2891,20 @@ document.addEventListener("DOMContentLoaded", () => {
   
   // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
   loadData();
+  
+  // ถ้ามีผู้ใช้ล็อกอินอยู่ ให้รันระบบเช็กข้อมูลและระบบเตะอัตโนมัติ
   if (user) {
+    // 1) สั่งซิงค์ข้อมูลเพื่อตรวจสอบความถูกต้องรอบแรกทันทีที่โหลดหน้าเว็บเสร็จ
     syncUserData(); 
+    
+    // 2) 🔄 ระบบ Background Auto-Kick (คอยตรวจจับสถานะบัญชีสดๆ จากชีท)
+    // สั่งให้หน้าบ้านแอบส่งสัญญาณไปเช็กข้อมูลใน Google Sheets ทุกๆ 45 วินาที
+    // หากแอดมินลบ Username หรือ Password ออกตอนไหน ระบบจะเตะผู้ใช้ออกเองทันทีโดยไม่ต้องรีเฟรชหน้าเว็บ!
+    setInterval(async () => {
+      if (localStorage.getItem('bnl_session')) {
+        await syncUserData();
+      }
+    }, 45000); // 45000 มิลลิวินาที = 45 วินาที (สามารถปรับเพิ่มหรือลดเวลาได้ตามใจชอบครับ)
   }
 });
 </script>
