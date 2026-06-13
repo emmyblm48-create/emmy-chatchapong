@@ -2323,7 +2323,9 @@ function renderPost(post) {
   // =========================================================================
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
   setTimeout(() => {
-    listenToCommentsRealtime(`${postId}`);
+   if (typeof window.listenForComments === 'function') {
+      window.listenForComments(`${postId}`);
+    }
   }, 100);
 
   // =========================================================================
