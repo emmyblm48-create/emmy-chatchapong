@@ -1472,46 +1472,77 @@ async function buyCookies(tokenPrice, cookieReward) {
     }
 }
   
-// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด (เวอร์ชันอัปเกรดมีระบบยืนยัน + อนิเมชันลุ้นไอเทม + ไอคอน SVG พรีเมียม)
+// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด (เวอร์ชันกล่องขาวมินิมอล + อนิเมชันอลังการสไตล์เกมเกลือ/การ์ด SSR)
 async function buyGacha(collectionId) {
   if(!userData) return;
   const username = userData.username;
   
-  // 🎨 นิยามไอคอน SVG แบบเวกเตอร์ (แสดงผลลื่นไหล คมชัด จัดตำแหน่งกึ่งกลางข้อความอัตโนมัติ)
+  // 🎨 นิยามไอคอนเวกเตอร์ SVG แบบพรีเมียม (ใช้แทนอิโมจิทั้งหมด)
   const iconHeart = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4081" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-  const iconSparkle = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ffd700" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
+  const iconSparkleGold = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ffd700" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
   const iconSparklePink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ff1493" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
-  const iconMagic = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin: 0 4px; animation: blmSpin 2s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
+  const iconGachaCore = `<svg width="22" height="22" viewBox="0 0 24 24" fill="#ff69b4" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2a10 10 0 0 0-10 10 10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2zm0 2c3.95 0 7.21 2.86 7.88 6.67h-4.01a4 4 0 0 0-7.74 0H4.12C4.79 6.86 8.05 4 12 4zm0 16c-3.95 0-7.21-2.86-7.88-6.67h4.01a4 4 0 0 0 7.74 0h4.01c-.67 3.81-3.93 6.67-12 6.67z"/></svg>`;
 
-  // 🌸 STEP 1: หน้าต่างยืนยันการซื้อ
+  // 🌸 STEP 1: หน้าต่างยืนยันการซื้อ (กล่องสีขาวคลีนสะดุดตา)
   const confirmResult = await Swal.fire({
-    title: `ยืนยันการหมุนกาชาปอง`,
-    html: `คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #666; font-size: 13px;">(ระบบจะหัก Token ตามเงื่อนไขของตู้สุ่มทันที)</span>`,
+    title: `${iconHeart} ยืนยันการหมุนกาชาปอง ${iconHeart}`,
+    html: `<div style="font-size: 15px; color: #444; line-height: 1.6;">คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #888; font-size: 12px;">(ระบบจะหัก Token ตามเงื่อนไขของตู้สุ่มทันที)</span></div>`,
     icon: 'question',
     showCancelButton: true,
-    confirmButtonText: `Confirm`,
-    cancelButtonText: 'Cancle',
+    confirmButtonText: `${iconSparkleGold} สุ่มเลย! ${iconSparkleGold}`,
+    cancelButtonText: 'ยกเลิก',
     confirmButtonColor: '#ff69b4', 
-    cancelButtonColor: '#cccccc',
-    background: '#fff5f7',         
-    borderRadius: '24px'
+    cancelButtonColor: '#e0e0e0',
+    background: '#ffffff',         // ✨ ปรับเป็นกล่องสีขาวบริสุทธิ์
+    borderRadius: '20px',
+    customClass: {
+      popup: 'blm-clean-white-popup',
+      cancelButton: 'blm-cancel-text-dark'
+    }
   });
 
+  // ถ้าระบบตรวจพบว่ากดยกเลิก ให้หลุดการทำงานทันที
   if (!confirmResult.isConfirmed) return;
 
-  // 🎬 STEP 2: แสดงอนิเมชันตู้กาชาปองกำลังเขย่า/หมุน
+  // 🎬 STEP 2: หน้าต่างแอนิเมชันเรียกวงเวทสุ่มไอเทม (อลังการสไตล์ Warp Engine / Summoning Portal)
   Swal.fire({
-    title: `${iconMagic} กำลังหมุนกาชาปอง... ${iconMagic}`,
+    title: `${iconGachaCore} กำลังอัญเชิญเมมเบอร์... ${iconGachaCore}`,
     html: `
-      <div style="margin: 20px 0;">
-        <div class="blm-gacha-capsule"></div>
+      <style>
+        .blm-game-summon-box { position: relative; width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: radial-gradient(circle, #fff 30%, #fff0f3 100%); border-radius: 16px; margin: 15px 0; }
+        .blm-magic-portal { position: absolute; width: 140px; height: 140px; animation: blmPortalSpin 4s linear infinite; opacity: 0.7; }
+        .blm-gacha-crystal { position: relative; width: 65px; height: 65px; background: linear-gradient(135deg, #ff69b4, #ff1493, #ffd700); clip-path: polygon(50% 0%, 100% 35%, 100% 65%, 50% 100%, 0% 65%, 0% 35%); animation: blmCrystalShake 0.4s ease-in-out infinite, blmColorShift 3s linear infinite; filter: drop-shadow(0 0 15px #ff1493); z-index: 2; }
+        .blm-scan-ray { position: absolute; width: 100%; height: 4px; background: linear-gradient(90deg, transparent, #ff1493, transparent); animation: blmScanMove 1.5s ease-in-out infinite; z-index: 3; }
+        .blm-particle-star { position: absolute; width: 6px; height: 6px; background: #ffd700; border-radius: 50%; opacity: 0; animation: blmPopStar 1.2s ease-out infinite; }
+        .blm-p1 { left: 30%; animation-delay: 0s; } .blm-p2 { left: 50%; animation-delay: 0.4s; } .blm-p3 { left: 70%; animation-delay: 0.8s; }
+        @keyframes blmPortalSpin { 0% { transform: rotate(0deg) scale(0.95); } 50% { transform: rotate(180deg) scale(1.05); } 100% { transform: rotate(360deg) scale(0.95); } }
+        @keyframes blmCrystalShake { 0%, 100% { transform: translate(0, 0) scale(1); } 20% { transform: translate(-3px, 2px) rotate(-4deg); } 40% { transform: translate(3px, -2px) rotate(4deg); } 60% { transform: translate(-2px, -1px) scale(1.1); } 80% { transform: translate(2px, 3px) rotate(-2deg); } }
+        @keyframes blmColorShift { 0% { filter: hue-rotate(0deg) drop-shadow(0 0 12px #ff1493); } 50% { filter: hue-rotate(180deg) drop-shadow(0 0 20px #00ffff); } 100% { filter: hue-rotate(360deg) drop-shadow(0 0 12px #ff1493); } }
+        @keyframes blmScanMove { 0%, 100% { top: 10%; opacity: 0.1; } 50% { top: 90%; opacity: 0.9; } }
+        @keyframes blmPopStar { 0% { transform: translateY(50px) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-60px) scale(1.2); opacity: 0; } }
+      </style>
+      
+      <div class="blm-game-summon-box">
+        <svg class="blm-magic-portal" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="45" fill="none" stroke="#ff69b4" stroke-width="1.5" stroke-dasharray="6,4"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#ffd700" stroke-width="1" stroke-dasharray="4,8"/>
+          <polygon points="50,10 85,75 15,75" fill="none" stroke="#ff1493" stroke-width="1" opacity="0.5"/>
+          <polygon points="50,90 85,25 15,25" fill="none" stroke="#ff1493" stroke-width="1" opacity="0.5"/>
+        </svg>
+        <div class="blm-scan-ray"></div>
+        <div class="blm-gacha-crystal"></div>
+        <div class="blm-particle-star blm-p1"></div>
+        <div class="blm-particle-star blm-p2"></div>
+        <div class="blm-particle-star blm-p3"></div>
       </div>
-      <div style="color: #ff5376; font-weight: bold; animation: pulse 1s infinite;">ตู้กำลังเขย่า ลุ้นรับเมมเบอร์กันเถอะ!</div>
+      <div style="color: #ff4081; font-weight: bold; font-size: 15px; letter-spacing: 0.5px; animation: pulse 1s infinite;">
+        ระบบกำลังประมวลผลการสุ่ม... ลุ้นรับแรร์ไอเทม!
+      </div>
     `,
     allowOutsideClick: false,
     showConfirmButton: false,
-    background: '#fff5f7',
-    borderRadius: '24px',
+    background: '#ffffff',         // ✨ เปลี่ยนเป็นกล่องขาวเรียบหรูดูแพง
+    borderRadius: '20px',
     didOpen: () => {
       Swal.showLoading();
     }
@@ -1520,7 +1551,7 @@ async function buyGacha(collectionId) {
   const startTime = Date.now();
 
   try {
-    // 💾 STEP 3: ส่งข้อมูลไป Google Apps Script (ห้ามแตะต้อง)
+    // 💾 STEP 3: ฟังก์ชันส่งข้อมูลหลังบ้านไปยัง Google Apps Script (คงเดิมห้ามแก้ไข)
     const response = await fetch(`${scriptURL}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1529,37 +1560,56 @@ async function buyGacha(collectionId) {
     
     const res = await response.json();
     
+    // คำนวณเวลาเพื่อล็อกแอนิเมชันให้รันอย่างน้อย 2.5 วินาทีเท่าเดิมเพิ่มความลุ้นระทึก
     const elapsedTime = Date.now() - startTime;
     const minimumAnimationTime = 2500; 
     if (elapsedTime < minimumAnimationTime) {
       await new Promise(resolve => setTimeout(resolve, minimumAnimationTime - elapsedTime));
     }
     
-    // 🌟 STEP 4: ตรวจสอบผลลัพธ์และเฉลยไอเทม
+    // 🌟 STEP 4: เฉลยผลลัพธ์การสุ่ม (สไตล์เปิดได้การ์ดตัวละครระดับ SSR แสงกระจายอลังการ)
     if (res.status === "success") {
       localStorage.removeItem(`blm48_inventory_cache_${username}`);
       localStorage.removeItem(`blm48_inventory_time_${username}`);
       
       Swal.fire({
-        title: `${iconSparkle} CONGRATULATIONS! ${iconSparkle}`,
+        title: `${iconSparkleGold} CONGRATULATIONS! ${iconSparkleGold}`,
         html: `
-          <div class="blm-result-wrapper">
-            <div class="blm-light-ray"></div>
-            <div style="font-size: 16px; color: #c71585; font-weight: bold; margin-bottom: 5px;">${iconSparklePink} คุณได้รับไอเทมพิเศษ ${iconSparklePink}</div>
-            <div style="font-size: 22px; color: #ff1493; font-weight: bold; margin-bottom: 10px;">${res.itemName}</div>
-            <div style="color: #666; font-size: 14px; margin-bottom: 15px;">[${res.itemType}] จากตู้สุ่ม ${res.collectionName}</div>
+          <style>
+            .blm-ssr-reveal-wrapper { position: relative; overflow: hidden; padding: 10px 0; text-align: center; }
+            /* เอฟเฟกต์แสงออร่าหมุนพุ่งกระจายข้างหลังรูปภาพ */
+            .blm-ssr-light-ray { position: absolute; top: 40%; left: 50%; width: 360px; height: 360px; transform: translate(-25%, -50%); background: radial-gradient(circle, rgba(255,105,180,0.2) 0%, transparent 70%); animation: blmBlurPulse 2s ease-in-out infinite alternate; z-index: 1; pointer-events: none; }
+            .blm-item-epic-title { font-size: 15px; color: #c71585; font-weight: bold; margin-top: 15px; margin-bottom: 5px; letter-spacing: 0.5px; }
+            /* แอนิเมชันดีดตัวชื่อไอเทมขยายใหญ่ */
+            .blm-item-epic-name { font-size: 24px; color: #ff1493; font-weight: 900; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(255,20,147,0.15); animation: blmTextPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+            .blm-item-epic-sub { color: #666; font-size: 13.5px; margin-bottom: 5px; }
+            
+            /* แอนิเมชันเด้งขยายใหญ่ของรูปไอเทม */
+            .swal2-image { animation: blmCardIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.15) forwards; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 2; position: relative; }
+            
+            @keyframes blmBlurPulse { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; } 100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
+            @keyframes blmCardIn { 0% { transform: scale(0.3) rotate(-8deg); opacity: 0; filter: brightness(2); } 70% { transform: scale(1.05) rotate(2deg); filter: brightness(1.2); } 100% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1); } }
+            @keyframes blmTextPop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+          </style>
+          
+          <div class="blm-ssr-reveal-wrapper">
+            <div class="blm-ssr-light-ray"></div>
+            <div class="blm-item-epic-title">${iconSparklePink} ยินดีด้วย! คุณได้รับ ${iconSparklePink}</div>
+            <div class="blm-item-epic-name">${res.itemName}</div>
+            <div class="blm-item-epic-sub">[${res.itemType}] จาก ${res.collectionName}</div>
           </div>
         `,
         imageUrl: res.itemImg,
-        imageWidth: 250,
-        imageHeight: 250,
+        imageWidth: 240,
+        imageHeight: 240,
         imageAlt: res.itemName,
-        confirmButtonText: `Collect`,
+        confirmButtonText: `${iconHeart} ส่งเข้าคลังไอเทมของคุณ ${iconHeart}`,
         confirmButtonColor: '#ff5376',
-        background: '#fffbfb',
-        borderRadius: '24px'
+        background: '#ffffff',         // ✨ เปลี่ยนกล่องผลลัพธ์เป็นสีขาวคลีน โมเดิร์น คอนทราสต์กับแสงการ์ด
+        borderRadius: '20px'
       });
       
+      // อัปเดตข้อมูล Tokens ในระบบผู้ใช้ (คงโค้ดเดิม)
       if(res.newToken !== undefined) {
           userData.token = res.newToken;
           const session = JSON.parse(localStorage.getItem('bnl_session'));
@@ -1568,19 +1618,25 @@ async function buyGacha(collectionId) {
           updateWalletUI();
       }
     } else {
+      // หน้าต่างกรณีเฟลหรือเหรียญไม่พอ (ปรับเป็นกล่องขาวคลีน)
       Swal.fire({
         title: 'สุ่มไม่สำเร็จ',
         text: res.message,
         icon: 'warning',
-        confirmButtonColor: '#ff5376'
+        confirmButtonColor: '#ff5376',
+        background: '#ffffff',
+        borderRadius: '20px'
       });
     }
   } catch (error) {
+    // หน้าต่างกรณีระบบหลุด (ปรับเป็นกล่องขาวคลีน)
     Swal.fire({
       title: 'เกิดข้อผิดพลาด',
       text: 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้',
       icon: 'error',
-      confirmButtonColor: '#ff5376'
+      confirmButtonColor: '#ff5376',
+      background: '#ffffff',
+      borderRadius: '20px'
     });
   }
 }
