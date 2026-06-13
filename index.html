@@ -1573,29 +1573,40 @@ async function syncUserData() {
     const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
     const result = await response.json();
 
-    // เคสปกติ: ข้อมูลในชีทยังอยู่ครบถ้วน ปลอดภัยดี
-    if (result.success && result.status === "success") {
+    // 🔍 ดักจับตรวจสอบ: ข้อมูลที่ส่งกลับมามีรหัสผ่าน และรหัสผ่านต้องไม่ใช่ค่าว่าง (พ่นช่องว่างทิ้งด้วย .trim())
+    const hasPassword = result.data && 
+                        result.data.password !== undefined && 
+                        result.data.password !== null && 
+                        String(result.data.password).trim() !== "";
+
+    // เคสปกติ: ข้อมูลในชีทยังอยู่ครบถ้วน ปลอดภัยดี และมีรหัสผ่านระบุอยู่
+    if (result.success && result.status === "success" && hasPassword) {
       localStorage.setItem('bnl_session', JSON.stringify(result.data));
       user = result.data; // อัปเดตตัวแปร Global ในหน้าเว็บ
       if (typeof updateUI === 'function') updateUI(); // อัปเดตแต้ม/รูปโปรไฟล์ล่าสุดบนหน้าจอ
     } 
-    // เคสโดนลบ: 🚨 แอดมินลบชื่อ, ลบรหัสผ่าน หรือลบทั้งแถว (หลังบ้านจะส่ง success: false กลับมา)
+    // เคสโดนเตะ: 🚨 แอดมินลบชื่อ, ลบรหัสผ่านออก (พาสเวิร์ดว่าง), หรือลบทั้งแถว
     else {
       localStorage.removeItem('bnl_session'); // 🚫 ล้างข้อมูลการเข้าสู่ระบบในเครื่องทิ้งทันที!
       
+      // ข้อความแจ้งเตือนเปลี่ยนตามเคส (โดนลบรหัสผ่าน หรือ บัญชีหาย)
+      const alertMessage = (!hasPassword && result.success) 
+        ? 'บัญชีของคุณถูกระงับการใช้งานชั่วคราว (รหัสผ่านถูกเพิกถอน)' 
+        : (result.message || 'บัญชีของคุณถูกระงับการใช้งานแล้ว');
+
       // แสดงกล่องแจ้งเตือนผู้ใช้ก่อนดีดออก (เช็กว่าหน้าเว็บใช้ SweetAlert2 ไหม ถ้าไม่มีจะใช้ alert ปกติ)
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'error',
-          title: 'เซสชันหมดอายุ',
-          text: result.message || 'บัญชีของคุณถูกระงับการใช้งานแล้ว',
+          title: 'คุณถูกระงับบัญชี',
+          text: alertMessage,
           confirmButtonColor: '#ffb3c1',
           allowOutsideClick: false
         }).then(() => {
           window.location.replace('login.html'); // เตะไปหน้า login
         });
       } else {
-        alert(result.message || 'บัญชีของคุณถูกระงับการใช้งานแล้ว');
+        alert(alertMessage);
         window.location.replace('login.html'); // เตะไปหน้า login
       }
     }
