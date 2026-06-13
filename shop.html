@@ -1472,31 +1472,36 @@ async function buyCookies(tokenPrice, cookieReward) {
     }
 }
   
-// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด (เวอร์ชันอัปเกรดมีระบบยืนยัน + อนิเมชันลุ้นไอเทม)
+// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด (เวอร์ชันอัปเกรดมีระบบยืนยัน + อนิเมชันลุ้นไอเทม + ไอคอน SVG พรีเมียม)
 async function buyGacha(collectionId) {
   if(!userData) return;
   const username = userData.username;
   
-  // 🌸 STEP 1: หน้าต่างยืนยันการซื้อ (Idol Theme Confirmation)
+  // 🎨 นิยามไอคอน SVG แบบเวกเตอร์ (แสดงผลลื่นไหล คมชัด จัดตำแหน่งกึ่งกลางข้อความอัตโนมัติ)
+  const iconHeart = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4081" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+  const iconSparkle = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ffd700" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
+  const iconSparklePink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ff1493" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/></svg>`;
+  const iconMagic = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff69b4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle; margin: 0 4px; animation: blmSpin 2s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
+
+  // 🌸 STEP 1: หน้าต่างยืนยันการซื้อ
   const confirmResult = await Swal.fire({
-    title: '💖 ยืนยันการหมุนกาชาปอง 💖',
+    title: `${iconHeart} ยืนยันการหมุนกาชาปอง ${iconHeart}`,
     html: `คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #666; font-size: 13px;">(ระบบจะหัก Token ตามเงื่อนไขของตู้สุ่มทันที)</span>`,
     icon: 'question',
     showCancelButton: true,
-    confirmButtonText: '✨ สุ่มเลย! ✨',
+    confirmButtonText: `${iconSparkle} สุ่มเลย! ${iconSparkle}`,
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#ff69b4', // สีชมพูธีมแอป
+    confirmButtonColor: '#ff69b4', 
     cancelButtonColor: '#cccccc',
-    background: '#fff5f7',         // สีพื้นพาสเทลหวานๆ
+    background: '#fff5f7',         
     borderRadius: '24px'
   });
 
-  // ถ้าผู้ใช้กดเลิก หรือปิดหน้าต่าง ให้หยุดทำงานทันที ไม่ส่งข้อมูลไปเซิร์ฟเวอร์
   if (!confirmResult.isConfirmed) return;
 
-  // 🎬 STEP 2: แสดงอนิเมชันตู้กาชาปองกำลังเขย่า/หมุน (สร้าง Suspense บิ้วอารมณ์ลุ้น)
+  // 🎬 STEP 2: แสดงอนิเมชันตู้กาชาปองกำลังเขย่า/หมุน
   Swal.fire({
-    title: '🔮 กำลังหมุนกาชาปอง... 🔮',
+    title: `${iconMagic} กำลังหมุนกาชาปอง... ${iconMagic}`,
     html: `
       <div style="margin: 20px 0;">
         <div class="blm-gacha-capsule"></div>
@@ -1508,16 +1513,14 @@ async function buyGacha(collectionId) {
     background: '#fff5f7',
     borderRadius: '24px',
     didOpen: () => {
-      // สามารถเปิด Loading Bar เล็กๆ ด้านล่างควบคู่กันได้
       Swal.showLoading();
     }
   });
 
-  // จับเวลาเริ่มต้น เพื่อเอาไว้หน่วงเวลาอนิเมชันให้แสดงอย่างน้อย 2.5 วินาที (ไม่ให้ผลลัพธ์โผล่มาไวเกินไปจนหมดสนุก)
   const startTime = Date.now();
 
   try {
-    // 💾 STEP 3: ฟังก์ชันเดิมของท่าน ส่งข้อมูลไป Google Apps Script (ห้ามแตะต้อง)
+    // 💾 STEP 3: ส่งข้อมูลไป Google Apps Script (ห้ามแตะต้อง)
     const response = await fetch(`${scriptURL}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1526,26 +1529,23 @@ async function buyGacha(collectionId) {
     
     const res = await response.json();
     
-    // คำนวณเวลาที่เซิร์ฟเวอร์ใช้ไป ถ้าใช้ไปน้อยกว่า 2.5 วินาที ให้หน่วงเวลาต่อจนครบ เพื่อให้ภาพอนิเมชันไข่สั่นแสดงผลได้สวยงาม
     const elapsedTime = Date.now() - startTime;
-    const minimumAnimationTime = 2500; // 2.5 วินาที
+    const minimumAnimationTime = 2500; 
     if (elapsedTime < minimumAnimationTime) {
       await new Promise(resolve => setTimeout(resolve, minimumAnimationTime - elapsedTime));
     }
     
-    // 🌟 STEP 4: ตรวจสอบผลลัพธ์จากเซิร์ฟเวอร์
+    // 🌟 STEP 4: ตรวจสอบผลลัพธ์และเฉลยไอเทม
     if (res.status === "success") {
-      // เคลียร์ Cache ของคลังไอเทมเพื่อให้ดึงค่าใหม่ (โค้ดเดิม)
       localStorage.removeItem(`blm48_inventory_cache_${username}`);
       localStorage.removeItem(`blm48_inventory_time_${username}`);
       
-      // แสดงผลลัพธ์แบบอลังการ มีแสงกระจาย (Idol Congratulations Theme)
       Swal.fire({
-        title: '🎉 CONGRATULATIONS! 🎉',
+        title: `${iconSparkle} CONGRATULATIONS! ${iconSparkle}`,
         html: `
           <div class="blm-result-wrapper">
             <div class="blm-light-ray"></div>
-            <div style="font-size: 16px; color: #c71585; font-weight: bold; margin-bottom: 5px;">✨ คุณได้รับไอเทมพิเศษ ✨</div>
+            <div style="font-size: 16px; color: #c71585; font-weight: bold; margin-bottom: 5px;">${iconSparklePink} คุณได้รับไอเทมพิเศษ ${iconSparklePink}</div>
             <div style="font-size: 22px; color: #ff1493; font-weight: bold; margin-bottom: 10px;">${res.itemName}</div>
             <div style="color: #666; font-size: 14px; margin-bottom: 15px;">[${res.itemType}] จากตู้สุ่ม ${res.collectionName}</div>
           </div>
@@ -1554,13 +1554,12 @@ async function buyGacha(collectionId) {
         imageWidth: 250,
         imageHeight: 250,
         imageAlt: res.itemName,
-        confirmButtonText: '💖 รับเข้าคลังไอเทม 💖',
+        confirmButtonText: `${iconHeart} รับเข้าคลังไอเทม ${iconHeart}`,
         confirmButtonColor: '#ff5376',
         background: '#fffbfb',
         borderRadius: '24px'
       });
       
-      // อัปเดต Token บนหน้าจอของผู้ใช้ (โค้ดเดิม)
       if(res.newToken !== undefined) {
           userData.token = res.newToken;
           const session = JSON.parse(localStorage.getItem('bnl_session'));
@@ -1569,7 +1568,6 @@ async function buyGacha(collectionId) {
           updateWalletUI();
       }
     } else {
-      // กรณีแต้มไม่พอ หรือระบบหลังบ้านส่ง Error กลับมา (โค้ดเดิม)
       Swal.fire({
         title: 'สุ่มไม่สำเร็จ',
         text: res.message,
@@ -1578,7 +1576,6 @@ async function buyGacha(collectionId) {
       });
     }
   } catch (error) {
-    // กรณีเน็ตหลุด หรือเชื่อมต่อสคริปต์ไม่ได้ (โค้ดเดิม)
     Swal.fire({
       title: 'เกิดข้อผิดพลาด',
       text: 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้',
