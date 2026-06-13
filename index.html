@@ -1573,9 +1573,10 @@ async function syncUserData() {
 
     } else {
       localStorage.removeItem('bnl_session');
+      sessionStorage.clear(); // 🌟 เพิ่มคำสั่งนี้เพื่อล้างแคชชั่วคราว
       user = null;
       if (typeof updateUI === 'function') updateUI();
-      window.location.href = 'login.html';
+      window.location.replace('login.html'); // 🌟 ใช้ replace เตะออกแบบไม่ให้กดย้อนหลัง
     }
   } catch (e) { 
     console.error("Sync User Error:", e); 
@@ -1643,11 +1644,13 @@ window.addEventListener('pageshow', function(event) {
 
 window.addEventListener('DOMContentLoaded', () => {
   try {
-    // 🔐 ตรวจสอบเซสชันผู้ใช้
+    // 🔐 ตรวจสอบเซสชันผู้ใช้แบบรัดกุมที่สุด
     user = getUserSession(); 
 
-    if (!user) {
-      window.location.href = 'login.html';
+    // 🌟 ดักจับ: ถ้าไม่มี user หรือ username เป็นค่าว่าง ให้เตะออกทันที
+    if (!user || !user.username || user.username.trim() === "") {
+      localStorage.removeItem('bnl_session'); // ล้างเซสชันขยะทิ้ง
+      window.location.replace('login.html'); // ใช้ .replace() เพื่อป้องกันไม่ให้กดย้อนกลับมาหน้า index ได้
       return; 
     }
 
