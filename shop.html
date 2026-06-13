@@ -1670,7 +1670,7 @@ async function buyGacha(collectionId) {
   }
 }
   
-// 📦 7. โหลดคอลเลกชันตู้สุ่มมาแสดงผลบนหน้าเว็บ
+// 📦 7. โหลดคอลเลกชันตู้สุ่มมาแสดงผลบนหน้าเว็บ (แก้ไขเพื่อซ่อนคอลเลกชันที่เป็นของซื้อตรง/คลังสะสม)
 async function loadGachaCollections() {
   const container = document.getElementById("merch-container");
   if(!container) return;
@@ -1681,12 +1681,18 @@ async function loadGachaCollections() {
     
     container.innerHTML = ""; 
     
-    if (collections.length === 0) {
+    // 🔍 [แก้ไขจุดสำคัญ]: กรองเอาเฉพาะคอลเลกชันที่เป็นตู้สุ่มกาชาจริง ๆ (ID ขึ้นต้นด้วย gacha_)
+    // การทำแบบนี้จะทำให้ 'coll_cafe' ถูกคัดออกไปโดยอัตโนมัติ ไม่มาโชว์เป็นตู้สุ่มให้แฟน ๆ สับสนค่ะ
+    const gachaOnly = collections.filter(col => col.CollectionID && col.CollectionID.startsWith('gacha_'));
+    
+    // เปลี่ยนมาเช็กเงื่อนไขจากตัวแปร gachaOnly ที่กรองแล้วแทน
+    if (gachaOnly.length === 0) {
       container.innerHTML = `<p style="color: #a0a0a0; text-align: center; grid-column: 1/-1; font-family:'Kanit';">ตอนนี้ยังไม่มีตู้สุ่มเปิดให้บริการค่ะ</p>`;
       return;
     }
 
-    collections.forEach(col => {
+    // เปลี่ยนมาวนลูปเฉพาะ gachaOnly
+    gachaOnly.forEach(col => {
       const coverImg = col.CoverImage ? col.CoverImage : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
       
       const cardHTML = `
@@ -1711,7 +1717,7 @@ async function loadGachaCollections() {
     console.error("Error loading gacha collections:", error);
     container.innerHTML = `<p style="color: #ff5376; text-align: center; grid-column: 1/-1; font-family:'Kanit';">เกิดข้อผิดพลาดในการโหลดข้อมูลตู้สุ่ม กรุณาลองใหม่อีกครั้งค่ะ</p>`;
   } finally {
-    // ✨ [แก้ไขจุดที่ 1]: สั่งปิดหน้าจอ Loading Overlay ทุกครั้งเมื่อทำงานเสร็จสิ้น ป้องกันจอขาวค้าง
+    // สั่งปิดหน้าจอ Loading Overlay ทุกครั้งเมื่อทำงานเสร็จสิ้น ป้องกันจอขาวค้าง
     hideAppLoading();
   }
 }
@@ -1759,8 +1765,7 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
     showAppLoading(); // เปิดหน้าจอโหลดของแอป
 
     try {
-        // 💡 [แก้ไขจุดพัง]: เปลี่ยนมาใช้ URLSearchParams เพื่อส่งแบบ application/x-www-form-urlencoded
-        // ช่วยให้ Google Apps Script หลังบ้านดึงค่าผ่าน e.parameter ได้ทันที โดยไม่เกิดข้อผิดพลาดที่ตัวแปรคงที่ครับ
+        // 💡 [ส่งข้อมูลจัดหมวดหมู่]: เพิ่มการส่งข้อมูล collectionId ไปยังหลังบ้านเพื่อใช้แยกประเภทในคลังสะสม
         const response = await fetch(scriptURL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1771,7 +1776,9 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
                 itemName: itemName,
                 itemImg: itemImg,
                 price: price,
-                itemType: 'Cafe'
+                itemType: 'Merchandise Official',   // ซ้อนในหมวดหมู่หลัก Merchandise Official ตามที่ต้องการ
+                collectionId: 'coll_cafe',           // กำหนด ID พิเศษสำหรับแยกกลุ่มในคลังสะสม
+                collectionName: 'BLM48 Cafe'         // ชื่อคอลเลกชันสำหรับนำไปแสดงผลพาดหัวกลุ่ม
             })
         });
 
@@ -1791,10 +1798,10 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
             
             updateWalletUI(); // รีเฟรชยอด Token บนหน้าจอหลัก
             
-            // หน้าต่างแจ้งเตือนสำเร็จ (เปลี่ยนอิโมจิพลุเป็นไอคอนหัวใจเวกเตอร์สีชมพู)
+            // หน้าต่างแจ้งเตือนสำเร็จ (แก้ไข Tag </div> เรียบร้อยค่ะ)
             Swal.fire({
                 title: `${iconHeartPink} เสิร์ฟเรียบร้อย!`,
-                html: `<div style="font-size: 14px; color: #555;">ได้รับ <b>${itemName}</b> เรียบร้อยแล้วค่ะ<br>สามารถตรวจสอบได้ที่ Inventory ได้เลยค่ะ/div>`,
+                html: `<div style="font-size: 14px; color: #555;">ได้รับ <b>${itemName}</b> เรียบร้อยแล้วค่ะ<br>สามารถตรวจสอบได้ที่ Inventory ได้เลยค่ะ</div>`,
                 icon: 'success',
                 confirmButtonColor: '#ff5376',
                 background: '#ffffff',
