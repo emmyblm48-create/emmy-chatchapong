@@ -278,7 +278,7 @@
        target="_blank" 
        class="btn-login-main" 
        style="background: #06C755; box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);">
-      <i class="fab fa-line" style="font-size: 20px;"></i> สมัครสมาชิกผ่าน LINE ฟรี
+      <i class="fab fa-line" style="font-size: 20px;"></i> สมัครสมาชิกผ่าน LINE
     </a>
 
     <p class="note-text">
@@ -292,8 +292,24 @@
   document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      const userVal = document.getElementById('username').value;
-      const passVal = document.getElementById('password').value;
+      // 🌟 ใช้ .trim() ตัดช่องว่างด้านหน้าและด้านหลังทิ้ง ป้องกันคนพิมพ์แค่ Spacebar
+      const userVal = document.getElementById('username').value.trim();
+      const passVal = document.getElementById('password').value.trim();
+
+      // 🌟 ดักจับค่าว่าง หากไม่มีข้อมูลจะไม่ยอมให้ส่ง Request เด็ดขาด
+      if (!userVal || !passVal) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ข้อมูลไม่ครบถ้วน',
+          text: 'กรุณากรอกรหัสสมาชิกและรหัสผ่านให้ครบถ้วนนะคะ',
+          confirmButtonColor: '#ff85a2',
+          didOpen: () => {
+            Swal.getPopup().style.fontFamily = "'Quicksand', 'Kanit', sans-serif";
+            Swal.getPopup().style.borderRadius = "20px";
+          }
+        });
+        return; // หยุดการทำงานทันที ไม่ส่งข้อมูลไปหลังบ้าน
+      }
 
       // URL ของ Web App Google Apps Script ของพี่เอ็มมี่
       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
