@@ -28,22 +28,18 @@
           --pastel-pink: #ffc0cb;
           --light-pink: #fff0f5;
           --dark-pink: #c71585;
-          --glass-bg: rgba(255, 255, 255, 0.85);
+          --glass-bg: rgba(255, 255, 255, 0.75);
           --gold: #ffd700;
           --cookie-brown: #d2691e;
           --cafe-brown: #8b5a2b;
           --cafe-light: #fff9f5;
           --cafe-green: #a8e6cf;
-          --ios-shadow: 0 8px 32px 0 rgba(255, 182, 193, 0.15);
-          --ios-card-bg: rgba(255, 255, 255, 0.75);
         }
 
         body { 
             font-family: 'Quicksand', 'Kanit', sans-serif; 
-            background: radial-gradient(circle at top, #fff0f5 0%, #ffffff 70%), linear-gradient(135deg, #fff0f5 0%, #ffffff 100%);
+            background: linear-gradient(135deg, var(--light-pink) 0%, #fff 100%);
             margin: 0; padding: 0; min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            color: #333;
         }
       
         /* บังคับหน้าต่างทั้งหมดและ SweetAlert ให้ใช้ฟอนต์ Quicksand และ Kanit เท่านั้น */
@@ -51,56 +47,52 @@
             font-family: 'Quicksand', 'Kanit', sans-serif !important;
         }
 
-        /* ตกแต่ง SweetAlert2 ให้เป็นโทนชมพูพาสเทลพรีเมียมสไตล์ iOS Glassmorphism */
+        /* ตกแต่ง SweetAlert2 ให้เป็นโทนชมพูพาสเทลพรีเมียม */
         .swal2-popup {
-            background: rgba(255, 255, 255, 0.92) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 2px solid rgba(255, 192, 203, 0.6) !important;
-            border-radius: 28px !important;
-            box-shadow: 0 15px 45px rgba(255, 105, 180, 0.2) !important;
+            border: 3px solid var(--pastel-pink) !important;
+            border-radius: 24px !important;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.15) !important;
         }
         .swal2-title {
             color: var(--dark-pink) !important;
-            font-weight: 700 !important;
-        }
-        .swal2-html-container {
-            color: #4a4a4a !important;
-        }
-        .swal2-confirm {
-            background: linear-gradient(135deg, var(--primary-pink), #ff85c0) !important;
-            border-radius: 50px !important;
-            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3) !important;
             font-weight: 600 !important;
         }
+        .swal2-html-container {
+            color: #555 !important;
+        }
+        .swal2-confirm {
+            background: linear-gradient(45deg, var(--primary-pink), #ff85c0) !important;
+            border-radius: 50px !important;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3) !important;
+        }
         .swal2-cancel {
-            background: rgba(0, 0, 0, 0.05) !important;
-            color: #4a4a4a !important;
+            background: #e0e0e0 !important;
+            color: #333 !important;
             border-radius: 50px !important;
         }
 
-        /* ปรับแต่งการ์ดตู้กาชาและตั๋วให้ดูมีมิติสไตล์ iOS */
+        /* ปรับแต่งการ์ดตู้กาชาและตั๋วให้ดูมีมิติเหมือนตู้เกมส์จริง */
         .shop-card, .gacha-container, .ticket-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 192, 203, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 3px solid var(--pastel-pink);
             border-radius: 24px;
-            box-shadow: var(--ios-shadow);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 8px 24px rgba(255, 105, 180, 0.15);
+            transition: all 0.3s ease;
             overflow: hidden;
             position: relative;
         }
 
         .shop-card:hover {
-            transform: translateY(-6px) scale(1.02);
+            transform: translateY(-5px);
             border-color: var(--primary-pink);
-            box-shadow: 0 15px 35px rgba(255, 105, 180, 0.25);
+            box-shadow: 0 12px 30px rgba(255, 105, 180, 0.3);
         }
 
         /* ปุ่มกดสไตล์นุ่มฟู น่ารัก */
         .btn-shop-buy, .btn-gacha-spin {
-            background: linear-gradient(135deg, var(--primary-pink), #ff85c0);
+            background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
             color: white;
             font-weight: bold;
             border: none;
@@ -108,7 +100,7 @@
             padding: 10px 24px;
             box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
         }
 
         .btn-shop-buy:active, .btn-gacha-spin:active {
@@ -120,15 +112,14 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(5px);
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.3s ease;
         }
 
         .blm-overlay.active {
@@ -138,19 +129,16 @@
 
         /* กล่องยืนยันการซื้อสไตล์ชมพูพาสเทลหวาน */
         .confirm-box {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 28px;
+            background: white;
+            border-radius: 24px;
             padding: 28px;
             width: 90%;
             max-width: 360px;
             text-align: center;
-            border: 3px solid var(--pastel-pink);
+            border: 4px solid var(--pastel-pink);
             transform: scale(0.8);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
         }
 
         .blm-overlay.active .confirm-box {
@@ -311,123 +299,81 @@
         .nav-icon { background: none; border: none; color: #ffb3c1; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
         .nav-icon:hover { color: var(--primary-pink); transform: scale(1.1); }
 
-        /* Wallet Section (iOS Dynamic Island Redesign) */
+        /* Wallet Section */
         .user-profile-bar { 
-            max-width: 900px; 
-            margin: 20px auto; 
-            background: rgba(255, 255, 255, 0.75); 
-            border-radius: 26px; 
-            padding: 18px; 
-            border: 2px solid rgba(255, 192, 203, 0.5); 
-            box-shadow: 0 12px 30px rgba(255, 133, 162, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            max-width: 900px; margin: 15px auto; background: white; border-radius: 20px; 
+            padding: 15px; border: 2px solid var(--soft-pink); box-shadow: 0 5px 15px rgba(255,133,162,0.05);
         }
-        .wallet { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 12px; 
-        }
+        .wallet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .wallet-item { 
-            background: rgba(255, 255, 255, 0.85); 
-            border: 1px solid rgba(255, 182, 193, 0.3); 
-            padding: 12px 8px; 
-            border-radius: 18px; 
-            font-size: 14px; 
-            text-align: center; 
-            font-weight: 700; 
-            color: #4a4a4a; 
-            box-shadow: inset 0 2px 4px rgba(255, 182, 193, 0.05);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .wallet-item:hover {
-            transform: scale(1.02);
-            border-color: var(--primary-pink);
-            background: #ffffff;
+            background: #fffcfd; border: 1px solid #ffeef2; padding: 10px; 
+            border-radius: 12px; font-size: 13px; text-align: center; font-weight: 700; color: #555; 
         }
 
         /* --- Shop Layout --- */
         .section-title { 
             font-family: 'Kanit'; 
-            font-weight: 700; 
-            color: #2b2b2b; 
-            margin: 30px 0 15px 20px; 
-            font-size: 20px; 
+            font-weight: 600; 
+            color: #444; 
+            margin: 25px 0 15px 20px; 
+            font-size: 18px; 
             border-left: 5px solid var(--primary-pink); 
-            padding-left: 14px; 
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            padding-left: 12px; 
         }
 
         /* 🛒 ทั้งกล่องเก่าและกล่องใหม่จากหลังบ้าน: บังคับเป็น 2 คอลัมน์บนมือถือ */
         .merch-grid, .shop-container {
             display: grid !important;
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 14px !important;
+            gap: 12px !important;
             padding: 15px !important;
             box-sizing: border-box;
-            max-width: 940px;
-            margin: 0 auto;
         }
 
-        /* 📦 ดักตัวการ์ดทุกแบบสไตล์ iOS App Store */
+        /* 📦 ดักตัวการ์ดทุกแบบ */
         .merch-card, .merch-card-large {
-            background: var(--ios-card-bg) !important;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 22px !important; 
-            box-shadow: var(--ios-shadow) !important; 
+            background: #ffffff !important;
+            border-radius: 16px !important; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important; 
             width: 100% !important;           
             max-width: 100% !important; 
             margin: 0 auto !important;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border: 2px solid rgba(255, 255, 255, 0.6) !important; 
-            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(255, 182, 193, 0.2) !important; 
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-sizing: border-box;
         }
 
         .merch-card:hover, .merch-card-large:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 12px 28px rgba(255, 133, 162, 0.3) !important;
-            border-color: rgba(255, 105, 180, 0.4) !important;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(255, 182, 193, 0.2) !important;
         }
 
         /* 🖼️ ดักกรอบรูปภาพ */
         .merch-image-container, .card-img-wrapper {
             width: 100% !important;
             aspect-ratio: 1 / 1 !important;   
-            background: linear-gradient(135deg, #fffafd 0%, #fff0f3 100%) !important; 
+            background: #fff9fa !important; 
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 0 !important; 
             overflow: hidden; 
             box-sizing: border-box;
-            position: relative;
         }
 
         .merch-image, .card-img-wrapper img {
             width: 100% !important; 
             height: 100% !important; 
             object-fit: cover !important;     
-            transition: transform 0.4s ease;
-        }
-
-        .merch-card:hover .merch-image, .merch-card-large:hover .card-img-wrapper img {
-            transform: scale(1.06);
         }
 
         /* 📝 ดักส่วนกล่องข้อมูลสินค้า */
         .merch-info, .card-info {
-            background: rgba(255, 255, 255, 0.5);
-            padding: 14px 10px !important;    
+            background: #ffffff;
+            padding: 12px 10px !important;    
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -439,33 +385,28 @@
         /* แท็กหมวดหมู่ */
         .merch-category, .card-tag {
             font-size: 0.8rem !important;
-            font-weight: 700;
-            color: #ff527b !important;
-            margin-bottom: 6px;
-            background: rgba(255, 82, 123, 0.08);
-            padding: 2px 10px;
-            border-radius: 12px;
-            text-transform: uppercase;
+            font-weight: bold;
+            color: #ff6b8b !important;
+            margin-bottom: 4px;
         }
 
         /* ชื่อสินค้า */
         .merch-title, .card-title {
             font-size: 0.95rem !important; 
             font-weight: 700;
-            color: #2c2c2c;
-            margin: 0 0 6px 0 !important;
+            color: #2b2b2b;
+            margin: 0 0 4px 0 !important;
             display: -webkit-box;
             -webkit-line-clamp: 2; 
             -webkit-box-orient: vertical;
             overflow: hidden;
-            height: 38px !important;     
-            line-height: 1.3;     
+            height: 36px !important;          
         }
 
         /* คำอธิบาย */
         .merch-subtitle, .card-subtitle {
             font-size: 0.75rem !important;
-            color: #7a7a7a;
+            color: #8e8e8e;
             margin: 0 0 12px 0 !important;
             white-space: nowrap;
             overflow: hidden;
@@ -473,7 +414,7 @@
             width: 100%;
         }
 
-        /* 🎫 ดักปุ่มกดซื้อไอเทม (สไตล์ iOS App Store "GET") */
+        /* 🎫 ดักปุ่มกดซื้อไอเทม */
         .merch-button, .card-action {
             width: 100%;
             padding: 0 !important;
@@ -482,47 +423,43 @@
 
         .merch-button, .btn-token-buy {
             width: 100% !important;
-            background: linear-gradient(135deg, #fff0f3 0%, #ffe5eb 100%) !important;
+            background: #fff0f2 !important;
             color: #ff527b !important;
-            border: 1px solid rgba(255, 82, 123, 0.2) !important;
-            border-radius: 16px !important; 
+            border: none !important;
+            border-radius: 10px !important; 
             padding: 10px 0 !important;       
-            font-size: 0.85rem !important;
+            font-size: 0.9rem !important;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.3s ease;
+            gap: 8px;
+            transition: all 0.2s ease;
             box-sizing: border-box;
-            box-shadow: 0 4px 10px rgba(255, 82, 123, 0.05);
         }
 
         .merch-button:hover, .btn-token-buy:hover {
-            background: linear-gradient(135deg, #ff527b 0%, #ff7b9a 100%) !important;
+            background: #ff527b !important;
             color: #ffffff !important;
-            border-color: transparent !important;
-            box-shadow: 0 6px 15px rgba(255, 82, 123, 0.3) !important;
-            transform: scale(1.02);
         }
 
         @media (min-width: 768px) {
             .merch-grid, .shop-container {
-                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
                 gap: 20px !important;
                 padding: 20px !important;
             }
 
             .merch-info, .card-info {
-                padding: 20px 15px !important;     
+                padding: 20px !important;     
             }
 
             .merch-category, .card-tag {
-                font-size: 0.85rem !important;
+                font-size: 0.9rem !important;
             }
 
             .merch-title, .card-title {
-                font-size: 1.05rem !important;
+                font-size: 1.1rem !important;
                 height: 44px !important;      
             }
 
@@ -533,7 +470,7 @@
 
             .merch-button, .btn-token-buy {
                 padding: 12px 0 !important;   
-                font-size: 0.95rem !important;
+                font-size: 1rem !important;
             }
         }
 
@@ -870,8 +807,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px); 
-            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(5px); 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -892,18 +828,17 @@
         .preview-modal-content img {
             max-width: 100%;
             max-height: 65vh;
-            border-radius: 24px;
-            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6);
-            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             object-fit: contain;
         }
 
         .preview-close-btn {
             position: absolute;
-            top: -45px;
+            top: -40px;
             right: 0;
             color: #fff;
-            font-size: 35px;
+            font-size: 30px;
             font-weight: bold;
             cursor: pointer;
             transition: color 0.2s;
@@ -938,15 +873,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 18px;
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 228, 232, 0.8);
+            padding: 10px 16px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #ffe4e8;
             position: sticky;
             top: 0;
             z-index: 999;
-            box-shadow: 0 4px 15px rgba(255, 192, 203, 0.08);
+            box-shadow: 0 2px 10px rgba(255, 192, 203, 0.1);
         }
 
         .top-bar-back-btn {
@@ -1031,7 +964,7 @@
           z-index: 10;
         }
 
-        /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁ *********************************** */
+        /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁️ */
         .bottom-tab-bar {
             position: fixed;
             bottom: 24px; 
@@ -1041,8 +974,8 @@
             max-width: 440px; 
             height: 68px;
             background: rgba(255, 255, 255, 0.92); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px);
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -1107,7 +1040,7 @@
         }
 
         body {
-            padding-bottom: 120px !important;
+            padding-bottom: 110px !important;
         }
           
         /* --- อนิเมชันไข่กาชาปองสั่นลุ้นรางวัล --- */
@@ -1337,7 +1270,7 @@
     </div>        
 </div>
       
-<footer style="padding: 50px 20px 140px; text-align: center; color: #bbb; font-size: 12px;">
+<footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
   <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
   <div>© 2026 Virtual Idol Cover Group</div>
 </footer>
@@ -1366,6 +1299,52 @@
     <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
     <span>Profile</span>
   </a>
+</div>
+
+<!-- 🛍️ 1. กล่องคอนเฟิร์มยืนยันธุรกรรมทั่วไป / และคาเฟ่ -->
+<div id="blm-confirm-modal" class="blm-overlay">
+    <div class="confirm-box" style="border: 4px solid var(--pastel-pink); border-radius: 28px; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.2);">
+        <div style="margin-bottom: 16px; display: flex; justify-content: center;">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffccd5" stroke="var(--primary-pink)" stroke-width="1.5"/>
+            </svg>
+        </div>
+        
+        <h3 id="confirm-title" style="color: var(--dark-pink); font-family: 'Kanit'; font-weight: 600; margin-bottom: 8px; font-size: 20px;">ยืนยันการแลกซื้อ</h3>
+        <p id="confirm-detail" style="color: #666; font-size: 14px; margin-bottom: 24px; font-family: 'Kanit'; line-height: 1.5;">คุณต้องการแลกเปลี่ยนไอเทมนี้ใช่หรือไม่?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="btn-confirm-cancel" style="background: #f0f0f0; color: #555; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 110px; font-family: 'Kanit'; transition: background-color 0.2s;">Cancel</button>
+            <button id="btn-confirm-submit" style="background: linear-gradient(45deg, var(--primary-pink), #ff85c0); color: white; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 110px; box-shadow: 0 4px 12px rgba(255,105,180,0.3); font-family: 'Kanit'; transition: transform 0.1s;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- ☕ 2. กล่องโหลดการทำธุรกรรมของร้านคาเฟ่โดยเฉพาะ (หมุนแก้วกาแฟพาสเทล) -->
+<div id="blm-cafe-loading-modal" class="blm-overlay">
+    <div class="confirm-box" style="border: 4px solid #ffccd5; max-width: 320px; padding: 26px; border-radius: 28px; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.15);">
+        <div style="margin-bottom: 18px; display: flex; justify-content: center;">
+            <div class="cafe-spinner-wrapper-border" style="border: 3px dashed var(--primary-pink); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: spinDashed 4s linear infinite; background: #fff5f7;">
+                <i class="fas fa-mug-hot" style="color: var(--primary-pink); font-size: 32px; animation: coffeeBounce 0.8s ease-in-out infinite alternate;"></i>
+            </div>
+        </div>
+        <h3 style="color: var(--dark-pink); font-family: 'Kanit'; font-weight: 600; margin-bottom: 8px;">กำลังชงเครื่องดื่ม...</h3>
+        <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5; font-family: 'Kanit';">ระบบกำลังประมวลผลเหรียญ Tokens และเตรียมจัดส่งไอเทมเข้า Inventory ของคุณ</p>
+    </div>
+</div>
+
+<!-- 🍰 3. กล่องแจ้งเตือนได้รับสินค้าคาเฟ่ (สำเร็จเสิร์ฟของกิน แยกเด็ดขาดจากระบบสุ่ม) -->
+<div id="blm-cafe-success-modal" class="blm-overlay">
+    <div class="confirm-box" style="border: 4px solid #ffccd5; max-width: 360px; padding: 28px; border-radius: 28px; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.2);">
+        <div class="cafe-success-light-ray" style="position: absolute; top: 50%; left: 50%; width: 280px; height: 280px; margin-top: -140px; margin-left: -140px; background: radial-gradient(circle, rgba(255,192,203,0.45) 0%, rgba(255,255,255,0) 70%); z-index: -1; animation: blmSpin 12s linear infinite;"></div>
+        <div style="margin-bottom: 18px; display: flex; justify-content: center;">
+            <img id="cafe-success-img" src="" alt="Served Drink" style="width: 140px; height: 140px; border-radius: 20px; object-fit: cover; border: 4px solid #ffccd5; box-shadow: 0 8px 20px rgba(255, 105, 180, 0.25);">
+        </div>
+        <h3 id="cafe-success-title" style="color: var(--dark-pink); font-family: 'Kanit'; font-weight: 600; margin-bottom: 8px;">เสิร์ฟเรียบร้อยงับ!</h3>
+        <p id="cafe-success-detail" style="color: #4a4a4a; font-size: 14px; margin-bottom: 24px; line-height: 1.5; font-family: 'Kanit';">ได้รับเมนูแสนอร่อยเรียบร้อยแล้วค่ะ</p>
+        <div style="display: flex; justify-content: center;">
+            <button id="btn-cafe-success-close" style="background: linear-gradient(45deg, #ff69b4, #ff85c0); color: white; border: none; padding: 12px 36px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 140px; box-shadow: 0 4px 12px rgba(255,105,180,0.3); font-family: 'Kanit';">Delicious!</button>
+        </div>
+    </div>
 </div>
 
 <!-- 🎰 4. กล่องตู้สุ่มกาชาเดิมตามเดิม (ใช้สำหรับการสุ่มเพื่อความตื่นเต้น) -->
@@ -1454,9 +1433,18 @@ function updateWalletUI() {
     
     walletBar.innerHTML = `
         <div class="wallet">
-            <div class="wallet-item">Tokens: ${Number(userData.token).toLocaleString()}</div>
-            <div class="wallet-item">Cookies: ${Number(userData.cookie).toLocaleString()}</div>
-            <div class="wallet-item">GE Tokens: ${Number(userData.geToken || 0).toLocaleString()}</div>
+            <div class="wallet-item">
+                <span style="font-size: 10px; color: #888; display: block;">Tokens</span>
+                <i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(userData.token).toLocaleString()}
+            </div>
+            <div class="wallet-item">
+                <span style="font-size: 10px; color: #888; display: block;">Cookies</span>
+                <i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> ${Number(userData.cookie).toLocaleString()}
+            </div>
+            <div class="wallet-item">
+                <span style="font-size: 10px; color: #888; display: block;">GE Tokens</span>
+                <i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(userData.geToken || 0).toLocaleString()}
+            </div>
         </div>
     `;
 }
@@ -1742,10 +1730,10 @@ async function loadGachaCollections() {
   }
 }
 
-// ☕ 8. ระบบสั่งซื้อสินค้า BLM48 Cafe ด้วย SweetAlert2 (แบบเดียวกับตู้สุ่ม เพิ่มความสมูท 100%)
+// ☕ 8. ระบบสั่งซื้อสินค้า BLM48 Cafe (ขั้นตอน ยืนยัน -> โหลดทำธุรกรรมชงเครื่องดื่ม -> ได้รับ)
+// แก้ไขแล้ว: รวมเป็นฟังก์ชันเดียว ไม่มีการเรียกทับซ้อน และไม่เปิด Image Preview ขณะกดยืนยันสั่งซื้อ
 async function buyCafeItem(itemId, price, itemName, itemImg) {
     if (!userData) return;
-    const username = userData.username;
 
     // 1. ตรวจสอบ Token ว่าเพียงพอหรือไม่
     if (Number(userData.token) < price) {
@@ -1760,162 +1748,101 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
         return;
     }
 
-    const iconHeartPink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ff69b4" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+    // 2. เรียกป๊อปอัปยืนยันการซื้อสไตล์ BLM48 Cafe โดยเฉพาะ
+    openConfirmModal(
+        `รับ "${itemName}" ไหมคะ?`,
+        `ใช้ทั้งหมด ${price} Tokens ในการแลกซื้อเมนูแสนอร่อยนี้ (เมนูจะเข้า Inventory ทันทีงับ)`,
+        async function() {
+            // เมื่อกดยืนยัน -> เริ่มเข้าสู่กระบวนการ โหลดทำธุรกรรมชงเครื่องดื่ม
+            showCafeLoading(); 
 
-    // 2. เรียกหน้าต่างยืนยันการซื้อสไตล์หวานละมุนแบบเดียวกับตู้สุ่ม
-    const confirmResult = await Swal.fire({
-        title: `${iconHeartPink} ยืนยันการสั่งซื้อเครื่องดื่ม ${iconHeartPink}`,
-        html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">คุณต้องการซื้อเมนู <b>"${itemName}"</b> แสนอร่อยใช่หรือไม่?<br>ใช้ทั้งหมด <b>${price} Tokens</b> ในการแลกซื้อ<br><span style="color: #999; font-size: 12px;">(ไอเทมเครื่องดื่มจะถูกเสิร์ฟเข้าสู่คลัง Inventory ทันทีงับ)</span></div>`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: `Confirm`,
-        cancelButtonText: 'Cancel',
-        confirmButtonColor: '#ff69b4',
-        cancelButtonColor: '#e0e0e0',
-        background: '#ffffff',
-        borderRadius: '24px'
-    });
+            try {
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        action: 'buyDirectItem',
+                        username: userData.username,
+                        itemId: itemId,
+                        itemName: itemName,
+                        itemImg: itemImg,
+                        price: price,
+                        itemType: 'Merchandise Official',   
+                        collectionId: 'coll_cafe',           
+                        collectionName: 'BLM48 Cafe'         
+                    })
+                });
 
-    if (!confirmResult.isConfirmed) return;
+                const res = await response.json();
 
-    // 3. แสดงแอนิเมชันชงเครื่องดื่มสไตล์คาเฟ่ใน SweetAlert เพื่อความต่อเนื่องและลื่นไหล
-    Swal.fire({
-        title: `กำลังชงเครื่องดื่ม...`,
-        html: `
-          <style>
-            .blm-cute-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
-            .blm-cafe-spinner-wrapper {
-                position: relative;
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: #fff5f7;
-                border: 3px dashed #ff69b4;
-                animation: spinDashed 4s linear infinite;
-                margin-bottom: 15px;
+                if (res.status === "success") {
+                    // อัปเดต Token ในเซสชันผู้ใช้
+                    userData.token = res.newToken !== undefined ? res.newToken : (userData.token - price);
+                    
+                    const newSession = JSON.parse(localStorage.getItem('bnl_session'));
+                    newSession.data = userData;
+                    localStorage.setItem('bnl_session', JSON.stringify(newSession));
+                    
+                    // ล้างแคช Inventory ให้ดึงค่าใหม่
+                    localStorage.removeItem(`blm48_inventory_cache_${userData.username}`);
+                    
+                    updateWalletUI(); // อัปเดตวอลเล็ตทันที
+
+                    // ปิดหน้าจอโหลดทำธุรกรรมชงเครื่องดื่ม
+                    hideCafeLoading();
+
+                    // เปิดหน้าจอสำเร็จว่าเสิร์ฟเครื่องดื่มเสร็จสิ้น ได้รับของเรียบร้อย
+                    showCafeSuccess(itemName, itemImg);
+                } else {
+                    hideCafeLoading();
+                    Swal.fire({
+                        title: 'เกิดข้อผิดพลาด',
+                        text: res.message,
+                        icon: 'error',
+                        confirmButtonColor: '#ff5376',
+                        background: '#ffffff',
+                        borderRadius: '24px'
+                    });
+                }
+            } catch (error) {
+                console.error("Error buying cafe item:", error);
+                hideCafeLoading();
+                Swal.fire({
+                    title: 'เกิดข้อผิดพลาด',
+                    text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่นะคะ',
+                    icon: 'error',
+                    confirmButtonColor: '#ff5376',
+                    background: '#ffffff',
+                    borderRadius: '24px'
+                });
             }
-            .blm-cafe-spinner-icon {
-                position: absolute;
-                color: #ff69b4;
-                font-size: 32px;
-                animation: coffeeBounce 0.8s ease-in-out infinite alternate;
-            }
-            .blm-text-bounce { color: #ff69b4; font-weight: bold; font-size: 14px; animation: blmCuteBounce 1s infinite alternate; }
-            @keyframes spinDashed { 100% { transform: rotate(360deg); } }
-            @keyframes coffeeBounce { 0% { transform: translateY(4px); } 100% { transform: translateY(-6px); } }
-            @keyframes blmCuteBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-5px); } }
-          </style>
-          <div class="blm-cute-loading-box">
-            <div class="blm-cafe-spinner-wrapper">
-                <i class="fas fa-mug-hot blm-cafe-spinner-icon"></i>
-            </div>
-            <div class="blm-text-bounce">ระบบกำลังชงเครื่องดื่มและเสิร์ฟเมนูแสนอร่อย...</div>
-          </div>
-        `,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        background: '#ffffff',
-        borderRadius: '24px',
-        didOpen: () => {
-          Swal.showLoading();
         }
-    });
-
-    const startTime = Date.now();
-
-    try {
-        const response = await fetch(scriptURL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                action: 'buyDirectItem',
-                username: username,
-                itemId: itemId,
-                itemName: itemName,
-                itemImg: itemImg,
-                price: price,
-                itemType: 'Merchandise Official',
-                collectionId: 'coll_cafe',
-                collectionName: 'BLM48 Cafe'
-            })
-        });
-
-        const res = await response.json();
-
-        // รักษาระยะเวลาแอนิเมชันขั้นต่ำ 2.5 วินาทีเพื่อความสวยงามสะกดตา
-        const elapsedTime = Date.now() - startTime;
-        const minimumAnimationTime = 2500;
-        if (elapsedTime < minimumAnimationTime) {
-            await new Promise(resolve => setTimeout(resolve, minimumAnimationTime - elapsedTime));
-        }
-
-        if (res.status === "success") {
-            // ล้างแคชคลังเก็บของเพื่อให้ดึงค่าใหม่
-            localStorage.removeItem(`blm48_inventory_cache_${username}`);
-            localStorage.removeItem(`blm48_inventory_time_${username}`);
-
-            // อัปเดตเหรียญ Tokens ในเซสชัน
-            userData.token = res.newToken !== undefined ? res.newToken : (userData.token - price);
-            const newSession = JSON.parse(localStorage.getItem('bnl_session'));
-            newSession.data = userData;
-            localStorage.setItem('bnl_session', JSON.stringify(newSession));
-            
-            updateWalletUI();
-
-            // 4. แสดงหน้าจอเสร็จสิ้นการเสิร์ฟพร้อมรูปใหญ่พรีเมียม
-            Swal.fire({
-                title: `เสิร์ฟเรียบร้อยงับ!`,
-                html: `
-                  <style>
-                    .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
-                    .blm-cute-name { font-size: 21px; color: #ff1493; font-weight: bold; margin-bottom: 6px; }
-                    .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; }
-                    .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fff5f7; }
-                    @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-                  </style>
-                  
-                  <div class="blm-cute-reveal-container">
-                    <div class="blm-cute-name">${itemName}</div>
-                    <div class="blm-cute-sub">ได้รับเครื่องดื่มแสนอร่อยเสิร์ฟถึงโต๊ะ และจัดเก็บเข้าคลังสะสมแล้วค่ะ</div>
-                  </div>
-                `,
-                imageUrl: itemImg,
-                imageWidth: 240,
-                imageHeight: 240,
-                imageAlt: itemName,
-                confirmButtonText: `Delicious!`,
-                confirmButtonColor: '#ff5376',
-                background: '#ffffff',
-                borderRadius: '24px'
-            });
-
-        } else {
-            Swal.fire({
-                title: 'ทำรายการไม่สำเร็จ',
-                text: res.message,
-                icon: 'error',
-                confirmButtonColor: '#ff5376',
-                background: '#ffffff',
-                borderRadius: '24px'
-            });
-        }
-    } catch (error) {
-        console.error("Error buying cafe item:", error);
-        Swal.fire({
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์คาเฟ่ได้ กรุณาลองใหม่อีกครั้งค่ะ',
-            icon: 'error',
-            confirmButtonColor: '#ff5376',
-            background: '#ffffff',
-            borderRadius: '24px'
-        });
-    }
+    );
 }
 
-// ⏳ ระบบจัดการหน้าจอ Loading หน้าเว็บหลัก
+// ⏳ ฟังก์ชันควบคุมสถานะโหลดทำธุรกรรมของคาเฟ่ (หมุนแก้วพาสเทล)
+function showCafeLoading() {
+    document.getElementById('blm-cafe-loading-modal').classList.add('active');
+}
+
+function hideCafeLoading() {
+    document.getElementById('blm-cafe-loading-modal').classList.remove('active');
+}
+
+// 🍰 ฟังก์ชันควบคุมสถานะ ได้รับเสิร์ฟเครื่องดื่มคาเฟ่สำเร็จ (ไม่ใช่ตู้สุ่ม/ไม่มีดาวน์โหลดมาบัง)
+function showCafeSuccess(itemName, itemImg) {
+    const successModal = document.getElementById('blm-cafe-success-modal');
+    document.getElementById('cafe-success-img').src = itemImg;
+    document.getElementById('cafe-success-detail').innerHTML = `ได้รับ <b>${itemName}</b> แสนอร่อยเสิร์ฟถึงโต๊ะแล้วค่ะ!<br><span style="font-size: 12px; color: #777; font-family: 'Kanit';">เมนูถูกเก็บเข้าในคลังสะสม (Inventory) ของคุณแล้วนะงับ</span>`;
+    
+    successModal.classList.add('active');
+    
+    document.getElementById('btn-cafe-success-close').onclick = function() {
+        successModal.classList.remove('active');
+    };
+}
+
+// ⏳ 9. ระบบจัดการหน้าจอ Loading หน้าเว็บหลัก
 function showAppLoading() {
   const loader = document.getElementById('shop-loading-overlay');
   if (loader) {
@@ -2030,6 +1957,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, remainingTime);
     }
 });
+  
+// ฟังก์ชันสากลเรียกการยืนยันแบบน่ารักสไตล์ BLM48
+function openConfirmModal(title, detail, onConfirmCallback) {
+    const modal = document.getElementById('blm-confirm-modal');
+    document.getElementById('confirm-title').innerText = title;
+    document.getElementById('confirm-detail').innerText = detail;
+    
+    modal.classList.add('active');
+    
+    document.getElementById('btn-confirm-cancel').onclick = function() {
+        modal.classList.remove('active');
+    };
+    
+    document.getElementById('btn-confirm-submit').onclick = function() {
+        modal.classList.remove('active');
+        if(onConfirmCallback) onConfirmCallback(); 
+    };
+}
   
 // อนิเมชันไข่สั่นพาสเทลเพื่อความตื่นเต้นของการสุ่ม
 function playGachaAnimation(itemName, itemImg, onCloseCallback) {
