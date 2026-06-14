@@ -28,18 +28,22 @@
           --pastel-pink: #ffc0cb;
           --light-pink: #fff0f5;
           --dark-pink: #c71585;
-          --glass-bg: rgba(255, 255, 255, 0.75);
+          --glass-bg: rgba(255, 255, 255, 0.85);
           --gold: #ffd700;
           --cookie-brown: #d2691e;
           --cafe-brown: #8b5a2b;
           --cafe-light: #fff9f5;
           --cafe-green: #a8e6cf;
+          --ios-shadow: 0 8px 32px 0 rgba(255, 182, 193, 0.15);
+          --ios-card-bg: rgba(255, 255, 255, 0.75);
         }
 
         body { 
             font-family: 'Quicksand', 'Kanit', sans-serif; 
-            background: linear-gradient(135deg, var(--light-pink) 0%, #fff 100%);
+            background: radial-gradient(circle at top, #fff0f5 0%, #ffffff 70%), linear-gradient(135deg, #fff0f5 0%, #ffffff 100%);
             margin: 0; padding: 0; min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            color: #333;
         }
       
         /* บังคับหน้าต่างทั้งหมดและ SweetAlert ให้ใช้ฟอนต์ Quicksand และ Kanit เท่านั้น */
@@ -47,52 +51,56 @@
             font-family: 'Quicksand', 'Kanit', sans-serif !important;
         }
 
-        /* ตกแต่ง SweetAlert2 ให้เป็นโทนชมพูพาสเทลพรีเมียม */
+        /* ตกแต่ง SweetAlert2 ให้เป็นโทนชมพูพาสเทลพรีเมียมสไตล์ iOS Glassmorphism */
         .swal2-popup {
-            border: 3px solid var(--pastel-pink) !important;
-            border-radius: 24px !important;
-            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.15) !important;
+            background: rgba(255, 255, 255, 0.92) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 2px solid rgba(255, 192, 203, 0.6) !important;
+            border-radius: 28px !important;
+            box-shadow: 0 15px 45px rgba(255, 105, 180, 0.2) !important;
         }
         .swal2-title {
             color: var(--dark-pink) !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
         }
         .swal2-html-container {
-            color: #555 !important;
+            color: #4a4a4a !important;
         }
         .swal2-confirm {
-            background: linear-gradient(45deg, var(--primary-pink), #ff85c0) !important;
+            background: linear-gradient(135deg, var(--primary-pink), #ff85c0) !important;
             border-radius: 50px !important;
-            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3) !important;
+            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3) !important;
+            font-weight: 600 !important;
         }
         .swal2-cancel {
-            background: #e0e0e0 !important;
-            color: #333 !important;
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: #4a4a4a !important;
             border-radius: 50px !important;
         }
 
-        /* ปรับแต่งการ์ดตู้กาชาและตั๋วให้ดูมีมิติเหมือนตู้เกมส์จริง */
+        /* ปรับแต่งการ์ดตู้กาชาและตั๋วให้ดูมีมิติสไตล์ iOS */
         .shop-card, .gacha-container, .ticket-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 3px solid var(--pastel-pink);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 192, 203, 0.5);
             border-radius: 24px;
-            box-shadow: 0 8px 24px rgba(255, 105, 180, 0.15);
-            transition: all 0.3s ease;
+            box-shadow: var(--ios-shadow);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             overflow: hidden;
             position: relative;
         }
 
         .shop-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-6px) scale(1.02);
             border-color: var(--primary-pink);
-            box-shadow: 0 12px 30px rgba(255, 105, 180, 0.3);
+            box-shadow: 0 15px 35px rgba(255, 105, 180, 0.25);
         }
 
         /* ปุ่มกดสไตล์นุ่มฟู น่ารัก */
         .btn-shop-buy, .btn-gacha-spin {
-            background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
+            background: linear-gradient(135deg, var(--primary-pink), #ff85c0);
             color: white;
             font-weight: bold;
             border: none;
@@ -100,7 +108,7 @@
             padding: 10px 24px;
             box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
             cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .btn-shop-buy:active, .btn-gacha-spin:active {
@@ -112,14 +120,15 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
 
         .blm-overlay.active {
@@ -129,16 +138,19 @@
 
         /* กล่องยืนยันการซื้อสไตล์ชมพูพาสเทลหวาน */
         .confirm-box {
-            background: white;
-            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 28px;
             padding: 28px;
             width: 90%;
             max-width: 360px;
             text-align: center;
-            border: 4px solid var(--pastel-pink);
+            border: 3px solid var(--pastel-pink);
             transform: scale(0.8);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
         }
 
         .blm-overlay.active .confirm-box {
@@ -299,81 +311,123 @@
         .nav-icon { background: none; border: none; color: #ffb3c1; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
         .nav-icon:hover { color: var(--primary-pink); transform: scale(1.1); }
 
-        /* Wallet Section */
+        /* Wallet Section (iOS Dynamic Island Redesign) */
         .user-profile-bar { 
-            max-width: 900px; margin: 15px auto; background: white; border-radius: 20px; 
-            padding: 15px; border: 2px solid var(--soft-pink); box-shadow: 0 5px 15px rgba(255,133,162,0.05);
+            max-width: 900px; 
+            margin: 20px auto; 
+            background: rgba(255, 255, 255, 0.75); 
+            border-radius: 26px; 
+            padding: 18px; 
+            border: 2px solid rgba(255, 192, 203, 0.5); 
+            box-shadow: 0 12px 30px rgba(255, 133, 162, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
-        .wallet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .wallet { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+        }
         .wallet-item { 
-            background: #fffcfd; border: 1px solid #ffeef2; padding: 10px; 
-            border-radius: 12px; font-size: 13px; text-align: center; font-weight: 700; color: #555; 
+            background: rgba(255, 255, 255, 0.85); 
+            border: 1px solid rgba(255, 182, 193, 0.3); 
+            padding: 12px 8px; 
+            border-radius: 18px; 
+            font-size: 14px; 
+            text-align: center; 
+            font-weight: 700; 
+            color: #4a4a4a; 
+            box-shadow: inset 0 2px 4px rgba(255, 182, 193, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .wallet-item:hover {
+            transform: scale(1.02);
+            border-color: var(--primary-pink);
+            background: #ffffff;
         }
 
         /* --- Shop Layout --- */
         .section-title { 
             font-family: 'Kanit'; 
-            font-weight: 600; 
-            color: #444; 
-            margin: 25px 0 15px 20px; 
-            font-size: 18px; 
+            font-weight: 700; 
+            color: #2b2b2b; 
+            margin: 30px 0 15px 20px; 
+            font-size: 20px; 
             border-left: 5px solid var(--primary-pink); 
-            padding-left: 12px; 
+            padding-left: 14px; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* 🛒 ทั้งกล่องเก่าและกล่องใหม่จากหลังบ้าน: บังคับเป็น 2 คอลัมน์บนมือถือ */
         .merch-grid, .shop-container {
             display: grid !important;
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            gap: 12px !important;
+            gap: 14px !important;
             padding: 15px !important;
             box-sizing: border-box;
+            max-width: 940px;
+            margin: 0 auto;
         }
 
-        /* 📦 ดักตัวการ์ดทุกแบบ */
+        /* 📦 ดักตัวการ์ดทุกแบบสไตล์ iOS App Store */
         .merch-card, .merch-card-large {
-            background: #ffffff !important;
-            border-radius: 16px !important; 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important; 
+            background: var(--ios-card-bg) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 22px !important; 
+            box-shadow: var(--ios-shadow) !important; 
             width: 100% !important;           
             max-width: 100% !important; 
             margin: 0 auto !important;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(255, 182, 193, 0.2) !important; 
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 2px solid rgba(255, 255, 255, 0.6) !important; 
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             box-sizing: border-box;
         }
 
         .merch-card:hover, .merch-card-large:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(255, 182, 193, 0.2) !important;
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(255, 133, 162, 0.3) !important;
+            border-color: rgba(255, 105, 180, 0.4) !important;
         }
 
         /* 🖼️ ดักกรอบรูปภาพ */
         .merch-image-container, .card-img-wrapper {
             width: 100% !important;
             aspect-ratio: 1 / 1 !important;   
-            background: #fff9fa !important; 
+            background: linear-gradient(135deg, #fffafd 0%, #fff0f3 100%) !important; 
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 0 !important; 
             overflow: hidden; 
             box-sizing: border-box;
+            position: relative;
         }
 
         .merch-image, .card-img-wrapper img {
             width: 100% !important; 
             height: 100% !important; 
             object-fit: cover !important;     
+            transition: transform 0.4s ease;
+        }
+
+        .merch-card:hover .merch-image, .merch-card-large:hover .card-img-wrapper img {
+            transform: scale(1.06);
         }
 
         /* 📝 ดักส่วนกล่องข้อมูลสินค้า */
         .merch-info, .card-info {
-            background: #ffffff;
-            padding: 12px 10px !important;    
+            background: rgba(255, 255, 255, 0.5);
+            padding: 14px 10px !important;    
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -385,28 +439,33 @@
         /* แท็กหมวดหมู่ */
         .merch-category, .card-tag {
             font-size: 0.8rem !important;
-            font-weight: bold;
-            color: #ff6b8b !important;
-            margin-bottom: 4px;
+            font-weight: 700;
+            color: #ff527b !important;
+            margin-bottom: 6px;
+            background: rgba(255, 82, 123, 0.08);
+            padding: 2px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
         }
 
         /* ชื่อสินค้า */
         .merch-title, .card-title {
             font-size: 0.95rem !important; 
             font-weight: 700;
-            color: #2b2b2b;
-            margin: 0 0 4px 0 !important;
+            color: #2c2c2c;
+            margin: 0 0 6px 0 !important;
             display: -webkit-box;
             -webkit-line-clamp: 2; 
             -webkit-box-orient: vertical;
             overflow: hidden;
-            height: 36px !important;          
+            height: 38px !important;     
+            line-height: 1.3;     
         }
 
         /* คำอธิบาย */
         .merch-subtitle, .card-subtitle {
             font-size: 0.75rem !important;
-            color: #8e8e8e;
+            color: #7a7a7a;
             margin: 0 0 12px 0 !important;
             white-space: nowrap;
             overflow: hidden;
@@ -414,7 +473,7 @@
             width: 100%;
         }
 
-        /* 🎫 ดักปุ่มกดซื้อไอเทม */
+        /* 🎫 ดักปุ่มกดซื้อไอเทม (สไตล์ iOS App Store "GET") */
         .merch-button, .card-action {
             width: 100%;
             padding: 0 !important;
@@ -423,43 +482,47 @@
 
         .merch-button, .btn-token-buy {
             width: 100% !important;
-            background: #fff0f2 !important;
+            background: linear-gradient(135deg, #fff0f3 0%, #ffe5eb 100%) !important;
             color: #ff527b !important;
-            border: none !important;
-            border-radius: 10px !important; 
+            border: 1px solid rgba(255, 82, 123, 0.2) !important;
+            border-radius: 16px !important; 
             padding: 10px 0 !important;       
-            font-size: 0.9rem !important;
+            font-size: 0.85rem !important;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: all 0.2s ease;
+            gap: 6px;
+            transition: all 0.3s ease;
             box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(255, 82, 123, 0.05);
         }
 
         .merch-button:hover, .btn-token-buy:hover {
-            background: #ff527b !important;
+            background: linear-gradient(135deg, #ff527b 0%, #ff7b9a 100%) !important;
             color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 6px 15px rgba(255, 82, 123, 0.3) !important;
+            transform: scale(1.02);
         }
 
         @media (min-width: 768px) {
             .merch-grid, .shop-container {
-                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
                 gap: 20px !important;
                 padding: 20px !important;
             }
 
             .merch-info, .card-info {
-                padding: 20px !important;     
+                padding: 20px 15px !important;     
             }
 
             .merch-category, .card-tag {
-                font-size: 0.9rem !important;
+                font-size: 0.85rem !important;
             }
 
             .merch-title, .card-title {
-                font-size: 1.1rem !important;
+                font-size: 1.05rem !important;
                 height: 44px !important;      
             }
 
@@ -470,7 +533,7 @@
 
             .merch-button, .btn-token-buy {
                 padding: 12px 0 !important;   
-                font-size: 1rem !important;
+                font-size: 0.95rem !important;
             }
         }
 
@@ -807,7 +870,8 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(5px); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -828,17 +892,18 @@
         .preview-modal-content img {
             max-width: 100%;
             max-height: 65vh;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6);
+            border: 3px solid rgba(255, 255, 255, 0.8);
             object-fit: contain;
         }
 
         .preview-close-btn {
             position: absolute;
-            top: -40px;
+            top: -45px;
             right: 0;
             color: #fff;
-            font-size: 30px;
+            font-size: 35px;
             font-weight: bold;
             cursor: pointer;
             transition: color 0.2s;
@@ -873,13 +938,15 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 16px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #ffe4e8;
+            padding: 12px 18px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 228, 232, 0.8);
             position: sticky;
             top: 0;
             z-index: 999;
-            box-shadow: 0 2px 10px rgba(255, 192, 203, 0.1);
+            box-shadow: 0 4px 15px rgba(255, 192, 203, 0.08);
         }
 
         .top-bar-back-btn {
@@ -964,7 +1031,7 @@
           z-index: 10;
         }
 
-        /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁️ */
+        /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁ *********************************** */
         .bottom-tab-bar {
             position: fixed;
             bottom: 24px; 
@@ -974,8 +1041,8 @@
             max-width: 440px; 
             height: 68px;
             background: rgba(255, 255, 255, 0.92); 
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px); 
+            -webkit-backdrop-filter: blur(15px);
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -1040,7 +1107,7 @@
         }
 
         body {
-            padding-bottom: 110px !important;
+            padding-bottom: 120px !important;
         }
           
         /* --- อนิเมชันไข่กาชาปองสั่นลุ้นรางวัล --- */
@@ -1270,7 +1337,7 @@
     </div>        
 </div>
       
-<footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
+<footer style="padding: 50px 20px 140px; text-align: center; color: #bbb; font-size: 12px;">
   <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
   <div>© 2026 Virtual Idol Cover Group</div>
 </footer>
@@ -1387,18 +1454,9 @@ function updateWalletUI() {
     
     walletBar.innerHTML = `
         <div class="wallet">
-            <div class="wallet-item">
-                <span style="font-size: 10px; color: #888; display: block;">Tokens</span>
-                <i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(userData.token).toLocaleString()}
-            </div>
-            <div class="wallet-item">
-                <span style="font-size: 10px; color: #888; display: block;">Cookies</span>
-                <i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> ${Number(userData.cookie).toLocaleString()}
-            </div>
-            <div class="wallet-item">
-                <span style="font-size: 10px; color: #888; display: block;">GE Tokens</span>
-                <i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(userData.geToken || 0).toLocaleString()}
-            </div>
+            <div class="wallet-item">Tokens: ${Number(userData.token).toLocaleString()}</div>
+            <div class="wallet-item">Cookies: ${Number(userData.cookie).toLocaleString()}</div>
+            <div class="wallet-item">GE Tokens: ${Number(userData.geToken || 0).toLocaleString()}</div>
         </div>
     `;
 }
