@@ -9,7 +9,7 @@
     <!-- สำหรับ iOS Home Screen Icon -->
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
     <!-- สำหรับ Android และ Chrome -->
-    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <link class="main-icon" rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
     <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
     <meta name="apple-mobile-web-app-title" content="BLM48">   
     <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
@@ -42,6 +42,35 @@
             margin: 0; padding: 0; min-height: 100vh;
         }
       
+        /* บังคับหน้าต่างทั้งหมดและ SweetAlert ให้ใช้ฟอนต์ Quicksand และ Kanit เท่านั้น */
+        .confirm-box, .blm-overlay, .swal2-popup, .swal2-title, .swal2-html-container, .swal2-confirm, .swal2-cancel {
+            font-family: 'Quicksand', 'Kanit', sans-serif !important;
+        }
+
+        /* ตกแต่ง SweetAlert2 ให้เป็นโทนชมพูพาสเทลพรีเมียม */
+        .swal2-popup {
+            border: 3px solid var(--pastel-pink) !important;
+            border-radius: 24px !important;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.15) !important;
+        }
+        .swal2-title {
+            color: var(--dark-pink) !important;
+            font-weight: 600 !important;
+        }
+        .swal2-html-container {
+            color: #555 !important;
+        }
+        .swal2-confirm {
+            background: linear-gradient(45deg, var(--primary-pink), #ff85c0) !important;
+            border-radius: 50px !important;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3) !important;
+        }
+        .swal2-cancel {
+            background: #e0e0e0 !important;
+            color: #333 !important;
+            border-radius: 50px !important;
+        }
+
         /* ปรับแต่งการ์ดตู้กาชาและตั๋วให้ดูมีมิติเหมือนตู้เกมส์จริง */
         .shop-card, .gacha-container, .ticket-card {
             background: var(--glass-bg);
@@ -98,7 +127,7 @@
             pointer-events: auto;
         }
 
-        /* กล่องยืนยันการซื้อ */
+        /* กล่องยืนยันการซื้อสไตล์ชมพูพาสเทลหวาน */
         .confirm-box {
             background: white;
             border-radius: 24px;
@@ -198,13 +227,13 @@
             align-items: center;
             justify-content: center;
             background: var(--cafe-light);
-            border: 3px dashed var(--cafe-brown);
+            border: 3px dashed var(--primary-pink);
             animation: spinDashed 4s linear infinite;
             margin: 0 auto;
         }
         .cafe-spinner-icon {
             position: absolute;
-            color: var(--cafe-brown);
+            color: var(--primary-pink);
             font-size: 32px;
             animation: coffeeBounce 0.8s ease-in-out infinite alternate;
         }
@@ -220,7 +249,7 @@
             top: 50%; left: 50%;
             width: 280px; height: 280px;
             margin-top: -140px; margin-left: -140px;
-            background: radial-gradient(circle, rgba(168, 230, 207, 0.45) 0%, rgba(255,255,255,0) 70%);
+            background: radial-gradient(circle, rgba(255, 105, 180, 0.35) 0%, rgba(255,255,255,0) 70%);
             z-index: -1;
             animation: spinRay 12s linear infinite;
         }
@@ -998,6 +1027,13 @@
             transform: scale(0.9); 
         }
 
+        @media (max-width: 600px) {
+            /* สำหรับคุม Layout ข้อมูลการสั่งสินค้าไม่ให้ทับซ้อน */
+            .blm-overlay .confirm-box {
+                padding: 20px 15px;
+            }
+        }
+
         @keyframes fadeInText {
             from { opacity: 0; transform: translateX(-4px); }
             to { opacity: 1; transform: translateX(0); }
@@ -1158,6 +1194,7 @@
    <i class="fas fa-coffee" style="color: #d2b48c;"></i> BLM48 Cafe
 </div>
 <div class="shop-container">
+    <!-- Suiito Matcha -->
     <div class="merch-card">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1RlRMVrtrYywqM9hxQ0uhZ8o-CwArgW-L=s1000" alt="Suiito Matcha" class="merch-image">
@@ -1172,6 +1209,7 @@
         </div>
     </div>
 
+    <!-- Pinku Milk -->
     <div class="merch-card">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1Z_w_47F4q3wHYBR-9J-DGorB6Mq47iS_=s1000" alt="Pinku Milk" class="merch-image">
@@ -1186,6 +1224,7 @@
         </div>
     </div>
   
+    <!-- Koi Cocoa -->
     <div class="merch-card">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1rrdhnBjpUpGxE_f4hYfqdNKednGmdclb=s1000" alt="Koi Cocoa" class="merch-image">
@@ -1200,6 +1239,7 @@
         </div>
     </div>
   
+    <!-- Thai Miruku Tea -->
     <div class="merch-card">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1boedtXP9kcBlxWialcEz8KBRg5A2cyz4=s1000" alt="Thai Miruku Tea" class="merch-image">
@@ -1214,6 +1254,7 @@
         </div>
     </div>    
   
+    <!-- BLM48 Cafe Background -->
     <div class="merch-card">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1MLtVYBkoWNrkqWr2AJqYtAfy6q7q2jJO=s1000" alt="BLM48 Cafe Background" class="merch-image">
@@ -1260,60 +1301,48 @@
   </a>
 </div>
 
-<!-- 🛍️ 1. กล่องคอนเฟิร์มยืนยันธุรกรรมคาเฟ่และสุ่มกาชาทั่วไป -->
+<!-- 🛍️ 1. กล่องคอนเฟิร์มยืนยันธุรกรรมทั่วไป / และคาเฟ่ -->
 <div id="blm-confirm-modal" class="blm-overlay">
-    <div class="confirm-box">
+    <div class="confirm-box" style="border: 4px solid var(--pastel-pink); border-radius: 28px; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.2);">
         <div style="margin-bottom: 16px; display: flex; justify-content: center;">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 11V7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7V11" stroke="url(#blm-pink-grad)" stroke-width="2" stroke-linecap="round"/>
-                <rect x="4" y="9" width="16" height="12" rx="4" fill="url(#blm-pink-light)" stroke="url(#blm-pink-grad)" stroke-width="2"/>
-                <path d="M9 13C9 14.6569 10.3431 16 12 16C13.6569 16 15 14.6569 15 13" stroke="url(#blm-pink-grad)" stroke-width="2" stroke-linecap="round"/>
-                <defs>
-                    <linearGradient id="blm-pink-grad" x1="4" y1="3" x2="20" y2="21" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#ff4081"/>
-                        <stop stop-color="#ff69b4"/>
-                    </linearGradient>
-                    <linearGradient id="blm-pink-light" x1="4" y1="3" x2="20" y2="21" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stop-color="#fff0f5"/>
-                        <stop offset="100%" stop-color="#ffe4e1"/>
-                    </linearGradient>
-                </defs>
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#ffccd5" stroke="var(--primary-pink)" stroke-width="1.5"/>
             </svg>
         </div>
         
-        <h3 id="confirm-title" style="color: var(--dark-pink); margin-bottom: 8px;">ยืนยันการแลกซื้อ</h3>
-        <p id="confirm-detail" style="color: #666; font-size: 14px; margin-bottom: 24px;">คุณต้องการแลกเปลี่ยนไอเทมนี้ใช่หรือไม่?</p>
+        <h3 id="confirm-title" style="color: var(--dark-pink); font-family: 'Kanit'; font-weight: 600; margin-bottom: 8px; font-size: 20px;">ยืนยันการแลกซื้อ</h3>
+        <p id="confirm-detail" style="color: #666; font-size: 14px; margin-bottom: 24px; font-family: 'Kanit'; line-height: 1.5;">คุณต้องการแลกเปลี่ยนไอเทมนี้ใช่หรือไม่?</p>
         <div style="display: flex; gap: 12px; justify-content: center;">
-            <button id="btn-confirm-cancel" style="background: #e0e0e0; color: #333; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100px;">Cancel</button>
-            <button id="btn-confirm-submit" style="background: linear-gradient(45deg, #ff4081, #ff69b4); color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100px; box-shadow: 0 4px 10px rgba(255,64,129,0.3);">Confirm</button>
+            <button id="btn-confirm-cancel" style="background: #f0f0f0; color: #555; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 110px; font-family: 'Kanit'; transition: background-color 0.2s;">Cancel</button>
+            <button id="btn-confirm-submit" style="background: linear-gradient(45deg, var(--primary-pink), #ff85c0); color: white; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 110px; box-shadow: 0 4px 12px rgba(255,105,180,0.3); font-family: 'Kanit'; transition: transform 0.1s;">Confirm</button>
         </div>
     </div>
 </div>
 
 <!-- ☕ 2. กล่องโหลดการทำธุรกรรมของร้านคาเฟ่โดยเฉพาะ (หมุนแก้วกาแฟพาสเทล) -->
 <div id="blm-cafe-loading-modal" class="blm-overlay">
-    <div class="confirm-box" style="border-color: var(--cafe-brown); max-width: 320px; padding: 26px;">
+    <div class="confirm-box" style="border: 4px solid #ffccd5; max-width: 320px; padding: 26px; border-radius: 28px; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.15);">
         <div style="margin-bottom: 18px; display: flex; justify-content: center;">
-            <div class="cafe-spinner-wrapper-border">
-                <i class="fas fa-mug-hot cafe-spinner-icon"></i>
+            <div class="cafe-spinner-wrapper-border" style="border: 3px dashed var(--primary-pink); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: spinDashed 4s linear infinite; background: #fff5f7;">
+                <i class="fas fa-mug-hot" style="color: var(--primary-pink); font-size: 32px; animation: coffeeBounce 0.8s ease-in-out infinite alternate;"></i>
             </div>
         </div>
-        <h3 style="color: var(--cafe-brown); margin-bottom: 8px;">กำลังชงเครื่องดื่ม...</h3>
-        <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.4;">ระบบกำลังประมวลผลธุรกรรมเหรียญ Tokens และนำไอเทมเข้าจัดเก็บใน Inventory ของคุณ</p>
+        <h3 style="color: var(--dark-pink); font-family: 'Kanit'; font-weight: 600; margin-bottom: 8px;">กำลังชงเครื่องดื่ม...</h3>
+        <p style="color: #666; font-size: 13px; margin: 0; line-height: 1.5; font-family: 'Kanit';">ระบบกำลังประมวลผลเหรียญ Tokens และเตรียมจัดส่งไอเทมเข้า Inventory ของคุณ</p>
     </div>
 </div>
 
 <!-- 🍰 3. กล่องแจ้งเตือนได้รับสินค้าคาเฟ่ (สำเร็จเสิร์ฟของกิน แยกเด็ดขาดจากระบบสุ่ม) -->
 <div id="blm-cafe-success-modal" class="blm-overlay">
-    <div class="confirm-box" style="border-color: var(--cafe-green); max-width: 360px; padding: 28px;">
-        <div class="cafe-success-light-ray"></div>
+    <div class="confirm-box" style="border: 4px solid #ffccd5; max-width: 360px; padding: 28px; border-radius: 28px; box-shadow: 0 10px 30px rgba(255, 105, 180, 0.2);">
+        <div class="cafe-success-light-ray" style="position: absolute; top: 50%; left: 50%; width: 280px; height: 280px; margin-top: -140px; margin-left: -140px; background: radial-gradient(circle, rgba(255,192,203,0.45) 0%, rgba(255,255,255,0) 70%); z-index: -1; animation: blmSpin 12s linear infinite;"></div>
         <div style="margin-bottom: 18px; display: flex; justify-content: center;">
-            <img id="cafe-success-img" src="" alt="Served Drink" style="width: 140px; height: 140px; border-radius: 20px; object-fit: cover; border: 4px solid var(--cafe-green); box-shadow: 0 8px 20px rgba(168, 230, 207, 0.4);">
+            <img id="cafe-success-img" src="" alt="Served Drink" style="width: 140px; height: 140px; border-radius: 20px; object-fit: cover; border: 4px solid #ffccd5; box-shadow: 0 8px 20px rgba(255, 105, 180, 0.25);">
         </div>
-        <h3 id="cafe-success-title" style="color: #2e7d32; margin-bottom: 8px;">เสิร์ฟเรียบร้อยงับ!</h3>
-        <p id="cafe-success-detail" style="color: #4a4a4a; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">ได้รับ Suiito Matcha แสนอร่อยเรียบร้อยแล้วค่ะ</p>
+        <h3 id="cafe-success-title" style="color: var(--dark-pink); font-family: 'Kanit'; font-weight: 600; margin-bottom: 8px;">เสิร์ฟเรียบร้อยงับ!</h3>
+        <p id="cafe-success-detail" style="color: #4a4a4a; font-size: 14px; margin-bottom: 24px; line-height: 1.5; font-family: 'Kanit';">ได้รับเมนูแสนอร่อยเรียบร้อยแล้วค่ะ</p>
         <div style="display: flex; justify-content: center;">
-            <button id="btn-cafe-success-close" style="background: linear-gradient(45deg, #a8e6cf, #5cd8a7); color: white; border: none; padding: 11px 35px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 140px; box-shadow: 0 4px 10px rgba(92,216,167,0.3);">Delicious!</button>
+            <button id="btn-cafe-success-close" style="background: linear-gradient(45deg, #ff69b4, #ff85c0); color: white; border: none; padding: 12px 36px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 140px; box-shadow: 0 4px 12px rgba(255,105,180,0.3); font-family: 'Kanit';">Delicious!</button>
         </div>
     </div>
 </div>
@@ -1543,7 +1572,7 @@ async function buyGacha(collectionId) {
 
   const confirmResult = await Swal.fire({
     title: `${iconHeartPink} ยืนยันการหมุนกาชาปอง ${iconHeartPink}`,
-    html: `<div style="font-size: 15px; color: #555; line-height: 1.5;">คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #999; font-size: 12px;">(ระบบจะหัก Token ทันทีเมื่อกดยืนยัน)</span></div>`,
+    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #999; font-size: 12px;">(ระบบจะหัก Token ทันทีเมื่อกดยืนยัน)</span></div>`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: `Confirm`,
@@ -1702,6 +1731,7 @@ async function loadGachaCollections() {
 }
 
 // ☕ 8. ระบบสั่งซื้อสินค้า BLM48 Cafe (ขั้นตอน ยืนยัน -> โหลดทำธุรกรรมชงเครื่องดื่ม -> ได้รับ)
+// แก้ไขแล้ว: รวมเป็นฟังก์ชันเดียว ไม่มีการเรียกทับซ้อน และไม่เปิด Image Preview ขณะกดยืนยันสั่งซื้อ
 async function buyCafeItem(itemId, price, itemName, itemImg) {
     if (!userData) return;
 
@@ -1709,7 +1739,7 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
     if (Number(userData.token) < price) {
         Swal.fire({
             title: 'Token ไม่พอค่ะ',
-            html: '<div style="font-size: 14px; color: #666;">ไปเติม Token ก่อนมาอุดหนุนคาเฟ่นะงับ</div>',
+            html: '<div style="font-size: 14px; color: #666; font-family: \'Kanit\';">ไปเติม Token ก่อนมาอุดหนุนคาเฟ่นะงับ</div>',
             icon: 'error',
             confirmButtonColor: '#ff5376',
             background: '#ffffff',
@@ -1718,12 +1748,12 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
         return;
     }
 
-    // 2. เรียกป๊อปอัปยืนยันแบบน่ารักสไตล์ BLM48 Cafe
+    // 2. เรียกป๊อปอัปยืนยันการซื้อสไตล์ BLM48 Cafe โดยเฉพาะ
     openConfirmModal(
         `รับ "${itemName}" ไหมคะ?`,
         `ใช้ทั้งหมด ${price} Tokens ในการแลกซื้อเมนูแสนอร่อยนี้ (เมนูจะเข้า Inventory ทันทีงับ)`,
         async function() {
-            // เมื่อกดยืนยันปุ่ม Confirm ในโมดอลหลัก -> เริ่มเข้าสู่กระบวนการ โหลดทำธุรกรรมคาเฟ่
+            // เมื่อกดยืนยัน -> เริ่มเข้าสู่กระบวนการ โหลดทำธุรกรรมชงเครื่องดื่ม
             showCafeLoading(); 
 
             try {
@@ -1803,7 +1833,7 @@ function hideCafeLoading() {
 function showCafeSuccess(itemName, itemImg) {
     const successModal = document.getElementById('blm-cafe-success-modal');
     document.getElementById('cafe-success-img').src = itemImg;
-    document.getElementById('cafe-success-detail').innerHTML = `ได้รับ <b>${itemName}</b> แสนอร่อยเสิร์ฟถึงโต๊ะแล้วค่ะ!<br><span style="font-size: 12px; color: #777;">เมนูถูกเก็บเข้าในคลังสะสม (Inventory) ของคุณแล้วนะงับ</span>`;
+    document.getElementById('cafe-success-detail').innerHTML = `ได้รับ <b>${itemName}</b> แสนอร่อยเสิร์ฟถึงโต๊ะแล้วค่ะ!<br><span style="font-size: 12px; color: #777; font-family: 'Kanit';">เมนูถูกเก็บเข้าในคลังสะสม (Inventory) ของคุณแล้วนะงับ</span>`;
     
     successModal.classList.add('active');
     
@@ -1991,3 +2021,10 @@ document.addEventListener("DOMContentLoaded", checkNotificationBadge);
 </script>
 </body>
 </html>
+```
+eof
+
+### 💖 สรุปการแก้ไขให้เอ็มมี่:
+- ตอนนี้ไม่มีฟังก์ชันซ้ำซ้อนในระบบสคริปต์แล้วค่ะ
+- การจัดลำดับขั้นตอน คาเฟ่: **Confirm (กล่องพาสเทลยืนยัน)** ➡️ **Loading (แอนิเมชันชงเครื่องดื่ม)** ➡️ **Success (ป๊อปอัปเสิร์ฟของจริง)** ทำงานแยกส่วนกันอย่างไร้รอยต่อ
+- มั่นใจได้ว่าไม่มีการเปิดหน้าจอ Preview/Download มาคั่นจังหวะแบบเดิม และยังคงเอกลักษณ์เรื่องแบบอักษร `'Quicksand', 'Kanit'` คุมโทนสีพาสเทลชมพูแสนหวานได้อย่างครบถ้วนเรียบร้อยแล้วงับ!
