@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <title>BLM48 Membership | Inventory</title>
-  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
     <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
@@ -12,11 +12,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         :root {
             --primary-pink: #ff85a2;
@@ -38,7 +41,6 @@
             color: var(--text-dark);
         }
 
-        /* ปรับ Layout ให้กางเต็มจอ 100% ลบข้อจำกัด max-width ออกทั้งหมดเพื่อความเต็มตา */
         .app-wrapper {
             width: 100%;
             min-height: 100vh;
@@ -54,7 +56,6 @@
             }
         }
 
-        /* แถบด้านบนสุด: รวมปุ่มย้อนกลับและโปรไฟล์ผู้ใช้แบบแสดงรูปภาพ + ชื่อ */
         .top-navigation-bar {
             display: flex;
             justify-content: space-between;
@@ -123,7 +124,7 @@
 
         .header-title-zone {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
         }
 
         .header-title-zone h1 {
@@ -139,66 +140,111 @@
             margin: 0;
         }
 
-        /* ✨ เพิ่มสไตล์สำหรับปุ่มสลับเลือกดูทีละคอลเลกชัน */
-        .collection-tabs-container {
+        .filter-section-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+            background: #fffcfd;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(255,133,162,0.02);
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tabs-row {
             display: flex;
             gap: 10px;
-            margin-bottom: 25px;
-            padding-bottom: 8px;
             overflow-x: auto;
             white-space: nowrap;
-            /* ซ่อน Scrollbar */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            padding-bottom: 4px;
+            scrollbar-width: none;
         }
-        .collection-tabs-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
+        
+        .tabs-row::-webkit-scrollbar {
+            display: none;
         }
 
         .btn-tab {
             background: white;
             color: #666;
             border: 1px solid var(--card-border);
-            padding: 8px 16px;
-            border-radius: 16px;
+            padding: 8px 18px;
+            border-radius: 14px;
             font-family: 'Kanit', sans-serif;
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.01);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn-tab:hover {
             border-color: var(--primary-pink);
             color: var(--primary-pink);
+            background: #fff9fa;
         }
 
         .btn-tab.active {
+            background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
+            color: white;
+            border-color: var(--primary-pink);
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255,133,162,0.25);
+        }
+
+        /* สไตล์ตัวกรองย่อย Coasters */
+        .sub-filter-panel {
+            background: #fff0f3;
+            border-radius: 14px;
+            padding: 12px;
+            border: 1px dashed #ffcbd6;
+            animation: slideDownFade 0.25s ease-out;
+        }
+
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-sub-tab {
+            background: white;
+            color: #777;
+            border: 1px solid #ffd2dc;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-family: 'Kanit', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+        }
+
+        .btn-sub-tab:hover {
+            border-color: var(--primary-pink);
+            color: var(--primary-pink);
+        }
+
+        .btn-sub-tab.active {
             background: var(--primary-pink);
             color: white;
             border-color: var(--primary-pink);
             font-weight: 600;
-            box-shadow: 0 4px 10px rgba(255,133,162,0.2);
         }
-      
-            #tabs-container {
-    display: flex;
-    overflow-x: auto; /* ทำให้เลื่อนซ้ายขวาได้ */
-    white-space: nowrap; /* ไม่ให้ปุ่มขึ้นบรรทัดใหม่ */
-    padding: 10px;
-    background: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 1px solid #eee;
-    scrollbar-width: none; /* ซ่อน scrollbar ใน Firefox */
-    }
-    #tabs-container::-webkit-scrollbar {
-        display: none; /* ซ่อน scrollbar ใน Chrome/Safari */
-    }
 
-        /* คอลเลกชันกล่องเก็บการ์ดแบบ Responsive ขยายตามขนาดจอ */
         .collection-section {
             background: #fffcfd;
             border: 1px solid #ffeef2;
@@ -213,12 +259,23 @@
             font-weight: 600;
             color: var(--primary-pink);
             margin-bottom: 16px;
-            padding-left: 6px;
+            padding-left: 10px;
             border-left: 4px solid var(--primary-pink);
             line-height: 1.2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* ระบบ Grid อัจฉริยะ แสดงเป็นแถวเรียงสวยงามตามความกว้างของคอมพิวเตอร์และมือถือ */
+        .collection-count-badge {
+            font-size: 11px;
+            background: #ffeef2;
+            color: var(--primary-pink);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
         .item-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -263,6 +320,11 @@
             margin: 8px auto;
             display: block;
             border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .item-card:hover .item-img {
+            transform: scale(1.05);
         }
 
         .item-name {
@@ -275,7 +337,6 @@
             white-space: nowrap;
         }
 
-        /* Modal หน้าจอดูป๊อปอัพขยายภาพเต็ม + เพิ่มปุ่มเซฟรูป */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -335,7 +396,6 @@
             transition: 0.2s;
         }
 
-        /* ปุ่มเซฟรูปภาพสไตล์หวานละมุนเหมือนหน้า Shop */
         .btn-save-image {
             background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
             color: white;
@@ -366,7 +426,7 @@
         <div class="top-navigation-bar">
             <a href="index.html" class="btn-back-top"><i class="fa-solid fa-house"></i> กลับหน้าหลัก</a>
             <div class="user-profile-box">
-                <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Profile" class="user-avatar-img">
+                <img id="user-avatar" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" alt="Profile" class="user-avatar-img">
                 <div class="user-profile-info">
                     <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
                     <span id="user-role" class="user-role-tag"></span>
@@ -379,7 +439,22 @@
             <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
         </div>
 
-        <div id="tabs-container" class="collection-tabs-container"></div> 
+        <div class="filter-section-container">
+            <div>
+                <span class="filter-label"><i class="fa-solid fa-filter text-pink-400"></i> เลือกหมวดหมู่หลัก</span>
+                <div id="primary-tabs" class="tabs-row">
+                    <!-- ปุ่มฟิลเตอร์จะถูกแสดงด้วย JS -->
+                </div>
+            </div>
+            
+            <!-- ตู้ฟิลเตอร์ย่อยสำหรับ Coaster (ซ่อนเริ่มต้น) -->
+            <div id="coaster-sub-panel" class="sub-filter-panel hidden">
+                <span class="filter-label text-[11px] text-pink-500 mb-2"><i class="fa-solid fa-circle-nodes"></i> ซีรีส์คอลเลกชัน Coaster (เรียงตามตัวอักษร)</span>
+                <div id="coaster-tabs" class="tabs-row">
+                    <!-- ปุ่มฟิลเตอร์ย่อย Coaster จะแสดงด้วย JS -->
+                </div>
+            </div>
+        </div> 
     
         <div id="inventory-container">
             <p style="text-align:center; color:#aaa; font-size:13px;">กำลังหาคอลเลกชันของคุณ...</p>
@@ -397,13 +472,14 @@
             </div>
         </div>
     </div>
-  <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
-  <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
-  <div>© 2026 Virtual Idol Cover Group</div>
-</footer>
+
+    <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
+        <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
+        <div>© 2026 Virtual Idol Cover Group</div>
+    </footer>
 
     <script>
-       const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
         
         function getUserSession() {
             const sessionStr = localStorage.getItem('bnl_session');
@@ -421,9 +497,10 @@
         let user = getUserSession();
         let currentUsername = user ? user.username : "";
         
-        // ตัวแปรเก็บข้อมูลตู้ทั้งหมด และชื่อตู้ที่กำลังเลือกเปิดดูอยู่
+        // ตัวแปรสำหรับระบบตัวกรองแบบใหม่
         let globalInventoryData = null;
-        let currentActiveTab = "all";
+        let currentPrimaryTab = 'all'; // 'all', 'cafe', 'coaster', 'others'
+        let currentCoasterSubTab = 'all'; // 'all' หรือชื่อคอลเลกชันเฉพาะของ Coaster
 
         window.onload = async () => {
             if (!user || !currentUsername) {
@@ -436,7 +513,7 @@
             if (user.profile_img && user.profile_img.toString().trim() !== "") {
                 document.getElementById('user-avatar').src = user.profile_img;
             } else {
-                document.getElementById('user-avatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+                document.getElementById('user-avatar').src = "https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000";
             }
             
             document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
@@ -445,7 +522,6 @@
             document.getElementById('user-role').textContent = userRole;
             
             await loadMyInventory();
-             renderTabs();
         };
 
         async function loadMyInventory() {
@@ -462,8 +538,8 @@
             if (cachedData && cachedTime && (now - cachedTime < refreshInterval)) {
                 console.log("⚡ ดึงข้อมูลคอลเลกชัน Inventory จาก Cache สำเร็จ!");
                 globalInventoryData = JSON.parse(cachedData);
-                renderTabs(); // สร้างปุ่ม Tabs
-                renderInventoryData(); // แสดงของในตู้
+                renderFilters();
+                renderInventoryData();
                 return;
             }
             
@@ -479,8 +555,8 @@
                     localStorage.setItem(cacheKey, JSON.stringify(globalInventoryData));
                     localStorage.setItem(cacheTimeKey, now.toString());
                     
-                    renderTabs(); // สร้างปุ่ม Tabs
-                    renderInventoryData(); // แสดงของในตู้
+                    renderFilters();
+                    renderInventoryData();
                 } else {
                     container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
                 }
@@ -489,7 +565,7 @@
                 if (cachedData) {
                     console.warn("⚠️ ระบบดึงข้อมูลสดขัดข้อง ใช้ข้อมูลจาก Cache แทน");
                     globalInventoryData = JSON.parse(cachedData);
-                    renderTabs();
+                    renderFilters();
                     renderInventoryData();
                 } else {
                     container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
@@ -497,91 +573,194 @@
             }
         }
 
-        // ✨ ฟังก์ชันสร้างปุ่มเมนู Tabs สำหรับเลือกดู Collection (เวอร์ชันสร้าง Element โดยตรง)
-function renderTabs() {
-    const tabsContainer = document.getElementById('tabs-container');
-    if (!tabsContainer) return; // กัน Error กรณีหา element ไม่เจอ
-    
-    tabsContainer.innerHTML = ''; // ล้างปุ่มเก่าทิ้งก่อน
-    
-    if (!globalInventoryData || Object.keys(globalInventoryData).length === 0) return;
+        // ฟังก์ชันช่วยจำแนกกลุ่มหมวดหมู่
+        function getCategorizedCollections() {
+            const cafe = {};
+            const coaster = {};
+            const others = {};
 
-    // 1. สร้างปุ่ม "ทั้งหมด"
-    const allBtn = document.createElement('button');
-    allBtn.className = `btn-tab ${currentActiveTab === 'all' ? 'active' : ''}`;
-    allBtn.textContent = "ทั้งหมด";
-    allBtn.onclick = () => switchTab('all');
-    tabsContainer.appendChild(allBtn);
+            if (!globalInventoryData) return { cafe, coaster, others };
 
-    // 2. วนลูปสร้างปุ่มคอลเลกชัน
-    Object.keys(globalInventoryData).forEach(colName => {
-        if (globalInventoryData[colName].length > 0) {
-            const btn = document.createElement('button');
-            btn.className = `btn-tab ${currentActiveTab === colName ? 'active' : ''}`;
-            btn.textContent = colName;
-            btn.onclick = () => switchTab(colName); // ผูก event ตรงนี้เลย
-            tabsContainer.appendChild(btn);
-        }
-    });
-}
+            // จัดเรียงคีย์ (ชื่อคอลเลกชัน) ตามตัวอักษรไทย/อังกฤษ ก่อนแบ่งกลุ่ม
+            const sortedKeys = Object.keys(globalInventoryData).sort((a, b) => a.localeCompare(b, 'th'));
 
-        // ✨ ฟังก์ชันเมื่อผู้ใช้กดคลิกเปลี่ยน Tab
-        function switchTab(tabName) {
-            currentActiveTab = tabName; // อัปเดตตู้ที่กำลังดู
-            renderTabs();               // อัปเดตสีของปุ่มที่ถูกกด
-            renderInventoryData();      // วาดหน้าจอโชว์ของใหม่
+            sortedKeys.forEach(colName => {
+                const lowerName = colName.toLowerCase();
+                const items = globalInventoryData[colName] || [];
+                
+                // คัดแยกตามเงื่อนไข
+                if (lowerName.includes('coaster')) {
+                    coaster[colName] = items;
+                } else if (lowerName.includes('blm48 cafe') || lowerName.includes('cafe')) {
+                    cafe[colName] = items;
+                } else {
+                    others[colName] = items;
+                }
+            });
+
+            return { cafe, coaster, others };
         }
 
-        // 🛠️ ปรับปรุงฟังก์ชันวาดหน้าจอ ให้รองรับการซ่อน/โชว์ตู้ตามปุ่ม Tab
+        // ฟังก์ชันสร้างปุ่มตัวกรองหลักและตัวกรองย่อย
+        function renderFilters() {
+            const primaryTabsContainer = document.getElementById('primary-tabs');
+            if (!primaryTabsContainer) return;
+            
+            primaryTabsContainer.innerHTML = '';
+            const categories = getCategorizedCollections();
+
+            // 1. หมวดหมู่หลัก: ทั้งหมด (All)
+            const btnAll = document.createElement('button');
+            btnAll.className = `btn-tab ${currentPrimaryTab === 'all' ? 'active' : ''}`;
+            btnAll.innerHTML = `<i class="fa-solid fa-border-all"></i> ทั้งหมด`;
+            btnAll.onclick = () => selectPrimaryTab('all');
+            primaryTabsContainer.appendChild(btnAll);
+
+            // 2. หมวดหมู่หลัก: BLM48 Cafe (ถ้ามีข้อมูล)
+            if (Object.keys(categories.cafe).length > 0) {
+                const btnCafe = document.createElement('button');
+                btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
+                btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
+                btnCafe.onclick = () => selectPrimaryTab('cafe');
+                primaryTabsContainer.appendChild(btnCafe);
+            }
+
+            // 3. หมวดหมู่หลัก: Coaster (ถ้ามีข้อมูล)
+            if (Object.keys(categories.coaster).length > 0) {
+                const btnCoaster = document.createElement('button');
+                btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
+                btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc animate-spin-slow"></i> Coaster`;
+                btnCoaster.onclick = () => selectPrimaryTab('coaster');
+                primaryTabsContainer.appendChild(btnCoaster);
+            }
+
+            // 4. หมวดหมู่หลัก: หมวดหมู่อื่นๆ (ถ้ามีข้อมูล)
+            if (Object.keys(categories.others).length > 0) {
+                const btnOthers = document.createElement('button');
+                btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
+                btnOthers.innerHTML = `<i class="fa-solid fa-box-archive"></i> หมวดหมู่อื่นๆ`;
+                btnOthers.onclick = () => selectPrimaryTab('others');
+                primaryTabsContainer.appendChild(btnOthers);
+            }
+
+            // จัดการแสดง/ซ่อน และสร้างตัวกรองย่อยสำหรับ Coaster
+            const coasterSubPanel = document.getElementById('coaster-sub-panel');
+            const coasterTabsContainer = document.getElementById('coaster-tabs');
+            
+            if (currentPrimaryTab === 'coaster' && Object.keys(categories.coaster).length > 0) {
+                coasterSubPanel.classList.remove('hidden');
+                coasterTabsContainer.innerHTML = '';
+
+                // ปุ่มตัวเลือก Coaster ทั้งหมด
+                const btnSubAll = document.createElement('button');
+                btnSubAll.className = `btn-sub-tab ${currentCoasterSubTab === 'all' ? 'active' : ''}`;
+                btnSubAll.textContent = 'Coaster ทั้งหมด';
+                btnSubAll.onclick = () => selectCoasterSubTab('all');
+                coasterTabsContainer.appendChild(btnSubAll);
+
+                // คีย์ของ Coasters ได้รับการเรียงลำดับตัวอักษรเรียบร้อยแล้วจาก getCategorizedCollections
+                Object.keys(categories.coaster).forEach(colName => {
+                    const btnSub = document.createElement('button');
+                    btnSub.className = `btn-sub-tab ${currentCoasterSubTab === colName ? 'active' : ''}`;
+                    btnSub.textContent = colName;
+                    btnSub.onclick = () => selectCoasterSubTab(colName);
+                    coasterTabsContainer.appendChild(btnSub);
+                });
+            } else {
+                coasterSubPanel.classList.add('hidden');
+            }
+        }
+
+        function selectPrimaryTab(tabName) {
+            currentPrimaryTab = tabName;
+            currentCoasterSubTab = 'all'; // รีเซ็ตตัวกรองย่อยกลับไปที่ "ทั้งหมด"
+            renderFilters();
+            renderInventoryData();
+        }
+
+        function selectCoasterSubTab(subTabName) {
+            currentCoasterSubTab = subTabName;
+            renderFilters();
+            renderInventoryData();
+        }
+
+        // ฟังก์ชันวาดไอเทมสะสมลงหน้าจอโดยใช้ระบบแยกประเภทและเรียงตามตัวอักษร
         function renderInventoryData() {
             const container = document.getElementById('inventory-container');
             container.innerHTML = "";
             
-            const inv = globalInventoryData;
-
-            if (!inv || Object.keys(inv).length === 0) {
+            if (!globalInventoryData || Object.keys(globalInventoryData).length === 0) {
                 container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
                 return;
             }
 
-            // วนลูปดึงทีละตู้คอลเลกชันออกมาวาดบนจอ
-            for (const colName in inv) {
-                // ถ้ากล่องไหนไม่มีของ ให้ข้ามไปเลย
-                if (inv[colName].length === 0) continue;
-                
-                // 🔍 ถ้ายูสเซอร์ไม่ได้เลือกดู "ทั้งหมด" และชื่อตู้ไม่ตรงกับปุ่ม Tab ที่กด ให้ข้ามการโชว์ตู้นี้ไปเลย
-                if (currentActiveTab !== 'all' && currentActiveTab !== colName) {
-                    continue; 
-                }
+            const categories = getCategorizedCollections();
+            let targetCollections = {};
 
-                // ถ้าผ่านเงื่อนไขด้านบน แปลว่าให้แสดงตู้นี้
+            // เลือกชุดคอลเลกชันตามปุ่มแท็บหมวดหมู่หลักที่ถูกเลือก
+            if (currentPrimaryTab === 'all') {
+                // เอามารวมทั้งหมดตามลำดับที่จัดเรียงตัวอักษรแล้ว
+                targetCollections = { ...categories.cafe, ...categories.coaster, ...categories.others };
+            } else if (currentPrimaryTab === 'cafe') {
+                targetCollections = categories.cafe;
+            } else if (currentPrimaryTab === 'coaster') {
+                if (currentCoasterSubTab === 'all') {
+                    targetCollections = categories.coaster;
+                } else {
+                    // เลือกเฉพาะ Coaster คอลเลกชันย่อยที่กดเลือก
+                    if (categories.coaster[currentCoasterSubTab]) {
+                        targetCollections[currentCoasterSubTab] = categories.coaster[currentCoasterSubTab];
+                    }
+                }
+            } else if (currentPrimaryTab === 'others') {
+                targetCollections = categories.others;
+            }
+
+            const sortedTargetKeys = Object.keys(targetCollections).sort((a, b) => a.localeCompare(b, 'th'));
+
+            if (sortedTargetKeys.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#999; margin-top:40px; font-size:13px;">ไม่พบไอเทมในหมวดหมู่นี้งับ</p>`;
+                return;
+            }
+
+            // แสดงผลแต่ละคอลเลกชัน
+            sortedTargetKeys.forEach(colName => {
+                const rawItems = targetCollections[colName] || [];
+                if (rawItems.length === 0) return;
+
+                // ทำการคัดลอกและจัดเรียงไอเทมตามตัวอักษร (A-Z, ก-ฮ) ในแต่ละคอลเลกชันย่อย
+                const items = [...rawItems].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
                 const section = document.createElement('div');
                 section.className = 'collection-section';
                 
                 const title = document.createElement('div');
                 title.className = 'collection-title';
-                title.textContent = colName;
+                title.innerHTML = `
+                    <span>${colName}</span>
+                    <span class="collection-count-badge">${items.length} รายการ</span>
+                `;
                 section.appendChild(title);
                 
                 const grid = document.createElement('div');
                 grid.className = 'item-grid';
                 
-                inv[colName].forEach(item => {
+                items.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'item-card';
                     card.onclick = () => openPreview(item.img);
                     
                     card.innerHTML = `
                         <span class="item-qty">x${item.qty}</span>
-                        <img class="item-img" src="${item.img}" alt="${item.name}">
-                        <div class="item-name">${item.name}</div>
+                        <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
+                        <div class="item-name" title="${item.name}">${item.name}</div>
                     `;
                     grid.appendChild(card);
                 });
                 
                 section.appendChild(grid);
                 container.appendChild(section);
-            }
+            });
         }
 
         function openPreview(src) {
