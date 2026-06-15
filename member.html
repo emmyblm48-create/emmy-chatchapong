@@ -17,7 +17,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
-  <!-- 🌐 เปลี่ยนลิงก์ Google Fonts เป็น Quicksand และ Kanit เรียบร้อย -->
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -33,7 +32,6 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    /* ทำให้หน้าเว็บไม่ล้นจอซ้ายขวาในมือถือ */
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -51,7 +49,6 @@
       --bg-soft: #fcfcfc;
     }
 
-    /* 🎨 อัปเดต font-family ตามที่เอ็มมี่ชอบ */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -62,13 +59,12 @@
     body {
       background: var(--bg-soft);
       display: flex;
-      justify(content): center;
+      justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
       color: var(--dark-text);
     }
 
-    /* 📱 โครงสร้างหลัก (Mobile First) */
     .app-layout {
       width: 100%;
       max-width: 480px;
@@ -80,7 +76,6 @@
       box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
     }
 
-    /* 📸 โซนรูปเมมเบอร์บนมือถือ */
     .hero-image-container {
       width: 100%;
       height: 480px;
@@ -95,8 +90,27 @@
       object-fit: cover;
       object-position: center top;
     }
+
+    /* 🎓 สไตล์ไอคอนแกรดซ้อนบนรูปโปรไฟล์หลักหลักตามรูปภาพ image_9089a3.jpg */
+    .grad-profile-badge {
+      display: none;
+      position: absolute;
+      bottom: 25px;
+      left: calc(50% + 25px);
+      transform: translateX(-50%);
+      background: #575a5e;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      justify-content: center;
+      align-items: center;
+      font-size: 13px;
+      border: 2px solid white;
+      z-index: 5;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
     
-    /* Shade สีขาวบนมือถือ (ไล่จากล่างขึ้นบน) */
     .hero-gradient {
       position: absolute;
       bottom: 0;
@@ -108,7 +122,6 @@
       pointer-events: none;
     }
 
-    /* 💻 เมื่อเปิดบน iPad / Tablet / PC */
     @media (min-width: 768px) {
       body {
         padding: 40px 20px;
@@ -141,15 +154,14 @@
         margin-top: -50px !important;
       }
       .back-circle-btn {
-        position: absolute; /* บน PC ให้กลับไปอิงตามกรอบมือถือ */
+        position: absolute; 
         top: 20px;
         left: 20px;
       }
     }
 
-    /* ปุ่มย้อนกลับ */
     .back-circle-btn {
-      position: fixed; /* 🌟 เปลี่ยนจาก absolute เป็น fixed เพื่อให้ปุ่มลอยตามจอ */
+      position: fixed; 
       top: 20px;
       left: 20px;
       background: rgba(255, 255, 255, 0.9);
@@ -163,13 +175,12 @@
       color: var(--blmem-pink);
       cursor: pointer;
       backdrop-filter: blur(8px);
-      z-index: 999; /* 🌟 ใส่ค่า z-index สูงๆ เพื่อให้ปุ่มอยู่บนสุดเสมอ */
+      z-index: 999; 
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       transition: 0.2s;
     }
     .back-circle-btn:hover { transform: scale(1.08); background: #fff; }
 
-    /* ส่วนข้อมูลเมมเบอร์ */
     .profile-body {
       padding: 0 24px 35px 24px;
       margin-top: -50px;
@@ -178,14 +189,18 @@
     }
 
     .member-header-block {
-      text-align: left;
+      text-align: center; /* ปรับให้อยู่ตรงกลางตามรูปดีไซน์ใหม่ */
       margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .member-name {
-      font-size: 32px;
-      font-weight: 600;
+      font-size: 28px;
+      font-weight: 700;
       color: var(--dark-text);
       line-height: 1.2;
+      text-transform: uppercase;
     }
     .member-sub {
       font-size: 13px;
@@ -196,7 +211,23 @@
       text-transform: uppercase;
     }
 
-    /* สถิติข้อมูลรวม */
+    /* 🎓 ป้ายกำกับ GRADUATED สีเทาใต้ชื่อตามดีไซน์รูปภาพ image_9089a3.jpg */
+    .graduated-badge {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      background-color: #a0a5ab;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -226,7 +257,6 @@
     }
     .stat-num.pink { color: var(--blmem-pink); }
 
-    /* ปุ่มกดกิจกรรม */
     .interaction-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -256,7 +286,6 @@
     .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
     .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
 
-    /* บอร์ดทำเนียบแฟนคลับ */
     .leaderboard-section {
       background: #fffdfd;
       border-radius: 22px;
@@ -274,7 +303,6 @@
     }
     .leaderboard-title i { color: var(--gold-kami); }
 
-    /* 🎀 ตั้งค่าการเลื่อนดูรายชื่อแฟนคลับ (Scrollbar) */
     .fan-list { 
       display: flex; 
       flex-direction: column; 
@@ -326,7 +354,6 @@
       margin-top: 2px;
     }
 
-    /* 📸 TRENDING GALLERY & AUDIO PLAYERS */
     .post-gallery {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -360,7 +387,6 @@
       cursor: pointer;
     }
 
-    /* ☠️ Skeleton Loading Animation */
     .skeleton {
       background: #eee;
       background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
@@ -379,16 +405,14 @@
     .skeleton-fan-img { width: 40px; height: 40px; border-radius: 50%; margin: 0 12px; }
     .skeleton-fan-text { width: 120px; height: 14px; border-radius: 4px; margin-bottom: 6px; }
 
-  /* 🌟 สไตล์กล่องโพสต์สำหรับ Champ of the Month */
 .champ-special-post {
     background: linear-gradient(to bottom, #fffdf0, #ffffff) !important;
-    border: 2px solid #d4af37 !important; /* ขอบสีทอง */
+    border: 2px solid #d4af37 !important; 
     box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15) !important;
     position: relative;
     overflow: hidden;
 }
 
-/* 👑 ป้ายแบนเนอร์เล็กๆ บนโพสต์ */
 .champ-post-badge {
     background: linear-gradient(135deg, #d4af37, #ffd700);
     color: #fff;
@@ -405,7 +429,6 @@
     box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
     z-index: 10;
 }
-    /* 🌟 ปรับกล่องให้อยู่ในแถวแนวนอน (Horizontal Scroll) */
     #champ-thanks-content {
         display: flex;
         overflow-x: auto;
@@ -413,9 +436,8 @@
         padding-bottom: 10px;
         scroll-snap-type: x mandatory;
     }
-    /* 🌟 สไตล์กล่อง Special Thanks ประจำตัวเมมเบอร์ */
     .member-thanks-card {
-        flex: 0 0 85%; /* ให้การ์ดกว้าง 85% ของหน้าจอ */
+        flex: 0 0 85%; 
         scroll-snap-align: center;
         background: linear-gradient(to bottom, #fffdf0, #ffffff);
         border: 2px solid #d4af37;
@@ -452,13 +474,13 @@
         white-space: pre-line;
         box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
         display: -webkit-box;
-        -webkit-line-clamp: 3; /* โชว์แค่ 3 บรรทัดแรก */
+        -webkit-line-clamp: 3; 
         -webkit-box-orient: vertical;
         overflow: hidden;
         transition: all 0.3s ease;
     }
     .member-thanks-msg.expanded {
-        -webkit-line-clamp: unset; /* ถ้ากดแล้วให้แสดงทั้งหมด */
+        -webkit-line-clamp: unset; 
     }
     .member-thanks-img {
         width: 100%;
@@ -474,7 +496,6 @@
         margin-top: 5px;
         display: inline-block;
     }
-  /* 🌸 Dropdown เมนูจัดการโพสต์ (ปุ่ม 3 จุด) */
 .post-menu-container {
   position: absolute;
   top: 15px;
@@ -482,7 +503,6 @@
   z-index: 100;
 }
 
-/* ขยับลงมาหลบบนริบบิ้นทองสำหรับโพสต์พิเศษของแชมป์ */
 .champ-special-post .post-menu-container {
   top: 35px;
 }
@@ -507,7 +527,7 @@
 }
 
 .post-dropdown-menu {
-  display: none; /* ซ่อนไว้ก่อน */
+  display: none; 
   position: absolute;
   right: 0;
   top: 32px;
@@ -545,7 +565,6 @@
   color: var(--blmem-pink);
 }
 
-/* สไตล์พิเศษสำหรับปุ่มลบโพสต์ */
 .post-dropdown-item.delete-item {
   color: #ff5c7c;
 }
@@ -563,6 +582,8 @@
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
+      <!-- 🎓 ไอคอนหมวกปริญญาซ้อนท้ายรูปโปรไฟล์ตามแบบแอปหลัก -->
+      <div id="avatar-grad-icon" class="grad-profile-badge"><i class="fas fa-graduation-cap"></i></div>
       <div class="hero-gradient"></div>
     </div>
 
@@ -570,7 +591,10 @@
       
     <div class="member-header-block">
       <div id="mb-name" class="member-name">กำลังโหลด...</div>
-      <div id="mb-sub" class="member-sub">BLM48 MEMBER</div> </div>
+      <!-- 🎓 ป้ายกำกับสีเทา GRADUATED ใต้ชื่อ -->
+      <div id="mb-grad-badge" class="graduated-badge"><i class="fas fa-graduation-cap"></i> Graduated</div>
+      <div id="mb-sub" class="member-sub">BLM48 MEMBER</div> 
+    </div>
 
       <div class="stats-bar">
         <div class="stat-box">
@@ -666,12 +690,20 @@
         const res = await resp.json();
         
         if (res.status === "success") {
-          // อัปเดตข้อมูลทับลงในเครื่อง
+          const oldStats = localStorage.getItem('current_member_stats');
+          const oldFans = localStorage.getItem('current_member_fans');
+          
+          // 🌸 ตรวจสอบข้อมูลอัปเดตจาก Google Sheet: ถ้าค่าเปลี่ยนไปจากแคชเดิม ให้ล้าง session แคชเก่าทิ้งทันที
+          if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
+            localStorage.removeItem('current_member_stats');
+            localStorage.removeItem('current_member_fans');
+          }
+          
           if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
           if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
           
-          removeSkeleton(); // มั่นใจว่าลบ Skeleton แล้วแน่นอน
-          renderMemberStatsAndFans(); // สั่งรีเฟรชตัวเลขและรายชื่อแฟนคลับแบบเงียบๆ
+          removeSkeleton(); 
+          renderMemberStatsAndFans(); 
         } else {
           removeSkeleton();
         }
@@ -687,19 +719,27 @@
         return url;
     }
 
-function renderMemberStatsAndFans() {
+    function renderMemberStatsAndFans() {
       const savedStats = localStorage.getItem('current_member_stats');
       if (savedStats) {
         const m = JSON.parse(savedStats);
         
-        // 🎯 ตรวจสอบสถานะและใส่ไอคอนจบการศึกษาต่อท้ายชื่อ
+        // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์ตามรูปแบบภาพ image_9089a3.jpg
+        const gradBadge = document.getElementById('mb-grad-badge');
+        const gradAvatarIcon = document.getElementById('avatar-grad-icon');
+        const btnCookie = document.getElementById('btn-cookie-trigger');
         const nameEl = document.getElementById('mb-name');
-        if (nameEl) {
-          if (m.status === 'Graduated' || m.status === 'graduated') {
-            nameEl.innerHTML = `${m.name} <i class="fas fa-graduation-cap" style="color: #94a3b8; font-size: 22px; margin-left: 8px;" title="Graduated Member"></i>`;
-          } else {
-            nameEl.innerText = m.name || memberName;
-          }
+        
+        if (nameEl) nameEl.innerText = m.name || memberName;
+
+        if (m.status === 'Graduated' || m.status === 'graduated') {
+          if (gradBadge) gradBadge.style.display = 'inline-flex';
+          if (gradAvatarIcon) gradAvatarIcon.style.display = 'flex';
+          if (btnCookie) btnCookie.setAttribute('data-graduated', 'true');
+        } else {
+          if (gradBadge) gradBadge.style.display = 'none';
+          if (gradAvatarIcon) gradAvatarIcon.style.display = 'none';
+          if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
         }
 
         const avatarEl = document.getElementById('mb-avatar');
@@ -794,35 +834,20 @@ function renderMemberStatsAndFans() {
         el.classList.remove('skeleton', 'skeleton-avatar', 'skeleton-text', 'skeleton-stat', 'skeleton-fan-img', 'skeleton-fan-text');
       });
       
-      // 🎯 ดึงชื่อพร้อมเช็กสถานะไอคอนด้วย
-      const savedStatsStr = localStorage.getItem('current_member_stats');
       const nameEl = document.getElementById('mb-name');
-      if (nameEl) {
-        if (savedStatsStr) {
-           const m = JSON.parse(savedStatsStr);
-           if (m.status === 'Graduated' || m.status === 'graduated') {
-             nameEl.innerHTML = `${memberName} <i class="fas fa-graduation-cap" style="color: #94a3b8; font-size: 22px; margin-left: 8px;" title="Graduated Member"></i>`;
-           } else {
-             nameEl.innerText = memberName;
-           }
-        } else {
-           nameEl.innerText = memberName;
-        }
-      }
+      if (nameEl) nameEl.innerText = memberName;
     }
 
-  function loadMemberData() {
+    function loadMemberData() {
       if (!memberName) { window.location.href = 'index.html'; return; }
       user = getUserSession();
       
-      // 🌸 1. ลองดึงข้อมูลแคชที่หน้า index แอบฝากไว้ตอนกดเข้ามา
       const savedStatsStr = localStorage.getItem('current_member_stats');
       let hasValidCache = false;
       
       if (savedStatsStr) {
         try {
           const savedStats = JSON.parse(savedStatsStr);
-          // เช็กว่าแคชในเครื่อง ตรงกับชื่อเมมเบอร์ที่เปิดอยู่ตอนนี้หรือไม่
           if (savedStats && savedStats.name && savedStats.name.toLowerCase() === memberName.toLowerCase()) {
              hasValidCache = true;
           }
@@ -830,20 +855,15 @@ function renderMemberStatsAndFans() {
       }
 
       if (hasValidCache) {
-        // 🎯 ถ้ามีข้อมูลแคช: ให้ลบ Skeleton ทิ้ง และวาดข้อมูลขึ้นจอทันที (เร็วปรื๊ด 0.01 วิ!)
         removeSkeleton();
-        document.getElementById('mb-name').innerText = memberName;
         renderMemberStatsAndFans(); 
       } else {
-        // 🎯 ถ้าไม่มีแคช (เช่น ก้อปลิงก์มาเปิดตรงๆ): ค่อยเปิดโหมด Skeleton โหลดรอ
         showSkeleton();
       }
 
       updateButtonStyles();
-      fetchLatestMemberStats(); // แอบดึงยอดอัปเดตล่าสุดเบื้องหลังเงียบๆ
-      loadMemberTimelinePosts(); // โหลดโพสต์แบบมีแคช
-      
-      // ✨ วางตรงนี้ค่ะ! ให้มันโหลดประวัติแชมป์พร้อมๆ กับโพสต์ไทม์ไลน์
+      fetchLatestMemberStats(); 
+      loadMemberTimelinePosts(); 
       loadMemberSpecialThanks(); 
     }
 
@@ -875,16 +895,12 @@ function renderMemberStatsAndFans() {
       }
     }
   
-    // =========================================================================
-    // 👑 ดึงประวัติแชมป์และข้อความ Special Thanks ประจำตัวเมมเบอร์
-    // =========================================================================
     async function loadMemberSpecialThanks() {
         const container = document.getElementById('champ-thanks-container');
         const content = document.getElementById('champ-thanks-content');
         if (!container || !content || !memberName) return;
 
         let champData = [];
-        // โหลดจาก Cache ในเครื่องก่อนเพื่อความไว (เหมือนหน้า champ.html)
         const localData = sessionStorage.getItem('blm_champ_history');
         
         if (localData) {
@@ -902,33 +918,29 @@ function renderMemberStatsAndFans() {
             }
         }
 
-        // คัดกรองเฉพาะข้อมูลของเมมเบอร์คนที่กำลังเปิดหน้านี้อยู่
         const memberChamps = champData.filter(c => c.name && c.name.toLowerCase() === memberName.toLowerCase());
 
-        // ถ้าเมมเบอร์คนนี้เคยได้เป็นแชมป์ ให้แสดงกล่องข้อความ
         if (memberChamps.length > 0) {
             container.style.display = 'block';
             content.innerHTML = '';
             
             memberChamps.forEach(champ => {
-                const formatCookie = Number(champ.totalCookie).toLocaleString();
                 const thankYouMessage = champ.message ? champ.message : "";
-                
                 let imgHtml = '';
                 if (champ.postImage && champ.postImage.trim() !== "") {
                     imgHtml = `<img src="${champ.postImage}" class="member-thanks-img" alt="Special Thanks Art">`;
                 }
 
                 const card = `
-        <div class="member-thanks-card">
-            <div class="member-thanks-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
-            <div class="member-thanks-msg" id="msg-${champ.monthYear.replace(/\s/g, '')}">
-                ${thankYouMessage}
-            </div>
-            <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">แสดงเพิ่มเติม</div>
-            ${imgHtml}
-        </div>
-    `;
+                    <div class="member-thanks-card">
+                        <div class="member-thanks-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
+                        <div class="member-thanks-msg" id="msg-${champ.monthYear.replace(/\s/g, '')}">
+                            ${thankYouMessage}
+                        </div>
+                        <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">แสดงเพิ่มเติม</div>
+                        ${imgHtml}
+                    </div>
+                `;
                 content.insertAdjacentHTML('beforeend', card);
             });
         }
@@ -943,9 +955,9 @@ function renderMemberStatsAndFans() {
 
     function goBack() { 
       if (window.history.length > 1) {
-        window.history.back(); // ย้อนกลับไปหน้าก่อนหน้า
+        window.history.back();
       } else {
-        window.location.href = 'index.html'; // ถ้าไม่มีประวัติให้กลับหน้าแรก
+        window.location.href = 'index.html';
       }
     }
 
@@ -1030,7 +1042,6 @@ function renderMemberStatsAndFans() {
     function actionCookie() {
       if (!checkLoginStatus()) return;
 
-      // ✨ [แก้ไข] ตรวจสอบสิทธิ์และตัวแปรเพื่อป้องกัน TypeError: Cannot read properties of null
       if (!user || !user.role || user.role.toLowerCase() !== 'user') {
         Swal.fire({ title: 'สิทธิ์ไม่ถูกต้อง', text: 'ขออภัยด้วยนะงับ ฟังก์ชันปาคุกกี้เปิดให้ใช้งานเฉพาะบัญชีประเภททั่วไปเท่านั้นค่ะ', icon: 'error', confirmButtonColor: '#ff85a2' });
         return;
@@ -1098,9 +1109,6 @@ function renderMemberStatsAndFans() {
         .replace(/'/g, "&#039;");
     }
 
-    // =========================================================================
-    // 👑 ADVANCED TIMELINE PORTED LOGIC (อัปเดตให้แสดงรูปเดียวเต็มจอเหมือนหน้าหลัก)
-    // =========================================================================
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
         if (user.role === 'CEO' || user.role === 'Admin') return true;
@@ -1111,13 +1119,11 @@ function renderMemberStatsAndFans() {
   if (!post) return '';
 
   const currentUser = getUserSession();
-  const currentUsername = currentUser ? currentUser.username : "";
   const canManage = hasManagementPermission(post.authorUsername);
 
-  // ✨ [แก้ไข] ย้ายการประกาศค่าไว้ด้านบนสุด ป้องกัน ReferenceError
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
   const authorName = escapeHtml(post.authorName || 'Anonymous Member');
-  const postContent = escapeHtml(post.content || ''); // ป้องกัน XSS
+  const postContent = escapeHtml(post.content || ''); 
   const postTimestamp = escapeHtml(post.timestamp || post.date || 'เมื่อสักครู่');
   const postLikes = post.likes || 0;
   const postId = post.id || ''; 
@@ -1128,7 +1134,7 @@ function renderMemberStatsAndFans() {
   const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
   
   const specialBadge = isChampPost ? `
-    <div class="champ-post-badge" style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #fff; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 0 0 10px 0; position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
+    <div class="champ-post-badge">
       <i class="fas fa-crown"></i> Champ of the Month Special Thanks
     </div>
   ` : '';
@@ -1163,8 +1169,8 @@ function renderMemberStatsAndFans() {
   const profileImgHtml = isGraduated ? `
     <div style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef;">
-      <div style="position: absolute; bottom: -2px; right: -2px; background: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
-        <i class="fas fa-graduation-cap" style="color: #6c757d; font-size: 9px;"></i>
+      <div style="position: absolute; bottom: -2px; right: -2px; background: #575a5e; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid white;">
+        <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
       </div>
     </div>
   ` : `<img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">`;
@@ -1173,8 +1179,6 @@ function renderMemberStatsAndFans() {
 
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
   
-  // ✨ แนะนำให้ตรวจสอบว่าขัดแย้งกับ setInterval ใน member.html หรือไม่
-  // เช็คให้ชัวร์ว่าระบบใช้ฟังชันชื่อ listenToCommentsRealtime หรือ listenForComments
   if (window.listenForComments) {
     setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
   }
@@ -1203,7 +1207,7 @@ function renderMemberStatsAndFans() {
   if (post.videoURL) {
     mediaHtml += `
       <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
-        <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 autoিলেন;"></video>
+        <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
       </div>
     `;
   }
@@ -1292,22 +1296,17 @@ function renderMemberStatsAndFans() {
   `;
 }
 
-  // =========================================================================
-    // ⚡ ฟังก์ชันโหลดโพสต์ของเมมเบอร์ (อัปเดตระบบแคชให้โหลดเร็วขึ้น)
-    // =========================================================================
     async function loadMemberTimelinePosts() {
       if (window.isTimelineLoading) return;
       const container = document.getElementById('posts-container');
       if (!container) return;
 
-      // 🌸 ขั้นตอนที่ A: ดึงโพสต์จากแคช (ถ้ามี) มาโชว์ก่อนทันที
       const cachedPostsStr = localStorage.getItem('blm48_posts_cache');
       const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
 
       if (cachedPostsStr && isContainerEmpty) {
         try {
           let allCachedPosts = JSON.parse(cachedPostsStr);
-          // กรองเอาเฉพาะโพสต์ของเมมเบอร์คนนี้
           let memberCachedPosts = allCachedPosts.filter(post => 
               (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
               (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
@@ -1317,7 +1316,7 @@ function renderMemberStatsAndFans() {
             let tempPosts = [...memberCachedPosts];
             tempPosts.reverse();
             const loadingMsg = document.getElementById('loading-msg');
-            if (loadingMsg) loadingMsg.remove(); // ลบข้อความ LOADING ออก
+            if (loadingMsg) loadingMsg.remove();
             
             tempPosts.forEach(post => {
               container.insertAdjacentHTML('afterbegin', renderPost(post));
@@ -1347,8 +1346,12 @@ function renderMemberStatsAndFans() {
         
         let posts = await response.json();
         
-        // 🌸 ขั้นตอนที่ B: อัปเดตแคชให้เป็นเวอร์ชันล่าสุด
+        // 🌸 ตรวจจับข้อมูลอัปเดตโพสต์ไทม์ไลน์: ถ้าข้อมูลโพสต์ใหม่เปลี่ยนไป ให้เคลียร์แคชเก่าทิ้งทันที
         if (posts && posts.length > 0) {
+          const oldPostsCache = localStorage.getItem('blm48_posts_cache');
+          if (oldPostsCache !== JSON.stringify(posts)) {
+            localStorage.removeItem('blm48_posts_cache');
+          }
           localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
         }
         
@@ -1399,20 +1402,16 @@ function renderMemberStatsAndFans() {
       }
     }
 
-  // ฟังก์ชันสำหรับเปิด-ปิดเมนู 3 จุดของโพสต์
 function togglePostMenu(event, postId) {
-  event.stopPropagation(); // หยุดการส่งผ่าน Event ไม่ให้ไปกระตุ้นการคลิกของหน้าจอหลัก
-  
+  event.stopPropagation(); 
   const targetMenu = document.getElementById(`dropdown-${postId}`);
   
-  // 🌸 สั่งปิดเมนูของโพสต์อื่นๆ ที่อาจเปิดค้างไว้ก่อนหน้านี้
   document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
     if (menu !== targetMenu) {
       menu.style.display = 'none';
     }
   });
 
-  // สลับสถานะเปิด-ปิดเมนูที่ถูกกด
   if (targetMenu) {
     if (targetMenu.style.display === 'block') {
       targetMenu.style.display = 'none';
@@ -1422,7 +1421,6 @@ function togglePostMenu(event, postId) {
   }
 }
 
-// 🌸 ตรวจจับเมื่อผู้ใช้เอานิ้วไปจิ้มหรือคลิกพื้นที่อื่นนอกเมนู ให้ทำการซ่อนกล่อง Dropdown ทันที
 document.addEventListener('click', function() {
   document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
     menu.style.display = 'none';
