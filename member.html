@@ -41,12 +41,12 @@
     }
   
     :root {
-      --blmem-pink: #ff85a2;
-      --blmem-pink-light: #fff0f3;
-      --blmem-mint: #c9e4de;
-      --gold-kami: #ffd700;
-      --dark-text: #3a3a3a;
-      --bg-soft: #fcfcfc;
+      var(--blmem-pink): #ff85a2;
+      var(--blmem-pink-light): #fff0f3;
+      var(--blmem-mint): #c9e4de;
+      var(--gold-kami): #ffd700;
+      var(--dark-text): #3a3a3a;
+      var(--bg-soft): #fcfcfc;
     }
 
     * {
@@ -77,7 +77,7 @@
     }
 
     .hero-image-container {
-      position: relative; /* สำคัญมาก เพื่อให้ไอคอนอ้างอิงตำแหน่งจากกล่องนี้ */
+      position: relative;
       display: inline-block;
       width: 100%;
     }
@@ -87,24 +87,6 @@
       height: 100%;
       object-fit: cover;
       object-position: center top;
-    }
-
-    /* จัดการไอคอนหมวก */
-    .grad-profile-badge {
-        position: absolute;
-        top: 12px;           /* ระยะห่างจากขอบบน */
-        right: 12px;         /* ระยะห่างจากขอบขวา */
-        background-color: #888888 !important; /* เปลี่ยนพื้นหลังเป็นสีเทา */
-        color: #ffffff !important;            /* ไอคอนด้านในสีขาว */
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        z-index: 5;          /* อยู่เหนือน้ำชั้นรูปภาพ */
     }
     
     .hero-gradient {
@@ -185,7 +167,7 @@
     }
 
     .member-header-block {
-      text-align: center; /* ปรับให้อยู่ตรงกลางตามรูปดีไซน์ใหม่ */
+      text-align: center;
       margin-bottom: 24px;
       display: flex;
       flex-direction: column;
@@ -207,7 +189,6 @@
       text-transform: uppercase;
     }
 
-    /* 🎓 ป้ายกำกับ GRADUATED สีเทาใต้ชื่อตามดีไซน์รูปภาพ image_9089a3.jpg */
     .graduated-badge {
       display: none;
       align-items: center;
@@ -585,7 +566,6 @@
       
     <div class="member-header-block">
       <div id="mb-name" class="member-name">กำลังโหลด...</div>
-      <!-- 🎓 ป้ายกำกับสีเทา GRADUATED ใต้ชื่อ -->
       <div id="mb-grad-badge" class="graduated-badge"><i class="fas fa-graduation-cap"></i> Graduated</div>
       <div id="mb-sub" class="member-sub">BLM48 MEMBER</div> 
     </div>
@@ -677,6 +657,7 @@
       } catch (e) { console.error("Sync Error:", e); }
     }
 
+    // ⚡️ ฟังก์ชัน Background Sync ดึงสถิติล่าสุดเงียบ ๆ ถ้าชีตเปลี่ยนไป จะล้างแคชเก่าทิ้งให้ทันทีแบบ Smooth
     async function fetchLatestMemberStats() {
       if (!memberName) return;
       try {
@@ -687,22 +668,19 @@
           const oldStats = localStorage.getItem('current_member_stats');
           const oldFans = localStorage.getItem('current_member_fans');
           
-          // 🌸 ตรวจสอบข้อมูลอัปเดตจาก Google Sheet: ถ้าค่าเปลี่ยนไปจากแคชเดิม ให้ล้าง session แคชเก่าทิ้งทันที
-          if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
-            localStorage.removeItem('current_member_stats');
-            localStorage.removeItem('current_member_fans');
+          const newStatsStr = JSON.stringify(res.stats);
+          const newFansStr = JSON.stringify(res.fans);
+
+          // 🎯 ถ้าตรวจจับได้ว่าข้อมูลใน Google Sheet เปลี่ยนไป ให้ล้างแคชเดิมทิ้งและเซ็ตค่าใหม่ทันที
+          if (oldStats !== newStatsStr || oldFans !== newFansStr) {
+            localStorage.setItem('current_member_stats', newStatsStr);
+            localStorage.setItem('current_member_fans', newFansStr);
+            renderMemberStatsAndFans(); // สั่งเรนเดอร์ข้อมูลชุดใหม่ขึ้นจอทันที
           }
-          
-          if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
-          if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
-          
           removeSkeleton(); 
-          renderMemberStatsAndFans(); 
-        } else {
-          removeSkeleton();
         }
       } catch (e) {
-        console.error("Error fetching latest member stats:", e);
+        console.error("Error background syncing stats:", e);
         removeSkeleton();
       }
     }
@@ -718,9 +696,7 @@
       if (savedStats) {
         const m = JSON.parse(savedStats);
         
-        // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์ตามรูปแบบภาพ image_9089a3.jpg
         const gradBadge = document.getElementById('mb-grad-badge');
-        const gradAvatarIcon = document.getElementById('avatar-grad-icon');
         const btnCookie = document.getElementById('btn-cookie-trigger');
         const nameEl = document.getElementById('mb-name');
         
@@ -728,11 +704,9 @@
 
         if (m.status === 'Graduated' || m.status === 'graduated') {
           if (gradBadge) gradBadge.style.display = 'inline-flex';
-          if (gradAvatarIcon) gradAvatarIcon.style.display = 'flex';
           if (btnCookie) btnCookie.setAttribute('data-graduated', 'true');
         } else {
           if (gradBadge) gradBadge.style.display = 'none';
-          if (gradAvatarIcon) gradAvatarIcon.style.display = 'none';
           if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
         }
 
@@ -832,6 +806,7 @@
       if (nameEl) nameEl.innerText = memberName;
     }
 
+    // ⚡️ โหลดหน้าเว็บดึงข้อมูลจาก Cache ขึ้นจอทันทีทำให้หน้าเว็บเปิดติดไวมากแบบไร้รอยต่อ
     function loadMemberData() {
       if (!memberName) { window.location.href = 'index.html'; return; }
       user = getUserSession();
@@ -856,7 +831,7 @@
       }
 
       updateButtonStyles();
-      fetchLatestMemberStats(); 
+      fetchLatestMemberStats(); // คอยเช็คข้อมูลอัปเดตใหม่หลังบ้านเงียบ ๆ
       loadMemberTimelinePosts(); 
       loadMemberSpecialThanks(); 
     }
@@ -1093,38 +1068,35 @@
       });
     }
   
-  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
-function formatThaiDate(dateStr) {
-  if (!dateStr) return '';
-  
-  // แยกส่วนวันที่และเวลาออกจากกัน (รองรับรูปแบบ YYYY-MM-DD HH:mm:ss)
-  const parts = dateStr.trim().split(/[- :]/);
-  if (parts.length < 5) return dateStr; // คืนค่าเดิมหากรูปแบบไม่ใช่เวลาสำเร็จรูป
-  
-  const year = parseInt(parts[0]);
-  const month = parseInt(parts[1]);
-  const day = parseInt(parts[2]);
-  const hour = parts[3];
-  const min = parts[4];
-  
-  const thaiMonths = [
-    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
-    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-  ];
-  
-  const thaiYear = year + 543; // แปลง ค.ศ. เป็น พ.ศ.
-  
-  return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
-}
+    // 🌟 ฟังก์ชันแปลงวันที่ของโพสต์หลังบ้านให้เป็น พ.ศ. ภาษาไทยตามรูปดีไซน์ (รูปที่ 2)
+    function formatThaiDate(dateStr) {
+      if (!dateStr || dateStr === 'เมื่อสักครู่') return 'เมื่อสักครู่';
+      try {
+        const cleanStr = dateStr.replace(/-/g, '/');
+        const d = new Date(cleanStr);
+        if (isNaN(d.getTime())) return dateStr;
+
+        const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        const day = d.getDate();
+        const month = months[d.getMonth()];
+        const year = d.getFullYear() + 543; 
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+
+        return `${day} ${month} ${year} เวลา ${hours}:${minutes} น.`;
+      } catch (e) {
+        return dateStr;
+      }
+    }
   
   function escapeHtml(text) {
       if (!text) return '';
       return text.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+        .replace(/&/g, "&")
+        .replace(/</g, "<")
+        .replace(/>/g, ">")
+        .replace(/"/g, "")
+        .replace(/'/g, "'");
     }
 
     function hasManagementPermission(postAuthorUsername) {
@@ -1142,7 +1114,7 @@ function formatThaiDate(dateStr) {
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
   const authorName = escapeHtml(post.authorName || 'Anonymous Member');
   
-  // [ข้อที่ 1] แปลงวันที่ให้เป็นภาษาไทยสวยงาม
+  // 📆 แปลงฟอร์แมตวันที่ของโพสต์ให้อ่านง่ายสไตล์ไทย
   const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
   const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
   
@@ -1188,7 +1160,7 @@ function formatThaiDate(dateStr) {
     }
   }
 
-  // [ข้อที่ 2] ปรับโครงสร้างรูปโปรไฟล์ให้ติดไอคอนสีเทา-หมวกขาว และเอาข้อความ "Graduated" ด้านล่างออกตามที่ต้องการ
+  // 🎓 แสดงหมวกจบการศึกษาสีเทา พื้นขาว ไว้มุมล่างขวาของกรอบโปรไฟล์ในฟีดโพสต์
   const profileImgHtml = isGraduated ? `
     <div style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef;">
@@ -1198,7 +1170,7 @@ function formatThaiDate(dateStr) {
     </div>
   ` : `<img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">`;
 
-  // ตัดตัวอักษรคำว่า Graduated ออกไปแล้ว (ปล่อยเป็นค่าว่างไว้) เพื่อความคลีน
+  // 🎯 ตัดคำว่า Graduated ข้อความใต้ชื่อออกไปเรียบร้อยเพื่อความคลีนสายตา
   const graduatedSubtext = ''; 
 
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
@@ -1320,6 +1292,7 @@ function formatThaiDate(dateStr) {
   `;
 }
 
+    // ⚡️ แคชระบบโพสต์ไทม์ไลน์ โหลดขึ้นมาวาดทันที และเช็คการอัปเดตใหม่หลังบ้านแบบไร้รอยต่อ
     async function loadMemberTimelinePosts() {
       if (window.isTimelineLoading) return;
       const container = document.getElementById('posts-container');
@@ -1346,20 +1319,15 @@ function formatThaiDate(dateStr) {
               container.insertAdjacentHTML('afterbegin', renderPost(post));
             });
           }
-        } catch (e) {
-          console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e);
-        }
+        } catch (e) { console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e); }
       }
 
       const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
-
-      if (!hasExistingPosts) {
-        if (!document.getElementById('loading-msg')) {
-           container.innerHTML = `
-             <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
-               <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
-             </div>`;
-        }
+      if (!hasExistingPosts && !document.getElementById('loading-msg')) {
+         container.innerHTML = `
+           <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
+             <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
+           </div>`;
       }
 
       try {
@@ -1367,60 +1335,35 @@ function formatThaiDate(dateStr) {
         const currentUser = getUserSession();
         const username = currentUser ? currentUser.username : "";
         const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
-        
         let posts = await response.json();
         
-        // 🌸 ตรวจจับข้อมูลอัปเดตโพสต์ไทม์ไลน์: ถ้าข้อมูลโพสต์ใหม่เปลี่ยนไป ให้เคลียร์แคชเก่าทิ้งทันที
         if (posts && posts.length > 0) {
           const oldPostsCache = localStorage.getItem('blm48_posts_cache');
           if (oldPostsCache !== JSON.stringify(posts)) {
-            localStorage.removeItem('blm48_posts_cache');
+            localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+            // หากชีตไทม์ไลน์มีโพสต์อัปเดตใหม่ ให้เคลียร์กรอบฟีดอันเก่าและวาดโพสต์ล่าสุดเข้าไปทันทีแบบ Smooth
+            const loadingMsg = document.getElementById('loading-msg');
+            if (loadingMsg) loadingMsg.remove();
+            
+            let memberPosts = posts.filter(post => 
+                (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
+                (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
+            );
+            
+            if (memberPosts.length > 0) {
+              container.innerHTML = '';
+              memberPosts.reverse().forEach(post => {
+                container.insertAdjacentHTML('afterbegin', renderPost(post));
+              });
+            }
           }
-          localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
         }
         
         const loadingMsg = document.getElementById('loading-msg');
         if (loadingMsg) loadingMsg.remove();
 
-        if (!posts || posts.length === 0) {
-            if (!hasExistingPosts) {
-               container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
-            }
-            return;
-        }
-
-        let memberPosts = posts.filter(post => 
-            (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-            (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-        );
-
-        if (memberPosts.length === 0) {
-            if (!hasExistingPosts) {
-               container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Not Posts Yet</div>';
-            }
-            return;
-        }
-
-        memberPosts.reverse(); 
-
-        memberPosts.forEach(post => {
-          const existingPost = document.getElementById(`post-${post.id}`);
-          if (existingPost) {
-            const likeCountEl = document.getElementById(`like-count-${post.id}`);
-            if (likeCountEl) likeCountEl.innerText = post.likes;
-            
-            const heartIcon = document.getElementById(`heart-${post.id}`);
-            if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-          } else {
-            container.insertAdjacentHTML('afterbegin', renderPost(post));
-          }
-        });
-        
       } catch (error) {
         console.error("โหลดฟีดล้มเหลว:", error);
-        if (!hasExistingPosts) {
-           container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
-        }
       } finally {
         window.isTimelineLoading = false;
       }
@@ -1561,9 +1504,6 @@ document.addEventListener('click', function() {
     window.onload = loadMemberData;
 </script>
 
-<!-- =========================================================================
-     📡 REALTIME FIREBASE MODULAR SYSTEM
-     ========================================================================= -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
   import { getDatabase, ref as dbRef, push, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
