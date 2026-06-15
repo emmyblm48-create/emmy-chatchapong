@@ -2076,10 +2076,17 @@ function renderRanking(data) {
   if (!list) return;
   list.innerHTML = '';
   const isMember = isUserMember();
-  const activeMembersForRanking = membersData.filter(member => member.status !== 'Graduated');
+
+  // 🎓 ดึงเฉพาะ "ชื่อ" ของเมมเบอร์ที่ยัง Active อยู่ (ไม่จบการศึกษา) มาทำเป็น Set เพื่อใช้เช็คอย่างรวดเร็ว
+  const activeMemberNames = new Set(
+    membersData.filter(member => member.status !== 'Graduated').map(m => m.name)
+  );
   
-  // กรองข้อมูลและใช้ยอดรายเดือน (monthly_cookies) ในการจัดอันดับ
-  data.filter(m => m.name).forEach((m, i) => {
+  // 🎯 กรองข้อมูล Ranking: ต้องมีชื่อ และชื่อนั้นต้องอยู่ในกลุ่มเมมเบอร์ที่ยัง Active เท่านั้น
+  const filteredData = data.filter(m => m.name && activeMemberNames.has(m.name));
+  
+  // นำข้อมูลที่กรองเสร็จแล้วมาลูปแสดงผลตามลำดับอันดับ
+  filteredData.forEach((m, i) => {
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
     let badgeContent = i + 1;
     if (i === 0) badgeContent = '<i class="fas fa-crown"></i>';
@@ -2089,7 +2096,7 @@ function renderRanking(data) {
     card.className = `member-card ${rankClass}`;
     
     card.innerHTML = `
-     <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
+      <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
         <img src="${getImg(m.profile_img)}" loading="lazy">
         <div class="rank-badge">${badgeContent}</div>
       </div>
@@ -2347,7 +2354,6 @@ function renderPost(post) {
   const postId = post.id || ''; 
   const displayImage = post.imageUrl || post.imageURL || '';
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
-  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
   const verifiedBadgeIcon = `
     <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
@@ -2356,12 +2362,22 @@ function renderPost(post) {
   `;
   const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
   
-  // 🌟 1. ตั้งค่าไอคอนและกรอบรูปโปรไฟล์กรณีจบการศึกษา
-  const isGraduated = post.authorStatus === 'Graduated'; // อย่าลืมเช็คว่าหลังบ้านส่ง post.authorStatus มาด้วยนะครับ
-  const gradProfileIcon = isGraduated ? `<div class="grad-icon-profile" style="width: 16px; height: 16px; font-size: 8px; right: 0; bottom: 0;"><i class="fa-solid fa-graduation-cap"></i></div>` : '';
+  // 🎓 [จัดการส่วนโปรไฟล์และไอคอนจบการศึกษา]
+  // รองรับเงื่อนไขทั้ง post.authorStatus และ post.status (ป้องกันการส่งค่ามาจากหลังบ้านคนละชื่อ)
+  const isGraduated = post.authorStatus === 'Graduated' || post.status === 'Graduated'; 
+  
+  // สร้างไอคอนหมวกปริญญาดุมุมล่างขวาของรูปโปรไฟล์ สไตล์ BLM48 ชมพูหวาน
+  const gradProfileIcon = isGraduated ? `
+    <div class="grad-icon-profile" style="position: absolute; bottom: -2px; right: -2px; background: #ff85a2; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; border: 1.5px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
+      <i class="fa-solid fa-graduation-cap"></i>
+    </div>` : '';
+
+  const authorProfileImg = post.profile_img || post.authorProfile || 'https://via.placeholder.com/40';
+  
+  // ประกอบก้อน HTML โปรไฟล์ (เพื่อนำไปแทนแท็ก img เดิมด้านล่าง)
   const postProfileHTML = `
-    <div style="position: relative; margin-right: 10px; flex-shrink: 0; width: 40px; height: 40px;">
-        <img src="${authorProfileImg}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+    <div class="img-wrapper" style="position: relative; width: 40px; height: 40px; margin-right: 10px; flex-shrink: 0;">
+        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
         ${gradProfileIcon}
     </div>
   `;
@@ -2437,28 +2453,27 @@ function renderPost(post) {
   }
 
   const actionMenu = canManage ? `
-<div class="post-menu-container">
-  <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
-    <i class="fa-solid fa-ellipsis-vertical"></i>
-  </button>
-  <div class="post-dropdown-menu" id="dropdown-${postId}">
-    <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
-      <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
-    </button>
-    <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
-      <i class="fa-solid fa-trash"></i> ลบโพสต์
-    </button>
-  </div>
-</div>
-` : '';
+    <div class="post-menu-container">
+      <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+      </button>
+      <div class="post-dropdown-menu" id="dropdown-${postId}">
+        <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
+          <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
+        </button>
+        <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
+          <i class="fa-solid fa-trash"></i> ลบโพสต์
+        </button>
+      </div>
+    </div>
+  ` : '';
 
-  // 🌟 2. ประกอบเข้าโครงสร้าง HTML หลัก
   return `
     <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       ${actionMenu}
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
-        
-        ${postProfileHTML} <div>
+        ${postProfileHTML}
+        <div>
           <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
           <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
         </div>
