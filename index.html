@@ -2046,8 +2046,10 @@ function renderRanking(data) {
   list.innerHTML = '';
   const isMember = isUserMember();
   
-  // กรองข้อมูลและใช้ยอดรายเดือน (monthly_cookies) ในการจัดอันดับ
-  data.filter(m => m.name).forEach((m, i) => {
+  // 🎯 กรองข้อมูล: แสดงเฉพาะคนที่มีชื่อ และ สถานะต้องไม่เป็น 'Graduated'
+  const activeMembers = data.filter(m => m.name && m.status !== 'Graduated' && m.status !== 'graduated');
+
+  activeMembers.forEach((m, i) => {
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
     let badgeContent = i + 1;
     if (i === 0) badgeContent = '<i class="fas fa-crown"></i>';
