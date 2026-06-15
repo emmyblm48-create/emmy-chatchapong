@@ -2299,30 +2299,6 @@ async function claimMonthly() {
   }
 }
   
-    // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
-    function formatThaiDate(dateStr) {
-      if (!dateStr) return '';
-
-      // แยกส่วนวันที่และเวลาออกจากกัน (รองรับรูปแบบ YYYY-MM-DD HH:mm:ss)
-      const parts = dateStr.trim().split(/[- :]/);
-      if (parts.length < 5) return dateStr; // คืนค่าเดิมหากรูปแบบไม่ใช่เวลาสำเร็จรูป
-
-      const year = parseInt(parts[0]);
-      const month = parseInt(parts[1]);
-      const day = parseInt(parts[2]);
-      const hour = parts[3];
-      const min = parts[4];
-
-      const thaiMonths = [
-        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-      ];
-
-      const thaiYear = year + 543; // แปลง ค.ศ. เป็น พ.ศ.
-
-      return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
-    }
-  
   // ฟังก์ชันตรวจสอบสิทธิ์ระดับสูง
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
@@ -2338,33 +2314,16 @@ function renderPost(post) {
   if (!post) return '';
 
   const currentUser = getUserSession();
+  const currentUsername = currentUser ? currentUser.username : "";
   const canManage = hasManagementPermission(post.authorUsername);
 
-  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
-  const authorName = escapeHtml(post.authorName || 'Anonymous Member');
-  
-  // [ข้อที่ 1] แปลงวันที่ให้เป็นภาษาไทยสวยงาม
-  const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
-  const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
-  
-  const postContent = escapeHtml(post.content || ''); 
+  const authorName = post.authorName || 'Anonymous Member';
+  const postContent = post.content || '';
+  const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
   const postLikes = post.likes || 0;
   const postId = post.id || ''; 
   const displayImage = post.imageUrl || post.imageURL || '';
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
-
-  const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
-  const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
-  
-  const specialBadge = isChampPost ? `
-    <div class="champ-post-badge">
-      <i class="fas fa-crown"></i> Champ of the Month Special Thanks
-    </div>
-  ` : '';
-
-  const champCardStyle = isChampPost 
-    ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
-    : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
 
   const verifiedBadgeIcon = `
     <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
@@ -2372,42 +2331,20 @@ function renderPost(post) {
     </svg>
   `;
   const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
-       
-  let isGraduated = false;
-  if (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') {
-    isGraduated = true;
-  } else {
-    const savedStatsStr = localStorage.getItem('current_member_stats');
-    if (savedStatsStr) {
-      try {
-        const savedStats = JSON.parse(savedStatsStr);
-        if (savedStats.status && savedStats.status.toLowerCase() === 'graduated' && 
-            (post.authorName.toLowerCase() === savedStats.name.toLowerCase() || post.authorUsername.toLowerCase() === savedStats.username.toLowerCase())) {
-          isGraduated = true;
-        }
-      } catch(e) {}
-    }
-  }
 
-  // [ข้อที่ 2] ปรับโครงสร้างรูปโปรไฟล์ให้ติดไอคอนสีเทา-หมวกขาว และเอาข้อความ "Graduated" ด้านล่างออกตามที่ต้องการ
-  const profileImgHtml = isGraduated ? `
-    <div style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0;">
-      <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef;">
-      <div style="position: absolute; bottom: -2px; right: -2px; background: #888888; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
-        <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
-      </div>
-    </div>
-  ` : `<img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">`;
-
-  // ตัดตัวอักษรคำว่า Graduated ออกไปแล้ว (ปล่อยเป็นค่าว่างไว้) เพื่อความคลีน
-  const graduatedSubtext = ''; 
-
+  // =========================================================================
+  // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
+  // =========================================================================
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-  
-  if (window.listenForComments) {
-    setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
-  }
+  setTimeout(() => {
+   if (typeof window.listenForComments === 'function') {
+      window.listenForComments(`${postId}`);
+    }
+  }, 100);
 
+  // =========================================================================
+  // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
+  // =========================================================================
   let mediaHtml = '';
   if (post.audioURL) {
     mediaHtml += `
@@ -2437,18 +2374,23 @@ function renderPost(post) {
     `;
   }
 
+  // =========================================================================
+  // 📸 [จัดการรูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็ม)
+  // =========================================================================
   let imagesHtml = '';
   if (displayImage) {
     const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
     const visibleImages = imageUrls.slice(0, 4);
     
     if (imageUrls.length === 1) {
+      // 🌟 กรณีมีรูปเดียว: แสดงเต็มความกว้างและจัดกึ่งกลาง
       imagesHtml += `
         <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
           <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
         </div>
       `;
     } else {
+      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์เหมือนเดิม
       imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
       visibleImages.forEach((url, index) => {
         imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
@@ -2463,33 +2405,31 @@ function renderPost(post) {
   }
 
   const actionMenu = canManage ? `
-    <div class="post-menu-container">
-      <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
-      </button>
-      <div class="post-dropdown-menu" id="dropdown-${postId}">
-        <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(post.content || '')}')">
-          <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
-        </button>
-        <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
-          <i class="fa-solid fa-trash"></i> ลบโพสต์
-        </button>
-      </div>
-    </div>
-  ` : '';
-      
+<div class="post-menu-container">
+  <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </button>
+  <div class="post-dropdown-menu" id="dropdown-${postId}">
+    <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
+      <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
+    </button>
+    <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
+      <i class="fa-solid fa-trash"></i> ลบโพสต์
+    </button>
+  </div>
+</div>
+` : '';
+
+  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
+
   return `
-    <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
-      ${specialBadge}
+    <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       ${actionMenu}
-      
-      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
-        ${profileImgHtml}
+      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
         <div>
           <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
-          <div style="font-size: 0.8rem; color: gray;">
-            ${postTimestamp} ${graduatedSubtext}
-          </div>
+          <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
         </div>
       </div>
       
@@ -2521,121 +2461,98 @@ function renderPost(post) {
   `;
 }
   
-async function loadMemberTimelinePosts() {
+async function loadTimelinePosts() {
+  // 🛡️ ป้องกันการโหลดซ้อน (ถ้ากดสลับแท็บรัวๆ แล้วตัวเก่ากำลัง Fetch อยู่ ให้ข้ามฟังก์ชันนี้ไปเลย)
   if (window.isTimelineLoading) return;
+
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
   const container = document.getElementById('posts-container');
   if (!container) return;
 
-  // 🛠️ ดึงสถานะปัจจุบันของเมมเบอร์คนนี้จากคลังสถิติหน้าเว็บมาเตรียมไว้ทันทีแบบ Real-time
-  try {
-    const savedStatsStr = localStorage.getItem('current_member_stats');
-    if (savedStatsStr) {
-      const savedStats = JSON.parse(savedStatsStr);
-      window.currentMemberStatus = savedStats.status || '';
-    } else {
-      window.currentMemberStatus = '';
-    }
-  } catch(e) {
-    window.currentMemberStatus = '';
-  }
-
-  const cachedPostsStr = localStorage.getItem('blm48_posts_cache');
+  // 🌸 ขั้นตอนที่ A: ลองดึงโพสต์เก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (ถ้าหน้าจอยังว่างอยู่)
+  const cachedPosts = localStorage.getItem('blm48_posts_cache');
   const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
 
-  if (cachedPostsStr && isContainerEmpty) {
+  if (cachedPosts && isContainerEmpty) {
     try {
-      let allCachedPosts = JSON.parse(cachedPostsStr);
-      let memberCachedPosts = allCachedPosts.filter(post => 
-          (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-          (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-      );
-      
-      if (memberCachedPosts.length > 0) {
-        let tempPosts = [...memberCachedPosts];
-        tempPosts.reverse();
-        const loadingMsg = document.getElementById('loading-msg');
-        if (loadingMsg) loadingMsg.remove();
-        
-        tempPosts.forEach(post => {
-          container.insertAdjacentHTML('afterbegin', renderPost(post));
-        });
-      }
+      let posts = JSON.parse(cachedPosts);
+      // ใช้กลไกการกลับด้านข้อมูลเพื่อให้ของใหม่กว่าอยู่ด้านบนเหมือนเดิม
+      let tempPosts = [...posts];
+      tempPosts.reverse();
+      tempPosts.forEach(post => {
+        container.insertAdjacentHTML('afterbegin', renderPost(post));
+      });
+      console.log("🌸 [Cache] แสดงผลฟีดจากแคชในเครื่องเรียบร้อย (โหลดเร็วขึ้น!)");
     } catch (e) {
       console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e);
     }
   }
 
+  // 🔍 ตรวจสอบอีกครั้งว่า ณ ตอนนี้บนหน้าจอมีโพสต์ (จากแคช หรือจากฟังก์ชันอื่น) แสดงอยู่แล้วหรือยัง
+  // (เลือกใช้ .post-card เพื่อไม่ให้นับรวม div ข้อความ LOADING)
   const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
 
+  // 🔍 ถ้าไม่มีข้อมูลในแคช และ "ยังไม่เคยมีโพสต์เลยจริงๆ" ค่อยแสดงข้อความกำลังโหลด
   if (!hasExistingPosts) {
     if (!document.getElementById('loading-msg')) {
-       container.innerHTML = `
-         <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
-           <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
-         </div>`;
+      container.innerHTML = `
+        <div id="loading-msg" style="text-align: center; padding: 30px 20px; color: #ff85a2; font-size: 0.95rem;">
+          <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
+        </div>`;
     }
   }
 
   try {
-    window.isTimelineLoading = true;
+    window.isTimelineLoading = true; // เปิดสถานะล็อกป้องกันการดึงข้อมูลซ้อนกัน
+
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
     const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
     
     let posts = await response.json();
     
-    if (posts && posts.length > 0) {
-      const oldPostsCache = localStorage.getItem('blm48_posts_cache');
-      if (oldPostsCache !== JSON.stringify(posts)) {
-        localStorage.removeItem('blm48_posts_cache');
+    // หากดึงข้อมูลจากเซอร์เวอร์มาแล้วไม่มีโพสต์เลย
+    if (!posts || posts.length === 0) {
+      if (!hasExistingPosts) {
+        container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: gray; font-size: 0.9rem;">NOT POSTS YET</div>`;
       }
-      localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+      return;
     }
-    
+
+    // 🌸 ขั้นตอนที่ B: ข้อมูลอัปเดตล่าสุดส่งมาถึงแล้ว บันทึกทับลงแคชเพื่อไว้ใช้ในรอบหน้า
+    localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+
+    // ลบข้อความ "กำลังโหลด" ออกไป (ถ้ามีอยู่บนจอ)
     const loadingMsg = document.getElementById('loading-msg');
     if (loadingMsg) loadingMsg.remove();
 
-    if (!posts || posts.length === 0) {
-        if (!hasExistingPosts) {
-           container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
-        }
-        return;
-    }
+    // 🌟 ทริคเดิมของคุณเอ็มมี่: กลับด้านข้อมูลเพื่อนำของใหม่ไปหยอดแทรกไว้ "บนสุด"
+    posts.reverse(); 
 
-    let memberPosts = posts.filter(post => 
-        (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-        (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-    );
-
-    if (memberPosts.length === 0) {
-        if (!hasExistingPosts) {
-           container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Not Posts Yet</div>';
-        }
-        return;
-    }
-
-    memberPosts.reverse(); 
-
-    memberPosts.forEach(post => {
+    posts.forEach(post => {
       const existingPost = document.getElementById(`post-${post.id}`);
+      
       if (existingPost) {
+        // 🎯 สถานการณ์ A (โพสต์เดิม): อัปเดตยอดไลก์และไอคอนหัวใจเงียบๆ (หน้าจอไม่กระพริบ)
         const likeCountEl = document.getElementById(`like-count-${post.id}`);
         if (likeCountEl) likeCountEl.innerText = post.likes;
         
         const heartIcon = document.getElementById(`heart-${post.id}`);
         if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
       } else {
+        // 🎯 สถานการณ์ B (มีโพสต์ใหม่แกะกล่องเพิ่งลง): เรนเดอร์ HTML แล้วแทรกดันไป "บนสุด" ทันที!
         container.insertAdjacentHTML('afterbegin', renderPost(post));
       }
     });
     
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
+    // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ (ไม่มีทั้งแคชและข้อมูลเก่า) ค่อยแสดงข้อความเตือน
     if (!hasExistingPosts) {
-       container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
+      container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: #ff4d4d; font-size: 0.9rem;">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้งน้า 😥</div>`;
     }
   } finally {
-    window.isTimelineLoading = false;
+    window.isTimelineLoading = false; // ปลดล็อกสถานะเสมอ ไม่ว่าจะดึงข้อมูลสำเร็จหรือพัง เพื่อให้กดโหลดรอบถัดไปได้ปกติ
   }
 }
 
