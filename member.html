@@ -578,8 +578,6 @@
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
-      <!-- 🎓 ไอคอนหมวกปริญญาซ้อนท้ายรูปโปรไฟล์ตามแบบแอปหลัก -->
-      <div id="avatar-grad-icon" class="grad-profile-badge"><i class="fas fa-graduation-cap"></i></div>
       <div class="hero-gradient"></div>
     </div>
 
@@ -1322,111 +1320,123 @@ function renderPost(post) {
   `;
 }
 
-    async function loadMemberTimelinePosts() {
-      if (window.isTimelineLoading) return;
-      const container = document.getElementById('posts-container');
-      if (!container) return;
+ async function loadMemberTimelinePosts() {
+  if (window.isTimelineLoading) return;
+  const container = document.getElementById('posts-container');
+  if (!container) return;
 
-      const cachedPostsStr = localStorage.getItem('blm48_posts_cache');
-      const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
+  // 🛠️ ดึงสถานะปัจจุบันของเมมเบอร์คนนี้จากคลังสถิติหน้าเว็บมาเตรียมไว้ทันทีแบบ Real-time
+  try {
+    const savedStatsStr = localStorage.getItem('current_member_stats');
+    if (savedStatsStr) {
+      const savedStats = JSON.parse(savedStatsStr);
+      window.currentMemberStatus = savedStats.status || '';
+    } else {
+      window.currentMemberStatus = '';
+    }
+  } catch(e) {
+    window.currentMemberStatus = '';
+  }
 
-      if (cachedPostsStr && isContainerEmpty) {
-        try {
-          let allCachedPosts = JSON.parse(cachedPostsStr);
-          let memberCachedPosts = allCachedPosts.filter(post => 
-              (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-              (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-          );
-          
-          if (memberCachedPosts.length > 0) {
-            let tempPosts = [...memberCachedPosts];
-            tempPosts.reverse();
-            const loadingMsg = document.getElementById('loading-msg');
-            if (loadingMsg) loadingMsg.remove();
-            
-            tempPosts.forEach(post => {
-              container.insertAdjacentHTML('afterbegin', renderPost(post));
-            });
-          }
-        } catch (e) {
-          console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e);
-        }
-      }
+  const cachedPostsStr = localStorage.getItem('blm48_posts_cache');
+  const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
 
-      const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
-
-      if (!hasExistingPosts) {
-        if (!document.getElementById('loading-msg')) {
-           container.innerHTML = `
-             <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
-               <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
-             </div>`;
-        }
-      }
-
-      try {
-        window.isTimelineLoading = true;
-        const currentUser = getUserSession();
-        const username = currentUser ? currentUser.username : "";
-        const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
-        
-        let posts = await response.json();
-        
-        // 🌸 ตรวจจับข้อมูลอัปเดตโพสต์ไทม์ไลน์: ถ้าข้อมูลโพสต์ใหม่เปลี่ยนไป ให้เคลียร์แคชเก่าทิ้งทันที
-        if (posts && posts.length > 0) {
-          const oldPostsCache = localStorage.getItem('blm48_posts_cache');
-          if (oldPostsCache !== JSON.stringify(posts)) {
-            localStorage.removeItem('blm48_posts_cache');
-          }
-          localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
-        }
-        
+  if (cachedPostsStr && isContainerEmpty) {
+    try {
+      let allCachedPosts = JSON.parse(cachedPostsStr);
+      let memberCachedPosts = allCachedPosts.filter(post => 
+          (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
+          (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
+      );
+      
+      if (memberCachedPosts.length > 0) {
+        let tempPosts = [...memberCachedPosts];
+        tempPosts.reverse();
         const loadingMsg = document.getElementById('loading-msg');
         if (loadingMsg) loadingMsg.remove();
-
-        if (!posts || posts.length === 0) {
-            if (!hasExistingPosts) {
-               container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
-            }
-            return;
-        }
-
-        let memberPosts = posts.filter(post => 
-            (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-            (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-        );
-
-        if (memberPosts.length === 0) {
-            if (!hasExistingPosts) {
-               container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Not Posts Yet</div>';
-            }
-            return;
-        }
-
-        memberPosts.reverse(); 
-
-        memberPosts.forEach(post => {
-          const existingPost = document.getElementById(`post-${post.id}`);
-          if (existingPost) {
-            const likeCountEl = document.getElementById(`like-count-${post.id}`);
-            if (likeCountEl) likeCountEl.innerText = post.likes;
-            
-            const heartIcon = document.getElementById(`heart-${post.id}`);
-            if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-          } else {
-            container.insertAdjacentHTML('afterbegin', renderPost(post));
-          }
-        });
         
-      } catch (error) {
-        console.error("โหลดฟีดล้มเหลว:", error);
-        if (!hasExistingPosts) {
-           container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
-        }
-      } finally {
-        window.isTimelineLoading = false;
+        tempPosts.forEach(post => {
+          container.insertAdjacentHTML('afterbegin', renderPost(post));
+        });
       }
+    } catch (e) {
+      console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e);
     }
+  }
+
+  const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
+
+  if (!hasExistingPosts) {
+    if (!document.getElementById('loading-msg')) {
+       container.innerHTML = `
+         <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
+           <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
+         </div>`;
+    }
+  }
+
+  try {
+    window.isTimelineLoading = true;
+    const currentUser = getUserSession();
+    const username = currentUser ? currentUser.username : "";
+    const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
+    
+    let posts = await response.json();
+    
+    if (posts && posts.length > 0) {
+      const oldPostsCache = localStorage.getItem('blm48_posts_cache');
+      if (oldPostsCache !== JSON.stringify(posts)) {
+        localStorage.removeItem('blm48_posts_cache');
+      }
+      localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+    }
+    
+    const loadingMsg = document.getElementById('loading-msg');
+    if (loadingMsg) loadingMsg.remove();
+
+    if (!posts || posts.length === 0) {
+        if (!hasExistingPosts) {
+           container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
+        }
+        return;
+    }
+
+    let memberPosts = posts.filter(post => 
+        (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
+        (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
+    );
+
+    if (memberPosts.length === 0) {
+        if (!hasExistingPosts) {
+           container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Not Posts Yet</div>';
+        }
+        return;
+    }
+
+    memberPosts.reverse(); 
+
+    memberPosts.forEach(post => {
+      const existingPost = document.getElementById(`post-${post.id}`);
+      if (existingPost) {
+        const likeCountEl = document.getElementById(`like-count-${post.id}`);
+        if (likeCountEl) likeCountEl.innerText = post.likes;
+        
+        const heartIcon = document.getElementById(`heart-${post.id}`);
+        if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+      } else {
+        container.insertAdjacentHTML('afterbegin', renderPost(post));
+      }
+    });
+    
+  } catch (error) {
+    console.error("โหลดฟีดล้มเหลว:", error);
+    if (!hasExistingPosts) {
+       container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
+    }
+  } finally {
+    window.isTimelineLoading = false;
+  }
+}
 
 function togglePostMenu(event, postId) {
   event.stopPropagation(); 
