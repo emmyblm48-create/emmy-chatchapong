@@ -14,7 +14,7 @@
     <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
     <meta name="apple-mobile-web-app-title" content="BLM48">   
     <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -1432,7 +1432,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   
 </div>
 
-<div class="section-title"> Member Ranking</div>
 <div class="ranking-wrapper">
   <div id="ranking-list" class="horizontal-list"></div>
 </div>
@@ -2326,6 +2325,18 @@ async function claimMonthly() {
 
       return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
     }
+  
+    // 🛡️ ฟังก์ชันสำหรับป้องกันการพังของหน้าจอและ XSS (แปลงอักษรพิเศษ)
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }  
   
   // ฟังก์ชันตรวจสอบสิทธิ์ระดับสูง
     function hasManagementPermission(postAuthorUsername) {
