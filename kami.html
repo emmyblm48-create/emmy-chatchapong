@@ -600,7 +600,7 @@
       </a>
     </div>
 
-    <script>
+<script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
         
         function getUserSession() {
@@ -627,7 +627,8 @@
         let currentUsername = user ? user.username : "";
         let memberImageMap = {};
         let memberStatusMap = {}; 
-        let rawOshiBoardData = null; // เก็บข้อมูลแคชดิบของบอร์ดไว้ Re-render ตอนฐานข้อมูลเมมเบอร์มาถึง
+        let memberFullDataMap = {}; // 🌟 เพิ่มกล่องเก็บตัวเลขสถิติจริง (Kami, Oshi, Total Cookie)
+        let rawOshiBoardData = null; 
 
         window.onload = async () => {
             if (!user || !currentUsername) {
@@ -648,29 +649,49 @@
             const userRole = user.role || user.position || "BLM48 Member";
             document.getElementById('user-role').textContent = userRole;
             
-            // เรียกบอร์ดคามิโอชิขึ้นมาสแตนบายก่อนเลย
             fetchAndRenderUserOshiBoard();
-            
-            // โหลด DB เมมเบอร์และสเตตัสแบบ Async เมื่อมาเสร็จจะทำการอัพเกรดหน้าจอทันที
             await fetchMembersImageDB();
         };
+      
+        function openMemberProfile(name, fallbackImg, fallbackStatus) {
+            localStorage.removeItem('current_member_stats');
+            localStorage.removeItem('current_member_fans');
+
+            const key = name.toString().trim().toLowerCase();
+            // 🌟 ดึงข้อมูลตัวเลขจริงที่แมปไว้จากฐานข้อมูลหลังบ้านมาใส่แคชทันที
+            const stats = memberFullDataMap[key] || { total_kami: 0, total_oshi: 0, all_time_total: 0 };
+
+            const statsToCache = {
+              name: name,
+              status: memberStatusMap[key] === 'graduated' ? "Graduated" : (fallbackStatus || "Active"),
+              profile_img: memberImageMap[key] || fallbackImg || "",
+              total_kami: stats.total_kami,         // 🚀 ตัวเลขจริงส่งตรงถึงหน้า member.html ไม่ขึ้น ... แล้ว!
+              total_oshi: stats.total_oshi,         // 🚀 ตัวเลขจริงส่งตรงถึงหน้า member.html ไม่ขึ้น ... แล้ว!
+              all_time_total: stats.all_time_total  // 🚀 ตัวเลขจริงส่งตรงถึงหน้า member.html ไม่ขึ้น ... แล้ว!
+            };
+
+            localStorage.setItem('current_member_stats', JSON.stringify(statsToCache));
+            window.location.href = `member.html?name=${encodeURIComponent(name)}`;
+        }
 
         async function fetchMembersImageDB() {
             const cacheKey = 'blm48_members_images_cache';
             const cacheStatusKey = 'blm48_members_status_cache'; 
+            const cacheFullKey = 'blm48_members_stats_full_cache'; // 🌟 คีย์แคชใหม่สำหรับเก็บสถิติ
             const cacheTimeKey = 'blm48_members_images_time';
             const tenMinutes = 10 * 60 * 1000; 
             
             const cachedData = localStorage.getItem(cacheKey);
             const cachedStatus = localStorage.getItem(cacheStatusKey);
+            const cachedFull = localStorage.getItem(cacheFullKey);
             const cachedTime = localStorage.getItem(cacheTimeKey);
             const now = new Date().getTime();
             
-            if (cachedData && cachedStatus && cachedTime && (now - cachedTime < tenMinutes)) {
+            if (cachedData && cachedStatus && cachedFull && cachedTime && (now - cachedTime < tenMinutes)) {
                 memberImageMap = JSON.parse(cachedData);
                 memberStatusMap = JSON.parse(cachedStatus);
+                memberFullDataMap = JSON.parse(cachedFull); // 🌟 ดึงสถิติจริงจากแคช
                 console.log("🚀 ดึงรูปและสถานะเมมเบอร์จาก Cache สำเร็จ");
-                // สั่ง Re-Render หน้าจอเมื่อได้ข้อมูลสถานะเรียบร้อย
                 if(rawOshiBoardData) renderContent(rawOshiBoardData);
                 return;
             }
@@ -681,23 +702,32 @@
                 
                 let tempMap = {};
                 let tempStatusMap = {};
+                let tempFullMap = {}; // 🌟
                 members.forEach(m => {
                     if (m.name) {
                         const key = m.name.toString().trim().toLowerCase();
                         tempMap[key] = m.profile_img || "";
                         const currentStatus = m.status || m.type || "";
                         tempStatusMap[key] = currentStatus.toString().trim().toLowerCase() === "graduated" ? "graduated" : "active";
+                        
+                        // 🌟 บันทึกสถิติตัวเลขจากหลังบ้านลงกล่องความจำชั่วคราว
+                        tempFullMap[key] = {
+                            total_kami: Number(m.total_kami) || 0,
+                            total_oshi: Number(m.total_oshi) || 0,
+                            all_time_total: Number(m.all_time_total) || 0
+                        };
                     }
                 });
                 
                 memberImageMap = tempMap;
                 memberStatusMap = tempStatusMap;
+                memberFullDataMap = tempFullMap; // 🌟
                 
                 localStorage.setItem(cacheKey, JSON.stringify(tempMap));
                 localStorage.setItem(cacheStatusKey, JSON.stringify(tempStatusMap));
+                localStorage.setItem(cacheFullKey, JSON.stringify(tempFullMap)); // 🌟 เซฟตัวเลขลงเบราว์เซอร์
                 localStorage.setItem(cacheTimeKey, now.toString());
                 
-                // ข้อมูลสดมาถึงแล้ว บังคับหน้าจออัปเดตป้าย Graduated และ ลิงก์ทันที
                 if(rawOshiBoardData) renderContent(rawOshiBoardData);
                 
             } catch (err) {
@@ -705,7 +735,6 @@
             }
         }
 
-        // 🌸 ฟังก์ชันวาดหน้าจอ (Render ส่วนกลางแยกออกมาเพื่อให้เรียกทำงานซ้ำได้แม่นยำ)
         function renderContent(data) {
             const kamiArea = document.getElementById('kami-content-area');
             const oshiArea = document.getElementById('oshi-content-area');
@@ -716,8 +745,10 @@
             if (!memberImageMap || Object.keys(memberImageMap).length === 0) {
                 const imgCache = localStorage.getItem('blm48_members_images_cache');
                 const statusCache = localStorage.getItem('blm48_members_status_cache');
+                const fullCache = localStorage.getItem('blm48_members_stats_full_cache'); // 🌟
                 if (imgCache) memberImageMap = JSON.parse(imgCache);
                 if (statusCache) memberStatusMap = JSON.parse(statusCache);
+                if (fullCache) memberFullDataMap = JSON.parse(fullCache); // 🌟
             }
 
             const userAvatar = document.getElementById('user-avatar');
@@ -726,7 +757,7 @@
                 userAvatar.setAttribute('onerror', clearBrokenImg);
             }
 
-            // 👑 เรนเดอร์ คามิโอชิหลัก (Kami-Oshi) + ใส่ป้ายลิงก์ไปหน้าเมมเบอร์
+            // 👑 เรนเดอร์ คามิโอชิหลัก (Kami-Oshi) + เปลี่ยนเป็นเรียก openMemberProfile
             let kamiHTML = "";
             if (data.kamioshi) {
                 const kamiName = data.kamioshi.toString().trim();
@@ -739,7 +770,7 @@
                         <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
-                        <a href="member.html?name=${encodeURIComponent(kamiName)}" class="member-profile-link">
+                        <a href="javascript:void(0);" onclick="openMemberProfile('${kamiName}', '${getImg(rawImg)}', '${isGraduated ? 'Graduated' : 'Active'}')" class="member-profile-link">
                             <div class="kami-avatar-frame">
                                 <i class="fa-solid fa-crown crown-tag"></i>
                                 <img src="${getImg(rawImg)}"
@@ -759,7 +790,7 @@
                 kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
             }
 
-            // ❤️ เรนเดอร์ โอชิสมทบ (Oshi) + ผูกแท็ก Link เมื่อคลิกกล่องการ์ด
+            // ❤️ เรนเดอร์ โอชิสมทบ (Oshi) + เปลี่ยนเป็นเรียก openMemberProfile
             let oshiHTML = "";
             const processedOshis = [...(data.oshi || [])].filter(o => o.toLowerCase() !== (data.kamioshi || "").toLowerCase());
             
@@ -771,12 +802,12 @@
                     
                     oshiHTML += `
                         <div class="oshi-box-card">
-                            <a href="member.html?name=${encodeURIComponent(oshiName)}" class="oshi-card-link">
+                            <a href="javascript:void(0);" onclick="openMemberProfile('${oshiName}', '${getImg(rawImg)}', '${isGraduated ? 'Graduated' : 'Active'}')" class="oshi-card-link">
                                 <div class="oshi-pic-wrapper">
                                      <img src="${getImg(rawImg)}"
-                                         class="oshi-pic" 
-                                         alt="${oshiName}" loading="lazy" 
-                                         onerror="${clearBrokenImg}">
+                                          class="oshi-pic" 
+                                          alt="${oshiName}" loading="lazy" 
+                                          onerror="${clearBrokenImg}">
                                      ${isGraduated ? `<div class="oshi-grad-cap"><i class="fa-solid fa-graduation-cap"></i></div>` : ''}
                                 </div>
                                 <div class="oshi-info-center">
@@ -804,11 +835,11 @@
             const kamiArea = document.getElementById('kami-content-area');
             const oshiArea = document.getElementById('oshi-content-area');
             
+            const currentUsername = user ? user.username : "";
             const cacheKey = `blm48_oshi_board_cache_${currentUsername}`;
             const cachedDataStr = localStorage.getItem(cacheKey);
             let hasCache = false;
 
-            // STEP 1: วาดจากแคชเก่าก่อนทันที (เพื่อความเร็ว)
             if (cachedDataStr) {
                 try {
                     const cachedData = JSON.parse(cachedDataStr);
@@ -822,7 +853,6 @@
                 }
             }
 
-            // STEP 2: โชว์โครงหลอกระหวังรอข้อมูลใหม่
             if (!hasCache) {
                 kamiArea.innerHTML = `
                     <div class="kami-container skeleton-card">
@@ -840,7 +870,6 @@
                     </div>`).join('');
             }
 
-            // STEP 3: ดึงข้อมูลสดจากแผ่นงาน
             fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}&_=${Date.now()}`)
                 .then(response => response.json())
                 .then(res => {
