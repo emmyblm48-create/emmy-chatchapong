@@ -2370,9 +2370,14 @@ function renderPost(post) {
 
   const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
   
-  // ตรวจสอบสถานะจบการศึกษาของเมมเบอร์ผู้โพสต์
+  // 🌸 ตรวจสอบสถานะจบการศึกษาของเมมเบอร์ผู้โพสต์ (ปรับปรุงให้รองรับโครงสร้างข้อมูลหลายแบบกันพลาด)
   let isGraduated = false;
-  if (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') {
+  if (
+    (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') ||
+    (post.status && post.status.toLowerCase() === 'graduated') ||
+    post.isGraduated === true ||
+    post.graduated === true
+  ) {
     isGraduated = true;
   }
 
@@ -2415,26 +2420,26 @@ function renderPost(post) {
     </span>
   ` : '';
 
-  // 🌟 ส่วนสำคัญ: เตรียมตัวแปร Parameter สำหรับส่งไปหน้า member.html (เช่น username, uid หรือ id ของเมมเบอร์)
-  // แนะนำให้ปรับเปลี่ยนฟิลด์ตามโครงสร้างฐานข้อมูลที่คุณใช้นะครับ (ในตัวอย่างนี้ใช้ post.authorUsername หรือ post.uid)
+  // 🌟 ส่วนสำคัญ: เตรียมตัวแปร Parameter สำหรับส่งไปหน้า member.html
   const memberIdentifier = encodeURIComponent(post.authorUsername || post.uid || post.authorName || '');
   const targetMemberUrl = `member.html?username=${memberIdentifier}`;
 
-  // โครงสร้างรูปโปรไฟล์แบบติดไอคอนหมวกรับปริญญาซ้อนท้าย (เพิ่มสไตล์ cursor และคลิกเพื่อไปที่โปรไฟล์เมมเบอร์)
+  // 🌟 [แก้ไขจุดที่ 1] เปลี่ยนลิงก์ที่รูปโปรไฟล์ให้เป็น window.location.href ไปหน้า member.html ทันทีเมื่อคลิก
   const profileImgHtml = isGraduated ? `
-    <div onclick="openMemberProfile('${post.authorUsername || post.authorName}')" style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; cursor: pointer;">
+    <div onclick="window.location.href='${targetMemberUrl}'" style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; cursor: pointer;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1;">
       <div style="position: absolute; bottom: -2px; right: -2px; background: #718096; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
         <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
       </div>
     </div>
   ` : `
-    <div onclick="openMemberProfile('${post.authorUsername || post.authorName}')" style="margin-right: 10px; flex-shrink: 0; cursor: pointer;">
+    <div onclick="window.location.href='${targetMemberUrl}'" style="margin-right: 10px; flex-shrink: 0; cursor: pointer;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
     </div>
   `;
 
-  const graduatedSubtext = ''; // ปล่อยว่างเพื่อความคลีนใต้โพสต์ตามดีไซน์ใหม่ที่คุณเอ็มมี่เลือก
+  // 🌟 [แก้ไขจุดที่ 2] ปรับให้มีข้อความ (Graduated) แสดงเพิ่มเติมใต้ชื่อคู่กับเวลาเพื่อความชัดเจนขึ้น
+  const graduatedSubtext = isGraduated ? ' <span style="color: #718096; font-weight: bold;">• Graduated</span>' : '';
 
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
 
@@ -2524,7 +2529,7 @@ function renderPost(post) {
             <b style="color: #ff85a2;">${authorName} ${isPostVerified} ${gradBadgeHtml}</b>
           </span>
           <div style="font-size: 0.8rem; color: gray;">
-            ${postTimestamp} ${graduatedSubtext}
+            ${postTimestamp}${graduatedSubtext}
           </div>
         </div>
       </div>
