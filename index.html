@@ -1351,6 +1351,37 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   background: #fff0f2;
   color: #ff335c;
 }
+    /* CSS สำหรับไอคอนและป้ายสถานะ Graduated */
+.grad-badge {
+    font-size: 0.75rem;
+    color: #ffffff;
+    background-color: #a8a8a8; /* สีเทาบ่งบอกการจบการศึกษา */
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.grad-icon-profile {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background-color: #a8a8a8;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 11px;
+    border: 2px solid white;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
   </style>
 </head>
 <body>
@@ -1378,10 +1409,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 </div>
   
   <div class="nav-btns">
-    <!-- ปุ่มตั๋วคอนเสิร์ตที่เพิ่มใหม่ -->
-    <a href="ticket.html" class="nav-icon" title="Tickets">
-      <i class="fas fa-ticket-alt"></i>
-    </a>
     <!-- ปุ่มกระเป๋าแบบไอคอน -->
      <a href="inventory.html" class="nav-icon" title="Inventory">
       <i class="fas fa-briefcase"></i>
@@ -2049,6 +2076,7 @@ function renderRanking(data) {
   if (!list) return;
   list.innerHTML = '';
   const isMember = isUserMember();
+  const activeMembersForRanking = membersData.filter(member => member.status !== 'Graduated');
   
   // กรองข้อมูลและใช้ยอดรายเดือน (monthly_cookies) ในการจัดอันดับ
   data.filter(m => m.name).forEach((m, i) => {
@@ -2319,6 +2347,7 @@ function renderPost(post) {
   const postId = post.id || ''; 
   const displayImage = post.imageUrl || post.imageURL || '';
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
+  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
   const verifiedBadgeIcon = `
     <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
@@ -2326,6 +2355,16 @@ function renderPost(post) {
     </svg>
   `;
   const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
+  
+  // 🌟 1. ตั้งค่าไอคอนและกรอบรูปโปรไฟล์กรณีจบการศึกษา
+  const isGraduated = post.authorStatus === 'Graduated'; // อย่าลืมเช็คว่าหลังบ้านส่ง post.authorStatus มาด้วยนะครับ
+  const gradProfileIcon = isGraduated ? `<div class="grad-icon-profile" style="width: 16px; height: 16px; font-size: 8px; right: 0; bottom: 0;"><i class="fa-solid fa-graduation-cap"></i></div>` : '';
+  const postProfileHTML = `
+    <div style="position: relative; margin-right: 10px; flex-shrink: 0; width: 40px; height: 40px;">
+        <img src="${authorProfileImg}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+        ${gradProfileIcon}
+    </div>
+  `;
 
   // =========================================================================
   // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
@@ -2378,14 +2417,12 @@ function renderPost(post) {
     const visibleImages = imageUrls.slice(0, 4);
     
     if (imageUrls.length === 1) {
-      // 🌟 กรณีมีรูปเดียว: แสดงเต็มความกว้างและจัดกึ่งกลาง
       imagesHtml += `
         <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
           <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
         </div>
       `;
     } else {
-      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์เหมือนเดิม
       imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
       visibleImages.forEach((url, index) => {
         imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
@@ -2415,14 +2452,13 @@ function renderPost(post) {
 </div>
 ` : '';
 
-  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
-
+  // 🌟 2. ประกอบเข้าโครงสร้าง HTML หลัก
   return `
     <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       ${actionMenu}
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
-        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
-        <div>
+        
+        ${postProfileHTML} <div>
           <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
           <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
         </div>
