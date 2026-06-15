@@ -359,6 +359,7 @@
     </div>
 
   </div>
+
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     
@@ -383,6 +384,8 @@
         const res = await resp.json();
         
         if (res.status === "success" && res.data) {
+          // 🌟 [จุดสำคัญแก้ปัญหาแกรดหน่วง] ทำการกรองเอาเฉพาะแถวที่มีชื่อเมมเบอร์จริง ๆ (ไม่เป็นค่าว่าง)
+          // แถวว่างเปล่าท้ายชีตจะถูกตัดทิ้งทั้งหมดตรงนี้ ทำให้วนลูปเร็วขึ้นมาก ไม่หน่วงเครื่องแน่นอนครับ
           allMembers = res.data.filter(m => m.name && m.name.toString().trim() !== "");
           renderMembers(allMembers);
         } else {
@@ -393,29 +396,7 @@
         document.getElementById('memberList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
       }
     }
-  
-    function openMemberProfile(name) {
-      localStorage.removeItem('current_member_stats');
-      localStorage.removeItem('current_member_fans');
-      
-      const m = allMembers.find(x => x.name === name);
-      
-      if (m) {
-        const statsToCache = {
-          name: m.name,
-          status: m.status || "Active",
-          profile_img: m.profile_img || m.profile || "",
-          total_kami: m.total_kami !== undefined ? Number(m.total_kami) : 0,
-          total_oshi: m.total_oshi !== undefined ? Number(m.total_oshi) : 0,
-          all_time_total: m.all_time_total !== undefined ? Number(m.all_time_total) : 0
-        };
 
-        localStorage.setItem('current_member_stats', JSON.stringify(statsToCache));
-      }
-      
-      window.location.href = `member.html?name=${encodeURIComponent(name)}`;
-    }
-  
     function renderMembers(membersData) {
       const listContainer = document.getElementById('memberList');
       listContainer.innerHTML = ''; 
@@ -425,6 +406,7 @@
         return;
       }
 
+      // 🔍 ตรวจสอบคำว่า Graduated ทั้งพิมพ์เล็กและพิมพ์ใหญ่
       const activeMembers = membersData.filter(m => String(m.status || '').trim().toLowerCase() !== 'graduated');
       const graduatedMembers = membersData.filter(m => String(m.status || '').trim().toLowerCase() === 'graduated');
 
@@ -440,16 +422,11 @@
         activeMembers.forEach(m => {
           const item = document.createElement('a');
           item.className = 'member-item';
-          item.href = "javascript:void(0);";
-          item.setAttribute("onclick", `openMemberProfile('${m.name}')`);
+          item.href = `member.html?name=${encodeURIComponent(m.name)}`;
           
+          // 🔒 ป้องกันความต่างของชื่อคีย์เก่าและใหม่จากหลังบ้าน
           const imgUrl = m.profile || m.profile_img || '';
           const fullNameText = m['Full Name(EN)'] || m.full_name || "BLM48 Member";
-          
-          // ดึงค่าตัวเลขสถิติ (ถ้าไม่มีให้ขึ้นเป็นเลข 0)
-          const k = m.total_kami !== undefined ? m.total_kami : 0;
-          const o = m.total_oshi !== undefined ? m.total_oshi : 0;
-          const total = m.all_time_total !== undefined ? m.all_time_total : 0;
 
           item.innerHTML = `
             <div class="member-avatar-wrapper">
@@ -458,11 +435,6 @@
             <div class="member-info">
               <div class="member-nickname">${m.name}</div>
               <div class="member-fullname">${fullNameText}</div>
-              <div class="member-list-stats" style="display: flex; gap: 10px; margin-top: 5px; font-size: 11px; color: #64748b;">
-                <span><i class="fas fa-crown" style="color: #f59e0b;"></i> ${k}</span>
-                <span><i class="fas fa-heart" style="color: #ec4899;"></i> ${o}</span>
-                <span><i class="fas fa-users" style="color: #3b82f6;"></i> รวม: ${total}</span>
-              </div>
             </div>
             <i class="fas fa-chevron-right chevron-icon"></i>
           `;
@@ -480,16 +452,11 @@
         graduatedMembers.forEach(m => {
           const item = document.createElement('a');
           item.className = 'member-item graduated-item';
-          item.href = "javascript:void(0);";
-          item.setAttribute("onclick", `openMemberProfile('${m.name}')`);
+          item.href = `member.html?name=${encodeURIComponent(m.name)}`;
           
+          // 🔒 ป้องกันความต่างของชื่อคีย์เก่าและใหม่จากหลังบ้าน
           const imgUrl = m.profile || m.profile_img || '';
           const fullNameText = m['Full Name(EN)'] || m.full_name || "BLM48 Member";
-          
-          // ดึงค่าตัวเลขสถิติ (ถ้าไม่มีให้ขึ้นเป็นเลข 0)
-          const k = m.total_kami !== undefined ? m.total_kami : 0;
-          const o = m.total_oshi !== undefined ? m.total_oshi : 0;
-          const total = m.all_time_total !== undefined ? m.all_time_total : 0;
 
           item.innerHTML = `
             <div class="member-avatar-wrapper">
@@ -501,11 +468,6 @@
                 <i class="fas fa-graduation-cap" style="color: #94a3b8; font-size: 14px; margin-left: 6px;" title="Graduated"></i>
               </div>
               <div class="member-fullname">${fullNameText}</div>
-              <div class="member-list-stats" style="display: flex; gap: 10px; margin-top: 5px; font-size: 11px; color: #94a3b8;">
-                <span><i class="fas fa-crown"></i> ${k}</span>
-                <span><i class="fas fa-heart"></i> ${o}</span>
-                <span><i class="fas fa-users"></i> รวม: ${total}</span>
-              </div>
             </div>
             <i class="fas fa-chevron-right chevron-icon"></i>
           `;
