@@ -2422,14 +2422,14 @@ function renderPost(post) {
 
   // โครงสร้างรูปโปรไฟล์แบบติดไอคอนหมวกรับปริญญาซ้อนท้าย (เพิ่มสไตล์ cursor และคลิกเพื่อไปที่โปรไฟล์เมมเบอร์)
   const profileImgHtml = isGraduated ? `
-    <div onclick="window.location.href='${targetMemberUrl}'" style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; cursor: pointer;">
+    <div onclick="openMemberProfile('${post.authorUsername || post.authorName}')" style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; cursor: pointer;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1;">
       <div style="position: absolute; bottom: -2px; right: -2px; background: #718096; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
         <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
       </div>
     </div>
   ` : `
-    <div onclick="window.location.href='${targetMemberUrl}'" style="margin-right: 10px; flex-shrink: 0; cursor: pointer;">
+    <div onclick="openMemberProfile('${post.authorUsername || post.authorName}')" style="margin-right: 10px; flex-shrink: 0; cursor: pointer;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
     </div>
   `;
@@ -2520,14 +2520,11 @@ function renderPost(post) {
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
         ${profileImgHtml}
         <div>
-          <span onclick="window.location.href='${targetMemberUrl}'" style="cursor: pointer;">
-            <b style="color: #ff85a2;">${authorName} ${isPostVerified} ${gradBadgeHtml}</b>
-          </span>
-          <div style="font-size: 0.8rem; color: gray;">
-            ${postTimestamp} ${graduatedSubtext}
-          </div>
-        </div>
+      <span onclick="openMemberProfile('${post.authorUsername || post.authorName}')" style="cursor: pointer;">
+        <b style="color: #ff85a2;">${authorName} ${isPostVerified} ${gradBadgeHtml}</b>
+      </span>
       </div>
+  </div>
 
       <div class="post-body" style="margin-bottom: 15px;">
         <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
