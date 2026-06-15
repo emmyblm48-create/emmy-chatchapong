@@ -91,26 +91,20 @@
 
     /* จัดการไอคอนหมวก */
     .grad-profile-badge {
-      position: absolute;
-      bottom: 15px; /* ปรับระยะห่างจากด้านล่าง */
-      right: 15px;  /* ปรับระยะห่างจากด้านขวา */
-
-      /* เพิ่มดีไซน์ให้เข้ากับธีม Cute & Dreamy */
-      background: rgba(255, 255, 255, 0.9); /* พื้นหลังขาวโปร่งแสง */
-      color: #ff85a1; /* ใช้สีชมพูประจำวง */
-      width: 35px;
-      height: 35px;
-      border-radius: 50%; /* ให้เป็นวงกลม */
-
-      /* จัดตำแหน่งไอคอนให้อยู่ตรงกลางวงกลม */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      /* เพิ่มเงาเล็กน้อยให้ดูมีมิติ */
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 10; /* ให้ลอยอยู่บนรูปเสมอ */
-      font-size: 14px;
+        position: absolute;
+        top: 12px;           /* ระยะห่างจากขอบบน */
+        right: 12px;         /* ระยะห่างจากขอบขวา */
+        background-color: #888888 !important; /* เปลี่ยนพื้นหลังเป็นสีเทา */
+        color: #ffffff !important;            /* ไอคอนด้านในสีขาว */
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        z-index: 5;          /* อยู่เหนือน้ำชั้นรูปภาพ */
     }
     
     .hero-gradient {
@@ -1101,6 +1095,30 @@
       });
     }
   
+  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
+function formatThaiDate(dateStr) {
+  if (!dateStr) return '';
+  
+  // แยกส่วนวันที่และเวลาออกจากกัน (รองรับรูปแบบ YYYY-MM-DD HH:mm:ss)
+  const parts = dateStr.trim().split(/[- :]/);
+  if (parts.length < 5) return dateStr; // คืนค่าเดิมหากรูปแบบไม่ใช่เวลาสำเร็จรูป
+  
+  const year = parseInt(parts[0]);
+  const month = parseInt(parts[1]);
+  const day = parseInt(parts[2]);
+  const hour = parts[3];
+  const min = parts[4];
+  
+  const thaiMonths = [
+    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
+    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+  ];
+  
+  const thaiYear = year + 543; // แปลง ค.ศ. เป็น พ.ศ.
+  
+  return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
+}
+  
   function escapeHtml(text) {
       if (!text) return '';
       return text.toString()
@@ -1125,8 +1143,12 @@
 
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
   const authorName = escapeHtml(post.authorName || 'Anonymous Member');
+  
+  // [ข้อที่ 1] แปลงวันที่ให้เป็นภาษาไทยสวยงาม
+  const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
+  const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
+  
   const postContent = escapeHtml(post.content || ''); 
-  const postTimestamp = escapeHtml(post.timestamp || post.date || 'เมื่อสักครู่');
   const postLikes = post.likes || 0;
   const postId = post.id || ''; 
   const displayImage = post.imageUrl || post.imageURL || '';
@@ -1168,16 +1190,18 @@
     }
   }
 
+  // [ข้อที่ 2] ปรับโครงสร้างรูปโปรไฟล์ให้ติดไอคอนสีเทา-หมวกขาว และเอาข้อความ "Graduated" ด้านล่างออกตามที่ต้องการ
   const profileImgHtml = isGraduated ? `
     <div style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef;">
-      <div style="position: absolute; bottom: -2px; right: -2px; background: #575a5e; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid white;">
+      <div style="position: absolute; bottom: -2px; right: -2px; background: #888888; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
         <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
       </div>
     </div>
   ` : `<img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">`;
 
-  const graduatedSubtext = isGraduated ? `<span style="color: #868e96; font-weight: bold; margin-left: 6px; font-size: 0.75rem;"><i class="fas fa-graduation-cap"></i> Graduated</span>` : '';
+  // ตัดตัวอักษรคำว่า Graduated ออกไปแล้ว (ปล่อยเป็นค่าว่างไว้) เพื่อความคลีน
+  const graduatedSubtext = ''; 
 
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
   
@@ -1254,7 +1278,7 @@
       </div>
     </div>
   ` : '';
-     
+      
   return `
     <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
       ${specialBadge}
