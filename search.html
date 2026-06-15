@@ -384,7 +384,9 @@
         const res = await resp.json();
         
         if (res.status === "success" && res.data) {
-          allMembers = res.data;
+          // 🌟 [จุดสำคัญแก้ปัญหาแกรดหน่วง] ทำการกรองเอาเฉพาะแถวที่มีชื่อเมมเบอร์จริง ๆ (ไม่เป็นค่าว่าง)
+          // แถวว่างเปล่าท้ายชีตจะถูกตัดทิ้งทั้งหมดตรงนี้ ทำให้วนลูปเร็วขึ้นมาก ไม่หน่วงเครื่องแน่นอนครับ
+          allMembers = res.data.filter(m => m.name && m.name.toString().trim() !== "");
           renderMembers(allMembers);
         } else {
           document.getElementById('memberList').innerHTML = '<div class="empty-state">ไม่พบฐานข้อมูลเมมเบอร์</div>';
@@ -400,19 +402,20 @@
       listContainer.innerHTML = ''; 
 
       if (membersData.length === 0) {
-        listContainer.innerHTML = '<div class="empty-state">ไม่พบเมมเบอร์ที่คุณค้นหา 😥</div>';
+        listContainer.innerHTML = '<div class="empty-state">ไม่พบเมมเบอร์ที่คุณค้นหา</div>';
         return;
       }
 
-      const activeMembers = membersData.filter(m => m.status !== 'Graduated' && m.status !== 'graduated');
-      const graduatedMembers = membersData.filter(m => m.status === 'Graduated' || m.status === 'graduated');
+      // 🔍 ตรวจสอบคำว่า Graduated ทั้งพิมพ์เล็กและพิมพ์ใหญ่
+      const activeMembers = membersData.filter(m => String(m.status || '').trim().toLowerCase() !== 'graduated');
+      const graduatedMembers = membersData.filter(m => String(m.status || '').trim().toLowerCase() === 'graduated');
 
       // 1. หมวดหมู่แสดงผลเมมเบอร์ปัจจุบัน (Active Members)
       if (activeMembers.length > 0) {
         if (graduatedMembers.length > 0) {
           const activeTitle = document.createElement('div');
           activeTitle.className = 'list-section-title';
-          activeTitle.innerHTML = `<i class="fas fa-users"></i> เมมเบอร์ปัจจุบัน (Active Members)`;
+          activeTitle.innerHTML = `<i class="fas fa-users"></i> Members`;
           listContainer.appendChild(activeTitle);
         }
 
@@ -420,11 +423,14 @@
           const item = document.createElement('a');
           item.className = 'member-item';
           item.href = `member.html?name=${encodeURIComponent(m.name)}`;
-          const fullNameText = m.full_name ? m.full_name : "BLM48 Member";
+          
+          // 🔒 ป้องกันความต่างของชื่อคีย์เก่าและใหม่จากหลังบ้าน
+          const imgUrl = m.profile || m.profile_img || '';
+          const fullNameText = m['Full Name(EN)'] || m.full_name || "BLM48 Member";
 
           item.innerHTML = `
             <div class="member-avatar-wrapper">
-              <img src="${getImg(m.profile_img)}" class="member-avatar" onerror="this.onerror=null; this.src='${fallbackAvatarURL}';">
+              <img src="${getImg(imgUrl)}" class="member-avatar" onerror="this.onerror=null; this.src='${fallbackAvatarURL}';">
             </div>
             <div class="member-info">
               <div class="member-nickname">${m.name}</div>
@@ -440,18 +446,21 @@
       if (graduatedMembers.length > 0) {
         const gradTitle = document.createElement('div');
         gradTitle.className = 'list-section-title graduated-title-section';
-        gradTitle.innerHTML = `<i class="fas fa-graduation-cap"></i> เมมเบอร์ที่จบการศึกษาแล้ว (Graduated)`;
+        gradTitle.innerHTML = `<i class="fas fa-graduation-cap"></i> Graduated`;
         listContainer.appendChild(gradTitle);
 
         graduatedMembers.forEach(m => {
           const item = document.createElement('a');
           item.className = 'member-item graduated-item';
           item.href = `member.html?name=${encodeURIComponent(m.name)}`;
-          const fullNameText = m.full_name ? m.full_name : "BLM48 Member";
+          
+          // 🔒 ป้องกันความต่างของชื่อคีย์เก่าและใหม่จากหลังบ้าน
+          const imgUrl = m.profile || m.profile_img || '';
+          const fullNameText = m['Full Name(EN)'] || m.full_name || "BLM48 Member";
 
           item.innerHTML = `
             <div class="member-avatar-wrapper">
-              <img src="${getImg(m.profile_img)}" class="member-avatar" onerror="this.onerror=null; this.src='${fallbackAvatarURL}';">
+              <img src="${getImg(imgUrl)}" class="member-avatar" onerror="this.onerror=null; this.src='${fallbackAvatarURL}';">
             </div>
             <div class="member-info">
               <div class="member-nickname">
@@ -471,7 +480,8 @@
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
       const filtered = allMembers.filter(m => 
         (m.name || "").toLowerCase().includes(searchTerm) || 
-        (m.full_name || "").toLowerCase().includes(searchTerm)
+        (m.full_name || "").toLowerCase().includes(searchTerm) ||
+        (m['Full Name(EN)'] || "").toLowerCase().includes(searchTerm)
       );
       renderMembers(filtered);
     }
