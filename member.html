@@ -713,12 +713,12 @@
         return url;
     }
 
-    function renderMemberStatsAndFans() {
+   function renderMemberStatsAndFans() {
       const savedStats = localStorage.getItem('current_member_stats');
       if (savedStats) {
         const m = JSON.parse(savedStats);
         
-        // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์ตามรูปแบบภาพ image_9089a3.jpg
+        // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
         const gradBadge = document.getElementById('mb-grad-badge');
         const gradAvatarIcon = document.getElementById('avatar-grad-icon');
         const btnCookie = document.getElementById('btn-cookie-trigger');
@@ -739,16 +739,18 @@
         const avatarEl = document.getElementById('mb-avatar');
         if (avatarEl) avatarEl.src = getImg(m.profile_img);
 
+        // 🌟 แก้ไขตรงนี้: ถ้ายังไม่มีค่า ให้ขึ้น ... แทน 0
         const kamiEl = document.getElementById('mb-kami');
-        if (kamiEl) kamiEl.innerText = m.total_kami || 0;
+        if (kamiEl) kamiEl.innerText = (m.total_kami !== undefined && m.total_kami !== null) ? m.total_kami : '...';
 
         const oshiEl = document.getElementById('mb-oshi');
-        if (oshiEl) oshiEl.innerText = m.total_oshi || 0;
+        if (oshiEl) oshiEl.innerText = (m.total_oshi !== undefined && m.total_oshi !== null) ? m.total_oshi : '...';
 
         const scoreEl = document.getElementById('mb-score');
         if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
       }
 
+      // ... (โค้ดส่วน fanContainer ด้านล่างปล่อยไว้เหมือนเดิมครับ) ...
       const savedFans = localStorage.getItem('current_member_fans');
       const fanContainer = document.getElementById('member-fans-content');
       
@@ -796,14 +798,15 @@
       const nameEl = document.getElementById('mb-name');
       if (nameEl) { nameEl.innerText = 'กำลังโหลด...'; nameEl.classList.add('skeleton', 'skeleton-text'); }
 
+      // 🌟 แก้ไขตรงนี้: โชว์ ... ระหว่างโหลด
       const kamiEl = document.getElementById('mb-kami');
-      if (kamiEl) { kamiEl.innerText = '0'; kamiEl.classList.add('skeleton', 'skeleton-stat'); }
+      if (kamiEl) { kamiEl.innerText = '...'; kamiEl.classList.add('skeleton', 'skeleton-stat'); }
       
       const oshiEl = document.getElementById('mb-oshi');
-      if (oshiEl) { oshiEl.innerText = '0'; oshiEl.classList.add('skeleton', 'skeleton-stat'); }
+      if (oshiEl) { oshiEl.innerText = '...'; oshiEl.classList.add('skeleton', 'skeleton-stat'); }
       
       const scoreEl = document.getElementById('mb-score');
-      if (scoreEl) { scoreEl.innerText = '0'; scoreEl.classList.add('skeleton', 'skeleton-stat'); }
+      if (scoreEl) { scoreEl.innerText = '...'; scoreEl.classList.add('skeleton', 'skeleton-stat'); }
 
       const fanContainer = document.getElementById('member-fans-content');
       if (fanContainer) {
@@ -861,36 +864,38 @@
       loadMemberSpecialThanks(); 
     }
   
-  // ฟังก์ชันสำหรับแอบไปดึงข้อมูลใหม่ล่าสุดจากหลังบ้าน (Google Apps Script)
 async function fetchLatestMemberStats() {
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
-
-  try {
-    // ยิงไปหลังบ้านแบบใหม่ (ที่ไม่ง้อการวนลูปนับยอด Kami/Oshi แล้ว)
-    const response = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}`);
-    const data = await response.json();
-
-    if (data.status === "success") {
-      // 1. ได้ข้อมูลใหม่ปุ๊บ เอาไปอัปเดตทับใน Cache ของเดิมทันที
-      localStorage.setItem('current_member_stats', JSON.stringify(data.stats));
-      localStorage.setItem('current_member_fans', JSON.stringify(data.fans));
-
-      // 2. ปิด Skeleton (เผื่อในกรณีที่รอบแรกไม่มี Cache แล้วโหลด Skeleton ค้างไว้)
-      if (typeof removeSkeleton === "function") {
-        removeSkeleton();
-      }
-
-      // 3. สั่งเรนเดอร์หน้าจอใหม่อีกครั้ง เพื่อให้ตัวเลขที่เพิ่งดึงมาเด้งอัปเดตให้เป็นปัจจุบัน!
-      renderMemberStatsAndFans();
+      if (!memberName) return;
       
-    } else {
-      console.error("ดึงข้อมูลล่าสุดไม่สำเร็จ:", data.message);
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
+
+      try {
+        const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
+        const res = await resp.json();
+        
+        if (res.status === "success") {
+          const oldStats = localStorage.getItem('current_member_stats');
+          const oldFans = localStorage.getItem('current_member_fans');
+          
+          // ตรวจสอบว่าข้อมูลมีอัปเดตไหม ถ้ามีค่อยอัปเดต Cache และ Render ใหม่
+          if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
+            if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
+            if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
+            
+            if (typeof removeSkeleton === "function") removeSkeleton(); 
+            renderMemberStatsAndFans(); 
+          } else {
+             // ถ้าข้อมูลเหมือนเดิมเป๊ะ ให้แค่ลบ Skeleton ออกเฉยๆ
+             if (typeof removeSkeleton === "function") removeSkeleton();
+          }
+        } else {
+          if (typeof removeSkeleton === "function") removeSkeleton();
+        }
+      } catch (e) {
+        console.error("Error fetching latest member stats:", e);
+        if (typeof removeSkeleton === "function") removeSkeleton();
+      }
     }
-  } catch (error) {
-    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลล่าสุด:", error);
-    // ถ้า Network พัง หรือดึงไม่สำเร็จ อย่างน้อยหน้าจอก็ยังมีข้อมูลจาก Cache แสดงอยู่ (เยี่ยมมาก!)
-  }
-}
 
     function updateButtonStyles() {
       const btnKami = document.getElementById('btn-kami-trigger');
