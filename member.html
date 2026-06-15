@@ -845,7 +845,9 @@
       if (savedStatsStr) {
         try {
           const savedStats = JSON.parse(savedStatsStr);
-          if (savedStats && savedStats.name && savedStats.name.toLowerCase() === memberName.toLowerCase()) {
+          // 🎯 จุดสำคัญ: เช็คว่าแคชต้องมี "total_kami" อยู่ด้วย ถึงจะยอมให้โชว์ข้อมูล
+          // ถ้าไม่มี (เช่น ข้ามมาจากหน้า Ranking) ให้มันตกไปที่โหมด Skeleton (กำลังโหลด...) ทันที
+          if (savedStats && savedStats.name && savedStats.name.toLowerCase() === memberName.toLowerCase() && savedStats.total_kami !== undefined) {
              hasValidCache = true;
           }
         } catch(e) {}
@@ -855,7 +857,7 @@
         removeSkeleton();
         renderMemberStatsAndFans(); 
       } else {
-        showSkeleton();
+        showSkeleton(); // 🌟 แสดงแถบกระพริบโหลด (...) รอจนกว่า Apps Script จะส่งข้อมูลมาครบทั้งหมด
       }
 
       updateButtonStyles();
