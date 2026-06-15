@@ -2071,21 +2071,19 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
   
-function renderRanking(data) {
+function renderRanking(data, masterMembers = []) {
   const list = document.getElementById('ranking-list');
   if (!list) return;
   list.innerHTML = '';
   const isMember = isUserMember();
 
-  // 🎓 ดึงเฉพาะ "ชื่อ" ของเมมเบอร์ที่ยัง Active อยู่ (ไม่จบการศึกษา) มาทำเป็น Set เพื่อใช้เช็คอย่างรวดเร็ว
+  // ใช้ masterMembers ที่ส่งเข้ามาในการคัดกรองสถานะจบการศึกษา
   const activeMemberNames = new Set(
-    membersData.filter(member => member.status !== 'Graduated').map(m => m.name)
+    masterMembers.filter(member => member.status !== 'Graduated').map(m => m.name)
   );
   
-  // 🎯 กรองข้อมูล Ranking: ต้องมีชื่อ และชื่อนั้นต้องอยู่ในกลุ่มเมมเบอร์ที่ยัง Active เท่านั้น
   const filteredData = data.filter(m => m.name && activeMemberNames.has(m.name));
   
-  // นำข้อมูลที่กรองเสร็จแล้วมาลูปแสดงผลตามลำดับอันดับ
   filteredData.forEach((m, i) => {
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
     let badgeContent = i + 1;
@@ -2096,7 +2094,7 @@ function renderRanking(data) {
     card.className = `member-card ${rankClass}`;
     
     card.innerHTML = `
-      <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
+     <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
         <img src="${getImg(m.profile_img)}" loading="lazy">
         <div class="rank-badge">${badgeContent}</div>
       </div>
