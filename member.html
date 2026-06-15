@@ -860,6 +860,37 @@
       loadMemberTimelinePosts(); 
       loadMemberSpecialThanks(); 
     }
+  
+  // ฟังก์ชันสำหรับแอบไปดึงข้อมูลใหม่ล่าสุดจากหลังบ้าน (Google Apps Script)
+async function fetchLatestMemberStats() {
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
+
+  try {
+    // ยิงไปหลังบ้านแบบใหม่ (ที่ไม่ง้อการวนลูปนับยอด Kami/Oshi แล้ว)
+    const response = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}`);
+    const data = await response.json();
+
+    if (data.status === "success") {
+      // 1. ได้ข้อมูลใหม่ปุ๊บ เอาไปอัปเดตทับใน Cache ของเดิมทันที
+      localStorage.setItem('current_member_stats', JSON.stringify(data.stats));
+      localStorage.setItem('current_member_fans', JSON.stringify(data.fans));
+
+      // 2. ปิด Skeleton (เผื่อในกรณีที่รอบแรกไม่มี Cache แล้วโหลด Skeleton ค้างไว้)
+      if (typeof removeSkeleton === "function") {
+        removeSkeleton();
+      }
+
+      // 3. สั่งเรนเดอร์หน้าจอใหม่อีกครั้ง เพื่อให้ตัวเลขที่เพิ่งดึงมาเด้งอัปเดตให้เป็นปัจจุบัน!
+      renderMemberStatsAndFans();
+      
+    } else {
+      console.error("ดึงข้อมูลล่าสุดไม่สำเร็จ:", data.message);
+    }
+  } catch (error) {
+    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลล่าสุด:", error);
+    // ถ้า Network พัง หรือดึงไม่สำเร็จ อย่างน้อยหน้าจอก็ยังมีข้อมูลจาก Cache แสดงอยู่ (เยี่ยมมาก!)
+  }
+}
 
     function updateButtonStyles() {
       const btnKami = document.getElementById('btn-kami-trigger');
