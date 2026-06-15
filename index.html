@@ -1664,6 +1664,7 @@ async function refreshAppData() {
 // ==========================================
 
 // ✨ จุดที่ 1: ดักจับตอนโครงสร้างหน้าเว็บโหลดเสร็จ (ทำงานรอบเดียว เรียงลำดับด้วย await ไม่ตีกันเอง)
+// ✨ จุดที่ 1: ดักจับตอนโครงสร้างหน้าเว็บโหลดเสร็จ (เวอร์ชันแก้ไขให้โพสต์ขึ้นค้างทันที ไม่รอกระพริบโหลด)
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     // 🔐 1. ตรวจสอบเซสชันผู้ใช้เบื้องต้นจากตัวเครื่องก่อน
@@ -1689,17 +1690,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderGlobalFans(currentTopFansData);
     }
 
-    // 🚀 4. ซ่อนหน้าต่างโหลด เพื่อให้ผู้ใช้กดปุ่มใช้งานเมนูต่างๆ บนหน้าเว็บได้ทันที
-    if (typeof hideAppLoading === 'function') hideAppLoading();
-
-    // 📡 5. ซิงค์ข้อมูลสดจาก Google Sheets (ฟังก์ชันนี้จะเช็กเองว่าชื่อยูสเซอร์โดนลบ หรือรหัสโดนถอดไหม)
-    await syncUserData();       
-    
-    // 6. แอบโหลดข้อมูลอันดับและฟีดโพสต์ไทม์ไลน์เบื้องหลังแบบเงียบๆ
-    if (typeof loadData === 'function') await loadData();
+    // 🌸 [แก้ไขจุดนี้] สั่งโหลดโพสต์ไทม์ไลน์ขึ้นมาค้างบนหน้าจอทันทีจาก Cache!
+    // ฟังก์ชันนี้จะดึงโพสต์ใน localStorage ขึ้นมาโชว์ทันทีในเสี้ยววินาทีแรก และแอบยิงเช็กโพสต์ใหม่ไปพร้อมๆ กัน
     if (typeof loadTimelinePosts === 'function') {
       loadTimelinePosts(); 
     }
+
+    // 🚀 4. ซ่อนหน้าต่างโหลด เพื่อให้ผู้ใช้กดปุ่มใช้งานเมนูต่างๆ บนหน้าเว็บได้ทันที
+    if (typeof hideAppLoading === 'function') hideAppLoading();
+
+    // 📡 5. ซิงค์ข้อมูลสดจาก Google Sheets ย้ายมาทำงานด้านหลัง (หลังจากโชว์ข้อมูลแคชเรียบร้อยแล้ว)
+    await syncUserData();       
+    
+    // 6. แอบโหลดข้อมูลอันดับเบื้องหลังแบบเงียบๆ
+    if (typeof loadData === 'function') await loadData();
 
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการเปิดหน้าแรก:", error);
@@ -2299,6 +2303,30 @@ async function claimMonthly() {
   }
 }
   
+    // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ. (ถอดแบบมาจากหน้า member)
+    function formatThaiDate(dateStr) {
+      if (!dateStr) return '';
+
+      // แยกส่วนวันที่และเวลาออกจากกัน (รองรับรูปแบบ YYYY-MM-DD HH:mm:ss)
+      const parts = dateStr.trim().split(/[- :]/);
+      if (parts.length < 5) return dateStr; // คืนค่าเดิมหากรูปแบบไม่ใช่เวลาสำเร็จรูป
+
+      const year = parseInt(parts[0]);
+      const month = parseInt(parts[1]);
+      const day = parseInt(parts[2]);
+      const hour = parts[3];
+      const min = parts[4];
+
+      const thaiMonths = [
+        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
+        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+      ];
+
+      const thaiYear = year + 543; // แปลง ค.ศ. เป็น พ.ศ.
+
+      return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
+    }
+  
   // ฟังก์ชันตรวจสอบสิทธิ์ระดับสูง
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
@@ -2310,156 +2338,181 @@ async function claimMonthly() {
         return user.username === postAuthorUsername;
     }
   
-function renderPost(post) {
-  if (!post) return '';
+    function renderPost(post) {
+      if (!post) return '';
 
-  const currentUser = getUserSession();
-  const currentUsername = currentUser ? currentUser.username : "";
-  const canManage = hasManagementPermission(post.authorUsername);
+      const currentUser = getUserSession();
+      const canManage = hasManagementPermission(post.authorUsername);
 
-  const authorName = post.authorName || 'Anonymous Member';
-  const postContent = post.content || '';
-  const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
-  const postLikes = post.likes || 0;
-  const postId = post.id || ''; 
-  const displayImage = post.imageUrl || post.imageURL || '';
-  const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
+      const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
+      const authorName = escapeHtml(post.authorName || 'Anonymous Member');
 
-  const verifiedBadgeIcon = `
-    <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-      <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-    </svg>
-  `;
-  const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
+      // [ข้อที่ 1] แปลงวันที่ให้เป็นภาษาไทยปฏิทิน พ.ศ. สวยงาม
+      const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
+      const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
 
-  // =========================================================================
-  // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
-  // =========================================================================
-  let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-  setTimeout(() => {
-   if (typeof window.listenForComments === 'function') {
-      window.listenForComments(`${postId}`);
-    }
-  }, 100);
+      const postContent = escapeHtml(post.content || ''); 
+      const postLikes = post.likes || 0;
+      const postId = post.id || ''; 
+      const displayImage = post.imageUrl || post.imageURL || '';
+      const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
 
-  // =========================================================================
-  // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
-  // =========================================================================
-  let mediaHtml = '';
-  if (post.audioURL) {
-    mediaHtml += `
-      <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
-        <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
-        <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
-          <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
-        </button>
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-          <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
-            <span>Voice Note</span>
-            <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
-          </div>
-          <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
-            <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
+      const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
+      const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
+
+      const specialBadge = isChampPost ? `
+        <div class="champ-post-badge">
+          <i class="fas fa-crown"></i> Champ of the Month Special Thanks
+        </div>
+      ` : '';
+
+      const champCardStyle = isChampPost 
+        ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
+        : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
+
+      const verifiedBadgeIcon = `
+        <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+          <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+        </svg>
+      `;
+      const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
+
+      // ตรวจสอบสถานะจบการศึกษาของเมมเบอร์ผู้โพสต์แต่ละคนในหน้าฟีดรวม
+      let isGraduated = false;
+      if (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') {
+        isGraduated = true;
+      }
+
+      // [ข้อที่ 2] โครงสร้างรูปโปรไฟล์แบบติดไอคอนหมวกรับปริญญาซ้อนท้าย (สำหรับหน้า index)
+      const profileImgHtml = isGraduated ? `
+        <div style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0;">
+          <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef;">
+          <div style="position: absolute; bottom: -2px; right: -2px; background: #888888; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
+            <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
           </div>
         </div>
-      </div>
-    `;
-  }
+      ` : `<img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">`;
 
-  if (post.videoURL) {
-    mediaHtml += `
-      <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
-        <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
-      </div>
-    `;
-  }
+      const graduatedSubtext = ''; // ปล่อยว่างเพื่อความคลีนใต้โพสต์ตามดีไซน์ใหม่ที่คุณเอ็มมี่เลือก
 
-  // =========================================================================
-  // 📸 [จัดการรูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็ม)
-  // =========================================================================
-  let imagesHtml = '';
-  if (displayImage) {
-    const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
-    const visibleImages = imageUrls.slice(0, 4);
-    
-    if (imageUrls.length === 1) {
-      // 🌟 กรณีมีรูปเดียว: แสดงเต็มความกว้างและจัดกึ่งกลาง
-      imagesHtml += `
-        <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
-          <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+      let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
+
+      if (window.listenForComments) {
+        setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
+      }
+
+      let mediaHtml = '';
+      if (post.audioURL) {
+        mediaHtml += `
+          <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
+            <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
+            <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
+              <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
+            </button>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
+                <span>Voice Note</span>
+                <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
+              </div>
+              <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
+                <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (post.videoURL) {
+        mediaHtml += `
+          <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
+            <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
+          </div>
+        `;
+      }
+
+      let imagesHtml = '';
+      if (displayImage) {
+        const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
+        const visibleImages = imageUrls.slice(0, 4);
+
+        if (imageUrls.length === 1) {
+          imagesHtml += `
+            <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
+              <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+            </div>
+          `;
+        } else {
+          imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+          visibleImages.forEach((url, index) => {
+            imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
+            imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
+            if (index === 3 && imageUrls.length > 4) {
+              imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
+            }
+            imagesHtml += `</div>`;
+          });
+          imagesHtml += `</div>`;
+        }
+      }
+
+      const actionMenu = canManage ? `
+        <div class="post-menu-container">
+          <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+          <div class="post-dropdown-menu" id="dropdown-${postId}">
+            <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(post.content || '')}')">
+              <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
+            </button>
+            <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
+              <i class="fa-solid fa-trash"></i> ลบโพสต์
+            </button>
+          </div>
+        </div>
+      ` : '';
+
+      return `
+        <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
+          ${specialBadge}
+          ${actionMenu}
+
+          <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
+            ${profileImgHtml}
+            <div>
+              <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
+              <div style="font-size: 0.8rem; color: gray;">
+                ${postTimestamp} ${graduatedSubtext}
+              </div>
+            </div>
+          </div>
+
+          <div class="post-body" style="margin-bottom: 15px;">
+            <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
+            ${imagesHtml}
+            ${mediaHtml}
+          </div>
+
+          <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
+            <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
+            </button>
+            <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
+            </button>
+          </div>
+
+          <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
+            <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
+              ${commentsHtml}
+            </div>
+            <div class="comment-input-box" style="display: flex; gap: 8px;">
+              <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
+              <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
+            </div>
+          </div>
         </div>
       `;
-    } else {
-      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์เหมือนเดิม
-      imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
-      visibleImages.forEach((url, index) => {
-        imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
-        imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
-        if (index === 3 && imageUrls.length > 4) {
-          imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
-        }
-        imagesHtml += `</div>`;
-      });
-      imagesHtml += `</div>`;
     }
-  }
-
-  const actionMenu = canManage ? `
-<div class="post-menu-container">
-  <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
-    <i class="fa-solid fa-ellipsis-vertical"></i>
-  </button>
-  <div class="post-dropdown-menu" id="dropdown-${postId}">
-    <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
-      <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
-    </button>
-    <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
-      <i class="fa-solid fa-trash"></i> ลบโพสต์
-    </button>
-  </div>
-</div>
-` : '';
-
-  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
-
-  return `
-    <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-      ${actionMenu}
-      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
-        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
-        <div>
-          <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
-          <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
-        </div>
-      </div>
-      
-      <div class="post-body" style="margin-bottom: 15px;">
-        <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
-        ${imagesHtml}
-        ${mediaHtml}
-      </div>
-      
-      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
-        </button>
-        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
-        </button>
-      </div>
-
-      <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-        <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
-          ${commentsHtml}
-        </div>
-        <div class="comment-input-box" style="display: flex; gap: 8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-          <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
   
 async function loadTimelinePosts() {
   // 🛡️ ป้องกันการโหลดซ้อน (ถ้ากดสลับแท็บรัวๆ แล้วตัวเก่ากำลัง Fetch อยู่ ให้ข้ามฟังก์ชันนี้ไปเลย)
@@ -2531,25 +2584,25 @@ async function loadTimelinePosts() {
 
     posts.forEach(post => {
       const existingPost = document.getElementById(`post-${post.id}`);
-      
+
       if (existingPost) {
-        // 🎯 สถานการณ์ A (โพสต์เดิม): อัปเดตยอดไลก์และไอคอนหัวใจเงียบๆ (หน้าจอไม่กระพริบ)
+        // 🎯 สถานการณ์ A (โพสต์เดิมมีอยู่แล้วบนจอ): อัปเดตยอดไลก์และไอคอนหัวใจเงียบๆ
         const likeCountEl = document.getElementById(`like-count-${post.id}`);
         if (likeCountEl) likeCountEl.innerText = post.likes;
-        
+
         const heartIcon = document.getElementById(`heart-${post.id}`);
         if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
       } else {
-        // 🎯 สถานการณ์ B (มีโพสต์ใหม่แกะกล่องเพิ่งลง): เรนเดอร์ HTML แล้วแทรกดันไป "บนสุด" ทันที!
+        // 🎯 สถานการณ์ B (มีโพสต์ใหม่เพิ่งลง หรือเพิ่งโหลดมา): เรนเดอร์ HTML แล้วแทรกดันไป "บนสุด" ทันที!
         container.insertAdjacentHTML('afterbegin', renderPost(post));
       }
     });
-    
+
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
     // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ (ไม่มีทั้งแคชและข้อมูลเก่า) ค่อยแสดงข้อความเตือน
     if (!hasExistingPosts) {
-      container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: #ff4d4d; font-size: 0.9rem;">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้งน้า 😥</div>`;
+      container.innerHTML = `<div id="loading-msg" style="text-align: center; padding: 30px; color: #ff4d4d; font-size: 0.9rem;">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้ง</div>`;
     }
   } finally {
     window.isTimelineLoading = false; // ปลดล็อกสถานะเสมอ ไม่ว่าจะดึงข้อมูลสำเร็จหรือพัง เพื่อให้กดโหลดรอบถัดไปได้ปกติ
