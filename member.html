@@ -568,9 +568,10 @@
 
     <div class="profile-body">
       
-    <div class="member-header-block">
-      <div id="mb-name" class="member-name">กำลังโหลด...</div>
-      <div id="mb-sub" class="member-sub">BLM48 MEMBER</div> </div>
+      <div class="member-header-block">
+        <div id="mb-name" class="member-name">กำลังโหลด...</div>
+        <div class="member-sub">BLM48 MEMBER</div>
+      </div>
 
       <div class="stats-bar">
         <div class="stat-box">
@@ -594,7 +595,7 @@
         <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
           <i class="fas fa-heart"></i> <span>+ Oshi</span>
         </button>
-        <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
+        <button class="btn-interact btn-cookie" onclick="actionCookie()">
           <i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>
         </button>
       </div>
@@ -687,52 +688,22 @@
         return url;
     }
 
-function renderMemberStatsAndFans() {
-  const savedStats = localStorage.getItem('current_member_stats');
-  if (savedStats) {
-    const m = JSON.parse(savedStats);
-    const avatarEl = document.getElementById('mb-avatar');
-    if (avatarEl) avatarEl.src = getImg(m.profile_img);
+    function renderMemberStatsAndFans() {
+      const savedStats = localStorage.getItem('current_member_stats');
+      if (savedStats) {
+        const m = JSON.parse(savedStats);
+        const avatarEl = document.getElementById('mb-avatar');
+        if (avatarEl) avatarEl.src = getImg(m.profile_img);
 
-    const kamiEl = document.getElementById('mb-kami');
-    if (kamiEl) kamiEl.innerText = m.total_kami || 0;
+        const kamiEl = document.getElementById('mb-kami');
+        if (kamiEl) kamiEl.innerText = m.total_kami || 0;
 
-    const oshiEl = document.getElementById('mb-oshi');
-    if (oshiEl) oshiEl.innerText = m.total_oshi || 0;
+        const oshiEl = document.getElementById('mb-oshi');
+        if (oshiEl) oshiEl.innerText = m.total_oshi || 0;
 
-    const scoreEl = document.getElementById('mb-score');
-    if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
-
-    // 🎓 ตรวจสอบสถานะ Graduated
-    const subEl = document.getElementById('mb-sub');
-    const cookieBtn = document.getElementById('btn-cookie-trigger');
-    
-    if (m.status && m.status.toLowerCase() === 'graduated') {
-      if (subEl) {
-        subEl.innerHTML = '<i class="fas fa-graduation-cap"></i> GRADUATED MEMBER';
-        subEl.style.color = '#868e96'; // สีเทา
+        const scoreEl = document.getElementById('mb-score');
+        if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
       }
-      if (cookieBtn) {
-        cookieBtn.setAttribute('data-graduated', 'true');
-        cookieBtn.style.background = '#f1f3f5';
-        cookieBtn.style.color = '#adb5bd';
-        cookieBtn.style.borderColor = '#e9ecef';
-        cookieBtn.innerHTML = '<i class="fas fa-cookie-bite"></i> <span>Closed</span>';
-      }
-    } else {
-      if (subEl) {
-        subEl.innerHTML = 'BLM48 MEMBER';
-        subEl.style.color = 'var(--blmem-pink)';
-      }
-      if (cookieBtn) {
-        cookieBtn.removeAttribute('data-graduated');
-        cookieBtn.style.background = '';
-        cookieBtn.style.color = '';
-        cookieBtn.style.borderColor = '';
-        cookieBtn.innerHTML = '<i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>';
-      }
-    }
-  }
 
       const savedFans = localStorage.getItem('current_member_fans');
       const fanContainer = document.getElementById('member-fans-content');
@@ -1033,28 +1004,15 @@ function renderMemberStatsAndFans() {
 
     function actionCookie() {
       if (!checkLoginStatus()) return;
-
-      // ✨ [แก้ไข] ตรวจสอบสิทธิ์และตัวแปรเพื่อป้องกัน TypeError: Cannot read properties of null
-      if (!user || !user.role || user.role.toLowerCase() !== 'user') {
+      if (!user.role || user.role.toLowerCase() !== 'user') {
         Swal.fire({ title: 'สิทธิ์ไม่ถูกต้อง', text: 'ขออภัยด้วยนะงับ ฟังก์ชันปาคุกกี้เปิดให้ใช้งานเฉพาะบัญชีประเภททั่วไปเท่านั้นค่ะ', icon: 'error', confirmButtonColor: '#ff85a2' });
-        return;
-      }
-
-      const btnCookie = document.getElementById('btn-cookie-trigger');
-      if (btnCookie && btnCookie.getAttribute('data-graduated') === 'true') {
-        Swal.fire({ 
-          title: 'จบการศึกษาแล้ว 🎓', 
-          text: 'เมมเบอร์คนนี้จบการศึกษาไปแล้วงับ ไม่สามารถส่งคุกกี้ให้ได้แล้วนะคะ แต่ยังสนับสนุนด้วยการกดเป็น Oshi หรือ Kami ได้อยู่ค่ะ!', 
-          icon: 'info', 
-          confirmButtonColor: '#ff85a2' 
-        });
         return;
       }
 
       const userCookies = user.cookie || 0;
 
       Swal.fire({
-        title: `ปาคุกกี้ให้ ${escapeHtml(memberName)}`,
+        title: `ปาคุกกี้ให้ ${memberName}`,
         html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${userCookies.toLocaleString()}</b> ชิ้น</p>`,
         input: 'number', inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการส่ง', showCancelButton: true,
         confirmButtonColor: '#ff85a2', confirmButtonText: 'ส่งคุกกี้', cancelButtonText: 'ยกเลิก',
@@ -1076,10 +1034,8 @@ function renderMemberStatsAndFans() {
 
             if (res.status === "success") {
               const scoreElement = document.getElementById('mb-score');
-              if (scoreElement) {
-                let currentScore = parseInt(scoreElement.innerText.replace(/,/g, '')) || 0;
-                scoreElement.innerText = formatMemberScore(currentScore + amountSent);
-              }
+              let currentScore = parseInt(scoreElement.innerText.replace(/,/g, '')) || 0;
+              scoreElement.innerText = formatMemberScore(currentScore + amountSent);
 
               await syncUserData(); 
               showSkeleton();
@@ -1091,16 +1047,6 @@ function renderMemberStatsAndFans() {
         }
       });
     }
-  
-  function escapeHtml(text) {
-      if (!text) return '';
-      return text.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
 
     // =========================================================================
     // 👑 ADVANCED TIMELINE PORTED LOGIC (อัปเดตให้แสดงรูปเดียวเต็มจอเหมือนหน้าหลัก)
@@ -1111,32 +1057,35 @@ function renderMemberStatsAndFans() {
         return user.username === postAuthorUsername;
     }
 
- function renderPost(post) {
+   function renderPost(post) {
   if (!post) return '';
 
   const currentUser = getUserSession();
   const currentUsername = currentUser ? currentUser.username : "";
   const canManage = hasManagementPermission(post.authorUsername);
 
-  // ✨ [แก้ไข] ย้ายการประกาศค่าไว้ด้านบนสุด ป้องกัน ReferenceError
-  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
-  const authorName = escapeHtml(post.authorName || 'Anonymous Member');
-  const postContent = escapeHtml(post.content || ''); // ป้องกัน XSS
-  const postTimestamp = escapeHtml(post.timestamp || post.date || 'เมื่อสักครู่');
+  const authorName = post.authorName || 'Anonymous Member';
+  const postContent = post.content || '';
+  const postTimestamp = post.timestamp || post.date || 'เมื่อสักครู่';
   const postLikes = post.likes || 0;
   const postId = post.id || ''; 
   const displayImage = post.imageUrl || post.imageURL || '';
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
 
+  // =========================================================================
+  // 👑 [ตรวจสอบเงื่อนไขและเตรียมป้ายพิเศษสำหรับ Champ of the Month]
+  // =========================================================================
   const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
   const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
   
+  // สร้างริบบิ้นแบนเนอร์สีทองติดที่มุมซ้ายบนของโพสต์
   const specialBadge = isChampPost ? `
     <div class="champ-post-badge" style="background: linear-gradient(135deg, #d4af37, #ffd700); color: #fff; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 0 0 10px 0; position: absolute; top: 0; left: 0; display: inline-flex; align-items: center; gap: 5px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 10;">
       <i class="fas fa-crown"></i> Champ of the Month Special Thanks
     </div>
   ` : '';
 
+  // กำหนดสไตล์ของการ์ดโพสต์ (ถ้าเป็นแชมป์ จะได้การ์ดธีมทอง-ครีม ไล่เฉดสีหรูหรา)
   const champCardStyle = isChampPost 
     ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
     : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
@@ -1147,42 +1096,18 @@ function renderMemberStatsAndFans() {
     </svg>
   `;
   const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
-       
-  let isGraduated = false;
-  if (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') {
-    isGraduated = true;
-  } else {
-    const savedStatsStr = localStorage.getItem('current_member_stats');
-    if (savedStatsStr) {
-      try {
-        const savedStats = JSON.parse(savedStatsStr);
-        if (savedStats.status && savedStats.status.toLowerCase() === 'graduated' && 
-            (post.authorName.toLowerCase() === savedStats.name.toLowerCase() || post.authorUsername.toLowerCase() === savedStats.username.toLowerCase())) {
-          isGraduated = true;
-        }
-      } catch(e) {}
-    }
-  }
 
-  const profileImgHtml = isGraduated ? `
-    <div style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0;">
-      <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef;">
-      <div style="position: absolute; bottom: -2px; right: -2px; background: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
-        <i class="fas fa-graduation-cap" style="color: #6c757d; font-size: 9px;"></i>
-      </div>
-    </div>
-  ` : `<img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">`;
-
-  const graduatedSubtext = isGraduated ? `<span style="color: #868e96; font-weight: bold; margin-left: 6px; font-size: 0.75rem;"><i class="fas fa-graduation-cap"></i> Graduated</span>` : '';
-
+  // =========================================================================
+  // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
+  // =========================================================================
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-  
-  // ✨ แนะนำให้ตรวจสอบว่าขัดแย้งกับ setInterval ใน member.html หรือไม่
-  // เช็คให้ชัวร์ว่าระบบใช้ฟังชันชื่อ listenToCommentsRealtime หรือ listenForComments
-  if (window.listenForComments) {
-    setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
-  }
+  setTimeout(() => {
+    listenToCommentsRealtime(`${postId}`);
+  }, 100);
 
+  // =========================================================================
+  // 👑 [จัดการไฟล์เสียง Voice Note และ วิดีโอ]
+  // =========================================================================
   let mediaHtml = '';
   if (post.audioURL) {
     mediaHtml += `
@@ -1207,11 +1132,14 @@ function renderMemberStatsAndFans() {
   if (post.videoURL) {
     mediaHtml += `
       <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
-        <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 autoিলেন;"></video>
+        <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
       </div>
     `;
   }
 
+  // =========================================================================
+  // 📸 [จัดการรูปภาพ] (อัปเดตใหม่: รูปเดียวโชว์เต็ม)
+  // =========================================================================
   let imagesHtml = '';
   if (displayImage) {
     const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
@@ -1237,34 +1165,35 @@ function renderMemberStatsAndFans() {
     }
   }
 
-  const actionMenu = canManage ? `
-    <div class="post-menu-container">
-      <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
-      </button>
-      <div class="post-dropdown-menu" id="dropdown-${postId}">
-        <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(post.content || '')}')">
-          <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
-        </button>
-        <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
-          <i class="fa-solid fa-trash"></i> ลบโพสต์
-        </button>
-      </div>
-    </div>
-  ` : '';
+  // ขยับปุ่มจัดการลงมานิดหน่อยถ้าเป็นโพสต์ของแชมป์ เพื่อไม่ให้ปุ่มทับริบบิ้นทอง
+ const actionMenu = canManage ? `
+<div class="post-menu-container">
+  <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </button>
+  <div class="post-dropdown-menu" id="dropdown-${postId}">
+    <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
+      <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
+    </button>
+    <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
+      <i class="fa-solid fa-trash"></i> ลบโพสต์
+    </button>
+  </div>
+</div>
+` : '';
      
+  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
+
   return `
     <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
       ${specialBadge}
       ${actionMenu}
       
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
-        ${profileImgHtml}
+        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
         <div>
-          <b style="color: ${isGraduated ? '#868e96' : '#ff85a2'};">${authorName} ${isPostVerified}</b>
-          <div style="font-size: 0.8rem; color: gray;">
-            ${postTimestamp} ${graduatedSubtext}
-          </div>
+          <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
+          <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
         </div>
       </div>
       
