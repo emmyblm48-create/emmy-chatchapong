@@ -1064,7 +1064,7 @@ async function fetchLatestMemberStats() {
       return number.toLocaleString(); 
     }
 
-    function actionCookie() {
+function actionCookie() {
       if (!checkLoginStatus()) return;
 
       if (!user || !user.role || user.role.toLowerCase() !== 'user') {
@@ -1075,7 +1075,7 @@ async function fetchLatestMemberStats() {
       const btnCookie = document.getElementById('btn-cookie-trigger');
       if (btnCookie && btnCookie.getAttribute('data-graduated') === 'true') {
         Swal.fire({ 
-          title: 'จบการศึกษาแล้ว 🎓', 
+          title: 'GRADUATED', 
           text: 'เมมเบอร์คนนี้จบการศึกษาไปแล้วงับ ไม่สามารถส่งคุกกี้ให้ได้แล้วนะคะ แต่ยังสนับสนุนด้วยการกดเป็น Oshi หรือ Kami ได้อยู่ค่ะ!', 
           icon: 'info', 
           confirmButtonColor: '#ff85a2' 
@@ -1107,16 +1107,28 @@ async function fetchLatestMemberStats() {
             const res = await resp.json();
 
             if (res.status === "success") {
-              const scoreElement = document.getElementById('mb-score');
-              if (scoreElement) {
-                let currentScore = parseInt(scoreElement.innerText.replace(/,/g, '')) || 0;
-                scoreElement.innerText = formatMemberScore(currentScore + amountSent);
+              // 🌟 [แก้บั๊กตรงนี้] ดึงคะแนนดิบๆ จาก LocalStorage มาบวกแทนการดึงจากหน้าจอ
+              const savedStatsStr = localStorage.getItem('current_member_stats');
+              if (savedStatsStr) {
+                try {
+                  const m = JSON.parse(savedStatsStr);
+                  const currentRawScore = m.all_time_total || 0;
+                  const newScore = currentRawScore + amountSent;
+                  
+                  // อัปเดตตัวเลขให้เนียนตา ก่อนรอโหลดข้อมูลจริงจากเซิร์ฟเวอร์
+                  const scoreElement = document.getElementById('mb-score');
+                  if (scoreElement) scoreElement.innerText = formatMemberScore(newScore);
+                  
+                  // เซฟค่าใหม่ลง Cache ชั่วคราวไปเลย
+                  m.all_time_total = newScore;
+                  localStorage.setItem('current_member_stats', JSON.stringify(m));
+                } catch(e) { console.error(e); }
               }
 
               await syncUserData(); 
-              showSkeleton();
-              await fetchLatestMemberStats(); 
-
+              // ✨ ลบ showSkeleton() ออกตรงนี้ เพื่อไม่ให้จอกระพริบ (ให้เลขมันขึ้นไปเลย แล้วไปโหลดเงียบๆ เบื้องหลัง)
+              fetchLatestMemberStats(); // ปล่อยให้ไปดึงข้อมูลจริงเงียบๆ เบื้องหลัง
+              
               Swal.fire({ title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ', text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`, icon: 'success', confirmButtonColor: '#ff85a2' });
             } else { Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error'); }
           } catch (e) { Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง', 'error'); }
