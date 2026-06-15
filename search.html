@@ -396,7 +396,33 @@
         document.getElementById('memberList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
       }
     }
+  
+    function openMemberProfile(name) {
+  // 1. เคลียร์แคชเก่าก่อน
+  localStorage.removeItem('current_member_stats');
+  localStorage.removeItem('current_member_fans');
+  
+  // 2. ค้นหาข้อมูลของเมมเบอร์คนนี้จากตัวแปรข้อมูลทั้งหมดในหน้าค้นหา (allMembers)
+  const m = allMembers.find(x => x.name === name);
+  
+  if (m) {
+    // 3. แพ็กข้อมูลใส่กล่องเพื่อเตรียมส่ง
+    const statsToCache = {
+      name: m.name,
+      status: m.status || "Active",
+      profile_img: m.profile_img || m.profile || "",
+      total_kami: m.total_kami !== undefined ? m.total_kami : "...",
+      total_oshi: m.total_oshi !== undefined ? m.total_oshi : "...",
+      all_time_total: m.all_time_total !== undefined ? m.all_time_total : "..."
+    };
 
+    localStorage.setItem('current_member_stats', JSON.stringify(statsToCache));
+  }
+  
+  // 4. วาร์ปไปหน้า member.html
+  window.location.href = `member.html?name=${encodeURIComponent(name)}`;
+}
+  
     function renderMembers(membersData) {
       const listContainer = document.getElementById('memberList');
       listContainer.innerHTML = ''; 
@@ -422,7 +448,8 @@
         activeMembers.forEach(m => {
           const item = document.createElement('a');
           item.className = 'member-item';
-          item.href = `member.html?name=${encodeURIComponent(m.name)}`;
+          item.href = "javascript:void(0);";
+          item.setAttribute("onclick", `openMemberProfile('${m.name}')`);
           
           // 🔒 ป้องกันความต่างของชื่อคีย์เก่าและใหม่จากหลังบ้าน
           const imgUrl = m.profile || m.profile_img || '';
