@@ -2046,13 +2046,16 @@ function renderRanking(data) {
   list.innerHTML = '';
   const isMember = isUserMember();
   
-  // 🎯 กรองข้อมูล: ลบช่องว่าง และแปลงเป็นตัวพิมพ์เล็กทั้งหมดเพื่อป้องกันการสะกดพลาด
+  // 🎯 กรองข้อมูลแบบโคตรปลอดภัย: ลบช่องว่าง และแปลงเป็นตัวพิมพ์เล็กทั้งหมดก่อนเช็ค
   const activeMembers = data.filter(m => {
     const name = m.name ? m.name.toString().trim() : "";
     const status = m.status ? m.status.toString().trim().toLowerCase() : "";
-    return name && status !== 'graduated'; // 👈 กรองคนที่เป็น graduated ออกไป
+    
+    // ถ้าไม่มีชื่อ หรือสถานะเท่ากับ 'graduated' จะถูกคัดออกทันที
+    return name && status !== 'graduated'; 
   });
 
+  // ส่วนแสดงผลด้านล่างวิ่งตามปกติ...
   activeMembers.forEach((m, i) => {
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
     let badgeContent = i + 1;
