@@ -1351,37 +1351,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   background: #fff0f2;
   color: #ff335c;
 }
-    /* CSS สำหรับไอคอนและป้ายสถานะ Graduated */
-.grad-badge {
-    font-size: 0.75rem;
-    color: #ffffff;
-    background-color: #a8a8a8; /* สีเทาบ่งบอกการจบการศึกษา */
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 600;
-}
-
-.grad-icon-profile {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    background-color: #a8a8a8;
-    color: white;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 11px;
-    border: 2px solid white;
-    z-index: 10;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-}
   </style>
 </head>
 <body>
@@ -2071,20 +2040,14 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
   
-function renderRanking(data, masterMembers = []) {
+function renderRanking(data) {
   const list = document.getElementById('ranking-list');
   if (!list) return;
   list.innerHTML = '';
   const isMember = isUserMember();
-
-  // ใช้ masterMembers ที่ส่งเข้ามาในการคัดกรองสถานะจบการศึกษา
-  const activeMemberNames = new Set(
-    masterMembers.filter(member => member.status !== 'Graduated').map(m => m.name)
-  );
   
-  const filteredData = data.filter(m => m.name && activeMemberNames.has(m.name));
-  
-  filteredData.forEach((m, i) => {
+  // กรองข้อมูลและใช้ยอดรายเดือน (monthly_cookies) ในการจัดอันดับ
+  data.filter(m => m.name).forEach((m, i) => {
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
     let badgeContent = i + 1;
     if (i === 0) badgeContent = '<i class="fas fa-crown"></i>';
@@ -2359,26 +2322,6 @@ function renderPost(post) {
     </svg>
   `;
   const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
-  
-  // 🎓 [จัดการส่วนโปรไฟล์และไอคอนจบการศึกษา]
-  // รองรับเงื่อนไขทั้ง post.authorStatus และ post.status (ป้องกันการส่งค่ามาจากหลังบ้านคนละชื่อ)
-  const isGraduated = post.authorStatus === 'Graduated' || post.status === 'Graduated'; 
-  
-  // สร้างไอคอนหมวกปริญญาดุมุมล่างขวาของรูปโปรไฟล์ สไตล์ BLM48 ชมพูหวาน
-  const gradProfileIcon = isGraduated ? `
-    <div class="grad-icon-profile" style="position: absolute; bottom: -2px; right: -2px; background: #ff85a2; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; border: 1.5px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
-      <i class="fa-solid fa-graduation-cap"></i>
-    </div>` : '';
-
-  const authorProfileImg = post.profile_img || post.authorProfile || 'https://via.placeholder.com/40';
-  
-  // ประกอบก้อน HTML โปรไฟล์ (เพื่อนำไปแทนแท็ก img เดิมด้านล่าง)
-  const postProfileHTML = `
-    <div class="img-wrapper" style="position: relative; width: 40px; height: 40px; margin-right: 10px; flex-shrink: 0;">
-        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-        ${gradProfileIcon}
-    </div>
-  `;
 
   // =========================================================================
   // 💬 [จัดการส่วนคอมเมนต์ - เวอร์ชัน Firebase เรียลไทม์]
@@ -2431,12 +2374,14 @@ function renderPost(post) {
     const visibleImages = imageUrls.slice(0, 4);
     
     if (imageUrls.length === 1) {
+      // 🌟 กรณีมีรูปเดียว: แสดงเต็มความกว้างและจัดกึ่งกลาง
       imagesHtml += `
         <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
           <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
         </div>
       `;
     } else {
+      // 🌟 กรณีมีหลายรูป: ใช้ Grid แบบ 2 คอลัมน์เหมือนเดิม
       imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
       visibleImages.forEach((url, index) => {
         imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
@@ -2451,26 +2396,28 @@ function renderPost(post) {
   }
 
   const actionMenu = canManage ? `
-    <div class="post-menu-container">
-      <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
-      </button>
-      <div class="post-dropdown-menu" id="dropdown-${postId}">
-        <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
-          <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
-        </button>
-        <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
-          <i class="fa-solid fa-trash"></i> ลบโพสต์
-        </button>
-      </div>
-    </div>
-  ` : '';
+<div class="post-menu-container">
+  <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </button>
+  <div class="post-dropdown-menu" id="dropdown-${postId}">
+    <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(postContent)}')">
+      <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
+    </button>
+    <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
+      <i class="fa-solid fa-trash"></i> ลบโพสต์
+    </button>
+  </div>
+</div>
+` : '';
+
+  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
 
   return `
     <div class="post-card" id="post-${postId}" style="position: relative; background: white; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       ${actionMenu}
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
-        ${postProfileHTML}
+        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">
         <div>
           <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
           <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
