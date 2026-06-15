@@ -2044,6 +2044,9 @@ window.addEventListener('DOMContentLoaded', () => {
 });
   
 function renderRanking(data) {
+  // 🌟 เพิ่มบรรทัดนี้ลงไปเลยครับ! เพื่อก๊อปปี้ข้อมูลไปให้ renderPost ใช้หาคน Graduated
+  window.memberData = data; 
+
   const list = document.getElementById('ranking-list');
   if (!list) return;
   list.innerHTML = '';
@@ -2358,7 +2361,7 @@ function renderPost(post) {
   const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
   const authorName = escapeHtml(post.authorName || 'Anonymous Member');
 
-  // [ข้อที่ 1] แปลงวันที่ให้เป็นภาษาไทยปฏิทิน พ.ศ. สวยงาม
+  // แปลงวันที่ให้เป็นภาษาไทย
   const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
   const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
 
@@ -2370,18 +2373,26 @@ function renderPost(post) {
 
   const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
   
-  // 🌸 ตรวจสอบสถานะจบการศึกษาของเมมเบอร์ผู้โพสต์ (ปรับปรุงให้รองรับโครงสร้างข้อมูลหลายแบบกันพลาด)
+  // 🌸 [ส่วนที่เพิ่มใหม่] ตรวจสอบสถานะ Graduated โดยอิงชื่อจากชีต members ที่ดึงมาหน้าเว็บ
   let isGraduated = false;
-  if (
-    (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') ||
-    (post.status && post.status.toLowerCase() === 'graduated') ||
-    post.isGraduated === true ||
-    post.graduated === true
-  ) {
-    isGraduated = true;
+
+  // ค้นหาข้อมูลเมมเบอร์จากตัวแปร Global (window.memberData) ที่เรามีในหน้าเว็บ
+  if (window.memberData && Array.isArray(window.memberData)) {
+    // กรองหาชื่อให้ตรงกัน (ตัดช่องว่างและทำเป็นพิมพ์เล็กทั้งหมดเพื่อความชัวร์แบบโคตรปลอดภัย)
+    const memberInfo = window.memberData.find(m => 
+      m.name && m.name.toString().trim().toLowerCase() === authorName.trim().toLowerCase()
+    );
+    // ถ้าเจอชื่อ และมีสถานะเป็น graduated
+    if (memberInfo && memberInfo.status && memberInfo.status.toString().trim().toLowerCase() === 'graduated') {
+      isGraduated = true;
+    }
   }
 
-  // 🌸 [เพิ่มจุดที่ 1] ปรับคลาสของการ์ดให้รองรับคน Graduated เพื่อแยกสไตล์ CSS
+  // Backup เผื่อกรณีหาใน data ไม่เจอ แต่ในโพสต์มีแนบสถานะมา
+  if (!isGraduated && post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') isGraduated = true;
+  if (!isGraduated && post.status && post.status.toLowerCase() === 'graduated') isGraduated = true;
+
+  // ปรับคลาสของการ์ดให้รองรับคน Graduated
   let postContainerClass = 'post-card';
   if (isChampPost) {
     postContainerClass += ' champ-special-post';
@@ -2389,12 +2400,11 @@ function renderPost(post) {
     postContainerClass += ' graduated-member-post';
   }
 
-  // 🌸 [เพิ่มจุดที่ 2] ออกแบบดีไซน์พื้นหลังและการ์ดของคน Graduated ให้ดูคลีน คลาสสิก ละมุนตา
+  // ออกแบบดีไซน์พื้นหลังและการ์ด
   let champCardStyle = '';
   if (isChampPost) {
     champCardStyle = `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;`;
   } else if (isGraduated) {
-    // สไตล์สำหรับคน Graduated: พื้นหลังสีนวลเทาอ่อนๆ ขอบเรียบร้อย ดูอบอุ่นทรงคุณค่า
     champCardStyle = `background: #fafafa; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);`;
   } else {
     champCardStyle = `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
@@ -2413,32 +2423,27 @@ function renderPost(post) {
   `;
   const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
 
-  // 🌸 [เพิ่มจุดที่ 3] สร้างกล่องป้ายชื่อสถานะ "Graduated" แบบพาสเทลสวยๆ เอาไว้แปะข้างชื่อ
+  // สร้างกล่องป้ายชื่อสถานะ "Graduated"
   const gradBadgeHtml = isGraduated ? `
     <span class="grad-text-badge" style="background: #b1becd; color: white; font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; margin-left: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; letter-spacing: 0.3px;">
       <i class="fas fa-graduation-cap" style="font-size: 0.7rem;"></i> Graduated
     </span>
   ` : '';
 
-  // 🌟 ส่วนสำคัญ: เตรียมตัวแปร Parameter สำหรับส่งไปหน้า member.html
-  const memberIdentifier = encodeURIComponent(post.authorUsername || post.uid || post.authorName || '');
-  const targetMemberUrl = `member.html?username=${memberIdentifier}`;
-
-  // 🌟 [แก้ไขจุดที่ 1] เปลี่ยนลิงก์ที่รูปโปรไฟล์ให้เป็น window.location.href ไปหน้า member.html ทันทีเมื่อคลิก
+  // 🌟 [แก้ไขสำคัญ] ใช้ onclick="openMemberProfile('${authorName}')" เหมือนใน renderRanking
   const profileImgHtml = isGraduated ? `
-    <div onclick="window.location.href='${targetMemberUrl}'" style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; cursor: pointer;">
+    <div onclick="openMemberProfile('${authorName}')" style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; cursor: pointer;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1;">
       <div style="position: absolute; bottom: -2px; right: -2px; background: #718096; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
         <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
       </div>
     </div>
   ` : `
-    <div onclick="window.location.href='${targetMemberUrl}'" style="margin-right: 10px; flex-shrink: 0; cursor: pointer;">
+    <div onclick="openMemberProfile('${authorName}')" style="margin-right: 10px; flex-shrink: 0; cursor: pointer;">
       <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
     </div>
   `;
 
-  // 🌟 [แก้ไขจุดที่ 2] ปรับให้มีข้อความ (Graduated) แสดงเพิ่มเติมใต้ชื่อคู่กับเวลาเพื่อความชัดเจนขึ้น
   const graduatedSubtext = isGraduated ? ' <span style="color: #718096; font-weight: bold;">• Graduated</span>' : '';
 
   let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
@@ -2447,6 +2452,7 @@ function renderPost(post) {
     setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
   }
 
+  // ... (โค้ดส่วน MediaHtml Audio/Video และรูปภาพเหมือนเดิม) ...
   let mediaHtml = '';
   if (post.audioURL) {
     mediaHtml += `
@@ -2525,7 +2531,7 @@ function renderPost(post) {
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
         ${profileImgHtml}
         <div>
-          <span onclick="window.location.href='${targetMemberUrl}'" style="cursor: pointer;">
+          <span onclick="openMemberProfile('${authorName}')" style="cursor: pointer;">
             <b style="color: #ff85a2;">${authorName} ${isPostVerified} ${gradBadgeHtml}</b>
           </span>
           <div style="font-size: 0.8rem; color: gray;">
