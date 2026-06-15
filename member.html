@@ -77,11 +77,9 @@
     }
 
     .hero-image-container {
+      position: relative; /* สำคัญมาก เพื่อให้ไอคอนอ้างอิงตำแหน่งจากกล่องนี้ */
+      display: inline-block;
       width: 100%;
-      height: 480px;
-      position: relative;
-      overflow: hidden;
-      background: #f3f3f3;
     }
     
     .hero-image {
@@ -91,24 +89,28 @@
       object-position: center top;
     }
 
-    /* 🎓 สไตล์ไอคอนแกรดซ้อนบนรูปโปรไฟล์หลักหลักตามรูปภาพ image_9089a3.jpg */
+    /* จัดการไอคอนหมวก */
     .grad-profile-badge {
-      display: none;
       position: absolute;
-      bottom: 25px;
-      left: calc(50% + 25px);
-      transform: translateX(-50%);
-      background: #575a5e;
-      color: white;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      justify-content: right;
-      align-items: right;
-      font-size: 13px;
-      border: 2px solid white;
-      z-index: 5;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      bottom: 15px; /* ปรับระยะห่างจากด้านล่าง */
+      right: 15px;  /* ปรับระยะห่างจากด้านขวา */
+
+      /* เพิ่มดีไซน์ให้เข้ากับธีม Cute & Dreamy */
+      background: rgba(255, 255, 255, 0.9); /* พื้นหลังขาวโปร่งแสง */
+      color: #ff85a1; /* ใช้สีชมพูประจำวง */
+      width: 35px;
+      height: 35px;
+      border-radius: 50%; /* ให้เป็นวงกลม */
+
+      /* จัดตำแหน่งไอคอนให้อยู่ตรงกลางวงกลม */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      /* เพิ่มเงาเล็กน้อยให้ดูมีมิติ */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 10; /* ให้ลอยอยู่บนรูปเสมอ */
+      font-size: 14px;
     }
     
     .hero-gradient {
@@ -579,10 +581,11 @@
 
   <div class="app-layout">
     <button class="back-circle-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
-    <div id="avatar-grad-icon" class="grad-profile-badge"><i class="fas fa-graduation-cap"></i></div>
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
+      <!-- 🎓 ไอคอนหมวกปริญญาซ้อนท้ายรูปโปรไฟล์ตามแบบแอปหลัก -->
+      <div id="avatar-grad-icon" class="grad-profile-badge"><i class="fas fa-graduation-cap"></i></div>
       <div class="hero-gradient"></div>
     </div>
 
@@ -590,6 +593,7 @@
       
     <div class="member-header-block">
       <div id="mb-name" class="member-name">กำลังโหลด...</div>
+      <!-- 🎓 ป้ายกำกับสีเทา GRADUATED ใต้ชื่อ -->
       <div id="mb-grad-badge" class="graduated-badge"><i class="fas fa-graduation-cap"></i> Graduated</div>
       <div id="mb-sub" class="member-sub">BLM48 MEMBER</div> 
     </div>
