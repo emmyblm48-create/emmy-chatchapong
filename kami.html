@@ -6,13 +6,9 @@
     <title>BLM48 Membership | My Kami-Oshi Members</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
-    <!-- สำหรับ iOS Home Screen Icon -->
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-    <!-- สำหรับ Android และ Chrome -->
     <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
     <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -141,12 +137,6 @@
             font-weight: 700;
             letter-spacing: 0.5px;
         }
-        
-        .header-title-zone p {
-            color: #999;
-            font-size: 13px;
-            margin: 0;
-        }
 
         /* โซนคามิโอชิเด่นกลาง */
         .kami-container {
@@ -164,6 +154,20 @@
             width: 100%;
             max-width: 340px;
             position: relative;
+        }
+
+        /* ลิงก์หุ้มโปรไฟล์สำหรับการกด */
+        .member-profile-link {
+            text-decoration: none;
+            color: inherit;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .member-profile-link:hover {
+            opacity: 0.85;
         }
         
         .kami-avatar-frame {
@@ -243,7 +247,7 @@
             gap: 4px;
         }
 
-        /* 🏷️ ป้ายข้อความ GRADUATED สไตล์ในรูป */
+        /* 🏷️ ป้ายข้อความ GRADUATED */
         .badge-graduated {
             background-color: #e5e7eb;
             color: #6b7280;
@@ -314,6 +318,18 @@
             transform: translateY(-2px);
             border-color: var(--primary-pink);
             box-shadow: 0 6px 18px rgba(255, 133, 162, 0.08);
+        }
+
+        .oshi-card-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            flex: 1;
+            cursor: pointer;
+        }
+        .oshi-card-link:hover {
+            opacity: 0.85;
         }
 
         .oshi-pic-wrapper {
@@ -610,7 +626,8 @@
         let user = getUserSession();
         let currentUsername = user ? user.username : "";
         let memberImageMap = {};
-        let memberStatusMap = {}; // 🌟 เพิ่มแมพสำหรับดักเก็บสถานะ Graduated ของเมมเบอร์แต่ละคน
+        let memberStatusMap = {}; 
+        let rawOshiBoardData = null; // เก็บข้อมูลแคชดิบของบอร์ดไว้ Re-render ตอนฐานข้อมูลเมมเบอร์มาถึง
 
         window.onload = async () => {
             if (!user || !currentUsername) {
@@ -631,21 +648,16 @@
             const userRole = user.role || user.position || "BLM48 Member";
             document.getElementById('user-role').textContent = userRole;
             
-            try {
-                if (typeof fetchMembersImageDB === 'function' && typeof fetchAndRenderUserOshiBoard === 'function') {
-                    await Promise.all([
-                        fetchMembersImageDB(),
-                        fetchAndRenderUserOshiBoard()
-                    ]);
-                }
-            } catch (err) {
-                console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลบอร์ด", err);
-            }
+            // เรียกบอร์ดคามิโอชิขึ้นมาสแตนบายก่อนเลย
+            fetchAndRenderUserOshiBoard();
+            
+            // โหลด DB เมมเบอร์และสเตตัสแบบ Async เมื่อมาเสร็จจะทำการอัพเกรดหน้าจอทันที
+            await fetchMembersImageDB();
         };
 
         async function fetchMembersImageDB() {
             const cacheKey = 'blm48_members_images_cache';
-            const cacheStatusKey = 'blm48_members_status_cache'; // คีย์แคชสถานะจบการศึกษา
+            const cacheStatusKey = 'blm48_members_status_cache'; 
             const cacheTimeKey = 'blm48_members_images_time';
             const tenMinutes = 10 * 60 * 1000; 
             
@@ -657,7 +669,9 @@
             if (cachedData && cachedStatus && cachedTime && (now - cachedTime < tenMinutes)) {
                 memberImageMap = JSON.parse(cachedData);
                 memberStatusMap = JSON.parse(cachedStatus);
-                console.log("🚀 ดึงรูปและสถานะเมมเบอร์จาก Cache ในเครื่อง");
+                console.log("🚀 ดึงรูปและสถานะเมมเบอร์จาก Cache สำเร็จ");
+                // สั่ง Re-Render หน้าจอเมื่อได้ข้อมูลสถานะเรียบร้อย
+                if(rawOshiBoardData) renderContent(rawOshiBoardData);
                 return;
             }
 
@@ -671,7 +685,6 @@
                     if (m.name) {
                         const key = m.name.toString().trim().toLowerCase();
                         tempMap[key] = m.profile_img || "";
-                        // ดึงสถานะจบการศึกษา (รองรับชื่อหัวคอลัมน์ status หรือ type จากชีต)
                         const currentStatus = m.status || m.type || "";
                         tempStatusMap[key] = currentStatus.toString().trim().toLowerCase() === "graduated" ? "graduated" : "active";
                     }
@@ -684,49 +697,49 @@
                 localStorage.setItem(cacheStatusKey, JSON.stringify(tempStatusMap));
                 localStorage.setItem(cacheTimeKey, now.toString());
                 
+                // ข้อมูลสดมาถึงแล้ว บังคับหน้าจออัปเดตป้าย Graduated และ ลิงก์ทันที
+                if(rawOshiBoardData) renderContent(rawOshiBoardData);
+                
             } catch (err) {
                 console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
             }
         }
 
-        function fetchAndRenderUserOshiBoard() {
+        // 🌸 ฟังก์ชันวาดหน้าจอ (Render ส่วนกลางแยกออกมาเพื่อให้เรียกทำงานซ้ำได้แม่นยำ)
+        function renderContent(data) {
             const kamiArea = document.getElementById('kami-content-area');
             const oshiArea = document.getElementById('oshi-content-area');
             if (!kamiArea || !oshiArea) return;
 
-            const cacheKey = `blm48_oshi_board_cache_${currentUsername}`;
-            const cachedDataStr = localStorage.getItem(cacheKey);
-            let hasCache = false;
+            const clearBrokenImg = "this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';";
+            
+            if (!memberImageMap || Object.keys(memberImageMap).length === 0) {
+                const imgCache = localStorage.getItem('blm48_members_images_cache');
+                const statusCache = localStorage.getItem('blm48_members_status_cache');
+                if (imgCache) memberImageMap = JSON.parse(imgCache);
+                if (statusCache) memberStatusMap = JSON.parse(statusCache);
+            }
 
-            function renderContent(data) {
-                const clearBrokenImg = "this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';";
+            const userAvatar = document.getElementById('user-avatar');
+            if (userAvatar) {
+                userAvatar.src = data.profile_img || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                userAvatar.setAttribute('onerror', clearBrokenImg);
+            }
+
+            // 👑 เรนเดอร์ คามิโอชิหลัก (Kami-Oshi) + ใส่ป้ายลิงก์ไปหน้าเมมเบอร์
+            let kamiHTML = "";
+            if (data.kamioshi) {
+                const kamiName = data.kamioshi.toString().trim();
+                const kamiKey = kamiName.toLowerCase();
+                const rawImg = memberImageMap[kamiKey] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                const isGraduated = memberStatusMap[kamiKey] === "graduated";
                 
-                if (!memberImageMap || Object.keys(memberImageMap).length === 0) {
-                    const imgCache = localStorage.getItem('blm48_members_images_cache');
-                    const statusCache = localStorage.getItem('blm48_members_status_cache');
-                    if (imgCache) memberImageMap = JSON.parse(imgCache);
-                    if (statusCache) memberStatusMap = JSON.parse(statusCache);
-                }
-
-                const userAvatar = document.getElementById('user-avatar');
-                if (userAvatar) {
-                    userAvatar.src = data.profile_img || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-                    userAvatar.setAttribute('onerror', clearBrokenImg);
-                }
-
-                // 👑 เรนเดอร์ คามิโอชิหลัก (Kami-Oshi)
-                let kamiHTML = "";
-                if (data.kamioshi) {
-                    const kamiName = data.kamioshi.toString().trim();
-                    const kamiKey = kamiName.toLowerCase();
-                    const rawImg = memberImageMap[kamiKey] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-                    const isGraduated = memberStatusMap[kamiKey] === "graduated";
-                    
-                    kamiHTML = `
-                        <div class="kami-container">
-                            <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                kamiHTML = `
+                    <div class="kami-container">
+                        <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        <a href="member.html?name=${encodeURIComponent(kamiName)}" class="member-profile-link">
                             <div class="kami-avatar-frame">
                                 <i class="fa-solid fa-crown crown-tag"></i>
                                 <img src="${getImg(rawImg)}"
@@ -739,24 +752,26 @@
                                 <div class="kami-title-name">${kamiName}</div>
                                 ${isGraduated ? `<span class="badge-graduated">GRADUATED</span>` : ''}
                             </div>
-                            <span class="badge-kami"><i class="fa-solid fa-heart"></i> Kamioshi</span>
-                        </div>`;
-                } else {
-                    kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
-                }
+                        </a>
+                        <span class="badge-kami" style="margin-top:4px;"><i class="fa-solid fa-heart"></i> Kamioshi</span>
+                    </div>`;
+            } else {
+                kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
+            }
 
-                // ❤️ เรนเดอร์ โอชิสมทบ (Oshi)
-                let oshiHTML = "";
-                const processedOshis = [...(data.oshi || [])].filter(o => o.toLowerCase() !== (data.kamioshi || "").toLowerCase());
-                
-                if (processedOshis.length > 0) {
-                    processedOshis.forEach(oshiName => {
-                        const oshiKey = oshiName.toString().trim().toLowerCase();
-                        const rawImg = memberImageMap[oshiKey] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-                        const isGraduated = memberStatusMap[oshiKey] === "graduated";
-                        
-                        oshiHTML += `
-                            <div class="oshi-box-card">
+            // ❤️ เรนเดอร์ โอชิสมทบ (Oshi) + ผูกแท็ก Link เมื่อคลิกกล่องการ์ด
+            let oshiHTML = "";
+            const processedOshis = [...(data.oshi || [])].filter(o => o.toLowerCase() !== (data.kamioshi || "").toLowerCase());
+            
+            if (processedOshis.length > 0) {
+                processedOshis.forEach(oshiName => {
+                    const oshiKey = oshiName.toString().trim().toLowerCase();
+                    const rawImg = memberImageMap[oshiKey] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                    const isGraduated = memberStatusMap[oshiKey] === "graduated";
+                    
+                    oshiHTML += `
+                        <div class="oshi-box-card">
+                            <a href="member.html?name=${encodeURIComponent(oshiName)}" class="oshi-card-link">
                                 <div class="oshi-pic-wrapper">
                                      <img src="${getImg(rawImg)}"
                                          class="oshi-pic" 
@@ -771,24 +786,34 @@
                                     </div>
                                     <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
                                 </div>
-                                <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>`;
-                    });
-                } else {
-                    oshiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกโอชิ</div>`;
-                }
-
-                kamiArea.innerHTML = kamiHTML;
-                oshiArea.innerHTML = oshiHTML;
+                            </a>
+                            <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>`;
+                });
+            } else {
+                oshiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกโอชิ</div>`;
             }
 
-            // STEP 1: แสดงจากแคชก่อนทันที
+            kamiArea.innerHTML = kamiHTML;
+            oshiArea.innerHTML = oshiHTML;
+        }
+
+        function fetchAndRenderUserOshiBoard() {
+            const kamiArea = document.getElementById('kami-content-area');
+            const oshiArea = document.getElementById('oshi-content-area');
+            
+            const cacheKey = `blm48_oshi_board_cache_${currentUsername}`;
+            const cachedDataStr = localStorage.getItem(cacheKey);
+            let hasCache = false;
+
+            // STEP 1: วาดจากแคชเก่าก่อนทันที (เพื่อความเร็ว)
             if (cachedDataStr) {
                 try {
                     const cachedData = JSON.parse(cachedDataStr);
                     if (cachedData) {
+                        rawOshiBoardData = cachedData;
                         renderContent(cachedData);
                         hasCache = true;
                     }
@@ -797,7 +822,7 @@
                 }
             }
 
-            // STEP 2: โชว์โครงหลอกระหว่างรอ
+            // STEP 2: โชว์โครงหลอกระหวังรอข้อมูลใหม่
             if (!hasCache) {
                 kamiArea.innerHTML = `
                     <div class="kami-container skeleton-card">
@@ -815,12 +840,13 @@
                     </div>`).join('');
             }
 
-            // STEP 3: ดึงข้อมูลสดใหม่เบื้องหลัง
+            // STEP 3: ดึงข้อมูลสดจากแผ่นงาน
             fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}&_=${Date.now()}`)
                 .then(response => response.json())
                 .then(res => {
                     if (res.status === "success" && res.data) {
                         localStorage.setItem(cacheKey, JSON.stringify(res.data));
+                        rawOshiBoardData = res.data;
                         renderContent(res.data);
                     }
                 })
