@@ -1105,7 +1105,7 @@
         return user.username === postAuthorUsername;
     }
 
- function renderPost(post) {
+function renderPost(post) {
   if (!post) return '';
 
   const currentUser = getUserSession();
@@ -1144,8 +1144,12 @@
   `;
   const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
        
+  // 🛠️ ปรับปรุงจุดนี้: เช็คสถานะแบบ Real-time ไม่ให้เกิดการหน่วงเวลารอ LocalStorage
   let isGraduated = false;
   if (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') {
+    isGraduated = true;
+  } else if (window.currentMemberStatus && window.currentMemberStatus.toLowerCase() === 'graduated') {
+    // ดึงค่าสเตตัสล่าสุดจากหน้าต่างหลักทันทีเมื่อมีการกดเปลี่ยนคน
     isGraduated = true;
   } else {
     const savedStatsStr = localStorage.getItem('current_member_stats');
