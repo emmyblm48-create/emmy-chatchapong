@@ -763,84 +763,48 @@
             }
         }
 
-        // ==========================================
-// 🎨 ระบบโหลดธีมผู้ชนะประจำเดือนแบบมีระบบ Cache & Sync อัปเดต
-// ==========================================
-function loadChampOfTheMonth() {
+// ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชัน Cache) สำหรับหน้าย่อย
+function loadChampThemeSubPage() {
   const CACHE_KEY = "bnl_winner_theme_cache";
   
-  // 1. ดึงข้อมูลธีมเก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (แอปเปิดไว ไม่รอกระพริบ)
+  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
   const cachedData = localStorage.getItem(CACHE_KEY);
   if (cachedData) {
-    try {
-      const parsedData = JSON.parse(cachedData);
-      applyWinnerTheme(parsedData); // สั่งแสดงผลรูปภาพและไอคอนเก่าทันที
-    } catch (e) {
-      console.error("การอ่านข้อมูลแคชธีมขัดข้อง:", e);
-    }
+    try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
   }
 
-  // 2. แอบยิงไปถามหลังบ้านเงียบๆ ว่าข้อมูลมีการอัปเดตเปลี่ยนคนชนะหรือรูปภาพใหม่หรือยัง
-  fetch(`${scriptURL}?action=getWinnerTheme`)
+  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
+  // ตัวแปรหลังบ้านบางหน้าใช้ scriptURL บางหน้าใช้ SCRIPT_URL ตรวจสอบให้ตรงกันนะครับน้า
+  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+  if (!finalURL) return;
+
+  fetch(`${finalURL}?action=getWinnerTheme`)
     .then(response => response.json())
     .then(newData => {
-      if (newData && newData.name) {
-        
-        // 🔄 เช็กว่าข้อมูลใหม่กับข้อมูลในแคชเก่าตรงกันไหม?
-        // ถ้าไม่ตรงกัน หรือยังไม่เคยเก็บแคช แปลว่า "มีการอัปเดตข้อมูลแชมป์"
-        if (cachedData !== JSON.stringify(newData)) {
-          console.log("✨ พบการอัปเดตธีมใหม่! กำลังล้าง Session เก่าและบันทึกข้อมูลล่าสุด...");
-          
-          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกทับอันใหม่
-          applyWinnerTheme(newData); // สั่งเปลี่ยนรูปภาพบนหน้าจอเป็นเวอร์ชันล่าสุดทันที
-        } else {
-          console.log(" ข้อมูลธีมเป็นปัจจุบันอยู่แล้ว ไม่ต้องโหลดใหม่");
-        }
+      if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกแคชใหม่ล้างอันเก่า
+        applySubPageTheme(newData); // อัปเดตรูปบนจอให้เป็นปัจจุบันทันที
       }
-      
-      // ปิดหน้าจอโหลดวงกลมหมุนๆ หลังจากเช็กข้อมูลเสร็จ
-      hideThemeLoadingScreen();
-    })
-    .catch(error => {
-      console.error("เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อซิงค์ธีม:", error);
-      hideThemeLoadingScreen();
-    });
+    }).catch(e => console.error(e));
 }
 
-/**
- * ฟังก์ชันสำหรับสั่งให้นำข้อมูลธีมไปวาดลงหน้าจอ 
- * (แยกออกมาเพื่อรองรับการเรียกใช้ซ้ำ ทั้งจากแคช และจากตอนอัปเดตข้อมูลสดครับ)
- */
-function applyWinnerTheme(champData) {
+function applySubPageTheme(champData) {
   if (!champData) return;
-  
-  // เปลี่ยนรูปภาพหน้าจอ Splash Screen 
-  const mainSplash = document.getElementById('main-splash');
-  if (mainSplash && champData.splash) {
-    mainSplash.src = champData.splash;
-  }
-  
-  // เรียกใช้งานระบบสลับสับเปลี่ยนไอคอนแถบด้านล่าง
-  updateTabIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
-  updateTabIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
-  updateTabIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
-  updateTabIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+  updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+  updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+  updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+  updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
 }
 
-/**
- * ฟังก์ชันสลับไอคอน: ถ้ามีรูปภาพพิเศษให้โชว์รูปภาพและซ่อนไอคอนเริ่มต้น
- */
-function updateTabIcon(imgId, fallbackId, iconUrl) {
+function updateSubPageIcon(imgId, fallbackId, iconUrl) {
   const imgElement = document.getElementById(imgId);
   const fallbackElement = document.getElementById(fallbackId);
-  
   if (imgElement && fallbackElement) {
     if (iconUrl && iconUrl.trim() !== "") {
       imgElement.src = iconUrl;
-      imgElement.style.display = 'block';       // เปิดโชว์รูปภาพสั่งทำของเอ็มมี่
-      fallbackElement.style.display = 'none';    // ซ่อนไอคอนเริ่มต้นทิ้งไป
+      imgElement.style.display = 'block';
+      fallbackElement.style.display = 'none';
     } else {
-      // เคสเผื่ออนาคตในชีตไม่มีรูปภาพ ให้ถอยกลับไปใช้ไอคอนปกติ
       imgElement.style.display = 'none';
       fallbackElement.style.display = 'block';
     }
@@ -1060,6 +1024,7 @@ function hideThemeLoadingScreen() {
             if (typeof checkNotificationBadge === 'function') {
                 checkNotificationBadge();
             }
+          loadChampThemeSubPage();
 
             const tabProfileImg = document.getElementById('tab-profile-img');
             if (tabProfileImg) {
