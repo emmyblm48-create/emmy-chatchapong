@@ -500,13 +500,17 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   margin: 30px 0 15px 20px; font-size: 18px; 
   border-left: 5px solid var(--primary-pink); padding-left: 12px; 
 }
-.ranking-wrapper { 
-  width: 100%; 
-  overflow-x: auto; 
-  padding: 15px 10px; 
-  display: flex; 
-  -webkit-overflow-scrolling: touch; 
-  gap: 10px; /* ระยะห่างระหว่างการ์ด */
+.ranking-wrapper {
+  position: relative;
+  background-color: #fff5f6; /* สีชมพูพาสเทลจางๆ เป็นพื้นหลังหลัก */
+  
+  /* สร้าง Pattern ไอคอนจางๆ วนซ้ำ (ตัวอย่างนี้ใช้รูปไอคอนดาว/หัวใจ) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23ffb3c1' fill-opacity='0.15'%3E%3Cpath d='M12 24c0-1.1.9-2 2-2h4v-4c0-1.1.9-2 2-2s2 .9 2 2v4h4c1.1 0 2 .9 2 2s-.9 2-2 2h-4v4c0 1.1-.9 2-2 2s-2-.9-2-2v-4h-4c-1.1 0-2-.9-2-2zm28 12c0-1.1.9-2 2-2h4v-4c0-1.1.9-2 2-2s2 .9 2 2v4h4c1.1 0 2 .9 2 2s-.9 2-2 2h-4v4c0 1.1-.9 2-2 2s-2-.9-2-2v-4h-4c-1.1 0-2-.9-2-2z'/%3E%3C/g%3E%3C/svg%3E");
+  
+  padding: 15px;
+  border-radius: 20px;
+  box-shadow: inset 0 2px 8px rgba(255, 179, 193, 0.1);
+  overflow: hidden;
 }
 .horizontal-list { 
   display: flex; gap: 12px; padding: 10px 20px; 
@@ -1391,7 +1395,32 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   margin-right: 4px;
   filter: drop-shadow(0px 2px 4px rgba(255, 192, 203, 0.5));
 }
-    
+    /* กำหนดให้กล่องเก็บไอคอนอยู่ชั้นล่างสุด */
+.bg-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none; /* ทำให้กดทะลุไปโดนลิสต์การ์ดได้ปกติ */
+}
+
+/* สไตล์เริ่มต้นของไอคอนพื้นหลัง ให้สีชมพูจางๆ ดูฟุ้งๆ */
+.decor-item {
+  position: absolute;
+  color: #ffccd5; 
+  opacity: 0.4;
+  font-size: 1.5rem;
+  filter: blur(0.5px);
+}
+
+/* จัดวางตำแหน่งสุ่มกระจายตามมุมต่างๆ */
+.d1 { top: 10%; left: 5%; transform: rotate(-15deg); font-size: 1.2rem; }
+.d2 { bottom: 15%; left: 25%; transform: rotate(20deg); }
+.d3 { top: 20%; right: 30%; transform: rotate(10deg); font-size: 1rem; }
+.d4 { bottom: 10%; right: 5%; transform: rotate(-25deg); }
+.d5 { top: 40%; left: 60%; transform: rotate(45deg); opacity: 0.3; }
   </style>
 </head>
 <body>
@@ -1485,8 +1514,17 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   
 </div>
 
-<div class="ranking-wrapper">
-  <div id="ranking-list" class="horizontal-list"></div>
+<div class="ranking-wrapper" style="position: relative; overflow: hidden;">
+  
+  <div class="bg-decorations">
+    <i class="fa-solid fa-crown decor-item d1"></i>
+    <i class="fa-solid fa-heart decor-item d2"></i>
+    <i class="fa-solid fa-star decor-item d3"></i>
+    <i class="fa-solid fa-music decor-item d4"></i>
+    <i class="fa-solid fa-wand-magic-sparkles decor-item d5"></i>
+  </div>
+
+  <div id="ranking-list" class="horizontal-list" style="position: relative; z-index: 2;"></div>
 </div>
  
 <div class="section-title"> Top Fans</div>
@@ -3522,7 +3560,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 <div class="bottom-tab-bar">
   
-  <a href="index.html" class="tab-item active">
+  <a href="index.html" class="tab-item">
     <i id="nav-home-fallback" class="fa-solid fa-house"></i>
     <img id="nav-home" src="" alt="Home" style="display: none;">
   </a>
