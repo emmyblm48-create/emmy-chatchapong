@@ -964,81 +964,91 @@
           z-index: 10;
         }
 
-       .bottom-tab-bar {
-        height: calc(85px + env(safe-area-inset-bottom, 0px)); 
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        z-index: 999;
-        background: transparent; 
-        display: flex;
-        justify-content: space-around;
-        align-items: flex-end; 
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        box-sizing: border-box;
-      }
+      .bottom-tab-bar {
+  /* 👑 Layer 1: ชั้นโปร่งใสล่างสุด ขยายความสูงรวมเพิ่มขึ้นเป็น 110px ให้ Nav ดูสูงเด่น */
+  height: calc(110px + env(safe-area-inset-bottom, 0px)); 
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: transparent; 
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่างสุด */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}
 
-      .bottom-tab-bar::before {
-        content: "";
-        position: absolute;
-        top: 25px; 
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: #ffffff; 
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        border-radius: 24px 24px 0 0; 
-        box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.08); 
-        z-index: 1;
-      }
+.bottom-tab-bar::before {
+  content: "";
+  position: absolute;
+  /* 👑 Layer 2: ขยับท็อปลงมาที่ 60px เพื่อให้เหลือเนื้อผ้าสีขาวหนา 50px (เกือบครึ่งหนึ่งของความสูงรวม 110px) */
+  top: 60px; 
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff; 
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 28px 28px 0 0; /* เพิ่มความโค้งมนให้ดูละมุนรับกับบาร์ที่สูงขึ้น */
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08); /* เพิ่มมิติเงาให้ดูลอยแยกชั้นชัดเจน */
+  z-index: 1;
+}
 
-      .tab-item {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 20%;
-        height: 60px; 
-        position: relative;
-        z-index: 2; 
-        text-decoration: none;
-        color: #8e8e93; 
-        transform: translateY(-15px); 
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      }
+.tab-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  height: 50px; /* ปรับความสูงบล็อกกดให้บาลานซ์กับ Layer สีขาว */
+  position: relative;
+  z-index: 2; 
+  text-decoration: none;
+  color: #8e8e93; 
+  
+  /* 🚀 ดันไอคอนให้เลื่อนสูงขึ้นไปข้างบน 30px ทะลุเลเยอร์สีขาวขึ้นไปลอยเด่นอยู่บนชั้นโปร่งใสครึ่งตัวพอดี */
+  transform: translateY(-30px); 
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* ปรับสปริงให้เด้งนุ่มนวลขึ้น */
+}
 
-      .tab-item:active {
-        transform: translateY(-15px) scale(0.88);
-        opacity: 0.8;
-      }
+/* 🌟 เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มปกติ */
+.tab-item:active {
+  transform: translateY(-30px) scale(0.85);
+  opacity: 0.8;
+}
 
-      .tab-item.active {
-        color: #ffb3c1; 
-        transform: translateY(-22px); 
-      }
-      .tab-item.active:active {
-        transform: translateY(-22px) scale(0.88);
-      }
+/* 👑 ปุ่มสถานะ Active (หน้าปัจจุบัน): ดีดตัวลอยสูงเด่นขึ้นไปอีกที่ 45px กลายเป็นปุ่มฮีโร่ลอยเด่นสะดุดตา */
+.tab-item.active {
+  color: #ffb3c1; 
+  transform: translateY(-45px); 
+}
+/* เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มที่ Active อยู่ */
+.tab-item.active:active {
+  transform: translateY(-45px) scale(0.85);
+}
 
-      .tab-item i {
-        font-size: 34px;
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08)); 
-      }
+/* ขยายขนาดไอคอน FontAwesome (34px เท่าเดิม แต่ใส่เงาให้ลอยตามบาร์) */
+.tab-item i {
+  font-size: 34px;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.08)); 
+}
 
-      .tab-item img {
-        width: 44px;
-        height: 44px;
-        object-fit: contain;
-        filter: drop-shadow(0 5px 8px rgba(0,0,0,0.12)); 
-      }
+/* ขยายขนาดรูปไอคอนแชมป์สั่งทำ (44px เท่าเดิม พร้อมเพิ่มเงาตกกระทบลงบนเลเยอร์สีขาว) */
+.tab-item img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12)); 
+}
 
-      #tab-profile-img {
-        width: 38px !important;
-        height: 38px !important;
-        border-radius: 50%;
-        border: 2px solid #ffb3c1;
-        box-sizing: border-box;
-      }
+/* ปรับแต่งวงกลมรูปโปรไฟล์ให้ลอยขึ้นมาอย่างสมดุล */
+#tab-profile-img {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50%;
+  border: 2px solid #ffb3c1;
+  box-sizing: border-box;
+}
 
         @media (max-width: 600px) {
             /* สำหรับคุม Layout ข้อมูลการสั่งสินค้าไม่ให้ทับซ้อน */
@@ -1297,7 +1307,7 @@
     <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
     <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
   </a>
-  <a href="shop.html" class="tab-item active">
+  <a href="shop.html" class="tab-item">
     <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
     <img id="nav-cart" src="" alt="Shop" style="display: none;">
   </a>
