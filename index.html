@@ -1364,6 +1364,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <div class="loader-text">กำลังรวบรวมคุกกี้...</div>
   </div>
 </div>
+<div id="splash-screen" style="position: fixed; width: 100%; height: 100vh; z-index: 999;">
+    <img id="main-splash" src="images/default-splash.jpg" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
 
 <!-- Overlay สำหรับปิด Sidebar -->
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -1657,6 +1660,49 @@ async function refreshAppData() {
     if (typeof hideAppLoading === 'function') hideAppLoading();
   }
 }
+  
+// ==========================================
+// 🎨 [เพิ่มใหม่] 5.1 ระบบโหลดธีมผู้ชนะประจำเดือน (Splash Screen & Nav Icons)
+// ==========================================
+function loadChampOfTheMonth() {
+  // ดึงข้อมูลผ่าน scriptURL ตัวเดิมที่มีอยู่แล้ว โดยต่อท้ายด้วยแอคชัน getWinnerTheme
+  fetch(`${scriptURL}?action=getWinnerTheme`)
+    .then(response => response.json())
+    .then(champData => {
+      console.log("ดึงข้อมูลธีมผู้ชนะสำเร็จ:", champData);
+      
+      if (champData) {
+        // 1. เปลี่ยนรูปภาพหน้าจอ Splash Screen (เช็กก่อนว่ามี ID นี้ในหน้าเว็บไหม)
+        const mainSplash = document.getElementById('main-splash');
+        if (mainSplash && champData.splash) {
+          mainSplash.src = champData.splash;
+        }
+        
+        // 2. เปลี่ยนรูปไอคอนบน Navigation bar ครบทุกปุ่มตามที่เอ็มมี่เพิ่มมาในชีต members
+        const navHome = document.getElementById('nav-home');
+        const navCart = document.getElementById('nav-cart');
+        const navKami = document.getElementById('nav-kami');
+        const navNoti = document.getElementById('nav-noti');
+
+        if (navHome && champData.homeIcon) navHome.src = champData.homeIcon;
+        if (navCart && champData.cartIcon) navCart.src = champData.cartIcon;
+        if (navKami && champData.kamiIcon) navKami.src = champData.kamiIcon;
+        if (navNoti && champData.notiIcon) navNoti.src = champData.notiIcon;
+      }
+      
+      // หน่วงเวลาเล็กน้อยหลังจากเปลี่ยนรูปเสร็จ แล้วค่อยซ่อนหน้าจอโหลด
+      setTimeout(() => {
+        const appLoading = document.getElementById('app-loading-screen');
+        if (appLoading) appLoading.style.display = 'none';
+      }, 500);
+    })
+    .catch(error => {
+      console.error("เกิดข้อผิดพลาดในการดึงข้อมูลธีม:", error);
+      // ถ้าเกิดข้อผิดพลาดหรือเน็ตหลุด ให้ปิดหน้าจอโหลดเช่นกัน แฟนคลับจะได้ไม่เจอหน้าจอค้าง
+      const appLoading = document.getElementById('app-loading-screen');
+      if (appLoading) appLoading.style.display = 'none';
+    });
+}
 
 // ==========================================
 // 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันอย่างเป็นระเบียบ)
@@ -1678,6 +1724,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 🔄 2. ตรวจสอบเวอร์ชันแอปเพื่อเคลียร์แคชเก่าอัตโนมัติ
     checkVersion(); 
+    loadChampOfTheMonth();
     
     // 🎨 3. วาดหน้าจอแสดงผลด้วยข้อมูลเก่าจาก Cache ทันทีเพื่อให้แอปเปิดไวแบบไม่ต้องรอโหลดซิงค์ข้อมูล
     if (typeof updateUI === 'function') updateUI();
@@ -3361,18 +3408,26 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 </script>
 <div class="bottom-tab-bar">
+  
+  <!-- 1. หน้าแรก (เปลี่ยนจากไอคอน <i> มาเป็นรูปภาพที่มี id="nav-home" เพื่อให้เปลี่ยนรูปตามแชมป์โหวตได้) -->
   <a href="index.html" class="tab-item active">
-    <i class="fa-solid fa-house"></i>
+    <img id="nav-home" src="images/icons/default-home.png" alt="Home" style="width: 24px; height: 24px; object-fit: contain; margin-bottom: 4px;">
     <span>Home</span>
   </a>
+
+  <!-- 2. หน้าคามิโอชิ -->
   <a href="kami.html" class="tab-item">
     <i class="fa-solid fa-star"></i>
     <span>My Oshi</span>
   </a>
+
+  <!-- 3. หน้าร้านค้า (เปลี่ยนจากไอคอน <i> มาเป็นรูปภาพที่มี id="nav-cart" สำหรับเปลี่ยนรูปไอคอนตะกร้าสินค้า) -->
   <a href="shop.html" class="tab-item">
-    <i class="fa-solid fa-bag-shopping"></i>
+    <img id="nav-cart" src="images/icons/default-cart.png" alt="Shop" style="width: 24px; height: 24px; object-fit: contain; margin-bottom: 4px;">
     <span>Shop</span>
   </a>
+
+  <!-- 4. หน้าแจ้งเตือน -->
   <a href="notification.html" class="tab-item">
     <div class="icon-wrapper">
       <i class="fa-solid fa-bell"></i>
@@ -3380,10 +3435,13 @@ document.addEventListener("DOMContentLoaded", () => {
       <span>Notification</span>
     </div>
   </a>
- <a href="profile.html" class="tab-item">
+
+  <!-- 5. หน้าโปรไฟล์ (มีรูปโปรไฟล์อยู่แล้ว) -->
+  <a href="profile.html" class="tab-item">
     <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
     <span>Profile</span>
   </a>
+
 </div>
 </body>
 </html>
