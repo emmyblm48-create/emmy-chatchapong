@@ -288,62 +288,90 @@ body {
     box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
 }
     
-   .bottom-tab-bar {
-      /* 💡 แก้ไขจุดสำคัญ: คำนวณความสูงเผื่อขอบล่างของ iPhone/Android รุ่นใหม่ๆ จะได้ไม่โดนเส้นระบบบังขอบกด */
-      height: calc(70px + env(safe-area-inset-bottom, 0px)); 
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+.bottom-tab-bar {
+  /* 👑 Layer 1: ล่างสุด ใหญ่สุด และโปร่งใสสนิท (ขยายความสูงขึ้นเป็น 85px เพื่อสร้างพื้นที่ให้ปุ่มลอย) */
+  height: calc(85px + env(safe-area-inset-bottom, 0px)); 
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: transparent; /* โปร่งใสตามที่เอ็มมี่ต้องการ */
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่าง */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}
 
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background: #fff;
-      border-top: 1px solid #f0f0f0;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      z-index: 999;
-      box-sizing: border-box;
-    }
+/* 👑 Layer 2: แถบสีขาวที่ซ้อนอยู่ด้านบน ทำขอบโค้งและใส่เงาเพื่อให้ดูลอยมีมิติ */
+.bottom-tab-bar::before {
+  content: "";
+  position: absolute;
+  top: 25px; /* เว้นพื้นที่ด้านบนสุดไว้ 25px เพื่อปล่อยให้ไอคอนลอยทะลุขอบสีขาวขึ้นไป */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff; /* Layer สีขาว */
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 24px 24px 0 0; /* ทำมุมบนโค้งมนเพิ่มความนุ่มนวลพรีเมียม */
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.08); /* ใส่เงาฟุ้งๆ ดันให้บาร์สีขาวดูลอยแยกชั้น */
+  z-index: 1;
+}
 
-    .tab-item {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 20%;
-      height: 100%;
-      color: #8e8e93; 
-      text-decoration: none;
-      transition: transform 0.1s ease; /* เพิ่มเอฟเฟกต์ตอนกดเล็กน้อย */
-    }
+.tab-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  height: 60px; /* กำหนดพื้นที่สำหรับใช้นิ้วกดให้กว้างเต็มที่ */
+  position: relative;
+  z-index: 2; /* ดันตัวปุ่มให้อยู่เหนือ Layer สีขาว */
+  text-decoration: none;
+  color: #8e8e93; /* สีไอคอนปกติ */
+  
+  /* 🌟 ไฮไลต์: สั่งยกตัวปุ่มลอยขึ้นไปด้านบน 15px ทะลุเส้นขอบบาร์สีขาวขึ้นมาครึ่งนึงพอดี! */
+  transform: translateY(-15px); 
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* เอฟเฟกต์สปริงตอนเด้ง */
+}
 
-    /* 🌟 เพิ่มระบบ Touch Feedback: เวลานิ้วจิ้มปุ่ม ปุ่มจะยุบลงนิดหน่อย ให้ความรู้สึกเหมือนแอปจริงๆ */
-    .tab-item:active {
-      transform: scale(0.9);
-      opacity: 0.7;
-    }
+/* 🌟 ระบบ Touch Feedback ตอนเอานิ้วจิ้ม: ปุ่มจะยุบลงและจางลงเล็กน้อย ให้ความรู้สึกนุ่มมือเหมือนแอปจริง */
+.tab-item:active {
+  transform: translateY(-15px) scale(0.88);
+  opacity: 0.8;
+}
 
-    .tab-item.active {
-      color: #ffb3c1; 
-    }
+/* ปุ่มสถานะเปิดใช้งานอยู่ (Active): ให้เด้งลอยเด่นขึ้นไปอีกนิด เพื่อบอกแฟนคลับว่าอยู่หน้านี้ */
+.tab-item.active {
+  color: #ffb3c1; /* สีชมพูประจำแอป */
+  transform: translateY(-22px); /* ลอยสูงกว่าปุ่มอื่นขึ้นไปอีกนิด */
+}
+.tab-item.active:active {
+  transform: translateY(-22px) scale(0.88);
+}
 
-    /* ขยายขนาดไอคอนเริ่มต้น FontAwesome (ใหญ่ขึ้นเป็น 30px) */
-    .tab-item i {
-      font-size: 30px; 
-    }
+/* 🔥 ขยายขนาดไอคอน FontAwesome เริ่มต้นให้ใหญ่สะใจ (34px) */
+.tab-item i {
+  font-size: 34px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08)); /* แถมเงาบางๆ ใต้ไอคอนเพิ่มความลอย */
+}
 
-    /* ขยายขนาดรูปภาพไอคอนสั่งทำพิเศษของเอ็มมี่ (ใหญ่เต็มตาขึ้นเป็น 38px) */
-    .tab-item img {
-      width: 38px; 
-      height: 38px; 
-      object-fit: contain;
-    }
+/* 🔥 ขยายขนาดรูปภาพไอคอนแชมป์โหวตสั่งทำพิเศษของเอ็มมี่ให้ใหญ่เต็มตา (44px) */
+.tab-item img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,0.12)); /* ให้รูปภาพโอชิที่เอ็มมี่แต่ง ดูลอยเด่นออกมา */
+}
 
-    /* ล็อกขนาดรูปโปรไฟล์ให้สมดุลกับเพื่อนๆ */
-    #tab-profile-img {
-      width: 34px !important;
-      height: 34px !important;
-    }
+/* ล็อกขนาดรูปโปรไฟล์ใน Layer ลอยให้สมดุลสวยงาม (38px) */
+#tab-profile-img {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50%;
+  border: 2px solid #ffb3c1;
+  box-sizing: border-box;
+}
 
     /* เพิ่มแอนิเมชันให้ตัวหนังสือค่อยๆ ปรากฏขึ้นตอนเปลี่ยนหน้า */
     @keyframes fadeInText {
