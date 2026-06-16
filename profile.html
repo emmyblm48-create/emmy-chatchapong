@@ -294,71 +294,80 @@
   font-weight: 600;
 }
 
-      /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁️ */
 .bottom-tab-bar {
-    position: fixed;
-    bottom: 24px; /* ลอยขึ้นมาจากขอบล่างให้มีช่องไฟสวยๆ */
-    left: 50%;
-    transform: translateX(-50%); /* จัดให้อยู่กึ่งกลางหน้าจอเสมอ */
-    width: 90%; /* ความกว้างยืดหยุ่นตามหน้าจอมือถือ */
-    max-width: 440px; /* จำกัดความกว้างสูงสุดไม่ให้แผ่กว้างเกินไปบนแท็บเล็ต */
-    height: 68px;
-    background: rgba(255, 255, 255, 0.92); /* ขาวนวลแบบโปร่งแสงนิดๆ */
-    backdrop-filter: blur(10px); /* เอฟเฟกต์กระจกฝ้าเบลอหลังบ้าน */
-    -webkit-backdrop-filter: blur(10px);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-radius: 35px; /* ทำขอบมนกลมแบบโค้งมนสุดๆ */
-    border: 1px solid rgba(255, 204, 213, 0.5); /* เส้นขอบชมพูบางๆ */
-    box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15); /* เงาฟุ้งละมุนตา */
-    z-index: 1000;
-    padding: 0 10px;
-    box-sizing: border-box;
-    touch-action: manipulation;
+  height: calc(85px + env(safe-area-inset-bottom, 0px)); 
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: transparent; 
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end; 
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
 }
 
-/* สไตล์ปุ่มเมนูทั่วไป 🎀 */
+.bottom-tab-bar::before {
+  content: "";
+  position: absolute;
+  top: 25px; 
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff; 
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 24px 24px 0 0; 
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.08); 
+  z-index: 1;
+}
+
 .tab-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px; /* ระยะห่างระหว่างไอคอนกับตัวหนังสือ */
-    color: #ffb3c1; /* สีชมพูพาสเทลตอนยังไม่ได้กดเลือก */
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-family: 'Quicksand', 'Kanit', sans-serif;
-    font-weight: 600;
-    padding: 10px 14px;
-    border-radius: 25px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* แอนิเมชันตอนกดสลับคลาส */
-    -webkit-tap-highlight-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  height: 60px; 
+  position: relative;
+  z-index: 2; 
+  text-decoration: none;
+  color: #8e8e93; 
+  transform: translateY(-15px); 
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tab-item:active {
+  transform: translateY(-15px) scale(0.88);
+  opacity: 0.8;
+}
+
+.tab-item.active {
+  color: #ffb3c1; 
+  transform: translateY(-22px); 
+}
+.tab-item.active:active {
+  transform: translateY(-22px) scale(0.88);
 }
 
 .tab-item i {
-    font-size: 1.25rem;
-    transition: transform 0.2s;
+  font-size: 34px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08)); 
 }
 
-/* ซ่อนข้อความของเมนูอื่นไว้ก่อน จะเปิดโชว์เฉพาะเมนูที่กำลังกดเลือก (Active) เท่านั้น 🌟 */
-.tab-item span {
-    display: none;
+.tab-item img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,0.12)); 
 }
 
-/* ดีไซน์เอฟเฟกต์แคปซูลเมื่อกดเลือกเมนู (Active) ❤️ */
-.tab-item.active {
-    background-color: #fff0f3; /* พื้นหลังป้ายแคปซูลสีชมพูนมระื่อๆ */
-    color: #ff85a2; /* สีชมพูเข้มเด่นชัด */
-}
-
-/* เปิดแสดงตัวหนังสือเฉพาะเมนูที่เปิดใช้อยู่ตามต้นฉบับแอปโมเดิร์น */
-.tab-item.active span {
-    display: inline-block;
-    animation: fadeInText 0.2s ease-in-out;
-}
-
-.tab-item:active i {
-    transform: scale(0.9); /* ยุบตัวลงเล็กน้อยตอนเอานิ้วกดให้ความรู้สึกสมจริง */
+#tab-profile-img {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50%;
+  border: 2px solid #ffb3c1;
+  box-sizing: border-box;
 }
 
 /* เพิ่มแอนิเมชันให้ตัวหนังสือค่อยๆ ปรากฏขึ้นตอนเปลี่ยนหน้า */
