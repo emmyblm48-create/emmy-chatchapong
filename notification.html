@@ -365,15 +365,18 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
     const btnAdd = document.getElementById("btn-add");
     const btnReset = document.getElementById("btn-reset");
     const btnRefresh = document.getElementById("btn-refresh");
     const adminInputBox = document.getElementById("admin-input-box");
-    loadChampThemeSubPage();
-    // ลิงก์ Google Apps Script Web App ของคุณ
+
+    // 1. ย้ายลิงก์ Google Apps Script ขึ้นมาประกาศไว้ก่อน
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec";
+
+    // 2. เรียกฟังก์ชันโดยส่ง SCRIPT_URL เข้าไปในวงเล็บด้วย
+    loadChampThemeSubPage(SCRIPT_URL);
 
     // =========================================================
     // 📦 1. ดึงข้อมูลเซสชันผู้ใช้
@@ -547,27 +550,27 @@
       }
     };
     
-    // ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชัน Cache) สำหรับหน้าย่อย
-function loadChampThemeSubPage() {
+// ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชันอัปเกรดเปิดรับพารามิเตอร์)
+function loadChampThemeSubPage(customURL) {
   const CACHE_KEY = "bnl_winner_theme_cache";
   
-  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
+  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (เร็วที่สุด)
   const cachedData = localStorage.getItem(CACHE_KEY);
   if (cachedData) {
     try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
   }
 
-  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
-  // ตัวแปรหลังบ้านบางหน้าใช้ scriptURL บางหน้าใช้ SCRIPT_URL ตรวจสอบให้ตรงกันนะครับน้า
-  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
-  if (!finalURL) return;
+  // 2. เลือกใช้ URL: ถ้าส่งมาในวงเล็บให้ใช้ก่อน ถ้าไม่มีให้ไปหาตัวแปร Global
+  const finalURL = customURL || (typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : ''));
+  if (!finalURL) return; // ถ้าไม่เจอ URL เลย ให้ยกเลิกทำงานพาร์ท Fetch หลังบ้าน
 
+  // 3. แอบไปเช็กข้อมูลใหม่เงียบๆ
   fetch(`${finalURL}?action=getWinnerTheme`)
     .then(response => response.json())
     .then(newData => {
       if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกแคชใหม่ล้างอันเก่า
-        applySubPageTheme(newData); // อัปเดตรูปบนจอให้เป็นปัจจุบันทันที
+        localStorage.setItem(CACHE_KEY, JSON.stringify(newData));
+        applySubPageTheme(newData); // อัปเดตทันทีถ้าหลังบ้านเปลี่ยนคนชนะ
       }
     }).catch(e => console.error(e));
 }
