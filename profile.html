@@ -879,6 +879,54 @@ body {
       }
     });
   }
+  
+  // ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชัน Cache) สำหรับหน้าย่อย
+function loadChampThemeSubPage() {
+  const CACHE_KEY = "bnl_winner_theme_cache";
+  
+  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
+  }
+
+  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
+  // ตัวแปรหลังบ้านบางหน้าใช้ scriptURL บางหน้าใช้ SCRIPT_URL ตรวจสอบให้ตรงกันนะครับน้า
+  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+  if (!finalURL) return;
+
+  fetch(`${finalURL}?action=getWinnerTheme`)
+    .then(response => response.json())
+    .then(newData => {
+      if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกแคชใหม่ล้างอันเก่า
+        applySubPageTheme(newData); // อัปเดตรูปบนจอให้เป็นปัจจุบันทันที
+      }
+    }).catch(e => console.error(e));
+}
+
+function applySubPageTheme(champData) {
+  if (!champData) return;
+  updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+  updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+  updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+  updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+}
+
+function updateSubPageIcon(imgId, fallbackId, iconUrl) {
+  const imgElement = document.getElementById(imgId);
+  const fallbackElement = document.getElementById(fallbackId);
+  if (imgElement && fallbackElement) {
+    if (iconUrl && iconUrl.trim() !== "") {
+      imgElement.src = iconUrl;
+      imgElement.style.display = 'block';
+      fallbackElement.style.display = 'none';
+    } else {
+      imgElement.style.display = 'none';
+      fallbackElement.style.display = 'block';
+    }
+  }
+}
 
   // --- ส่งรูปเข้าคลัง ImgBB & อัปเดต Google Sheets ---
   async function proceedToUploadProfile(blobFile) {
@@ -943,7 +991,7 @@ body {
   window.addEventListener('DOMContentLoaded', () => {
     user = getUserSession();
     updateProfileUI();
-    
+    loadChampThemeSubPage();
     setTimeout(() => {
       const loader = document.getElementById('app-loading-screen');
       if (loader) {
@@ -975,27 +1023,26 @@ document.addEventListener("DOMContentLoaded", checkNotificationBadge);
 </script>
 <div class="bottom-tab-bar">
   <a href="index.html" class="tab-item">
-    <i class="fa-solid fa-house"></i>
-    <span>Home</span>
+    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
+    <img id="nav-home" src="" alt="Home" style="display: none;">
   </a>
   <a href="kami.html" class="tab-item">
-    <i class="fa-solid fa-star"></i>
-    <span>My Oshi</span>
+    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
+    <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
   </a>
   <a href="shop.html" class="tab-item">
-    <i class="fa-solid fa-bag-shopping"></i>
-    <span>Shop</span>
+    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
+    <img id="nav-cart" src="" alt="Shop" style="display: none;">
   </a>
   <a href="notification.html" class="tab-item">
-    <div class="icon-wrapper">
-      <i class="fa-solid fa-bell"></i>
+    <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
+      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
+      <img id="nav-noti" src="" alt="Notification" style="display: none;">
       <span class="noti-badge" id="noti-badge" style="display: none;"></span>
-      <span>Notification</span>
     </div>
   </a>
   <a href="profile.html" class="tab-item active">
-    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
-    <span>Profile</span>
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="border-radius: 50%; object-fit: cover;">
   </a>
 </div>
 </body>
