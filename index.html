@@ -2151,19 +2151,27 @@ function renderGlobalFans(rawData) {
   });
 }
 
-// เอาฟังก์ชันนี้ไปวางใน <script> ของหน้า index.html แทนตัวเดิมนะงับ
 function openMemberProfile(name) {
-  // 🌟 1. เพิ่ม 2 บรรทัดนี้เพื่อเคลียร์แคชทิ้งก่อนข้ามหน้า หน้าถัดไปจะได้ยอมขึ้น Skeleton โหลดพร้อมกัน ไม่ค้างเลข 0
-    localStorage.removeItem('current_member_stats');
-    localStorage.removeItem('current_member_fans');
-  // 1. ค้นหาข้อมูลสถิติล่าสุดของเมมเบอร์คนนี้
+  // 🌟 1. เคลียร์แคชทิ้งก่อนข้ามหน้า
+  localStorage.removeItem('current_member_stats');
+  localStorage.removeItem('current_member_fans');
+  
+  // 2. ค้นหาข้อมูลสถิติล่าสุดของเมมเบอร์คนนี้จากบนหน้าจอ
   const m = currentRankingData.find(x => x.name === name);
-  // 2. ดึงรายชื่อแฟนคลับที่ปาคุกกี้ให้
   const fans = currentTopFansData[name] || [];
   
   if (m) {
-    // เซฟข้อมูลลงคลังชั่วคราวเพื่อให้หน้า member.html ดึงไปใช้ต่อได้
-    localStorage.setItem('current_member_stats', JSON.stringify(m));
+    // 🌟 3. ทริคสำคัญ! จัดเตรียมโครงสร้างแพ็กเกจให้ตรงใจหน้า member.html
+    // แม้หน้าแรกจะดึงข้อมูลมาไม่ครบ เราก็จะเติมให้ครบเพื่อข้ามด่านตรวจสอบ HasValidCache
+    const statsToCache = {
+      ...m, // ก๊อปปี้ข้อมูลเดิมทั้งหมดมา
+      total_kami: m.total_kami !== undefined ? m.total_kami : '...', // ถ้าหลังบ้านส่งมาก็โชว์เลย ถ้าไม่ส่งก็ใส่ ... ไว้แป๊บเดียว
+      total_oshi: m.total_oshi !== undefined ? m.total_oshi : '...',
+      all_time_total: m.all_time_total !== undefined ? m.all_time_total : (m.monthly_cookies || 0) // ดึงยอดคุกกี้รวมมาโชว์ก่อน
+    };
+
+    // เซฟข้อมูลลงคลังชั่วคราว
+    localStorage.setItem('current_member_stats', JSON.stringify(statsToCache));
     localStorage.setItem('current_member_fans', JSON.stringify(fans));
     
     // พาวาร์ปไปหน้าโปรไฟล์แยก
@@ -3098,8 +3106,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /* ==========================================
-     💖 ระบบกดใจโพสต์ (ซิงค์หลังบ้าน Google Sheets)
+/* ==========================================
+     💖 ระบบกดใจโพสต์ (ซิงค์หลังบ้าน Google Sheets) - เวอร์ชันเสถียร
      ========================================== */
   window.likePost = async function(postId) {
     const currentUser = getUserSession();
@@ -3112,11 +3120,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
     if (!heartIcon || !likeSpan) return;
     
+    // 1. ป้องกันการกดรัว (Spam Click) ถ้ากำลังส่งข้อมูลอยู่ให้ข้ามไปเลย
+    if (heartIcon.dataset.loading === "true") return;
+    heartIcon.dataset.loading = "true"; // ตั้งสถานะว่ากำลังทำงานอยู่
+
+    // ดึงค่าปัจจุบันเก็บไว้เป็น Snapshot สำหรับทำ Rollback
     const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
+    const currentLikes = parseInt(likeSpan.innerText) || 0;
     
+    // 2. Optimistic UI Update: เปลี่ยนสถานะหน้าจอทันทีเพื่อความสมูท
     heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
     heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
-    likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) - 1 : parseInt(likeSpan.innerText) + 1;
+    likeSpan.innerText = isCurrentlyLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
 
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     
@@ -3125,6 +3140,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
       
       if (result.status === "success") {
+        // 3. เมื่อระบบหลังบ้านสำเร็จ ให้อัปเดตค่าจริงที่ส่งกลับมาจาก Server
         likeSpan.innerText = result.likes;
         heartIcon.classList.toggle('fa-solid', result.isLiked);
         heartIcon.classList.toggle('fa-regular', !result.isLiked);
@@ -3132,10 +3148,14 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(result.message);
       }
     } catch (error) {
+      // 4. Rollback ย้อนค่าเดิมกลับมาแบบปลอดภัยหากเกิด Error หลังบ้าน
       heartIcon.classList.toggle('fa-solid', isCurrentlyLiked);
       heartIcon.classList.toggle('fa-regular', !isCurrentlyLiked);
-      likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) + 1 : parseInt(likeSpan.innerText) - 1;
+      likeSpan.innerText = currentLikes; // ใช้ Snapshot ที่เซฟไว้แทนการคำนวณซ้ำ
       console.error("Like Error:", error);
+    } finally {
+      // 5. ปลดล็อกปุ่มให้กดต่อได้เมื่อจบการทำงานทั้งหมด (ไม่ว่าจะสำเร็จหรือล้มเหลว)
+      delete heartIcon.dataset.loading;
     }
   }
 
