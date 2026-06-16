@@ -1726,16 +1726,20 @@ async function syncUserData() {
 }
 
 async function loadData() {
-  // เช็คเวลาอัปเดตล่าสุด
-  const lastSync = localStorage.getItem('bnl_last_sync');
-  const now = Date.now();
-  
-  // ถ้าเพิ่งดึงข้อมูลมาไม่เกิน 3 นาที (180,000 มิลลิวินาที) ให้ข้ามการดึงข้อมูลใหม่ไปเลย
-  if (lastSync && (now - parseInt(lastSync)) < 180000) {
-    console.log("ใช้ข้อมูลจากแคชที่ยังมีอายุอยู่");
-    return;
+  // 1. ⚡ ดึงข้อมูลจากแคชในเครื่องขึ้นมาแสดงผลก่อนทันที (หน้าเว็บจะได้ไม่โล่ง)
+  const cachedRanking = localStorage.getItem('bnl_ranking_cache');
+  const cachedTopFans = localStorage.getItem('bnl_topfans_cache');
+
+  if (cachedRanking) {
+    currentRankingData = JSON.parse(cachedRanking);
+    if (typeof renderRanking === 'function') renderRanking(currentRankingData);
+  }
+  if (cachedTopFans) {
+    currentTopFansData = JSON.parse(cachedTopFans);
+    if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
   }
 
+  // 2. 📡 ยิงดึงข้อมูลใหม่ล่าสุดจาก Google Sheets เสมอ (ไม่ใช้ตัวบล็อกเวลา 3 นาทีแล้ว)
   try {
     const [rankingResp, topFansResp] = await Promise.all([
       fetch(`${scriptURL}?_=${Date.now()}`),
@@ -1745,18 +1749,20 @@ async function loadData() {
     currentRankingData = await rankingResp.json();
     currentTopFansData = await topFansResp.json();
 
-    // บันทึกข้อมูลและประทับเวลาใหม่ลงเครื่อง
+    // บันทึกข้อมูลเวอร์ชันใหม่ล่าสุดลงเครื่องแทนอันเก่า
     localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
     localStorage.setItem('bnl_topfans_cache', JSON.stringify(currentTopFansData));
-    localStorage.setItem('bnl_last_sync', now.toString());
+    localStorage.setItem('bnl_last_sync', Date.now().toString());
 
-    // อัปเดต UI อีกครั้งแบบเงียบๆ
+    // อัปเดต UI ให้หน้าจอแสดงข้อมูลล่าสุดจากชีต
     if (typeof renderRanking === 'function') renderRanking(currentRankingData);
     if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
+    
+    console.log("อัปเดตข้อมูลใหม่ล่าสุดจาก Google Sheets เรียบร้อย");
   } catch(e) { 
     console.error("Load Data Error:", e); 
   }
-} 
+}
 
 // ฟังก์ชันรวมรีเฟรชข้อมูลทั้งหมด (เรียกใช้ตอนเลื่อนจอดึงข้อมูล หรือกดปุ่มรีเฟรช)
 async function refreshAppData() {
@@ -3610,7 +3616,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 <div class="bottom-tab-bar">
   
-  <a href="index.html" class="tab-item">
+  <a href="index.html" class="tab-item active">
     <i id="nav-home-fallback" class="fa-solid fa-house"></i>
     <img id="nav-home" src="" alt="Home" style="display: none;">
   </a>
