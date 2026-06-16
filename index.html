@@ -3228,51 +3228,38 @@ async function refreshAppData() {
   } 
 }
 
-// ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์ (รวมระบบจัดการบัญชีและระบบลากเลื่อน Ranking เข้าด้วยกัน)
+// ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
   
   // ===================================================
-  // [ส่วนที่ 1] ระบบล็อกอิน UI และระบบ Background Auto-Kick
+  // [ส่วนที่ 1] ระบบล็อกอิน UI และระบบ Background Auto-Kick (คงเดิมไว้)
   // ===================================================
-  
-  // ดึงข้อมูลเซสชันล็อกอินจากคีย์ bnl_session ที่ถูกต้อง
   user = getUserSession(); 
-  
-  // สั่งวาดหน้าจอแสดงโปรไฟล์/หน้าล็อกอินทันที
   updateUI();
-  
-  // 🔥 สั่งปิดหน้าโหลดสีขาวชมพูตรงนี้! หน้าเว็บหลักจะแสดงผลขึ้นมาอย่างนุ่มนวล
   hideAppLoading(); 
-  
-  // ดึงข้อมูลอันดับและซิงค์ข้อมูลผู้ใช้จากระบบหลังบ้านแบบเงียบๆ เบื้องหลัง
   loadData();
   
-  // ถ้ามีผู้ใช้ล็อกอินอยู่ ให้รันระบบเช็กข้อมูลและระบบเตะอัตโนมัติ
   if (user) {
-    // 1) สั่งซิงค์ข้อมูลเพื่อตรวจสอบความถูกต้องรอบแรกทันทีที่โหลดหน้าเว็บเสร็จ
     syncUserData(); 
-    
-    // 2) 🔄 ระบบ Background Auto-Kick (คอยตรวจจับสถานะบัญชีสดๆ จากชีท)
-    // สั่งให้หน้าบ้านแอบส่งสัญญาณไปเช็กข้อมูลใน Google Sheets ทุกๆ 45 วินาที
     setInterval(async () => {
       if (localStorage.getItem('bnl_session')) {
         await syncUserData();
       }
-    }, 45000); // 45000 มิลลิวินาที = 45 วินาที
+    }, 45000);
   }
 
   // ===================================================
-  // [ส่วนที่ 2] ระบบกดเมาส์ค้างเพื่อเลื่อนซ้าย-ขวา (Ranking List)
+  // [ส่วนที่ 2] 🔥 อัปเดตใหม่: ระบบกดเมาส์ค้างเพื่อเลื่อนซ้าย-ขวา (สำหรับทุกกล่องที่เป็น horizontal-list)
   // ===================================================
-  const slider = document.getElementById("ranking-list");
+  // ใช้ querySelectorAll เพื่อดึงทั้ง Ranking และ Top Fans มาใส่ฟังก์ชันลากพร้อมกัน
+  const sliders = document.querySelectorAll(".horizontal-list");
   
-  // ตรวจสอบก่อนว่ามีกล่อง ranking-list อยู่ในหน้านี้จริงไหม เพื่อป้องกันโค้ดค้าง/พัง
-  if (slider) {
+  sliders.forEach((slider) => {
     let isDown = false;
     let startX;
     let scrollLeft;
 
-    // เมื่อกดเมาส์ลง
+    // เมื่อกดเมาส์ลงบนพื้นที่กล่อง
     slider.addEventListener("mousedown", (e) => {
       isDown = true;
       startX = e.pageX - slider.offsetLeft;
@@ -3291,13 +3278,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // เมื่อขยับเมาส์ขณะที่กดค้างไว้
     slider.addEventListener("mousemove", (e) => {
-      if (!isDown) return; // ถ้าไม่ได้กดค้างไว้ ไม่ต้องทำงาน
+      if (!isDown) return; 
       e.preventDefault();
       const x = e.pageX - slider.offsetLeft;
-      const walk = (x - startX) * 2; // เลข 2 คือความเร็วในการลาก ยิ่งเยอะยิ่งเลื่อนไว
+      const walk = (x - startX) * 2; // ความเร็วในการเลื่อน
       slider.scrollLeft = scrollLeft - walk;
     });
-  }
+  });
 
 });
 </script>
