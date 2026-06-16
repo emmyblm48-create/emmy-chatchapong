@@ -288,9 +288,11 @@ body {
     box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
 }
     
-    /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁️ */
-    .bottom-tab-bar {
-      height: 65px; /* เพิ่มความสูงแถบเล็กน้อยให้กดง่าย ดูพรีเมียม */
+   .bottom-tab-bar {
+      /* 💡 แก้ไขจุดสำคัญ: คำนวณความสูงเผื่อขอบล่างของ iPhone/Android รุ่นใหม่ๆ จะได้ไม่โดนเส้นระบบบังขอบกด */
+      height: calc(70px + env(safe-area-inset-bottom, 0px)); 
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -301,36 +303,46 @@ body {
       left: 0;
       width: 100%;
       z-index: 999;
+      box-sizing: border-box;
     }
 
-   .tab-item {
+    .tab-item {
       display: flex;
       justify-content: center;
       align-items: center;
       width: 20%;
       height: 100%;
-      color: #8e8e93; /* สีไอคอนเริ่มต้นตอนยังไม่กด */
+      color: #8e8e93; 
       text-decoration: none;
-    }
-    .tab-item.active {
-      color: #ffb3c1; /* สีไอคอนสถานะแอ็กทีฟ */
-    }
-    /* ขยายขนาดไอคอน FontAwesome เริ่มต้นให้ใหญ่ขึ้น */
-    .tab-item i {
-      font-size: 26px; 
+      transition: transform 0.1s ease; /* เพิ่มเอฟเฟกต์ตอนกดเล็กน้อย */
     }
 
-    /* ปรับขนาดรูปภาพไอคอนสั่งทำพิเศษของแชมป์ประจำเดือน */
+    /* 🌟 เพิ่มระบบ Touch Feedback: เวลานิ้วจิ้มปุ่ม ปุ่มจะยุบลงนิดหน่อย ให้ความรู้สึกเหมือนแอปจริงๆ */
+    .tab-item:active {
+      transform: scale(0.9);
+      opacity: 0.7;
+    }
+
+    .tab-item.active {
+      color: #ffb3c1; 
+    }
+
+    /* ขยายขนาดไอคอนเริ่มต้น FontAwesome (ใหญ่ขึ้นเป็น 30px) */
+    .tab-item i {
+      font-size: 30px; 
+    }
+
+    /* ขยายขนาดรูปภาพไอคอนสั่งทำพิเศษของเอ็มมี่ (ใหญ่เต็มตาขึ้นเป็น 38px) */
     .tab-item img {
-      width: 32px; 
-      height: 32px; 
+      width: 38px; 
+      height: 38px; 
       object-fit: contain;
     }
-    
-    /* ล็อกขนาดรูปโปรไฟล์แยกไว้ต่างหาก */
+
+    /* ล็อกขนาดรูปโปรไฟล์ให้สมดุลกับเพื่อนๆ */
     #tab-profile-img {
-      width: 30px !important;
-      height: 30px !important;
+      width: 34px !important;
+      height: 34px !important;
     }
 
     /* เพิ่มแอนิเมชันให้ตัวหนังสือค่อยๆ ปรากฏขึ้นตอนเปลี่ยนหน้า */
@@ -1654,56 +1666,95 @@ async function refreshAppData() {
 }
   
 // ==========================================
-// 🎨 [เพิ่มใหม่] 5.1 ระบบโหลดธีมผู้ชนะประจำเดือน (Splash Screen & Nav Icons)
+// 🎨 ระบบโหลดธีมผู้ชนะประจำเดือนแบบมีระบบ Cache & Sync อัปเดต
 // ==========================================
 function loadChampOfTheMonth() {
-  // ดึงข้อมูลธีมและไอคอนผู้ชนะจากหลังบ้าน
+  const CACHE_KEY = "bnl_winner_theme_cache";
+  
+  // 1. ดึงข้อมูลธีมเก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (แอปเปิดไว ไม่รอกระพริบ)
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      const parsedData = JSON.parse(cachedData);
+      applyWinnerTheme(parsedData); // สั่งแสดงผลรูปภาพและไอคอนเก่าทันที
+    } catch (e) {
+      console.error("การอ่านข้อมูลแคชธีมขัดข้อง:", e);
+    }
+  }
+
+  // 2. แอบยิงไปถามหลังบ้านเงียบๆ ว่าข้อมูลมีการอัปเดตเปลี่ยนคนชนะหรือรูปภาพใหม่หรือยัง
   fetch(`${scriptURL}?action=getWinnerTheme`)
     .then(response => response.json())
-    .then(champData => {
-      console.log("ดึงข้อมูลธีมผู้ชนะสำเร็จ:", champData);
-      
-      if (champData) {
-        // เปลี่ยนรูปภาพหน้าจอ Splash Screen แจ้งเตือนแชมป์
-        const mainSplash = document.getElementById('main-splash');
-        if (mainSplash && champData.splash) {
-          mainSplash.src = champData.splash;
-        }
+    .then(newData => {
+      if (newData && newData.name) {
         
-        // 🔄 สั่งสลับไอคอน: ถ้าในชีตมีลิงก์รูปภาพ ให้ซ่อนไอคอนเดิมแล้วแสดงรูปภาพสั่งทำพิเศษแทน
-        updateTabIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
-        updateTabIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
-        updateTabIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
-        updateTabIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+        // 🔄 เช็กว่าข้อมูลใหม่กับข้อมูลในแคชเก่าตรงกันไหม?
+        // ถ้าไม่ตรงกัน หรือยังไม่เคยเก็บแคช แปลว่า "มีการอัปเดตข้อมูลแชมป์"
+        if (cachedData !== JSON.stringify(newData)) {
+          console.log("✨ พบการอัปเดตธีมใหม่! กำลังล้าง Session เก่าและบันทึกข้อมูลล่าสุด...");
+          
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกทับอันใหม่
+          applyWinnerTheme(newData); // สั่งเปลี่ยนรูปภาพบนหน้าจอเป็นเวอร์ชันล่าสุดทันที
+        } else {
+          console.log(" ข้อมูลธีมเป็นปัจจุบันอยู่แล้ว ไม่ต้องโหลดใหม่");
+        }
       }
       
-      // เมื่อทุกอย่างเซ็ตเสร็จเรียบร้อย ค่อยสั่งปิดหน้าจอโหลดวงกลมคุกกี้หมุนๆ
-      setTimeout(() => {
-        const appLoading = document.getElementById('app-loading-screen');
-        if (appLoading) appLoading.style.display = 'none';
-      }, 500);
+      // ปิดหน้าจอโหลดวงกลมหมุนๆ หลังจากเช็กข้อมูลเสร็จ
+      hideThemeLoadingScreen();
     })
     .catch(error => {
-      console.error("เกิดข้อผิดพลาดในการดึงข้อมูลธีมประจำเดือน:", error);
-      // เคสเน็ตหลุด ให้ปิดหน้าจอรวบรวมคุกกี้หมุนๆ เช่นกัน แอปจะได้ไม่ค้าง
-      const appLoading = document.getElementById('app-loading-screen');
-      if (appLoading) appLoading.style.display = 'none';
+      console.error("เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อซิงค์ธีม:", error);
+      hideThemeLoadingScreen();
     });
 }
-  
-  /**
- * ฟังก์ชันพิเศษสำหรับจัดการสลับสับเปลี่ยนไอคอนพวง
- * ถ้ามีลิงก์รูปภาพส่งมาจาก Google Sheets -> จะทำการซ่อนไอคอน FontAwesome แล้วดึงรูปภาพขึ้นมาแสดงแทน
+
+/**
+ * ฟังก์ชันสำหรับสั่งให้นำข้อมูลธีมไปวาดลงหน้าจอ 
+ * (แยกออกมาเพื่อรองรับการเรียกใช้ซ้ำ ทั้งจากแคช และจากตอนอัปเดตข้อมูลสดครับ)
  */
-  function updateTabIcon(imgId, fallbackId, iconUrl) {
+function applyWinnerTheme(champData) {
+  if (!champData) return;
+  
+  // เปลี่ยนรูปภาพหน้าจอ Splash Screen 
+  const mainSplash = document.getElementById('main-splash');
+  if (mainSplash && champData.splash) {
+    mainSplash.src = champData.splash;
+  }
+  
+  // เรียกใช้งานระบบสลับสับเปลี่ยนไอคอนแถบด้านล่าง
+  updateTabIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+  updateTabIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+  updateTabIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+  updateTabIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+}
+
+/**
+ * ฟังก์ชันสลับไอคอน: ถ้ามีรูปภาพพิเศษให้โชว์รูปภาพและซ่อนไอคอนเริ่มต้น
+ */
+function updateTabIcon(imgId, fallbackId, iconUrl) {
   const imgElement = document.getElementById(imgId);
   const fallbackElement = document.getElementById(fallbackId);
   
-  if (imgElement && fallbackElement && iconUrl && iconUrl.trim() !== "") {
-    imgElement.src = iconUrl;         // ใส่ URL รูปภาพจากชีต
-    imgElement.style.display = 'block'; // แสดงรูปภาพสั่งทำพิเศษ
-    fallbackElement.style.display = 'none'; // สั่งซ่อนไอคอน FontAwesome ทันที
+  if (imgElement && fallbackElement) {
+    if (iconUrl && iconUrl.trim() !== "") {
+      imgElement.src = iconUrl;
+      imgElement.style.display = 'block';       // เปิดโชว์รูปภาพสั่งทำของเอ็มมี่
+      fallbackElement.style.display = 'none';    // ซ่อนไอคอนเริ่มต้นทิ้งไป
+    } else {
+      // เคสเผื่ออนาคตในชีตไม่มีรูปภาพ ให้ถอยกลับไปใช้ไอคอนปกติ
+      imgElement.style.display = 'none';
+      fallbackElement.style.display = 'block';
+    }
   }
+}
+
+/**
+ * ฟังก์ชันปิดหน้าจอโหลดวงกลมคุกกี้หมุนๆ แบบปลอดภัย
+ */
+function hideThemeLoadingScreen() {
+  const appLoading = document.getElementById('app-loading-screen');
+  if (appLoading) appLoading.style.display = 'none';
 }
 
 // ==========================================
