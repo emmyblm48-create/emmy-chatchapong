@@ -964,68 +964,81 @@
           z-index: 10;
         }
 
-        /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁️ */
-        .bottom-tab-bar {
-            position: fixed;
-            bottom: 24px; 
-            left: 50%;
-            transform: translateX(-50%); 
-            width: 90%; 
-            max-width: 440px; 
-            height: 68px;
-            background: rgba(255, 255, 255, 0.92); 
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-radius: 35px; 
-            border: 1px solid rgba(255, 204, 213, 0.5); 
-            box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15); 
-            z-index: 1000;
-            padding: 0 10px;
-            box-sizing: border-box;
-            touch-action: manipulation;
-        }
+       .bottom-tab-bar {
+        height: calc(85px + env(safe-area-inset-bottom, 0px)); 
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 999;
+        background: transparent; 
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end; 
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-sizing: border-box;
+      }
 
-        .tab-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px; 
-            color: #ffb3c1; 
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-weight: 600;
-            padding: 10px 14px;
-            border-radius: 25px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            -webkit-tap-highlight-color: transparent;
-        }
+      .bottom-tab-bar::before {
+        content: "";
+        position: absolute;
+        top: 25px; 
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #ffffff; 
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 24px 24px 0 0; 
+        box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.08); 
+        z-index: 1;
+      }
 
-        .tab-item i {
-            font-size: 1.25rem;
-            transition: transform 0.2s;
-        }
+      .tab-item {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 20%;
+        height: 60px; 
+        position: relative;
+        z-index: 2; 
+        text-decoration: none;
+        color: #8e8e93; 
+        transform: translateY(-15px); 
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
 
-        .tab-item span {
-            display: none;
-        }
+      .tab-item:active {
+        transform: translateY(-15px) scale(0.88);
+        opacity: 0.8;
+      }
 
-        .tab-item.active {
-            background-color: #fff0f3; 
-            color: #ff85a2; 
-        }
+      .tab-item.active {
+        color: #ffb3c1; 
+        transform: translateY(-22px); 
+      }
+      .tab-item.active:active {
+        transform: translateY(-22px) scale(0.88);
+      }
 
-        .tab-item.active span {
-            display: inline-block;
-            animation: fadeInText 0.2s ease-in-out;
-        }
+      .tab-item i {
+        font-size: 34px;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08)); 
+      }
 
-        .tab-item:active i {
-            transform: scale(0.9); 
-        }
+      .tab-item img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+        filter: drop-shadow(0 5px 8px rgba(0,0,0,0.12)); 
+      }
+
+      #tab-profile-img {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 50%;
+        border: 2px solid #ffb3c1;
+        box-sizing: border-box;
+      }
 
         @media (max-width: 600px) {
             /* สำหรับคุม Layout ข้อมูลการสั่งสินค้าไม่ให้ทับซ้อน */
@@ -1277,27 +1290,26 @@
     
 <div class="bottom-tab-bar">
   <a href="index.html" class="tab-item">
-    <i class="fa-solid fa-house"></i>
-    <span>Home</span>
+    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
+    <img id="nav-home" src="" alt="Home" style="display: none;">
   </a>
   <a href="kami.html" class="tab-item">
-    <i class="fa-solid fa-star"></i>
-    <span>My Oshi</span>
+    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
+    <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
   </a>
   <a href="shop.html" class="tab-item active">
-    <i class="fa-solid fa-bag-shopping"></i>
-    <span>Shop</span>
+    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
+    <img id="nav-cart" src="" alt="Shop" style="display: none;">
   </a>
   <a href="notification.html" class="tab-item">
-    <div class="icon-wrapper">
-      <i class="fa-solid fa-bell"></i>
+    <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
+      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
+      <img id="nav-noti" src="" alt="Notification" style="display: none;">
       <span class="noti-badge" id="noti-badge" style="display: none;"></span>
-      <span>Notification</span>
     </div>
   </a>
   <a href="profile.html" class="tab-item">
-    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
-    <span>Profile</span>
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="border-radius: 50%; object-fit: cover;">
   </a>
 </div>
 
@@ -1455,7 +1467,55 @@ function confirmLogout() {
         }
     });
 }
+  
+// ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชัน Cache) สำหรับหน้าย่อย
+function loadChampThemeSubPage() {
+  const CACHE_KEY = "bnl_winner_theme_cache";
+  
+  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
+  }
 
+  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
+  // ตัวแปรหลังบ้านบางหน้าใช้ scriptURL บางหน้าใช้ SCRIPT_URL ตรวจสอบให้ตรงกันนะครับน้า
+  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+  if (!finalURL) return;
+
+  fetch(`${finalURL}?action=getWinnerTheme`)
+    .then(response => response.json())
+    .then(newData => {
+      if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกแคชใหม่ล้างอันเก่า
+        applySubPageTheme(newData); // อัปเดตรูปบนจอให้เป็นปัจจุบันทันที
+      }
+    }).catch(e => console.error(e));
+}
+
+function applySubPageTheme(champData) {
+  if (!champData) return;
+  updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+  updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+  updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+  updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+}
+
+function updateSubPageIcon(imgId, fallbackId, iconUrl) {
+  const imgElement = document.getElementById(imgId);
+  const fallbackElement = document.getElementById(fallbackId);
+  if (imgElement && fallbackElement) {
+    if (iconUrl && iconUrl.trim() !== "") {
+      imgElement.src = iconUrl;
+      imgElement.style.display = 'block';
+      fallbackElement.style.display = 'none';
+    } else {
+      imgElement.style.display = 'none';
+      fallbackElement.style.display = 'block';
+    }
+  }
+}
+  
 // 🛒 5. ระบบแลกซื้อคุกกี้
 async function buyCookies(tokenPrice, cookieReward) {
     if (!userData) return;
@@ -1915,9 +1975,9 @@ if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'funct
 // เริ่มต้นทำงานเมื่อโครงสร้างหน้าจอพร้อม
 document.addEventListener("DOMContentLoaded", async () => {
     if (typeof showAppLoading === 'function') showAppLoading();
-    
+    loadChampThemeSubPage();
     const startTime = Date.now();
-
+    
     const tabProfileImg = document.getElementById('tab-profile-img');
     if (tabProfileImg) {
         const sessionStr = localStorage.getItem("bnl_session");
