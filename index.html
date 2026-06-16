@@ -1351,6 +1351,11 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   background: #fff0f2;
   color: #ff335c;
 }
+    
+    @keyframes popupScale {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
   </style>
 </head>
 <body>
@@ -1364,8 +1369,17 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <div class="loader-text">กำลังรวบรวมคุกกี้...</div>
   </div>
 </div>
-<div id="splash-screen" style="position: fixed; width: 100%; height: 100vh; z-index: 999;">
-    <img id="main-splash" src="images/default-splash.jpg" style="width: 100%; height: 100%; object-fit: cover;">
+<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.4s ease;">
+    
+    <div style="position: relative; width: 85%; max-width: 340px; aspect-ratio: 2/3; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.4); display: flex; flex-direction: column; animation: popupScale 0.3s ease-out;">
+        
+        <div onclick="closeChampSplash()" style="position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; background: rgba(0, 0, 0, 0.5); color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-family: Arial, sans-serif; font-size: 20px; line-height: 1; z-index: 10; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">
+          &times;
+        </div>
+        
+        <img id="main-splash" src="images/default-splash.jpg" style="width: 100%; height: 100%; object-fit: cover;">
+        
+    </div>
 </div>
 
 <!-- Overlay สำหรับปิด Sidebar -->
@@ -3018,6 +3032,16 @@ function setupUserProfile(user) {
     if (url.startsWith('data:image')) return url;
     return url;
   }
+  
+  function closeChampSplash() {
+  const splash = document.getElementById('splash-screen');
+  if (splash) {
+    splash.style.opacity = '0'; // ค่อยๆ เฟดจางลงมา
+    setTimeout(() => {
+      splash.style.display = 'none'; // พอจางสนิทแล้วสั่งซ่อนตัวตนไปเลยเพื่อไม่ให้บังปุ่มอื่นๆ
+    }, 400); // 400 มิลลิวินาที สอดคล้องกับ transition ของ CSS
+  }
+}
   
   // ฟังก์ชันแสดงหน้าโหลด
 function showAppLoading() {
