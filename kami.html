@@ -538,6 +538,91 @@
         body {
             padding-bottom: 110px !important;
         }
+
+        .bottom-tab-bar {
+  /* 👑 Layer 1: ล่างสุด ใหญ่สุด และโปร่งใสสนิท (ขยายความสูงขึ้นเป็น 85px เพื่อสร้างพื้นที่ให้ปุ่มลอย) */
+  height: calc(85px + env(safe-area-inset-bottom, 0px)); 
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: transparent; /* โปร่งใสตามที่เอ็มมี่ต้องการ */
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่าง */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}
+
+/* 👑 Layer 2: แถบสีขาวที่ซ้อนอยู่ด้านบน ทำขอบโค้งและใส่เงาเพื่อให้ดูลอยมีมิติ */
+.bottom-tab-bar::before {
+  content: "";
+  position: absolute;
+  top: 25px; /* เว้นพื้นที่ด้านบนสุดไว้ 25px เพื่อปล่อยให้ไอคอนลอยทะลุขอบสีขาวขึ้นไป */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff; /* Layer สีขาว */
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 24px 24px 0 0; /* ทำมุมบนโค้งมนเพิ่มความนุ่มนวลพรีเมียม */
+  box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.08); /* ใส่เงาฟุ้งๆ ดันให้บาร์สีขาวดูลอยแยกชั้น */
+  z-index: 1;
+}
+
+.tab-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  height: 60px; /* กำหนดพื้นที่สำหรับใช้นิ้วกดให้กว้างเต็มที่ */
+  position: relative;
+  z-index: 2; /* ดันตัวปุ่มให้อยู่เหนือ Layer สีขาว */
+  text-decoration: none;
+  color: #8e8e93; /* สีไอคอนปกติ */
+  
+  /* 🌟 ไฮไลต์: สั่งยกตัวปุ่มลอยขึ้นไปด้านบน 15px ทะลุเส้นขอบบาร์สีขาวขึ้นมาครึ่งนึงพอดี! */
+  transform: translateY(-15px); 
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* เอฟเฟกต์สปริงตอนเด้ง */
+}
+
+/* 🌟 ระบบ Touch Feedback ตอนเอานิ้วจิ้ม: ปุ่มจะยุบลงและจางลงเล็กน้อย ให้ความรู้สึกนุ่มมือเหมือนแอปจริง */
+.tab-item:active {
+  transform: translateY(-15px) scale(0.88);
+  opacity: 0.8;
+}
+
+/* ปุ่มสถานะเปิดใช้งานอยู่ (Active): ให้เด้งลอยเด่นขึ้นไปอีกนิด เพื่อบอกแฟนคลับว่าอยู่หน้านี้ */
+.tab-item.active {
+  color: #ffb3c1; /* สีชมพูประจำแอป */
+  transform: translateY(-22px); /* ลอยสูงกว่าปุ่มอื่นขึ้นไปอีกนิด */
+}
+.tab-item.active:active {
+  transform: translateY(-22px) scale(0.88);
+}
+
+/* 🔥 ขยายขนาดไอคอน FontAwesome เริ่มต้นให้ใหญ่สะใจ (34px) */
+.tab-item i {
+  font-size: 34px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08)); /* แถมเงาบางๆ ใต้ไอคอนเพิ่มความลอย */
+}
+
+/* 🔥 ขยายขนาดรูปภาพไอคอนแชมป์โหวตสั่งทำพิเศษของเอ็มมี่ให้ใหญ่เต็มตา (44px) */
+.tab-item img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,0.12)); /* ให้รูปภาพโอชิที่เอ็มมี่แต่ง ดูลอยเด่นออกมา */
+}
+
+/* ล็อกขนาดรูปโปรไฟล์ใน Layer ลอยให้สมดุลสวยงาม (38px) */
+#tab-profile-img {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50%;
+  border: 2px solid #ffb3c1;
+  box-sizing: border-box;
+}
     </style>
 </head>
 <body>
@@ -575,30 +660,35 @@
     </footer>
     
     <div class="bottom-tab-bar">
-      <a href="index.html" class="tab-item">
-        <i class="fa-solid fa-house"></i>
-        <span>Home</span>
-      </a>
-      <a href="kami.html" class="tab-item active">
-        <i class="fa-solid fa-star"></i>
-        <span>My Oshi</span>
-      </a>
-      <a href="shop.html" class="tab-item">
-        <i class="fa-solid fa-bag-shopping"></i>
-        <span>Shop</span>
-      </a>
-      <a href="notification.html" class="tab-item">
-        <div class="icon-wrapper">
-          <i class="fa-solid fa-bell"></i>
-          <span class="noti-badge" id="noti-badge" style="display: none;"></span>
-          <span>Notification</span>
-        </div>
-      </a>
-      <a href="profile.html" class="tab-item">
-        <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
-        <span>Profile</span>
-      </a>
+  
+  <a href="index.html" class="tab-item">
+    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
+    <img id="nav-home" src="" alt="Home" style="display: none;">
+  </a>
+
+  <a href="kami.html" class="tab-item active">
+    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
+    <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
+  </a>
+
+  <a href="shop.html" class="tab-item">
+    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
+    <img id="nav-cart" src="" alt="Shop" style="display: none;">
+  </a>
+
+  <a href="notification.html" class="tab-item">
+    <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
+      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
+      <img id="nav-noti" src="" alt="Notification" style="display: none;">
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
     </div>
+  </a>
+
+  <a href="profile.html" class="tab-item">
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
+  </a>
+
+</div>
 
 <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
@@ -734,6 +824,98 @@
                 console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
             }
         }
+
+        // ==========================================
+// 🎨 ระบบโหลดธีมผู้ชนะประจำเดือนแบบมีระบบ Cache & Sync อัปเดต
+// ==========================================
+function loadChampOfTheMonth() {
+  const CACHE_KEY = "bnl_winner_theme_cache";
+  
+  // 1. ดึงข้อมูลธีมเก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (แอปเปิดไว ไม่รอกระพริบ)
+  const cachedData = localStorage.getItem(CACHE_KEY);
+  if (cachedData) {
+    try {
+      const parsedData = JSON.parse(cachedData);
+      applyWinnerTheme(parsedData); // สั่งแสดงผลรูปภาพและไอคอนเก่าทันที
+    } catch (e) {
+      console.error("การอ่านข้อมูลแคชธีมขัดข้อง:", e);
+    }
+  }
+
+  // 2. แอบยิงไปถามหลังบ้านเงียบๆ ว่าข้อมูลมีการอัปเดตเปลี่ยนคนชนะหรือรูปภาพใหม่หรือยัง
+  fetch(`${scriptURL}?action=getWinnerTheme`)
+    .then(response => response.json())
+    .then(newData => {
+      if (newData && newData.name) {
+        
+        // 🔄 เช็กว่าข้อมูลใหม่กับข้อมูลในแคชเก่าตรงกันไหม?
+        // ถ้าไม่ตรงกัน หรือยังไม่เคยเก็บแคช แปลว่า "มีการอัปเดตข้อมูลแชมป์"
+        if (cachedData !== JSON.stringify(newData)) {
+          console.log("✨ พบการอัปเดตธีมใหม่! กำลังล้าง Session เก่าและบันทึกข้อมูลล่าสุด...");
+          
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกทับอันใหม่
+          applyWinnerTheme(newData); // สั่งเปลี่ยนรูปภาพบนหน้าจอเป็นเวอร์ชันล่าสุดทันที
+        } else {
+          console.log(" ข้อมูลธีมเป็นปัจจุบันอยู่แล้ว ไม่ต้องโหลดใหม่");
+        }
+      }
+      
+      // ปิดหน้าจอโหลดวงกลมหมุนๆ หลังจากเช็กข้อมูลเสร็จ
+      hideThemeLoadingScreen();
+    })
+    .catch(error => {
+      console.error("เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อซิงค์ธีม:", error);
+      hideThemeLoadingScreen();
+    });
+}
+
+/**
+ * ฟังก์ชันสำหรับสั่งให้นำข้อมูลธีมไปวาดลงหน้าจอ 
+ * (แยกออกมาเพื่อรองรับการเรียกใช้ซ้ำ ทั้งจากแคช และจากตอนอัปเดตข้อมูลสดครับ)
+ */
+function applyWinnerTheme(champData) {
+  if (!champData) return;
+  
+  // เปลี่ยนรูปภาพหน้าจอ Splash Screen 
+  const mainSplash = document.getElementById('main-splash');
+  if (mainSplash && champData.splash) {
+    mainSplash.src = champData.splash;
+  }
+  
+  // เรียกใช้งานระบบสลับสับเปลี่ยนไอคอนแถบด้านล่าง
+  updateTabIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+  updateTabIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+  updateTabIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+  updateTabIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+}
+
+/**
+ * ฟังก์ชันสลับไอคอน: ถ้ามีรูปภาพพิเศษให้โชว์รูปภาพและซ่อนไอคอนเริ่มต้น
+ */
+function updateTabIcon(imgId, fallbackId, iconUrl) {
+  const imgElement = document.getElementById(imgId);
+  const fallbackElement = document.getElementById(fallbackId);
+  
+  if (imgElement && fallbackElement) {
+    if (iconUrl && iconUrl.trim() !== "") {
+      imgElement.src = iconUrl;
+      imgElement.style.display = 'block';       // เปิดโชว์รูปภาพสั่งทำของเอ็มมี่
+      fallbackElement.style.display = 'none';    // ซ่อนไอคอนเริ่มต้นทิ้งไป
+    } else {
+      // เคสเผื่ออนาคตในชีตไม่มีรูปภาพ ให้ถอยกลับไปใช้ไอคอนปกติ
+      imgElement.style.display = 'none';
+      fallbackElement.style.display = 'block';
+    }
+  }
+}
+
+/**
+ * ฟังก์ชันปิดหน้าจอโหลดวงกลมคุกกี้หมุนๆ แบบปลอดภัย
+ */
+function hideThemeLoadingScreen() {
+  const appLoading = document.getElementById('app-loading-screen');
+  if (appLoading) appLoading.style.display = 'none';
+}
 
         function renderContent(data) {
             const kamiArea = document.getElementById('kami-content-area');
