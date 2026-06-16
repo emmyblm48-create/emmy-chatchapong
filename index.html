@@ -514,38 +514,27 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 }
 .horizontal-list {
   display: flex;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  gap: 15px;
-  
-  /* ✨ [จุดสำคัญ 1] สั่งให้การ์ดเกาะขอบบน ไม่ยืดส่วนสูงลงไปแนบติดขอบล่าง */
-  align-items: flex-start; 
-  
-  /* ✨ [จุดสำคัญ 2] เว้นระยะขอบล่างให้กว้างขึ้น เพื่อเปิดพื้นที่ให้เห็นลายพื้นหลังแบบในรูป */
-  padding: 20px 15px 35px 15px; /* บน 20px | ซ้าย-ขวา 15px | ล่าง 35px */
-  
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;  /* ซ่อนแถบเลื่อนสำหรับ Firefox */
-  cursor: grab;
-  user-select: none;
+  overflow-x: auto;               /* เปิดให้เลื่อนซ้าย-ขวาได้ */
+  scroll-behavior: smooth;         /* ให้เลื่อนแบบนุ่มนวล */
+  -webkit-overflow-scrolling: touch; /* สำหรับ iOS ให้ปัดแล้วลื่นๆ ฟึบๆ */
+  gap: 15px;                      /* ระยะห่างระหว่างการ์ดแต่ละใบ */
+  padding: 10px 15px;
+  cursor: grab;                   /* เปลี่ยนเมาส์เป็นรูปมือเตรียมจับ */
+  user-select: none;              /* กันไม่ให้คลุมดำข้อความเวลาลาก */
 }
 
-/* ซ่อนแถบเลื่อนสำหรับ Chrome / Safari */
+/* เวลาคลิกเมาส์ค้าง ให้เปลี่ยนเป็นรูปมือกำ */
+.horizontal-list:active {
+  cursor: grabbing;
+}
+
+/* ซ่อนแถบ Scrollbar ด้านล่างไม่ให้โผล่มาขัดตา */
 .horizontal-list::-webkit-scrollbar {
-  display: none; 
+  display: none; /* Chrome, Safari, Opera */
 }
-
-/* 📦 สไตล์สำหรับการ์ดเมมเบอร์แต่ละใบ (ปรับให้ตรงกับชื่อคลาสที่คุณเอ็มมี่ใช้จริงนะคะ) */
-.horizontal-list > div { 
-  flex-shrink: 0; /* ป้องกันไม่ให้การ์ดโดนบีบหน้าแคบลงเวลาเลื่อน */
-  
-  /* คุณเอ็มมี่สามารถกำหนดความสูงที่แน่นอนให้การ์ดทุกใบเท่ากันเป๊ะๆ แบบในรูปได้เลยค่ะ */
-  height: 280px; 
-  
-  /* ตัวอย่างการแต่งการ์ดให้เหมือนในรูป */
-  background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 4px 12px rgba(255, 179, 193, 0.1);
+.horizontal-list {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 .member-card { 
   width: 85px; /* ปรับให้พอดี */
