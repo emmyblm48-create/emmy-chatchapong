@@ -290,69 +290,47 @@ body {
     
     /* แถบเมนูด้านล่างดีไซน์ลอยตัวแบบ Floating Island ☁️ */
     .bottom-tab-bar {
-        position: fixed;
-        bottom: 24px; /* ลอยขึ้นมาจากขอบล่างให้มีช่องไฟสวยๆ */
-        left: 50%;
-        transform: translateX(-50%); /* จัดให้อยู่กึ่งกลางหน้าจอเสมอ */
-        width: 90%; /* ความกว้างยืดหยุ่นตามหน้าจอมือถือ */
-        max-width: 440px; /* จำกัดความกว้างสูงสุดไม่ให้แผ่กว้างเกินไปบนแท็บเล็ต */
-        height: 68px;
-        background: rgba(255, 255, 255, 0.92); /* ขาวนวลแบบโปร่งแสงนิดๆ */
-        backdrop-filter: blur(10px); /* เอฟเฟกต์กระจกฝ้าเบลอหลังบ้าน */
-        -webkit-backdrop-filter: blur(10px);
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        border-radius: 35px; /* ทำขอบมนกลมแบบโค้งมนสุดๆ */
-        border: 1px solid rgba(255, 204, 213, 0.5); /* เส้นขอบชมพูบางๆ */
-        box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15); /* เงาฟุ้งละมุนตา */
-        z-index: 1000;
-        padding: 0 10px;
-        box-sizing: border-box;
-        touch-action: manipulation;
+      height: 65px; /* เพิ่มความสูงแถบเล็กน้อยให้กดง่าย ดูพรีเมียม */
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 999;
     }
 
-    /* สไตล์ปุ่มเมนูทั่วไป 🎀 */
-    .tab-item {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px; /* ระยะห่างระหว่างไอคอนกับตัวหนังสือ */
-        color: #ffb3c1; /* สีชมพูพาสเทลตอนยังไม่ได้กดเลือก */
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-family: 'Quicksand', 'Kanit', sans-serif;
-        font-weight: 600;
-        padding: 10px 14px;
-        border-radius: 25px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* แอนิเมชันตอนกดสลับคลาส */
-        -webkit-tap-highlight-color: transparent;
+   .tab-item {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 20%;
+      height: 100%;
+      color: #8e8e93; /* สีไอคอนเริ่มต้นตอนยังไม่กด */
+      text-decoration: none;
     }
-
-    .tab-item i {
-        font-size: 1.25rem;
-        transition: transform 0.2s;
-    }
-
-    /* ซ่อนข้อความของเมนูอื่นไว้ก่อน จะเปิดโชว์เฉพาะเมนูที่กำลังกดเลือก (Active) เท่านั้น 🌟 */
-    .tab-item span {
-        display: none;
-    }
-
-    /* ดีไซน์เอฟเฟกต์แคปซูลเมื่อกดเลือกเมนู (Active) ❤️ */
     .tab-item.active {
-        background-color: #fff0f3; /* พื้นหลังป้ายแคปซูลสีชมพูนมระื่อๆ */
-        color: #ff85a2; /* สีชมพูเข้มเด่นชัด */
+      color: #ffb3c1; /* สีไอคอนสถานะแอ็กทีฟ */
+    }
+    /* ขยายขนาดไอคอน FontAwesome เริ่มต้นให้ใหญ่ขึ้น */
+    .tab-item i {
+      font-size: 26px; 
     }
 
-    /* เปิดแสดงตัวหนังสือเฉพาะเมนูที่เปิดใช้อยู่ตามต้นฉบับแอปโมเดิร์น */
-    .tab-item.active span {
-        display: inline-block;
-        animation: fadeInText 0.2s ease-in-out;
+    /* ปรับขนาดรูปภาพไอคอนสั่งทำพิเศษของแชมป์ประจำเดือน */
+    .tab-item img {
+      width: 32px; 
+      height: 32px; 
+      object-fit: contain;
     }
-
-    .tab-item:active i {
-        transform: scale(0.9); /* ยุบตัวลงเล็กน้อยตอนเอานิ้วกดให้ความรู้สึกสมจริง */
+    
+    /* ล็อกขนาดรูปโปรไฟล์แยกไว้ต่างหาก */
+    #tab-profile-img {
+      width: 30px !important;
+      height: 30px !important;
     }
 
     /* เพิ่มแอนิเมชันให้ตัวหนังสือค่อยๆ ปรากฏขึ้นตอนเปลี่ยนหน้า */
@@ -1679,43 +1657,53 @@ async function refreshAppData() {
 // 🎨 [เพิ่มใหม่] 5.1 ระบบโหลดธีมผู้ชนะประจำเดือน (Splash Screen & Nav Icons)
 // ==========================================
 function loadChampOfTheMonth() {
-  // ดึงข้อมูลผ่าน scriptURL ตัวเดิมที่มีอยู่แล้ว โดยต่อท้ายด้วยแอคชัน getWinnerTheme
+  // ดึงข้อมูลธีมและไอคอนผู้ชนะจากหลังบ้าน
   fetch(`${scriptURL}?action=getWinnerTheme`)
     .then(response => response.json())
     .then(champData => {
       console.log("ดึงข้อมูลธีมผู้ชนะสำเร็จ:", champData);
       
       if (champData) {
-        // 1. เปลี่ยนรูปภาพหน้าจอ Splash Screen (เช็กก่อนว่ามี ID นี้ในหน้าเว็บไหม)
+        // เปลี่ยนรูปภาพหน้าจอ Splash Screen แจ้งเตือนแชมป์
         const mainSplash = document.getElementById('main-splash');
         if (mainSplash && champData.splash) {
           mainSplash.src = champData.splash;
         }
         
-        // 2. เปลี่ยนรูปไอคอนบน Navigation bar ครบทุกปุ่มตามที่เอ็มมี่เพิ่มมาในชีต members
-        const navHome = document.getElementById('nav-home');
-        const navCart = document.getElementById('nav-cart');
-        const navKami = document.getElementById('nav-kami');
-        const navNoti = document.getElementById('nav-noti');
-
-        if (navHome && champData.homeIcon) navHome.src = champData.homeIcon;
-        if (navCart && champData.cartIcon) navCart.src = champData.cartIcon;
-        if (navKami && champData.kamiIcon) navKami.src = champData.kamiIcon;
-        if (navNoti && champData.notiIcon) navNoti.src = champData.notiIcon;
+        // 🔄 สั่งสลับไอคอน: ถ้าในชีตมีลิงก์รูปภาพ ให้ซ่อนไอคอนเดิมแล้วแสดงรูปภาพสั่งทำพิเศษแทน
+        updateTabIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+        updateTabIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+        updateTabIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+        updateTabIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
       }
       
-      // หน่วงเวลาเล็กน้อยหลังจากเปลี่ยนรูปเสร็จ แล้วค่อยซ่อนหน้าจอโหลด
+      // เมื่อทุกอย่างเซ็ตเสร็จเรียบร้อย ค่อยสั่งปิดหน้าจอโหลดวงกลมคุกกี้หมุนๆ
       setTimeout(() => {
         const appLoading = document.getElementById('app-loading-screen');
         if (appLoading) appLoading.style.display = 'none';
       }, 500);
     })
     .catch(error => {
-      console.error("เกิดข้อผิดพลาดในการดึงข้อมูลธีม:", error);
-      // ถ้าเกิดข้อผิดพลาดหรือเน็ตหลุด ให้ปิดหน้าจอโหลดเช่นกัน แฟนคลับจะได้ไม่เจอหน้าจอค้าง
+      console.error("เกิดข้อผิดพลาดในการดึงข้อมูลธีมประจำเดือน:", error);
+      // เคสเน็ตหลุด ให้ปิดหน้าจอรวบรวมคุกกี้หมุนๆ เช่นกัน แอปจะได้ไม่ค้าง
       const appLoading = document.getElementById('app-loading-screen');
       if (appLoading) appLoading.style.display = 'none';
     });
+}
+  
+  /**
+ * ฟังก์ชันพิเศษสำหรับจัดการสลับสับเปลี่ยนไอคอนพวง
+ * ถ้ามีลิงก์รูปภาพส่งมาจาก Google Sheets -> จะทำการซ่อนไอคอน FontAwesome แล้วดึงรูปภาพขึ้นมาแสดงแทน
+ */
+  function updateTabIcon(imgId, fallbackId, iconUrl) {
+  const imgElement = document.getElementById(imgId);
+  const fallbackElement = document.getElementById(fallbackId);
+  
+  if (imgElement && fallbackElement && iconUrl && iconUrl.trim() !== "") {
+    imgElement.src = iconUrl;         // ใส่ URL รูปภาพจากชีต
+    imgElement.style.display = 'block'; // แสดงรูปภาพสั่งทำพิเศษ
+    fallbackElement.style.display = 'none'; // สั่งซ่อนไอคอน FontAwesome ทันที
+  }
 }
 
 // ==========================================
@@ -3433,37 +3421,31 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 <div class="bottom-tab-bar">
   
-  <!-- 1. หน้าแรก (เปลี่ยนจากไอคอน <i> มาเป็นรูปภาพที่มี id="nav-home" เพื่อให้เปลี่ยนรูปตามแชมป์โหวตได้) -->
   <a href="index.html" class="tab-item active">
-    <img id="nav-home" src="images/icons/default-home.png" alt="Home" style="width: 24px; height: 24px; object-fit: contain; margin-bottom: 4px;">
-    <span>Home</span>
+    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
+    <img id="nav-home" src="" alt="Home" style="display: none;">
   </a>
 
-  <!-- 2. หน้าคามิโอชิ -->
   <a href="kami.html" class="tab-item">
-    <i class="fa-solid fa-star"></i>
-    <span>My Oshi</span>
+    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
+    <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
   </a>
 
-  <!-- 3. หน้าร้านค้า (เปลี่ยนจากไอคอน <i> มาเป็นรูปภาพที่มี id="nav-cart" สำหรับเปลี่ยนรูปไอคอนตะกร้าสินค้า) -->
   <a href="shop.html" class="tab-item">
-    <img id="nav-cart" src="images/icons/default-cart.png" alt="Shop" style="width: 24px; height: 24px; object-fit: contain; margin-bottom: 4px;">
-    <span>Shop</span>
+    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
+    <img id="nav-cart" src="" alt="Shop" style="display: none;">
   </a>
 
-  <!-- 4. หน้าแจ้งเตือน -->
   <a href="notification.html" class="tab-item">
-    <div class="icon-wrapper">
-      <i class="fa-solid fa-bell"></i>
+    <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
+      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
+      <img id="nav-noti" src="" alt="Notification" style="display: none;">
       <span class="noti-badge" id="noti-badge" style="display: none;"></span>
-      <span>Notification</span>
     </div>
   </a>
 
-  <!-- 5. หน้าโปรไฟล์ (มีรูปโปรไฟล์อยู่แล้ว) -->
   <a href="profile.html" class="tab-item">
-    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
-    <span>Profile</span>
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
   </a>
 
 </div>
