@@ -289,80 +289,92 @@ body {
 }
     
 .bottom-tab-bar {
-  /* 🎀 ปรับความสูงลงมาให้พอดี ไม่ต้องเผื่อพื้นที่ให้ปุ่มลอยขึ้นไปข้างบนแล้วครับ */
-  height: calc(70px + env(safe-area-inset-bottom, 0px)); 
+  /* 👑 Layer 1: คงเดิมของคุณเอ็มมี่ไว้เลยครับ */
+  height: calc(110px + env(safe-area-inset-bottom, 0px)); 
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   z-index: 999;
-  background: #ffffff; /* เปลี่ยนมาใส่สีขาวที่ตัวบาร์หลักได้เลย ไม่ต้องใช้ Layer โปร่งแสงแล้ว */
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: 24px 24px 0 0; /* ยังคงความโค้งมนของขอบบาร์ด้านบนไว้ให้ดูละมุน */
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.06); 
+  background: transparent; 
   display: flex;
   justify-content: space-around;
-  align-items: center; /* จัดการวางตำแหน่งไอคอนให้อยู่กึ่งกลางแนวตั้งพอดี */
+  align-items: flex-end;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
 }
 
-/* ⚠️ อย่าลืมลบโค้ดส่วน .bottom-tab-bar::before ของเก่าออกด้วยนะครับ เพราะเราไม่ได้ใช้แล้ว */
+.bottom-tab-bar::before {
+  /* 👑 Layer 2: เนื้อผ้าสีขาวหนา 50px โค้งมนละมุนแบบเดิม */
+  content: "";
+  position: absolute;
+  top: 60px; 
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff; 
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08);
+  z-index: 1;
+}
 
 .tab-item {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 65px;  /* 📐 กำหนดความกว้างของบล็อกสี่เหลี่ยมผืนผ้า */
-  height: 45px; /* 📐 กำหนดความสูงของบล็อกสี่เหลี่ยมผืนผ้า */
+  width: 20%;
+  height: 50px; 
   position: relative;
   z-index: 2; 
   text-decoration: none;
   color: #8e8e93; 
-  border-radius: 12px; /* ความโค้งมนของมุมสี่เหลี่ยม (12px กำหนดให้เป็นสี่เหลี่ยมมนๆ ไม่กลมกลืนเป็นวงกลม) */
-  transition: all 0.2s ease; /* เปลี่ยนแอนิเมชันให้สมูทนุ่มนวล */
   
-  /* ❌ ลบ transform: translateY(-30px); ของเดิมออก เพื่อไม่ให้ไอคอนลอย */
+  /* 🚀 ดันไอคอนให้ลอยขึ้นมา 30px ทะลุเลเยอร์สีขาวเหมือนเดิม */
+  transform: translateY(-30px); 
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease;
+  border-radius: 12px; /* 📐 เตรียมมุมมนไว้สำหรับตอน Active ขึ้นสีสี่เหลี่ยมผืนผ้า */
 }
 
-/* 🌟 เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มปกติ (เปลี่ยนเป็นสเกลยุบลงเล็กน้อยให้พอดูมีมิติ) */
+/* 🌟 เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มปกติ */
 .tab-item:active {
-  transform: scale(0.92);
+  transform: translateY(-30px) scale(0.85);
   opacity: 0.8;
 }
 
-/* 👑 ปุ่มสถานะ Active (หน้าปัจจุบัน): ได้สี่เหลี่ยมผืนผ้าใสสีชมพูอยู่ด้านหลังตามบรีฟเลยครับ */
+/* 👑 ปุ่มสถานะ Active: ล็อคความสูงเท่าเพื่อน ไม่ดีดขึ้นไป -45px แล้ว + ใส่พื้นหลังชมพูใส */
 .tab-item.active {
-  color: #ff6b8b; /* ปรับสีไอคอนให้เข้มขึ้นเล็กน้อยเพื่อให้ตัดกับพื้นหลังชมพูใส */
-  background-color: rgba(255, 179, 193, 0.25); /* สี่เหลี่ยมผืนผ้าสีชมพูโปร่งแสง (เลข 0.25 คือความใส ปรับได้ครับ) */
+  color: #ff6b8b; /* ปรับสีไอคอนเข้มขึ้นนิดนึงเพื่อให้ตัดกับพื้นหลังสีชมพูใส */
   
-  /* ❌ ลบ transform: translateY(-45px); ของเดิมออกอย่างเด็ดขาด */
-  transform: none; 
+  /* 🌟 จุดสำคัญ: ล็อคตัวให้อยู่ที่ -30px เท่ากับปุ่มปกติ ไม่ลอยสูงกว่าเพื่อนแล้วครับ */
+  transform: translateY(-30px); 
+  
+  /* 🌟 ใส่สี่เหลี่ยมผืนผ้าสีชมพูโปร่งแสง (เลข 0.25 คือความใส ปรับเพิ่ม-ลดได้ตามใจชอบ) */
+  background-color: rgba(255, 179, 193, 0.25); 
 }
 
-/* เอฟเฟกต์ตอนจิ้มปุ่มที่ Active อยู่ */
+/* เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มที่ Active อยู่ */
 .tab-item.active:active {
-  transform: scale(0.92);
+  /* ล็อคฐานที่ -30px แล้วยุบตัวลงตอนจิ้ม */
+  transform: translateY(-30px) scale(0.85);
 }
 
-/* 🛠️ ปรับขนาดไอคอนด้านในให้บาลานซ์กับกล่องสี่เหลี่ยมผืนผ้า */
+/* --- โค้ดขนาดไอคอนและรูปภาพด้านล่างนี้ใช้ของเดิมของคุณเอ็มมี่ได้เลยครับ --- */
 .tab-item i {
-  font-size: 24px; /* ปรับลดลงมาจาก 34px เพื่อให้ไม่ล้นกรอบสี่เหลี่ยมผืนผ้าสีชมพู */
-  filter: none;    /* เอาเงา drop-shadow ออก เพื่อความมินิมอลแบบ Flat Design */
+  font-size: 34px;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.08)); 
 }
 
-/* ปรับขนาดรูปไอคอนสั่งทำ */
 .tab-item img {
-  width: 30px;  /* ปรับลดลงมาจาก 44px ให้สัดส่วนสวยงามพอดีกับกรอบ */
-  height: 30px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
-  filter: none; /* เอาเงาออกเช่นกันครับ */
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12)); 
 }
 
-/* ปรับแต่งวงกลมรูปโปรไฟล์ให้ขนาดพอดีกับเพื่อนๆ */
 #tab-profile-img {
-  width: 32px !important;
-  height: 32px !important;
+  width: 38px !important;
+  height: 38px !important;
   border-radius: 50%;
   border: 2px solid #ffb3c1;
   box-sizing: border-box;
