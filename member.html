@@ -681,8 +681,11 @@
       } catch (e) { console.error("Sync Error:", e); }
     }
 
-    async function fetchLatestMemberStats() {
+async function fetchLatestMemberStats() {
       if (!memberName) return;
+      
+      // เอา const scriptURL เดิมตรงบรรทัดนี้ออกได้เลยครับ เพราะใช้ตัวแปรด้านบนแทนแล้ว ✨
+
       try {
         const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
         const res = await resp.json();
@@ -691,23 +694,21 @@
           const oldStats = localStorage.getItem('current_member_stats');
           const oldFans = localStorage.getItem('current_member_fans');
           
-          // 🌸 ตรวจสอบข้อมูลอัปเดตจาก Google Sheet: ถ้าค่าเปลี่ยนไปจากแคชเดิม ให้ล้าง session แคชเก่าทิ้งทันที
           if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
-            localStorage.removeItem('current_member_stats');
-            localStorage.removeItem('current_member_fans');
+            if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
+            if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
+            
+            if (typeof removeSkeleton === "function") removeSkeleton(); 
+            renderMemberStatsAndFans(); 
+          } else {
+             if (typeof removeSkeleton === "function") removeSkeleton();
           }
-          
-          if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
-          if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
-          
-          removeSkeleton(); 
-          renderMemberStatsAndFans(); 
         } else {
-          removeSkeleton();
+          if (typeof removeSkeleton === "function") removeSkeleton();
         }
       } catch (e) {
         console.error("Error fetching latest member stats:", e);
-        removeSkeleton();
+        if (typeof removeSkeleton === "function") removeSkeleton();
       }
     }
 
@@ -937,7 +938,7 @@ async function fetchLatestMemberStats() {
       }
     }
   
-    async function loadMemberSpecialThanks() {
+ async function loadMemberSpecialThanks() {
         const container = document.getElementById('champ-thanks-container');
         const content = document.getElementById('champ-thanks-content');
         if (!container || !content || !memberName) return;
@@ -949,6 +950,7 @@ async function fetchLatestMemberStats() {
             champData = JSON.parse(localData);
         } else {
             try {
+                // 👍 ตรงนี้จะเรียกใช้งาน scriptURL จากด้านบนสุดได้ฉลุย ไม่เออร์เรอร์แล้วครับ!
                 const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
                 const result = await response.json();
                 if (result.status === "success" && result.data) {
