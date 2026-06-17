@@ -1479,17 +1479,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <div class="loader-text">กำลังรวบรวมคุกกี้...</div>
   </div>
 </div>
-<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.4s ease;">
-    
-    <div style="position: relative; width: 85%; max-width: 340px; aspect-ratio: 2/3; background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.4); display: flex; flex-direction: column; animation: popupScale 0.3s ease-out;">
-        
-        <div onclick="closeChampSplash()" style="position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; background: rgba(0, 0, 0, 0.5); color: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-family: Arial, sans-serif; font-size: 20px; line-height: 1; z-index: 10; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.7)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'">
-          &times;
-        </div>
-        
-        <img id="main-splash" src="images/default-splash.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        
-    </div>
+<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; display: none; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; opacity: 1;">
+    <!-- ดึงรูปภาพกางเต็มจอ 100% สัดส่วนไม่เพี้ยนด้วย object-fit: cover -->
+    <img id="main-splash" src="images/default-splash.jpg" style="width: 100%; height: 100%; object-fit: cover;">
 </div>
 
 <!-- Overlay สำหรับปิด Sidebar -->
@@ -1896,29 +1888,28 @@ function hideThemeLoadingScreen() {
   if (appLoading) appLoading.style.display = 'none';
 }
 
-// ==========================================
-// 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันอย่างเป็นระเบียบ)
-// ==========================================
+// =========================================================================
+// 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันเวอร์ชันเคลียร์บั๊ก)
+// =========================================================================
 
-// ✨ จุดที่ 1: ดักจับตอนโครงสร้างหน้าเว็บโหลดเสร็จ (ทำงานรอบเดียว เรียงลำดับด้วย await ไม่ตีกันเอง)
-// ✨ จุดที่ 1: ดักจับตอนโครงสร้างหน้าเว็บโหลดเสร็จ (เวอร์ชันแก้ไขให้โพสต์ขึ้นค้างทันที ไม่รอกระพริบโหลด)
+// ✨ จุดที่ 1: ดักจับตอนโครงสร้างหน้าเว็บโหลดเสร็จ (ยุบรวมโลจิกทั้งหมดไว้ที่นี่เพื่อเรียงลำดับ)
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     // 🔐 1. ตรวจสอบเซสชันผู้ใช้เบื้องต้นจากตัวเครื่องก่อน
     user = getUserSession(); 
 
-    // 🚨 ดักจับ: ถ้าไม่มี user หรือ username เป็นค่าว่าง ให้เตะออกทันทีป้องกันการแอบเข้ามาหน้าแรก
+    // 🚨 ดักจับ: ถ้าไม่มี user ให้เตะออกไปหน้า Login ทันที
     if (!user || !user.username || user.username.trim() === "") {
-      localStorage.removeItem('bnl_session'); // ล้างเซสชันขยะทิ้ง
-      window.location.replace('login.html'); // ใช้ .replace() เพื่อไม่ให้กดย้อนกลับมาได้
+      localStorage.removeItem('bnl_session'); 
+      window.location.replace('login.html'); 
       return; 
     }
 
-    // 🔄 2. ตรวจสอบเวอร์ชันแอปเพื่อเคลียร์แคชเก่าอัตโนมัติ
+    // 🔄 2. ตรวจสอบเวอร์ชันแอปและโหลดข้อมูลแชมป์
     checkVersion(); 
     loadChampOfTheMonth();
     
-    // 🎨 3. วาดหน้าจอแสดงผลด้วยข้อมูลเก่าจาก Cache ทันทีเพื่อให้แอปเปิดไวแบบไม่ต้องรอโหลดซิงค์ข้อมูล
+    // 🎨 3. วาดหน้าจอแสดงผลด้วยข้อมูลเก่าจาก Cache ทันที เพื่อให้แอปเปิดไว
     if (typeof updateUI === 'function') updateUI();
     if (typeof renderTrendingMVs === 'function') renderTrendingMVs();
     if (Array.isArray(currentRankingData) && currentRankingData.length > 0) {
@@ -1928,16 +1919,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderGlobalFans(currentTopFansData);
     }
 
-    // 🌸 [แก้ไขจุดนี้] สั่งโหลดโพสต์ไทม์ไลน์ขึ้นมาค้างบนหน้าจอทันทีจาก Cache!
-    // ฟังก์ชันนี้จะดึงโพสต์ใน localStorage ขึ้นมาโชว์ทันทีในเสี้ยววินาทีแรก และแอบยิงเช็กโพสต์ใหม่ไปพร้อมๆ กัน
+    // 🌸 สั่งโหลดโพสต์ไทม์ไลน์ขึ้นมาค้างบนหน้าจอทันทีจาก Cache
     if (typeof loadTimelinePosts === 'function') {
       loadTimelinePosts(); 
     }
 
-    // 🚀 4. ซ่อนหน้าต่างโหลด เพื่อให้ผู้ใช้กดปุ่มใช้งานเมนูต่างๆ บนหน้าเว็บได้ทันที
+    // 🚀 4. ซ่อนหน้าต่างโหลดตัวเล็ก (App Loading) เพื่อให้ระบบเบื้องหลังพร้อมทำงาน
     if (typeof hideAppLoading === 'function') hideAppLoading();
 
-    // 📡 5. ซิงค์ข้อมูลสดจาก Google Sheets ย้ายมาทำงานด้านหลัง (หลังจากโชว์ข้อมูลแคชเรียบร้อยแล้ว)
+    /* =========================================================================
+       🎬 [ระบบควบคุม FULLSCREEN SPLASH SCREEN 5 วินาที]
+       ========================================================================= */
+    const splashScreen = document.getElementById('splash-screen');
+    if (splashScreen) {
+      const hasShownSplash = sessionStorage.getItem('blm48_splash_shown');
+
+      if (!hasShownSplash) {
+        // ครั้งแรกของเซสชัน -> สั่งโชว์เต็มจอ 5 วินาที
+        splashScreen.style.display = 'flex';
+        sessionStorage.setItem('blm48_splash_shown', 'true');
+
+        setTimeout(() => {
+          splashScreen.style.opacity = '0'; // ค่อยๆ เฟดจางลงเพื่อความละมุน
+          setTimeout(() => {
+            splashScreen.style.display = 'none';
+          }, 500); 
+        }, 5000); // ⏱️ ตั้งเวลาให้โชว์ค้างไว้ 5 วินาทีตรงนี้งับ
+
+      } else {
+        // เคยโชว์ไปแล้วในเซสชันนี้ -> ปิดตายทันที แฟนคลับใช้งานเว็บต่อได้เลย ไม่หน่วงเวลา
+        splashScreen.style.display = 'none';
+      }
+    }
+
+    // 📡 5. ซิงค์ข้อมูลสดจาก Google Sheets / หลังบ้าน (ทำงานแบบ Background Sync อยู่ใต้รูป Splash)
     await syncUserData();       
     
     // 6. แอบโหลดข้อมูลอันดับเบื้องหลังแบบเงียบๆ
@@ -1949,16 +1964,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// ✨ จุดที่ 2: ดักจับตอนไฟล์ทั้งหมด (รวมถึงรูปภาพ) โหลดเสร็จสมบูรณ์ (ใช้จัดการธีมและปิด Splash Screen หน้าแรกสุด)
+// ✨ จุดที่ 2: ดักจับตอนไฟล์ทั้งหมด (รวมถึงรูปภาพ) โหลดเสร็จสมบูรณ์
 window.addEventListener('load', () => {
   // ตรวจสอบระบบ Dark Mode
   if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'function') {
     toggleDarkMode();
   }
-  // หน่วงเวลา 2 วินาทีแล้วปิด Splash Screen ตัวโหลดสีขาวชมพูเริ่มต้น
-  if (typeof hideSplashScreen === 'function') {
-    setTimeout(hideSplashScreen, 2000); 
-  }
+  
+  // 💡 หมายเหตุ: ถอดระบบเปิด-ปิด hideSplashScreen ตัวเก่าออกแล้ว เพื่อไม่ให้ไปแย่งเวลา 5 วินาทีของตัวใหม่ครับ
 });
 
 // ✨ จุดที่ 3: ดักจับตอนผู้ใช้กดย้อนกลับมาจากหน้าอื่น (Pageshow) ให้ทำการซิงค์ข้อมูลใหม่
