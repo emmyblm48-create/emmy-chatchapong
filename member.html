@@ -718,75 +718,84 @@ async function fetchLatestMemberStats() {
         return url;
     }
 
-   function renderMemberStatsAndFans() {
-      const savedStats = localStorage.getItem('current_member_stats');
-      if (savedStats) {
-        const m = JSON.parse(savedStats);
-        
-        // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
-        const gradBadge = document.getElementById('mb-grad-badge');
-        const gradAvatarIcon = document.getElementById('avatar-grad-icon');
-        const btnCookie = document.getElementById('btn-cookie-trigger');
-        const nameEl = document.getElementById('mb-name');
-        
-        if (nameEl) nameEl.innerText = m.name || memberName;
+function renderMemberStatsAndFans() {
+  const savedStatsStr = localStorage.getItem('current_member_stats');
+  if (!savedStatsStr) return;
 
-        if (m.status === 'Graduated' || m.status === 'graduated') {
-          if (gradBadge) gradBadge.style.display = 'inline-flex';
-          if (gradAvatarIcon) gradAvatarIcon.style.display = 'flex';
-          if (btnCookie) btnCookie.setAttribute('data-graduated', 'true');
-        } else {
-          if (gradBadge) gradBadge.style.display = 'none';
-          if (gradAvatarIcon) gradAvatarIcon.style.display = 'none';
-          if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
-        }
+  try {
+    const m = JSON.parse(savedStatsStr);
+    
+    // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
+    const gradBadge = document.getElementById('mb-grad-badge');
+    const gradAvatarIcon = document.getElementById('avatar-grad-icon');
+    const btnCookie = document.getElementById('btn-cookie-trigger');
+    const nameEl = document.getElementById('mb-name');
+    
+    if (nameEl) nameEl.innerText = m.name || memberName;
 
-        const avatarEl = document.getElementById('mb-avatar');
-        if (avatarEl) avatarEl.src = getImg(m.profile_img);
-
-        // 🌟 แก้ไขตรงนี้: ถ้ายังไม่มีค่า ให้ขึ้น ... แทน 0
-        const kamiEl = document.getElementById('mb-kami');
-        if (kamiEl) kamiEl.innerText = (m.total_kami !== undefined && m.total_kami !== null) ? m.total_kami : '...';
-
-        const oshiEl = document.getElementById('mb-oshi');
-        if (oshiEl) oshiEl.innerText = (m.total_oshi !== undefined && m.total_oshi !== null) ? m.total_oshi : '...';
-
-        const scoreEl = document.getElementById('mb-score');
-        if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
-        
-        const likesEl = document.getElementById('mb-likes');
-if (likesEl) {
-  // 💖 ดักคีย์เผื่อไว้ ถ้ามี total_likes ให้ใช้ ถ้าไม่มีให้ไปดู total_like แต่ถ้าไม่มีเลยให้เป็น 0
-  const currentLikes = m.total_likes !== undefined ? m.total_likes : (m.total_like !== undefined ? m.total_like : 0);
-  likesEl.innerText = formatMemberScore(currentLikes);
-}
-
-      // ... (โค้ดส่วน fanContainer ด้านล่างปล่อยไว้เหมือนเดิมครับ) ...
-      const savedFans = localStorage.getItem('current_member_fans');
-      const fanContainer = document.getElementById('member-fans-content');
-      
-      if (savedFans && fanContainer) {
-        fanContainer.innerHTML = '';
-        const fans = JSON.parse(savedFans);
-        if (fans.length === 0) {
-          fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
-        } else {
-          fans.slice(0, 10).forEach((f, idx) => {
-            const row = document.createElement('div');
-            row.className = 'fan-row';
-            row.innerHTML = `
-              <div class="fan-rank">${idx + 1}</div>
-              <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='assets/images/default-profile.png'"> 
-              <div class="fan-meta">
-                <div class="fan-name">${f.name || f.username}</div>
-                <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
-              </div>
-            `;
-            fanContainer.appendChild(row);
-          });
-        }
-      }
+    if (m.status === 'Graduated' || m.status === 'graduated') {
+      if (gradBadge) gradBadge.style.display = 'inline-flex';
+      if (gradAvatarIcon) gradAvatarIcon.style.display = 'flex';
+      if (btnCookie) btnCookie.setAttribute('data-graduated', 'true');
+    } else {
+      if (gradBadge) gradBadge.style.display = 'none';
+      if (gradAvatarIcon) gradAvatarIcon.style.display = 'none';
+      if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
     }
+
+    const avatarEl = document.getElementById('mb-avatar');
+    if (avatarEl) avatarEl.src = getImg(m.profile_img);
+
+    // 🌟 ดึงข้อมูลจากแคชมาโชว์ทันที
+    const kamiEl = document.getElementById('mb-kami');
+    if (kamiEl) kamiEl.innerText = (m.total_kami !== undefined && m.total_kami !== null) ? m.total_kami : '...';
+
+    const oshiEl = document.getElementById('mb-oshi');
+    if (oshiEl) oshiEl.innerText = (m.total_oshi !== undefined && m.total_oshi !== null) ? m.total_oshi : '...';
+
+    const scoreEl = document.getElementById('mb-score');
+    if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
+    
+    // 💖 แสดงยอดไลก์สะสมจากแคชแบบทันใจดักคีย์ทุกรูปแบบ
+    const likesEl = document.getElementById('mb-likes');
+    if (likesEl) {
+      const currentLikes = m.total_likes !== undefined ? m.total_likes : (m.total_like !== undefined ? m.total_like : 0);
+      likesEl.innerText = formatMemberScore(currentLikes);
+    }
+  } catch (e) {
+    console.error("Error rendering stats from cache:", e);
+  }
+
+  // 📦 ส่วนแสดงผล Top Fans ดึงจากกล่องแคชแฟนคลับ
+  const savedFans = localStorage.getItem('current_member_fans');
+  const fanContainer = document.getElementById('member-fans-content');
+  
+  if (savedFans && fanContainer) {
+    fanContainer.innerHTML = '';
+    try {
+      const fans = JSON.parse(savedFans);
+      if (fans.length === 0) {
+        fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+      } else {
+        fans.slice(0, 10).forEach((f, idx) => {
+          const row = document.createElement('div');
+          row.className = 'fan-row';
+          row.innerHTML = `
+            <div class="fan-rank">${idx + 1}</div>
+            <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='assets/images/default-profile.png'"> 
+            <div class="fan-meta">
+              <div class="fan-name">${f.name || f.username}</div>
+              <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
+            </div>
+          `;
+          fanContainer.appendChild(row);
+        });
+      }
+    } catch(err) {
+      console.error("Error parsing fans dynamic data:", err);
+    }
+  }
+}
 
     function checkLoginStatus() {
       if (!user) {
