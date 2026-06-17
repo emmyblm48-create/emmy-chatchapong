@@ -755,8 +755,11 @@ async function fetchLatestMemberStats() {
         if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
         
         const likesEl = document.getElementById('mb-likes');
-        if (likesEl) likesEl.innerText = formatMemberScore(m.total_likes || 0);
-      }
+if (likesEl) {
+  // 💖 ดักคีย์เผื่อไว้ ถ้ามี total_likes ให้ใช้ ถ้าไม่มีให้ไปดู total_like แต่ถ้าไม่มีเลยให้เป็น 0
+  const currentLikes = m.total_likes !== undefined ? m.total_likes : (m.total_like !== undefined ? m.total_like : 0);
+  likesEl.innerText = formatMemberScore(currentLikes);
+}
 
       // ... (โค้ดส่วน fanContainer ด้านล่างปล่อยไว้เหมือนเดิมครับ) ...
       const savedFans = localStorage.getItem('current_member_fans');
