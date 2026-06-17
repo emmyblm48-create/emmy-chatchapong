@@ -763,12 +763,13 @@ function renderMemberStatsAndFans() {
       scoreEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลด
     }
     
-    // 💖 จุดเปลี่ยนชีวิต: เรียกคีย์ m.likes ให้ตรงกันทั้งโปรเจกต์ โชว์ทันใจแน่นอน!
-    const likesEl = document.getElementById('mb-likes');
+   const likesEl = document.getElementById('mb-likes');
     if (likesEl) {
-      const liveLikes = m.likes !== undefined ? m.likes : (m.total_likes !== undefined ? m.total_likes : 0);
+      // ดักรับค่าจากแคช เผื่อหน้าแรกส่งมาในชื่อ total_likes หรือหลังบ้านดึงสดเป็น totalLikes
+      const liveLikes = m.total_likes !== undefined ? m.total_likes : (m.totalLikes !== undefined ? m.totalLikes : 0);
+
       likesEl.innerText = formatMemberScore(liveLikes);
-      likesEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลดเพื่อให้แสดงผลทันที!
+      likesEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลดทันที!
     }
   }
 
