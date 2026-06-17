@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
   <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
   <meta name="apple-mobile-web-app-title" content="BLM48">   
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -670,10 +670,13 @@
       }
     }
         
-    // =========================================================
-    // 🎨 5. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน (เวอร์ชันรวมพลังคามิ/โอชิ)
+// =========================================================
+    // 🎨 5. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน (เวอร์ชันรวมพลังคามิ/โอชิ - ปลอดภัยไร้บั๊ก)
     // =========================================================
     function renderUI() {
+      // 🌟 1. ปรับค่าเริ่มต้นเป็น '{}' เพื่อให้แมตช์กับการเรียกใช้แบบ Object ด้านล่าง
+      const userIdols = JSON.parse(localStorage.getItem('kami_members') || '{}');
+      
       if (myNotifications && myNotifications.length > 0) {
         notiListContainer.innerHTML = ""; 
         
@@ -682,7 +685,7 @@
         sortedList.forEach(noti => {
           const notiDate = new Date(noti.timestamp);
           
-          // 🗓️ ปรับรูปแบบเป็น วันที่ และเวลา เต็มรูปแบบภาษาอังกฤษ เช่น "Wednesday, June 17, 2026 at 05:45 PM"
+          // 🗓️ รูปแบบ วันที่ และเวลา ภาษาอังกฤษเต็มรูปแบบ
           const timeString = notiDate.toLocaleString('en-US', {
             weekday: 'long',
             year: 'numeric',
@@ -699,19 +702,21 @@
             <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
           </svg>` : '';
 
-          const deleteBtn = (checkRoleLower === "admin" || checkRoleLower === "ceo") 
+          // 🛠️ แก้ไขจุดบั๊ก: เปลี่ยนจาก checkRoleLower เป็น checkRole เพื่อให้เรียกใช้ตัวแปรได้ถูกต้อง
+          const deleteBtn = (checkRole === "admin" || checkRole === "ceo") 
             ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.timestamp})"><i class="fa-solid fa-trash-can"></i></button>` 
             : '';
 
-          const isKami = noti.writer === userIdols.kami;
-          const isOshi = userIdols.oshis.includes(noti.writer);
+          // 🛠️ แก้ไขจุดบั๊กกันพัง: เช็กข้อมูลแบบนุ่มนวล (Optional Chaining) และใส่ Array สำรองเผื่อข้อมูลว่าง
+          const isKami = userIdols && userIdols.kami ? (noti.writer === userIdols.kami) : false;
+          const isOshi = userIdols && userIdols.oshis && Array.isArray(userIdols.oshis) ? userIdols.oshis.includes(noti.writer) : false;
 
           if (isKami || isOshi || showVerified) {
             
             let specialClass = '';
             let badgeText = '';
 
-            // 🌟 เปลี่ยนข้อความพาสเทลด้านในป้ายสถานะจาก อิโมจิ -> ไอคอน FontAwesome
+            // 🌟 แสดงผลป้ายสถานะด้วยไอคอน FontAwesome ตามที่คุณปรับไว้
             if (isKami) {
               specialClass = 'kami-border';
               badgeText = `<span class="relation-badge bg-kami"><i class="fa-solid fa-heart"></i> My Kami</span>`;
