@@ -725,7 +725,7 @@ function renderMemberStatsAndFans() {
   try {
     const m = JSON.parse(savedStatsStr);
     
-    // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
+    // 🎯 1. เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
     const gradBadge = document.getElementById('mb-grad-badge');
     const gradAvatarIcon = document.getElementById('avatar-grad-icon');
     const btnCookie = document.getElementById('btn-cookie-trigger');
@@ -746,27 +746,48 @@ function renderMemberStatsAndFans() {
     const avatarEl = document.getElementById('mb-avatar');
     if (avatarEl) avatarEl.src = getImg(m.profile_img);
 
-    // 🌟 ดึงข้อมูลจากแคชมาโชว์ทันที
+    // ==========================================
+    // 🌟 2. ดึงข้อมูลจากแคชมาโชว์ทันที พร้อมลบเอฟเฟกต์ Skeleton ออกให้หมด!
+    // ==========================================
+    
     const kamiEl = document.getElementById('mb-kami');
-    if (kamiEl) kamiEl.innerText = (m.total_kami !== undefined && m.total_kami !== null) ? m.total_kami : '...';
+    if (kamiEl) {
+      kamiEl.innerText = (m.total_kami !== undefined && m.total_kami !== null) ? m.total_kami : '0';
+      kamiEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
+    }
 
     const oshiEl = document.getElementById('mb-oshi');
-    if (oshiEl) oshiEl.innerText = (m.total_oshi !== undefined && m.total_oshi !== null) ? m.total_oshi : '...';
+    if (oshiEl) {
+      oshiEl.innerText = (m.total_oshi !== undefined && m.total_oshi !== null) ? m.total_oshi : '0';
+      oshiEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
+    }
 
     const scoreEl = document.getElementById('mb-score');
-    if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total || 0);
+    if (scoreEl) {
+      scoreEl.innerText = formatMemberScore(m.all_time_total || m.monthly_cookies || 0);
+      scoreEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
+    }
     
-    // 💖 แสดงยอดไลก์สะสมจากแคชแบบทันใจดักคีย์ทุกรูปแบบ
     const likesEl = document.getElementById('mb-likes');
     if (likesEl) {
       const currentLikes = m.total_likes !== undefined ? m.total_likes : (m.total_like !== undefined ? m.total_like : 0);
       likesEl.innerText = formatMemberScore(currentLikes);
+      likesEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
     }
+
+    // หักล้างเอฟเฟกต์โครงร่างจากปุ่มเล่นๆ เผื่อระบบมีคำสั่งแอดคลาสไว้
+    document.querySelectorAll('.skeleton-stat, .skeleton').forEach(el => {
+      // เช็กดักเผื่อมี Element ไหนในบล็อกสถิติยังค้างอยู่ให้เคลียร์ออกเลย
+      if(el.id === 'mb-kami' || el.id === 'mb-oshi' || el.id === 'mb-score' || el.id === 'mb-likes') {
+        el.classList.remove('skeleton', 'skeleton-stat');
+      }
+    });
+
   } catch (e) {
     console.error("Error rendering stats from cache:", e);
   }
 
-  // 📦 ส่วนแสดงผล Top Fans ดึงจากกล่องแคชแฟนคลับ
+  // 📦 3. ส่วนแสดงผล Top Fans ดึงจากกล่องแคชแฟนคลับ
   const savedFans = localStorage.getItem('current_member_fans');
   const fanContainer = document.getElementById('member-fans-content');
   
@@ -782,7 +803,7 @@ function renderMemberStatsAndFans() {
           row.className = 'fan-row';
           row.innerHTML = `
             <div class="fan-rank">${idx + 1}</div>
-            <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='assets/images/default-profile.png'"> 
+            <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'"> 
             <div class="fan-meta">
               <div class="fan-name">${f.name || f.username}</div>
               <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
