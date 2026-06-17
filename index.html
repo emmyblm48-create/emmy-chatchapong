@@ -2942,7 +2942,6 @@ document.addEventListener('click', function() {
   });
 });
 
-// ฟังก์ชันลบโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
 async function deletePostUi(postId) {
   const result = await Swal.fire({
     title: 'ลบโพสต์นี้หรือไม่?',
@@ -2956,21 +2955,28 @@ async function deletePostUi(postId) {
 
   if (result.isConfirmed) {
     const currentUser = getUserSession();
-    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
     
-    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL
+    // 🌟 [เพิ่มจุดดักแครช] เช็กก่อนว่าล็อกอินอยู่จริงไหม
+    if (!currentUser || !currentUser.username) {
+      Swal.fire('เอ๊ะ!', 'เซสชันหมดอายุ กรุณาล็อกอินใหม่อีกครั้งครับ', 'error');
+      return;
+    }
+
+    const userRole = currentUser.role || ""; 
+    
+    // ✨ ยิง Fetch อย่างปลอดภัยเพราะมั่นใจว่า currentUser ไม่เป็น null แน่นอน
     const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
     const data = await response.json();
     
     if (data.status === 'success') {
-      document.getElementById(`post-${postId}`).remove(); // เตะการ์ดออกจากหน้าจอทันที
+      document.getElementById(`post-${postId}`).remove(); 
       Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อย', 'success');
     } else {
       Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error');
     }
   }
 }
-
+  
 // ฟังก์ชันแก้ไขโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
 async function editPostUi(postId, encodedContent) {
   const oldContent = decodeURIComponent(encodedContent);
