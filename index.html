@@ -2073,168 +2073,6 @@ function renderTrendingMVs() {
     scroller.appendChild(card);
   });
 }
-  
-function showMembershipCardModal() {
-  if (!user) return;
-
-  // แจ้งเตือนผู้ใช้ในระหว่างที่ระบบกำลังประมวลผลวาดการ์ด
-  Swal.fire({
-    title: 'Loading...',
-    html: '<div style="font-size: 14px; color: #666; margin-top: 10px;">กรุณารอสักครู่</div>',
-    allowOutsideClick: false,
-    showConfirmButton: false,
-    didOpen: () => {
-      Swal.showLoading();
-
-      // 1. โหลดรูปดีไซน์การ์ดหลัก
-      const bgImg = new Image();
-      bgImg.crossOrigin = "anonymous"; 
-      bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; 
-
-      bgImg.onload = function() {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // ตั้งค่าขนาดตามมิติรูปภาพจริง
-        canvas.width = bgImg.width || 1200;
-        canvas.height = bgImg.height || 675;
-
-        // ✂️ 2. สร้าง Path ตัดขอบ Canvas ให้โค้งมนก่อนวาดรูป (เพื่อให้ตอนเซฟรูปมีมุมโค้ง)
-        const radius = canvas.width * 0.04; // กำหนดความโค้งที่ 4% ของความกว้างการ์ด
-        ctx.beginPath();
-        ctx.moveTo(radius, 0);
-        ctx.lineTo(canvas.width - radius, 0);
-        ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-        ctx.lineTo(canvas.width, canvas.height - radius);
-        ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
-        ctx.lineTo(radius, canvas.height);
-        ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
-        ctx.lineTo(0, radius);
-        ctx.quadraticCurveTo(0, 0, radius, 0);
-        ctx.closePath();
-        ctx.clip(); // สั่งตัดขอบ!
-
-        // วาดภาพพื้นหลังการ์ดหลัก (ภาพจะถูกลบขอบมุมฉากออกไปตามที่ Clip ไว้)
-        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-        // 3. ตั้งค่ารูปแบบตัวอักษร (สีขาว)
-        ctx.textBaseline = 'middle'; // เปลี่ยนจุดอ้างอิงเป็นกึ่งกลางบรรทัด เพื่อให้จัดข้อความกับป้ายง่ายขึ้น
-
-        // 🎯 กำหนดพิกัดบรรทัด
-        const textX = canvas.width * 0.08;  // ขยับแนวนอน ซ้าย-ขวา
-        const right_X = canvas.width - (canvas.width * 0.05);
-        const line1_Y = canvas.height * 0.80; // ระดับบรรทัดบนสุดของข้อความด้านล่าง
-        const line2_Y = canvas.height * 0.87; // ระดับบรรทัดล่างสุดของการ์ด
-
-        // 🌸 3.1 เขียนชื่อผู้ใช้งาน (Name)
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#ffffff'; 
-        ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
-        ctx.fillText(user.name, textX, line1_Y);
-
-        // 🛡️ 3.2 สร้างป้าย Role (ต่อท้ายชื่อ)
-        const nameWidth = ctx.measureText(user.name).width; // วัดความยาวของชื่อ
-        const roleText = (user.role || 'MEMBER').toUpperCase();
-        ctx.font = '600 ' + Math.floor(canvas.height * 0.035) + 'px "Kanit", sans-serif';
-        const roleWidth = ctx.measureText(roleText).width;
-        
-        const badgeX = textX + nameWidth + (canvas.width * 0.02); // ขยับห่างจากชื่อนิดนึง
-        const badgePadX = canvas.width * 0.015;
-        const badgePadY = canvas.height * 0.025;
-
-        // วาดพื้นหลังป้าย Role (สีขาวโปร่งแสง)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.beginPath();
-        ctx.roundRect(badgeX, line1_Y - badgePadY, roleWidth + (badgePadX * 2), badgePadY * 2, canvas.height * 0.02);
-        ctx.fill();
-
-        // เขียนข้อความ Role ลงในป้าย
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(roleText, badgeX + badgePadX, line1_Y);
-
-        // 🌸 3.3 เขียน Username (@username) แบบซ่อนข้อมูล (Masking)
-        ctx.textAlign = 'left';
-        ctx.font = '500 ' + Math.floor(canvas.height * 0.045) + 'px "Quicksand", "Kanit", sans-serif';
-
-        // 1. ดึงข้อมูล username มาเตรียมไว้
-        let rawUsername = user.username || "blm48_member";
-        let maskedUsername = rawUsername;
-
-        // 2. ทำการเซ็นเซอร์ตัวอักษรตรงกลางเป็นตัว x
-        if (rawUsername.length > 4) {
-          // ถ้าชื่อยาวกว่า 4 ตัว: โชว์ 2 ตัวหน้า + xxxx + 2 ตัวหลัง (เช่น emmy28 -> emxxxx28)
-          maskedUsername = rawUsername.substring(0, 2) + "7x48x" + rawUsername.substring(rawUsername.length - 2);
-        } else if (rawUsername.length > 2) {
-          // ถ้าชื่อสั้นมาก: โชว์แค่ตัวแรก + xx + ตัวสุดท้าย (เช่น emm -> exxm)
-          maskedUsername = rawUsername.substring(0, 1) + "xx" + rawUsername.substring(rawUsername.length - 1);
-        }
-
-        // 3. วาดข้อความที่ถูกเซ็นเซอร์แล้วลงไปบนการ์ด
-        ctx.fillText("@" + maskedUsername, textX, line2_Y);
-
-        // 🟢 3.4 เขียน Status (วางชิดขวาของบรรทัดที่ 2)
-        ctx.textAlign = 'right';
-        const statusX = canvas.width - (canvas.width * 0.08); // ห่างจากขอบขวาเท่ากับฝั่งซ้าย
-        const statusText = "Status: Active";
-        ctx.font = '600 ' + Math.floor(canvas.height * 0.04) + 'px "Quicksand", "Kanit", sans-serif';
-        const statusWidth = ctx.measureText(statusText).width;
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(statusText, statusX, line2_Y);
-
-        // วาดจุดไฟสีเขียว (Active Dot) หน้าคำว่า Status
-        const dotRadius = canvas.height * 0.012;
-        ctx.fillStyle = '#55efc4'; // สีเขียวมิ้นต์น่ารักๆ
-        ctx.beginPath();
-        ctx.arc(statusX - statusWidth - (canvas.width * 0.015), line2_Y, dotRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 4. แปลงข้อมูล Canvas เป็น Data URL (❗️ ใช้ image/png เพื่อให้มุมโค้งด้านนอกโปร่งใส)
-        const cardDataUrl = canvas.toDataURL('image/png');
-
-        // 5. แสดงหน้าต่างป๊อปอัปพรีวิวการ์ดและปุ่มเซฟ
-        Swal.fire({
-          title: 'BLM48 Official Membership',
-          html: `
-            <div style="font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-              <img src="${cardDataUrl}" style="width: 100%; max-width: 420px; box-shadow: 0 8px 26px rgba(255,133,162,0.25);">
-              
-             <a href="${cardDataUrl}" download="BLM48_Member_${user.username || 'card'}.png" style="
-              display: inline-flex;
-              align-items: center;
-              gap: 8px;
-              padding: 12px 32px;
-              background: linear-gradient(135deg, #e0b953 0%, #fff5c3 45%, #fff5c3 55%, #cba034 100%);
-              color: #5e470c;
-              border: 1px solid #fce899;
-              text-decoration: none;
-              border-radius: 25px;
-              font-weight: bold;
-              font-size: 15px;
-              box-shadow: 0 4px 12px rgba(224, 185, 83, 0.4);
-              transition: all 0.2s;
-            " onclick="Swal.close();">
-              <i class="fas fa-download"></i> Save Card
-            </a>
-            </div>
-          `,
-          showConfirmButton: false, 
-          showCloseButton: true,
-          background: '#ffffff',
-          didOpen: () => {
-            const popup = Swal.getPopup();
-            if (popup) popup.style.borderRadius = '28px';
-          }
-        });
-      };
-
-      // ในกรณีโหลดรูปพื้นหลังไม่ขึ้น
-      bgImg.onerror = function() {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถค้นหาไฟล์ดีไซน์หลักได้สำเร็จ กรุณาตรวจสอบลิงก์รูปภาพอีกครั้งค่ะ', 'error');
-      };
-    }
-  });
-}
 
 // =========================================
 // ⏰ INTERNATIONAL COOKIE COUNTDOWN SYSTEM
@@ -2414,15 +2252,18 @@ function openMemberProfile(name) {
   
   if (m) {
     // 🌟 3. ทริคสำคัญ! จัดเตรียมโครงสร้างแพ็กเกจให้ตรงใจหน้า member.html
-    // แม้หน้าแรกจะดึงข้อมูลมาไม่ครบ เราก็จะเติมให้ครบเพื่อข้ามด่านตรวจสอบ HasValidCache
     const statsToCache = {
       ...m, // ก๊อปปี้ข้อมูลเดิมทั้งหมดมา
-      total_kami: m.total_kami !== undefined ? m.total_kami : '...', // ถ้าหลังบ้านส่งมาก็โชว์เลย ถ้าไม่ส่งก็ใส่ ... ไว้แป๊บเดียว
+      total_kami: m.total_kami !== undefined ? m.total_kami : '...', 
       total_oshi: m.total_oshi !== undefined ? m.total_oshi : '...',
-      all_time_total: m.all_time_total !== undefined ? m.all_time_total : (m.monthly_cookies || 0) // ดึงยอดคุกกี้รวมมาโชว์ก่อน
+      all_time_total: m.all_time_total !== undefined ? m.all_time_total : (m.monthly_cookies || 0),
+      
+      // 💖 เพิ่มบรรทัดนี้: เก็บค่า ยอดไลค์รวม ไว้ในแพ็กเกจ เหมือนกับตัวอื่นๆ เลยครับ!
+      // (รองรับทั้งชื่อตัวแปร total_likes หรือ total_like เผื่อเช็คค่าจากหลังบ้าน)
+      total_likes: m.total_likes !== undefined ? m.total_likes : (m.total_like !== undefined ? m.total_like : 0)
     };
 
-    // เซฟข้อมูลลงคลังชั่วคราว
+    // เซฟข้อมูลลงคลังชั่วคราว (ยัดใส่กล่อง LocalStorage เรียบร้อย)
     localStorage.setItem('current_member_stats', JSON.stringify(statsToCache));
     localStorage.setItem('current_member_fans', JSON.stringify(fans));
     
