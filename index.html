@@ -3574,7 +3574,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
     
-  // ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets
+// 📊 ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets (เก็บไว้)
   async function refreshCountFromSheets() {
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberCount';
     const countElement = document.getElementById('total-members-count');
@@ -3596,7 +3596,7 @@ document.addEventListener("DOMContentLoaded", () => {
   refreshCountFromSheets();
 
   /* =========================================================================
-     🔍 [ระบบ Auto-Scanner ส่องจับโพสต์ใหม่เพื่อผูกระบบ Realtime อัตโนมัติ]
+     🔍 [ระบบ Auto-Scanner ส่องจับโพสต์ใหม่เพื่อผูกระบบ Realtime อัตโนมัติ] (เก็บไว้)
      ========================================================================= */
   setInterval(() => {
     document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
@@ -3609,7 +3609,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 300);
 
   /* =========================================================================
-     🔔 [ระบบ Realtime Notification Listener สำหรับ Kami / Oshi]
+     🔔 [ระบบ Realtime Notification Listener สำหรับ Kami / Oshi] (เก็บไว้ทำ In-App Notification)
      ========================================================================= */
   const pageLoadTime = Date.now(); 
 
@@ -3621,6 +3621,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const session = getUserSession();
     const myName = session ? session.username : "";
 
+    // ถ้ามีการโพสต์ใหม่หลังจากเปิดเว็บ และเป็นโอชิของเรา จะเปิดจุดแจ้งเตือนสีแดงทันที!
     if (notiData.timestamp > pageLoadTime && savedKami.includes(notiData.writer) && notiData.writer !== myName) {
       localStorage.setItem("blm48_has_new_noti", "true");
       if (typeof window.checkNotificationBadge === 'function') {
@@ -3629,56 +3630,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* =========================================================================
-     🚀 [ระบบจัดการ Push Notification Token สำหรับ Firebase v10 Modular]
-     ========================================================================= */
-  async function setupBLM48PushNotification() {
-    const currentUser = getUserSession();
-    if (!currentUser) return;
-
-    try {
-      // 1. ขอสิทธิ์แจ้งเตือนจากบราวเซอร์/สมาร์ทโฟน
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        console.log('แฟนคลับปฏิเสธสิทธิ์แจ้งเตือน หรือปิดไว้');
-        return;
-      }
-
-      // 2. ดึง FCM Token ประจำเครื่องในรูปแบบ v10 
-      // (อย่าลืมนำรหัสยาวๆ จากหน้า Firebase Console มาใส่แทนช่องว่างตรงนี้นะงับ)
-      const currentToken = await getToken(messaging, { 
-        vapidKey: 'BIuIgj6o_E1k4W34cN1-sD8puV9-qdBdOiGayYqUGq8mEvudeolsnN1r9UR3icTO1H0BvxupNrQGNU5CkHMe1yY' 
-      });
-
-      if (currentToken) {
-        console.log('สร้าง FCM Token สำเร็จ:', currentToken);
-        
-        // 3. ดึงรายชื่อคามิ/โอชิ (อิงตามคีย์ "kami_members" ที่ใช้ดักฟังอยู่ปัจจุบัน)
-        const myOshis = JSON.parse(localStorage.getItem('kami_members') || '[]');
-        
-        // 4. บันทึกแผนผังผูกคู่ (Database Mapping) ลง Firebase Realtime Database แบบ v10
-        const tokenRef = dbRef(database, 'user_subscriptions/' + currentToken);
-        
-        await set(tokenRef, {
-          username: currentUser.username || 'anonymous',
-          subscribed_oshis: myOshis, 
-          updatedAt: serverTimestamp() // บันทึกเวลาฝั่ง Server ของ Firebase
-        });
-        
-        console.log('ผูกคู่ FCM Token และรายชื่อโอชิลงฐานข้อมูล v10 เรียบร้อยแล้ว!');
-      } else {
-        console.log('ไม่สามารถสร้าง Token ได้');
-      }
-    } catch (err) {
-      console.error('เกิดข้อผิดพลาดในการตั้งค่าแจ้งเตือน:', err);
-    }
-  }
-  window.setupBLM48PushNotification = setupBLM48PushNotification;
-
-  // 🏁 สั่งรันระบบ Push Notification ทันทีถ้าล็อกอินอยู่แล้ว
-  if (getUserSession()) {
-    setupBLM48PushNotification();
-  }
 </script>
 <div class="bottom-tab-bar">
   
