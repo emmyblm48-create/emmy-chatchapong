@@ -719,13 +719,11 @@ async function fetchLatestMemberStats() {
     }
 
 function renderMemberStatsAndFans() {
-  const savedStatsStr = localStorage.getItem('current_member_stats');
-  if (!savedStatsStr) return;
-
-  try {
-    const m = JSON.parse(savedStatsStr);
+  const savedStats = localStorage.getItem('current_member_stats');
+  if (savedStats) {
+    const m = JSON.parse(savedStats);
     
-    // 🎯 1. เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
+    // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
     const gradBadge = document.getElementById('mb-grad-badge');
     const gradAvatarIcon = document.getElementById('avatar-grad-icon');
     const btnCookie = document.getElementById('btn-cookie-trigger');
@@ -746,74 +744,57 @@ function renderMemberStatsAndFans() {
     const avatarEl = document.getElementById('mb-avatar');
     if (avatarEl) avatarEl.src = getImg(m.profile_img);
 
-    // ==========================================
-    // 🌟 2. ดึงข้อมูลจากแคชมาโชว์ทันที พร้อมลบเอฟเฟกต์ Skeleton ออกให้หมด!
-    // ==========================================
-    
+    // 🌟 แสดงผลและลบคลาส Skeleton ออกทันทีที่ดึงค่าจากแคชได้
     const kamiEl = document.getElementById('mb-kami');
     if (kamiEl) {
       kamiEl.innerText = (m.total_kami !== undefined && m.total_kami !== null) ? m.total_kami : '0';
-      kamiEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
+      kamiEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลด
     }
 
     const oshiEl = document.getElementById('mb-oshi');
     if (oshiEl) {
       oshiEl.innerText = (m.total_oshi !== undefined && m.total_oshi !== null) ? m.total_oshi : '0';
-      oshiEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
+      oshiEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลด
     }
 
     const scoreEl = document.getElementById('mb-score');
     if (scoreEl) {
       scoreEl.innerText = formatMemberScore(m.all_time_total || m.monthly_cookies || 0);
-      scoreEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
+      scoreEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลด
     }
     
+    // 💖 จุดเปลี่ยนชีวิต: เรียกคีย์ m.likes ให้ตรงกันทั้งโปรเจกต์ โชว์ทันใจแน่นอน!
     const likesEl = document.getElementById('mb-likes');
     if (likesEl) {
-      const currentLikes = m.total_likes !== undefined ? m.total_likes : (m.total_like !== undefined ? m.total_like : 0);
-      likesEl.innerText = formatMemberScore(currentLikes);
-      likesEl.classList.remove('skeleton', 'skeleton-stat'); // 🚀 ลบคลาสค้างดาวน์โหลดทิ้งทันที
+      const liveLikes = m.likes !== undefined ? m.likes : (m.total_likes !== undefined ? m.total_likes : 0);
+      likesEl.innerText = formatMemberScore(liveLikes);
+      likesEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลดเพื่อให้แสดงผลทันที!
     }
-
-    // หักล้างเอฟเฟกต์โครงร่างจากปุ่มเล่นๆ เผื่อระบบมีคำสั่งแอดคลาสไว้
-    document.querySelectorAll('.skeleton-stat, .skeleton').forEach(el => {
-      // เช็กดักเผื่อมี Element ไหนในบล็อกสถิติยังค้างอยู่ให้เคลียร์ออกเลย
-      if(el.id === 'mb-kami' || el.id === 'mb-oshi' || el.id === 'mb-score' || el.id === 'mb-likes') {
-        el.classList.remove('skeleton', 'skeleton-stat');
-      }
-    });
-
-  } catch (e) {
-    console.error("Error rendering stats from cache:", e);
   }
 
-  // 📦 3. ส่วนแสดงผล Top Fans ดึงจากกล่องแคชแฟนคลับ
+  // 📦 (โค้ดส่วน fanContainer ด้านล่างคงไว้ตามสไตล์น่ารักๆ ของเอ็มมี่งับ)
   const savedFans = localStorage.getItem('current_member_fans');
   const fanContainer = document.getElementById('member-fans-content');
   
   if (savedFans && fanContainer) {
     fanContainer.innerHTML = '';
-    try {
-      const fans = JSON.parse(savedFans);
-      if (fans.length === 0) {
-        fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
-      } else {
-        fans.slice(0, 10).forEach((f, idx) => {
-          const row = document.createElement('div');
-          row.className = 'fan-row';
-          row.innerHTML = `
-            <div class="fan-rank">${idx + 1}</div>
-            <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'"> 
-            <div class="fan-meta">
-              <div class="fan-name">${f.name || f.username}</div>
-              <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
-            </div>
-          `;
-          fanContainer.appendChild(row);
-        });
-      }
-    } catch(err) {
-      console.error("Error parsing fans dynamic data:", err);
+    const fans = JSON.parse(savedFans);
+    if (fans.length === 0) {
+      fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+    } else {
+      fans.slice(0, 10).forEach((f, idx) => {
+        const row = document.createElement('div');
+        row.className = 'fan-row';
+        row.innerHTML = `
+          <div class="fan-rank">${idx + 1}</div>
+          <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'"> 
+          <div class="fan-meta">
+            <div class="fan-name">${f.name || f.username}</div>
+            <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
+          </div>
+        `;
+        fanContainer.appendChild(row);
+      });
     }
   }
 }
