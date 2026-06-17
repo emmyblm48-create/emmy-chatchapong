@@ -155,7 +155,7 @@
     .btn-clear:hover { background: #d0d0d0; }
     .btn-clear:disabled { background: #f0f0f0; color: #ccc; cursor: not-allowed; }
 
-    /* Notification Cards Style 🌸 */
+    /* Notification Cards Style */
     .noti-list {
       display: flex;
       flex-direction: column;
@@ -199,7 +199,7 @@
       color: #aaa;
     }
     
-    /* Empty State / Loading State ☁️ */
+    /* Empty State / Loading State */
     .empty-noti {
       text-align: center;
       padding: 40px 20px;
@@ -210,122 +210,90 @@
       margin-bottom: 12px;
     }
 
-.bottom-tab-bar {
-  /* 👑 Layer 1: ชั้นโปร่งใสล่างสุด ขยายความสูงรวมเพิ่มขึ้นเป็น 110px ให้ Nav ดูสูงเด่น */
-  height: calc(110px + env(safe-area-inset-bottom, 0px)); 
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-  background: transparent; 
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่างสุด */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-sizing: border-box;
-}
+    .bottom-tab-bar {
+      height: calc(110px + env(safe-area-inset-bottom, 0px)); 
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 999;
+      background: transparent; 
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end; 
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      box-sizing: border-box;
+    }
 
-.bottom-tab-bar::before {
-  content: "";
-  position: absolute;
-  /* 👑 Layer 2: ขยับท็อปลงมาที่ 60px เพื่อให้เหลือเนื้อผ้าสีขาวหนา 50px (เกือบครึ่งหนึ่งของความสูงรวม 110px) */
-  top: 60px; 
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #ffffff; 
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: 28px 28px 0 0; /* เพิ่มความโค้งมนให้ดูละมุนรับกับบาร์ที่สูงขึ้น */
-  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08); /* เพิ่มมิติเงาให้ดูลอยแยกชั้นชัดเจน */
-  z-index: 1;
-}
+    .bottom-tab-bar::before {
+      content: "";
+      position: absolute;
+      top: 60px; 
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #ffffff; 
+      border-top: 1px solid rgba(0, 0, 0, 0.04);
+      border-radius: 28px 28px 0 0; 
+      box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08); 
+      z-index: 1;
+    }
 
-.tab-item {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 20%;
-  height: 50px; /* ปรับความสูงบล็อกกดให้บาลานซ์กับ Layer สีขาว */
-  position: relative;
-  z-index: 2; 
-  text-decoration: none;
-  color: #8e8e93; 
-  
-  /* 🚀 ดันไอคอนให้เลื่อนสูงขึ้นไปข้างบน 30px ทะลุเลเยอร์สีขาวขึ้นไปลอยเด่นอยู่บนชั้นโปร่งใสครึ่งตัวพอดี */
-  transform: translateY(-30px); 
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* ปรับสปริงให้เด้งนุ่มนวลขึ้น */
-}
+    .tab-item {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 20%;
+      height: 50px; 
+      position: relative;
+      z-index: 2; 
+      text-decoration: none;
+      color: #8e8e93; 
+      
+      transform: translateY(-30px); 
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
 
-/* 🌟 เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มปกติ */
-.tab-item:active {
-  transform: translateY(-30px) scale(0.85);
-  opacity: 0.8;
-}
+    .tab-item:active {
+      transform: translateY(-30px) scale(0.85);
+      opacity: 0.8;
+    }
 
-/* 👑 ปุ่มสถานะ Active (หน้าปัจจุบัน): ดีดตัวลอยสูงเด่นขึ้นไปอีกที่ 45px กลายเป็นปุ่มฮีโร่ลอยเด่นสะดุดตา */
-.tab-item.active {
-  color: #ffb3c1; 
-  transform: translateY(-45px); 
-}
-/* เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มที่ Active อยู่ */
-.tab-item.active:active {
-  transform: translateY(-45px) scale(0.85);
-}
+    .tab-item.active {
+      color: #ffb3c1; 
+      transform: translateY(-45px); 
+    }
+    .tab-item.active:active {
+      transform: translateY(-45px) scale(0.85);
+    }
 
-/* ------------------------------------------------------------- */
-/* 🔥 จุดที่เพิ่มเข้ามา: ตั้งค่าให้ไอคอนและรูปภาพขยายใหญ่ขึ้นตอน Active เท่านั้น */
-/* ------------------------------------------------------------- */
+    .tab-item i {
+      font-size: 34px;
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.08)); 
+    }
 
-.tab-item.active i {
-  font-size: 45px; /* 🚀 ขยายขนาดฟอนต์ไอคอนจากเดิม 34px เป็น 45px ให้ใหญ่เด่นสะใจ */
-}
+    .tab-item img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12)); 
+    }
 
-.tab-item.active img {
-  width: 58px;    /* 🚀 ขยายขนาดรูปจากเดิม 44px เป็น 58px */
-  height: 58px;
-}
-
-.tab-item.active #tab-profile-img {
-  width: 50px !important;  /* 🚀 ขยายขนาดรูปโปรไฟล์จากเดิม 38px เป็น 50px */
-  height: 50px !important;
-}
-/* ------------------------------------------------------------- */
-
-
-/* ขยายขนาดไอคอน FontAwesome (34px เท่าเดิม แต่ใส่เงาให้ลอยตามบาร์) */
-.tab-item i {
-  font-size: 34px;
-  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.08)); 
-  transition: font-size 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
-}
-
-/* ขยายขนาดรูปไอคอนแชมป์สั่งทำ (44px เท่าเดิม พร้อมเพิ่มเงาตกกระทบลงบนเลเยอร์สีขาว) */
-.tab-item img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12)); 
-  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
-}
-
-/* ปรับแต่งวงกลมรูปโปรไฟล์ให้ลอยขึ้นมาอย่างสมดุล */
-#tab-profile-img {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 50%;
-  border: 2px solid #ffb3c1;
-  box-sizing: border-box;
-  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
-}
-    
+    #tab-profile-img {
+      width: 38px !important;
+      height: 38px !important;
+      border-radius: 50%;
+      border: 2px solid #ffb3c1;
+      box-sizing: border-box;
+    }
+        
     .icon-wrapper {
       position: relative;
       display: inline-flex;
       align-items: center;
       justify-content: center;
     }
-    
+        
     .btn-del-item {
       background: #fff0f3;
       border: none;
@@ -341,10 +309,89 @@
       color: white;
     }
 
-    /* Animate สำหรับ Custom UI 🌸 */
+    /* Animate สำหรับ Custom UI */
     @keyframes cuteFadeIn {
       from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
+    }
+    
+    .noti-item {
+        background: #ffffff;
+        border: 1px solid #f0f0f0;
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 12px;
+        display: flex;
+        gap: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(244, 230, 235, 0.3);
+    }
+
+    .noti-item.kami-border {
+        border: 2px solid #ffb7ce;
+        background: linear-gradient(135deg, #fffcfd 0%, #fff5f8 100%);
+        box-shadow: 0 6px 16px rgba(255, 183, 206, 0.4);
+    }
+
+    .noti-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .member-name {
+        font-weight: 600;
+        color: #4a4a4a;
+        font-size: 1.05rem;
+    }
+
+    .relation-badge {
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .bg-kami {
+        background-color: #ff6b8b;
+        color: white;
+    }
+
+    .bg-oshi {
+        background-color: #ffd1dc;
+        color: #b55269;
+    }
+
+    .noti-text {
+        color: #6e6e6e;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        margin: 4px 0;
+    }
+
+    .noti-time {
+        font-size: 0.8rem;
+        color: #a0a0a0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .avatar-placeholder {
+        width: 48px;
+        height: 48px;
+        background: #ffe3ec;
+        color: #ff6b8b;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
     }
   </style>
 </head>
@@ -385,7 +432,7 @@
     <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
     <img id="nav-cart" src="" alt="Shop" style="display: none;">
   </a>
-  <a href="notification.html" class="tab-item active">
+  <a href="notification.html" class="tab-item">
     <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
       <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
       <img id="nav-noti" src="" alt="Notification" style="display: none;">
@@ -398,17 +445,30 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+  
+  // 1. จำลองข้อมูลรายชื่อคามิและโอชิของแฟนคลับคนนี้
+  const userIdols = {
+      kami: "เมมเบอร์ A", 
+      oshis: ["เมมเบอร์ B", "เมมเบอร์ C", "เมมเบอร์ D"] 
+  };
+
+  // 2. จำลองข้อมูลโพสต์ใหม่ๆ ที่ถูกส่งมาจากระบบหลังบ้าน
+  const mockNotifications = [
+      { id: 1, authorName: "เมมเบอร์ A", type: "post", message: "อัปเดตสถานะใหม่: วันนี้ซ้อมเต้นเหนื่อยมากเลย~ อย่าลืมกินข้าวเย็นกันนะคระ", time: "5 นาทีที่แล้ว" },
+      { id: 2, authorName: "เมมเบอร์ B", type: "live", message: "กำลังจะเริ่มไลฟ์ในอีก 10 นาที มาคุยกันนะ!", time: "20 นาทีที่แล้ว" },
+      { id: 3, authorName: "เมมเบอร์ X", type: "post", message: "ขอบคุณทุกคนสำหรับของขวัญนะคะ", time: "1 ชั่วโมงที่แล้ว" }, 
+      { id: 4, authorName: "เมมเบอร์ C", type: "photo", message: "ลงรูปเซ็ตใหม่ในแกลเลอรีแล้ว ไปดูกันเลย", time: "2 ชั่วโมงที่แล้ว" }
+  ];
+    
+  document.addEventListener("DOMContentLoaded", () => {
     const notiListContainer = document.getElementById("noti-list");
     const btnAdd = document.getElementById("btn-add");
     const btnReset = document.getElementById("btn-reset");
     const btnRefresh = document.getElementById("btn-refresh");
     const adminInputBox = document.getElementById("admin-input-box");
 
-    // 1. ย้ายลิงก์ Google Apps Script ขึ้นมาประกาศไว้ก่อน
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec";
 
-    // 2. เรียกฟังก์ชันโดยส่ง SCRIPT_URL เข้าไปในวงเล็บด้วย
     loadChampThemeSubPage(SCRIPT_URL);
 
     // =========================================================
@@ -456,7 +516,7 @@
     if (cachedNoti) {
       try {
         myNotifications = JSON.parse(cachedNoti);
-        renderUI(); // Render ข้อมูลเก่าขึ้นจอก่อน ไม่ปล่อยให้หน้าขาวโล่งงับ 🎀
+        renderUI(); 
       } catch (e) {
         console.error("❌ Cache parse error:", e);
       }
@@ -517,7 +577,6 @@
     // 🌸 3. ฟังก์ชันดึงข้อมูลจาก Google Sheet (API GET)
     // =========================================================
     async function fetchNotifications() {
-      // ถ้าไม่มีข้อมูลในแคชเก่าอยู่เลย ค่อยเปิดหน้าต่างปุ่มหมุนเพื่อความสวยงาม
       if (!myNotifications || myNotifications.length === 0) {
         notiListContainer.innerHTML = `
           <div class="empty-noti">
@@ -535,13 +594,11 @@
         
         myNotifications = await response.json();
         
-        // 💾 อัปเดตบันทึกข้อมูลสดใหม่ลง Cache ทันที
         localStorage.setItem("blm48_notifications_cache", JSON.stringify(myNotifications));
         renderUI();
       } catch (error) {
         console.error("❌ Error fetching notifications:", error);
         
-        // หากไม่มีข้อมูลในแคชอยู่ก่อนแล้ว ค่อยแจ้งความผิดพลาดบนการ์ดหลัก
         if (!myNotifications || myNotifications.length === 0) {
           notiListContainer.innerHTML = `
             <div class="empty-noti" style="color:#ff6b8b;">
@@ -561,7 +618,7 @@
     // 🗑️ 4. ฟังก์ชันลบเดี่ยวแบบ Global
     // =========================================================
     window.deleteSingleNoti = async function(timestamp) {
-      const isConfirm = await cuteConfirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้? 🗑️");
+      const isConfirm = await cuteConfirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้?");
       if (!isConfirm) return; 
 
       btnRefresh.querySelector('i').classList.add('fa-spin');
@@ -573,7 +630,7 @@
         });
 
         fetchNotifications(); 
-        cuteToast("ลบการแจ้งเตือนสำเร็จแล้ว!"); 
+        cuteToast("ลบการแจ้งเตือนสำเร็จแล้ว!", "fa-trash-can"); 
 
       } catch (error) {
         console.error("❌ Delete Error:", error);
@@ -583,56 +640,53 @@
       }
     };
     
-// ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชันอัปเกรดเปิดรับพารามิเตอร์)
-function loadChampThemeSubPage(customURL) {
-  const CACHE_KEY = "bnl_winner_theme_cache";
-  
-  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (เร็วที่สุด)
-  const cachedData = localStorage.getItem(CACHE_KEY);
-  if (cachedData) {
-    try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
-  }
-
-  // 2. เลือกใช้ URL: ถ้าส่งมาในวงเล็บให้ใช้ก่อน ถ้าไม่มีให้ไปหาตัวแปร Global
-  const finalURL = customURL || (typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : ''));
-  if (!finalURL) return; // ถ้าไม่เจอ URL เลย ให้ยกเลิกทำงานพาร์ท Fetch หลังบ้าน
-
-  // 3. แอบไปเช็กข้อมูลใหม่เงียบๆ
-  fetch(`${finalURL}?action=getWinnerTheme`)
-    .then(response => response.json())
-    .then(newData => {
-      if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(newData));
-        applySubPageTheme(newData); // อัปเดตทันทีถ้าหลังบ้านเปลี่ยนคนชนะ
+    // ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ
+    function loadChampThemeSubPage(customURL) {
+      const CACHE_KEY = "bnl_winner_theme_cache";
+      
+      const cachedData = localStorage.getItem(CACHE_KEY);
+      if (cachedData) {
+        try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
       }
-    }).catch(e => console.error(e));
-}
 
-function applySubPageTheme(champData) {
-  if (!champData) return;
-  updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
-  updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
-  updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
-  updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
-}
+      const finalURL = customURL || (typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : ''));
+      if (!finalURL) return; 
 
-function updateSubPageIcon(imgId, fallbackId, iconUrl) {
-  const imgElement = document.getElementById(imgId);
-  const fallbackElement = document.getElementById(fallbackId);
-  if (imgElement && fallbackElement) {
-    if (iconUrl && iconUrl.trim() !== "") {
-      imgElement.src = iconUrl;
-      imgElement.style.display = 'block';
-      fallbackElement.style.display = 'none';
-    } else {
-      imgElement.style.display = 'none';
-      fallbackElement.style.display = 'block';
+      fetch(`${finalURL}?action=getWinnerTheme`)
+        .then(response => response.json())
+        .then(newData => {
+          if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(newData));
+            applySubPageTheme(newData); 
+          }
+        }).catch(e => console.error(e));
     }
-  }
-}
-    
+
+    function applySubPageTheme(champData) {
+      if (!champData) return;
+      updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+      updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+      updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+      updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+    }
+
+    function updateSubPageIcon(imgId, fallbackId, iconUrl) {
+      const imgElement = document.getElementById(imgId);
+      const fallbackElement = document.getElementById(fallbackId);
+      if (imgElement && fallbackElement) {
+        if (iconUrl && iconUrl.trim() !== "") {
+          imgElement.src = iconUrl;
+          imgElement.style.display = 'block';
+          fallbackElement.style.display = 'none';
+        } else {
+          imgElement.style.display = 'none';
+          fallbackElement.style.display = 'block';
+        }
+      }
+    }
+        
     // =========================================================
-    // 🎨 5. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
+    // 🎨 5. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน (เวอร์ชันรวมพลังคามิ/โอชิ)
     // =========================================================
     function renderUI() {
       if (myNotifications && myNotifications.length > 0) {
@@ -642,7 +696,17 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
 
         sortedList.forEach(noti => {
           const notiDate = new Date(noti.timestamp);
-          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+          
+          // 🗓️ ปรับรูปแบบเป็น วันที่ และเวลา เต็มรูปแบบภาษาอังกฤษ เช่น "Wednesday, June 17, 2026 at 05:45 PM"
+          const timeString = notiDate.toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+          }).replace(',', ' at');
 
           const checkRole = (noti.role || "").toLowerCase().trim();
           const showVerified = (checkRole === "admin" || checkRole === "ceo");
@@ -654,25 +718,57 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
             ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.timestamp})"><i class="fa-solid fa-trash-can"></i></button>` 
             : '';
 
-          const item = document.createElement("div");
-          item.className = "noti-item unread"; 
-          item.innerHTML = `
-            <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
-            <div class="noti-content">
-              <p class="noti-text"><strong>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
-              <div class="noti-time">${timeString}</div>
-            </div>
-            ${deleteBtn}
-          `;
-          notiListContainer.appendChild(item);
+          const isKami = noti.writer === userIdols.kami;
+          const isOshi = userIdols.oshis.includes(noti.writer);
+
+          if (isKami || isOshi || showVerified) {
+            
+            let specialClass = '';
+            let badgeText = '';
+
+            // 🌟 เปลี่ยนข้อความพาสเทลด้านในป้ายสถานะจาก อิโมจิ -> ไอคอน FontAwesome
+            if (isKami) {
+              specialClass = 'kami-border';
+              badgeText = `<span class="relation-badge bg-kami"><i class="fa-solid fa-heart"></i> My Kami</span>`;
+            } else if (isOshi) {
+              badgeText = `<span class="relation-badge bg-oshi"><i class="fa-solid fa-star"></i> Oshi</span>`;
+            } else if (showVerified && !isKami && !isOshi) {
+              badgeText = `<span class="relation-badge" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-bullhorn"></i> Official</span>`;
+            }
+
+            const item = document.createElement("div");
+            item.className = `noti-item unread ${specialClass}`; 
+            item.innerHTML = `
+              <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
+              <div class="noti-content">
+                <div class="noti-header">
+                  <span class="member-name"><strong>${noti.writer} ${verifiedBadge}</strong></span>
+                  ${badgeText}
+                </div>
+                <p class="noti-text">${noti.action}</p>
+                <div class="noti-time"><i class="far fa-clock"></i> ${timeString}</div>
+              </div>
+              ${deleteBtn}
+            `;
+            notiListContainer.appendChild(item);
+          }
         });
+
+        if (notiListContainer.innerHTML === "") {
+          showEmptyState();
+        }
+
       } else {
-        notiListContainer.innerHTML = `
-          <div class="empty-noti">
-            <i class="fa-regular fa-bell-slashed"></i>
-            <p>No Notifications.</p>
-          </div>`;
+        showEmptyState();
       }
+    }
+
+    function showEmptyState() {
+      notiListContainer.innerHTML = `
+        <div class="empty-noti">
+          <i class="fa-solid fa-bell-slash"></i>
+          <p>ยังไม่มีอัปเดตใหม่จากคามิและโอชิของคุณในตอนนี้</p>
+        </div>`;
     }
 
     // =========================================================
@@ -716,7 +812,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
 
           document.getElementById("input-action").value = "";
           await fetchNotifications();
-          cuteToast("โพสต์แจ้งเตือนสำเร็จแล้วค่ะ!");
+          cuteToast("โพสต์แจ้งเตือนสำเร็จแล้วค่ะ!", "fa-circle-check");
         } catch (error) {
           console.error("❌ Error posting notification:", error);
           cuteToast("เกิดข้อผิดพลาดในการโพสต์ข้อมูล ", "fa-circle-xmark");
@@ -745,7 +841,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
           });
 
           await fetchNotifications();
-          cuteToast("ล้างข้อมูลแจ้งเตือนทั้งหมดเรียบร้อยแล้ว!");
+          cuteToast("ล้างข้อมูลแจ้งเตือนทั้งหมดเรียบร้อยแล้ว!", "fa-trash-can");
         } catch (error) {
           console.error("❌ Error clearing notifications:", error);
           cuteToast("เกิดข้อผิดพลาดในการล้างข้อมูล", "fa-circle-xmark");
