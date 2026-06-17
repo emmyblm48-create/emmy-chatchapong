@@ -24,6 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     
   </head>
     
@@ -3318,10 +3319,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <script type="module">
-  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (รวมเอาไว้ที่บนสุดทั้งหมดงับ) 🌟
+  // 1. นำเข้าฟังก์ชันจาก Firebase v10.10.0 (รวมเอาไว้ที่บนสุดทั้งหมดและเพิ่มสคริปต์สำหรับระบบแจ้งเตือน) 🌟
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-  import { getDatabase, ref as dbRef, push, onChildAdded, get, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+  import { getDatabase, ref as dbRef, push, onChildAdded, get, onValue, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
   import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-storage.js";
+  import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-messaging.js";
 
   // 2. ตั้งค่า Configuration ของ Firebase (ชุดหลักของ BLM48)
   const firebaseConfig = {
@@ -3338,6 +3340,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
   const storage = getStorage(app);
+  const messaging = getMessaging(app); // เปิดใช้งาน Messaging ระบบ v10 มินิมอล
 
   // ส่งค่าออกไปที่ window ให้ระบบรอบนอกเรียกใช้ได้ปลอดภัย
   window.firebaseApp = app;
@@ -3383,7 +3386,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-/* ==========================================
+  /* ==========================================
      💖 ระบบกดใจโพสต์ (ซิงค์หลังบ้าน Google Sheets) - เวอร์ชันเสถียร
      ========================================== */
   window.likePost = async function(postId) {
@@ -3397,15 +3400,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
     if (!heartIcon || !likeSpan) return;
     
-    // 1. ป้องกันการกดรัว (Spam Click) ถ้ากำลังส่งข้อมูลอยู่ให้ข้ามไปเลย
     if (heartIcon.dataset.loading === "true") return;
-    heartIcon.dataset.loading = "true"; // ตั้งสถานะว่ากำลังทำงานอยู่
+    heartIcon.dataset.loading = "true";
 
-    // ดึงค่าปัจจุบันเก็บไว้เป็น Snapshot สำหรับทำ Rollback
     const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
     const currentLikes = parseInt(likeSpan.innerText) || 0;
     
-    // 2. Optimistic UI Update: เปลี่ยนสถานะหน้าจอทันทีเพื่อความสมูท
     heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
     heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
     likeSpan.innerText = isCurrentlyLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
@@ -3417,7 +3417,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
       
       if (result.status === "success") {
-        // 3. เมื่อระบบหลังบ้านสำเร็จ ให้อัปเดตค่าจริงที่ส่งกลับมาจาก Server
         likeSpan.innerText = result.likes;
         heartIcon.classList.toggle('fa-solid', result.isLiked);
         heartIcon.classList.toggle('fa-regular', !result.isLiked);
@@ -3425,13 +3424,11 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(result.message);
       }
     } catch (error) {
-      // 4. Rollback ย้อนค่าเดิมกลับมาแบบปลอดภัยหากเกิด Error หลังบ้าน
       heartIcon.classList.toggle('fa-solid', isCurrentlyLiked);
       heartIcon.classList.toggle('fa-regular', !isCurrentlyLiked);
-      likeSpan.innerText = currentLikes; // ใช้ Snapshot ที่เซฟไว้แทนการคำนวณซ้ำ
+      likeSpan.innerText = currentLikes;
       console.error("Like Error:", error);
     } finally {
-      // 5. ปลดล็อกปุ่มให้กดต่อได้เมื่อจบการทำงานทั้งหมด (ไม่ว่าจะสำเร็จหรือล้มเหลว)
       delete heartIcon.dataset.loading;
     }
   }
@@ -3544,7 +3541,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       await pushFunc(commentPostRef, newCommentData);
 
-      // ซิงค์สำรองข้อมูลลง Google Sheets เบื้องหลัง
       const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       fetch(scriptURL, {
         method: 'POST',
@@ -3609,33 +3605,74 @@ document.addEventListener("DOMContentLoaded", () => {
   /* =========================================================================
      🔔 [ระบบ Realtime Notification Listener สำหรับ Kami / Oshi]
      ========================================================================= */
-  // บันทึกเวลาที่ผู้ใช้เปิดหน้าเว็บ เพื่อไม่ให้เอาโพสต์ในอดีตมาแจ้งเตือนซ้ำงับ
   const pageLoadTime = Date.now(); 
 
-  // เปิดระบบดักฟังข้อมูลใน Node 'notifications' แบบ Real-time ตัวแปรใช้ตามชุดหลัก
   onChildAdded(dbRef(database, 'notifications'), (snapshot) => {
     const notiData = snapshot.val();
     if (!notiData) return;
 
-    // ดึงรายชื่อคามิ/โอชิ จากเครื่องของผู้ใช้คนนี้มาเช็ก
     const savedKami = JSON.parse(localStorage.getItem("kami_members") || '[]');
-    
-    // เช็กชื่อตัวเองเพื่อไม่ให้มันเด้งเตือนเวลาตัวเองโพสต์
     const session = getUserSession();
     const myName = session ? session.username : "";
 
-    // เงื่อนไข: ต้องเป็นโพสต์ใหม่หลังเปิดจอ + เป็นคนที่เรากด Kami/Oshi ไว้ + ไม่ใช่โพสต์ตัวเอง
     if (notiData.timestamp > pageLoadTime && savedKami.includes(notiData.writer) && notiData.writer !== myName) {
-      
-      // สั่งเปิดสถานะว่า "มีแจ้งเตือนใหม่นะ!" เก็บไว้ในเครื่อง
       localStorage.setItem("blm48_has_new_noti", "true");
-      
-      // สั่งให้ฟังก์ชันแสดงจุดสีแดง 🔴 ทำงานทันที
       if (typeof window.checkNotificationBadge === 'function') {
         window.checkNotificationBadge();
       }
     }
   });
+
+  /* =========================================================================
+     🚀 [ระบบจัดการ Push Notification Token สำหรับ Firebase v10 Modular]
+     ========================================================================= */
+  async function setupBLM48PushNotification() {
+    const currentUser = getUserSession();
+    if (!currentUser) return;
+
+    try {
+      // 1. ขอสิทธิ์แจ้งเตือนจากบราวเซอร์/สมาร์ทโฟน
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        console.log('แฟนคลับปฏิเสธสิทธิ์แจ้งเตือน หรือปิดไว้');
+        return;
+      }
+
+      // 2. ดึง FCM Token ประจำเครื่องในรูปแบบ v10 
+      // (อย่าลืมนำรหัสยาวๆ จากหน้า Firebase Console มาใส่แทนช่องว่างตรงนี้นะงับ)
+      const currentToken = await getToken(messaging, { 
+        vapidKey: 'BIuIgj6o_E1k4W34cN1-sD8puV9-qdBdOiGayYqUGq8mEvudeolsnN1r9UR3icTO1H0BvxupNrQGNU5CkHMe1yY' 
+      });
+
+      if (currentToken) {
+        console.log('สร้าง FCM Token สำเร็จ:', currentToken);
+        
+        // 3. ดึงรายชื่อคามิ/โอชิ (อิงตามคีย์ "kami_members" ที่ใช้ดักฟังอยู่ปัจจุบัน)
+        const myOshis = JSON.parse(localStorage.getItem('kami_members') || '[]');
+        
+        // 4. บันทึกแผนผังผูกคู่ (Database Mapping) ลง Firebase Realtime Database แบบ v10
+        const tokenRef = dbRef(database, 'user_subscriptions/' + currentToken);
+        
+        await set(tokenRef, {
+          username: currentUser.username || 'anonymous',
+          subscribed_oshis: myOshis, 
+          updatedAt: serverTimestamp() // บันทึกเวลาฝั่ง Server ของ Firebase
+        });
+        
+        console.log('ผูกคู่ FCM Token และรายชื่อโอชิลงฐานข้อมูล v10 เรียบร้อยแล้ว!');
+      } else {
+        console.log('ไม่สามารถสร้าง Token ได้');
+      }
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการตั้งค่าแจ้งเตือน:', err);
+    }
+  }
+  window.setupBLM48PushNotification = setupBLM48PushNotification;
+
+  // 🏁 สั่งรันระบบ Push Notification ทันทีถ้าล็อกอินอยู่แล้ว
+  if (getUserSession()) {
+    setupBLM48PushNotification();
+  }
 </script>
 <div class="bottom-tab-bar">
   
