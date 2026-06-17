@@ -1633,6 +1633,26 @@ document.addEventListener('click', function() {
     function closeImageViewer() { document.getElementById('image-viewer-modal').style.display = 'none'; }
 
     window.onload = loadMemberData;
+  
+    document.addEventListener("DOMContentLoaded", function() {
+    // ดึงค่าจาก localStorage ออกมาเก็บในตัวแปร (ถ้าไม่มีค่าให้ใช้ค่าเริ่มต้น)
+    const storedKamiOshi = localStorage.getItem('kamiOshi') || 'ยังไม่ได้เลือก';
+    const storedOshi = localStorage.getItem('oshi') || 'ยังไม่ได้เลือก';
+    const storedCookie = localStorage.getItem('cookie') || '0';
+    const storedLike = localStorage.getItem('like') || '0';
+
+    // ค้นหา Element ตาม ID ที่กำหนดไว้ข้างบน
+    const kamiEl = document.getElementById('member-kami-oshi');
+    const oshiEl = document.getElementById('member-oshi');
+    const cookieEl = document.getElementById('member-cookie');
+    const likeEl = document.getElementById('member-like');
+
+    // ส่งค่าไปแทนที่ข้อความบนหน้าเว็บเพื่อแสดงผลพร้อมกัน
+    if (kamiEl) kamiEl.innerText = storedKamiOshi;
+    if (oshiEl) oshiEl.innerText = storedOshi;
+    if (cookieEl) cookieEl.innerText = storedCookie;
+    if (likeEl) likeEl.innerText = storedLike;
+});
 </script>
 
 <!-- =========================================================================
