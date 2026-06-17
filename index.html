@@ -289,72 +289,112 @@ body {
 }
     
 .bottom-tab-bar {
-  /* 🎀 ความสูงบาร์ 80px รองรับไอคอนใหญ่ได้สวยงาม */
-  height: calc(80px + env(safe-area-inset-bottom, 0px)); 
+  /* 👑 Layer 1: ชั้นโปร่งใสล่างสุด ขยายความสูงรวมเพิ่มขึ้นเป็น 110px ให้ Nav ดูสูงเด่น */
+  height: calc(110px + env(safe-area-inset-bottom, 0px)); 
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   z-index: 999;
-  background: #ffffff; 
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: 28px 28px 0 0; /* คงความโค้งมนละมุนด้านบนไว้ */
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.06); 
+  background: transparent; 
   display: flex;
   justify-content: space-around;
-  align-items: center; 
+  align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่างสุด */
   padding-bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
+}
+
+.bottom-tab-bar::before {
+  content: "";
+  position: absolute;
+  /* 👑 Layer 2: ขยับท็อปลงมาที่ 60px เพื่อให้เหลือเนื้อผ้าสีขาวหนา 50px (เกือบครึ่งหนึ่งของความสูงรวม 110px) */
+  top: 60px; 
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff; 
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 28px 28px 0 0; /* เพิ่มความโค้งมนให้ดูละมุนรับกับบาร์ที่สูงขึ้น */
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08); /* เพิ่มมิติเงาให้ดูลอยแยกชั้นชัดเจน */
+  z-index: 1;
 }
 
 .tab-item {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 20%;   /* กระจายความกว้างเท่ากันเป๊ะทั้ง 5 ปุ่ม */
-  height: 100%; /* ให้ความสูงเต็มบาร์ เป็นพื้นที่กดที่แม่นยำ */
+  width: 20%;
+  height: 50px; /* ปรับความสูงบล็อกกดให้บาลานซ์กับ Layer สีขาว */
+  position: relative;
+  z-index: 2; 
   text-decoration: none;
-  color: #8e8e93; /* สีไอคอนตอนปกติ */
-  transition: all 0.2s ease;
+  color: #8e8e93; 
+  
+  /* 🚀 ดันไอคอนให้เลื่อนสูงขึ้นไปข้างบน 30px ทะลุเลเยอร์สีขาวขึ้นไปลอยเด่นอยู่บนชั้นโปร่งใสครึ่งตัวพอดี */
+  transform: translateY(-30px); 
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* ปรับสปริงให้เด้งนุ่มนวลขึ้น */
 }
 
 /* 🌟 เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มปกติ */
 .tab-item:active {
-  transform: scale(0.9);
+  transform: translateY(-30px) scale(0.85);
   opacity: 0.8;
 }
 
-/* 👑 ปุ่มสถานะ Active (หน้าปัจจุบัน): ไม่ต้องมีพื้นหลังแล้ว เปลี่ยนแค่สีไอคอนให้เด่นขึ้นพอครับ */
+/* 👑 ปุ่มสถานะ Active (หน้าปัจจุบัน): ดีดตัวลอยสูงเด่นขึ้นไปอีกที่ 45px กลายเป็นปุ่มฮีโร่ลอยเด่นสะดุดตา */
 .tab-item.active {
-  color: #ff6b8b; /* เปลี่ยนสีไอคอนเป็นสีชมพูสุดน่ารักเมื่อถูกเลือก */
+  color: #ffb3c1; 
+  transform: translateY(-45px); 
 }
-
 /* เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มที่ Active อยู่ */
 .tab-item.active:active {
-  transform: scale(0.9);
+  transform: translateY(-45px) scale(0.85);
 }
 
-/* 🚀 ไอคอน FontAwesome ขนาดใหญ่เด่นชัด (36px) */
+/* ------------------------------------------------------------- */
+/* 🔥 จุดที่เพิ่มเข้ามา: ตั้งค่าให้ไอคอนและรูปภาพขยายใหญ่ขึ้นตอน Active เท่านั้น */
+/* ------------------------------------------------------------- */
+
+.tab-item.active i {
+  font-size: 45px; /* 🚀 ขยายขนาดฟอนต์ไอคอนจากเดิม 34px เป็น 45px ให้ใหญ่เด่นสะใจ */
+}
+
+.tab-item.active img {
+  width: 58px;    /* 🚀 ขยายขนาดรูปจากเดิม 44px เป็น 58px */
+  height: 58px;
+}
+
+.tab-item.active #tab-profile-img {
+  width: 50px !important;  /* 🚀 ขยายขนาดรูปโปรไฟล์จากเดิม 38px เป็น 50px */
+  height: 50px !important;
+}
+/* ------------------------------------------------------------- */
+
+
+/* ขยายขนาดไอคอน FontAwesome (34px เท่าเดิม แต่ใส่เงาให้ลอยตามบาร์) */
 .tab-item i {
-  font-size: 36px;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.04)); 
+  font-size: 34px;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.08)); 
+  transition: font-size 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
 }
 
-/* 🚀 รูปไอคอนสั่งทำขนาดใหญ่เต็มตา (46px) */
+/* ขยายขนาดรูปไอคอนแชมป์สั่งทำ (44px เท่าเดิม พร้อมเพิ่มเงาตกกระทบลงบนเลเยอร์สีขาว) */
 .tab-item img {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.04));
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12)); 
+  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
 }
 
-/* วงกลมรูปโปรไฟล์ขนาดพอดีกับเพื่อนๆ */
+/* ปรับแต่งวงกลมรูปโปรไฟล์ให้ลอยขึ้นมาอย่างสมดุล */
 #tab-profile-img {
-  width: 40px !important;
-  height: 40px !important;
+  width: 38px !important;
+  height: 38px !important;
   border-radius: 50%;
   border: 2px solid #ffb3c1;
   box-sizing: border-box;
+  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
 }
 
     /* เพิ่มแอนิเมชันให้ตัวหนังสือค่อยๆ ปรากฏขึ้นตอนเปลี่ยนหน้า */
