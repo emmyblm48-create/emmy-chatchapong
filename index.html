@@ -1466,6 +1466,93 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .d3 { top: 20%; right: 30%; transform: rotate(10deg); font-size: 1rem; }
 .d4 { bottom: 10%; right: 5%; transform: rotate(-25deg); }
 .d5 { top: 40%; left: 60%; transform: rotate(45deg); opacity: 0.3; }
+
+    .monthly-tracker-container {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(255, 179, 193, 0.4); /* เงาสีชมพูอ่อน */
+    margin: 15px auto;
+    max-width: 400px;
+    font-family: inherit;
+  }
+  
+  .tracker-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .countdown-label {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ff6b81;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .countdown-subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .week-block {
+    margin-bottom: 16px;
+  }
+
+  .week-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #ffa8b6;
+    margin-bottom: 10px;
+    text-align: left;
+    padding-left: 5px;
+  }
+
+  .days-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    justify-items: center;
+  }
+
+  .day-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    transition: transform 0.3s ease;
+  }
+
+  /* วันที่ผ่านมาแล้ว (ติ๊กถูก) */
+  .day-circle.checked {
+    background: #ffb3c1;
+    color: white;
+    box-shadow: 0 2px 5px rgba(255, 179, 193, 0.5);
+  }
+
+  /* วันนี้ (ไฮไลท์เด่นขึ้นและเป็นรูปคุกกี้) */
+  .day-circle.current {
+    background: #fff0f3;
+    color: #d2691e;
+    border: 2px solid #ffb3c1;
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(255, 179, 193, 0.4);
+    z-index: 1;
+  }
+
+  /* วันในอนาคต (ตัวเลขสีเทา) */
+  .day-circle.future {
+    background: #f1f3f5;
+    color: #adb5bd;
+  }
   </style>
 </head>
 <body>
@@ -1518,37 +1605,16 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       </div>
 </div>
   
-<div class="cookie-countdown-container">
-  
-  <div class="countdown-label">
-    <i class="fas fa-cookie-bite" style="color: #d2691e;"></i> 
-    <span>MONTHLY FINALE!</span>
+<div class="monthly-tracker-container">
+  <div class="tracker-header">
+    <div class="countdown-label">
+      <i class="fas fa-cookie-bite" style="color: #d2691e;"></i> 
+      <span>MONTHLY FINALE!</span>
+    </div>
+    <div class="countdown-subtitle" id="countdown-month-text">กำลังคำนวณรอบเดือน...</div>
   </div>
   
-  <div class="countdown-subtitle" id="countdown-month-text">Calculating cycle...</div>
-  
-  <div class="countdown-timer-box">
-    <div class="time-segment">
-      <span class="time-val" id="cd-days">00</span>
-      <span class="time-lbl">Days</span>
-    </div>
-    <span class="time-separator">:</span>
-    <div class="time-segment">
-      <span class="time-val" id="cd-hours">00</span>
-      <span class="time-lbl">Hrs</span>
-    </div>
-    <span class="time-separator">:</span>
-    <div class="time-segment">
-      <span class="time-val" id="cd-mins">00</span>
-      <span class="time-lbl">Mins</span>
-    </div>
-    <span class="time-separator">:</span>
-    <div class="time-segment">
-      <span class="time-val" id="cd-secs">00</span>
-      <span class="time-lbl">Secs</span>
-    </div>
-  </div>
-  
+  <div id="monthly-tracker-grid" class="tracker-grid"></div>
 </div>
 
 <div class="ranking-wrapper" style="position: relative; overflow: hidden;">
@@ -2320,92 +2386,62 @@ function confirmLogout() {
   });
 }
 
-async function claimMonthly() {
-  // 🎯 แก้ไข: ถ้าไม่มีเซสชัน ให้ดีดไปหน้าล็อกอินแทนการเปิด Modal
-  if (!user) {
-    window.location.href = 'login.html';
-    return;
-  }
-  
-  const btnClaim = document.querySelector('.btn-monthly');
-  if (btnClaim && btnClaim.disabled) return; 
-  if (btnClaim) btnClaim.disabled = true;
-
-  Swal.fire({ 
-    title: 'กำลังตรวจสอบสิทธิ์...', 
-    allowOutsideClick: false, 
-    didOpen: () => Swal.showLoading() 
-  });
-
-  try {
-    const resp = await fetch(scriptURL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'claimMonthlyCookie',
-        username: user.username
-      })
-    }); 
-    const res = await resp.json();
+function renderMonthlyTracker() {
+    const container = document.getElementById('monthly-tracker-grid');
+    if (!container) return;
     
-    if (res.status === "success") { 
-      await syncUserData(); 
-      Swal.fire('สำเร็จ!', res.message, 'success'); 
-    } else { 
-      Swal.fire('ขออภัย', res.message, 'info'); 
-      if (btnClaim) btnClaim.disabled = false; 
+    // ดึงข้อมูลวันที่ปัจจุบัน
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const today = now.getDate();
+    
+    // คำนวณจำนวนวันในเดือนนี้
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // สร้างชื่อเดือนสำหรับแสดงผล
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    document.getElementById('countdown-month-text').innerText = `${monthNames[month]} Progress`;
+
+    let currentWeek = 1;
+    let weekHtml = '';
+    let daysHtml = '';
+
+    // วนลูปสร้างวงกลมตามจำนวนวันในเดือนนั้นๆ (เช่น 1 ถึง 30 หรือ 31)
+    for (let day = 1; day <= daysInMonth; day++) {
+      let statusClass = 'future';
+      let content = day;
+
+      if (day < today) {
+        statusClass = 'checked';
+        content = '<i class="fas fa-check"></i>'; // ใส่เครื่องหมายถูกสำหรับวันที่ผ่านมาแล้ว
+      } else if (day === today) {
+        statusClass = 'current';
+        content = '<i class="fas fa-cookie-bite"></i>'; // ใส่อิคอนคุกกี้สำหรับวันนี้
+      }
+
+      daysHtml += `<div class="day-circle ${statusClass}">${content}</div>`;
+
+      // เมื่อครบ 7 วัน หรือถึงวันสุดท้ายของเดือน ให้ขึ้นสัปดาห์ใหม่
+      if (day % 7 === 0 || day === daysInMonth) {
+        weekHtml += `
+          <div class="week-block">
+            <div class="week-label">Week ${currentWeek}</div>
+            <div class="days-row">
+              ${daysHtml}
+            </div>
+          </div>
+        `;
+        daysHtml = ''; // รีเซ็ตแถวเพื่อเริ่มสัปดาห์ถัดไป
+        currentWeek++;
+      }
     }
-  } catch (e) { 
-    Swal.fire('Error', 'ระบบขัดข้อง', 'error'); 
-    if (btnClaim) btnClaim.disabled = false; 
-  }
-}
-  
-  async function updateDisplayName() {
-  // 🎯 แก้ไขจาก currentUser เป็น user ให้ตรงกับระบบหลัก
-  if (!user) {
-    window.location.href = 'login.html';
-    return;
+
+    container.innerHTML = weekHtml;
   }
 
-  const { value: newName } = await Swal.fire({
-    title: 'แก้ไขชื่อของคุณ',
-    input: 'text',
-    inputLabel: 'กรอกชื่อใหม่ที่ต้องการ',
-    inputValue: user.name, // 🎯 แก้ไขเป็น user.name
-    showCancelButton: true,
-    inputValidator: (value) => {
-      if (!value) return 'กรุณากรอกชื่อด้วยนะคะ'
-      if (value.length > 20) return 'ชื่อยาวเกินไปหน่อยค่ะ (ไม่ควรเกิน 20 ตัวอักษร)'
-    }
-  });
-
-  if (newName) {
-    try {
-      // แสดง Loading
-      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-      // 🎯 แก้ไข SCRIPT_URL เป็น scriptURL (ตามที่พี่เอ็มมี่ประกาศไว้ข้างบน)
-      const response = await fetch(scriptURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `action=updateName&username=${user.username}&newName=${encodeURIComponent(newName)}` // 🎯 แก้ไขเป็น user.username
-      });
-
-      Swal.fire('สำเร็จ!', 'เปลี่ยนชื่อเป็น ' + newName + ' เรียบร้อยแล้วค่ะ', 'success');
-      
-      // อัปเดตชื่อในหน้าเว็บและตัวแปรในเครื่องทันที
-      user.name = newName; // 🎯 อัปเดตลงตัวแปรหลัก
-      if(typeof saveUserSession === "function") saveUserSession(user); // บันทึกลงเซสชันถาวร
-      
-      const nameElem = document.getElementById('user-display-name');
-      if (nameElem) nameElem.innerText = newName; 
-
-    } catch (error) {
-      console.error(error);
-      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเปลี่ยนชื่อได้ในขณะนี้', 'error');
-    }
-  }
-}
+  // เรียกใช้ฟังก์ชันทันทีเมื่อโหลดเสร็จ
+  document.addEventListener('DOMContentLoaded', renderMonthlyTracker);
   
     // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ. (ถอดแบบมาจากหน้า member)
     function formatThaiDate(dateStr) {
