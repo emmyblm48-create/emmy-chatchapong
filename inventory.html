@@ -498,7 +498,7 @@
         
         // ตัวแปรสำหรับระบบตัวกรองแบบใหม่
         let globalInventoryData = null;
-        let currentPrimaryTab = 'all'; // 'all', 'cafe', 'coaster', 'others'
+        let currentPrimaryTab = 'all'; // 'all', 'cafe', 'coaster', 'thankyou', 'others' 👈 เพิ่ม thankyou ตรงนี้
         let currentCoasterSubTab = 'all'; // 'all' หรือชื่อคอลเลกชันเฉพาะของ Coaster
 
         window.onload = async () => {
@@ -572,13 +572,14 @@
             }
         }
 
-        // ฟังก์ชันช่วยจำแนกกลุ่มหมวดหมู่
+        // ฟังก์ชันช่วยจำแนกกลุ่มหมวดหมู่ (เพิ่มการเช็ค Thank You Card)
         function getCategorizedCollections() {
             const cafe = {};
             const coaster = {};
+            const thankyou = {}; // 👈 สร้าง Object มารองรับ Thank You Card
             const others = {};
 
-            if (!globalInventoryData) return { cafe, coaster, others };
+            if (!globalInventoryData) return { cafe, coaster, thankyou, others };
 
             // จัดเรียงคีย์ (ชื่อคอลเลกชัน) ตามตัวอักษรไทย/อังกฤษ ก่อนแบ่งกลุ่ม
             const sortedKeys = Object.keys(globalInventoryData).sort((a, b) => a.localeCompare(b, 'th'));
@@ -587,17 +588,19 @@
                 const lowerName = colName.toLowerCase();
                 const items = globalInventoryData[colName] || [];
                 
-                // คัดแยกตามเงื่อนไข
+                // คัดแยกตามเงื่อนไข (เช็คชื่อคอลเลกชันว่าเข้าข่ายหมวดหมู่ใด)
                 if (lowerName.includes('coaster')) {
                     coaster[colName] = items;
                 } else if (lowerName.includes('blm48 cafe') || lowerName.includes('cafe')) {
                     cafe[colName] = items;
+                } else if (lowerName.includes('thank you') || lowerName.includes('thankyou') || lowerName.includes('card')) {
+                    thankyou[colName] = items; // 👈 ถ้าชื่อคอลเลกชันมีคำว่า Thank You หรือ Card จะถูกจัดกลุ่มมาที่นี่
                 } else {
                     others[colName] = items;
                 }
             });
 
-            return { cafe, coaster, others };
+            return { cafe, coaster, thankyou, others };
         }
 
         // ฟังก์ชันสร้างปุ่มตัวกรองหลักและตัวกรองย่อย
@@ -633,7 +636,16 @@
                 primaryTabsContainer.appendChild(btnCoaster);
             }
 
-            // 4. หมวดหมู่หลัก: หมวดหมู่อื่นๆ (ถ้ามีข้อมูล)
+            // 4. หมวดหมู่หลัก: Thank You Card (ถ้ามีข้อมูล) 👈 เพิ่มปุ่ม Filter ตรงนี้
+            if (Object.keys(categories.thankyou).length > 0) {
+                const btnThankYou = document.createElement('button');
+                btnThankYou.className = `btn-tab ${currentPrimaryTab === 'thankyou' ? 'active' : ''}`;
+                btnThankYou.innerHTML = `<i class="fa-solid fa-heart"></i> Thank You Card`;
+                btnThankYou.onclick = () => selectPrimaryTab('thankyou');
+                primaryTabsContainer.appendChild(btnThankYou);
+            }
+
+            // 5. หมวดหมู่หลัก: หมวดหมู่อื่นๆ (ถ้ามีข้อมูล)
             if (Object.keys(categories.others).length > 0) {
                 const btnOthers = document.createElement('button');
                 btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
@@ -698,10 +710,12 @@
 
             // เลือกชุดคอลเลกชันตามปุ่มแท็บหมวดหมู่หลักที่ถูกเลือก
             if (currentPrimaryTab === 'all') {
-                // เอามารวมทั้งหมดตามลำดับที่จัดเรียงตัวอักษรแล้ว
-                targetCollections = { ...categories.cafe, ...categories.coaster, ...categories.others };
+                // เอามารวมทั้งหมดตามลำดับที่จัดเรียงตัวอักษรแล้ว (รวม thankyou เข้าไปด้วย)
+                targetCollections = { ...categories.cafe, ...categories.coaster, ...categories.thankyou, ...categories.others };
             } else if (currentPrimaryTab === 'cafe') {
                 targetCollections = categories.cafe;
+            } else if (currentPrimaryTab === 'thankyou') {
+                targetCollections = categories.thankyou; // 👈 ดึงคอลเลกชันที่เป็น Thank You Card มาแสดงผล
             } else if (currentPrimaryTab === 'coaster') {
                 if (currentCoasterSubTab === 'all') {
                     targetCollections = categories.coaster;
