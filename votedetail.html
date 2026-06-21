@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BLM48 | Vote Detail</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* ใช้โทนสีเดิมให้ตรงคอนเซปต์ */
+    :root { --primary-pink: #ff85a2; --bg-color: #fff5f6; --text-main: #5a5a5a; }
+    body { font-family: 'Kanit', sans-serif; background-color: var(--bg-color); margin: 0; padding-bottom: 50px; }
+    
+    .cover-img { width: 100%; height: 220px; object-fit: cover; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+    .detail-container { padding: 20px; background: white; margin: -20px 15px 20px; border-radius: 15px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .title { font-size: 22px; font-weight: 600; color: var(--primary-pink); }
+    .desc { font-size: 14px; color: #777; margin-top: 5px; }
+    
+    .candidates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px; }
+    .candidate-card { background: white; border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 2px 10px rgba(255,133,162,0.1); }
+    .candidate-card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-pink); margin-bottom: 10px; }
+    .candidate-name { font-weight: 600; font-size: 16px; margin-bottom: 10px; }
+    .vote-btn { background: var(--primary-pink); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-family: 'Kanit'; cursor: pointer; width: 100%; font-weight: 500; }
+    
+    /* สไตล์สำหรับโหมดผลโหวต (Closed) */
+    .rank-badge { background: #ffd700; color: #b8860b; padding: 2px 10px; border-radius: 10px; font-weight: bold; font-size: 12px; margin-bottom: 5px; display: inline-block;}
+    .vote-score { font-size: 14px; color: var(--primary-pink); font-weight: 600;}
+  </style>
+</head>
+<body>
+
+  <img src="" id="cover-image" class="cover-img" style="display:none;">
+  <div class="detail-container">
+    <div class="title" id="camp-title">Loading...</div>
+    <div class="desc" id="camp-desc"></div>
+  </div>
+
+  <div class="candidates-grid" id="candidates-grid"></div>
+
+  <script>
+    const SCRIPT_URL = 'ใส่_URL_WEB_APP_ของคุณที่นี่';
+    const username = localStorage.getItem('username') || '00-155';
+    const urlParams = new URLSearchParams(window.location.search);
+    const collectionId = urlParams.get('id');
+
+    async function loadDetail() {
+      const res = await fetch(`${SCRIPT_URL}?action=getMajorVoteDetail&id=${collectionId}`);
+      const result = await res.json();
+      
+      if(result.status === 'success') {
+        const camp = result.data.collection;
+        const candidates = result.data.candidates;
+        
+        document.getElementById('cover-image').src = camp.CoverImage;
+        document.getElementById('cover-image').style.display = 'block';
+        document.getElementById('camp-title').innerText = camp.Title;
+        document.getElementById('camp-desc').innerText = camp.Description || `Voting ends: ${camp.EndTime}`;
+        
+        const isClosed = camp.Status.toLowerCase().includes('close');
+        renderCandidates(candidates, isClosed);
+      }
+    }
+
+    function renderCandidates(candidates, isClosed) {
+      const grid = document.getElementById('candidates-grid');
+      grid.innerHTML = '';
+      
+      // ถ้าปิดโหวตแล้ว ให้เรียงตามคะแนน (มากไปน้อย)
+      if(isClosed) {
+        candidates.sort((a, b) => parseInt(b.CurrentVotes) - parseInt(a.CurrentVotes));
+      }
+
+      candidates.forEach((cand, index) => {
+        let actionHTML = '';
+        if (isClosed) {
+           actionHTML = `
+            <div class="rank-badge">Rank ${index + 1}</div>
+            <div class="vote-score">${cand.CurrentVotes} Votes</div>
+           `;
+        } else {
+           actionHTML = `<button class="vote-btn" onclick="openVoteModal('${cand.CandidateID}', '${cand.MemberName}', '${cand.ThankYouCardURL}')">Vote</button>`;
+        }
+
+        const card = `
+          <div class="candidate-card">
+            <img src="${cand.ProfileMember}" alt="${cand.MemberName}">
+            <div class="candidate-name">${cand.MemberName}</div>
+            ${actionHTML}
+          </div>
+        `;
+        grid.innerHTML += card;
+      });
+    }
+
+    function openVoteModal(candidateId, memberName, tyCardUrl) {
+      Swal.fire({
+        title: `โหวตให้ ${memberName}`,
+        text: 'ระบุจำนวนโทเคนที่ต้องการโหวต',
+        input: 'number',
+        inputAttributes: { min: 1, step: 1 },
+        showCancelButton: true,
+        confirmButtonText: 'ยืนยันการโหวต',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#ff85a2',
+        showLoaderOnConfirm: true,
+        preConfirm: async (amount) => {
+          if (!amount || amount <= 0) return Swal.showValidationMessage('กรุณาระบุจำนวนให้ถูกต้อง');
+          try {
+            const res = await fetch(SCRIPT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: 'submitMajorVote', username: username, collectionId: collectionId, candidateId: candidateId, amount: amount })
+            });
+            const data = await res.json();
+            if(data.status !== 'success') throw new Error(data.message);
+            return data;
+          } catch (error) {
+            Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+          }
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // โชว์ Thank You Card สไตล์น่ารักๆ
+          Swal.fire({
+            title: 'ขอบคุณที่ร่วมโหวต!',
+            text: `ส่งกำลังใจให้ ${memberName} สำเร็จแล้ว`,
+            imageUrl: tyCardUrl,
+            imageWidth: 300,
+            imageAlt: 'Thank You Card',
+            confirmButtonColor: '#ff85a2',
+            confirmButtonText: 'เก็บเข้า Inventory'
+          }).then(() => {
+             // รีโหลดข้อมูลหน้าเว็บใหม่
+             loadDetail();
+          });
+        }
+      });
+    }
+
+    window.onload = loadDetail;
+  </script>
+</body>
+</html>
