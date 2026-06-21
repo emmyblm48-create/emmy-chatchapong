@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 | Major Vote</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --blm-pink: #ff85a2;
+            --blm-light-pink: #fff0f5;
+            --bg-dreamy: #fdf6f7;
+            --text-dark: #4a4a4a;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            background-color: var(--bg-dreamy);
+            color: var(--text-dark);
+            margin: 0; padding: 0; padding-top: 70px;
+        }
+
+        /* 📡 Top Navbar */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 20px; box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
+            z-index: 1000;
+        }
+        .nav-back-btn {
+            position: absolute; left: 20px; color: var(--blm-pink);
+            font-size: 1.1rem; text-decoration: none;
+            width: 35px; height: 35px; display: flex;
+            align-items: center; justify-content: center;
+            border-radius: 50%; background: var(--blm-light-pink);
+        }
+        .nav-title { font-weight: 600; font-size: 1.2rem; color: var(--text-dark); }
+
+        /* 👛 Wallet Card */
+        .wallet-card {
+            background: linear-gradient(135deg, #ff85a2 0%, #ffb3c1 100%);
+            border-radius: 20px; padding: 20px; color: white;
+            box-shadow: 0 8px 20px rgba(255, 133, 162, 0.3);
+            margin: 15px; position: relative; overflow: hidden;
+        }
+        .wallet-card::after {
+            content: "\f53d"; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            position: absolute; right: -15px; bottom: -20px;
+            font-size: 120px; opacity: 0.1;
+        }
+        .balance-row { display: flex; justify-content: space-around; margin-bottom: 20px; position: relative; z-index: 2; }
+        .token-item { text-align: center; }
+        .token-label { font-size: 12px; font-weight: 500; opacity: 0.9; }
+        .token-amount { font-size: 26px; font-weight: 700; margin-top: 3px; }
+        
+        .wallet-actions { display: flex; gap: 10px; position: relative; z-index: 2; }
+        .wallet-btn {
+            flex: 1; background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 12px;
+            padding: 10px; color: white; font-family: 'Kanit', sans-serif;
+            font-weight: 500; font-size: 14px; display: flex;
+            justify-content: center; align-items: center; gap: 8px;
+            backdrop-filter: blur(5px); cursor: pointer; text-decoration: none;
+            transition: 0.2s;
+        }
+        .wallet-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.35); }
+
+        /* 🏆 Major Vote List */
+        .section-title { font-weight: 600; font-size: 1.1rem; margin: 25px 15px 10px; color: var(--text-dark); }
+        
+        .major-vote-scroll {
+            display: flex; gap: 15px; overflow-x: auto; padding: 5px 15px 20px;
+            scroll-snap-type: x mandatory; scrollbar-width: none;
+        }
+        .major-vote-scroll::-webkit-scrollbar { display: none; }
+        
+        .major-vote-card {
+            min-width: 260px; background: white; border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(255, 179, 193, 0.15);
+            scroll-snap-align: center; overflow: hidden;
+            text-decoration: none; color: inherit; display: block;
+            border: 1px solid #ffe1e7;
+        }
+        .major-vote-card img { width: 100%; height: 140px; object-fit: cover; }
+        .major-vote-info { padding: 15px; }
+        .major-vote-title { font-weight: 600; font-size: 15px; margin: 0 0 8px 0; }
+        
+        .status-badge {
+            display: inline-block; padding: 4px 10px; border-radius: 8px;
+            font-size: 11px; font-weight: 600; font-family: 'Quicksand', sans-serif;
+        }
+        .status-open { background: #e6f9ed; color: #2e7d32; }
+        .status-closed { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+
+    <div class="top-navbar">
+        <a href="index.html" class="nav-back-btn"><i class="fas fa-chevron-left"></i></a>
+        <div class="nav-title">Major Vote</div>
+    </div>
+
+    <div class="wallet-card">
+        <div class="balance-row">
+            <div class="token-item">
+                <div class="token-label">My Token</div>
+                <div class="token-amount"><i class="fa-solid fa-coins" style="font-size: 18px; color: #ffeaa7;"></i> <span id="token-balance">1,250</span></div>
+            </div>
+            <div class="token-item">
+                <div class="token-label">GE Token</div>
+                <div class="token-amount"><i class="fa-solid fa-star" style="font-size: 18px; color: #ffeaa7;"></i> <span id="getoken-balance">15</span></div>
+            </div>
+        </div>
+        <div class="wallet-actions">
+            <a href="javascript:void(0);" onclick="alert('ไปหน้า Redeem Code')" class="wallet-btn">
+                <i class="fa-solid fa-ticket-simple"></i> Redeem Code
+            </a>
+            <a href="javascript:void(0);" onclick="alert('ไปหน้าประวัติ')" class="wallet-btn">
+                <i class="fa-solid fa-clock-rotate-left"></i> ประวัติการโหวต
+            </a>
+        </div>
+    </div>
+
+    <div class="section-title">✨ Ongoing Campaigns</div>
+    <div class="major-vote-scroll">
+        <a href="majorvote_detail.html?id=votemajor_tanabata2026&status=open" class="major-vote-card">
+            <img src="https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=600" alt="Tanabata">
+            <div class="major-vote-info">
+                <h4 class="major-vote-title">BLM48 Tanabata 2026</h4>
+                <span class="status-badge status-open">OPEN</span>
+            </div>
+        </a>
+        <a href="majorvote_detail.html?id=votemajor_gen5&status=closed" class="major-vote-card">
+            <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=600" alt="Gen 5">
+            <div class="major-vote-info">
+                <h4 class="major-vote-title">5th Generation General Election</h4>
+                <span class="status-badge status-closed">CLOSED</span>
+            </div>
+        </a>
+    </div>
+
+</body>
+</html>
