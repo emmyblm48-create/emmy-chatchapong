@@ -440,20 +440,22 @@
         </div>
 
         <div class="filter-section-container">
-            <div>
-                <span class="filter-label"><i class="fa-solid fa-filter text-pink-400"></i> Fliter</span>
-                <div id="primary-tabs" class="tabs-row">
-                    <!-- ปุ่มฟิลเตอร์จะถูกแสดงด้วย JS -->
-                </div>
+    <div>
+        <span class="filter-label"><i class="fa-solid fa-filter text-pink-400"></i> Fliter</span>
+        <div id="primary-tabs" class="tabs-row">
             </div>
-            
-            <!-- ตู้ฟิลเตอร์ย่อยสำหรับ Coaster (ซ่อนเริ่มต้น) -->
-            <div id="coaster-sub-panel" class="sub-filter-panel hidden">
-                <div id="coaster-tabs" class="tabs-row">
-                    <!-- ปุ่มฟิลเตอร์ย่อย Coaster จะแสดงด้วย JS -->
-                </div>
+    </div>
+    
+    <div id="coaster-sub-panel" class="sub-filter-panel hidden">
+        <div id="coaster-tabs" class="tabs-row">
             </div>
-        </div> 
+    </div>
+
+    <div id="thankyou-sub-panel" class="sub-filter-panel hidden">
+        <div id="thankyou-tabs" class="tabs-row">
+            </div>
+    </div>
+    </div>
     
         <div id="inventory-container">
             <p style="text-align:center; color:#aaa; font-size:13px;">กำลังหาคอลเลกชันของคุณ...</p>
@@ -477,314 +479,312 @@
         <div>© 2026 Virtual Idol Cover Group</div>
     </footer>
 
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-        
-        function getUserSession() {
-            const sessionStr = localStorage.getItem('bnl_session');
-            if (!sessionStr) return null;
-            const session = JSON.parse(sessionStr);
-            if (new Date().getTime() > session.expiry) {
-                localStorage.removeItem('bnl_session');
-                localStorage.removeItem(`blm48_inventory_cache_${session.data?.username}`);
-                localStorage.removeItem(`blm48_inventory_time_${session.data?.username}`);
-                return null;
-            }
-            return session.data;
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    function getUserSession() {
+        const sessionStr = localStorage.getItem('bnl_session');
+        if (!sessionStr) return null;
+        const session = JSON.parse(sessionStr);
+        if (new Date().getTime() > session.expiry) {
+            localStorage.removeItem('bnl_session');
+            localStorage.removeItem(`blm48_inventory_cache_${session.data?.username}`);
+            localStorage.removeItem(`blm48_inventory_time_${session.data?.username}`);
+            return null;
         }
+        return session.data;
+    }
 
-        let user = getUserSession();
-        let currentUsername = user ? user.username : "";
+    let user = getUserSession();
+    let currentUsername = user ? user.username : "";
+    
+    // ตัวแปรสำหรับระบบตัวกรอง
+    let globalInventoryData = null;
+    let currentPrimaryTab = 'all'; // 'all', 'cafe', 'coaster', 'thankyou', 'others'
+    let currentSubTab = 'all';     // ตัวกรองย่อยสำหรับคอลเลกชันเฉพาะ (Coaster หรือ Thank You Card)
+
+    window.onload = async () => {
+        if (!user || !currentUsername) {
+            Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การใช้งานกระเป๋า กรุณาล็อกอินก่อนนะงับ', 'error').then(() => {
+                window.location.href = 'index.html';
+            });
+            return;
+        }
         
-        // ตัวแปรสำหรับระบบตัวกรองแบบใหม่
-        let globalInventoryData = null;
-        let currentPrimaryTab = 'all'; // 'all', 'cafe', 'coaster', 'thankyou', 'others' 👈 เพิ่ม thankyou ตรงนี้
-        let currentCoasterSubTab = 'all'; // 'all' หรือชื่อคอลเลกชันเฉพาะของ Coaster
+        if (user.profile_img && user.profile_img.toString().trim() !== "") {
+            document.getElementById('user-avatar').src = user.profile_img;
+        } else {
+            document.getElementById('user-avatar').src = "https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000";
+        }
+        
+        document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
+        
+        const userRole = user.role || user.position || "BLM48 Member";
+        document.getElementById('user-role').textContent = userRole;
+        
+        await loadMyInventory();
+    };
 
-        window.onload = async () => {
-            if (!user || !currentUsername) {
-                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การใช้งานกระเป๋า กรุณาล็อกอินก่อนนะงับ', 'error').then(() => {
-                    window.location.href = 'index.html';
-                });
-                return;
-            }
+    // ฟังก์ชันโหลดข้อมูล: ปรับปรุงให้นำ Cache ออกเพื่อให้ข้อมูลอัพเดทล่าสุดเป็นปัจจุบันทุกครั้งที่เข้าหน้าเว็บ
+    async function loadMyInventory() {
+        const container = document.getElementById('inventory-container');
+        container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัลล่าสุด...</p>`;
+        
+        try {
+            // ใส่ timestamp (_=...) ป้องกัน Browser จำข้อมูลเก่า (Anti-cache) เพื่อความสดใหม่ของข้อมูล
+            const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}&_=${new Date().getTime()}`);
+            const res = await response.json();
             
-            if (user.profile_img && user.profile_img.toString().trim() !== "") {
-                document.getElementById('user-avatar').src = user.profile_img;
-            } else {
-                document.getElementById('user-avatar').src = "https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000";
-            }
-            
-            document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
-            
-            const userRole = user.role || user.position || "BLM48 Member";
-            document.getElementById('user-role').textContent = userRole;
-            
-            await loadMyInventory();
-        };
-
-        async function loadMyInventory() {
-            const container = document.getElementById('inventory-container');
-            
-            const cacheKey = `blm48_inventory_cache_${currentUsername}`;
-            const cacheTimeKey = `blm48_inventory_time_${currentUsername}`;
-            const refreshInterval = 5 * 60 * 1000; 
-            
-            const cachedData = localStorage.getItem(cacheKey);
-            const cachedTime = localStorage.getItem(cacheTimeKey);
-            const now = new Date().getTime();
-            
-            if (cachedData && cachedTime && (now - cachedTime < refreshInterval)) {
-                console.log("⚡ ดึงข้อมูลคอลเลกชัน Inventory จาก Cache สำเร็จ!");
-                globalInventoryData = JSON.parse(cachedData);
+            if (res.status === "success") {
+                globalInventoryData = res.inventory;
+                
+                // สั่งรีเซ็ตตัวกรองและแสดงผลข้อมูล
                 renderFilters();
                 renderInventoryData();
-                return;
-            }
-            
-            container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัล...</p>`;
-            
-            try {
-                const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}`);
-                const res = await response.json();
-                
-                if (res.status === "success") {
-                    globalInventoryData = res.inventory;
-                    
-                    localStorage.setItem(cacheKey, JSON.stringify(globalInventoryData));
-                    localStorage.setItem(cacheTimeKey, now.toString());
-                    
-                    renderFilters();
-                    renderInventoryData();
-                } else {
-                    container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
-                }
-            } catch (err) {
-                console.error(err);
-                if (cachedData) {
-                    console.warn("⚠️ ระบบดึงข้อมูลสดขัดข้อง ใช้ข้อมูลจาก Cache แทน");
-                    globalInventoryData = JSON.parse(cachedData);
-                    renderFilters();
-                    renderInventoryData();
-                } else {
-                    container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
-                }
-            }
-        }
-
-        // ฟังก์ชันช่วยจำแนกกลุ่มหมวดหมู่ (เพิ่มการเช็ค Thank You Card)
-        function getCategorizedCollections() {
-            const cafe = {};
-            const coaster = {};
-            const thankyou = {}; // 👈 สร้าง Object มารองรับ Thank You Card
-            const others = {};
-
-            if (!globalInventoryData) return { cafe, coaster, thankyou, others };
-
-            // จัดเรียงคีย์ (ชื่อคอลเลกชัน) ตามตัวอักษรไทย/อังกฤษ ก่อนแบ่งกลุ่ม
-            const sortedKeys = Object.keys(globalInventoryData).sort((a, b) => a.localeCompare(b, 'th'));
-
-            sortedKeys.forEach(colName => {
-                const lowerName = colName.toLowerCase();
-                const items = globalInventoryData[colName] || [];
-                
-                // คัดแยกตามเงื่อนไข (เช็คชื่อคอลเลกชันว่าเข้าข่ายหมวดหมู่ใด)
-                if (lowerName.includes('coaster')) {
-                    coaster[colName] = items;
-                } else if (lowerName.includes('blm48 cafe') || lowerName.includes('cafe')) {
-                    cafe[colName] = items;
-                } else if (lowerName.includes('thank you') || lowerName.includes('thankyou') || lowerName.includes('card')) {
-                    thankyou[colName] = items; // 👈 ถ้าชื่อคอลเลกชันมีคำว่า Thank You หรือ Card จะถูกจัดกลุ่มมาที่นี่
-                } else {
-                    others[colName] = items;
-                }
-            });
-
-            return { cafe, coaster, thankyou, others };
-        }
-
-        // ฟังก์ชันสร้างปุ่มตัวกรองหลักและตัวกรองย่อย
-        function renderFilters() {
-            const primaryTabsContainer = document.getElementById('primary-tabs');
-            if (!primaryTabsContainer) return;
-            
-            primaryTabsContainer.innerHTML = '';
-            const categories = getCategorizedCollections();
-
-            // 1. หมวดหมู่หลัก: ทั้งหมด (All)
-            const btnAll = document.createElement('button');
-            btnAll.className = `btn-tab ${currentPrimaryTab === 'all' ? 'active' : ''}`;
-            btnAll.innerHTML = `<i class="fa-solid fa-border-all"></i> ทั้งหมด`;
-            btnAll.onclick = () => selectPrimaryTab('all');
-            primaryTabsContainer.appendChild(btnAll);
-
-            // 2. หมวดหมู่หลัก: BLM48 Cafe (ถ้ามีข้อมูล)
-            if (Object.keys(categories.cafe).length > 0) {
-                const btnCafe = document.createElement('button');
-                btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
-                btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
-                btnCafe.onclick = () => selectPrimaryTab('cafe');
-                primaryTabsContainer.appendChild(btnCafe);
-            }
-
-            // 3. หมวดหมู่หลัก: Coaster (ถ้ามีข้อมูล)
-            if (Object.keys(categories.coaster).length > 0) {
-                const btnCoaster = document.createElement('button');
-                btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
-                btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc animate-spin-slow"></i> Coaster`;
-                btnCoaster.onclick = () => selectPrimaryTab('coaster');
-                primaryTabsContainer.appendChild(btnCoaster);
-            }
-
-            // 4. หมวดหมู่หลัก: Thank You Card (ถ้ามีข้อมูล) 👈 เพิ่มปุ่ม Filter ตรงนี้
-            if (Object.keys(categories.thankyou).length > 0) {
-                const btnThankYou = document.createElement('button');
-                btnThankYou.className = `btn-tab ${currentPrimaryTab === 'thankyou' ? 'active' : ''}`;
-                btnThankYou.innerHTML = `<i class="fa-solid fa-heart"></i> Thank You Card`;
-                btnThankYou.onclick = () => selectPrimaryTab('thankyou');
-                primaryTabsContainer.appendChild(btnThankYou);
-            }
-
-            // 5. หมวดหมู่หลัก: หมวดหมู่อื่นๆ (ถ้ามีข้อมูล)
-            if (Object.keys(categories.others).length > 0) {
-                const btnOthers = document.createElement('button');
-                btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
-                btnOthers.innerHTML = `<i class="fa-solid fa-box-archive"></i> หมวดหมู่อื่นๆ`;
-                btnOthers.onclick = () => selectPrimaryTab('others');
-                primaryTabsContainer.appendChild(btnOthers);
-            }
-
-            // จัดการแสดง/ซ่อน และสร้างตัวกรองย่อยสำหรับ Coaster
-            const coasterSubPanel = document.getElementById('coaster-sub-panel');
-            const coasterTabsContainer = document.getElementById('coaster-tabs');
-            
-            if (currentPrimaryTab === 'coaster' && Object.keys(categories.coaster).length > 0) {
-                coasterSubPanel.classList.remove('hidden');
-                coasterTabsContainer.innerHTML = '';
-
-                // ปุ่มตัวเลือก Coaster ทั้งหมด
-                const btnSubAll = document.createElement('button');
-                btnSubAll.className = `btn-sub-tab ${currentCoasterSubTab === 'all' ? 'active' : ''}`;
-                btnSubAll.textContent = 'Coaster ทั้งหมด';
-                btnSubAll.onclick = () => selectCoasterSubTab('all');
-                coasterTabsContainer.appendChild(btnSubAll);
-
-                // คีย์ของ Coasters ได้รับการเรียงลำดับตัวอักษรเรียบร้อยแล้วจาก getCategorizedCollections
-                Object.keys(categories.coaster).forEach(colName => {
-                    const btnSub = document.createElement('button');
-                    btnSub.className = `btn-sub-tab ${currentCoasterSubTab === colName ? 'active' : ''}`;
-                    btnSub.textContent = colName;
-                    btnSub.onclick = () => selectCoasterSubTab(colName);
-                    coasterTabsContainer.appendChild(btnSub);
-                });
             } else {
-                coasterSubPanel.classList.add('hidden');
+                container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
             }
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
         }
+    }
 
-        function selectPrimaryTab(tabName) {
-            currentPrimaryTab = tabName;
-            currentCoasterSubTab = 'all'; // รีเซ็ตตัวกรองย่อยกลับไปที่ "ทั้งหมด"
-            renderFilters();
-            renderInventoryData();
-        }
+    // ฟังก์ชันช่วยจำแนกกลุ่มหมวดหมู่หลัก
+    function getCategorizedCollections() {
+        const cafe = {};
+        const coaster = {};
+        const thankyou = {};
+        const others = {};
 
-        function selectCoasterSubTab(subTabName) {
-            currentCoasterSubTab = subTabName;
-            renderFilters();
-            renderInventoryData();
-        }
+        if (!globalInventoryData) return { cafe, coaster, thankyou, others };
 
-        // ฟังก์ชันวาดไอเทมสะสมลงหน้าจอโดยใช้ระบบแยกประเภทและเรียงตามตัวอักษร
-        function renderInventoryData() {
-            const container = document.getElementById('inventory-container');
-            container.innerHTML = "";
+        const sortedKeys = Object.keys(globalInventoryData).sort((a, b) => a.localeCompare(b, 'th'));
+
+        sortedKeys.forEach(colName => {
+            const lowerName = colName.toLowerCase();
+            const items = globalInventoryData[colName] || [];
             
-            if (!globalInventoryData || Object.keys(globalInventoryData).length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
-                return;
+            // ตรวจสอบเงื่อนไขการแยกหมวดหมู่
+            if (lowerName.includes('coaster')) {
+                coaster[colName] = items;
+            } else if (lowerName.includes('blm48 cafe') || lowerName.includes('cafe')) {
+                cafe[colName] = items;
+            } else if (lowerName.includes('thank you') || lowerName.includes('thankyou') || lowerName.includes('card') || lowerName.includes('votemajor')) {
+                thankyou[colName] = items; // ถ้ารองรับพวก votemajor_tanabata2026 จะจัดเข้ากลุ่ม Thank You Card ทันที
+            } else {
+                others[colName] = items;
             }
+        });
 
-            const categories = getCategorizedCollections();
-            let targetCollections = {};
+        return { cafe, coaster, thankyou, others };
+    }
 
-            // เลือกชุดคอลเลกชันตามปุ่มแท็บหมวดหมู่หลักที่ถูกเลือก
-            if (currentPrimaryTab === 'all') {
-                // เอามารวมทั้งหมดตามลำดับที่จัดเรียงตัวอักษรแล้ว (รวม thankyou เข้าไปด้วย)
-                targetCollections = { ...categories.cafe, ...categories.coaster, ...categories.thankyou, ...categories.others };
-            } else if (currentPrimaryTab === 'cafe') {
-                targetCollections = categories.cafe;
-            } else if (currentPrimaryTab === 'thankyou') {
-                targetCollections = categories.thankyou; // 👈 ดึงคอลเลกชันที่เป็น Thank You Card มาแสดงผล
-            } else if (currentPrimaryTab === 'coaster') {
-                if (currentCoasterSubTab === 'all') {
-                    targetCollections = categories.coaster;
-                } else {
-                    // เลือกเฉพาะ Coaster คอลเลกชันย่อยที่กดเลือก
-                    if (categories.coaster[currentCoasterSubTab]) {
-                        targetCollections[currentCoasterSubTab] = categories.coaster[currentCoasterSubTab];
-                    }
-                }
-            } else if (currentPrimaryTab === 'others') {
-                targetCollections = categories.others;
-            }
-
-            const sortedTargetKeys = Object.keys(targetCollections).sort((a, b) => a.localeCompare(b, 'th'));
-
-            if (sortedTargetKeys.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:#999; margin-top:40px; font-size:13px;">ไม่พบไอเทมในหมวดหมู่นี้งับ</p>`;
-                return;
-            }
-
-            // แสดงผลแต่ละคอลเลกชัน
-            sortedTargetKeys.forEach(colName => {
-                const rawItems = targetCollections[colName] || [];
-                if (rawItems.length === 0) return;
-
-                // ทำการคัดลอกและจัดเรียงไอเทมตามตัวอักษร (A-Z, ก-ฮ) ในแต่ละคอลเลกชันย่อย
-                const items = [...rawItems].sort((a, b) => a.name.localeCompare(b.name, 'th'));
-
-                const section = document.createElement('div');
-                section.className = 'collection-section';
-                
-                const title = document.createElement('div');
-                title.className = 'collection-title';
-                title.innerHTML = `
-                    <span>${colName}</span>
-                    <span class="collection-count-badge">${items.length} รายการ</span>
-                `;
-                section.appendChild(title);
-                
-                const grid = document.createElement('div');
-                grid.className = 'item-grid';
-                
-                items.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'item-card';
-                    card.onclick = () => openPreview(item.img);
-                    
-                    card.innerHTML = `
-                        <span class="item-qty">x${item.qty}</span>
-                        <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
-                        <div class="item-name" title="${item.name}">${item.name}</div>
-                    `;
-                    grid.appendChild(card);
-                });
-                
-                section.appendChild(grid);
-                container.appendChild(section);
-            });
-        }
-
-        function openPreview(src) {
-            document.getElementById('previewImg').src = src;
-            document.getElementById('saveImgBtn').href = src;
-            document.getElementById('previewModal').style.display = 'flex';
-        }
+    // ฟังก์ชันสร้างปุ่มตัวกรองหลักและตัวกรองย่อยอัจฉริยะ
+    function renderFilters() {
+        const primaryTabsContainer = document.getElementById('primary-tabs');
+        if (!primaryTabsContainer) return;
         
-        function closePreview() {
-            document.getElementById('previewModal').style.display = 'none';
+        primaryTabsContainer.innerHTML = '';
+        const categories = getCategorizedCollections();
+
+        // 1. หมวดหมู่หลัก: ทั้งหมด
+        const btnAll = document.createElement('button');
+        btnAll.className = `btn-tab ${currentPrimaryTab === 'all' ? 'active' : ''}`;
+        btnAll.innerHTML = `<i class="fa-solid fa-border-all"></i> ทั้งหมด`;
+        btnAll.onclick = () => selectPrimaryTab('all');
+        primaryTabsContainer.appendChild(btnAll);
+
+        // 2. หมวดหมู่หลัก: BLM48 Cafe
+        if (Object.keys(categories.cafe).length > 0) {
+            const btnCafe = document.createElement('button');
+            btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
+            btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
+            btnCafe.onclick = () => selectPrimaryTab('cafe');
+            primaryTabsContainer.appendChild(btnCafe);
         }
-    </script>
+
+        // 3. หมวดหมู่หลัก: Coaster
+        if (Object.keys(categories.coaster).length > 0) {
+            const btnCoaster = document.createElement('button');
+            btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
+            btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc"></i> Coaster`;
+            btnCoaster.onclick = () => selectPrimaryTab('coaster');
+            primaryTabsContainer.appendChild(btnCoaster);
+        }
+
+        // 4. หมวดหมู่หลัก: Thank You Card
+        if (Object.keys(categories.thankyou).length > 0) {
+            const btnThankYou = document.createElement('button');
+            btnThankYou.className = `btn-tab ${currentPrimaryTab === 'thankyou' ? 'active' : ''}`;
+            btnThankYou.innerHTML = `<i class="fa-solid fa-heart"></i> Thank You Card`;
+            btnThankYou.onclick = () => selectPrimaryTab('thankyou');
+            primaryTabsContainer.appendChild(btnThankYou);
+        }
+
+        // 5. หมวดหมู่หลัก: หมวดหมู่อื่นๆ
+        if (Object.keys(categories.others).length > 0) {
+            const btnOthers = document.createElement('button');
+            btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
+            btnOthers.innerHTML = `<i class="fa-solid fa-box-archive"></i> หมวดหมู่อื่นๆ`;
+            btnOthers.onclick = () => selectPrimaryTab('others');
+            primaryTabsContainer.appendChild(btnOthers);
+        }
+
+        // --- ส่วนจัดการของตัวกรองย่อย (Sub Filters) ---
+        const coasterSubPanel = document.getElementById('coaster-sub-panel');
+        const thankyouSubPanel = document.getElementById('thankyou-sub-panel');
+
+        // ซ่อนพาเนลย่อยทั้งหมดก่อนทำเงื่อนไข
+        if (coasterSubPanel) coasterSubPanel.classList.add('hidden');
+        if (thankyouSubPanel) thankyouSubPanel.classList.add('hidden');
+
+        // แสดงและสร้างปุ่มย่อยของ Coaster
+        if (currentPrimaryTab === 'coaster' && coasterSubPanel && Object.keys(categories.coaster).length > 0) {
+            coasterSubPanel.classList.remove('hidden');
+            const coasterTabsContainer = document.getElementById('coaster-tabs');
+            if (coasterTabsContainer) {
+                renderSubTabButtons(categories.coaster, coasterTabsContainer, 'Coaster ทั้งหมด');
+            }
+        } 
+        // แสดงและสร้างปุ่มย่อยของ Thank You Card (เช่นพวก votemajor_tanabata2026 ในอนาคต)
+        else if (currentPrimaryTab === 'thankyou' && thankyouSubPanel && Object.keys(categories.thankyou).length > 0) {
+            thankyouSubPanel.classList.remove('hidden');
+            const thankyouTabsContainer = document.getElementById('thankyou-tabs');
+            if (thankyouTabsContainer) {
+                renderSubTabButtons(categories.thankyou, thankyouTabsContainer, 'การ์ดทั้งหมด');
+            }
+        }
+    }
+
+    // ฟังก์ชันช่วยสร้างปุ่มย่อยอัตโนมัติ (แชร์โค้ดร่วมกันระหว่าง Coaster และ Thank You Card)
+    function renderSubTabButtons(targetGroup, containerElement, allText) {
+        containerElement.innerHTML = '';
+
+        // ปุ่มเลือกทั้งหมดระดับคอลเลกชันย่อย
+        const btnSubAll = document.createElement('button');
+        btnSubAll.className = `btn-sub-tab ${currentSubTab === 'all' ? 'active' : ''}`;
+        btnSubAll.textContent = allText;
+        btnSubAll.onclick = () => selectSubTab('all');
+        containerElement.appendChild(btnSubAll);
+
+        // วนลูปตามคีย์คอลเลกชันที่เจอจริงในฐานข้อมูลผู้ใช้ ปลี่ยนชื่อปุ่มให้สวยงามให้อัตโนมัติ
+        Object.keys(targetGroup).forEach(colName => {
+            const btnSub = document.createElement('button');
+            btnSub.className = `btn-sub-tab ${currentSubTab === colName ? 'active' : ''}`;
+            
+            // แปลงชื่อ id คอลเลกชันให้สั้นและอ่านง่ายขึ้น เช่น votemajor_tanabata2026 -> Tanabata2026
+            let displayName = colName.replace('votemajor_', '').replace('gacha_', '');
+            displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
+            btnSub.textContent = displayName;
+            btnSub.onclick = () => selectSubTab(colName);
+            containerElement.appendChild(btnSub);
+        });
+    }
+
+    function selectPrimaryTab(tabName) {
+        currentPrimaryTab = tabName;
+        currentSubTab = 'all'; // รีเซ็ตตัวกรองย่อยทุกครั้งที่เปลี่ยนแท็บหลัก
+        renderFilters();
+        renderInventoryData();
+    }
+
+    function selectSubTab(subTabName) {
+        currentSubTab = subTabName;
+        renderFilters();
+        renderInventoryData();
+    }
+
+    // ฟังก์ชันแสดงผลไอเทมสะสมลงในหน้าเว็บ
+    function renderInventoryData() {
+        const container = document.getElementById('inventory-container');
+        container.innerHTML = "";
+        
+        if (!globalInventoryData || Object.keys(globalInventoryData).length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ<br>ไปสุ่มลุ้นรับของรางวัลที่ร้านค้ากันเถอะ!</p>`;
+            return;
+        }
+
+        const categories = getCategorizedCollections();
+        let targetCollections = {};
+
+        // เลือกชุดข้อมูลตามเงื่อนไขฟิลเตอร์หลักและย่อย
+        if (currentPrimaryTab === 'all') {
+            targetCollections = { ...categories.cafe, ...categories.coaster, ...categories.thankyou, ...categories.others };
+        } else if (currentPrimaryTab === 'cafe') {
+            targetCollections = categories.cafe;
+        } else if (currentPrimaryTab === 'others') {
+            targetCollections = categories.others;
+        } else if (currentPrimaryTab === 'coaster') {
+            if (currentSubTab === 'all') {
+                targetCollections = categories.coaster;
+            } else if (categories.coaster[currentSubTab]) {
+                targetCollections[currentSubTab] = categories.coaster[currentSubTab];
+            }
+        } else if (currentPrimaryTab === 'thankyou') {
+            if (currentSubTab === 'all') {
+                targetCollections = categories.thankyou;
+            } else if (categories.thankyou[currentSubTab]) {
+                targetCollections[currentSubTab] = categories.thankyou[currentSubTab];
+            }
+        }
+
+        const sortedTargetKeys = Object.keys(targetCollections).sort((a, b) => a.localeCompare(b, 'th'));
+
+        if (sortedTargetKeys.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#999; margin-top:40px; font-size:13px;">ไม่พบไอเทมในหมวดหมู่นี้งับ</p>`;
+            return;
+        }
+
+        // วาดกล่องไอเทมลงโครงสร้างกริดหน้าจอ
+        sortedTargetKeys.forEach(colName => {
+            const rawItems = targetCollections[colName] || [];
+            if (rawItems.length === 0) return;
+
+            const items = [...rawItems].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
+            const section = document.createElement('div');
+            section.className = 'collection-section';
+            
+            const title = document.createElement('div');
+            title.className = 'collection-title';
+            title.innerHTML = `
+                <span>${colName}</span>
+                <span class="collection-count-badge">${items.length} รายการ</span>
+            `;
+            section.appendChild(title);
+            
+            const grid = document.createElement('div');
+            grid.className = 'item-grid';
+            
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.onclick = () => openPreview(item.img);
+                
+                card.innerHTML = `
+                    <span class="item-qty">x${item.qty}</span>
+                    <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
+                    <div class="item-name" title="${item.name}">${item.name}</div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            section.appendChild(grid);
+            container.appendChild(section);
+        });
+    }
+
+    function openPreview(src) {
+        document.getElementById('previewImg').src = src;
+        document.getElementById('saveImgBtn').href = src;
+        document.getElementById('previewModal').style.display = 'flex';
+    }
+    
+    function closePreview() {
+        document.getElementById('previewModal').style.display = 'none';
+    }
+</script>
 </body>
 </html>
