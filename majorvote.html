@@ -4,14 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BLM48 | Major Vote</title>
+    <meta name="theme-color" content="#ffc0cb">
+    <!-- สำหรับ iOS Home Screen Icon -->
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <!-- สำหรับ Android และ Chrome -->
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
+            --primary-pink: #ff85a2;
             --blm-pink: #ff85a2;
             --blm-light-pink: #fff0f5;
             --bg-dreamy: #fdf6f7;
             --text-dark: #4a4a4a;
+            --glass-white: rgba(255, 255, 255, 0.25);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
@@ -19,6 +37,7 @@
             background-color: var(--bg-dreamy);
             color: var(--text-dark);
             margin: 0; padding: 0; padding-top: 70px;
+            padding-bottom: 30px;
         }
 
         /* 📡 Top Navbar */
@@ -39,108 +58,287 @@
         }
         .nav-title { font-weight: 600; font-size: 1.2rem; color: var(--text-dark); }
 
-        /* 👛 Wallet Card */
-        .wallet-card {
-            background: linear-gradient(135deg, #ff85a2 0%, #ffb3c1 100%);
-            border-radius: 20px; padding: 20px; color: white;
-            box-shadow: 0 8px 20px rgba(255, 133, 162, 0.3);
-            margin: 15px; position: relative; overflow: hidden;
-        }
-        .wallet-card::after {
-            content: "\f53d"; font-family: 'Font Awesome 6 Free'; font-weight: 900;
-            position: absolute; right: -15px; bottom: -20px;
-            font-size: 120px; opacity: 0.1;
-        }
-        .balance-row { display: flex; justify-content: space-around; margin-bottom: 20px; position: relative; z-index: 2; }
-        .token-item { text-align: center; }
-        .token-label { font-size: 12px; font-weight: 500; opacity: 0.9; }
-        .token-amount { font-size: 26px; font-weight: 700; margin-top: 3px; }
-        
-        .wallet-actions { display: flex; gap: 10px; position: relative; z-index: 2; }
-        .wallet-btn {
-            flex: 1; background: rgba(255, 255, 255, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 12px;
-            padding: 10px; color: white; font-family: 'Kanit', sans-serif;
-            font-weight: 500; font-size: 14px; display: flex;
-            justify-content: center; align-items: center; gap: 8px;
-            backdrop-filter: blur(5px); cursor: pointer; text-decoration: none;
-            transition: 0.2s;
-        }
-        .wallet-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.35); }
+        /* ตัวกล่องการ์ดหลักสีขาว */
+    .profile-wallet-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        border: 2px solid #ffeef2; /* เส้นขอบชมพูอ่อนระเรื่อตามธีมแอป */
+        margin: 15px 20px;
+    }
+    
+    /* การแบ่งฝั่งซ้าย-ขวา */
+    .wallet-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    /* กล่องย่อยด้านใน */
+    .wallet-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #fcf8f9; /* สีขาวอมชมพูจางมากๆ ช่วยดึงมิติไอคอน */
+        padding: 10px 12px;
+        border-radius: 14px;
+    }
+    
+    /* วงกลมรองหลังไอคอน */
+    .wallet-icon-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+    
+    /* ส่วนข้อมูลข้อความ */
+    .wallet-info {
+        display: flex;
+        flex-direction: column;
+    }
+    .wallet-title {
+        font-size: 11px;
+        color: #888888; /* สีเทาอ่อนสำหรับหัวข้อ */
+        font-weight: 500;
+    }
+    .wallet-value {
+        font-size: 15px;
+        color: #333333; /* สีเทาเข้มเกือบดำ อ่านง่ายชัดเจนบนพื้นขาว */
+        font-weight: 600;
+        font-family: 'Kanit', sans-serif;
+    }
 
-        /* 🏆 Major Vote List */
-        .section-title { font-weight: 600; font-size: 1.1rem; margin: 25px 15px 10px; color: var(--text-dark); }
+        /* 🏆 Major Vote Section (ถอดแบบดีไซน์จาก Trending Video ใน index.html) */
+        .section-title { 
+            font-weight: 600; 
+            font-size: 1.15rem; 
+            margin: 25px 15px 12px; 
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title i { color: var(--blm-pink); }
         
         .major-vote-scroll {
-            display: flex; gap: 15px; overflow-x: auto; padding: 5px 15px 20px;
+            display: flex; gap: 16px; overflow-x: auto; padding: 5px 15px 25px;
             scroll-snap-type: x mandatory; scrollbar-width: none;
         }
         .major-vote-scroll::-webkit-scrollbar { display: none; }
         
+        /* การปรับแต่ง Card เลียนแบบสไตล์ Trending Video */
         .major-vote-card {
-            min-width: 260px; background: white; border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(255, 179, 193, 0.15);
-            scroll-snap-align: center; overflow: hidden;
+            min-width: 280px; max-width: 280px; background: white; border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(255, 133, 162, 0.08);
+            scroll-snap-align: start; overflow: hidden;
             text-decoration: none; color: inherit; display: block;
-            border: 1px solid #ffe1e7;
+            border: 1px solid rgba(255, 179, 193, 0.2); 
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
         }
-        .major-vote-card img { width: 100%; height: 140px; object-fit: cover; }
-        .major-vote-info { padding: 15px; }
-        .major-vote-title { font-weight: 600; font-size: 15px; margin: 0 0 8px 0; }
+        .major-vote-card:active { transform: scale(0.97); }
         
-        .status-badge {
-            display: inline-block; padding: 4px 10px; border-radius: 8px;
-            font-size: 11px; font-weight: 600; font-family: 'Quicksand', sans-serif;
+        .card-image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 155px;
+            overflow: hidden;
+            background-color: #f0f0f0;
         }
-        .status-open { background: #e6f9ed; color: #2e7d32; }
-        .status-closed { background: #ffebee; color: #c62828; }
+        .major-vote-card img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            transition: transform 0.3s;
+        }
+        
+        /* ป้ายสถานะสไตล์พรีเมียม */
+        .status-badge-overlay {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 5;
+        }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px;
+            font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .status-open { background: #e6f9ed; color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.2); }
+        .status-closed { background: #ffebee; color: #c62828; border: 1px solid rgba(198, 40, 40, 0.2); }
+
+        .major-vote-info { padding: 16px; background: white; }
+        .major-vote-title { 
+            font-weight: 600; font-size: 16px; margin: 0 0 6px 0; 
+            color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+        }
+        .card-footer-action {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 12px; padding-top: 12px; border-top: 1px dashed #f5f5f5;
+            font-size: 12px; color: #888;
+        }
+        .go-vote-btn {
+            color: var(--blm-pink); font-weight: 600; display: flex; align-items: center; gap: 4px;
+        }
+
+        /* Loading & Empty State */
+        .loading-text { text-align: center; width: 100%; color: #999; padding: 40px 20px; font-size: 14px; }
+      
+        .ranking-wrapper {
+  position: relative;
+  background-color: #fff5f6; /* สีชมพูพาสเทลจางๆ เป็นพื้นหลังหลัก */
+  
+  /* สร้าง Pattern ไอคอนจางๆ วนซ้ำ (ตัวอย่างนี้ใช้รูปไอคอนดาว/หัวใจ) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23ffb3c1' fill-opacity='0.15'%3E%3Cpath d='M12 24c0-1.1.9-2 2-2h4v-4c0-1.1.9-2 2-2s2 .9 2 2v4h4c1.1 0 2 .9 2 2s-.9 2-2 2h-4v4c0 1.1-.9 2-2 2s-2-.9-2-2v-4h-4c-1.1 0-2-.9-2-2zm28 12c0-1.1.9-2 2-2h4v-4c0-1.1.9-2 2-2s2 .9 2 2v4h4c1.1 0 2 .9 2 2s-.9 2-2 2h-4v4c0 1.1-.9 2-2 2s-2-.9-2-2v-4h-4c-1.1 0-2-.9-2-2z'/%3E%3C/g%3E%3C/svg%3E");
+  
+  padding: 15px;
+  border-radius: 20px;
+  box-shadow: inset 0 2px 8px rgba(255, 179, 193, 0.1);
+  overflow: hidden;
+}
+  .section-title { 
+  font-family: 'Kanit', sans-serif; font-weight: 600; color: #444; 
+  margin: 30px 0 15px 20px; font-size: 18px; 
+  border-left: 5px solid var(--primary-pink); padding-left: 12px; 
+}
     </style>
 </head>
 <body>
 
     <div class="top-navbar">
         <a href="index.html" class="nav-back-btn"><i class="fas fa-chevron-left"></i></a>
-        <div class="nav-title">Major Vote</div>
     </div>
 
-    <div class="wallet-card">
-        <div class="balance-row">
-            <div class="token-item">
-                <div class="token-label">My Token</div>
-                <div class="token-amount"><i class="fa-solid fa-coins" style="font-size: 18px; color: #ffeaa7;"></i> <span id="token-balance">1,250</span></div>
+    <div class="profile-wallet-card">
+        <div class="wallet-grid">
+            <div class="wallet-box">
+                <div class="wallet-icon-wrapper">
+                    <i class="fa-solid fa-coins" style="color: #ffeaa7;"></i>
+                </div>
+                <div class="wallet-info">
+                    <span class="wallet-title">Token</span>
+                    <span class="wallet-value" id="token-balance">-</span>
+                </div>
             </div>
-            <div class="token-item">
-                <div class="token-label">GE Token</div>
-                <div class="token-amount"><i class="fa-solid fa-star" style="font-size: 18px; color: #ffeaa7;"></i> <span id="getoken-balance">15</span></div>
+            <div class="wallet-box">
+                <div class="wallet-icon-wrapper">
+                    <i class="fa-solid fa-gem" style="color: #74b9ff;"></i>
+                </div>
+                <div class="wallet-info">
+                    <span class="wallet-title">GE Token</span>
+                    <span class="wallet-value" id="getoken-balance">-</span>
+                </div>
             </div>
         </div>
-        <div class="wallet-actions">
-            <a href="javascript:void(0);" onclick="alert('ไปหน้า Redeem Code')" class="wallet-btn">
-                <i class="fa-solid fa-ticket-simple"></i> Redeem Code
-            </a>
-            <a href="javascript:void(0);" onclick="alert('ไปหน้าประวัติ')" class="wallet-btn">
-                <i class="fa-solid fa-clock-rotate-left"></i> ประวัติการโหวต
-            </a>
+    </div>
+
+    <div class="section-title"> Major Vote</div>
+<div class="ranking-wrapper">
+    <div class="horizontal-list" id="vote-container" style="align-items: flex-start;">
+        <div class="loading-text">
+            <i class="fa-solid fa-spinner fa-spin"></i> Loading...
         </div>
     </div>
+</div>
 
-    <div class="section-title">✨ Ongoing Campaigns</div>
-    <div class="major-vote-scroll">
-        <a href="majorvote_detail.html?id=votemajor_tanabata2026&status=open" class="major-vote-card">
-            <img src="https://images.unsplash.com/photo-1522383225653-ed111181a951?q=80&w=600" alt="Tanabata">
-            <div class="major-vote-info">
-                <h4 class="major-vote-title">BLM48 Tanabata 2026</h4>
-                <span class="status-badge status-open">OPEN</span>
-            </div>
-        </a>
-        <a href="majorvote_detail.html?id=votemajor_gen5&status=closed" class="major-vote-card">
-            <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=600" alt="Gen 5">
-            <div class="major-vote-info">
-                <h4 class="major-vote-title">5th Generation General Election</h4>
-                <span class="status-badge status-closed">CLOSED</span>
-            </div>
-        </a>
-    </div>
+    <script>
+        // 🚨 URL ของ Google Apps Script Web App
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
+        // ดึงข้อมูล Username ปัจจุบันจากระบบ 
+        const username = localStorage.getItem("username") || "00-160"; 
+
+        async function initPage() {
+            if (!username) {
+                alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+                window.location.href = "login.html";
+                return;
+            }
+            
+            // เรียกทำงานระบบดึงยอดเงินและแคมเปญ
+            await Promise.all([
+                loadUserBalances(),
+                loadVoteCampaigns()
+            ]);
+        }
+
+        // 1. ฟังก์ชันดึงยอดเงินคงเหลือจากฐานข้อมูลชีต users
+        async function loadUserBalances() {
+            try {
+                const response = await fetch(scriptURL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "getUserInfo",
+                        username: username
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.status === "success" && result.data) {
+                    document.getElementById("token-balance").textContent = Number(result.data.token || 0).toLocaleString();
+                    document.getElementById("getoken-balance").textContent = Number(result.data.geToken || 0).toLocaleString();
+                } else {
+                    console.error("ดึงยอดคงเหลือไม่สำเร็จ:", result.message);
+                }
+            } catch (error) {
+                console.error("Error fetching balance:", error);
+            }
+        }
+
+        // 2. ฟังก์ชันดึงแคมเปญโหวตจากฐานข้อมูลชีต majorVoteCollections (จัดรูปแบบคล้ายสไตล์คอมโพเนนต์วิดีโอเด่นในหน้าแรก)
+        async function loadVoteCampaigns() {
+            const container = document.getElementById("vote-container");
+            try {
+                const response = await fetch(scriptURL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "getMajorVoteCollections"
+                    })
+                });
+                const result = await response.json();
+
+                if (result.status === "success" && result.data && result.data.length > 0) {
+                    container.innerHTML = ""; // เคลียร์ loading text
+                    
+                    result.data.forEach(camp => {
+                        const status = (camp.Status || "Closed").toUpperCase();
+                        const isCountActive = status === "OPEN" || status === "ACTIVE";
+                        
+                        const cardHtml = `
+                            <a href="majorvote_detail.html?id=${camp.VoteCollectionID}&status=${status.toLowerCase()}" class="major-vote-card">
+                                <div class="card-image-wrapper">
+                                    <div class="status-badge-overlay">
+                                        <span class="status-badge ${isCountActive ? 'status-open' : 'status-closed'}">
+                                            <i class="fa-solid ${isCountActive ? 'fa-door-open' : 'fa-lock'}"></i> ${isCountActive ? 'OPEN' : 'CLOSED'}
+                                        </span>
+                                    </div>
+                                    <img src="${camp.CoverImage || 'https://via.placeholder.com/600x350?text=BLM48+Vote'}" alt="${camp.Title}" onerror="this.src='https://via.placeholder.com/600x350?text=BLM48+Vote'">
+                                </div>
+                                <div class="major-vote-info">
+                                    <h4 class="major-vote-title">${camp.Title || 'ไม่มีชื่อแคมเปญ'}</h4>
+                                    <div class="card-footer-action">
+                                        <span>${isCountActive ? 'ร่วมส่งคะแนนโหวตให้เมมเบอร์' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
+                                        <span class="go-vote-btn">โหวตเลย <i class="fa-solid fa-chevron-right"></i></span>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                        container.insertAdjacentHTML('beforeend', cardHtml);
+                    });
+                } else {
+                    container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
+                }
+            } catch (error) {
+                console.error("Error fetching campaigns:", error);
+                container.innerHTML = `<div class="loading-text">⚠️ ไม่สามารถเชื่อมต่อข้อมูลได้</div>`;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initPage);
+    </script>
 </body>
 </html>
