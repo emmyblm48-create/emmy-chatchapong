@@ -254,15 +254,28 @@
         const now = new Date().getTime();
 
         campaignsList.forEach(camp => {
-            // ตรวจสอบช่วงเวลา StartDate - EndDate ตามบรีฟคุณเอ็มมี่
-            if (camp.StartTime && new Date(camp.StartTime).getTime() > now) return;
-            if (camp.EndTime && new Date(camp.EndTime).getTime() < now) return;
-
             const status = (camp.Status || "Closed").trim().toUpperCase();
             const isOpen = status === "OPEN"; 
             
-            // 💡 แก้ไขจุดนี้: ให้รองรับทั้งคอลัมน์ "รูปจากไดร์ฟ" และ "CoverImage" ป้องกันข้อมูลไม่ขึ้น
-            const coverImgUrl = camp["รูปจากไดร์ฟ"] || camp.CoverImage;
+            // 📡 ปรับปรุงการเช็คช่วงเวลา: ป้องกันปัญหาฟิลด์วันเวลาไม่ใช่รูปแบบมาตรฐาน (Invalid Date)
+            if (camp.StartTime) {
+                const startTimeParsed = new Date(camp.StartTime).getTime();
+                if (!isNaN(startTimeParsed) && startTimeParsed > now) return; // ซ่อนถ้ายังไม่ถึงเวลาเริ่มจริง ๆ
+            }
+            if (camp.EndTime) {
+                const endTimeParsed = new Date(camp.EndTime).getTime();
+                if (!isNaN(endTimeParsed) && endTimeParsed < now) return; // ซ่อนถ้าหมดเวลาแล้วจริง ๆ
+            }
+
+            // 💡 ดึงรูปภาพ cover: ตรวจสอบความถูกต้องของลิงก์ภาพ
+            let coverImgUrl = camp.CoverImage || camp["รูปจากไดร์ฟ"] || "";
+            
+            // ป้องกันกรณีข้อมูลรูปภาพโดนเบียดด้วยข้อความอื่นในฐานข้อมูล (เช่น มีวันเวลาต่อท้ายลิงก์ภาพ)
+            if (coverImgUrl && coverImgUrl.includes("http")) {
+                const words = coverImgUrl.split(" ");
+                coverImgUrl = words.find(w => w.startsWith("http")) || coverImgUrl;
+            }
+
             const hasValidImage = coverImgUrl && coverImgUrl.trim() !== "" && !coverImgUrl.includes("placeholder");
             const imageSrc = hasValidImage ? coverImgUrl : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
             
