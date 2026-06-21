@@ -96,49 +96,188 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'ใส่_URL_WEB_APP_ของคุณที่นี่'; // << อย่าลืมเปลี่ยน
-    const username = localStorage.getItem('username') || '00-155'; // ทดสอบดึงจาก Local
+  // 1. URL ของ Apps Script (ใช้ตัวแปรพิมพ์ใหญ่ให้เหมือนกันทั้งไฟล์)
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
+  
+  // 2. ดึงข้อมูล User และ ID ตู้โหวต
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = localStorage.getItem('username') || urlParams.get('userId') || 'GUEST_USER';
+  const collectionId = urlParams.get('id'); // << อย่าลืม! เวลาลิงก์มาหน้านี้ ต้องพ่วง ?id=ชื่อตู้โหวต มาด้วยนะ
 
-    async function loadData() {
-      try {
-        // 1. ดึงข้อมูล Wallet (สมมติว่าคุณมีฟังก์ชัน getUserData ใน GAS อยู่แล้ว)
-        // ถ้ายังไม่มี ให้สร้างแยก หรือจะดึงมาพร้อมกันก็ได้
-        
-        // 2. ดึงรายการ Major Vote
-        const res = await fetch(`${SCRIPT_URL}?action=getMajorVoteCollections`);
-        const result = await res.json();
-        
-        if(result.status === 'success') {
-          renderCampaigns(result.data);
-        }
-      } catch(err) {
-        console.error(err);
+  let currentCandidateId = '';
+  let currentCandidateName = '';
+  let currentThankYouCard = '';
+  let globalVoteStatus = 'OPEN';
+
+  // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
+  window.onload = function() {
+    if(!collectionId) {
+       Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'ไม่พบ ID กิจกรรมโหวต กรุณาเข้าจากหน้าหลักค่ะ' });
+       return;
+    }
+    fetchWalletBalance();
+    fetchMajorVoteData();
+  };
+
+  // ดึง Token ของผู้ใช้งาน
+  async function fetchWalletBalance() {
+    try {
+      const response = await fetch(`${SCRIPT_URL}?action=getUserTokens&userId=${username}`);
+      const data = await response.json();
+      if(data.status === 'success') {
+        document.getElementById('user-tokens').innerText = Number(data.tokens).toLocaleString();
+      } else {
+        document.getElementById('user-tokens').innerText = '0';
       }
+    } catch (error) {
+      console.error('Error fetching tokens:', error);
+      document.getElementById('user-tokens').innerText = 'Error';
     }
+  }
 
-    function renderCampaigns(data) {
-      const container = document.getElementById('campaign-list');
-      container.innerHTML = '';
+  // ดึงข้อมูลแบนเนอร์กิจกรรมโหวต และ รายชื่อ Candidates
+  async function fetchMajorVoteData() {
+    try {
+      // ดึงข้อมูลตาม id ของตู้โหวต
+      const response = await fetch(`${SCRIPT_URL}?action=getMajorVoteDetail&id=${collectionId}`);
+      const result = await response.json();
       
-      data.forEach(item => {
-        const isClosed = item.Status.toLowerCase().includes('close');
-        const statusClass = isClosed ? 'status-closed' : 'status-open';
-        const statusText = isClosed ? 'Closed' : 'Open';
+      if(result.status === 'success') {
+        const collection = result.data.collection;
+        
+        // เช็คสถานะโหวตจากคำว่า close (รองรับทั้ง Close, closed, CLOSED)
+        globalVoteStatus = collection.Status.toLowerCase().includes('close') ? 'CLOSED' : 'OPEN';
 
-        const card = `
-          <a href="votedetail.html?id=${item.VoteCollectionID}" class="campaign-card">
-            <img src="${item.CoverImage}" alt="Cover">
-            <div class="campaign-info">
-              <div class="campaign-title">${item.Title}</div>
-              <div class="status-badge ${statusClass}">${statusText}</div>
-            </div>
-          </a>
-        `;
-        container.innerHTML += card;
-      });
+        // นำข้อมูลไปโชว์ที่ Banner (อิงตามชื่อคอลัมน์ใน Sheet)
+        document.getElementById('vote-cover').src = collection.CoverImage;
+        document.getElementById('vote-title').innerText = collection.Title;
+        document.getElementById('vote-desc').innerText = collection.Description || `ปิดโหวต: ${collection.EndTime}`;
+        
+        const badge = document.getElementById('vote-status');
+        badge.innerText = globalVoteStatus;
+        if(globalVoteStatus === 'CLOSED') {
+          badge.classList.add('vote-status-closed');
+        }
+
+        renderCandidates(result.data.candidates, globalVoteStatus);
+      }
+    } catch (error) {
+      console.error('Error fetching vote data:', error);
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'ไม่สามารถโหลดข้อมูลกิจกรรมได้' });
+    }
+  }
+
+  // เอาข้อมูล Candidate ไปแสดงผล
+  function renderCandidates(candidates, status) {
+    const container = document.getElementById('candidates-container');
+    container.innerHTML = ''; 
+
+    // ถ้าปิดโหวตแล้ว ให้เรียงคะแนนจากมากไปน้อยอัตโนมัติ 🏆
+    if(status === 'CLOSED') {
+        candidates.sort((a, b) => parseInt(b.CurrentVotes) - parseInt(a.CurrentVotes));
     }
 
-    window.onload = loadData;
-  </script>
+    candidates.forEach(cd => {
+      const card = document.createElement('div');
+      card.className = 'candidate-card';
+      
+      // ส่งข้อมูลเข้า Modal เมื่อกดที่การ์ด
+      card.onclick = () => openVoteModal(cd.CandidateID, cd.MemberName, cd.ProfileMember, cd.ThankYouCardURL);
+
+      card.innerHTML = `
+        <div class="candidate-img-wrapper">
+          <img src="${cd.ProfileMember}" class="candidate-img" alt="${cd.MemberName}">
+        </div>
+        <div class="candidate-name">${cd.MemberName}</div>
+        <button class="btn-vote-small" style="display: ${status === 'OPEN' ? 'block' : 'none'}">Vote</button>
+        <div class="ranking-score" style="display: ${status === 'CLOSED' ? 'block' : 'none'}">
+          ${Number(cd.CurrentVotes).toLocaleString()} Pts
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // เปิดหน้าต่างป๊อปอัปกรอกคะแนนโหวต
+  function openVoteModal(id, name, imgUrl, thankYouCardUrl) {
+    if(globalVoteStatus === 'CLOSED') {
+      Swal.fire({ icon: 'info', title: 'ปิดโหวตแล้ว', text: 'กิจกรรมนี้สิ้นสุดระยะเวลาการโหวตแล้วค่ะ', confirmButtonColor: '#ff85a2' });
+      return;
+    }
+
+    currentCandidateId = id;
+    currentCandidateName = name;
+    currentThankYouCard = thankYouCardUrl;
+
+    document.getElementById('vote-form-area').style.display = 'block';
+    document.getElementById('vote-success-area').style.display = 'none';
+    document.getElementById('vote-amount').value = '';
+
+    document.getElementById('modal-target-img').src = imgUrl;
+    document.getElementById('modal-target-name').innerText = `โหวตให้ ${name}`;
+
+    document.getElementById('modal-overlay').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').style.display = 'none';
+  }
+
+  // ส่งข้อมูลการโหวตไปยัง Google Apps Script
+  async function submitVote() {
+    const amountInput = document.getElementById('vote-amount');
+    const amount = parseInt(amountInput.value);
+    const btnConfirm = document.getElementById('btn-confirm');
+
+    if(!amount || amount <= 0) {
+      Swal.fire({ icon: 'warning', title: 'คำเตือน', text: 'กรุณากรอกจำนวน Token ให้ถูกต้องค่ะ', confirmButtonColor: '#ff85a2' });
+      return;
+    }
+
+    btnConfirm.disabled = true;
+    btnConfirm.innerText = "กำลังประมวลผล...";
+
+    try {
+      // เลิกใช้ no-cors เพื่อให้แอพสามารถอ่าน response กลับมาได้ว่า Token พอไหม
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'submitMajorVote', // ต้องให้ตรงกับ GAS
+          username: username,
+          collectionId: collectionId,
+          candidateId: currentCandidateId,
+          amount: amount
+        })
+      });
+
+      const data = await response.json();
+
+      if(data.status === 'success') {
+          // โชว์ Thank You Card ทันทีถ้าโหวตสำเร็จ
+          document.getElementById('vote-form-area').style.display = 'none';
+          document.getElementById('vote-success-area').style.display = 'block';
+          
+          document.getElementById('success-member-name').innerText = currentCandidateName;
+          document.getElementById('ty-card-img').src = currentThankYouCard;
+
+          setTimeout(() => {
+            fetchWalletBalance();
+            fetchMajorVoteData();
+          }, 1500);
+      } else {
+          // โชว์แจ้งเตือนจากหลังบ้าน (เช่น Token ไม่พอ)
+          Swal.fire({ icon: 'error', title: 'โหวตไม่สำเร็จ', text: data.message, confirmButtonColor: '#ff85a2' });
+      }
+
+    } catch (error) {
+      console.error('Error submitting vote:', error);
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ระบบไม่สามารถส่งผลโหวตได้ กรุณาลองใหม่อีกครั้ง' });
+    } finally {
+      btnConfirm.disabled = false;
+      btnConfirm.innerText = "ยืนยันการโหวต";
+    }
+  }
+</script>
 </body>
 </html>
