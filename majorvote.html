@@ -5,23 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BLM48 | Major Vote</title>
     <meta name="theme-color" content="#ffc0cb">
-    <!-- สำหรับ iOS Home Screen Icon -->
+    
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-    <!-- สำหรับ Android และ Chrome -->
     <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-    <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
+    
     <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
     <style>
         :root {
             --primary-pink: #ff85a2;
@@ -274,12 +275,12 @@
     const result = await response.json();
     
     if (result.status === "success" && result.data) {
-      // 💡 ปรับจุดนี้: ดึงค่ารองรับทั้งกรณีตัวพิมพ์เล็กและพิมพ์ใหญ่ (Token หรือ token)
-      const tokenVal = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
-      const geTokenVal = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
+      // 💡 ดักเช็คค่า: ถ้าระบบส่งพิมพ์ใหญ่มาให้ใช้พิมพ์ใหญ่ ถ้าไม่มีให้ไปใช้พิมพ์เล็ก
+      const tokenValue = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
+      const geTokenValue = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
       
-      document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
-      document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
+      document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
+      document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
     } else {
       console.error("ดึงยอดคงเหลือไม่สำเร็จ:", result.message);
     }
