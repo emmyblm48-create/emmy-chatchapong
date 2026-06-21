@@ -40,7 +40,7 @@
             margin: 0; padding: 0; padding-top: 70px; padding-bottom: 40px;
         }
 
-        /* 📡 Top Navbar */
+        /* Top Navbar */
         .top-navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background: rgba(255, 255, 255, 0.85);
@@ -57,7 +57,7 @@
         }
         .nav-title { font-weight: 600; font-size: 1.1rem; color: var(--text-dark); max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* 🖼️ Campaign Header Section */
+        /* Campaign Header Section */
         .campaign-header { background: white; margin: 15px 20px; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1px solid #ffeef2; }
         .campaign-cover-wrapper { position: relative; width: 100%; height: 200px; background: linear-gradient(135deg, #ffeef2 0%, #ffd1dc 100%); display: flex; align-items: center; justify-content: center; }
         .campaign-cover { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 2; }
@@ -67,10 +67,10 @@
         .campaign-title { font-size: 20px; font-weight: 600; margin: 0 0 10px 0; color: #333; }
         .campaign-desc { font-size: 14px; color: #666; line-height: 1.6; margin: 0; }
 
-        /* 📋 Title Section */
+        /* Title Section */
         .section-title { font-family: 'Kanit', sans-serif; font-weight: 600; color: #444; margin: 25px 0 15px 20px; font-size: 16px; border-left: 5px solid var(--primary-pink); padding-left: 12px; }
 
-        /* 🗳️ Voting Grid Mode */
+        /* Voting Grid Mode */
         .candidates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
         .candidate-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid rgba(255,179,193,0.15); display: flex; flex-direction: column; align-items: center; padding: 15px; position: relative; }
         .candidate-img-wrapper { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid #ffeef2; margin-bottom: 10px; background: #fafafa; position: relative; display: flex; align-items: center; justify-content: center; }
@@ -81,7 +81,7 @@
         .vote-action-btn { background: var(--blm-pink); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-family: 'Kanit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3); width: 100%; transition: transform 0.1s; }
         .vote-action-btn:active { transform: scale(0.95); }
 
-        /* 🏆 Ranking List Mode */
+        /* Ranking List Mode */
         .ranking-list { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
         .ranking-row { background: white; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border: 1px solid #fcf0f2; position: relative; }
         .rank-number { width: 32px; font-weight: 700; font-size: 16px; color: #888; text-align: center; }
@@ -129,7 +129,7 @@
     <div id="ranking-view" class="ranking-list" style="display: none;"></div>
 
     <div id="loading-spinner" class="loading-view">
-        <i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงรายชื่อเมมเบอร์ Candidates...
+        <i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงรายชื่อผู้สมัครเข้ารับการโหวต...
     </div>
 
 <script>
@@ -139,24 +139,22 @@
     const campaignId = urlParams.get('id');
 
     function fixSecureImageUrl(urlStr) {
-    if (!urlStr) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-    let fixedUrl = urlStr.toString().trim();
-    
-    // 1. เปลี่ยน http เป็น https เพื่อให้บราวเซอร์บนมือถือยอมรับและไม่ติดบล็อก Block Mixed Content
-    if (fixedUrl.startsWith("http://")) {
-        fixedUrl = fixedUrl.replace("http://", "https://");
-    }
-    
-    // 2. เผื่อกรณีแอดมินใส่ลิงก์ Google Drive มา ระบบจะแปลงเป็น Direct Link ให้รูปภาพแสดงผลได้ทันที
-    if (fixedUrl.includes("drive.google.com")) {
-        const matches = fixedUrl.match(/\/d\/([^/]+)/);
-        if (matches && matches[1]) {
-            return `https://docs.google.com/uc?export=view&id=${matches[1]}`;
+        if (!urlStr) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+        let fixedUrl = urlStr.toString().trim();
+        
+        if (fixedUrl.startsWith("http://")) {
+            fixedUrl = fixedUrl.replace("http://", "https://");
         }
+        
+        if (fixedUrl.includes("drive.google.com")) {
+            const matches = fixedUrl.match(/\/d\/([^/]+)/);
+            if (matches && matches[1]) {
+                return `https://docs.google.com/uc?export=view&id=${matches[1]}`;
+            }
+        }
+        
+        return fixedUrl;
     }
-    
-    return fixedUrl;
-}
 
     function getUsername() {
         try {
@@ -167,7 +165,7 @@
 
     async function initDetailPage() {
         if (!campaignId) {
-            Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสคอลเลกชันแคมเปญโหวต', 'error').then(() => window.history.back());
+            Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสกิจกรรมแคมเปญโหวตในระบบ', 'error').then(() => window.history.back());
             return;
         }
         setupHeaderFromCache();
@@ -184,7 +182,7 @@
                     const title = currentCamp.Title || "แคมเปญโหวต";
                     document.getElementById("nav-campaign-title").textContent = title;
                     document.getElementById("campaign-title").textContent = title;
-                    document.getElementById("campaign-desc").textContent = currentCamp.Description || "ร่วมสนุกส่งคะแนนโหวตกันเถอะ!";
+                    document.getElementById("campaign-desc").textContent = currentCamp.Description || "ร่วมส่งคะแนนโหวตให้กับผู้สมัครที่คุณชื่นชอบ";
                     if (currentCamp.CoverImage) {
                         const imgEl = document.getElementById("campaign-cover");
                         imgEl.src = fixSecureImageUrl(currentCamp.CoverImage);
@@ -204,24 +202,22 @@
                 const candidates = result.data || [];
                 document.getElementById("loading-spinner").style.display = "none";
 
-                // ยึดสลับโหมดอัตโนมัติตามตัวแปรสถานะที่ส่งมาจากชีตหลัก (open / closed)
                 if (result.campaignTimeStatus === 'open') {
                     setupVotingMode(candidates); 
                 } else {
                     setupRankingMode(candidates); 
                 }
             } else {
-                document.getElementById("loading-spinner").innerHTML = `❌ ไม่พบข้อมูลรายชื่อ Candidates ในแคมเปญนี้`;
+                document.getElementById("loading-spinner").innerHTML = `ไม่พบข้อมูลรายชื่อผู้สมัครในแคมเปญนี้`;
             }
         } catch (error) {
             console.error("Fetch API Error:", error);
-            document.getElementById("loading-spinner").innerHTML = "⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
+            document.getElementById("loading-spinner").innerHTML = "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง";
         }
     }
 
-    // โหมดเปิดโหวต (Open): แสดงปุ่มหัวใจ
     function setupVotingMode(candidates) {
-        document.getElementById("mode-title").textContent = "✨ ส่งคะแนนโหวตให้เมมเบอร์ที่คุณเชียร์ (เรียงชื่อ ก-ฮ)";
+        document.getElementById("mode-title").textContent = "ส่งคะแนนโหวตให้กับผู้สมัคร (เรียงลำดับตามตัวอักษร)";
         const container = document.getElementById("voting-view");
         const rankingContainer = document.getElementById("ranking-view");
         
@@ -236,7 +232,6 @@
 
         candidates.forEach(member => {
             const mName = member.MemberName || 'Member'; 
-            // 🛠️ ตรวจสอบตัวแปรกรณีคีย์ในฐานข้อมูลเป็น ProfileMember
             const mImg = fixSecureImageUrl(member.ProfileMember || member.ImageURL || member.profile);
 
             const cardHtml = `
@@ -255,9 +250,8 @@
         });
     }
 
-    // โหมดปิดโหวต (Closed): สรุปอันดับคะแนนจากมากไปน้อยที่สุด + แสดง % คะแนนสะสม
     function setupRankingMode(candidates) {
-        document.getElementById("mode-title").textContent = "🏆 สรุปอันดับผลคะแนนรวมอย่างเป็นทางการ";
+        document.getElementById("mode-title").textContent = "สรุปอันดับผลคะแนนรวมอย่างเป็นทางการ";
         const container = document.getElementById("ranking-view");
         const votingContainer = document.getElementById("voting-view");
         
@@ -266,7 +260,7 @@
         container.style.display = "flex";
 
         if (candidates.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px; width:100%;">ไม่มีข้อมูลสรุปผลคะแนนโหวตค่ะ</div>`;
+            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px; width:100%;">ไม่มีข้อมูลสรุปผลคะแนนโหวตในระบบ</div>`;
             return;
         }
 
@@ -303,27 +297,32 @@
     function handleVoteClick(candidateName) {
         const username = getUsername();
         if (!username) {
-            Swal.fire('กรุณาเข้าสู่ระบบ', 'คุณต้องล็อกอินเข้าใช้งานก่อนทำการโหวตนะคะ', 'warning');
+            Swal.fire({
+                title: 'กรุณาเข้าสู่ระบบ',
+                text: 'คุณต้องเข้าสู่ระบบก่อนทำการลงคะแนนโหวต',
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ff85a2'
+            });
             return;
         }
 
         Swal.fire({
-            title: `โหวตให้คุณ ${candidateName}`,
-            text: `กรุณากรอกจำนวนเหรียญที่ต้องการส่งโหวต`,
+            title: `ลงคะแนนโหวตให้คุณ ${candidateName}`,
+            text: 'กรุณาระบุจำนวนเหรียญที่ต้องการใช้ในการลงคะแนนโหวต',
             input: 'number',
             inputAttributes: { min: 1, step: 1 },
             showCancelButton: true,
-            confirmButtonText: 'ยืนยันโหวต',
-            cancelButtonText: 'ยกเลิก',
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancel',
             confirmButtonColor: '#ff85a2',
             inputValidator: (value) => {
                 if (!value || value.trim() === "" || Number(value) <= 0 || value.includes('.')) {
-                    return 'กรุณาใส่จำนวนเหรียญเป็นตัวเลขเต็มที่มากกว่า 0 ด้วยนะคะ!'
+                    return 'กรุณาระบุจำนวนเหรียญเป็นจำนวนเต็มที่มีค่ามากกว่า 0 เท่านั้น';
                 }
             }
         }).then(async (result) => {
             if (result.isConfirmed && result.value) {
-                // เผื่อความชัวร์แปลงเป็นเลขจำนวนเต็มก่อนส่งค่าไปหลังบ้าน
                 const sanitizedAmount = Math.floor(Number(result.value));
                 executeVoteAPI(candidateName, sanitizedAmount);
             }
@@ -331,7 +330,11 @@
     }
 
     async function executeVoteAPI(candidateName, voteAmount) {
-        Swal.fire({ title: 'กำลังบันทึกโหวตลงระบบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        Swal.fire({ 
+            title: 'กำลังบันทึกข้อมูลการลงคะแนน...', 
+            allowOutsideClick: false, 
+            didOpen: () => Swal.showLoading() 
+        });
 
         try {
             const username = getUsername();
@@ -343,23 +346,42 @@
             if (res.status === "success") {
                 if (res.thankYouCard && res.thankYouCard.trim() !== "") {
                     Swal.fire({
-                        title: 'โหวตสำเร็จเรียบร้อยค่ะ! 🎉',
-                        text: `ระบบทำการหักเหรียญและบันทึกคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} โหวตแล้วค่ะ`,
+                        title: 'ดำเนินการลงคะแนนโหวตสำเร็จ',
+                        text: `ระบบได้ทำการหักเหรียญและบันทึกคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`,
                         imageUrl: fixSecureImageUrl(res.thankYouCard),
                         imageWidth: 280,
                         imageAlt: 'Thank You Card',
+                        confirmButtonText: 'OK',
                         confirmButtonColor: '#ff85a2'
                     });
                 } else {
-                    Swal.fire({ icon: 'success', title: 'โหวตสำเร็จเรียบร้อยค่ะ!', text: `บันทึกคะแนนสะสม ${Number(voteAmount).toLocaleString()} โหวตแล้วค่ะ`, confirmButtonColor: '#ff85a2' });
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: 'ดำเนินการลงคะแนนโหวตสำเร็จ', 
+                        text: `ระบบได้ทำการบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`, 
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#ff85a2' 
+                    });
                 }
                 fetchCandidatesFromBackend(); 
             } else {
-                Swal.fire('โหวตไม่สำเร็จ', res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หักเหรียญ', 'error');
+                Swal.fire({
+                    title: 'การลงคะแนนโหวตไม่สำเร็จ',
+                    text: res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักเหรียญ',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ff85a2'
+                });
             }
         } catch (err) {
             console.error("Submit Vote Error:", err);
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้', 'error');
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ff85a2'
+            });
         }
     }
 
