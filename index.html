@@ -1672,48 +1672,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <div class="countdown-subtitle" id="countdown-month-text">Loading...</div>
   </div>
   
-  <div id="weekly-tracker-grid" class="tracker-grid">
-    <div class="days-row">
-      
-      <div class="day-item">
-        <div class="day-circle checked"><i class="fas fa-check" style="font-size: 11px;"></i></div>
-        <span class="day-date">15</span>
-      </div>
+  <div id="weekly-tracker-grid" class="tracker-grid"></div>
 
-      <div class="day-item">
-        <div class="day-circle checked"><i class="fas fa-check" style="font-size: 11px;"></i></div>
-        <span class="day-date">16</span>
-      </div>
-
-      <div class="day-item">
-        <div class="day-circle checked"><i class="fas fa-check" style="font-size: 11px;"></i></div>
-        <span class="day-date">17</span>
-      </div>
-
-      <div class="day-item">
-        <div class="day-circle checked"><i class="fas fa-check" style="font-size: 11px;"></i></div>
-        <span class="day-date">18</span>
-      </div>
-
-      <div class="day-item">
-        <div class="day-circle checked"><i class="fas fa-check" style="font-size: 11px;"></i></div>
-        <span class="day-date">19</span>
-      </div>
-
-      <div class="day-item">
-        <div class="day-circle checked"><i class="fas fa-check" style="font-size: 11px;"></i></div>
-        <span class="day-date">20</span>
-      </div>
-
-      <div class="day-item">
-        <div class="day-circle current"><i class="fas fa-cookie-bite"></i></div>
-        <span class="day-date">21</span>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="countdown-timer-box" id="finale-countdown">
+  <div class="countdown-timer-box" id="finale-countdown" style="display: none;">
     <div class="time-segment">
       <span class="time-val" id="cd-days">00</span>
       <span class="time-lbl">Days</span>
@@ -2276,9 +2237,6 @@ function startCookieCountdown() {
     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
     
     const monthTextElem = document.getElementById('countdown-month-text');
-    if (monthTextElem) {
-      monthTextElem.innerText = `${monthNamesEn[currentMonth]} voting ends in`;
-    }
 
     const diff = lastDayOfMonth - now;
 
@@ -2295,7 +2253,6 @@ function startCookieCountdown() {
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-    // ป้องกันการพังในกรณีที่บางครั้งหา Element ไม่เจอ
     if(document.getElementById('cd-days')) document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
     if(document.getElementById('cd-hours')) document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
     if(document.getElementById('cd-mins')) document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
@@ -2501,92 +2458,91 @@ function confirmLogout() {
 
 let countdownInterval;
 
-  function renderTracker() {
-    const container = document.getElementById('weekly-tracker-grid');
-    if (!container) return;
-    
-    const now = new Date();
-    // ถ้าอยากทดสอบหน้าตาวันสุดท้ายของเดือน ให้ลบ // หน้าบรรทัดล่างออกค่ะ
-    // const now = new Date(now.getFullYear(), now.getMonth(), new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()); 
+function renderTracker() {
+  const container = document.getElementById('weekly-tracker-grid');
+  if (!container) return;
+  
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const today = now.getDate();
+  
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  const currentWeekNumber = Math.ceil(today / 7);
+  const startDay = ((currentWeekNumber - 1) * 7) + 1;
+  const endDay = Math.min(startDay + 6, daysInMonth);
 
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const today = now.getDate();
-    
-    // หาจำนวนวันทั้งหมดในเดือนนี้
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    
-    // คำนวณว่าวันนี้อยู่สัปดาห์ที่เท่าไหร่ของเดือน (แบ่งทีละ 7 วัน)
-    const currentWeekNumber = Math.ceil(today / 7);
-    const startDay = ((currentWeekNumber - 1) * 7) + 1;
-    const endDay = Math.min(startDay + 6, daysInMonth);
+  document.getElementById('countdown-month-text').innerText = `${monthNames[month]} - Week ${currentWeekNumber}`;
 
-    document.getElementById('countdown-month-text').innerText = `${monthNames[month]} - Week ${currentWeekNumber}`;
+  let daysHtml = '';
 
-    let daysHtml = '';
+  // สั้นๆ ย่อชื่อเดือนมาโชว์คู่กับวันที่ (เช่น Jun)
+  const shortMonthName = monthNames[month].substring(0, 3);
 
-    // สร้างปุ่มเฉพาะวันในสัปดาห์ปัจจุบัน (สูงสุด 7 วัน)
-    for (let day = startDay; day <= endDay; day++) {
-      let statusClass = 'future';
-      let content = day;
+  for (let day = startDay; day <= endDay; day++) {
+    let statusClass = 'future';
+    let content = day;
 
-      if (day < today) {
-        statusClass = 'checked';
-        content = '<i class="fas fa-check"></i>';
-      } else if (day === today) {
-        statusClass = 'current';
-        content = '<i class="fas fa-cookie-bite"></i>';
-      }
-
-      daysHtml += `<div class="day-circle ${statusClass}">${content}</div>`;
+    if (day < today) {
+      statusClass = 'checked';
+      content = '<i class="fas fa-check"></i>';
+    } else if (day === today) {
+      statusClass = 'current';
+      content = '<i class="fas fa-cookie-bite"></i>';
     }
 
-    container.innerHTML = `
-      <div class="week-block">
-        <div class="days-row">
-          ${daysHtml}
-        </div>
+    // 🌟 [ปรับปรุงจุดนี้] ห่อด้วยเดย์ไอเทม แล้วใส่ text วันที่+เดือน ยัดไว้ด้านล่างวงกลม
+    daysHtml += `
+      <div class="day-item">
+        <div class="day-circle ${statusClass}">${content}</div>
+        <span class="day-date">${day} ${shortMonthName}</span>
       </div>
     `;
+  }
 
-    // เช็คว่าถ้าวันนี้เป็น "วันสุดท้ายของเดือน" ให้โชว์ Countdown นับถอยหลังถึงเที่ยงคืน
-    const countdownBox = document.getElementById('finale-countdown');
-    if (today === daysInMonth) {
-      countdownBox.style.display = 'flex';
-      startFinaleCountdown(year, month, daysInMonth);
-    } else {
-      countdownBox.style.display = 'none';
+  container.innerHTML = `
+    <div class="week-block">
+      <div class="days-row">
+        ${daysHtml}
+      </div>
+    </div>
+  `;
+
+  const countdownBox = document.getElementById('finale-countdown');
+  if (today === daysInMonth) {
+    countdownBox.style.display = 'flex';
+    startFinaleCountdown(year, month, daysInMonth);
+  } else {
+    countdownBox.style.display = 'none';
+  }
+}
+
+function startFinaleCountdown(year, month, lastDay) {
+  const targetDate = new Date(year, month + 1, 1, 0, 0, 0).getTime();
+
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    const now = new Date().getTime();
+    const distance = targetDate - now;
+
+    if (distance < 0) {
+      clearInterval(countdownInterval);
+      return;
     }
-  }
 
-  function startFinaleCountdown(year, month, lastDay) {
-    // ตั้งเป้าหมายเป็น เที่ยงคืนของวันที่ 1 เดือนถัดไป
-    const targetDate = new Date(year, month + 1, 1, 0, 0, 0).getTime();
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-    clearInterval(countdownInterval);
-    countdownInterval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
+    document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+    document.getElementById('cd-mins').innerText = String(minutes).padStart(2, '0');
+    document.getElementById('cd-secs').innerText = String(seconds).padStart(2, '0');
+  }, 1000);
+}
 
-      if (distance < 0) {
-        clearInterval(countdownInterval);
-        return; // หมดเวลา
-      }
-
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      // อัปเดตตัวเลข (ใส่ 0 ข้างหน้าถ้าเป็นเลขตัวเดียว)
-      document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
-      document.getElementById('cd-mins').innerText = String(minutes).padStart(2, '0');
-      document.getElementById('cd-secs').innerText = String(seconds).padStart(2, '0');
-    }, 1000);
-  }
-
-  document.addEventListener('DOMContentLoaded', renderTracker);
+document.addEventListener('DOMContentLoaded', renderTracker);
   
     // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ. (ถอดแบบมาจากหน้า member)
     function formatThaiDate(dateStr) {
