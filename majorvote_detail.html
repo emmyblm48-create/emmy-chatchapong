@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 | Major Vote Detail</title>
+    <meta name="theme-color" content="#ffc0cb">
+    
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --blm-pink: #ff85a2;
+            --blm-light-pink: #fff0f5;
+            --bg-dreamy: #fdf6f7;
+            --text-dark: #4a4a4a;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            background-color: var(--bg-dreamy);
+            color: var(--text-dark);
+            margin: 0; padding: 0; padding-top: 70px; padding-bottom: 40px;
+        }
+
+        /* 📡 Top Navbar */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 20px; box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
+            z-index: 1000;
+        }
+        .nav-left-actions { position: absolute; left: 15px; }
+        .nav-btn {
+            color: var(--blm-pink); font-size: 1rem; text-decoration: none;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; background: var(--blm-light-pink); border: none; cursor: pointer;
+        }
+        .nav-title { font-weight: 600; font-size: 1.1rem; color: var(--text-dark); max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 🖼️ Campaign Header Section */
+        .campaign-header { background: white; margin: 15px 20px; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1px solid #ffeef2; }
+        .campaign-cover-wrapper { position: relative; width: 100%; height: 200px; background: linear-gradient(135deg, #ffeef2 0%, #ffd1dc 100%); display: flex; align-items: center; justify-content: center; }
+        .campaign-cover { width: 100%; height: 100%; object-fit: cover; }
+        .campaign-fallback-icon { position: absolute; color: #ff85a2; font-size: 3rem; opacity: 0.4; }
+        
+        .campaign-details { padding: 20px; }
+        .campaign-title { font-size: 20px; font-weight: 600; margin: 0 0 10px 0; color: #333; }
+        .campaign-desc { font-size: 14px; color: #666; line-height: 1.6; margin: 0; }
+
+        /* 📋 Status Section Title */
+        .section-title { font-family: 'Kanit', sans-serif; font-weight: 600; color: #444; margin: 25px 0 15px 20px; font-size: 16px; border-left: 5px solid var(--primary-pink); padding-left: 12px; }
+
+        /* 🗳️ Voting Mode (Grid) */
+        .candidates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
+        .candidate-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid rgba(255,179,193,0.15); display: flex; flex-direction: column; align-items: center; padding: 15px; position: relative; }
+        .candidate-img-wrapper { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid #ffeef2; margin-bottom: 10px; background: #fafafa; }
+        .candidate-img { width: 100%; height: 100%; object-fit: cover; }
+        .candidate-name { font-weight: 500; font-size: 14px; color: #333; text-align: center; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        
+        .vote-action-btn { background: var(--blm-pink); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-family: 'Kanit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3); width: 100%; transition: transform 0.1s; }
+        .vote-action-btn:active { transform: scale(0.95); }
+
+        /* 🏆 Result/Ranking Mode (List) */
+        .ranking-list { display: flex; flex-direction: column; gap: 12px; padding: 0 20px; }
+        .ranking-row { background: white; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); border: 1px solid #fcf0f2; position: relative; }
+        
+        .rank-number { width: 32px; font-weight: 700; font-size: 16px; color: #888; text-align: center; }
+        /* สไตล์พิเศษสำหรับ Top 3 */
+        .rank-row-1 .rank-number { color: var(--gold); font-size: 20px; }
+        .rank-row-2 .rank-number { color: var(--silver); font-size: 18px; }
+        .rank-row-3 .rank-number { color: var(--bronze); font-size: 17px; }
+        
+        .rank-row-1 { border: 1.5px solid rgba(255, 215, 0, 0.3); background: linear-gradient(90deg, #ffffff, #fffdf0); }
+
+        .rank-img-wrapper { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; margin: 0 15px; border: 2px solid #ffeef2; }
+        .rank-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .rank-info { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
+        .rank-name { font-weight: 500; font-size: 14px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rank-score { font-size: 12px; color: #ff85a2; margin-top: 2px; font-weight: 600; }
+        
+        .medal-icon { font-size: 18px; margin-left: auto; }
+        .medal-1 { color: var(--gold); }
+        .medal-2 { color: var(--silver); }
+        .medal-3 { color: var(--bronze); }
+
+        .loading-view { text-align: center; color: #999; padding: 50px 20px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="top-navbar">
+        <div class="nav-left-actions">
+            <a href="majorvote.html" class="nav-btn"><i class="fas fa-chevron-left"></i></a>
+        </div>
+        <div class="nav-title" id="nav-campaign-title">Loading...</div>
+    </div>
+
+    <div class="campaign-header">
+        <div class="campaign-cover-wrapper">
+            <div class="campaign-fallback-icon"><i class="fa-solid fa-star"></i></div>
+            <img id="campaign-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover" class="campaign-cover" style="display:none;" onerror="this.style.display='none';">
+        </div>
+        <div class="campaign-details">
+            <h3 class="campaign-title" id="campaign-title">---</h3>
+            <p class="campaign-desc" id="campaign-desc">---</p>
+        </div>
+    </div>
+
+    <div class="section-title" id="mode-title">รายชื่อผู้สมัครรับการโหวต</div>
+
+    <div id="voting-view" class="candidates-grid" style="display: none;"></div>
+
+    <div id="ranking-view" class="ranking-list" style="display: none;"></div>
+
+    <div id="loading-spinner" class="loading-view">
+        <i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...
+    </div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+
+    // 🔗 แกะพารามิเตอร์ ID และ Status จาก URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const campaignId = urlParams.get('id');
+    const campaignStatus = (urlParams.get('status') || 'open').toLowerCase();
+
+    // ดึง Username ผู้ใช้
+    function getUsername() {
+        try {
+            const session = JSON.parse(localStorage.getItem('bnl_session'));
+            return session ? (session.data?.username || session.username || "") : "";
+        } catch(e) { return ""; }
+    }
+
+    async function initDetailPage() {
+        if (!campaignId) {
+            Swal.fire('ผิดพลาด', 'ไม่พบรหัสแคมเปญโหวต', 'error').then(() => window.history.back());
+            return;
+        }
+
+        // โหลดข้อมูลแคมเปญหลักและรายชื่อผู้สมัคร
+        await loadCampaignDetail();
+    }
+
+    async function loadCampaignDetail() {
+        try {
+            // ยิงไปหลังบ้าน Google Sheets ดึงข้อมูลของแคมเปญนี้
+            const response = await fetch(`${scriptURL}?action=getMajorVoteDetail&id=${campaignId}`);
+            const result = await response.json();
+
+            if (result.status === "success" && result.data) {
+                const campaign = result.data.campaign;
+                const candidates = result.data.candidates || [];
+
+                // 1. จัดการข้อมูลหัวเรื่อง แคมเปญ
+                document.getElementById("nav-campaign-title").textContent = campaign.Title || "แคมเปญโหวต";
+                document.getElementById("campaign-title").textContent = campaign.Title || "";
+                document.getElementById("campaign-desc").textContent = campaign.Description || "ไม่มีรายละเอียด";
+                
+                if(campaign.CoverImage) {
+                    const imgEl = document.getElementById("campaign-cover");
+                    imgEl.src = campaign.CoverImage;
+                    imgEl.style.display = 'block';
+                }
+
+                // 2. ซ่อน Spinner โหลดของออก
+                document.getElementById("loading-spinner").style.display = "none";
+
+                // 3. แยกโหมดการทำงานตามสถานะ 'open' หรือ 'closed'
+                if (campaignStatus === 'open' || campaignStatus === 'active') {
+                    setupVotingMode(candidates);
+                } else {
+                    setupRankingMode(candidates);
+                }
+
+            } else {
+                document.getElementById("loading-spinner").innerHTML = "❌ ไม่พบข้อมูลแคมเปญนี้";
+            }
+        } catch (error) {
+            console.error(error);
+            document.getElementById("loading-spinner").innerHTML = "⚠️ เกิดข้อผิดพลาดในการโหลดข้อมูล";
+        }
+    }
+
+    // 🗳️ ฟังก์ชันโหมดเปิดโหวต: โชว์ปุ่มโหวต ห้ามเห็นอันดับและคะแนน
+    function setupVotingMode(candidates) {
+        document.getElementById("mode-title").textContent = "✨ ส่งคะแนนโหวตให้เมมเบอร์";
+        const container = document.getElementById("voting-view");
+        container.innerHTML = "";
+        container.style.display = "grid";
+
+        candidates.forEach(member => {
+            const memberImg = member.Image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            const cardHtml = `
+                <div class="candidate-card">
+                    <div class="candidate-img-wrapper">
+                        <img src="${memberImg}" class="candidate-img" alt="${member.Name}">
+                    </div>
+                    <div class="candidate-name">${member.Name || 'Member'}</div>
+                    <button class="vote-action-btn" onclick="handleVoteClick('${member.CandidateID}', '${member.Name}')">
+                        <i class="fa-solid fa-heart"></i> โหวต
+                    </button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHtml);
+        });
+    }
+
+    // 🏆 ฟังก์ชันโหมดปิดโหวต: ซ่อนปุ่มโหวต จัดอันดับเรียงตามคะแนนโหวตสูงสุด
+    function setupRankingMode(candidates) {
+        document.getElementById("mode-title").textContent = "🏆 สรุปอันดับคะแนนโหวตอย่างเป็นทางการ";
+        const container = document.getElementById("ranking-view");
+        container.innerHTML = "";
+        container.style.display = "flex";
+
+        // ทำการเรียงลำดับอาร์เรย์ตามคะแนน (จากมาก -> ไปน้อย)
+        const sortedCandidates = [...candidates].sort((a, b) => Number(b.Votes || 0) - Number(a.Votes || 0));
+
+        sortedCandidates.forEach((member, index) => {
+            const rank = index + 1;
+            const memberImg = member.Image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            const voteCount = Number(member.Votes || 0).toLocaleString();
+
+            // ไอคอนเหรียญรางวัลให้กับสามอันดับแรก
+            let medalHtml = "";
+            if(rank === 1) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-1"></i>`;
+            else if(rank === 2) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-2"></i>`;
+            else if(rank === 3) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-3"></i>`;
+
+            const rowHtml = `
+                <div class="ranking-row rank-row-${rank}">
+                    <div class="rank-number">${rank}</div>
+                    <div class="rank-img-wrapper">
+                        <img src="${memberImg}" class="rank-img" alt="Member">
+                    </div>
+                    <div class="rank-info">
+                        <span class="rank-name">${member.Name || 'Member'}</span>
+                        <span class="rank-score">${voteCount} โหวต</span>
+                    </div>
+                    ${medalHtml}
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHtml);
+        });
+    }
+
+    // 🛑 ฟังก์ชันเวลากดปุ่มโหวต
+    function handleVoteClick(candidateId, candidateName) {
+        const user = getUsername();
+        if (!user) {
+            Swal.fire('กรุณาเข้าสู่ระบบ', 'คุณต้องเข้าสู่ระบบก่อนทำการโหวต', 'warning');
+            return;
+        }
+
+        // ตัวอย่างกล่องยืนยันการโหวตแบบใส่จำนวน Token
+        Swal.fire({
+            title: `โหวตให้คุณ ${candidateName}`,
+            text: `กรุณาใส่จำนวน Token ที่คุณต้องการใช้โหวต`,
+            input: 'number',
+            inputAttributes: { min: 1, step: 1 },
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันการโหวต',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#ff85a2',
+            inputValidator: (value) => {
+                if (!value || value <= 0) {
+                    return 'กรุณาใส่จำนวน Token ให้ถูกต้อง!'
+                }
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const amount = result.value;
+                executeVoteAPI(candidateId, amount);
+            }
+        });
+    }
+
+    // 🚀 ยิง API ไปบันทึกคะแนนโหวตในฝั่งของ Google Sheets
+    async function executeVoteAPI(candidateId, amount) {
+        Swal.fire({ title: 'กำลังบันทึกคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const username = getUsername();
+            const response = await fetch(`${scriptURL}?action=submitMajorVote&username=${encodeURIComponent(username)}&campaignId=${campaignId}&candidateId=${candidateId}&amount=${amount}`);
+            const res = await response.json();
+
+            if (res.status === "success") {
+                Swal.fire({ icon: 'success', title: 'โหวตสำเร็จ!', text: `ใช้จ่ายไปจำนวน ${amount} Token เรียบร้อยแล้วค่ะ`, confirmButtonColor: '#ff85a2' });
+            } else {
+                Swal.fire('โหวตไม่สำเร็จ', res.message || 'กรุณาลองใหม่อีกครั้ง', 'error');
+            }
+        } catch (err) {
+            Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้', 'error');
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initDetailPage);
+</script>
+</body>
+</html>
