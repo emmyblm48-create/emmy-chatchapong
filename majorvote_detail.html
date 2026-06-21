@@ -139,13 +139,24 @@
     const campaignId = urlParams.get('id');
 
     function fixSecureImageUrl(urlStr) {
-        if (!urlStr) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-        let fixedUrl = urlStr.toString().trim();
-        if (fixedUrl.startsWith("http://")) {
-            fixedUrl = fixedUrl.replace("http://", "https://");
-        }
-        return fixedUrl;
+    if (!urlStr) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    let fixedUrl = urlStr.toString().trim();
+    
+    // 1. เปลี่ยน http เป็น https เพื่อให้บราวเซอร์บนมือถือยอมรับและไม่ติดบล็อก Block Mixed Content
+    if (fixedUrl.startsWith("http://")) {
+        fixedUrl = fixedUrl.replace("http://", "https://");
     }
+    
+    // 2. เผื่อกรณีแอดมินใส่ลิงก์ Google Drive มา ระบบจะแปลงเป็น Direct Link ให้รูปภาพแสดงผลได้ทันที
+    if (fixedUrl.includes("drive.google.com")) {
+        const matches = fixedUrl.match(/\/d\/([^/]+)/);
+        if (matches && matches[1]) {
+            return `https://docs.google.com/uc?export=view&id=${matches[1]}`;
+        }
+    }
+    
+    return fixedUrl;
+}
 
     function getUsername() {
         try {
