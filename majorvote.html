@@ -49,13 +49,17 @@
             padding: 0 20px; box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
             z-index: 1000;
         }
-        .nav-back-btn {
-            position: absolute; left: 20px; color: var(--blm-pink);
-            font-size: 1.1rem; text-decoration: none;
+        .nav-left-actions {
+            position: absolute; left: 15px; display: flex; align-items: center; gap: 8px;
+        }
+        .nav-btn {
+            color: var(--blm-pink); font-size: 1rem; text-decoration: none;
             width: 35px; height: 35px; display: flex;
             align-items: center; justify-content: center;
             border-radius: 50%; background: var(--blm-light-pink);
+            border: none; cursor: pointer; transition: transform 0.2s;
         }
+        .nav-btn:active { transform: scale(0.9); }
         .nav-title { font-weight: 600; font-size: 1.2rem; color: var(--text-dark); }
 
         /* ตัวกล่องการ์ดหลักสีขาว */
@@ -201,7 +205,11 @@
 <body>
 
     <div class="top-navbar">
-        <a href="index.html" class="nav-back-btn"><i class="fas fa-chevron-left"></i></a>
+        <div class="nav-left-actions">
+            <a href="index.html" class="nav-btn" title="กลับ"><i class="fas fa-chevron-left"></i></a>
+            <button class="nav-btn" id="refresh-btn" onclick="handleManualRefresh()" title="รีเฟรชข้อมูล"><i class="fas fa-arrows-rotate"></i></button>
+        </div>
+        <div class="nav-title">Major Vote</div>
     </div>
 
     <div class="profile-wallet-card">
@@ -398,6 +406,35 @@
             `;
             container.insertAdjacentHTML('beforeend', cardHtml);
         });
+    }
+
+    // 🔄 ฟังก์ชันเมื่อผู้ใช้กดปุ่ม Refresh เองแบบ Manual
+    async function handleManualRefresh() {
+        const refreshBtn = document.getElementById("refresh-btn");
+        const icon = refreshBtn.querySelector("i");
+        
+        // สั่งไอคอนหมุนติ้วๆ ระหว่างโหลดข้อมูล
+        icon.classList.add("fa-spin");
+        refreshBtn.disabled = true;
+        
+        // แสดงสปินเนอร์รอในกล่องโหวตด้วย
+        document.getElementById("vote-container").innerHTML = `
+            <div class="loading-text">
+                <i class="fa-solid fa-spinner fa-spin"></i>ดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์...
+            </div>
+        `;
+        
+        // บังคับยิงเน็ตเบื้องหลังเพื่ออัปเดตข้อมูลสดใหม่
+        await Promise.all([
+            loadUserBalances(),
+            loadVoteCampaigns()
+        ]);
+        
+        // โหลดเสร็จแล้ว ปิดสถานะหมุนและคืนปุ่มกลับมาปกติ
+        setTimeout(() => {
+            icon.classList.remove("fa-spin");
+            refreshBtn.disabled = false;
+        }, 400);
     }
 
     document.addEventListener("DOMContentLoaded", initPage);
