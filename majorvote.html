@@ -268,22 +268,25 @@
 
         // 1. ฟังก์ชันดึงยอดเงินคงเหลือจากฐานข้อมูลชีต users (เปลี่ยนมาใช้ GET แบบต่อท้ายลิงก์)
         async function loadUserBalances() {
-            try {
-                // เปลี่ยนมาใช้ GET Request เหมือนหน้า index.html และ login.html
-                const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}`;
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                if (result.status === "success" && result.data) {
-                    document.getElementById("token-balance").textContent = Number(result.data.token || 0).toLocaleString();
-                    document.getElementById("getoken-balance").textContent = Number(result.data.geToken || 0).toLocaleString();
-                } else {
-                    console.error("ดึงยอดคงเหลือไม่สำเร็จ:", result.message);
-                }
-            } catch (error) {
-                console.error("Error fetching balance:", error);
-            }
-        }
+  try {
+    const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}`;
+    const response = await fetch(url);
+    const result = await response.json();
+    
+    if (result.status === "success" && result.data) {
+      // 💡 ปรับจุดนี้: ดึงค่ารองรับทั้งกรณีตัวพิมพ์เล็กและพิมพ์ใหญ่ (Token หรือ token)
+      const tokenVal = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
+      const geTokenVal = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
+      
+      document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
+      document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
+    } else {
+      console.error("ดึงยอดคงเหลือไม่สำเร็จ:", result.message);
+    }
+  } catch (error) {
+    console.error("Error fetching balance:", error);
+  }
+}
 
         // 2. ฟังก์ชันดึงแคมเปญโหวตจากฐานข้อมูลชีต majorVoteCollections
         async function loadVoteCampaigns() {
