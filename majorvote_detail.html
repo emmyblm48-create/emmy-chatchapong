@@ -135,7 +135,7 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
     // 🔗 แกะพารามิเตอร์ ID และ Status จาก URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -155,8 +155,6 @@
             Swal.fire('ผิดพลาด', 'ไม่พบรหัสแคมเปญโหวต', 'error').then(() => window.history.back());
             return;
         }
-
-        // โหลดข้อมูลแคมเปญหลักและรายชื่อผู้สมัคร
         await loadCampaignDetail();
     }
 
@@ -166,18 +164,32 @@
             const response = await fetch(`${scriptURL}?action=getMajorVoteDetail&id=${campaignId}`);
             const result = await response.json();
 
-            if (result.status === "success" && result.data) {
-                const campaign = result.data.campaign;
-                const candidates = result.data.candidates || [];
+            // ตรวจสอบความปลอดภัยของข้อมูลก่อนอ่านค่า
+            if (result && result.status === "success" && result.data) {
+                
+                // 💡 ป้องกันกรณีหลังบ้านส่งคีย์เป็นพิมพ์เล็ก (campaign / candidates)
+                const campaign = result.data.campaign || result.data.Campaign || {};
+                const candidates = result.data.candidates || result.data.Candidates || [];
+
+                // เช็กว่ามีข้อมูล Campaign ข้างในจริงไหม
+                if (!campaign || Object.keys(campaign).length === 0) {
+                    document.getElementById("loading-spinner").innerHTML = "❌ ไม่พบรายละเอียดแคมเปญนี้ในระบบ";
+                    return;
+                }
+
+                // ดึงค่าหัวเรื่อง (รองรับทั้ง Title และ title)
+                const campTitle = campaign.Title || campaign.title || "แคมเปญโหวต";
+                const campDesc = campaign.Description || campaign.description || "ไม่มีรายละเอียด";
+                const campCover = campaign.CoverImage || campaign.coverImage || "";
 
                 // 1. จัดการข้อมูลหัวเรื่อง แคมเปญ
-                document.getElementById("nav-campaign-title").textContent = campaign.Title || "แคมเปญโหวต";
-                document.getElementById("campaign-title").textContent = campaign.Title || "";
-                document.getElementById("campaign-desc").textContent = campaign.Description || "ไม่มีรายละเอียด";
+                document.getElementById("nav-campaign-title").textContent = campTitle;
+                document.getElementById("campaign-title").textContent = campTitle;
+                document.getElementById("campaign-desc").textContent = campDesc;
                 
-                if(campaign.CoverImage) {
+                if (campCover) {
                     const imgEl = document.getElementById("campaign-cover");
-                    imgEl.src = campaign.CoverImage;
+                    imgEl.src = campCover;
                     imgEl.style.display = 'block';
                 }
 
@@ -192,30 +204,39 @@
                 }
 
             } else {
-                document.getElementById("loading-spinner").innerHTML = "❌ ไม่พบข้อมูลแคมเปญนี้";
+                document.getElementById("loading-spinner").innerHTML = `❌ ไม่พบข้อมูลแคมเปญนี้ (หลังบ้านส่งค่ากลับไม่สำเร็จ)`;
             }
         } catch (error) {
-            console.error(error);
-            document.getElementById("loading-spinner").innerHTML = "⚠️ เกิดข้อผิดพลาดในการโหลดข้อมูล";
+            console.error("Fetch Detail Error:", error);
+            document.getElementById("loading-spinner").innerHTML = "⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อหรือโหลดข้อมูล";
         }
     }
 
-    // 🗳️ ฟังก์ชันโหมดเปิดโหวต: โชว์ปุ่มโหวต ห้ามเห็นอันดับและคะแนน
+    // 🗳️ ฟังก์ชันโหมดเปิดโหวต
     function setupVotingMode(candidates) {
         document.getElementById("mode-title").textContent = "✨ ส่งคะแนนโหวตให้เมมเบอร์";
         const container = document.getElementById("voting-view");
         container.innerHTML = "";
         container.style.display = "grid";
 
+        if (candidates.length === 0) {
+            container.innerHTML = `<div style="grid-column: span 2; text-align:center; color:#999; padding:20px;">ไม่พบรายชื่อผู้สมัคร</div>`;
+            return;
+        }
+
         candidates.forEach(member => {
-            const memberImg = member.Image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            // รองรับโครงสร้างข้อมูลแบบพิมพ์เล็กพิมพ์ใหญ่
+            const mId = member.CandidateID || member.candidateId || member.id;
+            const mName = member.Name || member.name || 'Member';
+            const mImg = member.Image || member.image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
             const cardHtml = `
                 <div class="candidate-card">
                     <div class="candidate-img-wrapper">
-                        <img src="${memberImg}" class="candidate-img" alt="${member.Name}">
+                        <img src="${mImg}" class="candidate-img" alt="${mName}">
                     </div>
-                    <div class="candidate-name">${member.Name || 'Member'}</div>
-                    <button class="vote-action-btn" onclick="handleVoteClick('${member.CandidateID}', '${member.Name}')">
+                    <div class="candidate-name">${mName}</div>
+                    <button class="vote-action-btn" onclick="handleVoteClick('${mId}', '${mName}')">
                         <i class="fa-solid fa-heart"></i> โหวต
                     </button>
                 </div>
@@ -224,22 +245,31 @@
         });
     }
 
-    // 🏆 ฟังก์ชันโหมดปิดโหวต: ซ่อนปุ่มโหวต จัดอันดับเรียงตามคะแนนโหวตสูงสุด
+    // 🏆 ฟังก์ชันโหมดปิดโหวต
     function setupRankingMode(candidates) {
         document.getElementById("mode-title").textContent = "🏆 สรุปอันดับคะแนนโหวตอย่างเป็นทางการ";
         const container = document.getElementById("ranking-view");
         container.innerHTML = "";
         container.style.display = "flex";
 
-        // ทำการเรียงลำดับอาร์เรย์ตามคะแนน (จากมาก -> ไปน้อย)
-        const sortedCandidates = [...candidates].sort((a, b) => Number(b.Votes || 0) - Number(a.Votes || 0));
+        if (candidates.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px; width:100%;">ไม่มีข้อมูลการจัดอันดับ</div>`;
+            return;
+        }
+
+        // เรียงลำดับคะแนนจากมากไปน้อย (รองรับทั้ง .Votes และ .votes)
+        const sortedCandidates = [...candidates].sort((a, b) => {
+            const votesA = Number(a.Votes || a.votes || 0);
+            const votesB = Number(b.Votes || b.votes || 0);
+            return votesB - votesA;
+        });
 
         sortedCandidates.forEach((member, index) => {
             const rank = index + 1;
-            const memberImg = member.Image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-            const voteCount = Number(member.Votes || 0).toLocaleString();
+            const mName = member.Name || member.name || 'Member';
+            const mImg = member.Image || member.image || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            const voteCount = Number(member.Votes || member.votes || 0).toLocaleString();
 
-            // ไอคอนเหรียญรางวัลให้กับสามอันดับแรก
             let medalHtml = "";
             if(rank === 1) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-1"></i>`;
             else if(rank === 2) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-2"></i>`;
@@ -249,10 +279,10 @@
                 <div class="ranking-row rank-row-${rank}">
                     <div class="rank-number">${rank}</div>
                     <div class="rank-img-wrapper">
-                        <img src="${memberImg}" class="rank-img" alt="Member">
+                        <img src="${mImg}" class="rank-img" alt="Member">
                     </div>
                     <div class="rank-info">
-                        <span class="rank-name">${member.Name || 'Member'}</span>
+                        <span class="rank-name">${mName}</span>
                         <span class="rank-score">${voteCount} โหวต</span>
                     </div>
                     ${medalHtml}
@@ -270,7 +300,6 @@
             return;
         }
 
-        // ตัวอย่างกล่องยืนยันการโหวตแบบใส่จำนวน Token
         Swal.fire({
             title: `โหวตให้คุณ ${candidateName}`,
             text: `กรุณาใส่จำนวน Token ที่คุณต้องการใช้โหวต`,
@@ -293,7 +322,7 @@
         });
     }
 
-    // 🚀 ยิง API ไปบันทึกคะแนนโหวตในฝั่งของ Google Sheets
+    // 🚀 ยิง API ไปบันทึกคะแนนโหวต
     async function executeVoteAPI(candidateId, amount) {
         Swal.fire({ title: 'กำลังบันทึกคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
