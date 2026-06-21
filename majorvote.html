@@ -247,95 +247,116 @@
 </div>
 
  <script>
-        // 🚨 URL ของ Google Apps Script Web App
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
+    // 🚨 URL ของ Google Apps Script Web App
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
-        // ดึงข้อมูล Username ปัจจุบันจากระบบ 
-        const username = localStorage.getItem("username") || ""; 
-
-        async function initPage() {
-            if (!username) {
-                alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
-                window.location.href = "login.html";
-                return;
+    // 📦 ฟังก์ชันแกะข้อมูล Username จากเซสชันระบบหลัก (ถอดโครงสร้างมาจากหน้า index.html เป๊ะๆ)
+    function getUsernameFromSession() {
+        try {
+            const sessionStr = localStorage.getItem('bnl_session');
+            if (!sessionStr) return "";
+            
+            const session = JSON.parse(sessionStr);
+            // เช็กเวลาหมดอายุของเซสชัน (ถ้ามี)
+            const expiryTime = session.expiry || session.expire;
+            if (expiryTime && new Date().getTime() > expiryTime) {
+                localStorage.removeItem('bnl_session');
+                return "";
             }
             
-            // เรียกทำงานระบบดึงยอดเงินและแคมเปญ
-            await Promise.all([
-                loadUserBalances(),
-                loadVoteCampaigns()
-            ]);
+            // ดึงข้อมูลก้อนวัตถุผู้ใช้ตามโครงสร้างหน้าแรก
+            const userData = session.data || session.user || session;
+            return userData ? (userData.username || "") : "";
+        } catch (e) {
+            console.error("Session Parse Error:", e);
+            return "";
         }
-
-        // 1. ฟังก์ชันดึงยอดเงินคงเหลือจากฐานข้อมูลชีต users (เปลี่ยนมาใช้ GET แบบต่อท้ายลิงก์)
-        async function loadUserBalances() {
-  try {
-    const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}`;
-    const response = await fetch(url);
-    const result = await response.json();
-    
-    if (result.status === "success" && result.data) {
-      // 💡 ดักเช็คค่า: ถ้าระบบส่งพิมพ์ใหญ่มาให้ใช้พิมพ์ใหญ่ ถ้าไม่มีให้ไปใช้พิมพ์เล็ก
-      const tokenValue = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
-      const geTokenValue = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
-      
-      document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
-      document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
-    } else {
-      console.error("ดึงยอดคงเหลือไม่สำเร็จ:", result.message);
     }
-  } catch (error) {
-    console.error("Error fetching balance:", error);
-  }
-}
 
-        // 2. ฟังก์ชันดึงแคมเปญโหวตจากฐานข้อมูลชีต majorVoteCollections
-        async function loadVoteCampaigns() {
-            const container = document.getElementById("vote-container");
-            try {
-                // เปลี่ยนมาใช้ GET Request เช่นกัน
-                const url = `${scriptURL}?action=getMajorVoteCollections`;
-                const response = await fetch(url);
-                const result = await response.json();
+    // เรียกดึงข้อมูล Username ปัจจุบันจากระบบล็อกอินหลัก
+    const username = getUsernameFromSession(); 
 
-                if (result.status === "success" && result.data && result.data.length > 0) {
-                    container.innerHTML = ""; // เคลียร์ loading text
-                    
-                    result.data.forEach(camp => {
-                        const status = (camp.Status || "Closed").toUpperCase();
-                        const isCountActive = status === "OPEN" || status === "ACTIVE";
-                        
-                        const cardHtml = `
-                            <a href="majorvote_detail.html?id=${camp.VoteCollectionID}&status=${status.toLowerCase()}" class="major-vote-card">
-                                <div class="card-image-wrapper">
-                                    <div class="status-badge-overlay">
-                                        <span class="status-badge ${isCountActive ? 'status-open' : 'status-closed'}">
-                                            <i class="fa-solid ${isCountActive ? 'fa-door-open' : 'fa-lock'}"></i> ${isCountActive ? 'OPEN' : 'CLOSED'}
-                                        </span>
-                                    </div>
-                                    <img src="${camp.CoverImage || 'https://via.placeholder.com/600x350?text=BLM48+Vote'}" alt="${camp.Title}" onerror="this.src='https://via.placeholder.com/600x350?text=BLM48+Vote'">
-                                </div>
-                                <div class="major-vote-info">
-                                    <h4 class="major-vote-title">${camp.Title || 'ไม่มีชื่อแคมเปญ'}</h4>
-                                    <div class="card-footer-action">
-                                        <span>${isCountActive ? 'ร่วมส่งคะแนนโหวตให้เมมเบอร์' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
-                                        <span class="go-vote-btn">โหวตเลย <i class="fa-solid fa-chevron-right"></i></span>
-                                    </div>
-                                </div>
-                            </a>
-                        `;
-                        container.insertAdjacentHTML('beforeend', cardHtml);
-                    });
-                } else {
-                    container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
-                }
-            } catch (error) {
-                console.error("Error fetching campaigns:", error);
-                container.innerHTML = `<div class="loading-text">⚠️ ไม่สามารถเชื่อมต่อข้อมูลได้</div>`;
-            }
+    async function initPage() {
+        if (!username) {
+            alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+            window.location.href = "login.html";
+            return;
         }
+        
+        // เรียกทำงานระบบดึงยอดเงินและแคมเปญพร้อมกัน
+        await Promise.all([
+            loadUserBalances(),
+            loadVoteCampaigns()
+        ]);
+    }
 
-        document.addEventListener("DOMContentLoaded", initPage);
-    </script>
+    // 1. ฟังก์ชันดึงยอดเงินคงเหลือจากฐานข้อมูลชีต users
+    async function loadUserBalances() {
+        try {
+            const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}`;
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            if (result.status === "success" && result.data) {
+                const tokenValue = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
+                const geTokenValue = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
+                
+                document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
+                document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
+            } else {
+                console.error("ดึงยอดคงเหลือไม่สำเร็จ:", result.message);
+            }
+        } catch (error) {
+            console.error("Error fetching balance:", error);
+        }
+    }
+
+    // 2. ฟังก์ชันดึงแคมเปญโหวตจากฐานข้อมูลชีต majorVoteCollections
+    async function loadVoteCampaigns() {
+        const container = document.getElementById("vote-container");
+        try {
+            const url = `${scriptURL}?action=getMajorVoteCollections`;
+            const response = await fetch(url);
+            const result = await response.json();
+
+            if (result.status === "success" && result.data && result.data.length > 0) {
+                container.innerHTML = ""; // เคลียร์ loading text
+                
+                result.data.forEach(camp => {
+                    const status = (camp.Status || "Closed").toUpperCase();
+                    const isCountActive = status === "OPEN" || status === "ACTIVE";
+                    
+                    const cardHtml = `
+                        <a href="majorvote_detail.html?id=${camp.VoteCollectionID}&status=${status.toLowerCase()}" class="major-vote-card">
+                            <div class="card-image-wrapper">
+                                <div class="status-badge-overlay">
+                                    <span class="status-badge ${isCountActive ? 'status-open' : 'status-closed'}">
+                                        <i class="fa-solid ${isCountActive ? 'fa-door-open' : 'fa-lock'}"></i> ${isCountActive ? 'OPEN' : 'CLOSED'}
+                                    </span>
+                                </div>
+                                <img src="${camp.CoverImage || 'https://via.placeholder.com/600x350?text=BLM48+Vote'}" alt="${camp.Title}" onerror="this.src='https://via.placeholder.com/600x350?text=BLM48+Vote'">
+                            </div>
+                            <div class="major-vote-info">
+                                <h4 class="major-vote-title">${camp.Title || 'ไม่มีชื่อแคมเปญ'}</h4>
+                                <div class="card-footer-action">
+                                    <span>${isCountActive ? 'ร่วมส่งคะแนนโหวตให้เมมเบอร์' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
+                                    <span class="go-vote-btn">โหวตเลย <i class="fa-solid fa-chevron-right"></i></span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+            } else {
+                container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
+            }
+        } catch (error) {
+            console.error("Error fetching campaigns:", error);
+            container.innerHTML = `<div class="loading-text">⚠️ ไม่สามารถเชื่อมต่อข้อมูลได้</div>`;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
 </body>
 </html>
