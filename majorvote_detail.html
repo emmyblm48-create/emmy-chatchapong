@@ -108,7 +108,7 @@
         <div class="nav-left-actions">
             <a href="majorvote.html" class="nav-btn"><i class="fa-solid fa-chevron-left"></i></a>
         </div>
-        <div class="nav-title" id="nav-campaign-title">แคมเปญโหวต</div>
+        <div class="nav-title" id="nav-campaign-title">Major Vote</div>
     </div>
 
     <div class="campaign-header">
@@ -117,19 +117,19 @@
             <img id="campaign-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover" class="campaign-cover" style="display:none;">
         </div>
         <div class="campaign-details">
-            <h3 class="campaign-title" id="campaign-title">แคมเปญโหวต</h3>
-            <p class="campaign-desc" id="campaign-desc">กำลังโหลดรายละเอียดกิจกรรม...</p>
+            <h3 class="campaign-title" id="campaign-title">Major Vote</h3>
+            <p class="campaign-desc" id="campaign-desc">Loading...</p>
         </div>
     </div>
 
-    <div class="section-title" id="mode-title">รายชื่อผู้สมัครรับการโหวต</div>
+    <div class="section-title" id="mode-title">BLM48 Members</div>
 
     <div id="voting-view" class="candidates-grid" style="display: none;"></div>
 
     <div id="ranking-view" class="ranking-list" style="display: none;"></div>
 
     <div id="loading-spinner" class="loading-view">
-        <i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงรายชื่อผู้สมัครเข้ารับการโหวต...
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading...
     </div>
 
 <script>
@@ -179,7 +179,7 @@
                 const list = JSON.parse(cachedVotes);
                 const currentCamp = list.find(item => String(item.VoteCollectionID) === String(campaignId));
                 if (currentCamp) {
-                    const title = currentCamp.Title || "แคมเปญโหวต";
+                    const title = currentCamp.Title || "Major Vote";
                     document.getElementById("nav-campaign-title").textContent = title;
                     document.getElementById("campaign-title").textContent = title;
                     document.getElementById("campaign-desc").textContent = currentCamp.Description || "ร่วมส่งคะแนนโหวตให้กับผู้สมัครที่คุณชื่นชอบ";
@@ -208,16 +208,16 @@
                     setupRankingMode(candidates); 
                 }
             } else {
-                document.getElementById("loading-spinner").innerHTML = `ไม่พบข้อมูลรายชื่อผู้สมัครในแคมเปญนี้`;
+                document.getElementById("loading-spinner").innerHTML = `ไม่พบข้อมูลรายชื่อผู้สมัคร`;
             }
         } catch (error) {
             console.error("Fetch API Error:", error);
-            document.getElementById("loading-spinner").innerHTML = "เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง";
+            document.getElementById("loading-spinner").innerHTML = "เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง";
         }
     }
 
     function setupVotingMode(candidates) {
-        document.getElementById("mode-title").textContent = "ส่งคะแนนโหวตให้กับผู้สมัคร (เรียงลำดับตามตัวอักษร)";
+        document.getElementById("mode-title").textContent = "BLM48 Members";
         const container = document.getElementById("voting-view");
         const rankingContainer = document.getElementById("ranking-view");
         
@@ -260,7 +260,7 @@
         container.style.display = "flex";
 
         if (candidates.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px; width:100%;">ไม่มีข้อมูลสรุปผลคะแนนโหวตในระบบ</div>`;
+            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px; width:100%;">ไม่มีข้อมูลสรุปผลคะแนนโหวตในขณะนี้</div>`;
             return;
         }
 
@@ -309,7 +309,7 @@
 
         Swal.fire({
             title: `ลงคะแนนโหวตให้คุณ ${candidateName}`,
-            text: 'กรุณาระบุจำนวนเหรียญที่ต้องการใช้ในการลงคะแนนโหวต',
+            text: 'Vote using BLM48 Token',
             input: 'number',
             inputAttributes: { min: 1, step: 1 },
             showCancelButton: true,
@@ -318,7 +318,7 @@
             confirmButtonColor: '#ff85a2',
             inputValidator: (value) => {
                 if (!value || value.trim() === "" || Number(value) <= 0 || value.includes('.')) {
-                    return 'กรุณาระบุจำนวนเหรียญเป็นจำนวนเต็มที่มีค่ามากกว่า 0 เท่านั้น';
+                    return 'ขั้นต่ำในการโหวตคือ 1 Tokens';
                 }
             }
         }).then(async (result) => {
@@ -331,7 +331,7 @@
 
     async function executeVoteAPI(candidateName, voteAmount) {
         Swal.fire({ 
-            title: 'กำลังบันทึกข้อมูลการลงคะแนน...', 
+            title: 'กำลังลงคะแนน...', 
             allowOutsideClick: false, 
             didOpen: () => Swal.showLoading() 
         });
@@ -346,8 +346,8 @@
             if (res.status === "success") {
                 if (res.thankYouCard && res.thankYouCard.trim() !== "") {
                     Swal.fire({
-                        title: 'ดำเนินการลงคะแนนโหวตสำเร็จ',
-                        text: `ระบบได้ทำการหักเหรียญและบันทึกคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`,
+                        title: 'การลงคะแนนโหวตสำเร็จ',
+                        text: `ระบบได้ทำการหัก Tokens และลงคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`,
                         imageUrl: fixSecureImageUrl(res.thankYouCard),
                         imageWidth: 280,
                         imageAlt: 'Thank You Card',
