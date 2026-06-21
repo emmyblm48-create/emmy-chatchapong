@@ -240,7 +240,7 @@
                 localStorage.setItem('blm48_major_votes_cache', JSON.stringify(result.data));
                 renderCampaignCards(result.data);
             } else if (!cachedVotes) {
-                container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
+                container.innerHTML = `<div class="loading-text">ไม่มีการกิจกรรมโหวตในขณะนี้</div>`;
             }
         } catch (error) {
             if (!cachedVotes) container.innerHTML = `<div class="loading-text">⚠️ ไม่สามารถเชื่อมต่อข้อมูลได้</div>`;
@@ -307,7 +307,7 @@
         });
 
         if (container.children.length === 0) {
-            container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
+            container.innerHTML = `<div class="loading-text">ไม่มีการกิจกรรมโหวตในขณะนี้</div>`;
         }
     }
 
@@ -317,7 +317,7 @@
         icon.classList.add("fa-spin");
         refreshBtn.disabled = true;
         document.getElementById("vote-container").innerHTML = `
-            <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i>ดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์...</div>
+            <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>
         `;
         await Promise.all([loadUserBalances(), loadVoteCampaigns()]);
         setTimeout(() => {
