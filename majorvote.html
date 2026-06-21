@@ -251,20 +251,20 @@
         const container = document.getElementById("vote-container");
         container.innerHTML = ""; 
         
-        // ดึงเวลาปัจจุบันมาใช้เช็กกรณีมีแคชเก่าค้างในเครื่อง
         const now = new Date().getTime();
 
         campaignsList.forEach(camp => {
-            // 1. ตรวจสอบเรื่องเวลา (ถ้าฝั่งชีตส่งมาแต่หมดเวลาแล้ว หรือยังไม่ถึงเวลา ให้ข้ามไปเลย)
-            if (camp.StartDate && new Date(camp.StartDate).getTime() > now) return;
-            if (camp.EndDate && new Date(camp.EndDate).getTime() < now) return;
+            // ตรวจสอบช่วงเวลา StartDate - EndDate ตามบรีฟคุณเอ็มมี่
+            if (camp.StartTime && new Date(camp.StartTime).getTime() > now) return;
+            if (camp.EndTime && new Date(camp.EndTime).getTime() < now) return;
 
             const status = (camp.Status || "Closed").trim().toUpperCase();
-            // เช็กสถานะตรงตามบรีฟ (Open = เปิดโหวต / Closed = ปิดโหวตแสดงอันดับ)
             const isOpen = status === "OPEN"; 
             
-            const hasValidImage = camp.CoverImage && camp.CoverImage.trim() !== "" && !camp.CoverImage.includes("placeholder");
-            const imageSrc = hasValidImage ? camp.CoverImage : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+            // 💡 แก้ไขจุดนี้: ให้รองรับทั้งคอลัมน์ "รูปจากไดร์ฟ" และ "CoverImage" ป้องกันข้อมูลไม่ขึ้น
+            const coverImgUrl = camp["รูปจากไดร์ฟ"] || camp.CoverImage;
+            const hasValidImage = coverImgUrl && coverImgUrl.trim() !== "" && !coverImgUrl.includes("placeholder");
+            const imageSrc = hasValidImage ? coverImgUrl : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
             
             const cardHtml = `
                 <a href="majorvote_detail.html?id=${camp.VoteCollectionID}&status=${status.toLowerCase()}" class="major-vote-card">
@@ -293,7 +293,6 @@
             container.insertAdjacentHTML('beforeend', cardHtml);
         });
 
-        // กรณีกรองข้อมูลออกหมดแล้วไม่มีแคมเปญแสดงเลย
         if (container.children.length === 0) {
             container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
         }
