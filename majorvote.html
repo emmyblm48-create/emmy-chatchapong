@@ -251,11 +251,18 @@
         const container = document.getElementById("vote-container");
         container.innerHTML = ""; 
         
+        // ดึงเวลาปัจจุบันมาใช้เช็กกรณีมีแคชเก่าค้างในเครื่อง
+        const now = new Date().getTime();
+
         campaignsList.forEach(camp => {
-            const status = (camp.Status || "Closed").toUpperCase();
-            const isCountActive = status === "OPEN" || status === "ACTIVE";
+            // 1. ตรวจสอบเรื่องเวลา (ถ้าฝั่งชีตส่งมาแต่หมดเวลาแล้ว หรือยังไม่ถึงเวลา ให้ข้ามไปเลย)
+            if (camp.StartDate && new Date(camp.StartDate).getTime() > now) return;
+            if (camp.EndDate && new Date(camp.EndDate).getTime() < now) return;
+
+            const status = (camp.Status || "Closed").trim().toUpperCase();
+            // เช็กสถานะตรงตามบรีฟ (Open = เปิดโหวต / Closed = ปิดโหวตแสดงอันดับ)
+            const isOpen = status === "OPEN"; 
             
-            // เช็กค่ารูปภาพจริง ถ้าไม่มีค่า ให้ใส่ "data:image..." เพื่อไม่ให้เบราว์เซอร์ไปดาวน์โหลดลิงก์พังๆ
             const hasValidImage = camp.CoverImage && camp.CoverImage.trim() !== "" && !camp.CoverImage.includes("placeholder");
             const imageSrc = hasValidImage ? camp.CoverImage : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
             
@@ -266,8 +273,8 @@
                             <i class="fa-solid fa-star"></i>
                         </div>
                         <div class="status-badge-overlay">
-                            <span class="status-badge ${isCountActive ? 'status-open' : 'status-closed'}">
-                            ${isCountActive ? 'OPEN' : 'CLOSED'}
+                            <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}">
+                            ${isOpen ? 'OPEN' : 'CLOSED'}
                             </span>
                         </div>
                         <img src="${imageSrc}" alt="Vote" style="${hasValidImage ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none';">
@@ -275,14 +282,21 @@
                     <div class="major-vote-info">
                         <h4 class="major-vote-title">${camp.Title || 'Coming Soon'}</h4>
                         <div class="card-footer-action">
-                            <span>${isCountActive ? 'Voting Now' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
-                            <span class="go-vote-btn">Vote <i class="fa-solid fa-chevron-right"></i></span>
+                            <span>${isOpen ? 'Voting Now' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
+                            <span class="go-vote-btn">
+                                ${isOpen ? 'Vote' : 'Ranking'} <i class="fa-solid fa-chevron-right"></i>
+                            </span>
                         </div>
                     </div>
                 </a>
             `;
             container.insertAdjacentHTML('beforeend', cardHtml);
         });
+
+        // กรณีกรองข้อมูลออกหมดแล้วไม่มีแคมเปญแสดงเลย
+        if (container.children.length === 0) {
+            container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
+        }
     }
 
     async function handleManualRefresh() {
