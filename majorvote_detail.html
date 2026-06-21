@@ -181,9 +181,8 @@
     }
 
     // 📡 ฟังก์ชันดึงรายชื่อ Candidates จากฝั่ง Google Apps Script (ยิงหา Action 2)
-    async function fetchCandidatesFromBackend() {
+   async function fetchCandidatesFromBackend() {
         try {
-            // สั่ง Fetch ข้อมูลโดยส่งพารามิเตอร์ action=getMajorVoteCandidates และ collectionId ตรงตามหลังบ้าน
             const response = await fetch(`${scriptURL}?action=getMajorVoteCandidates&collectionId=${encodeURIComponent(campaignId)}`);
             const result = await response.json();
 
@@ -191,18 +190,18 @@
                 const candidates = result.data || [];
                 document.getElementById("loading-spinner").style.display = "none";
 
-                // ตรวจสอบคอลัมน์สถานะเพื่อแปลงการแสดงผล (โหวตปกติ หรือ โชว์ตารางอันดับ)
-                if (campaignStatus === 'open' || campaignStatus === 'active') {
-                    setupVotingMode(candidates);
+                // 🕒 สลับโหมดการแสดงผลอัตโนมัติตามเวลาไทยที่ส่งมาจากหลังบ้าน
+                if (result.campaignTimeStatus === 'open') {
+                    setupVotingMode(candidates); // เปิดโหวต มีปุ่มหัวใจให้กดโหวต
                 } else {
-                    setupRankingMode(candidates); 
+                    setupRankingMode(candidates); // หมดเวลากิจกรรม โชว์ลีดเดอร์บอร์ดจัดอันดับ
                 }
             } else {
                 document.getElementById("loading-spinner").innerHTML = `❌ ไม่พบข้อมูลรายชื่อ Candidates ในแคมเปญนี้`;
             }
         } catch (error) {
             console.error("Fetch API Error:", error);
-            document.getElementById("loading-spinner").innerHTML = "⚠️ เกิดข้อผิดพลาดในการดึงข้อมูลเมมเบอร์จากเซิร์ฟเวอร์";
+            document.getElementById("loading-spinner").innerHTML = "⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล";
         }
     }
 
