@@ -6,6 +6,17 @@
     <title>BLM48 | Major Vote Detail</title>
     <meta name="theme-color" content="#ffc0cb">
     
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/0">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1">
+    
+    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -95,7 +106,7 @@
 
     <div class="top-navbar">
         <div class="nav-left-actions">
-            <a href="majorvote.html" class="nav-btn"><i class="fas fa-chevron-left"></i></a>
+            <a href="majorvote.html" class="nav-btn"><i class="fa-solid fa-chevron-left"></i></a>
         </div>
         <div class="nav-title" id="nav-campaign-title">แคมเปญโหวต</div>
     </div>
@@ -213,8 +224,9 @@
         }
 
         candidates.forEach(member => {
-            const mName = member.MemberName || 'Member'; // 🛠️ ดึงค่าจากหัวข้อ MemberName คอลัมน์ที่ 3
-            const mImg = fixSecureImageUrl(member.ImageURL);
+            const mName = member.MemberName || 'Member'; 
+            // 🛠️ ตรวจสอบตัวแปรกรณีคีย์ในฐานข้อมูลเป็น ProfileMember
+            const mImg = fixSecureImageUrl(member.ProfileMember || member.ImageURL || member.profile);
 
             const cardHtml = `
                 <div class="candidate-card">
@@ -249,10 +261,10 @@
 
         candidates.forEach((member, index) => {
             const rank = index + 1;
-            const mName = member.MemberName || 'Member'; // 🛠️ ดึงค่าจากคอลัมน์ MemberName
-            const mImg = fixSecureImageUrl(member.ImageURL);
+            const mName = member.MemberName || 'Member'; 
+            const mImg = fixSecureImageUrl(member.ProfileMember || member.ImageURL || member.profile);
             const voteCount = Number(member.CurrentVotes || 0).toLocaleString();
-            const percentStr = member.VotePercentage || "0.00%"; // 🛠️ พ่นเปอร์เซ็นต์ความนิยมออกหน้าจอ
+            const percentStr = member.VotePercentage || "0.00%"; 
 
             let medalHtml = "";
             if(rank === 1) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-1"></i>`;
@@ -294,13 +306,15 @@
             cancelButtonText: 'ยกเลิก',
             confirmButtonColor: '#ff85a2',
             inputValidator: (value) => {
-                if (!value || value <= 0 || value.includes('.')) {
-                    return 'กรุณาใส่จำนวนเหรียญเป็นตัวเลขเต็มด้วยนะคะ!'
+                if (!value || value.trim() === "" || Number(value) <= 0 || value.includes('.')) {
+                    return 'กรุณาใส่จำนวนเหรียญเป็นตัวเลขเต็มที่มากกว่า 0 ด้วยนะคะ!'
                 }
             }
         }).then(async (result) => {
-            if (result.isConfirmed) {
-                executeVoteAPI(candidateName, result.value);
+            if (result.isConfirmed && result.value) {
+                // เผื่อความชัวร์แปลงเป็นเลขจำนวนเต็มก่อนส่งค่าไปหลังบ้าน
+                const sanitizedAmount = Math.floor(Number(result.value));
+                executeVoteAPI(candidateName, sanitizedAmount);
             }
         });
     }
