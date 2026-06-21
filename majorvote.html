@@ -245,26 +245,25 @@
         </div>
     </div>
 </div>
-
- <script>
+<script>
     // 🚨 URL ของ Google Apps Script Web App
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
-    // 📦 ฟังก์ชันแกะข้อมูล Username จากเซสชันระบบหลัก (ถอดโครงสร้างมาจากหน้า index.html เป๊ะๆ)
+    // ✨ เลขเวอร์ชันแอป (ตั้งให้ตรงกับหน้า index.html เสมอ)
+    // ถ้ามีการอัปเดตระบบใน Google ชีต หรืออัปเดตโค้ด ให้เปลี่ยนเลขนี้ (เช่น เป็น '1.0.6') ระบบจะล้างแคชให้ยูสเซอร์อัตโนมัติงับ
+    const APP_VERSION = '1.0.5'; 
+
+    // 📦 ฟังก์ชันแกะข้อมูล Username จากเซสชันระบบหลัก
     function getUsernameFromSession() {
         try {
             const sessionStr = localStorage.getItem('bnl_session');
             if (!sessionStr) return "";
-            
             const session = JSON.parse(sessionStr);
-            // เช็กเวลาหมดอายุของเซสชัน (ถ้ามี)
             const expiryTime = session.expiry || session.expire;
             if (expiryTime && new Date().getTime() > expiryTime) {
                 localStorage.removeItem('bnl_session');
                 return "";
             }
-            
-            // ดึงข้อมูลก้อนวัตถุผู้ใช้ตามโครงสร้างหน้าแรก
             const userData = session.data || session.user || session;
             return userData ? (userData.username || "") : "";
         } catch (e) {
@@ -273,7 +272,16 @@
         }
     }
 
-    // เรียกดึงข้อมูล Username ปัจจุบันจากระบบล็อกอินหลัก
+    // 🔄 ฟังก์ชันเช็กเวอร์ชันแอปเพื่อล้างแคชข้อมูลโหวตเก่า
+    function checkAppVersion() {
+        const savedVersion = localStorage.getItem('bnl_app_version');
+        if (savedVersion !== APP_VERSION) {
+            // ล้างแคชแคมเปญโหวตเฉพาะของหน้านี้ออกไปก่อน เพื่อเตรียมรับอันใหม่
+            localStorage.removeItem('blm48_major_votes_cache');
+            localStorage.setItem('bnl_app_version', APP_VERSION);
+        }
+    }
+
     const username = getUsernameFromSession(); 
 
     async function initPage() {
@@ -282,6 +290,9 @@
             window.location.href = "login.html";
             return;
         }
+        
+        // รันระบบเช็กเวอร์ชันเพื่อเคลียร์แคชก่อนดึงข้อมูล
+        checkAppVersion();
         
         // เรียกทำงานระบบดึงยอดเงินและแคมเปญพร้อมกัน
         await Promise.all([
@@ -311,49 +322,79 @@
         }
     }
 
-    // 2. ฟังก์ชันดึงแคมเปญโหวตจากฐานข้อมูลชีต majorVoteCollections
+    // 2. ฟังก์ชันดึงแคมเปญโหวตแบบเก็บ Cache ลงเครื่อง (พออัปเดตเวอร์ชันค่อยล้าง)
     async function loadVoteCampaigns() {
         const container = document.getElementById("vote-container");
+        
+        // [A] ดึงข้อมูลจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (ถ้าเคยเข้าหน้านี้มาแล้ว จะโหลดเสร็จไวมาก)
+        const cachedVotes = localStorage.getItem('blm48_major_votes_cache');
+        if (cachedVotes) {
+            try {
+                const localData = JSON.parse(cachedVotes);
+                if (localData && localData.length > 0) {
+                    renderCampaignCards(localData); // แสดงผลการ์ดจากข้อมูลในแคชก่อน
+                }
+            } catch (e) {
+                console.error("ดึงข้อมูลจากแคชพัง:", e);
+            }
+        }
+        
+        // [B] แอบยิงไปดึงข้อมูลสดๆ จาก Google Sheets หลังบ้านเงียบๆ (Background Fetch)
         try {
             const url = `${scriptURL}?action=getMajorVoteCollections`;
             const response = await fetch(url);
             const result = await response.json();
 
             if (result.status === "success" && result.data && result.data.length > 0) {
-                container.innerHTML = ""; // เคลียร์ loading text
+                // เซฟบันทึกก้อนข้อมูลใหม่ลงคลัง Cache ล่าสุดในเครื่อง
+                localStorage.setItem('blm48_major_votes_cache', JSON.stringify(result.data));
                 
-                result.data.forEach(camp => {
-                    const status = (camp.Status || "Closed").toUpperCase();
-                    const isCountActive = status === "OPEN" || status === "ACTIVE";
-                    
-                    const cardHtml = `
-                        <a href="majorvote_detail.html?id=${camp.VoteCollectionID}&status=${status.toLowerCase()}" class="major-vote-card">
-                            <div class="card-image-wrapper">
-                                <div class="status-badge-overlay">
-                                    <span class="status-badge ${isCountActive ? 'status-open' : 'status-closed'}">
-                                        <i class="fa-solid ${isCountActive ? 'fa-door-open' : 'fa-lock'}"></i> ${isCountActive ? 'OPEN' : 'CLOSED'}
-                                    </span>
-                                </div>
-                                <img src="${camp.CoverImage || 'https://via.placeholder.com/600x350?text=BLM48+Vote'}" alt="${camp.Title}" onerror="this.src='https://via.placeholder.com/600x350?text=BLM48+Vote'">
-                            </div>
-                            <div class="major-vote-info">
-                                <h4 class="major-vote-title">${camp.Title || 'ไม่มีชื่อแคมเปญ'}</h4>
-                                <div class="card-footer-action">
-                                    <span>${isCountActive ? 'ร่วมส่งคะแนนโหวตให้เมมเบอร์' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
-                                    <span class="go-vote-btn">โหวตเลย <i class="fa-solid fa-chevron-right"></i></span>
-                                </div>
-                            </div>
-                        </a>
-                    `;
-                    container.insertAdjacentHTML('beforeend', cardHtml);
-                });
+                // อัปเดต UI หน้าจอเป็นข้อมูลใหม่ล่าสุดทันที (กรณีมีแคมเปญใหม่เพิ่มเข้ามาหรือเปลี่ยนรูปปก)
+                renderCampaignCards(result.data);
             } else {
-                container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
+                if (!cachedVotes) {
+                    container.innerHTML = `<div class="loading-text">❌ ไม่พบแคมเปญโหวตในขณะนี้</div>`;
+                }
             }
         } catch (error) {
             console.error("Error fetching campaigns:", error);
-            container.innerHTML = `<div class="loading-text">⚠️ ไม่สามารถเชื่อมต่อข้อมูลได้</div>`;
+            // ถ้าเน็ตหลุด แต่อย่างน้อยมีแคชเก่าในเครื่อง หน้าเว็บจะไม่พัง โชว์ของเก่าแทนได้
+            if (!cachedVotes) {
+                container.innerHTML = `<div class="loading-text">⚠️ ไม่สามารถเชื่อมต่อข้อมูลได้</div>`;
+            }
         }
+    }
+
+    // ฟังก์ชันย่อยสำหรับนำข้อมูลอาเรย์แคมเปญไปวาดลงหน้าจอ HTML
+    function renderCampaignCards(campaignsList) {
+        const container = document.getElementById("vote-container");
+        container.innerHTML = ""; // เคลียร์กล่องให้ว่างก่อนใส่ข้อมูลล่าสุดเข้าไป
+        
+        campaignsList.forEach(camp => {
+            const status = (camp.Status || "Closed").toUpperCase();
+            const isCountActive = status === "OPEN" || status === "ACTIVE";
+            
+            const cardHtml = `
+                <a href="majorvote_detail.html?id=${camp.VoteCollectionID}&status=${status.toLowerCase()}" class="major-vote-card">
+                    <div class="card-image-wrapper">
+                        <div class="status-badge-overlay">
+                            <span class="status-badge ${isCountActive ? 'status-open' : 'status-closed'}">
+                                <i class="fa-solid ${isCountActive ? 'fa-door-open' : 'fa-lock'}"></i> ${isCountActive ? 'OPEN' : 'CLOSED'}
+                            </span>
+                        </div>
+                        <img src="${camp.CoverImage || 'https://via.placeholder.com/600x350?text=BLM48+Vote'}" alt="${camp.Title}" onerror="this.src='https://via.placeholder.com/600x350?text=BLM48+Vote'">
+                    </div>
+                    <div class="major-vote-info">
+                        <h4 class="major-vote-title">${camp.Title || 'ไม่มีชื่อแคมเปญ'}</h4>
+                        <div class="card-footer-action">
+                            <span>${isCountActive ? 'ร่วมส่งคะแนนโหวตให้เมมเบอร์' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
+                            <span class="go-vote-btn">โหวตเลย <i class="fa-solid fa-chevron-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHtml);
+        });
     }
 
     document.addEventListener("DOMContentLoaded", initPage);
