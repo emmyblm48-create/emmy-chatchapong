@@ -245,7 +245,7 @@
     </div>
 </div>
 
-    <script>
+ <script>
         // 🚨 URL ของ Google Apps Script Web App
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
@@ -266,16 +266,12 @@
             ]);
         }
 
-        // 1. ฟังก์ชันดึงยอดเงินคงเหลือจากฐานข้อมูลชีต users
+        // 1. ฟังก์ชันดึงยอดเงินคงเหลือจากฐานข้อมูลชีต users (เปลี่ยนมาใช้ GET แบบต่อท้ายลิงก์)
         async function loadUserBalances() {
             try {
-                const response = await fetch(scriptURL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        action: "getUserInfo",
-                        username: username
-                    })
-                });
+                // เปลี่ยนมาใช้ GET Request เหมือนหน้า index.html และ login.html
+                const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}`;
+                const response = await fetch(url);
                 const result = await response.json();
                 
                 if (result.status === "success" && result.data) {
@@ -289,16 +285,13 @@
             }
         }
 
-        // 2. ฟังก์ชันดึงแคมเปญโหวตจากฐานข้อมูลชีต majorVoteCollections (จัดรูปแบบคล้ายสไตล์คอมโพเนนต์วิดีโอเด่นในหน้าแรก)
+        // 2. ฟังก์ชันดึงแคมเปญโหวตจากฐานข้อมูลชีต majorVoteCollections
         async function loadVoteCampaigns() {
             const container = document.getElementById("vote-container");
             try {
-                const response = await fetch(scriptURL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        action: "getMajorVoteCollections"
-                    })
-                });
+                // เปลี่ยนมาใช้ GET Request เช่นกัน
+                const url = `${scriptURL}?action=getMajorVoteCollections`;
+                const response = await fetch(url);
                 const result = await response.json();
 
                 if (result.status === "success" && result.data && result.data.length > 0) {
