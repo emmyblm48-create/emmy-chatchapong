@@ -1711,6 +1711,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
  
 <div class="section-title" onclick="toggleTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
   <span>Top Fans</span>
+  <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
+    <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl;"></div>
+  </div>
   <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888; transition: transform 0.3s ease;"></i>
 </div>
 
@@ -2321,21 +2324,17 @@ function toggleTopFans() {
     const arrow = document.getElementById("top-fans-arrow");
     const list = document.getElementById("global-fan-list");
     
-    // ตรวจสอบสถานะ: ถ้าค่าปัจจุบันเป็น 0px หรือยังไม่มีค่า (แสดงว่าปิดอยู่)
     if (wrapper.style.maxHeight === "0px" || !wrapper.style.maxHeight) {
-        // ✨ เปลี่ยนจาก offsetHeight เป็น scrollHeight เพื่อให้วัดขนาดการ์ดข้างในได้แม่นยำแม้ในขณะที่ซ่อนอยู่
         const contentHeight = list ? (list.scrollHeight + 40) : 250;
-        
         wrapper.style.maxHeight = contentHeight + "px";
         wrapper.style.opacity = "1";
-        wrapper.style.padding = "15px"; // คืนค่า padding ตอนกางออก
-        arrow.style.transform = "rotate(90deg)"; // หมุนลูกศรลงล่าง 90 องศา
+        wrapper.style.padding = "15px";
+        arrow.style.transform = "rotate(90deg)";
     } else {
-        // สั่งยุบปิดลงไปให้เหลือ 0
         wrapper.style.maxHeight = "0px";
         wrapper.style.opacity = "0";
-        wrapper.style.padding = "0px 15px"; // เอา padding บนล่างออกเพื่อให้แนบสนิท
-        arrow.style.transform = "rotate(0deg)"; // หมุนลูกศรกลับมาท่าเดิม (ชี้ขวา)
+        wrapper.style.padding = "0px 15px";
+        arrow.style.transform = "rotate(0deg)";
     }
 }
 
@@ -2348,7 +2347,7 @@ function renderGlobalFans(rawData) {
   if (Array.isArray(rawData)) {
     fansArray = rawData;
   } else if (rawData && typeof rawData === 'object') {
-    fansArray = Object.values(rawData).flat(); // รวมข้อมูลจากทุกเมมเบอร์เป็นก้อนเดียว
+    fansArray = Object.values(rawData).flat();
   }
 
   if (fansArray.length === 0) {
@@ -2358,18 +2357,43 @@ function renderGlobalFans(rawData) {
 
   // --- ส่วนสำคัญ: รวมยอด (Group By User) ---
   const groupedFans = fansArray.reduce((acc, current) => {
-    const key = current.username; // ใช้ username เป็นหลักในการรวม
+    const key = current.username;
     if (!acc[key]) {
       acc[key] = { ...current, total: 0 };
     }
-    acc[key].total += Number(current.total || 0); // รวมยอดคุกกี้เข้าด้วยกัน
+    acc[key].total += Number(current.total || 0);
     return acc;
   }, {});
 
   // แปลงกลับเป็น Array และเรียงลำดับจากมากไปน้อย
   const finalFans = Object.values(groupedFans).sort((a, b) => b.total - a.total);
 
-  // --- แสดงผล ---
+  // ⚡ โซนที่เพิ่มเข้ามาใหม่: วาดรูปมินิกรอบทอง-เงิน-ทองแดงไว้ด้านบนแถบกดปิดเปิด
+  const previewZone = document.getElementById('top-fans-preview-zone');
+  if (previewZone) {
+    previewZone.innerHTML = '';
+    // เอาเฉพาะอันดับ 1-3 มาเรียงลำดับย้อนกลับเพื่อผลลัพธ์การซ้อนที่สวยงาม (ขวาไปซ้าย)
+    const top3Preview = finalFans.slice(0, 3).reverse();
+    
+    top3Preview.forEach((f, index) => {
+      // คำนวณสีตามอันดับที่แท้จริง
+      const actualRank = top3Preview.length - 1 - index; 
+      const miniBorderColor = actualRank === 0 ? '#ffd700' : actualRank === 1 ? '#c0c0c0' : '#cd7f32';
+      
+      const miniAvatar = document.createElement('img');
+      miniAvatar.src = getImg(f.img);
+      miniAvatar.style = `
+        width: 26px; height: 26px; border-radius: 50%; 
+        border: 2px solid ${miniBorderColor}; object-fit: cover;
+        margin-left: -6px; background: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      `;
+      miniAvatar.onerror = function() { this.src = 'https://via.placeholder.com/150'; };
+      previewZone.appendChild(miniAvatar);
+    });
+  }
+
+  // --- แสดงผลการ์ดด้านล่าง (ตามโค้ดเดิมของเอ็มมี่) ---
   finalFans.forEach((f, i) => {
     const isTop3 = i < 3;
     const rankColor = i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#ffeef2';
@@ -2402,8 +2426,6 @@ function renderGlobalFans(rawData) {
     list.appendChild(card);
   });
 
-  // ✨ บรรทัดสำคัญที่เพิ่มเข้ามา: ถ้าหากในอนาคตผู้ใช้เปิดแผงนี้ทิ้งไว้ แล้วข้อมูลเกิดการอัปเดตใหม่แบบเรียลไทม์ 
-  // ตัวกล่องจะช่วยยืด-หดความสูงตามข้อมูลใหม่ทันทีโดยที่เอฟเฟกต์ไม่พังงับ
   const wrapper = document.getElementById("top-fans-wrapper");
   if (wrapper && wrapper.style.maxHeight !== "0px" && wrapper.style.maxHeight !== "") {
       wrapper.style.maxHeight = (list.scrollHeight + 40) + "px";
