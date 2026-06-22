@@ -1709,8 +1709,12 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div id="ranking-list" class="horizontal-list" style="position: relative; z-index: 2;"></div>
 </div>
  
-<div class="section-title"> Top Fans</div>
-<div class="ranking-wrapper">
+<div class="section-title" onclick="toggleTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px;">
+  <span>Top Fans</span>
+  <i id="top-fans-arrow" class="fas fa-chevron-down" style="font-size: 14px; color: #888; transition: transform 0.3s ease;"></i>
+</div>
+
+<div id="top-fans-wrapper" class="ranking-wrapper" style="max-height: 500px; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease, padding 0.3s ease;">
   <div id="global-fan-list" class="horizontal-list"></div>
 </div>
   
@@ -2329,7 +2333,7 @@ function renderGlobalFans(rawData) {
     return;
   }
 
-  // --- ส่วนสำคัญ: รวมยอด (Group By User) ---
+  // --- ส่วนสำคัญของเอ็มมี่: รวมยอด (Group By User) ---
   const groupedFans = fansArray.reduce((acc, current) => {
     const key = current.username; // ใช้ username เป็นหลักในการรวม
     if (!acc[key]) {
@@ -2357,6 +2361,9 @@ function renderGlobalFans(rawData) {
       margin: 10px 5px; flex-shrink: 0;
     `;
 
+    // 💡 ปรับปรุงความชัวร์ของภาพ: ใช้ f.img เลย ถ้าไม่มีค่อยส่งไป placeholder (กันฟังก์ชัน getImg พังงับ)
+    const profileImg = (typeof getImg === 'function') ? getImg(f.img) : (f.img || 'https://via.placeholder.com/150');
+
     card.innerHTML = `
       <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
         background: ${rankColor}; color: ${isTop3 ? '#fff' : '#ff85a2'};
@@ -2364,7 +2371,7 @@ function renderGlobalFans(rawData) {
         box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap;">
         ${isTop3 ? rankIcon + ' ' : ''}อันดับ ${i + 1}
       </div>
-      <img src="${getImg(f.img)}" style="width:65px; height:65px; border-radius:50%; border:3px solid #fef5f7; margin-top:5px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/150'">
+      <img src="${profileImg}" style="width:65px; height:65px; border-radius:50%; border:3px solid #fef5f7; margin-top:5px; object-fit:cover;" onerror="this.src='https://via.placeholder.com/150'">
       <div style="font-weight:700; font-size:14px; color:#444; margin-top:8px; white-space: nowrap; overflow:hidden; text-overflow:ellipsis;">
         ${f.name || f.username}
       </div>
@@ -2374,6 +2381,13 @@ function renderGlobalFans(rawData) {
     `;
     list.appendChild(card);
   });
+
+  // ⚡ สิ่งที่เพิ่มเข้ามา: สั่งคำนวณความสูงของกล่อง Top Fans หลังวาดการ์ดเสร็จทันที
+  // ป้องกันปัญหากล่องเด้ง หรือคำนวณความสูงผิดพลาดเวลายุบ-ขยายแผงงับ
+  const wrapper = document.getElementById("top-fans-wrapper");
+  if (wrapper && wrapper.style.maxHeight !== "0px") {
+      wrapper.style.maxHeight = (list.offsetHeight + 40) + "px"; 
+  }
 }
 
 function openMemberProfile(name) {
