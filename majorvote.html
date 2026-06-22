@@ -67,7 +67,8 @@
         }
         .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .wallet-box { display: flex; align-items: center; gap: 10px; background: #fcf8f9; padding: 10px 12px; border-radius: 14px; }
-        .wallet-icon-wrapper { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #ffffff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); }
+        .wallet-icon-wrapper { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #ffffff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03); overflow: hidden; }
+        .wallet-token-img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
         .wallet-info { display: flex; flex-direction: column; }
         .wallet-title { font-size: 11px; color: #888888; font-weight: 500; }
         .wallet-value { font-size: 15px; color: #333333; font-weight: 600; font-family: 'Kanit', sans-serif; }
@@ -95,7 +96,7 @@
         }
         .major-vote-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; position: relative; z-index: 2; }
         
-        /* 🎨 สร้าง CSS เปล่าเป็นภาพสำรออง 100% ไม่ยิงลิงก์นอกเว็บเมื่อรูปจริงเสีย */
+        /* 🎨 สร้าง CSS เปล่าเป็นภาพสำรอง 100% ไม่ยิงลิงก์นอกเว็บเมื่อรูปจริงเสีย */
         .image-fallback-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #ffeef2 0%, #ffd1dc 100%);
@@ -127,14 +128,18 @@
     <div class="profile-wallet-card">
         <div class="wallet-grid">
             <div class="wallet-box">
-                <div class="wallet-icon-wrapper"><i class="fa-solid fa-coins" style="color: #ffeaa7;"></i></div>
+                <div class="wallet-icon-wrapper">
+                    <img src="https://lh3.googleusercontent.com/d/1LxHGOclJIl4Xqxi0dI5_Y235t6lfAiCZ=s1000" class="wallet-token-img" alt="Token" onerror="this.src='https://placehold.co/40?text=TK'">
+                </div>
                 <div class="wallet-info">
                     <span class="wallet-title">Token</span>
                     <span class="wallet-value" id="token-balance">-</span>
                 </div>
             </div>
             <div class="wallet-box">
-                <div class="wallet-icon-wrapper"><i class="fa-solid fa-gem" style="color: #74b9ff;"></i></div>
+                <div class="wallet-icon-wrapper">
+                    <img src="https://lh3.googleusercontent.com/d/1Fiw60kJvy6QmIhzrkgzEjMj85POwcoiZ=s1000" class="wallet-token-img" alt="GE Token" onerror="this.src='https://placehold.co/40?text=GE'">
+                </div>
                 <div class="wallet-info">
                     <span class="wallet-title">GE Token</span>
                     <span class="wallet-value" id="getoken-balance">-</span>
@@ -153,7 +158,7 @@
     </div>
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
-    const APP_VERSION = '1.0.6'; // อัปเดตเวอร์ชันแอปเพื่อเคลียร์ Cache เก่าของระบบ
+    const APP_VERSION = '1.0.6'; 
 
     function getUsernameFromSession() {
         try {
@@ -177,7 +182,7 @@
         const savedVersion = localStorage.getItem('bnl_app_version');
         if (savedVersion !== APP_VERSION) {
             localStorage.removeItem('blm48_major_votes_cache');
-            localStorage.removeItem('bnl_user_data_cache'); // ล้าง Cache ยอดเงินเก่าด้วย
+            localStorage.removeItem('bnl_vote_wallet_cache'); // ล้าง Cache ยอดเงินแยกเฉพาะของหน้านี้
             localStorage.setItem('bnl_app_version', APP_VERSION);
         }
     }
@@ -192,30 +197,39 @@
         }
         checkAppVersion();
         
-        // 1. แสดงผลจาก Cache ก่อนเพื่อความรวดเร็วไม่ให้ผู้ใช้เห็นค่าว่าง (-)
+        // 1. ดึง Cache เฉพาะกลุ่มของหน้านี้มาแสดงผลล่วงหน้า ป้องกันการสับสนกับข้อมูลหน้าหลัก
         loadWalletFromCache();
         
-        // 2. ยิงดึงข้อมูลแบบ Real-time ขนานกันทันที (เพิ่มการดึงที่สดใหม่และอัปเดตหน้าจอทันที)
+        // 2. โหลดข้อมูลสดใหม่จากเซิร์ฟเวอร์
         await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns()]);
     }
 
     function loadWalletFromCache() {
         try {
-            const cachedUserData = localStorage.getItem('bnl_user_data_cache');
+            // ⚡ เปลี่ยนมาดึง Cache ส่วนตัว บันทึกไม่ปนกับ bnl_user_data_cache
+            const cachedUserData = localStorage.getItem('bnl_vote_wallet_cache');
             if (cachedUserData) {
                 const user = JSON.parse(cachedUserData);
                 const tokenVal = user.Token !== undefined ? user.Token : (user.token || 0);
                 const geTokenVal = user.GEToken !== undefined ? user.GEToken : (user.geToken || 0);
                 document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
                 document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
+            } else {
+                // ถ้ายังไม่เคยมี Cache หน้านี้เลย ให้ดึงของเก่าจากหน้าหลักมาตั้งต้นก่อนในครั้งแรกสุด
+                const primaryCache = localStorage.getItem('bnl_user_data_cache');
+                if (primaryCache) {
+                    const user = JSON.parse(primaryCache);
+                    const tokenVal = user.Token !== undefined ? user.Token : (user.token || 0);
+                    const geTokenVal = user.GEToken !== undefined ? user.GEToken : (user.geToken || 0);
+                    document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
+                    document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
+                }
             }
         } catch (e) { console.error(e); }
     }
 
-    // ⚡ ฟังก์ชันดึงยอดเงินล่าสุดแบบเรียลไทม์ (Anti-Cache 100%)
     async function loadUserBalancesRealTime() {
         try {
-            // ใส่ _=${new Date().getTime()} เพื่อป้องกัน Browser จำ Request เก่า ข้อมูลในชีตเปลี่ยน หน้าเว็บจะเปลี่ยนทันที
             const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}&_=${new Date().getTime()}`;
             const response = await fetch(url);
             const result = await response.json();
@@ -224,12 +238,11 @@
                 const tokenValue = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
                 const geTokenValue = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
                 
-                // อัปเดตตัวเลขบนหน้าจอทันทีเมื่อได้ข้อมูลล่าสุดจาก Server
                 document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
                 document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
                 
-                // เซฟทับข้อมูล Cache ตัวล่าสุด
-                localStorage.setItem('bnl_user_data_cache', JSON.stringify(result.data));
+                // ⚡ จัดการบันทึก Cache แยกตัวแปรไว้ใน 'bnl_vote_wallet_cache' จะได้ไม่ส่งผลย้อนกลับไปแก้ข้อมูลหน้า index.html งับ
+                localStorage.setItem('bnl_vote_wallet_cache', JSON.stringify(result.data));
             }
         } catch (error) { 
             console.error("โหลดยอดเงินเรียลไทม์ขัดข้อง:", error); 
@@ -246,7 +259,6 @@
             } catch (e) { console.error(e); }
         }
         try {
-            // ใส่ Anti-cache ให้กับรายการแคมเปญโหวตด้วยเช่นกัน เผื่อมีการกดเปิด-ปิดแคมเปญในชีต
             const url = `${scriptURL}?action=getMajorVoteCollections&_=${new Date().getTime()}`;
             const response = await fetch(url);
             const result = await response.json();
