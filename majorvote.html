@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BLM48 | Major Vote</title>
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Major Vote</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
-    
-    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/0">
-    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1">
-    
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
     <meta name="apple-mobile-web-app-title" content="BLM48">   
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         :root {
             --primary-pink: #ff85a2;
@@ -114,15 +113,28 @@
         .card-footer-action { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #f5f5f5; font-size: 12px; color: #888; }
         .go-vote-btn { color: var(--blm-pink); font-weight: 600; display: flex; align-items: center; gap: 4px; }
         .loading-text { text-align: center; width: 100%; color: #999; padding: 40px 20px; font-size: 14px; }
+
+        /* ปุ่มกลับหน้าหลักสไตล์มินิมอลแมตช์ธีม */
+        .btn-back-home {
+            background: white; color: var(--blm-pink); text-decoration: none; 
+            font-size: 14px; font-weight: 600; padding: 10px 22px; border-radius: 14px; 
+            border: 1px solid #ffeef2; display: inline-flex; align-items: center; gap: 8px; 
+            box-shadow: 0 2px 6px rgba(255,133,162,0.05); transition: all 0.2s ease-in-out;
+        }
+        .btn-back-home:hover {
+            background: var(--blm-pink); color: white; transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,133,162,0.15);
+        }
     </style>
 </head>
 <body>
 
     <div class="top-navbar">
         <div class="nav-left-actions">
-            <a href="index.html" class="nav-btn" title="กลับ"><i class="fas fa-chevron-left"></i></a>
+            <a href="index.html" class="nav-btn" title="กลับหน้าหลัก"><i class="fas fa-chevron-left"></i></a>
             <button class="nav-btn" id="refresh-btn" onclick="handleManualRefresh()" title="รีเฟรชข้อมูล"><i class="fas fa-arrows-rotate"></i></button>
         </div>
+        <div class="nav-title">Major Vote</div>
     </div>
 
     <div class="profile-wallet-card">
@@ -148,210 +160,154 @@
         </div>
     </div>
 
-    <div class="section-title"> Major Vote</div>
+    <div class="section-title">Major Vote</div>
     <div class="ranking-wrapper">
         <div class="major-vote-scroll" id="vote-container">
             <div class="loading-text">
-                <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+                <i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดแคมเปญโหวต...
             </div>
         </div>
     </div>
+
+    <div style="text-align: center; margin-top: 35px; margin-bottom: 20px;">
+        <a href="index.html" class="btn-back-home">
+            <i class="fa-solid fa-house"></i> กลับหน้าหลัก
+        </a>
+    </div>
+
+    <footer style="padding: 40px 20px; text-align: center; color: #bbb; font-size: 11px;">
+        <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
+        <div>© 2026 Virtual Idol Cover Group</div>
+    </footer>
+
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
-    const APP_VERSION = '1.0.6'; 
-
-    function getUsernameFromSession() {
-        try {
-            const sessionStr = localStorage.getItem('bnl_session');
-            if (!sessionStr) return "";
-            const session = JSON.parse(sessionStr);
-            const expiryTime = session.expiry || session.expire;
-            if (expiryTime && new Date().getTime() > expiryTime) {
-                localStorage.removeItem('bnl_session');
-                return "";
-            }
-            const userData = session.data || session.user || session;
-            return userData ? (userData.username || "") : "";
-        } catch (e) {
-            console.error("Session Parse Error:", e);
-            return "";
+    // 🔗 กำหนดเอนด์พอยต์ Google Apps Script (ตามหน้า Inventory)
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    
+    // ระบบดึงข้อมูล Session ล็อกอินจาก LocalStorage ป้องกัน Session หมดอายุ
+    function getUserSession() {
+        const sessionStr = localStorage.getItem('bnl_session');
+        if (!sessionStr) return null;
+        const session = JSON.parse(sessionStr);
+        if (new Date().getTime() > session.expiry) {
+            localStorage.removeItem('bnl_session');
+            return null;
         }
+        return session.data;
     }
 
-    function checkAppVersion() {
-        const savedVersion = localStorage.getItem('bnl_app_version');
-        if (savedVersion !== APP_VERSION) {
-            localStorage.removeItem('blm48_major_votes_cache');
-            localStorage.removeItem('bnl_vote_wallet_cache'); // ล้าง Cache ยอดเงินแยกเฉพาะของหน้านี้
-            localStorage.setItem('bnl_app_version', APP_VERSION);
-        }
-    }
+    let user = getUserSession();
+    let currentUsername = user ? user.username : "";
 
-    const username = getUsernameFromSession(); 
-
-    async function initPage() {
-        if (!username) {
-            alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
-            window.location.href = "login.html";
+    window.onload = async () => {
+        // ตรวจสอบสถานะการเข้าสู่ระบบ
+        if (!user || !currentUsername) {
+            Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การใช้งานหน้าโหวต กรุณาล็อกอินก่อนนะงับ', 'error').then(() => {
+                window.location.href = 'index.html';
+            });
             return;
         }
-        checkAppVersion();
         
-        // 1. ดึง Cache เฉพาะกลุ่มของหน้านี้มาแสดงผลล่วงหน้า ป้องกันการสับสนกับข้อมูลหน้าหลัก
-        loadWalletFromCache();
-        
-        // 2. โหลดข้อมูลสดใหม่จากเซิร์ฟเวอร์
-        await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns()]);
-    }
+        // โหลดข้อมูลกระเป๋าเงิน Real-time และแคมเปญโหวตทันทีเมื่อเข้าหน้าเว็บ
+        await loadMajorVoteData();
+    };
 
-    function loadWalletFromCache() {
+    // ฟังก์ชันดึงข้อมูลกระเป๋าเงินโทเค็นล่าสุด และ รายการแคมเปญโหวตจาก API 
+    async function loadMajorVoteData() {
+        const voteContainer = document.getElementById('vote-container');
+        const refreshIcon = document.querySelector('#refresh-btn i');
+        
+        if (refreshIcon) refreshIcon.classList.add('fa-spin');
+        
         try {
-            // ⚡ เปลี่ยนมาดึง Cache ส่วนตัว บันทึกไม่ปนกับ bnl_user_data_cache
-            const cachedUserData = localStorage.getItem('bnl_vote_wallet_cache');
-            if (cachedUserData) {
-                const user = JSON.parse(cachedUserData);
-                const tokenVal = user.Token !== undefined ? user.Token : (user.token || 0);
-                const geTokenVal = user.GEToken !== undefined ? user.GEToken : (user.geToken || 0);
-                document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
-                document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
-            } else {
-                // ถ้ายังไม่เคยมี Cache หน้านี้เลย ให้ดึงของเก่าจากหน้าหลักมาตั้งต้นก่อนในครั้งแรกสุด
-                const primaryCache = localStorage.getItem('bnl_user_data_cache');
-                if (primaryCache) {
-                    const user = JSON.parse(primaryCache);
-                    const tokenVal = user.Token !== undefined ? user.Token : (user.token || 0);
-                    const geTokenVal = user.GEToken !== undefined ? user.GEToken : (user.geToken || 0);
-                    document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
-                    document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
+            // ยิง API ดึงข้อมูลด้วยระบบ Anti-Cache เพื่อป้องกันเบราว์เซอร์จำค่าเก่า
+            const response = await fetch(`${scriptURL}?action=getMajorVoteData&username=${encodeURIComponent(currentUsername)}&_=${new Date().getTime()}`);
+            const res = await response.json();
+            
+            if (res.status === "success") {
+                // 1. อัปเดตข้อมูลยอดจำนวน Token Real-time ลงหน้าจอ
+                if (res.wallet) {
+                    document.getElementById('token-balance').textContent = Number(res.wallet.token || 0).toLocaleString();
+                    document.getElementById('getoken-balance').textContent = Number(res.wallet.geToken || res.wallet.ge_token || 0).toLocaleString();
+                } else if (res.user) {
+                    document.getElementById('token-balance').textContent = Number(res.user.token || 0).toLocaleString();
+                    document.getElementById('getoken-balance').textContent = Number(res.user.ge_token || 0).toLocaleString();
+                } else {
+                    // หาก API ไม่ส่งค่า Wallet กลับมาตรงๆ ให้ดึง Fallback จาก Session ล่าสุดไปก่อน
+                    document.getElementById('token-balance').textContent = Number(user.token || 0).toLocaleString();
+                    document.getElementById('getoken-balance').textContent = Number(user.ge_token || 0).toLocaleString();
                 }
-            }
-        } catch (e) { console.error(e); }
-    }
 
-    async function loadUserBalancesRealTime() {
-        try {
-            const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}&_=${new Date().getTime()}`;
-            const response = await fetch(url);
-            const result = await response.json();
-            
-            if (result.status === "success" && result.data) {
-                const tokenValue = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
-                const geTokenValue = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
-                
-                document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
-                document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
-                
-                // ⚡ จัดการบันทึก Cache แยกตัวแปรไว้ใน 'bnl_vote_wallet_cache' จะได้ไม่ส่งผลย้อนกลับไปแก้ข้อมูลหน้า index.html งับ
-                localStorage.setItem('bnl_vote_wallet_cache', JSON.stringify(result.data));
+                // 2. เรนเดอร์การ์ดแคมเปญโหวต
+                renderVoteCampaigns(res.campaigns || res.votes || []);
+            } else {
+                voteContainer.innerHTML = `<div class="loading-text" style="color:#ff6b8b;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบบไม่สามารถประมวลผลกระเป๋าเงินได้'}</div>`;
             }
-        } catch (error) { 
-            console.error("โหลดยอดเงินเรียลไทม์ขัดข้อง:", error); 
+        } catch (err) {
+            console.error(err);
+            voteContainer.innerHTML = `<div class="loading-text" style="color:#ff6b8b;">การเชื่อมต่อล้มเหลว กรุณากดรีเฟรชลองใหม่อีกครั้งนะงับ</div>`;
+            
+            // แสดงข้อมูลเบื้องต้นจาก Session เมื่อเซิร์ฟเวอร์เกิดปัญหา
+            document.getElementById('token-balance').textContent = Number(user.token || 0).toLocaleString();
+            document.getElementById('getoken-balance').textContent = Number(user.ge_token || 0).toLocaleString();
+        } finally {
+            if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         }
     }
 
-    async function loadVoteCampaigns() {
-        const container = document.getElementById("vote-container");
-        const cachedVotes = localStorage.getItem('blm48_major_votes_cache');
-        if (cachedVotes) {
-            try {
-                const localData = JSON.parse(cachedVotes);
-                if (localData && localData.length > 0) renderCampaignCards(localData);
-            } catch (e) { console.error(e); }
+    // ฟังก์ชันสร้างรายการแคมเปญโหวตแบบไดนามิก
+    function renderVoteCampaigns(campaigns) {
+        const voteContainer = document.getElementById('vote-container');
+        voteContainer.innerHTML = "";
+
+        if (!campaigns || campaigns.length === 0) {
+            voteContainer.innerHTML = `<div class="loading-text" style="color: #aaa;">ขณะนี้ยังไม่มีแคมเปญ Major Vote เปิดอยู่ชั่วคราวงับ</div>`;
+            return;
         }
-        try {
-            const url = `${scriptURL}?action=getMajorVoteCollections&_=${new Date().getTime()}`;
-            const response = await fetch(url);
-            const result = await response.json();
-            if (result.status === "success" && result.data && result.data.length > 0) {
-                localStorage.setItem('blm48_major_votes_cache', JSON.stringify(result.data));
-                renderCampaignCards(result.data);
-            } else if (!cachedVotes) {
-                container.innerHTML = `<div class="loading-text">ไม่มีการกิจกรรมโหวตในขณะนี้</div>`;
-            }
-        } catch (error) {
-            if (!cachedVotes) container.innerHTML = `<div class="loading-text">⚠️ ไม่สามารถเชื่อมต่อข้อมูลได้</div>`;
-        }
-    }
 
-    function renderCampaignCards(campaignsList) {
-        const container = document.getElementById("vote-container");
-        container.innerHTML = ""; 
-        
-        const now = new Date().getTime();
+        campaigns.forEach(campaign => {
+            const card = document.createElement('a');
+            // ส่ง ID แคมเปญผ่าน Query String ไปยังหน้ารายละเอียดการโหวตตัวย่อย
+            card.href = `votedetail.html?id=${encodeURIComponent(campaign.id)}`;
+            card.className = 'major-vote-card';
 
-        campaignsList.forEach(camp => {
-            const status = (camp.Status || "Closed").trim().toUpperCase();
-            const isOpen = status === "OPEN"; 
-            
-            if (camp.StartTime) {
-                const startTimeParsed = new Date(camp.StartTime).getTime();
-                if (!isNaN(startTimeParsed) && startTimeParsed > now) return; 
-            }
-            if (camp.EndTime) {
-                const endTimeParsed = new Date(camp.EndTime).getTime();
-                if (!isNaN(endTimeParsed) && endTimeParsed < now) return; 
-            }
+            // ตรวจสอบสถานะการเปิด-ปิดแคมเปญ
+            const isOpen = campaign.status === 'open' || campaign.isOpen === true;
+            const statusClass = isOpen ? 'status-open' : 'status-closed';
+            const statusText = isOpen ? '<i class="fa-solid fa-circle-check"></i> Open' : '<i class="fa-solid fa-circle-xmark"></i> Closed';
 
-            let coverImgUrl = camp.CoverImage || camp["รูปจากไดร์ฟ"] || "";
-            
-            if (coverImgUrl && coverImgUrl.includes("http")) {
-                const words = coverImgUrl.split(" ");
-                words.forEach(w => {
-                    if (w.startsWith("http")) coverImgUrl = w;
-                });
-            }
-
-            const hasValidImage = coverImgUrl && coverImgUrl.trim() !== "" && !coverImgUrl.includes("placeholder");
-            const imageSrc = hasValidImage ? coverImgUrl : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-            
-            const cardHtml = `
-                <a href="majorvote_detail.html?id=${camp.VoteCollectionID}&status=${status.toLowerCase()}" class="major-vote-card">
-                    <div class="card-image-wrapper">
-                        <div class="image-fallback-bg">
-                            <i class="fa-solid fa-star"></i>
-                        </div>
-                        <div class="status-badge-overlay">
-                            <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}">
-                            ${isOpen ? 'OPEN' : 'CLOSED'}
-                            </span>
-                        </div>
-                        <img src="${imageSrc}" alt="Vote" style="${hasValidImage ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none';">
+            card.innerHTML = `
+                <div class="card-image-wrapper">
+                    <img src="${campaign.img || campaign.image || ''}" alt="${campaign.title}" onerror="this.style.opacity='0';">
+                    <div class="image-fallback-bg"><i class="fa-solid fa-heart"></i></div>
+                    <div class="status-badge-overlay">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
-                    <div class="major-vote-info">
-                        <h4 class="major-vote-title">${camp.Title || 'Coming Soon'}</h4>
-                        <div class="card-footer-action">
-                            <span>${isOpen ? 'Voting Now' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
-                            <span class="go-vote-btn">
-                                ${isOpen ? 'Vote' : 'Ranking'} <i class="fa-solid fa-chevron-right"></i>
-                            </span>
-                        </div>
+                </div>
+                <div class="major-vote-info">
+                    <h3 class="major-vote-title" title="${campaign.title}">${campaign.title}</h3>
+                    <div class="card-footer-action">
+                        <span><i class="fa-solid fa-calendar"></i> ${campaign.deadline || 'แคมเปญพิเศษ'}</span>
+                        <span class="go-vote-btn">โหวตเลย <i class="fas fa-chevron-right"></i></span>
                     </div>
-                </a>
+                </div>
             `;
-            container.insertAdjacentHTML('beforeend', cardHtml);
+            voteContainer.appendChild(card);
         });
-
-        if (container.children.length === 0) {
-            container.innerHTML = `<div class="loading-text">ไม่มีการกิจกรรมโหวตในขณะนี้</div>`;
-        }
     }
 
+    // ฟังก์ชันเมื่อผู้ใช้งานกดปุ่ม Refresh บน Navbar ด้วยตัวเอง
     async function handleManualRefresh() {
-        const refreshBtn = document.getElementById("refresh-btn");
-        const icon = refreshBtn.querySelector("i");
-        icon.classList.add("fa-spin");
-        refreshBtn.disabled = true;
-        document.getElementById("vote-container").innerHTML = `
-            <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
-        `;
-        await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns()]);
-        setTimeout(() => {
-            icon.classList.remove("fa-spin");
-            refreshBtn.disabled = false;
-        }, 400);
+        await loadMajorVoteData();
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'อัปเดตยอดโทเค็นล่าสุดเรียบร้อยแล้วงับ',
+            showConfirmButton: false,
+            timer: 1500
+        });
     }
-
-    document.addEventListener("DOMContentLoaded", initPage);
 </script>
 </body>
 </html>
