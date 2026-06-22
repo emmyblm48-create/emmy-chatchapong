@@ -1712,7 +1712,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="section-title" onclick="toggleTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
   <span>Top Fans</span>
   <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
-    <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl;"></div>
+    <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
   </div>
   <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888; transition: transform 0.3s ease;"></i>
 </div>
@@ -2323,18 +2323,27 @@ function toggleTopFans() {
     const wrapper = document.getElementById("top-fans-wrapper");
     const arrow = document.getElementById("top-fans-arrow");
     const list = document.getElementById("global-fan-list");
+    const previewZone = document.getElementById("top-fans-preview-zone"); // ดึงกล่องรูปมินิมาควบคุม
     
     if (wrapper.style.maxHeight === "0px" || !wrapper.style.maxHeight) {
+        // ⚡ ตอนเปิด: ยืดแผงกางออกมา
         const contentHeight = list ? (list.scrollHeight + 40) : 250;
         wrapper.style.maxHeight = contentHeight + "px";
         wrapper.style.opacity = "1";
         wrapper.style.padding = "15px";
         arrow.style.transform = "rotate(90deg)";
+        
+        // ⚡ สั่งให้รูปวงกลมมินิหายไปตอนกางออก
+        if (previewZone) previewZone.style.opacity = "0";
     } else {
+        // ⚡ ตอนปิด: พับเก็บแนบสนิท
         wrapper.style.maxHeight = "0px";
         wrapper.style.opacity = "0";
         wrapper.style.padding = "0px 15px";
         arrow.style.transform = "rotate(0deg)";
+        
+        // ⚡ สั่งให้รูปวงกลมมินิเฟดกลับคืนมาโชว์ใหม่ตอนพับปิด
+        if (previewZone) previewZone.style.opacity = "1";
     }
 }
 
@@ -2355,7 +2364,7 @@ function renderGlobalFans(rawData) {
     return;
   }
 
-  // --- ส่วนสำคัญ: รวมยอด (Group By User) ---
+  // --- รวมยอด (Group By User) ---
   const groupedFans = fansArray.reduce((acc, current) => {
     const key = current.username;
     if (!acc[key]) {
@@ -2365,20 +2374,17 @@ function renderGlobalFans(rawData) {
     return acc;
   }, {});
 
-  // แปลงกลับเป็น Array และเรียงลำดับจากมากไปน้อย
   const finalFans = Object.values(groupedFans).sort((a, b) => b.total - a.total);
 
-  // ⚡ โซนที่เพิ่มเข้ามาใหม่: วาดรูปมินิกรอบทอง-เงิน-ทองแดงไว้ด้านบนแถบกดปิดเปิด
+  // --- วาดรูปมินิกรอบทอง-เงิน-ทองแดง ไว้ด้านบนแผง ---
   const previewZone = document.getElementById('top-fans-preview-zone');
   if (previewZone) {
     previewZone.innerHTML = '';
-    // เอาเฉพาะอันดับ 1-3 มาเรียงลำดับย้อนกลับเพื่อผลลัพธ์การซ้อนที่สวยงาม (ขวาไปซ้าย)
     const top3Preview = finalFans.slice(0, 3).reverse();
     
     top3Preview.forEach((f, index) => {
-      // คำนวณสีตามอันดับที่แท้จริง
       const actualRank = top3Preview.length - 1 - index; 
-      const miniBorderColor = actualRank === 0 ? '#ffd700' : actualRank === 1 ? '#c0c0c0' : '#cd7f32';
+      const miniBorderColor = actualRank === 0 ? '#ffd700' : actualRank === 1 ? '#c0c0c0' : actualRank === 2 ? '#cd7f32' : '#ffeef2';
       
       const miniAvatar = document.createElement('img');
       miniAvatar.src = getImg(f.img);
@@ -2393,7 +2399,7 @@ function renderGlobalFans(rawData) {
     });
   }
 
-  // --- แสดงผลการ์ดด้านล่าง (ตามโค้ดเดิมของเอ็มมี่) ---
+  // --- แสดงผลการ์ดด้านล่าง ---
   finalFans.forEach((f, i) => {
     const isTop3 = i < 3;
     const rankColor = i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#ffeef2';
