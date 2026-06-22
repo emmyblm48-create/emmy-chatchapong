@@ -81,7 +81,7 @@
         .vote-action-btn { background: var(--blm-pink); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-family: 'Kanit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3); width: 100%; transition: transform 0.1s; }
         .vote-action-btn:active { transform: scale(0.95); }
 
-        /* Ranking List Mode (ผสมผสานสไตล์ รูปที่ 1 + รูปที่ 2) */
+        /* Ranking List Mode (อัปเดตดีไซน์พิเศษตามบรีฟเอ็มมี่) */
         .ranking-list { display: flex; flex-direction: column; gap: 14px; padding: 0 20px; }
         .ranking-row { 
             background: white; 
@@ -94,18 +94,18 @@
             position: relative; 
         }
         
-        /* ตกแต่งเลขลำดับด้านหน้า */
-        .rank-number { width: 35px; font-weight: 700; font-size: 18px; color: #888; text-align: left; }
+        /* เลขจัดอันดับด้านหน้า */
+        .rank-number { width: 35px; font-weight: 700; font-size: 18px; color: #888; text-align: left; flex-shrink: 0; }
         .rank-row-1 .rank-number { color: var(--gold); font-size: 24px; }
         .rank-row-2 .rank-number { color: var(--silver); font-size: 22px; }
         .rank-row-3 .rank-number { color: var(--bronze); font-size: 20px; }
         
-        /* สีและ Gradient ของอันดับ 1-3 ตามรูปแบบที่ชอบ */
+        /* คุมโทนสีไล่ระดับอันดับ 1-3 */
         .rank-row-1 { border: 1.5px solid rgba(255, 215, 0, 0.4); background: linear-gradient(90deg, #ffffff, #fffdf0); }
         .rank-row-2 { border: 1.5px solid rgba(192, 192, 192, 0.4); background: linear-gradient(90deg, #ffffff, #f7f8fa); }
         .rank-row-3 { border: 1.5px solid rgba(205, 127, 50, 0.3); background: linear-gradient(90deg, #ffffff, #fdf9f5); }
         
-        /* ขยายขนาดรูปโปรไฟล์ให้ใหญ่ขึ้นแบบรูปที่ 1 เพื่อความชัดเจน */
+        /* รูปโปรไฟล์ขนาดใหญ่ชัดเจน */
         .rank-img-wrapper { 
             width: 70px; 
             height: 70px; 
@@ -126,13 +126,23 @@
         
         .rank-img { width: 100%; height: 100%; object-fit: cover; z-index: 2; }
         
-        /* รายละเอียดข้อความตรงกลาง */
+        /* ส่วนแสดงรายละเอียดข้อมูลตรงกลาง */
         .rank-info { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
-        .rank-name { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .rank-score { font-size: 13px; color: #ff85a2; margin-top: 4px; font-weight: 600; }
         
-        /* เหรียญรางวัลด้านท้ายแถว */
-        .medal-icon { font-size: 24px; margin-left: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        /* ข้อความตำแหน่งด้านบนชื่อเมมเบอร์ แบบจางๆ */
+        .rank-status-text { font-size: 11px; color: #aaa; font-weight: 500; margin-bottom: 2px; text-transform: capitalize; }
+        
+        .rank-name { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* ยอดโหวตแบบไอคอนเหรียญโทเคน */
+        .rank-score { font-size: 14px; color: #ff85a2; margin-top: 4px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .rank-score i { color: #ffd700; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
+        
+        /* เปอร์เซ็นต์ด้านล่างสุดและทำให้ออกจางๆ */
+        .rank-percentage { font-size: 11px; color: #a5a5a5; font-weight: 500; margin-top: 1px; }
+        
+        /* เหรียญรางวัลท้ายแถวอันดับ 1-3 */
+        .medal-icon { font-size: 24px; margin-left: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); flex-shrink: 0; }
         .medal-1 { color: var(--gold); }
         .medal-2 { color: var(--silver); }
         .medal-3 { color: var(--bronze); }
@@ -313,6 +323,18 @@
             const voteCount = Number(member.CurrentVotes || 0).toLocaleString();
             const percentStr = member.VotePercentage || "0.00%"; 
 
+            // สร้างข้อความบอกลำดับภาษาอังกฤษแบบไดนามิกตามลำดับ
+            let placementText = "";
+            if (rank === 1) {
+                placementText = "The winner of this poll is";
+            } else if (rank === 2) {
+                placementText = "The 2nd place of this poll is";
+            } else if (rank === 3) {
+                placementText = "The 3rd place of this poll is";
+            } else {
+                placementText = `The ${rank}th place of this poll is`;
+            }
+
             let medalHtml = "";
             if(rank === 1) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-1"></i>`;
             else if(rank === 2) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-2"></i>`;
@@ -326,8 +348,10 @@
                         <img src="${mImg}" class="rank-img" alt="Member" onerror="this.style.display='none';">
                     </div>
                     <div class="rank-info">
+                        <span class="rank-status-text">${placementText}</span>
                         <span class="rank-name">${mName}</span>
-                        <span class="rank-score">${voteCount} โหวต (${percentStr})</span>
+                        <span class="rank-score"><i class="fa-solid fa-coins"></i> ${voteCount}</span>
+                        <span class="rank-percentage">(${percentStr})</span>
                     </div>
                     ${medalHtml}
                 </div>
