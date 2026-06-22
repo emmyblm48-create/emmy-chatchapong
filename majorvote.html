@@ -151,10 +151,9 @@
             </div>
         </div>
     </div>
-
 <script>
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
-    const APP_VERSION = '1.0.5'; 
+    const APP_VERSION = '1.0.6'; // อัปเดตเวอร์ชันแอปเพื่อเคลียร์ Cache เก่าของระบบ
 
     function getUsernameFromSession() {
         try {
@@ -178,6 +177,7 @@
         const savedVersion = localStorage.getItem('bnl_app_version');
         if (savedVersion !== APP_VERSION) {
             localStorage.removeItem('blm48_major_votes_cache');
+            localStorage.removeItem('bnl_user_data_cache'); // ล้าง Cache ยอดเงินเก่าด้วย
             localStorage.setItem('bnl_app_version', APP_VERSION);
         }
     }
@@ -191,8 +191,12 @@
             return;
         }
         checkAppVersion();
+        
+        // 1. แสดงผลจาก Cache ก่อนเพื่อความรวดเร็วไม่ให้ผู้ใช้เห็นค่าว่าง (-)
         loadWalletFromCache();
-        await Promise.all([loadUserBalances(), loadVoteCampaigns()]);
+        
+        // 2. ยิงดึงข้อมูลแบบ Real-time ขนานกันทันที (เพิ่มการดึงที่สดใหม่และอัปเดตหน้าจอทันที)
+        await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns()]);
     }
 
     function loadWalletFromCache() {
@@ -208,19 +212,28 @@
         } catch (e) { console.error(e); }
     }
 
-    async function loadUserBalances() {
+    // ⚡ ฟังก์ชันดึงยอดเงินล่าสุดแบบเรียลไทม์ (Anti-Cache 100%)
+    async function loadUserBalancesRealTime() {
         try {
-            const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}`;
+            // ใส่ _=${new Date().getTime()} เพื่อป้องกัน Browser จำ Request เก่า ข้อมูลในชีตเปลี่ยน หน้าเว็บจะเปลี่ยนทันที
+            const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}&_=${new Date().getTime()}`;
             const response = await fetch(url);
             const result = await response.json();
+            
             if (result.status === "success" && result.data) {
                 const tokenValue = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
                 const geTokenValue = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
+                
+                // อัปเดตตัวเลขบนหน้าจอทันทีเมื่อได้ข้อมูลล่าสุดจาก Server
                 document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
                 document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
+                
+                // เซฟทับข้อมูล Cache ตัวล่าสุด
                 localStorage.setItem('bnl_user_data_cache', JSON.stringify(result.data));
             }
-        } catch (error) { console.error(error); }
+        } catch (error) { 
+            console.error("โหลดยอดเงินเรียลไทม์ขัดข้อง:", error); 
+        }
     }
 
     async function loadVoteCampaigns() {
@@ -233,7 +246,8 @@
             } catch (e) { console.error(e); }
         }
         try {
-            const url = `${scriptURL}?action=getMajorVoteCollections`;
+            // ใส่ Anti-cache ให้กับรายการแคมเปญโหวตด้วยเช่นกัน เผื่อมีการกดเปิด-ปิดแคมเปญในชีต
+            const url = `${scriptURL}?action=getMajorVoteCollections&_=${new Date().getTime()}`;
             const response = await fetch(url);
             const result = await response.json();
             if (result.status === "success" && result.data && result.data.length > 0) {
@@ -257,23 +271,22 @@
             const status = (camp.Status || "Closed").trim().toUpperCase();
             const isOpen = status === "OPEN"; 
             
-            // 📡 ปรับปรุงการเช็คช่วงเวลา: ป้องกันปัญหาฟิลด์วันเวลาไม่ใช่รูปแบบมาตรฐาน (Invalid Date)
             if (camp.StartTime) {
                 const startTimeParsed = new Date(camp.StartTime).getTime();
-                if (!isNaN(startTimeParsed) && startTimeParsed > now) return; // ซ่อนถ้ายังไม่ถึงเวลาเริ่มจริง ๆ
+                if (!isNaN(startTimeParsed) && startTimeParsed > now) return; 
             }
             if (camp.EndTime) {
                 const endTimeParsed = new Date(camp.EndTime).getTime();
-                if (!isNaN(endTimeParsed) && endTimeParsed < now) return; // ซ่อนถ้าหมดเวลาแล้วจริง ๆ
+                if (!isNaN(endTimeParsed) && endTimeParsed < now) return; 
             }
 
-            // 💡 ดึงรูปภาพ cover: ตรวจสอบความถูกต้องของลิงก์ภาพ
             let coverImgUrl = camp.CoverImage || camp["รูปจากไดร์ฟ"] || "";
             
-            // ป้องกันกรณีข้อมูลรูปภาพโดนเบียดด้วยข้อความอื่นในฐานข้อมูล (เช่น มีวันเวลาต่อท้ายลิงก์ภาพ)
             if (coverImgUrl && coverImgUrl.includes("http")) {
                 const words = coverImgUrl.split(" ");
-                coverImgUrl = words.find(w => w.startsWith("http")) || coverImgUrl;
+                words.forEach(w => {
+                    if (w.startsWith("http")) coverImgUrl = w;
+                });
             }
 
             const hasValidImage = coverImgUrl && coverImgUrl.trim() !== "" && !coverImgUrl.includes("placeholder");
@@ -317,9 +330,9 @@
         icon.classList.add("fa-spin");
         refreshBtn.disabled = true;
         document.getElementById("vote-container").innerHTML = `
-            <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>
+            <div class="loading-text"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
         `;
-        await Promise.all([loadUserBalances(), loadVoteCampaigns()]);
+        await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns()]);
         setTimeout(() => {
             icon.classList.remove("fa-spin");
             refreshBtn.disabled = false;
