@@ -16,9 +16,6 @@
     <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -2039,6 +2036,18 @@ function hideThemeLoadingScreen() {
   const appLoading = document.getElementById('app-loading-screen');
   if (appLoading) appLoading.style.display = 'none';
 }
+
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        // หากผู้ใช้กดย้อนกลับมาหน้านี้ (ดึงจาก bfcache) 
+        // ให้ซ่อน Splash Screen เพื่อความสมูท และแค่ดึงยอดเงินมาอัปเดตเงียบๆ
+        const splash = document.getElementById('splash-screen');
+        if(splash) splash.style.display = 'none';
+        
+        // อัปเดตข้อมูลเงียบๆ (ถ้ามีฟังก์ชัน)
+        if(typeof loadWalletFromCache === "function") loadWalletFromCache();
+    }
+});
 
 // =========================================================================
 // 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันเวอร์ชันเคลียร์บั๊ก)
