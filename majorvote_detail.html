@@ -138,9 +138,15 @@
     const urlParams = new URLSearchParams(window.location.search);
     const campaignId = urlParams.get('id');
 
+    // ⚡ อัปเดตฟังก์ชันเพื่อป้องกันระบบบังคับเปลี่ยน http:// เป็น https:// กับลิงก์ของ googleusercontent.com
     function fixSecureImageUrl(urlStr) {
         if (!urlStr) return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
         let fixedUrl = urlStr.toString().trim();
+        
+        // ถ้าเป็นลิงก์รูปภาพของระบบเราเอง ให้ยกเว้นการแปลง SSL
+        if (fixedUrl.includes("googleusercontent.com")) {
+            return fixedUrl;
+        }
         
         if (fixedUrl.startsWith("http://")) {
             fixedUrl = fixedUrl.replace("http://", "https://");
