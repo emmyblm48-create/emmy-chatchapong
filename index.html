@@ -2068,24 +2068,18 @@ function hideThemeLoadingScreen() {
   if (appLoading) appLoading.style.display = 'none';
 }
 
-// 👑 ยุบรวมเหลืออันเดียว และแก้ปัญหาหน้ารีเฟรช Ranking งับ
-window.addEventListener('pageshow', function(event) {
+  window.addEventListener('pageshow', function(event) {
     if (event.persisted) {
-        // 1. ซ่อน Splash Screen เพื่อความสมูท
+        // หากผู้ใช้กดย้อนกลับมาหน้านี้ (ดึงจาก bfcache) 
+        // ให้ซ่อน Splash Screen เพื่อความสมูท และแค่ดึงยอดเงินมาอัปเดตเงียบๆ
         const splash = document.getElementById('splash-screen');
-        if (splash) splash.style.display = 'none';
+        if(splash) splash.style.display = 'none';
         
-        // 2. อัปเดตข้อมูลกระเป๋าเงินเงียบๆ จาก Cache (ถ้ามี)
-        if (typeof loadWalletFromCache === "function") loadWalletFromCache();
-        
-        // 3. ซิงค์ยอดเงินใน Wallet ล่าสุดให้เป็นปัจจุบัน (ดึงเฉพาะข้อมูลยูสเซอร์ ไม่ดึง Ranking ใหม่)
-        if (typeof user !== 'undefined' && user) {
-            if (typeof syncUserData === 'function') syncUserData();
-        }
-        
-        // ❌ เอา loadData(); ออกไปเรียบร้อยแล้วงับ เพื่อไม่ให้ตารางอันดับ Ranking และ Top Fans โหลดใหม่จนกระพริบ
+        // อัปเดตข้อมูลเงียบๆ (ถ้ามีฟังก์ชัน)
+        if(typeof loadWalletFromCache === "function") loadWalletFromCache();
     }
 });
+
 // =========================================================================
 // 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันเวอร์ชันเคลียร์บั๊ก)
 // =========================================================================
@@ -2170,6 +2164,14 @@ window.addEventListener('load', () => {
   }
   
   // 💡 หมายเหตุ: ถอดระบบเปิด-ปิด hideSplashScreen ตัวเก่าออกแล้ว เพื่อไม่ให้ไปแย่งเวลา 5 วินาทีของตัวใหม่ครับ
+});
+
+// ✨ จุดที่ 3: ดักจับตอนผู้ใช้กดย้อนกลับมาจากหน้าอื่น (Pageshow) ให้ทำการซิงค์ข้อมูลใหม่
+window.addEventListener('pageshow', function(event) {
+  if (event.persisted && user) {
+    if (typeof loadData === 'function') loadData();
+    if (typeof syncUserData === 'function') syncUserData();
+  }
 });
  
 function updateUI() {
