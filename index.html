@@ -2069,16 +2069,11 @@ function hideThemeLoadingScreen() {
 }
 
   window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-        // หากผู้ใช้กดย้อนกลับมาหน้านี้ (ดึงจาก bfcache) 
-        // ให้ซ่อน Splash Screen เพื่อความสมูท และแค่ดึงยอดเงินมาอัปเดตเงียบๆ
-        const splash = document.getElementById('splash-screen');
-        if(splash) splash.style.display = 'none';
-        
-        // อัปเดตข้อมูลเงียบๆ (ถ้ามีฟังก์ชัน)
-        if(typeof loadWalletFromCache === "function") loadWalletFromCache();
-    }
-});
+      // แทนที่จะสั่ง reload ทั้งหน้า ให้เรียกเฉพาะฟังก์ชันอัปเดตเงิน Wallet (ถ้ามี)
+      if (typeof loadUserBalancesRealTime === 'function') {
+          loadUserBalancesRealTime(); 
+      }
+  });
 
 // =========================================================================
 // 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันเวอร์ชันเคลียร์บั๊ก)
