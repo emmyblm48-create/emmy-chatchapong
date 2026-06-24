@@ -1464,79 +1464,146 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .d4 { bottom: 10%; right: 5%; transform: rotate(-25deg); }
 .d5 { top: 40%; left: 60%; transform: rotate(45deg); opacity: 0.3; }
 
-/* กรอบคอนเทนเนอร์หลัก ให้มีขนาดพอดี ไม่ใหญ่คับจอ */
 .monthly-tracker-container {
-  width: 90%;
-  max-width: 360px; /* บังคับขนาดสูงสุดให้ออกมาพอดีเหมือนรูปที่ 1 */
-  margin: 15px auto; /* จัดให้อยู่กึ่งกลางหน้าจอ */
-  padding: 15px;
-  background-color: #ffffff; /* สีพื้นหลัง (ปรับเปลี่ยนได้) */
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 15px; /* 🔻 ลดจาก 20px เพื่อให้ขอบกล่องไม่กว้างเกิน */
+  box-shadow: 0 4px 15px rgba(255, 179, 193, 0.4);
+  margin: 15px auto;
+  max-width: 350px; /* 🔻 ลดจาก 400px เพื่อให้กล่องดูพอดีจอ ไม่ใหญ่เทอะทะ */
+  width: 90%; /* 🌟 เพิ่มอันนี้ เพื่อให้มือถือจอเล็กๆ ก็แสดงผลไม่ล้นจอ */
+  font-family: inherit;
+  box-sizing: border-box; /* 🌟 ทำให้ padding ไม่ไปดันขนาดกล่องให้ใหญ่ขึ้น */
 }
 
-/* ส่วนหัวของ Tracker */
 .tracker-header {
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 15px; /* 🔻 ลดระยะห่างลงนิดหน่อย */
+}
+
+.countdown-label {
+  font-size: 16px; /* 🔻 ลดจาก 18px */
+  font-weight: 800;
+  color: #ff6b81;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .countdown-subtitle {
-  font-size: 14px;
-  color: #333;
+  font-size: 13px; /* 🔻 ลดจาก 14px */
+  color: #888;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.week-block {
+  margin-bottom: 10px;
+}
+
+.week-label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffa8b6;
+  margin-bottom: 10px; /* 🔻 ลดจาก 15px */
+  text-align: center;
+}
+
+.days-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px; /* 🔻 ลดจาก 10px ให้วงกลมอยู่ชิดกันขึ้นดูน่ารักๆ */
+}
+
+/* 🌟 1. คลาสสำหรับครอบ วงกลม + วันที่ */
+.day-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 🌟 2. คลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
+.day-date {
+  font-size: 10px; /* 🔻 ลดจาก 11px */
+  color: #a0a0a0;
+  margin-top: 4px; /* 🔻 ลดจาก 6px */
   font-weight: 600;
 }
 
-/* ตาราง Grid (สมมติว่าเป็นตาราง 7 วัน) */
-.tracker-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  margin-bottom: 15px;
-  justify-items: center;
+.day-circle {
+  width: 32px; /* 🔻 ลดจาก 36px ให้วงกลมเล็กลงหน่อย จะได้เรียง 7 วันพอดีจอ */
+  height: 32px; /* 🔻 ลดจาก 36px */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px; /* 🔻 ลดจาก 14px */
+  font-weight: 600;
+  transition: transform 0.3s ease;
 }
 
-/* กล่อง Countdown Timer */
+.day-circle.checked {
+  background: #ffb3c1;
+  color: white;
+  box-shadow: 0 2px 5px rgba(255, 179, 193, 0.5);
+}
+
+.day-circle.current {
+  background: #fff0f3;
+  color: #d2691e;
+  border: 2px solid #ffb3c1;
+  transform: scale(1.15);
+  box-shadow: 0 4px 10px rgba(255, 179, 193, 0.4);
+  z-index: 1;
+}
+
+.day-circle.future {
+  background: #f1f3f5;
+  color: #adb5bd;
+}
+
+/* ดีไซน์สำหรับกล่องนับถอยหลังวันสุดท้าย */
 .countdown-timer-box {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px; /* ระยะห่างระหว่างตัวเลข */
-  padding: 10px;
-  background-color: #fff0f5; /* สีพื้นหลังกล่องเวลาน่ารักๆ (ปรับได้) */
-  border-radius: 8px;
+  gap: 6px; /* 🔻 ลดจาก 8px */
+  margin-top: 15px; /* 🔻 ลดจาก 25px */
+  padding: 12px; /* 🔻 ลดจาก 15px */
+  background: #fff0f3;
+  border-radius: 15px;
+  border: 2px dashed #ffb3c1;
+  animation: popIn 0.5s ease-out forwards;
 }
 
-/* ส่วนของตัวเลขและข้อความในแต่ละหน่วยเวลา */
 .time-segment {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 40px; /* กำหนดความกว้างขั้นต่ำไม่ให้เบี้ยว */
+  width: 40px; /* 🔻 ลดความกว้างกล่องตัวเลขจาก 50px */
 }
 
-/* ตัวเลขเวลา */
 .time-val {
-  font-size: 20px; /* ลดขนาดตัวเลขลงให้พอดี */
-  font-weight: bold;
-  color: #ff69b4; /* สีตัวเลข (ปรับให้เข้ากับธีม BLM48) */
+  font-size: 20px; /* 🔻 ลดจาก 26px ไม่ให้ตัวเลขใหญ่เกินไป */
+  font-weight: 800;
+  color: #ff6b81;
+  line-height: 1;
 }
 
-/* ข้อความ Days, Hrs, Mins, Secs */
 .time-lbl {
-  font-size: 10px; /* ลดขนาดตัวอักษรลง */
-  color: #888;
+  font-size: 10px; /* 🔻 ลดจาก 11px */
+  color: #ff9fb3;
+  font-weight: 700;
+  margin-top: 4px;
   text-transform: uppercase;
-  margin-top: 2px;
 }
 
-/* เครื่องหมาย : คั่นเวลา */
 .time-separator {
-  font-size: 18px;
-  font-weight: bold;
-  color: #ff69b4;
-  margin-bottom: 12px; /* ขยับให้ตรงกับบรรทัดตัวเลข */
+  font-size: 18px; /* 🔻 ลดจาก 24px */
+  font-weight: 800;
+  color: #ffb3c1;
+  margin-top: -12px; /* 🔻 ปรับเครื่องหมาย : ให้อยู่กึ่งกลางตัวเลขพอดี */
 }
 
   @keyframes popIn {
