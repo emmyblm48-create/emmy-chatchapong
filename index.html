@@ -2240,20 +2240,28 @@ function renderTrendingMVs() {
 // ⏰ INTERNATIONAL COOKIE COUNTDOWN SYSTEM
 // =========================================
 function startCookieCountdown() {
-  const monthNamesEn = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
   function updateTimer() {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0 = Jan, 11 = Dec
 
+    // หาวันสุดท้ายของเดือนปัจจุบัน
     const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
     
-    const monthTextElem = document.getElementById('countdown-month-text');
+    // ดึง Element กล่องนับถอยหลังมาใช้งาน
+    const countdownBox = document.getElementById('finale-countdown');
 
+    // 🌟 เช็คว่า "วันนี้" ตรงกับ "วันสุดท้ายของเดือน" หรือไม่?
+    if (now.getDate() === lastDayOfMonth.getDate()) {
+      // ถ้าใช่วันสุดท้ายของเดือน -> ให้แสดงกล่องนับถอยหลัง (แบบรูปที่ 2)
+      if (countdownBox) countdownBox.style.display = 'flex';
+    } else {
+      // ถ้ายังไม่ใช่วันสุดท้ายของเดือน -> ให้ซ่อนกล่องไว้ (แบบรูปที่ 1)
+      if (countdownBox) countdownBox.style.display = 'none';
+      return; // สั่ง return เพื่อให้ออกจากฟังก์ชัน ไม่ต้องทำงานคำนวณเวลาต่อให้เปลืองเครื่อง
+    }
+
+    // คำนวณเวลาที่เหลือ
     const diff = lastDayOfMonth - now;
 
     if (diff <= 0) {
@@ -2269,6 +2277,7 @@ function startCookieCountdown() {
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
+    // อัปเดตตัวเลขลงหน้าเว็บ
     if(document.getElementById('cd-days')) document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
     if(document.getElementById('cd-hours')) document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
     if(document.getElementById('cd-mins')) document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
