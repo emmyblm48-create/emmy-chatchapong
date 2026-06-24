@@ -269,26 +269,41 @@ body {
 
 
     /* Navbar (แก้ไขให้ชิดขอบจอ 100%) */
-    .navbar {
-      background: white;
-      width: 100%; /* บังคับให้กว้างเต็มจอ */
-      box-sizing: border-box; /* ให้ padding ไม่ดันจนล้นจอ */
-      margin: 0;
-      left: 0;
-      right: 0;
-      padding: 15px 20px;
-      border-bottom: 2px solid #f0f0f0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
+   .navbar {
+      /* 🌟 ตรึงไว้ด้านบนสุดเหมือนเดิม */
+      position: fixed;
       top: 0;
-      z-index: 100;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      box-sizing: border-box;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 20px; /* ระยะห่างด้านในให้ดูโปร่งๆ */
+
+      /* 🤍 ทำให้ล่องหนแบบใสขุ่น ละมุนตา ไม่ทึบ */
+      background: rgba(255, 255, 255, 0.4); /* ใช้สีขาวบางเบามากๆ แค่ 40% */
+      backdrop-filter: blur(12px);          /* สั่งเบลอพื้นหลังให้ลอยสวยงาม */
+      -webkit-backdrop-filter: blur(12px);   /* รองรับสำหรับ iPhone / iPad งับ */
+
+      /* 🙅‍♂️ ไม่ใส่เส้นขอบและไม่ใส่เงา เพื่อให้เนียนล่องหนไปกับหน้าจอ */
+      border-bottom: none;
+      box-shadow: none;
     }
     .brand { font-size: 24px; font-weight: bold; color: var(--primary-pink); letter-spacing: 1px; }
     .nav-btns { display: flex; gap: 15px; }
-    .nav-icon { background: none; border: none; color: #ffb3c1; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
-    .nav-icon:hover { color: var(--primary-pink); transform: scale(1.1); }
+    .nav-icon { color: #252525; /* เปลี่ยนไอคอนทั้งหมดเป็นสีเทาเข้มเกือบดำ */
+      font-size: 18px;
+      margin-left: 15px; /* ระยะเว้นระหว่างไอคอน */
+      text-decoration: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      display: inline-block;
+    }
+    .nav-icon:hover { transform: scale(0.92);
+      opacity: 0.6;
+    }
     
     .navbar, header { /* เปลี่ยนเป็นชื่อคลาสหรือแท็กที่เอ็มมี่ใช้สําหรับแถบบนสุดน้า */
     position: fixed;
@@ -299,7 +314,8 @@ body {
     box-sizing: border-box;
     background-color: #ffffff; /* ปรับสีตามดีไซน์เดิมได้เลยงับ */
     box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
-}
+}   
+    
     
 .bottom-tab-bar {
   /* 👑 Layer 1: ชั้นโปร่งใสล่างสุด ขยายความสูงรวมเพิ่มขึ้นเป็น 110px ให้ Nav ดูสูงเด่น */
@@ -828,67 +844,62 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: relative;
+      overflow: hidden;
 
-      /* 🤍 สไตล์ขาวใสขุ่น (Frosted Glass) ตามที่อยากได้เลยงับ */
-      background: rgba(255, 255, 255, 0.65); /* สีขาวโปร่งแสง 65% เพื่อให้เห็นสีสันพื้นหลังหลักลอยจางๆ */
-      backdrop-filter: blur(12px);           /* สั่งเบลอภาพข้างหลังกล่อง ให้ดูขุ่นละมุนเหมือนกระจกฝ้า */
-      -webkit-backdrop-filter: blur(12px);    /* รองรับระบบ iOS บน iPhone และ iPad */
+      /* 🤍 สไตล์ขาวใสขุ่น (Frosted Glass) เนียนๆ ตา */
+      background: rgba(255, 255, 255, 0.65); 
+      backdrop-filter: blur(12px);           
+      -webkit-backdrop-filter: blur(12px);    
 
-      /* 🙅‍♂️ ไม่กรอบด้านนอก (เอาเส้นขอบออกทั้งหมดตามรีเควสเลยครับ) */
+      /* 🙅‍♂️ ไร้กรอบด้านนอกตามบรีฟงับ */
       border: none;
       outline: none;
 
       /* 🎀 ตกแต่งรูปทรงและระยะห่าง */
-      border-radius: 20px;          /* ความมนของมุมกล่องกำลังน่ารักพอดีตา */
-      padding: 15px 20px;           /* เว้นระยะขอบด้านใน ไม่ให้ตัวอักษรและรูปชิดขอบกล่องเกินไป */
-      margin: 15px;                 /* เว้นระยะห่างด้านนอกออกจากขอบจอ */
+      border-radius: 20px;          
+      padding: 15px 20px;           
+      margin: 15px;                 
 
-      /* ☁️ ใส่เงาสีชมพูฟุ้งๆ บางเบาแทนเส้นขอบ ช่วยให้กล่องดูมีมิติแบบไม่แข็งกระด้าง */
+      /* ☁️ เงาสีชมพูฟุ้งๆ บางเบา ให้กล่องลอยแบบซอฟต์ๆ */
       box-shadow: 0 8px 32px rgba(255, 133, 162, 0.04); 
 
       cursor: pointer;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    /* 🪄 ทริคพิเศษ: ตอนใช้นิ้วจิ้มกดแบนเนอร์ ให้ตัวกล่องยุบตัวลงนิดนึง ดูเหมือนปุ่มในแอปจริงๆ งับ */
+    /* 🪄 เอฟเฟกต์ตอนกดจิ้มแบนเนอร์ */
     .champ-banner:active {
       transform: scale(0.98);
     }
-    
-    /* เอฟเฟกต์แสงวิบวับพื้นหลัง */
-    .champ-banner::before {
-      content: '';
-      position: absolute;
-      top: -50%; left: -50%; width: 200%; height: 200%;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 60%);
-      animation: rotateGlow 10s linear infinite;
-    }
-    @keyframes rotateGlow { 100% { transform: rotate(360deg); } }
 
     .champ-info {
       position: relative;
       z-index: 2;
-      color: #fff;
       flex: 1;
     }
+
     .champ-badge {
       font-size: 13px;
-      color: #d4af37;
+      color: #d4af37; /* สีตัวหนังสือของป้ายยังคงไว้สีทองให้ดูเป็นแชมป์งับ */
       font-weight: 700;
       letter-spacing: 1px;
       text-transform: uppercase;
       margin-bottom: 6px;
     }
+
     .champ-title {
-      font-size: 26px; /* ขยายชื่อแชมป์ขึ้นอีกนิดให้รับกับรูป (จาก 24px เป็น 26px) */
+      font-size: 26px; 
       font-weight: 700;
       margin-bottom: 4px;
-      color: #252525;
+      color: #252525; /* สีเทาเข้มเกือบดำตามที่เอ็มมี่เลือกไว้ */
     }
+
     .champ-month {
       font-size: 13px;
-      color: #252525;
+      color: #4a4a4a; /* สีเทาเข้มเข้าชุดกัน */
     }
+
     .champ-btn-view {
       margin-top: 12px;
       background: #d4af37;
@@ -901,27 +912,29 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .champ-btn-view:hover {
       background: #f4c842;
       transform: translateY(-2px);
     }
-    
-    /* 🌟 ส่วนที่ปรับให้รูปใหญ่กระแทกตา 🌟 */
+
     .champ-img-container {
       position: relative;
       z-index: 2;
-      width: 120px; /* ขยายจาก 95px เป็น 120px ใหญ่เบิ้มๆ! */
+      width: 120px; 
       height: 120px;
       margin-left: 15px; 
-      flex-shrink: 0; /* สำคัญมาก: ป้องกันไม่ให้รูปโดนบีบเป็นวงรีเวลาข้อความยาว */
+      flex-shrink: 0; 
     }
+
+    /* 🌟 ปรับตรงนี้: เอาขอบทองและเงาสีทองตรงมุมกลมๆ ออกให้คลีนสุดๆ 🌟 */
     .champ-img {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       object-fit: cover;
-      border: 4px solid #d4af37; /* เพิ่มความหนาขอบทองให้สมกับขนาดรูป */
-      box-shadow: 0 0 20px rgba(212, 175, 55, 0.5); /* เพิ่มเงาฟุ้งออร่าให้ใหญ่ขึ้น */
+      border: none; /* ❌ เอาเส้นขอบสีทองออกแล้วงับ */
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* ☁️ เปลี่ยนเป็นเงานุ่มๆ สีดำจางๆ เพื่อให้รูปดูมีมิติแทนสีทองครับ */
     }
     
 /* ===================================================
