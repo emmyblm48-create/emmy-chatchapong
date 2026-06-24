@@ -255,11 +255,12 @@
         const savedVersion = localStorage.getItem('bnl_app_version');
         if (savedVersion !== APP_VERSION) {
             localStorage.removeItem('blm48_major_votes_cache');
-            localStorage.removeItem('bnl_vote_wallet_cache'); // ล้าง Cache ยอดเงินแยกเฉพาะของหน้านี้
+            localStorage.removeItem('bnl_vote_wallet_cache'); 
             localStorage.setItem('bnl_app_version', APP_VERSION);
         }
     }
 
+    // 🌟 ตัวแปรหลักที่ใช้เก็บชื่อผู้ใช้ของหน้านี้คือ username
     const username = getUsernameFromSession(); 
 
     async function initPage() {
@@ -270,16 +271,13 @@
         }
         checkAppVersion();
         
-        // 1. ดึง Cache เฉพาะกลุ่มของหน้านี้มาแสดงผลล่วงหน้า ป้องกันการสับสนกับข้อมูลหน้าหลัก
         loadWalletFromCache();
         
-        // 2. โหลดข้อมูลสดใหม่จากเซิร์ฟเวอร์
         await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns()]);
     }
 
     function loadWalletFromCache() {
         try {
-            // ⚡ เปลี่ยนมาดึง Cache ส่วนตัว บันทึกไม่ปนกับ bnl_user_data_cache
             const cachedUserData = localStorage.getItem('bnl_vote_wallet_cache');
             if (cachedUserData) {
                 const user = JSON.parse(cachedUserData);
@@ -288,7 +286,6 @@
                 document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
                 document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
             } else {
-                // ถ้ายังไม่เคยมี Cache หน้านี้เลย ให้ดึงของเก่าจากหน้าหลักมาตั้งต้นก่อนในครั้งแรกสุด
                 const primaryCache = localStorage.getItem('bnl_user_data_cache');
                 if (primaryCache) {
                     const user = JSON.parse(primaryCache);
@@ -314,7 +311,6 @@
                 document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
                 document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
                 
-                // ⚡ จัดการบันทึก Cache แยกตัวแปรไว้ใน 'bnl_vote_wallet_cache' จะได้ไม่ส่งผลย้อนกลับไปแก้ข้อมูลหน้า index.html งับ
                 localStorage.setItem('bnl_vote_wallet_cache', JSON.stringify(result.data));
             }
         } catch (error) { 
@@ -409,51 +405,46 @@
         }
     }
   
-    // 🎟️ ฟังก์ชันเปิดกล่องป๊อปอัปตรวจสอบและ Redeem Code
-async function redeemCode() {
-  if (!user || !user.username) {
-    Swal.fire('ไม่พบเซสชัน', 'กรุณาเข้าสู่ระบบใหม่อีกครั้งนะคะ', 'error');
-    return;
-  }
+    // 🎟️ ฟังก์ชัน Redeem Code ที่แก้ไขตัวแปรเรียบร้อยแล้วค่ะ
+    async function redeemCode() {
+        if (!username) { // ✨ แก้ไขจาก !user เป็น !username
+            Swal.fire('ไม่พบเซสชัน', 'กรุณาเข้าสู่ระบบใหม่อีกครั้งนะคะ', 'error');
+            return;
+        }
 
-  const { value: code } = await Swal.fire({ 
-    title: 'Redeem Code', 
-    input: 'text', 
-    inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...', 
-    showCancelButton: true,
-    confirmButtonColor: '#ff85a2',
-    cancelButtonText: 'ยกเลิก',
-    confirmButtonText: 'ยืนยัน'
-  });
-
-  if (code) {
-    Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-    try {
-      const resp = await fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'redeemCode', username: user.username, code: code })
-      });
-      const res = await resp.json();
-      
-      if (res.status === "success") { 
-        Swal.fire('สำเร็จ!', res.message, 'success').then(() => {
-          // หลังจากเติมโค้ดสำเร็จ ให้รีโหลดหน้าเพื่ออัปเดตกระเป๋าเงินล่าสุดบนจอทันที
-          // (หรือถ้าหน้า majorvote มีฟังก์ชัน syncUserData เหมือนหน้า profile ก็สามารถเปลี่ยนเป็นเรียกฟังก์ชันนั้นแทนได้เลยงับ)
-          if (typeof syncUserData === 'function') {
-            syncUserData();
-          } else {
-            window.location.reload();
-          }
+        const { value: code } = await Swal.fire({ 
+            title: 'Redeem Code', 
+            input: 'text', 
+            inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...', 
+            showCancelButton: true,
+            confirmButtonColor: '#ff85a2',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonText: 'ยืนยัน'
         });
-      } else { 
-        Swal.fire('ผิดพลาด', res.message, 'error'); 
-      }
-    } catch (e) { 
-      console.error(e);
-      Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้งับ', 'error'); 
+
+        if (code) {
+            Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+            try {
+                const resp = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'redeemCode', username: username, code: code }) // ✨ เปลี่ยนเป็น username
+                });
+                const res = await resp.json();
+              
+                if (res.status === "success") { 
+                    Swal.fire('สำเร็จ!', res.message, 'success').then(() => {
+                        // ⚡ เรียกฟังก์ชันนี้เพื่อดึงยอดเงินล่าสุดมาแสดงทันทีโดยไม่ต้อง Refresh หน้าเว็บให้สะดุด
+                        loadUserBalancesRealTime();
+                    });
+                } else { 
+                    Swal.fire('ผิดพลาด', res.message, 'error'); 
+                }
+            } catch (e) { 
+                console.error(e);
+                Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้งับ', 'error'); 
+            }
+        }
     }
-  }
-}
 
     async function handleManualRefresh() {
         const refreshBtn = document.getElementById("refresh-btn");
@@ -470,7 +461,6 @@ async function redeemCode() {
         }, 400);
     }
 
-    // ⚡ แก้ไขจุดนี้: เปลี่ยนจาก DOMContentLoaded เป็น pageshow เพื่อให้หน้าเว็บดึงข้อมูลใหม่ทุกครั้งที่กดย้อนกลับ (แก้ปัญหา BFCache บนนมือถือ)
     window.addEventListener("pageshow", function(event) {
         initPage();
     });
