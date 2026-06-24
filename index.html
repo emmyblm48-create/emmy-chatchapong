@@ -1464,40 +1464,75 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .d4 { bottom: 10%; right: 5%; transform: rotate(-25deg); }
 .d5 { top: 40%; left: 60%; transform: rotate(45deg); opacity: 0.3; }
 
-/* กล่องครอบหลัก ปรับให้โปร่งใส กลืนไปกับพื้นหลังเว็บ */
-  .emmy-tracker-container {
+/* 1. หาตัวนี้ แล้วเปลี่ยนลบพื้นหลัง เงา และ Padding ออกครับ */
+.monthly-tracker-container {
+    background: transparent; /* 👈 เปลี่ยนจาก #ffffff เป็น transparent */
+    border-radius: 20px;
+    padding: 0;              /* 👈 เปลี่ยนจาก 20px เป็น 0 เพื่อไม่ให้กินพื้นที่ */
+    /* box-shadow: 0 4px 15px rgba(255, 179, 193, 0.4); */ /* 👈 ใส่ /* ปิดเงาไว้ หรือลบบรรทัดนี้ทิ้งเลย */
     margin: 15px auto;
-    max-width: 360px;
-    width: 95%;
+    max-width: 350px;        /* 👈 แนะนำปรับลดเหลือ 350px ให้วงกลมชิดกันสวยพอดีรูป */
     font-family: inherit;
-    background: transparent; /* ไม่มีกล่องสีขาวครอบ */
-    box-shadow: none;        /* ไม่มีเงา */
+}
+  
+/* 2. หาตัวนี้ แล้วสั่งซ่อนตัวหนังสือหัวข้อไปเลยครับ */
+.tracker-header {
+    display: none;          /* 👈 เพิ่มบรรทัดนี้เข้าไป เพื่อซ่อน June - Week 4 */
+    text-align: center;
+    margin-bottom: 20px;
+}
+  
+  .countdown-label {
+    font-size: 18px;
+    font-weight: 800;
+    color: #ff6b81;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .countdown-subtitle {
+    font-size: 14px;
+    color: #888;
+    margin-top: 4px;
+    font-weight: 500;
   }
 
-  /* การจัดเรียงวงกลม 7 วันให้อยู่แถวเดียวกันตรงกลาง */
-  .emmy-days-row {
+  .week-block {
+    margin-bottom: 10px;
+  }
+
+  .week-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #ffa8b6;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  .days-row {
     display: flex;
     justify-content: center;
-    gap: 8px; /* ระยะห่างระหว่างวงกลม */
+    gap: 10px;
   }
 
-  /* จัดตำแหน่งวงกลมให้อยู่บน วันที่อยู่ล่าง */
-  .emmy-day-item {
+  /* 🌟 1. เพิ่มคลาสสำหรับครอบ วงกลม + วันที่ */
+  .day-item {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: column; /* จัดให้วงกลมอยู่บน วันที่อยู่ล่าง */
+    align-items: center;    /* จัดให้อยู่ตรงกลางตรงกันในแนวตั้ง */
   }
 
-  /* ตัวหนังสือบอกวันที่ด้านล่างวงกลม */
-  .emmy-day-date {
+  /* 🌟 2. เพิ่มคลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
+  .day-date {
     font-size: 11px;
     color: #a0a0a0;
-    margin-top: 6px;
+    margin-top: 6px;       /* เว้นระยะห่างจากขอบล่างของวงกลม */
     font-weight: 600;
   }
 
-  /* ดีไซน์พื้นฐานของวงกลมแต่ละวัน */
-  .emmy-day-circle {
+  .day-circle {
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -1506,73 +1541,72 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     justify-content: center;
     font-size: 14px;
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease;
   }
 
-  /* สถานะ: วันที่ผ่านมาแล้ว (Checked) */
-  .emmy-day-circle.checked {
+  .day-circle.checked {
     background: #ffb3c1;
     color: white;
-    box-shadow: 0 2px 5px rgba(255, 179, 193, 0.4);
+    box-shadow: 0 2px 5px rgba(255, 179, 193, 0.5);
   }
 
-  /* สถานะ: วันปัจจุบัน (Current) เด่นขึ้นมานิดนึง */
-  .emmy-day-circle.current {
+  .day-circle.current {
     background: #fff0f3;
     color: #d2691e;
     border: 2px solid #ffb3c1;
-    transform: scale(1.12);
-    box-shadow: 0 4px 8px rgba(255, 179, 193, 0.4);
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(255, 179, 193, 0.4);
     z-index: 1;
   }
 
-  /* Status: วันในอนาคต (Future) */
-  .emmy-day-circle.future {
+  .day-circle.future {
     background: #f1f3f5;
     color: #adb5bd;
   }
 
-  /* ดีไซน์กล่องเวลานับถอยหลังแดชสีชมพูสุดน่ารัก */
-  .emmy-countdown-timer-box {
+  /* ดีไซน์สำหรับกล่องนับถอยหลังวันสุดท้าย */
+  .countdown-timer-box {
+    display: flex;
     justify-content: center;
     align-items: center;
-    gap: 6px;
-    margin-top: 20px;
-    padding: 12px;
+    gap: 8px;
+    margin-top: 25px;
+    padding: 15px;
     background: #fff0f3;
     border-radius: 15px;
     border: 2px dashed #ffb3c1;
+    animation: popIn 0.5s ease-out forwards;
   }
 
-  .emmy-time-segment {
+  .time-segment {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 42px;
+    width: 50px;
   }
 
-  .emmy-time-val {
-    font-size: 22px;
+  .time-val {
+    font-size: 26px;
     font-weight: 800;
     color: #ff6b81;
     line-height: 1;
   }
 
-  .emmy-time-lbl {
-    font-size: 10px;
+  .time-lbl {
+    font-size: 11px;
     color: #ff9fb3;
     font-weight: 700;
     margin-top: 4px;
     text-transform: uppercase;
   }
 
-  .emmy-time-separator {
-    font-size: 20px;
+  .time-separator {
+    font-size: 24px;
     font-weight: 800;
     color: #ffb3c1;
-    margin-top: -10px;
+    margin-top: -15px;
   }
-    
+
   @keyframes popIn {
     0% { transform: scale(0.9); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
@@ -1650,29 +1684,32 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       </div>
 </div>
   
-<div class="emmy-tracker-container">
+<div class="monthly-tracker-container">
+  <div class="tracker-header">
+    <div class="countdown-subtitle" id="countdown-month-text">Loading...</div>
+  </div>
   
-  <div id="emmy-weekly-grid" class="emmy-days-row"></div>
+  <div id="weekly-tracker-grid" class="tracker-grid"></div>
 
-  <div id="emmy-countdown-box" class="emmy-countdown-timer-box" style="display: none;">
-    <div class="emmy-time-segment">
-      <span class="emmy-time-val" id="emmy-cd-days">00</span>
-      <span class="emmy-time-lbl">Days</span>
+  <div class="countdown-timer-box" id="finale-countdown" style="display: none;">
+    <div class="time-segment">
+      <span class="time-val" id="cd-days">00</span>
+      <span class="time-lbl">Days</span>
     </div>
-    <span class="emmy-time-separator">:</span>
-    <div class="emmy-time-segment">
-      <span class="emmy-time-val" id="emmy-cd-hours">00</span>
-      <span class="emmy-time-lbl">Hrs</span>
+    <span class="time-separator">:</span>
+    <div class="time-segment">
+      <span class="time-val" id="cd-hours">00</span>
+      <span class="time-lbl">Hrs</span>
     </div>
-    <span class="emmy-time-separator">:</span>
-    <div class="emmy-time-segment">
-      <span class="emmy-time-val" id="emmy-cd-mins">00</span>
-      <span class="emmy-time-lbl">Mins</span>
+    <span class="time-separator">:</span>
+    <div class="time-segment">
+      <span class="time-val" id="cd-mins">00</span>
+      <span class="time-lbl">Mins</span>
     </div>
-    <span class="emmy-time-separator">:</span>
-    <div class="emmy-time-segment">
-      <span class="emmy-time-val" id="emmy-cd-secs">00</span>
-      <span class="emmy-time-lbl">Secs</span>
+    <span class="time-separator">:</span>
+    <div class="time-segment">
+      <span class="time-val" id="cd-secs">00</span>
+      <span class="time-lbl">Secs</span>
     </div>
   </div>
 </div>
@@ -1689,7 +1726,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
   <div id="ranking-list" class="horizontal-list" style="position: relative; z-index: 2;"></div>
 </div>
- 
+  
 <div class="section-title" onclick="toggleTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
   <span>Top Fans</span>
   <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
@@ -1700,6 +1737,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div id="top-fans-wrapper" class="ranking-wrapper" style="max-height: 0px; opacity: 0; padding: 0px 15px; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease, padding 0.3s ease;">
   <div id="global-fan-list" class="horizontal-list"></div>
 </div>
+ 
   
 <div class="shop-banner-slider-wrapper" style="position: relative; margin: 20px 15px; border-radius: 16px; overflow: hidden;">
     
@@ -2230,100 +2268,6 @@ function renderTrendingMVs() {
     scroller.appendChild(card);
   });
 }
-
-function renderWeeklyTracker() {
-  const grid = document.getElementById('emmy-weekly-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  const today = new Date();
-  const currentDay = today.getDay(); // 0 = Sun, 1 = Mon, ...
-  
-  // คำนวณหา วันจันทร์ ของสัปดาห์นี้
-  const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + distanceToMonday);
-
-  // วนลูปสร้างวงกลม 7 วัน (จันทร์ - อาทิตย์)
-  for (let i = 0; i < 7; i++) {
-    const loopDate = new Date(monday);
-    loopDate.setDate(monday.getDate() + i);
-
-    const dayItem = document.createElement('div');
-    dayItem.className = 'emmy-day-item';
-
-    const circle = document.createElement('div');
-    circle.className = 'emmy-day-circle';
-    circle.innerText = loopDate.getDate(); // ใส่เลขวันที่ลงในวงกลม
-
-    // เช็คและใส่สถานะให้วงกลมแต่ละวัน
-    if (loopDate.toDateString() === today.toDateString()) {
-      circle.classList.add('current'); // วันนี้
-    } else if (loopDate < today) {
-      circle.classList.add('checked'); // วันที่ผ่านมาแล้ว
-    } else {
-      circle.classList.add('future');  // วันที่ยังมาไม่ถึง
-    }
-
-    // สร้างตัวอักษรบอกวันข้างล่าง (เช่น M, T, W)
-    const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-    const dateLabel = document.createElement('span');
-    dateLabel.className = 'emmy-day-date';
-    dateLabel.innerText = dayLabels[loopDate.getDay()];
-
-    dayItem.appendChild(circle);
-    dayItem.appendChild(dateLabel);
-    grid.appendChild(dayItem);
-  }
-}
-
-// ฟังก์ชันนับถอยหลัง และควบคุมการแสดงผลเฉพาะวันสุดท้ายของเดือน
-function startCookieCountdown() {
-  const countdownBox = document.getElementById('emmy-countdown-box');
-
-  function updateTimer() {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-
-    // หาวันสุดท้ายของเดือนปัจจุบัน
-    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
-
-    /* 💡 วิธีทดสอบ: ให้เปลี่ยนเงื่อนไขใน if เป็น (true) เพื่อบังคับให้กล่องเวลากล่องโชว์ทันที
-      หากใช้งานจริงให้ใช้: (now.getDate() === lastDayOfMonth.getDate())
-    */
-    if (now.getDate() === lastDayOfMonth.getDate()) {
-      if (countdownBox) countdownBox.style.display = 'flex'; // แสดงกล่องถอยหลัง (รูปที่ 2)
-    } else {
-      if (countdownBox) countdownBox.style.display = 'none'; // ซ่อนกล่องไว้ (รูปที่ 1)
-      return;
-    }
-
-    // คำนวณเวลาถอยหลัง
-    const diff = lastDayOfMonth - now;
-    if (diff <= 0) {
-      document.getElementById('emmy-cd-days').innerText = "00";
-      document.getElementById('emmy-cd-hours').innerText = "00";
-      document.getElementById('emmy-cd-mins').innerText = "00";
-      document.getElementById('emmy-cd-secs').innerText = "00";
-      return;
-    }
-
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-    // ใส่ตัวเลขลงหน้าเว็บ
-    document.getElementById('emmy-cd-days').innerText = String(days).padStart(2, '0');
-    document.getElementById('emmy-cd-hours').innerText = String(hours).padStart(2, '0');
-    document.getElementById('emmy-cd-mins').innerText = String(mins).padStart(2, '0');
-    document.getElementById('emmy-cd-secs').innerText = String(secs).padStart(2, '0');
-  }
-
-  updateTimer();
-  setInterval(updateTimer, 1000);
-}
   
 function renderRanking(data) {
   // 🌟 เพิ่มบรรทัดนี้ลงไปเลยครับ! เพื่อก๊อปปี้ข้อมูลไปให้ renderPost ใช้หาคน Graduated
@@ -2568,6 +2512,92 @@ function confirmLogout() {
 }
 
 let countdownInterval;
+
+function renderTracker() {
+  const container = document.getElementById('weekly-tracker-grid');
+  if (!container) return;
+  
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const today = now.getDate();
+  
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  
+  const currentWeekNumber = Math.ceil(today / 7);
+  const startDay = ((currentWeekNumber - 1) * 7) + 1;
+  const endDay = Math.min(startDay + 6, daysInMonth);
+
+  document.getElementById('countdown-month-text').innerText = `${monthNames[month]} - Week ${currentWeekNumber}`;
+
+  let daysHtml = '';
+
+  // สั้นๆ ย่อชื่อเดือนมาโชว์คู่กับวันที่ (เช่น Jun)
+  const shortMonthName = monthNames[month].substring(0, 3);
+
+  for (let day = startDay; day <= endDay; day++) {
+    let statusClass = 'future';
+    let content = day;
+
+    if (day < today) {
+      statusClass = 'checked';
+      content = '<i class="fas fa-check"></i>';
+    } else if (day === today) {
+      statusClass = 'current';
+      content = '<i class="fas fa-cookie-bite"></i>';
+    }
+
+    // 🌟 [ปรับปรุงจุดนี้] ห่อด้วยเดย์ไอเทม แล้วใส่ text วันที่+เดือน ยัดไว้ด้านล่างวงกลม
+    daysHtml += `
+      <div class="day-item">
+        <div class="day-circle ${statusClass}">${content}</div>
+        <span class="day-date">${day} ${shortMonthName}</span>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="week-block">
+      <div class="days-row">
+        ${daysHtml}
+      </div>
+    </div>
+  `;
+
+  const countdownBox = document.getElementById('finale-countdown');
+  if (today === daysInMonth) {
+    countdownBox.style.display = 'flex';
+    startFinaleCountdown(year, month, daysInMonth);
+  } else {
+    countdownBox.style.display = 'none';
+  }
+}
+
+function startFinaleCountdown(year, month, lastDay) {
+  const targetDate = new Date(year, month + 1, 1, 0, 0, 0).getTime();
+
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    const now = new Date().getTime();
+    const distance = targetDate - now;
+
+    if (distance < 0) {
+      clearInterval(countdownInterval);
+      return;
+    }
+
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+    document.getElementById('cd-mins').innerText = String(minutes).padStart(2, '0');
+    document.getElementById('cd-secs').innerText = String(seconds).padStart(2, '0');
+  }, 1000);
+}
+
+document.addEventListener('DOMContentLoaded', renderTracker);
   
     // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ. (ถอดแบบมาจากหน้า member)
     function formatThaiDate(dateStr) {
