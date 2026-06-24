@@ -2534,7 +2534,8 @@ function renderTracker() {
   const container = document.getElementById('weekly-tracker-grid');
   if (!container) return;
   
-  const now = new Date();
+  // 🇹🇭 จุดที่ 1: บังคับดึงเวลาปัจจุบันให้ตรงกับไทม์โซนประเทศไทย (Asia/Bangkok)
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
   const year = now.getFullYear();
   const month = now.getMonth();
   const today = now.getDate();
@@ -2549,8 +2550,6 @@ function renderTracker() {
   document.getElementById('countdown-month-text').innerText = `${monthNames[month]} - Week ${currentWeekNumber}`;
 
   let daysHtml = '';
-
-  // สั้นๆ ย่อชื่อเดือนมาโชว์คู่กับวันที่ (เช่น Jun)
   const shortMonthName = monthNames[month].substring(0, 3);
 
   for (let day = startDay; day <= endDay; day++) {
@@ -2565,7 +2564,6 @@ function renderTracker() {
       content = '<i class="fas fa-cookie-bite"></i>';
     }
 
-    // 🌟 [ปรับปรุงจุดนี้] ห่อด้วยเดย์ไอเทม แล้วใส่ text วันที่+เดือน ยัดไว้ด้านล่างวงกลม
     daysHtml += `
       <div class="day-item">
         <div class="day-circle ${statusClass}">${content}</div>
@@ -2592,11 +2590,14 @@ function renderTracker() {
 }
 
 function startFinaleCountdown(year, month, lastDay) {
+  // เวลาเป้าหมายคือเที่ยงคืนเมื่อขึ้นวันใหม่ของเดือนถัดไป (ตามเวลาไทยจำลอง)
   const targetDate = new Date(year, month + 1, 1, 0, 0, 0).getTime();
 
   clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
-    const now = new Date().getTime();
+    
+    // 🇹🇭 จุดที่ 2: บังคับให้เวลานับถอยหลังลดลงอิงตามไทม์โซนประเทศไทยเช่นกัน
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })).getTime();
     const distance = targetDate - now;
 
     if (distance < 0) {
