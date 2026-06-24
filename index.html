@@ -824,20 +824,36 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
        👑 CHAMP OF THE MONTH BANNER (EXTRA BIG SIZE)
        ========================================= */
     .champ-banner {
-      background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
-      border: 2px solid #d4af37;
-      border-radius: 26px; /* เพิ่มความมนของกล่องให้รับกับรูปที่ใหญ่ขึ้น */
-      padding: 25px 25px; /* ขยายพื้นที่บนล่างให้กว้างขึ้น */
-      margin: 15px 20px;
+      /* 🌟 จัดการ Layout ข้างในให้จัดวางซ้าย-ขวาอย่างสมดุล */
       display: flex;
       align-items: center;
       justify-content: space-between;
+
+      /* 🤍 สไตล์ขาวใสขุ่น (Frosted Glass) ตามที่อยากได้เลยงับ */
+      background: rgba(255, 255, 255, 0.65); /* สีขาวโปร่งแสง 65% เพื่อให้เห็นสีสันพื้นหลังหลักลอยจางๆ */
+      backdrop-filter: blur(12px);           /* สั่งเบลอภาพข้างหลังกล่อง ให้ดูขุ่นละมุนเหมือนกระจกฝ้า */
+      -webkit-backdrop-filter: blur(12px);    /* รองรับระบบ iOS บน iPhone และ iPad */
+
+      /* 🙅‍♂️ ไม่กรอบด้านนอก (เอาเส้นขอบออกทั้งหมดตามรีเควสเลยครับ) */
+      border: none;
+      outline: none;
+
+      /* 🎀 ตกแต่งรูปทรงและระยะห่าง */
+      border-radius: 20px;          /* ความมนของมุมกล่องกำลังน่ารักพอดีตา */
+      padding: 15px 20px;           /* เว้นระยะขอบด้านใน ไม่ให้ตัวอักษรและรูปชิดขอบกล่องเกินไป */
+      margin: 15px;                 /* เว้นระยะห่างด้านนอกออกจากขอบจอ */
+
+      /* ☁️ ใส่เงาสีชมพูฟุ้งๆ บางเบาแทนเส้นขอบ ช่วยให้กล่องดูมีมิติแบบไม่แข็งกระด้าง */
+      box-shadow: 0 8px 32px rgba(255, 133, 162, 0.04); 
+
       cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .champ-banner:active { transform: scale(0.98); }
+
+    /* 🪄 ทริคพิเศษ: ตอนใช้นิ้วจิ้มกดแบนเนอร์ ให้ตัวกล่องยุบตัวลงนิดนึง ดูเหมือนปุ่มในแอปจริงๆ งับ */
+    .champ-banner:active {
+      transform: scale(0.98);
+    }
     
     /* เอฟเฟกต์แสงวิบวับพื้นหลัง */
     .champ-banner::before {
@@ -849,63 +865,70 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     }
     @keyframes rotateGlow { 100% { transform: rotate(360deg); } }
 
+   /* จัดกลุ่มข้อความฝั่งซ้าย */
     .champ-info {
-      position: relative;
-      z-index: 2;
-      color: #fff;
-      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
+
+    /* ป้าย Champ of the Month ใสๆ ชมพูๆ */
     .champ-badge {
-      font-size: 13px;
-      color: #d4af37;
+      background: rgba(255, 133, 162, 0.1); 
+      color: #ff85a2;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .champ-title {
-      font-size: 26px; /* ขยายชื่อแชมป์ขึ้นอีกนิดให้รับกับรูป (จาก 24px เป็น 26px) */
-      font-weight: 700;
-      margin-bottom: 4px;
-      letter-spacing: 0.5px;
-    }
-    .champ-month {
-      font-size: 13px;
-      color: #cccccc;
-    }
-    .champ-btn-view {
-      margin-top: 12px;
-      background: #d4af37;
-      color: #111;
-      border: none;
-      padding: 8px 18px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 13px;
+      width: fit-content;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ชื่อแชมป์ (Emmy) */
+    .champ-title {
+      font-size: 22px;
       font-weight: 700;
+      color: #444444;
+      margin-top: 3px;
+    }
+
+    /* ข้อความระบุเดือน */
+    .champ-month {
+      font-size: 12px;
+      color: #888888;
+    }
+
+    /* ปุ่ม View Special Thanks ด้านล่าง */
+    .champ-btn-view {
+      background: none;
+      border: none;
+      color: #ff85a2;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 0;
+      text-align: left;
+      margin-top: 5px;
       cursor: pointer;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
-    .champ-btn-view:hover {
-      background: #f4c842;
-      transform: translateY(-2px);
-    }
-    
-    /* 🌟 ส่วนที่ปรับให้รูปใหญ่กระแทกตา 🌟 */
+
+    /* กรอบรูปภาพฝั่งขวา */
     .champ-img-container {
-      position: relative;
-      z-index: 2;
-      width: 120px; /* ขยายจาก 95px เป็น 120px ใหญ่เบิ้มๆ! */
-      height: 120px;
-      margin-left: 15px; 
-      flex-shrink: 0; /* สำคัญมาก: ป้องกันไม่ให้รูปโดนบีบเป็นวงรีเวลาข้อความยาว */
+      width: 85px;
+      height: 85px;
+      flex-shrink: 0; /* ล็อกขนาดไว้ไม่ให้โดนตัวหนังสือเบียดจนเบี้ยว */
     }
+
+    /* ตัวรูปภาพน้องแชมป์ */
     .champ-img {
       width: 100%;
       height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #d4af37; /* เพิ่มความหนาขอบทองให้สมกับขนาดรูป */
-      box-shadow: 0 0 20px rgba(212, 175, 55, 0.5); /* เพิ่มเงาฟุ้งออร่าให้ใหญ่ขึ้น */
+      object-fit: cover; /* สั่งตัดรูปให้เข้ากรอบสี่เหลี่ยมจัตุรัสแบบพอดี */
+      border-radius: 16px; /* ทำมุมรูปภาพให้โค้งมนรับกับตัวกล่องหลัก */
     }
     
 /* ===================================================
