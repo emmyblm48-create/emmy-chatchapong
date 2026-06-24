@@ -588,33 +588,59 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   margin: 30px 0 15px 20px; font-size: 18px; 
   border-left: 5px solid var(--primary-pink); padding-left: 12px; 
 }
+/* =========================================
+   🌟 RANKING WRAPPER (เวอร์ชัน: พื้นหลังใสเคลียร์)
+   ========================================= */
 .ranking-wrapper {
   position: relative;
   
-  /* 🤍 1. เปลี่ยนพื้นหลังเป็นสีขาวทึบ */
-  background-color: #ffffff; 
+  /* 🤍 1. ปรับพื้นหลังให้ใสเคลียร์ 100% ตามรีเควสเลยงับ */
+  background: transparent !important; 
   
-  /* 🚀 2. ดึงกล่องให้กว้างทะลุขอบจอ (ชดเชยกับกรอบแม่ที่เว้นไว้ 20px) */
+  /* 🚀 2. ดึงกล่องให้กว้างทะลุขอบจอ ชนขอบโทรศัพท์พอดีเป๊ะ */
   margin-left: -20px;
   margin-right: -20px;
-  
-  /* 🙅‍♂️ 3. เอาขอบมนออก กล่องจะได้แนบสนิทไปกับขอบจอโทรศัพท์พอดีเป๊ะ */
   border-radius: 0;
   
-  /* 💖 4. เปลี่ยนสีไอคอนในโค้ด SVG ให้เป็นสีชมพูเข้ม (เปลี่ยนตรง %23d81b60) */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23d81b60' fill-opacity='0.15'%3E%3Cpath d='M12 24c0-1.1.9-2 2-2h4v-4c0-1.1.9-2 2-2s2 .9 2 2v4h4c1.1 0 2 .9 2 2s-.9 2-2 2h-4v4c0 1.1-.9 2-2 2s-2-.9-2-2v-4h-4c-1.1 0-2-.9-2-2zm28 12c0-1.1.9-2 2-2h4v-4c0-1.1.9-2 2-2s2 .9 2 2v4h4c1.1 0 2 .9 2 2s-.9 2-2 2h-4v4c0 1.1-.9 2-2 2s-2-.9-2-2v-4h-4c-1.1 0-2-.9-2-2z'/%3E%3C/g%3E%3C/svg%3E");
+  /* ❌ 3. เอาลายน้ำรูปเครื่องหมายบวก (SVG) อันเก่าออกให้แล้วครับ */
+  background-image: none !important; 
   
-  /* 🎀 5. ดันเนื้อหาข้างในเข้ามา 20px ไม่ให้รูปภาพหรือตัวหนังสือไปชิดขอบจอ */
+  /* 🎀 4. ดันเนื้อหารายชื่อ ranking ขยับเข้ามา ไม่ให้ไปเบียดชิดขอบจอ */
   padding: 15px 20px;
-  
-  /* ☁️ เงาขอบด้านใน และกันเนื้อหาล้น */
-  box-shadow: inset 0 2px 8px rgba(255, 179, 193, 0.1);
   overflow: hidden;
   
-  /* (เสริม) ใส่เส้นคั่นบน-ล่างบางๆ สีชมพูอ่อน ให้กล่องดูเป็นสัดส่วนครับ */
-  border-top: 1px solid #fff0f3;
-  border-bottom: 1px solid #fff0f3;
+  /* 🙅‍♂️ เอาเงาและเส้นขอบออกทั้งหมด เพื่อให้เนียนล่องหนไปกับพื้นหลังหลัก */
+  box-shadow: none !important;
+  border: none !important;
 }
+
+/* =========================================
+   💖 เสกไอคอนกระจายตัว ลายน้อยๆ สีชมพูพาสเทล 
+   ========================================= */
+.bg-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* 🚫 สำคัญมาก: เพื่อไม่ให้ตัวไอคอนไปบังเวลาใช้นิ้วจิ้มกดรายชื่อ */
+  z-index: 1;           /* ซ่อนไว้เลเยอร์หลังสุด */
+}
+
+.decor-item {
+  position: absolute;
+  color: #ffb3c1;       /* 🌸 สีชมพูพาสเทลนุ่มละมุนตา */
+  font-size: 15px;      /* ขนาดไอคอนเล็กๆ กำลังน่ารัก ไม่แย่งซีน */
+  opacity: 0.5;         /* ปรับความจางลงครึ่งหนึ่งให้ดูฟีลลายน้ำซอฟต์ๆ */
+}
+
+/* 🪄 สั่งกระจายตำแหน่งไอคอนแต่ละชิ้นแบบสุ่มๆ ทั่วกล่อง (เอ็มมี่ขยับ % เพิ่มลดเองได้น้า) */
+.bg-decorations .d1 { top: 15%; left: 8%;   transform: rotate(-15deg); }  /* 👑 มงกุฎ */
+.bg-decorations .d2 { top: 65%; left: 28%;  transform: rotate(10deg); }   /* ❤️ หัวใจ */
+.bg-decorations .d3 { top: 20%; left: 52%;  transform: rotate(25deg); }   /* ⭐ ดาว */
+.bg-decorations .d4 { top: 70%; left: 78%;  transform: rotate(-12deg); }  /* 🎵 ดนตรี */
+.bg-decorations .d5 { top: 25%; left: 90%;  transform: rotate(15deg); }   /* 🪄 คทาวิเศษ */
+    
 .horizontal-list {
   display: flex; gap: 12px; padding: 10px 20px; 
   overflow-x: auto;               /* เปิดให้เลื่อนซ้าย-ขวาได้ */
