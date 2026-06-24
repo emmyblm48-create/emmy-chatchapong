@@ -1464,145 +1464,80 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .d4 { bottom: 10%; right: 5%; transform: rotate(-25deg); }
 .d5 { top: 40%; left: 60%; transform: rotate(45deg); opacity: 0.3; }
 
+/* กรอบคอนเทนเนอร์หลัก ให้มีขนาดพอดี ไม่ใหญ่คับจอ */
 .monthly-tracker-container {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(255, 179, 193, 0.4);
-    margin: 15px auto;
-    max-width: 400px;
-    font-family: inherit;
-  }
-  
-  .tracker-header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .countdown-label {
-    font-size: 18px;
-    font-weight: 800;
-    color: #ff6b81;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  
-  .countdown-subtitle {
-    font-size: 14px;
-    color: #888;
-    margin-top: 4px;
-    font-weight: 500;
-  }
+  width: 90%;
+  max-width: 360px; /* บังคับขนาดสูงสุดให้ออกมาพอดีเหมือนรูปที่ 1 */
+  margin: 15px auto; /* จัดให้อยู่กึ่งกลางหน้าจอ */
+  padding: 15px;
+  background-color: #ffffff; /* สีพื้นหลัง (ปรับเปลี่ยนได้) */
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
 
-  .week-block {
-    margin-bottom: 10px;
-  }
+/* ส่วนหัวของ Tracker */
+.tracker-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
 
-  .week-label {
-    font-size: 13px;
-    font-weight: bold;
-    color: #ffa8b6;
-    margin-bottom: 15px;
-    text-align: center;
-  }
+.countdown-subtitle {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
 
-  .days-row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
+/* ตาราง Grid (สมมติว่าเป็นตาราง 7 วัน) */
+.tracker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 15px;
+  justify-items: center;
+}
 
-  /* 🌟 1. เพิ่มคลาสสำหรับครอบ วงกลม + วันที่ */
-  .day-item {
-    display: flex;
-    flex-direction: column; /* จัดให้วงกลมอยู่บน วันที่อยู่ล่าง */
-    align-items: center;    /* จัดให้อยู่ตรงกลางตรงกันในแนวตั้ง */
-  }
+/* กล่อง Countdown Timer */
+.countdown-timer-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px; /* ระยะห่างระหว่างตัวเลข */
+  padding: 10px;
+  background-color: #fff0f5; /* สีพื้นหลังกล่องเวลาน่ารักๆ (ปรับได้) */
+  border-radius: 8px;
+}
 
-  /* 🌟 2. เพิ่มคลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
-  .day-date {
-    font-size: 11px;
-    color: #a0a0a0;
-    margin-top: 6px;       /* เว้นระยะห่างจากขอบล่างของวงกลม */
-    font-weight: 600;
-  }
+/* ส่วนของตัวเลขและข้อความในแต่ละหน่วยเวลา */
+.time-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px; /* กำหนดความกว้างขั้นต่ำไม่ให้เบี้ยว */
+}
 
-  .day-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    transition: transform 0.3s ease;
-  }
+/* ตัวเลขเวลา */
+.time-val {
+  font-size: 20px; /* ลดขนาดตัวเลขลงให้พอดี */
+  font-weight: bold;
+  color: #ff69b4; /* สีตัวเลข (ปรับให้เข้ากับธีม BLM48) */
+}
 
-  .day-circle.checked {
-    background: #ffb3c1;
-    color: white;
-    box-shadow: 0 2px 5px rgba(255, 179, 193, 0.5);
-  }
+/* ข้อความ Days, Hrs, Mins, Secs */
+.time-lbl {
+  font-size: 10px; /* ลดขนาดตัวอักษรลง */
+  color: #888;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
 
-  .day-circle.current {
-    background: #fff0f3;
-    color: #d2691e;
-    border: 2px solid #ffb3c1;
-    transform: scale(1.15);
-    box-shadow: 0 4px 10px rgba(255, 179, 193, 0.4);
-    z-index: 1;
-  }
-
-  .day-circle.future {
-    background: #f1f3f5;
-    color: #adb5bd;
-  }
-
-  /* ดีไซน์สำหรับกล่องนับถอยหลังวันสุดท้าย */
-  .countdown-timer-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 25px;
-    padding: 15px;
-    background: #fff0f3;
-    border-radius: 15px;
-    border: 2px dashed #ffb3c1;
-    animation: popIn 0.5s ease-out forwards;
-  }
-
-  .time-segment {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 50px;
-  }
-
-  .time-val {
-    font-size: 26px;
-    font-weight: 800;
-    color: #ff6b81;
-    line-height: 1;
-  }
-
-  .time-lbl {
-    font-size: 11px;
-    color: #ff9fb3;
-    font-weight: 700;
-    margin-top: 4px;
-    text-transform: uppercase;
-  }
-
-  .time-separator {
-    font-size: 24px;
-    font-weight: 800;
-    color: #ffb3c1;
-    margin-top: -15px;
-  }
+/* เครื่องหมาย : คั่นเวลา */
+.time-separator {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff69b4;
+  margin-bottom: 12px; /* ขยับให้ตรงกับบรรทัดตัวเลข */
+}
 
   @keyframes popIn {
     0% { transform: scale(0.9); opacity: 0; }
@@ -1724,6 +1659,16 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div id="ranking-list" class="horizontal-list" style="position: relative; z-index: 2;"></div>
 </div>
  
+<div class="section-title" onclick="toggleTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
+  <span>Top Fans</span>
+  <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
+    <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
+  </div>
+  <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888; transition: transform 0.3s ease;"></i>
+</div>
+<div id="top-fans-wrapper" class="ranking-wrapper" style="max-height: 0px; opacity: 0; padding: 0px 15px; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease, padding 0.3s ease;">
+  <div id="global-fan-list" class="horizontal-list"></div>
+</div>
   
 <div class="shop-banner-slider-wrapper" style="position: relative; margin: 20px 15px; border-radius: 16px; overflow: hidden;">
     
@@ -1740,17 +1685,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </div>
     
     <div id="bannerDotsContainer" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; background: rgba(0, 0, 0, 0.15); padding: 5px 8px; border-radius: 10px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);"></div>
-</div>
-  
-  <div class="section-title" onclick="toggleTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
-  <span>Top Fans</span>
-  <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
-    <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
-  </div>
-  <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888; transition: transform 0.3s ease;"></i>
-</div>
-<div id="top-fans-wrapper" class="ranking-wrapper" style="max-height: 0px; opacity: 0; padding: 0px 15px; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease, padding 0.3s ease;">
-  <div id="global-fan-list" class="horizontal-list"></div>
 </div>
 
     <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
