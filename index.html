@@ -1515,14 +1515,27 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     display: flex;
     justify-content: center;
     gap: 10px;
+    position: relative;
   }
+   .days-row::before {
+  content: '';
+  position: absolute;
+  /* ความสูงวงกลมคือ 36px ครึ่งหนึ่งคือ 18px เส้นจะอยู่กึ่งกลางพอดีเป๊ะ */
+  top: 18px;         
+  left: 20px;         /* เว้นระยะหัวท้ายนิดนึงไม่ให้เส้นเลยวงกลมแรก */
+  right: 20px;        /* เว้นระยะหัวท้ายนิดนึงไม่ให้เส้นเลยวงกลมสุดท้าย */
+  height: 3px;        /* ความหนาของเส้นเชื่อม (ปรับเพิ่มลดตามชอบได้เลยครับ) */
+  background: #f1f3f5; /* สีของเส้น (แนะนำใช้สีเดียวกับวงกลม Future จะดูเนียนมาก) */
+  z-index: 0;         /* สั่งให้เส้นหลบไปอยู่ด้านหลังสุด */
+}
 
-  /* 🌟 1. เพิ่มคลาสสำหรับครอบ วงกลม + วันที่ */
   .day-item {
-    display: flex;
-    flex-direction: column; /* จัดให้วงกลมอยู่บน วันที่อยู่ล่าง */
-    align-items: center;    /* จัดให้อยู่ตรงกลางตรงกันในแนวตั้ง */
-  }
+  display: flex;
+  flex-direction: column; 
+  align-items: center;    
+  position: relative; /* 👈 เพิ่มบรรทัดนี้ */
+  z-index: 1;         /* 👈 ดันให้วงกลมและตัวอักษรลอยขึ้นมาทับเส้นเชื่อม */
+}
 
   /* 🌟 2. เพิ่มคลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
   .day-date {
