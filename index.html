@@ -1465,21 +1465,23 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .d5 { top: 40%; left: 60%; transform: rotate(45deg); opacity: 0.3; }
 
   .monthly-tracker-container {
-    background: transparent; 
-    border-radius: 20px;
-    padding: 0;              
-    margin: 15px auto;
-    max-width: 400px;        
-    width: 100%;             /* 👈 เปลี่ยนเป็น 100% เพื่อให้ปรับขนาดตามหน้าจอมือถือได้นุ่มนวลขึ้น */
-    font-family: inherit;
+  background: transparent; /* ลบกล่องขาวและเงาออก */
+  border-radius: 20px;
+  padding: 0;
+  margin: 15px auto;
+  width: 100%;             /* 👈 ยืดเต็มจอซ้ายขวาเวลาเปิดในมือถือ */
+  max-width: 420px;        /* 👈 ล็อกขนาดไม่ให้กางกว้างเกินไปเวลาเปิดใน iPad หรือคอม */
+  box-sizing: border-box;
+  font-family: inherit;
   }
+
   
-/* 2. หาตัวนี้ แล้วสั่งซ่อนตัวหนังสือหัวข้อไปเลยครับ */
-.tracker-header {
-    display: none;          /* 👈 เพิ่มบรรทัดนี้เข้าไป เพื่อซ่อน June - Week 4 */
-    text-align: center;
-    margin-bottom: 20px;
-}
+  /* 2. หาตัวนี้ แล้วสั่งซ่อนตัวหนังสือหัวข้อไปเลยครับ */
+  .tracker-header {
+      display: none;          /* 👈 เพิ่มบรรทัดนี้เข้าไป เพื่อซ่อน June - Week 4 */
+      text-align: center;
+      margin-bottom: 20px;
+  }
   
   .countdown-label {
     font-size: 18px;
@@ -1499,6 +1501,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   }
 
   .week-block {
+    width: 100%;
     margin-bottom: 10px;
     display: flex;           /* 👈 เพิ่มเพื่อให้รองรับการจัดกึ่งกลาง */
     justify-content: center;  /* 👈 จัดแถววงกลมให้อยู่ตรงกลางหน้าจอ */
@@ -1515,48 +1518,49 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
   .days-row {
     display: flex;
-    justify-content: center;
-    gap: 10px;
+    justify-content: space-between;
+    width: 100%;
     position: relative;
   }
   .days-row::before {
   content: '';
   position: absolute;
-  /* ขนาดวงกลมคือ 36px ครึ่งนึงคือ 18px */
-  top: 18px;         /* อยู่กึ่งกลางความสูงวงกลมพอดี */
-  left: 18px;        /* 👈 จุดเริ่มต้นอยู่ที่กึ่งกลางของวงกลมวงแรกเป๊ะๆ */
-  right: 18px;       /* 👈 จุดสิ้นสุดอยู่ที่กึ่งกลางของวงกลมวงสุดท้ายเป๊ะๆ */
-  height: 3px;       
+  top: 19px; 
+  left: 7.14%;           /* 👈 เส้นจะเริ่มจากกึ่งกลางวงกลมวงแรกเป๊ะๆ ทุกหน้าจอ */
+  right: 7.14%;          /* 👈 เส้นจะไปจบที่กึ่งกลางวงกลมวงสุดท้ายเป๊ะๆ ทุกหน้าจอ */
+  height: 3px;           /* ความหนาของเส้นเชื่อม */
   background: #ffb3c1; 
   z-index: 0;         
   }
 
   .day-item {
   display: flex;
-  flex-direction: column; 
-  align-items: center;    
-  position: relative; /* 👈 เพิ่มบรรทัดนี้ */
-  z-index: 1;         /* 👈 ดันให้วงกลมและตัวอักษรลอยขึ้นมาทับเส้นเชื่อม */
-}
+  flex-direction: column;
+  align-items: center;
+  flex: 1;               /* 👈 เฉลี่ยให้ทุกวันกว้างเท่ากัน 7 ช่อง */
+  position: relative;
+  z-index: 1;
+  }
 
   /* 🌟 2. เพิ่มคลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
   .day-date {
-    font-size: 11px;
-    color: #a0a0a0;
-    margin-top: 6px;       /* เว้นระยะห่างจากขอบล่างของวงกลม */
-    font-weight: 600;
+  font-size: 11px;
+  color: #a0a0a0;
+  margin-top: 6px;
+  font-weight: 600;
+  text-align: center;
   }
-
+    
   .day-circle {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
-    transition: transform 0.3s ease;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 0.3s ease;
   }
 
   .day-circle.checked {
@@ -1581,16 +1585,18 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
   /* ดีไซน์สำหรับกล่องนับถอยหลังวันสุดท้าย */
   .countdown-timer-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 25px;
-    padding: 15px;
-    background: #fff0f3;
-    border-radius: 15px;
-    border: 2px dashed #ffb3c1;
-    animation: popIn 0.5s ease-out forwards;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 25px auto 0 auto;
+  padding: 15px;
+  background: #fff0f3;
+  border-radius: 15px;
+  border: 2px dashed #ffb3c1;
+  max-width: 320px;      /* ไม่ให้กล่องเวลายาวกางจนล้นในคอม */
+  width: 90%;
+  box-sizing: border-box;
   }
 
   .time-segment {
