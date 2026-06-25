@@ -787,33 +787,56 @@
             }
         }
 
-// ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชัน Cache) สำหรับหน้าย่อย
+// ==========================================
+// 🎨 ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชันหน้าย่อย)
+// ==========================================
 function loadChampThemeSubPage() {
   const CACHE_KEY = "bnl_winner_theme_cache";
   
   // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
-  const cachedData = localStorage.getItem(CACHE_KEY);
-  if (cachedData) {
-    try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
+  const cachedDataStr = localStorage.getItem(CACHE_KEY);
+  if (cachedDataStr) {
+    try { 
+        const cachedObj = JSON.parse(cachedDataStr);
+        // 🌟 ดึงมาเฉพาะข้อมูลแชมป์ (ถ้าหลังบ้านส่งเป็น .champ มา ก็ดึงแค่ champ)
+        const champOnly = cachedObj.champ ? cachedObj.champ : cachedObj;
+        applySubPageTheme(champOnly); 
+    } catch (e) {}
   }
 
-  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
-  // ตัวแปรหลังบ้านบางหน้าใช้ scriptURL บางหน้าใช้ SCRIPT_URL ตรวจสอบให้ตรงกันนะครับน้า
   const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
   if (!finalURL) return;
 
+  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
   fetch(`${finalURL}?action=getWinnerTheme`)
     .then(response => response.json())
     .then(newData => {
-      if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกแคชใหม่ล้างอันเก่า
-        applySubPageTheme(newData); // อัปเดตรูปบนจอให้เป็นปัจจุบันทันที
+      // 🌟 สกัดเอามาเฉพาะข้อมูลไอคอนของแชมป์ (ทิ้งข้อมูล Splash วันเกิดไปเลยสำหรับหน้านี้)
+      const newChampData = newData.champ ? newData.champ : newData;
+
+      if (newChampData && newChampData.name) {
+        
+        // แปลงข้อมูลแคชปัจจุบันเพื่อเอามาเทียบว่ามีอะไรอัปเดตไหม
+        let cacheChampStr = "";
+        if (cachedDataStr) {
+            try {
+                const parsed = JSON.parse(cachedDataStr);
+                cacheChampStr = JSON.stringify(parsed.champ ? parsed.champ : parsed);
+            } catch(e) {}
+        }
+
+        // ถ้าพบว่าไอคอนแชมป์มีการเปลี่ยนแปลง ค่อยเรนเดอร์ใหม่
+        if (cacheChampStr !== JSON.stringify(newChampData)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // เซฟแพ็กเกจเต็มลงแคชเผื่อหน้า index มาใช้
+          applySubPageTheme(newChampData); // อัปเดตไอคอนบนจอให้เป็นปัจจุบันทันที
+        }
       }
     }).catch(e => console.error(e));
 }
 
 function applySubPageTheme(champData) {
   if (!champData) return;
+  // อัปเดตแค่ Navbar โลด ไม่ต้องยุ่งกับ Splash Screen ใดๆ
   updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
   updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
   updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
@@ -1048,7 +1071,7 @@ function hideThemeLoadingScreen() {
             if (typeof checkNotificationBadge === 'function') {
                 checkNotificationBadge();
             }
-          loadChampThemeSubPage();
+            loadChampThemeSubPage(); // 🚀 เรียกใช้งานฟังก์ชันที่แก้ใหม่
 
             const tabProfileImg = document.getElementById('tab-profile-img');
             if (tabProfileImg) {
@@ -1069,6 +1092,6 @@ function hideThemeLoadingScreen() {
                 }
             }
         });
-    </script>
+</script>
 </body>
 </html>
