@@ -71,7 +71,7 @@
       z-index: -1;
     
     /* ใส่รูปภาพและการตั้งค่าเดิมตรงนี้ */
-    background-image: url('https://lh3.googleusercontent.com/d/1R_oeJj-5YuZrDiCi9un4B5D9qtcrO35v=s1000'); 
+    background-image: url(''); 
     background-size: cover; 
     background-position: center center; 
     background-repeat: no-repeat; 
@@ -284,8 +284,8 @@ body {
     color: inherit;         /* ป้องกันไม่ให้สีเปลี่ยนเป็นสีน้ำเงินของลิงก์ */
 }
 
-    /* =========================================
-       🤍 NAVBAR STYLE (ปรับแก้ให้เรียบร้อยแล้วงับ)
+/* =========================================
+       🤍 NAVBAR STYLE (โหมดสลับสีอัตโนมัติเมื่อเลื่อนจอ)
        ========================================= */
     .navbar {
       /* 🌟 ตรึงไว้ด้านบนสุดชิดขอบจอ 100% */
@@ -299,23 +299,35 @@ body {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 15px 20px; /* ระยะห่างด้านในให้ดูโปร่งๆ */
+      padding: 15px 20px; 
 
-      /* 🤍 ทำให้ล่องหนแบบใสขุ่น ละมุนตา ไม่ทึบ */
-      background: rgba(255, 255, 255, 0.4) !important; /* ใส่ !important บังคับให้ล่องหนชัวร์ๆ งับ */
-      backdrop-filter: blur(12px) !important;          
-      -webkit-backdrop-filter: blur(12px) !important;   
+      /* 🤍 [ตอนอยู่บนสุด] ตั้งค่าให้เป็นสีขาวล้วน 100% */
+      background: #ffffff; 
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      border-bottom: 1px solid transparent; /* เตรียมพื้นที่ไว้ให้เส้นขอบตอนเลื่อน */
+      box-shadow: none;
 
-      /* 🙅‍♂️ ไม่ใส่เส้นขอบและไม่ใส่เงา เพื่อให้เนียนล่องหนไปกับหน้าจอ */
-      border-bottom: none !important;
-      box-shadow: none !important;
+      /* 🪄 เพิ่ม Transition เพื่อให้เวลาสลับสีมันนุ่มนวล ไม่กระตุกตา */
+      transition: background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* ✨ [ตอนเลื่อนจอลงมา] จะถูกเปลี่ยนเป็นกระจกฝ้าใสขุ่นทันที */
+    .navbar.scrolled {
+      background: rgba(255, 255, 255, 0.4); 
+      backdrop-filter: blur(12px);          
+      -webkit-backdrop-filter: blur(12px);   
+      
+      /* แถม: เพิ่มเส้นขอบล่างและเงาบางๆ ตอนเลื่อนลง เพื่อให้ตัดกับเนื้อหาในเว็บดูหรูขึ้น */
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
     }
 
     /* 🎀 แก้ชื่อแบรนด์ให้เป็นสีเทาเข้มเกือบดำตามธีม */
     .brand { 
       font-size: 24px; 
       font-weight: bold; 
-      color: #252525; /* 🌟 ปรับจากชมพูเดิมให้เป็นสีเทาเข้มเกือบดำงับ */
+      color: #252525; 
       letter-spacing: 1px; 
     }
 
@@ -328,19 +340,18 @@ body {
     .nav-icon { 
       color: #252525; 
       font-size: 18px;
-      margin-left: 15px; /* ระยะเว้นระหว่างไอคอน */
+      margin-left: 15px; 
       text-decoration: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
       display: inline-block;
     }
 
-    /* 🪄 ตอนเอานิ้วไปโดนหรือเมาส์ชี้ ให้จางและยุบลงนิดนึง */
     .nav-icon:hover { 
       transform: scale(0.92);
       opacity: 0.6;
     }
 
-    /* 🌟 ปรับตรงนี้: ลบ .navbar ออก เหลือไว้แค่ header เผื่อระบบอื่นต้องใช้นะครับ */
+    /* ⚠️ ปรับตรงนี้: ถอนคำสั่ง background/box-shadow ของเก่าออก เพื่อไม่ให้มันไปแย่งสีกระจกฝ้า */
     header { 
       position: fixed;
       top: 0;
@@ -348,8 +359,7 @@ body {
       width: 100%;
       z-index: 1000;
       box-sizing: border-box;
-      background-color: #ffffff; 
-      box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
+      pointer-events: none; /* ปล่อยให้คลิกทะลุไปที่ .navbar ได้ */
     }
     
 .bottom-tab-bar {
