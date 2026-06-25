@@ -948,7 +948,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     background: #ff8fa3;
 }
     
-    /* =========================================
+  /* =========================================
    👑 CHAMP OF THE MONTH BANNER (EXTRA BIG SIZE)
    ========================================= */
   .champ-banner {
@@ -957,7 +957,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     align-items: center;
     justify-content: space-between;
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* <--- ตรงนี้สำคัญมาก ช่วยไม่ให้แสงวิ้งๆ ทะลุกรอบออกไป */
 
     /* 🤍 สไตล์ Texture Glass (กระจกฝ้าแบบมีพื้นผิว) */
     background: 
@@ -976,10 +976,32 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
     /* 🎀 ตกแต่งรูปทรงและระยะห่าง */
     border-radius: 20px;          
-    padding: 15px 20px;           
-    margin: 15px;                 
+    padding: 15px 20px;            
+    margin: 15px;                  
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  /* ✨ ส่วนที่เพิ่มใหม่ 1: สร้างเส้นแสงวิ้งๆ พาดผ่านแบนเนอร์ */
+  .champ-banner::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-20deg);
+    animation: shine 3s infinite; /* สั่งให้เล่นอนิเมชันวนลูปทุกๆ 3 วินาที */
+    pointer-events: none; /* กันไม่ให้แสงมาขวางการคลิกปุ่ม */
+    z-index: 10;
+  }
+
+  /* ✨ ส่วนที่เพิ่มใหม่ 2: ควบคุมให้แสงวิ่งจากซ้ายไปขวา */
+  @keyframes shine {
+    0% { left: -100%; }
+    20% { left: 200%; }
+    100% { left: 200%; } /* หน่วงเวลาให้หยุดพักแปปนึงค่อยวิ่งใหม่ จะได้ไม่ตาลาย */
   }
 
   /* 🪄 เอฟเฟกต์ตอนกดจิ้มแบนเนอร์ (คงไว้เหมือนเดิม) */
@@ -1048,7 +1070,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     object-fit: cover;
     border: 4px solid #d4af37; 
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); 
-      }
+  }
 
   /* ===================================================
      🌸 BLM48 CUTE LOGIN STYLE (VERSION 2 - QUICKSAND & KANIT)
