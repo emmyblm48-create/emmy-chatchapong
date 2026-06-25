@@ -708,8 +708,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       text-align: center; 
       background: #fffcf0; 
       padding: 0 2px 12px 2px; 
-      /* 🎯 ปรับเป็น 50% 50% เพื่อให้หัวโค้งมนเป็นโดมสวยงามเสมอ ไม่ว่าจะโดนบีบขนาดไหน */
-      border-radius: 50% 50% 0 0; 
+      border-radius: 42.5px 42.5px 0 0; /* ครึ่งวงกลมเป๊ะๆ */
       border: 2px solid #fee479; 
       box-shadow: 0 -2px 8px rgba(0,0,0,0.02); 
       transition: 0.3s ease; 
@@ -744,8 +743,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .img-wrapper { 
         box-sizing: border-box; 
         position: relative; 
-        /* 🎯 ปรับระยะด้านบนลงมานิดนึงที่ 6px เพื่อความสวยงามขนานแนวขอบโดม */
-        margin: 6px auto 6px; 
+        margin: 4px auto 6px; 
         border-radius: 50%; 
         background: #ffffff;
         border: 2px solid #ffffff; 
@@ -753,8 +751,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         cursor: pointer;
         overflow: visible;
         flex-shrink: 0; 
-        /* 🎯 ใช้ aspect-ratio บังคับให้กรอบรูปเป็นทรงกลม 1:1 ตลอดเวลาโดยไม่ต้องล็อกความสูง px */
-        aspect-ratio: 1 / 1;
     }
 
     .img-wrapper img { 
@@ -765,17 +761,35 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         display: block;
     }
     
-    /* 🎯 ปรับขนาดรูปเป็นเปอร์เซ็นต์ (%) เพื่อให้ยืดหดตามความกว้างแท่งกราฟอัตโนมัติ */
+    /* 💻 ขนาดสำหรับหน้าจอคอมและไอแพด (ขนาดเดิมที่คุณเอ็มมี่ถูกใจ) */
     .rank-1 .img-wrapper,
     .rank-2 .img-wrapper,
     .rank-3 .img-wrapper { 
-        width: 84% !important; 
-        height: auto !important; 
+        width: 78px !important; 
+        height: 78px !important; 
     }
-    
     .rank-other .img-wrapper {  
-        width: 76% !important; 
-        height: auto !important;
+        width: 74px !important; 
+        height: 74px !important;
+    }
+
+    /* 📱 🎯 ส่วนที่แยกขนาดพิเศษสำหรับ "มือถือเท่านั้น" (หน้าจอไม่เกิน 480px) */
+    @media (max-width: 480px) {
+        .img-wrapper {
+            /* ขยับระยะด้านบนลงมานิดนึงเพื่อให้เข้ากับส่วนโค้งพอดี */
+            margin: 6px auto 6px !important; 
+        }
+        /* ย่อขนาดรูปลงเล็กน้อยเพื่อให้หดเข้าไปอยู่ภายในกรอบครึ่งวงกลมเหลือง ไม่ล้นขอบ */
+        .rank-1 .img-wrapper,
+        .rank-2 .img-wrapper,
+        .rank-3 .img-wrapper { 
+            width: 60px !important; 
+            height: 60px !important; 
+        }
+        .rank-other .img-wrapper {  
+            width: 55px !important; 
+            height: 55px !important;
+        }
     }
 
     /* สไตล์รายละเอียดอื่นๆ */
