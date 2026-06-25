@@ -949,62 +949,59 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 }
     
 /* =========================================
-   👑 CHAMP OF THE MONTH BANNER (EXTRA BIG SIZE)
+   👑 CHAMP OF THE MONTH BANNER (GLAM LUXURY SIZE)
    ========================================= */
   .champ-banner {
-    /* 🌟 จัดการ Layout ข้างในให้จัดวางซ้าย-ขวาอย่างสมดุล */
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
-    overflow: hidden; /* <--- ตรงนี้สำคัญมาก ช่วยไม่ให้แสงวิ้งๆ ทะลุกรอบออกไป */
+    overflow: hidden;
 
-    /* 🤍 สไตล์ Texture Glass (กระจกฝ้าแบบมีพื้นผิว) */
+    /* 🖤 เปลี่ยนเป็นกระจกดำรมควัน ผสมทองคำหรู (Luxury Dark Glass) */
     background: 
-      /* 1. ใส่ Texture สัญญาณรบกวนจางๆ (Noise) ให้ดูเหมือนพื้นผิวกระจก */
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
-      /* 2. รองพื้นด้วยสีขาวขุ่นโปร่งแสง */
-      rgba(255, 255, 255, 0.55); 
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, rgba(20, 20, 20, 0.88) 0%, rgba(43, 36, 18, 0.92) 100%); 
 
-    backdrop-filter: blur(14px);           
-    -webkit-backdrop-filter: blur(14px);    
+    backdrop-filter: blur(16px);           
+    -webkit-backdrop-filter: blur(16px);    
 
-    /* ✨ เพิ่มเส้นขอบใสๆ แบบ Glassmorphism ให้ดูกล่องมีมิติหนาขึ้น */
-    border: 1px solid rgba(255, 255, 255, 0.9);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-    border-right: 1px solid rgba(255, 255, 255, 0.4);
+    /* ✨ เปลี่ยนขอบให้เป็นสีทองคำขาวและทองคำแท้แบบบางเฉียบเฉียบคม */
+    border: 1px solid rgba(254, 228, 121, 0.35);
+    border-bottom: 1px solid rgba(254, 228, 121, 0.15);
+    border-right: 1px solid rgba(254, 228, 121, 0.15);
 
-    /* 🎀 ตกแต่งรูปทรงและระยะห่าง */
+    /* 🎀 ตกแต่งรูปทรงและเพิ่มเงามืดด้านหลังให้กล่องดูลอยเด่น */
     border-radius: 20px;          
     padding: 15px 20px;            
     margin: 15px;                  
     cursor: pointer;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  /* ✨ ส่วนที่เพิ่มใหม่ 1: สร้างเส้นแสงวิ้งๆ พาดผ่านแบนเนอร์ */
+  /* ✨ แสงวิ้งพาดกระจกแบบคมชัด (Diamond Sweep) */
   .champ-banner::after {
     content: "";
     position: absolute;
     top: 0;
     left: -100%;
-    width: 50%;
+    width: 60%;
     height: 100%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0) 100%);
-    transform: skewX(-20deg);
-    animation: shine 3s infinite; /* สั่งให้เล่นอนิเมชันวนลูปทุกๆ 3 วินาที */
-    pointer-events: none; /* กันไม่ให้แสงมาขวางการคลิกปุ่ม */
+    /* ปรับให้แสงวิ้งขาวสว่างวาบขึ้นสไตล์ Glam */
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 0) 100%);
+    transform: skewX(-25deg);
+    animation: shine 3s infinite ease-in-out;
+    pointer-events: none;
     z-index: 10;
   }
 
-  /* ✨ ส่วนที่เพิ่มใหม่ 2: ควบคุมให้แสงวิ่งจากซ้ายไปขวา */
   @keyframes shine {
     0% { left: -100%; }
-    20% { left: 200%; }
-    100% { left: 200%; } /* หน่วงเวลาให้หยุดพักแปปนึงค่อยวิ่งใหม่ จะได้ไม่ตาลาย */
+    25% { left: 200%; }
+    100% { left: 200%; }
   }
 
-  /* 🪄 เอฟเฟกต์ตอนกดจิ้มแบนเนอร์ (คงไว้เหมือนเดิม) */
   .champ-banner:active {
     transform: scale(0.98);
   }
@@ -1016,49 +1013,57 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   }
 
   .champ-badge {
-    font-size: 13px;
-    color: #fee479; /* 💛 เปลี่ยนเป็นสีเหลืองทองอ่อนละมุน */
-    font-weight: 700;
-    letter-spacing: 1px;
+    font-size: 12px;
+    color: #fee479; /* สีทองสว่างคู่สีตัดกับพื้นหลังมืด */
+    font-weight: 800;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
     margin-bottom: 6px;
+    /* เพิ่มเงาเรืองแสงให้ตัวหนังสือป้ายแชมป์ */
+    text-shadow: 0 0 8px rgba(254, 228, 121, 0.4); 
   }
 
   .champ-title {
-    font-size: 26px; 
-    font-weight: 700;
+    font-size: 28px; 
+    font-weight: 800;
     margin-bottom: 4px;
-    color: #252525; /* สีเทาเข้มเกือบดำตามที่เอ็มมี่เลือกไว้ */
+    color: #ffffff; /* 🤍 เปลี่ยนชื่อเป็นสีขาวบริสุทธิ์เพื่อความโดดเด่นสูงสุด */
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
   }
 
   .champ-month {
     font-size: 13px;
-    color: #4a4a4a; /* สีเทาเข้มเข้าชุดกัน */
+    color: #cccccc; /* 🤍 เปลี่ยนข้อความเดือนเป็นเทาอ่อนเพื่อให้ชื่อเด่น */
   }
 
   .champ-btn-view {
-    margin-top: 12px;
-    background: #fee479; /* 💛 เปลี่ยนพื้นหลังปุ่มเป็นสี #fee479 */
-    color: #111;
+    margin-top: 14px;
+    /* 💛 ปรับปุ่มเป็นสีไล่เฉดทองคำเมทัลลิก (Metallic Gold Gradient) */
+    background: linear-gradient(135deg, #fee479 0%, #e6c13b 100%); 
+    color: #000000; /* ตัวหนังสือดำเข้มคมชัด */
     border: none;
-    padding: 8px 18px;
+    padding: 9px 22px;
     border-radius: 20px;
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(230, 193, 59, 0.3);
+    transition: all 0.3s;
   }
 
   .champ-btn-view:hover {
-    background: #fddc54; /* 💛 ตอนเมาส์ชี้ ปรับให้เข้มขึ้นนิดนึงเพื่อให้ปุ่มดูมีมิติเวลากด */
+    background: linear-gradient(135deg, #ffffff 0%, #fee479 100%); /* สลับเป็นทองขาวตอนโฮเวอร์ */
+    box-shadow: 0 6px 20px rgba(254, 228, 121, 0.6);
     transform: translateY(-2px);
   }
 
   .champ-img-container {
     position: relative;
     z-index: 2;
-    width: 120px; 
-    height: 120px;
+    width: 125px; 
+    height: 125px;
     margin-left: 15px; 
     flex-shrink: 0; 
   }
@@ -1068,9 +1073,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid #fee479; /* 💛 เปลี่ยนกรอบรูปเป็นสี #fee479 */
-    /* 💛 ปรับแสงออร่ารอบรูปโปรไฟล์ให้เป็นสี #fee479 แบบฟุ้งๆ (โปร่งแสง 60%) */
-    box-shadow: 0 4px 15px rgba(254, 228, 121, 0.6); 
+    border: 3px solid #fee479; 
+    /* 💛 เพิ่มเอฟเฟกต์ออร่าเรืองแสงสีทองรอบรูปแชมป์ให้ดูทรงพลัง */
+    box-shadow: 0 0 25px rgba(254, 228, 121, 0.65), 0 4px 10px rgba(0,0,0,0.5); 
   }
 
   /* ===================================================
