@@ -94,7 +94,7 @@
             if (res.status === "success") {
                 let html = `
                     <div class="history-section">
-                        <div class="history-title">🛒 ประวัติการช้อปปิ้ง</div>
+                        <div class="history-title">🛒 Shopping</div>
                         <div class="history-scroll-container">
                             ${res.purchaseHistory?.length ? res.purchaseHistory.map(log => `
                                 <div class="fan-row">
@@ -109,7 +109,7 @@
                     </div>
 
                     <div class="history-section">
-                        <div class="history-title">💖 ประวัติการส่งกำลังใจ</div>
+                        <div class="history-title">💖 Cookie</div>
                         <div class="history-scroll-container">
                             ${res.giveLogs?.length ? res.giveLogs.map(log => `
                                 <div class="fan-row">
@@ -120,6 +120,22 @@
                                     <div class="fan-cookies">${log.amount} 🍪</div>
                                 </div>
                             `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่เคยปาคุกกี้เลยงับ</p>'}
+                        </div>
+                    </div>
+                    
+                    <div class="history-section">
+                        <div class="history-title">🗳️ Transaction</div>
+                        <div class="history-scroll-container">
+                            ${res.voteLogs?.length ? res.voteLogs.map(log => `
+                                <div class="fan-row">
+                                    <div class="fan-info">
+                                        <div class="fan-name">โหวตให้: ${log.member}</div>
+                                        <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
+                                        <div class="timestamp" style="font-size: 10px; color: #88b3f7; margin-top: 2px;">แคมเปญ: ${log.collectionId}</div>
+                                    </div>
+                                    <div class="fan-cookies" style="color: #ff6b81;">${log.amount} โหวต</div>
+                                </div>
+                            `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่มีประวัติการโหวตงับ</p>'}
                         </div>
                     </div>
                 `;
