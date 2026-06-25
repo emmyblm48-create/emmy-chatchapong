@@ -583,27 +583,40 @@
       }
     };
     
-// ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชันอัปเกรดเปิดรับพารามิเตอร์)
-function loadChampThemeSubPage(customURL) {
+function loadChampThemeSubPage() {
   const CACHE_KEY = "bnl_winner_theme_cache";
   
-  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (เร็วที่สุด)
-  const cachedData = localStorage.getItem(CACHE_KEY);
-  if (cachedData) {
-    try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
+  // 1. ดึงแคชมาแสดงผลทันที (ลดการกระพริบของไอคอน)
+  const cachedDataStr = localStorage.getItem(CACHE_KEY);
+  if (cachedDataStr) {
+    try { 
+        const cachedObj = JSON.parse(cachedDataStr);
+        const champOnly = cachedObj.champ ? cachedObj.champ : cachedObj;
+        applySubPageTheme(champOnly); 
+    } catch (e) {}
   }
 
-  // 2. เลือกใช้ URL: ถ้าส่งมาในวงเล็บให้ใช้ก่อน ถ้าไม่มีให้ไปหาตัวแปร Global
-  const finalURL = customURL || (typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : ''));
-  if (!finalURL) return; // ถ้าไม่เจอ URL เลย ให้ยกเลิกทำงานพาร์ท Fetch หลังบ้าน
+  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+  if (!finalURL) return;
 
-  // 3. แอบไปเช็กข้อมูลใหม่เงียบๆ
+  // 2. ตรวจสอบอัปเดตจากเซิร์ฟเวอร์
   fetch(`${finalURL}?action=getWinnerTheme`)
     .then(response => response.json())
     .then(newData => {
-      if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(newData));
-        applySubPageTheme(newData); // อัปเดตทันทีถ้าหลังบ้านเปลี่ยนคนชนะ
+      const newChampData = newData.champ ? newData.champ : newData;
+      if (newChampData && newChampData.name) {
+        let cacheChampStr = "";
+        if (cachedDataStr) {
+            try {
+                const parsed = JSON.parse(cachedDataStr);
+                cacheChampStr = JSON.stringify(parsed.champ ? parsed.champ : parsed);
+            } catch(e) {}
+        }
+        // อัปเดตเมื่อข้อมูลมีการเปลี่ยนแปลงเท่านั้น
+        if (cacheChampStr !== JSON.stringify(newChampData)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); 
+          applySubPageTheme(newChampData); 
+        }
       }
     }).catch(e => console.error(e));
 }
