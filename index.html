@@ -668,19 +668,19 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .bg-decorations .d5-2 { top: 80%; left: 68%;  transform: rotate(-5deg); }
     .bg-decorations .d5-3 { top: 40%; left: 86%;  transform: rotate(15deg); }
 
-    .horizontal-list {
+.horizontal-list {
       display: flex; 
-      flex-wrap: nowrap;               /* 🎯 1. บังคับให้อยู่บรรทัดเดียวกัน ห้ามบีบตกบรรทัด */
-      overflow-x: auto;                
-      scroll-behavior: smooth;         
-      align-items: flex-end; 
+      flex-wrap: nowrap; 
+      overflow-x: auto; 
+      scroll-behavior: smooth; 
+      align-items: flex-end; /* 🎯 ถูกต้องแล้ว: ให้ฐานกราฟตั้งอยู่ระดับเดียวกัน */
       margin: 0 auto;
-      /* scroll-snap-type: x mandatory; แนะนำให้เอาอันนี้ออกก่อนครับ บางทีทำมือถือเลื่อนติดขัด */
       -webkit-overflow-scrolling: touch; 
-      gap: 6px;                       
-      padding: 10px 15px;
-      cursor: grab;                    
-      user-select: none;               
+      gap: 6px; 
+      /* 🎯 ปรับ padding ล่างให้เป็น 0 กราฟจะได้ติดฐานล่างพอดี ไม่ลอย */
+      padding: 10px 15px 0 15px;
+      cursor: grab; 
+      user-select: none; 
     }
 
     .horizontal-list:active {
@@ -696,15 +696,19 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     }
 
     .member-card { 
-      box-sizing: border-box; /* 🎯 2. สำคัญมาก! สั่งให้มือถือนับ Border กับ Padding รวมใน 85px ด้วย */
+      box-sizing: border-box; 
       width: 85px; 
-      flex: 0 0 85px; /* 🎯 ล็อกความกว้างไว้ตายตัวที่ 85px ไม่ให้มือถือยืดหดเอง */
+      flex: 0 0 85px; 
       text-align: center; 
-      background: rgba(254, 228, 121, 0.4);
-      padding: 10px 2px 12px 2px; 
-      border-radius: 40px 40px 15px 15px; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
-      border: 2px solid #fee479;
+      /* 🎯 1. เปลี่ยนสีพื้นหลังให้อ่อนลงและคลีนขึ้นแบบภาพแรก */
+      background: #f7f9fa; 
+      padding: 12px 2px 12px 2px; 
+      /* 🎯 2. โค้งแค่มุมบน ด้านล่างตั้งฉากเพื่อให้ดูเป็นกราฟแท่ง */
+      border-radius: 16px 16px 0 0; 
+      /* 🎯 3. เอาเส้นขอบออก */
+      border: none; 
+      /* 🎯 เพิ่มเงาบางๆ ให้กราฟดูแยกออกจากพื้นหลังนิดนึง */
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.02); 
       transition: 0.3s ease; 
       display: flex; 
       flex-direction: column; 
@@ -713,35 +717,36 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     }
 
     .member-card:hover { 
-      transform: translateY(-8px); 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+      transform: translateY(-4px); 
     }
 
-    .rank-1 { height: 250px !important; border-color: #fee479 !important;}
-    .rank-2 { height: 240px !important; border-color: #fee479 !important; }
-    .rank-3 { height: 230px !important; border-color: #fee479 !important; }
+    /* 🎯 ปรับสีพื้นหลังของแต่ละอันดับให้คล้ายภาพแรก (พาสเทลอ่อนๆ) และเอาขอบออก */
+    .rank-1 { height: 250px !important; background: rgba(182, 230, 226, 0.4) !important; border: none !important; }
+    .rank-2 { height: 240px !important; background: rgba(245, 233, 237, 0.5) !important; border: none !important; }
+    .rank-3 { height: 230px !important; background: rgba(245, 233, 237, 0.5) !important; border: none !important; }
     
     .rank-other {
         height: 220px !important; 
-        border: 2px solid #fee479 !important;
-        background: rgba(254, 228, 121, 0.4);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        background: #f8f8f8 !important;
+        border: none !important;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 10px;
+        padding-top: 12px;
     }
 
     .img-wrapper { 
-        box-sizing: border-box; /* 🎯 3. ให้ขอบของวงกลมรวมอยู่ในความกว้าง 78px ด้วย จะได้ไม่ล้น */
+        box-sizing: border-box; 
         position: relative; 
         margin: 0 auto 8px; 
         border-radius: 50%; 
-        background: #fcfcfc;
-        border: 1px solid #eee; 
+        background: #ffffff;
+        /* 🎯 เปลี่ยนเส้นขอบรูปเป็นสีขาว และใส่เงาให้รูปเด้งออกมา */
+        border: 2px solid #ffffff; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
         cursor: pointer;
         overflow: visible;
-        flex-shrink: 0; /* 🎯 กันมือถือบีบรูปจนเบี้ยว */
+        flex-shrink: 0; 
     }
 
     .img-wrapper img { 
@@ -757,14 +762,15 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .rank-3 .img-wrapper { 
         width: 78px !important; 
         height: 78px !important; 
-        border: 2px solid #fee479 !important; 
+        /* 🎯 บังคับขอบขาวล้วน */
+        border: 2px solid #ffffff !important; 
     }
     
     .rank-other .img-wrapper {  
         width: 74px !important; 
         height: 74px !important;
-        border: 2px solid #fee479 !important;
-        box-shadow: none;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
     .rank-badge { 
@@ -780,9 +786,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         font-weight: 700; 
         font-size: 9px; 
         border: 2px solid white; 
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* เพิ่มเงาให้ดูมีมิติ */
-        z-index: 10; /* สำคัญ: ให้ไอคอนอยู่ชั้นบนสุด */
-        background: white; /* ใส่พื้นหลังให้ไอคอนทึบ */
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+        z-index: 10; 
+        background: white; 
     }
     .rank-1 .rank-badge { background: var(--gold); color: white; }
     .rank-2 .rank-badge { background: var(--silver); color: white; }
@@ -808,7 +814,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       font-size: 12px; 
       color: var(--primary-pink); 
       font-weight: 700; 
-      margin-bottom: 6px; /* ดันปุ่มลงเล็กน้อย */
+      margin-bottom: 6px; 
     }
 
     /* Modals & Stats */
