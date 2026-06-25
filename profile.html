@@ -922,27 +922,40 @@ body {
     });
   }
   
-  // ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชัน Cache) สำหรับหน้าย่อย
 function loadChampThemeSubPage() {
   const CACHE_KEY = "bnl_winner_theme_cache";
   
-  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
-  const cachedData = localStorage.getItem(CACHE_KEY);
-  if (cachedData) {
-    try { applySubPageTheme(JSON.parse(cachedData)); } catch (e) {}
+  // 1. ดึงแคชมาแสดงผลทันที (ลดการกระพริบของไอคอน)
+  const cachedDataStr = localStorage.getItem(CACHE_KEY);
+  if (cachedDataStr) {
+    try { 
+        const cachedObj = JSON.parse(cachedDataStr);
+        const champOnly = cachedObj.champ ? cachedObj.champ : cachedObj;
+        applySubPageTheme(champOnly); 
+    } catch (e) {}
   }
 
-  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
-  // ตัวแปรหลังบ้านบางหน้าใช้ scriptURL บางหน้าใช้ SCRIPT_URL ตรวจสอบให้ตรงกันนะครับน้า
   const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
   if (!finalURL) return;
 
+  // 2. ตรวจสอบอัปเดตจากเซิร์ฟเวอร์
   fetch(`${finalURL}?action=getWinnerTheme`)
     .then(response => response.json())
     .then(newData => {
-      if (newData && newData.name && cachedData !== JSON.stringify(newData)) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // บันทึกแคชใหม่ล้างอันเก่า
-        applySubPageTheme(newData); // อัปเดตรูปบนจอให้เป็นปัจจุบันทันที
+      const newChampData = newData.champ ? newData.champ : newData;
+      if (newChampData && newChampData.name) {
+        let cacheChampStr = "";
+        if (cachedDataStr) {
+            try {
+                const parsed = JSON.parse(cachedDataStr);
+                cacheChampStr = JSON.stringify(parsed.champ ? parsed.champ : parsed);
+            } catch(e) {}
+        }
+        // อัปเดตเมื่อข้อมูลมีการเปลี่ยนแปลงเท่านั้น
+        if (cacheChampStr !== JSON.stringify(newChampData)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); 
+          applySubPageTheme(newChampData); 
+        }
       }
     }).catch(e => console.error(e));
 }
