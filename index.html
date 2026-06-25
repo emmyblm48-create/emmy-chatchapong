@@ -673,41 +673,30 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       flex-wrap: nowrap; 
       overflow-x: auto; 
       scroll-behavior: smooth; 
-      align-items: flex-end; /* 🎯 ถูกต้องแล้ว: ให้ฐานกราฟตั้งอยู่ระดับเดียวกัน */
+      align-items: flex-end; /* ให้ฐานกราฟเท่ากัน */
       margin: 0 auto;
       -webkit-overflow-scrolling: touch; 
       gap: 6px; 
-      /* 🎯 ปรับ padding ล่างให้เป็น 0 กราฟจะได้ติดฐานล่างพอดี ไม่ลอย */
-      padding: 10px 15px 0 15px;
+      padding: 10px 15px 0 15px; /* ปรับ padding ล่างเป็น 0 */
       cursor: grab; 
       user-select: none; 
     }
 
-    .horizontal-list:active {
-      cursor: grabbing;
-    }
-
-    .horizontal-list::-webkit-scrollbar {
-      display: none; 
-    }
-    .horizontal-list {
-      -ms-overflow-style: none;  
-      scrollbar-width: none;  
-    }
-
+    /* สไตล์หลักของแท่งกราฟ - ส่วนที่ปรับ */
     .member-card { 
       box-sizing: border-box; 
       width: 85px; 
       flex: 0 0 85px; 
       text-align: center; 
-      /* 🎯 1. เปลี่ยนสีพื้นหลังให้อ่อนลงและคลีนขึ้นแบบภาพแรก */
-      background: #f7f9fa; 
-      padding: 12px 2px 12px 2px; 
-      /* 🎯 2. โค้งแค่มุมบน ด้านล่างตั้งฉากเพื่อให้ดูเป็นกราฟแท่ง */
-      border-radius: 16px 16px 0 0; 
-      /* 🎯 3. เอาเส้นขอบออก */
-      border: none; 
-      /* 🎯 เพิ่มเงาบางๆ ให้กราฟดูแยกออกจากพื้นหลังนิดนึง */
+      /* 🎯 1. ยังคงเป็นสีเหลืองอ่อนสว่าง */
+      background: #fffcf0; 
+      /* 🎯 3. เอา padding บนออกเพื่อให้รูปชิดด้านบน */
+      padding: 0 2px 12px 2px; 
+      /* 🎯 2. โค้งด้านบนเป็นครึ่งวงกลม (85px/2 = 42.5px) และฐานเป็นมุมฉาก */
+      border-radius: 42.5px 42.5px 0 0; 
+      /* เส้นขอบสีเหลืองทองตามเดิม */
+      border: 2px solid #fee479; 
+      /* เพิ่มเงาบางๆ ให้กราฟมีมิติ */
       box-shadow: 0 -2px 8px rgba(0,0,0,0.02); 
       transition: 0.3s ease; 
       display: flex; 
@@ -720,29 +709,33 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       transform: translateY(-4px); 
     }
 
-    /* 🎯 ปรับสีพื้นหลังของแต่ละอันดับให้คล้ายภาพแรก (พาสเทลอ่อนๆ) และเอาขอบออก */
-    .rank-1 { height: 250px !important; background: rgba(182, 230, 226, 0.4) !important; border: none !important; }
-    .rank-2 { height: 240px !important; background: rgba(245, 233, 237, 0.5) !important; border: none !important; }
-    .rank-3 { height: 230px !important; background: rgba(245, 233, 237, 0.5) !important; border: none !important; }
+    /* ปรับความสูงของกราฟแต่ละอันดับ และคงเส้นขอบเหลืองไว้ */
+    .rank-1 { height: 250px !important; background: rgba(254, 228, 121, 0.4) !important; border-color: #fee479 !important; }
+    .rank-2 { height: 240px !important; background: rgba(254, 228, 121, 0.4) !important; border-color: #fee479 !important; }
+    .rank-3 { height: 230px !important; background: rgba(254, 228, 121, 0.4) !important; border-color: #fee479 !important; }
     
     .rank-other {
         height: 220px !important; 
-        background: #f8f8f8 !important;
-        border: none !important;
+        background: #fffcf0 !important;
+        border-color: #fee479 !important;
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 12px;
+        /* ปรับ padding บนออก */
+        padding-top: 0px; 
     }
 
+    /* กรอบรูปภาพวงกลม - ส่วนที่ปรับ */
     .img-wrapper { 
         box-sizing: border-box; 
         position: relative; 
-        margin: 0 auto 8px; 
+        /* 🎯 3. ปรับระยะบนลงให้เหลือน้อยที่สุด (เกือบชิด) และลดระยะล่างเล็กน้อย */
+        margin: 4px auto 6px; 
         border-radius: 50%; 
         background: #ffffff;
-        /* 🎯 เปลี่ยนเส้นขอบรูปเป็นสีขาว และใส่เงาให้รูปเด้งออกมา */
+        /* กรอบรูปสีขาวล้วนให้รูปป๊อปขึ้น */
         border: 2px solid #ffffff; 
+        /* ใส่เงาให้รูปดูนูนเด่น */
         box-shadow: 0 4px 10px rgba(0,0,0,0.06);
         cursor: pointer;
         overflow: visible;
@@ -762,7 +755,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     .rank-3 .img-wrapper { 
         width: 78px !important; 
         height: 78px !important; 
-        /* 🎯 บังคับขอบขาวล้วน */
+        /* บังคับขอบขาวล้วน */
         border: 2px solid #ffffff !important; 
     }
     
@@ -773,6 +766,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
+    /* สไตล์ส่วนอื่นๆ (badge, name, cookie) เหมือนเดิม */
     .rank-badge { 
         position: absolute; 
         bottom: -2px; 
