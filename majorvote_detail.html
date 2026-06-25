@@ -412,10 +412,13 @@
             const res = await response.json();
 
             if (res.status === "success") {
+                // เช็กชนิดของ Token เพื่อแสดงคำให้ถูกต้อง (ถ้าหลังบ้านไม่ส่งมาให้ใช้คำว่า Token เป็นค่าเริ่มต้น)
+                const usedTokenType = res.tokenType ? res.tokenType : "Token";
+
                 if (res.thankYouCard && res.thankYouCard.trim() !== "") {
                     Swal.fire({
                         title: 'การลงคะแนนโหวตสำเร็จ',
-                        text: `ระบบได้ทำการหัก Tokens และลงคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`,
+                        text: `ระบบได้ทำการหัก ${usedTokenType} และลงคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`,
                         imageUrl: fixSecureImageUrl(res.thankYouCard),
                         imageWidth: 280,
                         imageAlt: 'Thank You Card',
@@ -426,7 +429,7 @@
                     Swal.fire({ 
                         icon: 'success', 
                         title: 'ดำเนินการลงคะแนนโหวตสำเร็จ', 
-                        text: `ระบบได้ทำการบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`, 
+                        text: `ระบบได้ทำการหัก ${usedTokenType} และบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} คะแนนเรียบร้อยแล้ว`, 
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#ff85a2' 
                     });
