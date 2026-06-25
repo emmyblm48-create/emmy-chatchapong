@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>BLM48 Membership | Profile</title>
-   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | My Kami-Oshi Members</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
     <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
@@ -14,1824 +14,1084 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-bg: #fffbfd;
+            --card-border: #ffeef2;
+            --kami-gold: #ffd700;
+            --oshi-blue: #7dd3fc;
+            --danger-red: #ff6b6b;
+            --text-dark: #444;
+            --graduated-gray: #9ca3af;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
 
-<style>
-    /* 🌟 ล็อกขนาดรูปโปรไฟล์ไม่ให้ซูมหรือเบี้ยว และรองรับมือถือ */
-    .member-profile-img {
-      width: 120px; 
-      height: 120px;
-      border-radius: 50%; 
-      object-fit: cover; 
-      object-position: center; 
-      flex-shrink: 0; 
-      border: 3px solid #ffccd7; 
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            background-color: #ffffff; 
+            margin: 0; 
+            padding: 0;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+        
+        /* Layout เต็มหน้าจอ 100% */
+        .app-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            background: #ffffff;
+            padding: 20px 40px;
+            display: flex;
+            flex-direction: column;
+        }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-    html, body {
-      max-width: 100vw;
-      overflow-x: hidden;
-    }
-  
-    :root {
-      --blmem-pink: #ff85a2;
-      --blmem-pink-light: #fff0f3;
-      --blmem-mint: #c9e4de;
-      --gold-kami: #ffd700;
-      --dark-text: #3a3a3a;
-      --bg-soft: #fcfcfc;
-    }
+        @media (max-width: 768px) {
+            .app-wrapper {
+                padding: 16px;
+            }
+        }
+        
+        /* แถบเมนูด้านบน */
+        .top-navigation-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #ffeef2 0%, #fff6f8 100%);
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin-bottom: 30px;
+            border: 1px solid var(--card-border);
+            gap: 15px;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Quicksand', 'Kanit', sans-serif;
-    }
+        .btn-back-top {
+            background: white;
+            color: var(--primary-pink);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(255,133,162,0.05);
+            transition: 0.2s;
+        }
 
-    body {
-      background: var(--bg-soft);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      color: var(--dark-text);
-    }
+        .btn-back-top:hover {
+            background: var(--primary-pink);
+            color: white;
+            transform: translateX(-3px);
+        }
 
-    .app-layout {
-      width: 100%;
-      max-width: 480px;
-      background: #ffffff;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
-    }
+        .user-profile-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    .hero-image-container {
-      position: relative; /* สำคัญมาก เพื่อให้ไอคอนอ้างอิงตำแหน่งจากกล่องนี้ */
-      display: inline-block;
-      width: 100%;
-    }
+       .user-avatar-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-pink);
+            background-color: #ffe5ec;
+        }
+
+        .user-profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-display-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            line-height: 1.2;
+        }
+
+        .user-role-tag {
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .header-title-zone {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-size: 28px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* โซนคามิโอชิเด่นกลาง */
+        .kami-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto 35px auto;
+            text-align: center;
+            padding: 26px;
+            background: white;
+            border-radius: 24px;
+            border: 2px solid #ffe5ec;
+            box-shadow: 0 8px 25px rgba(255, 133, 162, 0.08);
+            width: 100%;
+            max-width: 340px;
+            position: relative;
+        }
+
+        /* ลิงก์หุ้มโปรไฟล์สำหรับการกด */
+        .member-profile-link {
+            text-decoration: none;
+            color: inherit;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .member-profile-link:hover {
+            opacity: 0.85;
+        }
+        
+        .kami-avatar-frame {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 14px;
+            background-color: #ffe5ec; 
+            border-radius: 50%;
+        }
+        
+        .kami-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--kami-gold);
+            box-shadow: 0 6px 15px rgba(255, 215, 0, 0.25);
+            background-color: #ffe5ec;
+        }
+        
+        .crown-tag {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--kami-gold);
+            font-size: 28px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+            z-index: 10;
+        }
+
+        /* 🎓 ไอคอนหมวกจบการศึกษาสำหรับคามิ */
+        .kami-grad-cap {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: var(--graduated-gray);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            z-index: 12;
+        }
+        
+        .kami-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .kami-title-name {
+            font-size: 19px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .badge-kami {
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+            font-size: 11px;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 🏷️ ป้ายข้อความ GRADUATED */
+        .badge-graduated {
+            background-color: #e5e7eb;
+            color: #6b7280;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn-remove-kami {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #fff5f5;
+            border: none;
+            color: var(--danger-red);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
+            z-index: 5;
+        }
+        
+        .btn-remove-kami:hover {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        .list-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #555;
+            margin: 20px 0 16px 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* โซนโอชิเมมเบอร์ */
+        .oshi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+        
+        .oshi-box-card {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+            border: 1.5px solid var(--card-border);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        
+        .oshi-box-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-pink);
+            box-shadow: 0 6px 18px rgba(255, 133, 162, 0.08);
+        }
+
+        .oshi-card-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            flex: 1;
+            cursor: pointer;
+        }
+        .oshi-card-link:hover {
+            opacity: 0.85;
+        }
+
+        .oshi-pic-wrapper {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+        }
+        
+        .oshi-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--oshi-blue);
+            background-color: #ffe5ec; 
+        }
+
+        /* 🎓 ไอคอนหมวกจบการศึกษาสำหรับโอชิสมทบ */
+        .oshi-grad-cap {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            background: var(--graduated-gray);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            border: 1.5px solid white;
+            z-index: 10;
+        }
+        
+        .oshi-info-center {
+            flex: 1;
+            padding-left: 14px;
+        }
+        
+        .oshi-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+            flex-wrap: wrap;
+        }
+
+        .oshi-display-name {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .badge-oshi {
+            background-color: #f0f9ff;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .btn-remove-oshi {
+            background: #fff5f5;
+            border: none;
+            color: var(--danger-red);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 14px;
+        }
+        
+        .btn-remove-oshi:hover {
+            background: var(--danger-red);
+            color: white;
+        }
+        
+        .empty-heart-state {
+            text-align: center;
+            color: #aaa;
+            font-size: 13px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            border: 2px dashed #f0cbd3;
+            grid-column: 1 / -1;
+        }
+
+        /* ✨ เอฟเฟกต์ Skeleton Loading */
+        .skeleton-card {
+            animation: softPulse 1.4s infinite ease-in-out;
+        }
+        .skeleton-circle {
+            background-color: #ffe5ec !important;
+            border-color: #ffeef2 !important;
+        }
+        .skeleton-text {
+            background: #fff0f3;
+            height: 14px;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
+
+        @keyframes softPulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(0.99); }
+        }
+
+        .icon-wrapper {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .noti-badge {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          width: 8px;
+          height: 8px;
+          background-color: #ff4d6d;
+          border-radius: 50%;
+          border: 1px solid white;
+          z-index: 10;
+        }
     
-    .hero-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center top;
-    }
 
-    /* จัดการไอคอนหมวก */
-    .grad-profile-badge {
-        position: absolute;
-        top: 12px;           /* ระยะห่างจากขอบบน */
-        right: 12px;         /* ระยะห่างจากขอบขวา */
-        background-color: #888888 !important; /* เปลี่ยนพื้นหลังเป็นสีเทา */
-        color: #ffffff !important;            /* ไอคอนด้านในสีขาว */
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        z-index: 5;          /* อยู่เหนือน้ำชั้นรูปภาพ */
-    }
-    
-    .hero-gradient {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 150px;
-      background: linear-gradient(to top, #ffffff 15%, transparent);
-      z-index: 1;
-      pointer-events: none;
-    }
+        @keyframes fadeInText {
+            from { opacity: 0; transform: translateX(-4px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
 
-    @media (min-width: 768px) {
-      body {
-        padding: 40px 20px;
-        align-items: center;
-        background: #f4f6f8; 
-      }
-      .app-layout {
-        max-width: 480px; 
-        min-height: 800px;
-        border-radius: 30px;
-        flex-direction: column; 
-        overflow: hidden;
-        margin: 0 auto;
-        box-shadow: 0 15px 35px rgba(255, 133, 162, 0.1);
-      }
-      
-      .hero-image-container {
-        width: 100% !important;
-        height: 480px !important;
-      }
-      
-      .hero-gradient {
-        background: linear-gradient(to top, #ffffff 15%, transparent) !important;
-        height: 150px !important;
-      }
+        body {
+            padding-bottom: 110px !important;
+        }
 
-      .profile-body {
-        width: 100% !important;
-        padding: 0 24px 35px 24px !important;
-        margin-top: -50px !important;
-      }
-      .back-circle-btn {
-        position: absolute; 
-        top: 20px;
-        left: 20px;
-      }
-    }
-
-    .back-circle-btn {
-      position: fixed; 
-      top: 20px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: var(--blmem-pink);
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      z-index: 999; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      transition: 0.2s;
-    }
-    .back-circle-btn:hover { transform: scale(1.08); background: #fff; }
-
-    .profile-body {
-      padding: 0 24px 35px 24px;
-      margin-top: -50px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .member-header-block {
-      text-align: center; /* ปรับให้อยู่ตรงกลางตามรูปดีไซน์ใหม่ */
-      margin-bottom: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .member-name {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--dark-text);
-      line-height: 1.2;
-      text-transform: uppercase;
-    }
-    .member-sub {
-      font-size: 13px;
-      color: var(--blmem-pink);
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      margin-top: 4px;
-      text-transform: uppercase;
-    }
-
-    /* 🎓 ป้ายกำกับ GRADUATED สีเทาใต้ชื่อตามดีไซน์รูปภาพ image_9089a3.jpg */
-    .graduated-badge {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      background-color: #a0a5ab;
-      color: #ffffff;
-      font-size: 11px;
-      font-weight: bold;
-      padding: 4px 14px;
-      border-radius: 20px;
-      margin-top: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      border: 1px solid rgba(255, 133, 162, 0.15);
-      border-radius: 18px;
-      padding: 14px 5px;
-      margin-bottom: 24px;
-      box-shadow: 0 6px 16px rgba(255, 133, 162, 0.03);
-    }
-    .stat-box {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .stat-box:not(:last-child) { border-right: 1px solid #ffe5ec; }
-    .stat-num {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--dark-text);
-    }
-    .stat-title {
-      font-size: 11px;
-      color: #999;
-      margin-top: 2px;
-    }
-    .stat-num.pink { color: var(--blmem-pink); }
-
-    .interaction-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-    .btn-interact {
-      border: none;
-      padding: 12px 5px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-    .btn-interact:hover { 
-      transform: translateY(-3px); 
-      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-    }
-    .btn-interact i { font-size: 16px; }
-    
-    .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
-    .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
-    .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
-
-    .leaderboard-section {
-      background: #fffdfd;
-      border-radius: 22px;
-      border: 1px solid #fff0f2;
-      padding: 20px 18px;
-    }
-    .leaderboard-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .leaderboard-title i { color: var(--gold-kami); }
-
-    .fan-list { 
-      display: flex; 
-      flex-direction: column; 
-      max-height: 220px; 
-      overflow-y: auto; 
-      padding-right: 8px; 
-    }
-    
-    .fan-list::-webkit-scrollbar { width: 5px; }
-    .fan-list::-webkit-scrollbar-track { background: #fdf6f7; border-radius: 10px; }
-    .fan-list::-webkit-scrollbar-thumb { background: #ffc2cc; border-radius: 10px; }
-
-    .fan-row {
-      display: flex;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px dashed #faf0f2; 
-    }
-    .fan-row:last-child { border-bottom: none; }
-    
-    .fan-rank {
-      width: 24px;
-      font-size: 13px;
-      font-weight: bold;
-      color: #aaa;
-      text-align: center;
-    }
-    .fan-row:nth-child(1) .fan-rank { color: #f59f00; font-size: 16px; }
-    .fan-row:nth-child(2) .fan-rank { color: #94a3b8; font-size: 15px; }
-    .fan-row:nth-child(3) .fan-rank { color: #b45309; font-size: 14px; }
-
-    .fan-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 12px;
-      border: 2px solid #fff;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.06);
-    }
-    .fan-meta { flex: 1; text-align: left; }
-    .fan-name { font-size: 13px; color: var(--dark-text); font-weight: 500; }
-    .fan-amount {
-      font-size: 11px;
-      color: #d2691e;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      margin-top: 2px;
-    }
-
-    .post-gallery {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .post-gallery .img-container-box {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 1 / 1;
-    }
-    .post-gallery .gallery-img-item {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 12px !important;
-      cursor: pointer;
-      display: block;
-    }
-    .more-overlay {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 12px !important;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 1.5rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .skeleton {
-      background: #eee;
-      background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
-      border-radius: 5px;
-      background-size: 200% 100%;
-      animation: 1.5s shine linear infinite;
-      color: transparent !important;
-    }
-    .skeleton * { visibility: hidden; }
-    @keyframes shine { to { background-position-x: -200%; } }
-
-    .skeleton-text { width: 60%; height: 28px; border-radius: 8px; margin-bottom: 8px; }
-    .skeleton-avatar { width: 100%; height: 100%; border-radius: 0; }
-    .skeleton-stat { width: 40px; height: 24px; border-radius: 6px; margin: 0 auto; }
-    .skeleton-fan { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #faf0f2; }
-    .skeleton-fan-img { width: 40px; height: 40px; border-radius: 50%; margin: 0 12px; }
-    .skeleton-fan-text { width: 120px; height: 14px; border-radius: 4px; margin-bottom: 6px; }
-
-.champ-special-post {
-    background: linear-gradient(to bottom, #fffdf0, #ffffff) !important;
-    border: 2px solid #d4af37 !important; 
-    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15) !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.champ-post-badge {
-    background: linear-gradient(135deg, #d4af37, #ffd700);
-    color: #fff;
-    font-size: 11px;
-    font-weight: bold;
-    padding: 4px 12px;
-    border-radius: 0 0 10px 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-    z-index: 10;
-}
-    #champ-thanks-content {
-        display: flex;
-        overflow-x: auto;
-        gap: 15px;
-        padding-bottom: 10px;
-        scroll-snap-type: x mandatory;
-    }
-    .member-thanks-card {
-        flex: 0 0 85%; 
-        scroll-snap-align: center;
-        background: linear-gradient(to bottom, #fffdf0, #ffffff);
-        border: 2px solid #d4af37;
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 16px;
-        box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
-        text-align: center;
-        position: relative;
-    }
-    .member-thanks-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #fff9db;
-        color: #d4af37;
-        padding: 5px 14px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        margin-bottom: 12px;
-        border: 1px solid #fce899;
-    }
-    .member-thanks-msg {
-        font-size: 0.95rem;
-        line-height: 1.6;
-        color: #555;
-        background: #fff;
-        padding: 16px;
-        border-radius: 12px;
-        border-left: 4px solid #d4af37;
-        text-align: left;
-        margin-bottom: 15px;
-        white-space: pre-line;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
-        display: -webkit-box;
-        -webkit-line-clamp: 3; 
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-    .member-thanks-msg.expanded {
-        -webkit-line-clamp: unset; 
-    }
-    .member-thanks-img {
-        width: 100%;
-        border-radius: 12px;
-        object-fit: cover;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-  .more-btn {
-        color: #d4af37;
-        font-size: 0.8rem;
-        cursor: pointer;
-        font-weight: bold;
-        margin-top: 5px;
-        display: inline-block;
-    }
-.post-menu-container {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 100;
-}
-
-.champ-special-post .post-menu-container {
-  top: 35px;
-}
-
-.post-menu-btn {
-  background: none;
-  border: none;
-  color: #bbb;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.post-menu-btn:hover {
-  background: var(--blmem-pink-light);
-  color: var(--blmem-pink);
-}
-
-.post-dropdown-menu {
-  display: none; 
-  position: absolute;
-  right: 0;
-  top: 32px;
-  background: #ffffff;
-  border: 1px solid #ffe3e8;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(255, 133, 162, 0.1);
-  min-width: 120px;
-  overflow: hidden;
-  animation: fadeInMenu 0.15s ease-out;
-}
-
-@keyframes fadeInMenu {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.post-dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.bottom-tab-bar {
+  /* 👑 Layer 1: ชั้นโปร่งใสล่างสุด ขยายความสูงรวมเพิ่มขึ้นเป็น 110px ให้ Nav ดูสูงเด่น */
+  height: calc(110px + env(safe-area-inset-bottom, 0px)); 
+  position: fixed;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  padding: 10px 14px;
-  border: none;
-  background: none;
-  font-size: 13px;
-  color: #666;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.2s;
+  z-index: 999;
+  background: transparent; 
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่างสุด */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
 }
 
-.post-dropdown-item:hover {
-  background: var(--blmem-pink-light);
-  color: var(--blmem-pink);
+.bottom-tab-bar::before {
+  content: "";
+  position: absolute;
+  /* 👑 Layer 2: ขยับท็อปลงมาที่ 60px เพื่อให้เหลือเนื้อผ้าสีขาวหนา 50px (เกือบครึ่งหนึ่งของความสูงรวม 110px) */
+  top: 60px; 
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff; 
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 28px 28px 0 0; /* เพิ่มความโค้งมนให้ดูละมุนรับกับบาร์ที่สูงขึ้น */
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08); /* เพิ่มมิติเงาให้ดูลอยแยกชั้นชัดเจน */
+  z-index: 1;
 }
 
-.post-dropdown-item.delete-item {
-  color: #ff5c7c;
+.tab-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  height: 50px; /* ปรับความสูงบล็อกกดให้บาลานซ์กับ Layer สีขาว */
+  position: relative;
+  z-index: 2; 
+  text-decoration: none;
+  color: #8e8e93; 
+  
+  /* 🚀 ดันไอคอนให้เลื่อนสูงขึ้นไปข้างบน 30px ทะลุเลเยอร์สีขาวขึ้นไปลอยเด่นอยู่บนชั้นโปร่งใสครึ่งตัวพอดี */
+  transform: translateY(-30px); 
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* ปรับสปริงให้เด้งนุ่มนวลขึ้น */
 }
 
-.post-dropdown-item.delete-item:hover {
-  background: #fff0f2;
-  color: #ff335c;
+/* 🌟 เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มปกติ */
+.tab-item:active {
+  transform: translateY(-30px) scale(0.85);
+  opacity: 0.8;
 }
-</style>
+
+/* 👑 ปุ่มสถานะ Active (หน้าปัจจุบัน): ดีดตัวลอยสูงเด่นขึ้นไปอีกที่ 45px กลายเป็นปุ่มฮีโร่ลอยเด่นสะดุดตา */
+.tab-item.active {
+  color: #ffb3c1; 
+  transform: translateY(-45px); 
+}
+/* เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มที่ Active อยู่ */
+.tab-item.active:active {
+  transform: translateY(-45px) scale(0.85);
+}
+
+/* ------------------------------------------------------------- */
+/* 🔥 จุดที่เพิ่มเข้ามา: ตั้งค่าให้ไอคอนและรูปภาพขยายใหญ่ขึ้นตอน Active เท่านั้น */
+/* ------------------------------------------------------------- */
+
+.tab-item.active i {
+  font-size: 45px; /* 🚀 ขยายขนาดฟอนต์ไอคอนจากเดิม 34px เป็น 45px ให้ใหญ่เด่นสะใจ */
+}
+
+.tab-item.active img {
+  width: 58px;    /* 🚀 ขยายขนาดรูปจากเดิม 44px เป็น 58px */
+  height: 58px;
+}
+
+.tab-item.active #tab-profile-img {
+  width: 50px !important;  /* 🚀 ขยายขนาดรูปโปรไฟล์จากเดิม 38px เป็น 50px */
+  height: 50px !important;
+}
+/* ------------------------------------------------------------- */
+
+
+/* ขยายขนาดไอคอน FontAwesome (34px เท่าเดิม แต่ใส่เงาให้ลอยตามบาร์) */
+.tab-item i {
+  font-size: 34px;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.08)); 
+  transition: font-size 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
+}
+
+/* ขยายขนาดรูปไอคอนแชมป์สั่งทำ (44px เท่าเดิม พร้อมเพิ่มเงาตกกระทบลงบนเลเยอร์สีขาว) */
+.tab-item img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12)); 
+  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
+}
+
+/* ปรับแต่งวงกลมรูปโปรไฟล์ให้ลอยขึ้นมาอย่างสมดุล */
+#tab-profile-img {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50%;
+  border: 2px solid #ffb3c1;
+  box-sizing: border-box;
+  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
+}
+    </style>
 </head>
 <body>
 
-  <div class="app-layout">
-    <button class="back-circle-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
+    <div class="app-wrapper">
+        <div class="top-navigation-bar">
+            <a href="index.html" class="btn-back-top"><i class="fa-solid fa-house"></i> Back</a>
+            <div class="user-profile-box">
+                <img id="user-avatar" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" alt="Profile" class="user-avatar-img">
+                <div class="user-profile-info">
+                    <span id="user-display-name" class="user-display-name">Loading...</span>
+                    <span id="user-role" class="user-role-tag"></span>
+                </div>
+            </div>
+        </div>
 
-    <div class="hero-image-container">
-      <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
-      <div class="hero-gradient"></div>
+        <div class="header-title-zone">
+            <h1>My Kami Member</h1>
+        </div>
+
+        <div id="kami-content-area"></div>
+
+        <div class="list-section-title">
+            <i class="fa-solid fa-heart" style="color: var(--primary-pink);"></i>
+            My Oshi Members
+        </div>
+        <div id="oshi-content-area" class="oshi-grid">
+            <p style="text-align:center; color:#ccc; font-size:13px;">กำลังเรียกข้อมูลโอชิ...</p>
+        </div>
     </div>
+  
+    <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
+        <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
+        <div>© 2026 Virtual Idol Cover Group</div>
+    </footer>
+    
+    <div class="bottom-tab-bar">
+  
+  <a href="index.html" class="tab-item">
+    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
+    <img id="nav-home" src="" alt="Home" style="display: none;">
+  </a>
 
-    <div class="profile-body">
-      
-    <div class="member-header-block">
-      <div id="mb-name" class="member-name">กำลังโหลด...</div>
-      <!-- 🎓 ป้ายกำกับสีเทา GRADUATED ใต้ชื่อ -->
-      <div id="mb-grad-badge" class="graduated-badge"><i class="fas fa-graduation-cap"></i> Graduated</div>
-      <div id="mb-sub" class="member-sub">BLM48 MEMBER</div> 
+  <a href="kami.html" class="tab-item active">
+    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
+    <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
+  </a>
+
+  <a href="shop.html" class="tab-item">
+    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
+    <img id="nav-cart" src="" alt="Shop" style="display: none;">
+  </a>
+
+  <a href="notification.html" class="tab-item">
+    <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
+      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
+      <img id="nav-noti" src="" alt="Notification" style="display: none;">
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
     </div>
+  </a>
 
-     <div class="stats-bar">
-        <div class="stat-box">
-          <div id="mb-kami" class="stat-num">0</div>
-          <div class="stat-title">Kami-Oshi</div>
-        </div>
-        <div class="stat-box">
-          <div id="mb-oshi" class="stat-num">0</div>
-          <div class="stat-title">Oshi</div>
-        </div>
-        <div class="stat-box">
-          <div id="mb-score" class="stat-num">0</div>
-          <div class="stat-title">Total Cookies</div>
-        </div>
-        <div class="stat-box">
-          <div id="mb-likes" class="stat-num">0</div>
-          <div class="stat-title">Total Likes</div>
-        </div>
-      </div>
+  <a href="profile.html" class="tab-item">
+    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
+  </a>
 
-      <div class="interaction-grid">
-        <button id="btn-kami-trigger" class="btn-interact btn-kami" onclick="actionKami()">
-          <i class="fas fa-crown"></i> <span>+ Kami-Oshi</span>
-        </button>
-        <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
-          <i class="fas fa-heart"></i> <span>+ Oshi</span>
-        </button>
-        <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
-          <i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>
-        </button>
-      </div>
-
-      <div class="leaderboard-section">
-        <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans</div>
-        <div id="member-fans-content" class="fan-list"></div>
-      </div>
-      
-      <div id="champ-thanks-container" style="display: none; margin-top: 25px;">
-        <div class="leaderboard-title"><i class="fas fa-crown" style="color: #d4af37;"></i>Special Fans Day</div>
-        <div id="champ-thanks-content"></div>
-      </div>
-      
-      <div class="member-feed-section" style="margin-top: 25px;">
-        <div class="leaderboard-title"><i class="fas fa-stream"></i> Latest Top Posts</div>
-        <div id="posts-container">
-           <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
-             <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
-           </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
+</div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const memberName = urlParams.get('name');
-    let user = null; 
-
-    function saveUserSession(userData) {
-      const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000);
-      localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
-    }
-
-    function getUserSession() {
-      const sessionStr = localStorage.getItem('bnl_session');
-      if (!sessionStr) return null;
-      try {
-        const session = JSON.parse(sessionStr);
-        if (new Date().getTime() > session.expiry) {
-          localStorage.removeItem('bnl_session');
-          return null;
-        }
-        return session.data;
-      } catch (e) { return null; }
-    }
-
-    async function syncUserData() {
-      if (!user) return;
-      try {
-        const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
-        const res = await resp.json();
-        if (res.status === "success") {
-          user = res.data;
-          saveUserSession(user); 
-          updateButtonStyles(); 
-        }
-      } catch (e) { console.error("Sync Error:", e); }
-    }
-
-async function fetchLatestMemberStats() {
-      if (!memberName) return;
-      
-      // เอา const scriptURL เดิมตรงบรรทัดนี้ออกได้เลยครับ เพราะใช้ตัวแปรด้านบนแทนแล้ว ✨
-
-      try {
-        const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
-        const res = await resp.json();
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
         
-        if (res.status === "success") {
-          const oldStats = localStorage.getItem('current_member_stats');
-          const oldFans = localStorage.getItem('current_member_fans');
-          
-          if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
-            if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
-            if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
+        function getUserSession() {
+            const sessionStr = localStorage.getItem('bnl_session');
+            if (!sessionStr) return null;
+            const session = JSON.parse(sessionStr);
+            if (new Date().getTime() > session.expiry) {
+                localStorage.removeItem('bnl_session');
+                return null;
+            }
+            return session.data;
+        }
+      
+        function getImg(url) {
+            if (!url || url === "") return 'https://via.placeholder.com/150';
+            if (url.includes('drive.google.com')) {
+                const id = url.match(/[-\w]{25,}/);
+                return id ? `https://lh3.googleusercontent.com/d/${id[0]}=w300` : url;
+            }
+            return url; 
+        }
+
+        let user = getUserSession();
+        let currentUsername = user ? user.username : "";
+        let memberImageMap = {};
+        let memberStatusMap = {}; 
+        let memberFullDataMap = {}; // 🌟 เพิ่มกล่องเก็บตัวเลขสถิติจริง (Kami, Oshi, Total Cookie)
+        let rawOshiBoardData = null; 
+
+        window.onload = async () => {
+            if (!user || !currentUsername) {
+                Swal.fire('กรุณาเข้าสู่ระบบ', 'ไม่พบสิทธิ์การเข้าใช้งานบัญชีของคุณงับ', 'error').then(() => { 
+                    window.location.href = 'index.html'; 
+                });
+                return;
+            }
             
-            if (typeof removeSkeleton === "function") removeSkeleton(); 
-            renderMemberStatsAndFans(); 
-          } else {
-             if (typeof removeSkeleton === "function") removeSkeleton();
-          }
-        } else {
-          if (typeof removeSkeleton === "function") removeSkeleton();
-        }
-      } catch (e) {
-        console.error("Error fetching latest member stats:", e);
-        if (typeof removeSkeleton === "function") removeSkeleton();
-      }
-    }
-
-    function getImg(url) {
-        if (!url || url.trim() === "") { return 'assets/images/default-profile.png'; }
-        if (url.includes('googleusercontent.com')) { return url + '=s200'; }
-        return url;
-    }
-
-function renderMemberStatsAndFans() {
-  const savedStats = localStorage.getItem('current_member_stats');
-  if (savedStats) {
-    const m = JSON.parse(savedStats);
-    
-    // 🎯 เช็กสถานะแกรดเพื่อเปิด-ปิด การแสดงผลป้ายดีไซน์
-    const gradBadge = document.getElementById('mb-grad-badge');
-    const gradAvatarIcon = document.getElementById('avatar-grad-icon');
-    const btnCookie = document.getElementById('btn-cookie-trigger');
-    const nameEl = document.getElementById('mb-name');
-    
-    if (nameEl) nameEl.innerText = m.name || memberName;
-
-    if (m.status === 'Graduated' || m.status === 'graduated') {
-      if (gradBadge) gradBadge.style.display = 'inline-flex';
-      if (gradAvatarIcon) gradAvatarIcon.style.display = 'flex';
-      if (btnCookie) btnCookie.setAttribute('data-graduated', 'true');
-    } else {
-      if (gradBadge) gradBadge.style.display = 'none';
-      if (gradAvatarIcon) gradAvatarIcon.style.display = 'none';
-      if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
-    }
-
-    const avatarEl = document.getElementById('mb-avatar');
-    if (avatarEl) avatarEl.src = getImg(m.profile_img);
-
-    // 🌟 แสดงผลและลบคลาส Skeleton ออกทันทีที่ดึงค่าจากแคชได้
-    const kamiEl = document.getElementById('mb-kami');
-    if (kamiEl) {
-      kamiEl.innerText = (m.total_kami !== undefined && m.total_kami !== null) ? m.total_kami : '0';
-      kamiEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลด
-    }
-
-    const oshiEl = document.getElementById('mb-oshi');
-    if (oshiEl) {
-      oshiEl.innerText = (m.total_oshi !== undefined && m.total_oshi !== null) ? m.total_oshi : '0';
-      oshiEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลด
-    }
-
-    const scoreEl = document.getElementById('mb-score');
-    if (scoreEl) {
-      scoreEl.innerText = formatMemberScore(m.all_time_total || m.monthly_cookies || 0);
-      scoreEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลด
-    }
-    
-   const likesEl = document.getElementById('mb-likes');
-    if (likesEl) {
-      // ดักรับค่าจากแคช เผื่อหน้าแรกส่งมาในชื่อ total_likes หรือหลังบ้านดึงสดเป็น totalLikes
-      const liveLikes = m.total_likes !== undefined ? m.total_likes : (m.totalLikes !== undefined ? m.totalLikes : 0);
-
-      likesEl.innerText = formatMemberScore(liveLikes);
-      likesEl.classList.remove('skeleton-stat', 'skeleton'); // เคลียร์หลอดดาวน์โหลดทันที!
-    }
-  }
-
-  // 📦 (โค้ดส่วน fanContainer ด้านล่างคงไว้ตามสไตล์น่ารักๆ ของเอ็มมี่งับ)
-  const savedFans = localStorage.getItem('current_member_fans');
-  const fanContainer = document.getElementById('member-fans-content');
-  
-  if (savedFans && fanContainer) {
-    fanContainer.innerHTML = '';
-    const fans = JSON.parse(savedFans);
-    if (fans.length === 0) {
-      fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
-    } else {
-      fans.slice(0, 10).forEach((f, idx) => {
-        const row = document.createElement('div');
-        row.className = 'fan-row';
-        row.innerHTML = `
-          <div class="fan-rank">${idx + 1}</div>
-          <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'"> 
-          <div class="fan-meta">
-            <div class="fan-name">${f.name || f.username}</div>
-            <div class="fan-amount"><i class="fas fa-cookie-bite"></i> ${Number(f.total || 0).toLocaleString()} Cookies</div>
-          </div>
-        `;
-        fanContainer.appendChild(row);
-      });
-    }
-  }
-}
-
-    function checkLoginStatus() {
-      if (!user) {
-        Swal.fire({
-          title: 'กรุณาเข้าสู่ระบบ',
-          text: 'คุณต้องเข้าสู่ระบบก่อนจึงจะร่วมกิจกรรมกับเมมเบอร์ได้ค่ะ 🌸',
-          icon: 'warning',
-          confirmButtonColor: '#ff85a2',
-          confirmButtonText: 'รับทราบ'
-        });
-        return false;
-      }
-      return true;
-    }
-
-    function showSkeleton() {
-      const avatarEl = document.getElementById('mb-avatar');
-      if (avatarEl) { avatarEl.src = ''; avatarEl.classList.add('skeleton', 'skeleton-avatar'); }
-
-      const nameEl = document.getElementById('mb-name');
-      if (nameEl) { nameEl.innerText = 'กำลังโหลด...'; nameEl.classList.add('skeleton', 'skeleton-text'); }
-
-      // 🌟 แก้ไขตรงนี้: โชว์ ... ระหว่างโหลด
-      const kamiEl = document.getElementById('mb-kami');
-      if (kamiEl) { kamiEl.innerText = '...'; kamiEl.classList.add('skeleton', 'skeleton-stat'); }
-      
-      const oshiEl = document.getElementById('mb-oshi');
-      if (oshiEl) { oshiEl.innerText = '...'; oshiEl.classList.add('skeleton', 'skeleton-stat'); }
-      
-      const scoreEl = document.getElementById('mb-score');
-      if (scoreEl) { scoreEl.innerText = '...'; scoreEl.classList.add('skeleton', 'skeleton-stat'); }
-      
-      const likesEl = document.getElementById('mb-likes');
-      if (likesEl) { likesEl.innerText = '...'; likesEl.classList.add('skeleton', 'skeleton-stat'); }
-
-      const fanContainer = document.getElementById('member-fans-content');
-      if (fanContainer) {
-        fanContainer.innerHTML = '';
-        for(let i=0; i<3; i++) {
-          fanContainer.innerHTML += `
-            <div class="skeleton-fan">
-              <div style="width:24px;"></div>
-              <div class="skeleton skeleton-fan-img"></div>
-              <div style="flex:1;">
-                <div class="skeleton skeleton-fan-text"></div>
-                <div class="skeleton skeleton-fan-text" style="width: 80px;"></div>
-              </div>
-            </div>`;
-        }
-      }
-    }
-
-    function removeSkeleton() {
-      const els = document.querySelectorAll('.skeleton');
-      els.forEach(el => {
-        el.classList.remove('skeleton', 'skeleton-avatar', 'skeleton-text', 'skeleton-stat', 'skeleton-fan-img', 'skeleton-fan-text');
-      });
-      
-      const nameEl = document.getElementById('mb-name');
-      if (nameEl) nameEl.innerText = memberName;
-    }
-
-    function loadMemberData() {
-      if (!memberName) { window.location.href = 'index.html'; return; }
-      user = getUserSession();
-      
-      const savedStatsStr = localStorage.getItem('current_member_stats');
-      let hasValidCache = false;
-      
-      if (savedStatsStr) {
-        try {
-          const savedStats = JSON.parse(savedStatsStr);
-          // 🎯 จุดสำคัญ: เช็คว่าแคชต้องมี "total_kami" อยู่ด้วย ถึงจะยอมให้โชว์ข้อมูล
-          // ถ้าไม่มี (เช่น ข้ามมาจากหน้า Ranking) ให้มันตกไปที่โหมด Skeleton (กำลังโหลด...) ทันที
-          if (savedStats && savedStats.name && savedStats.name.toLowerCase() === memberName.toLowerCase() && savedStats.total_kami !== undefined) {
-             hasValidCache = true;
-          }
-        } catch(e) {}
-      }
-
-      if (hasValidCache) {
-        removeSkeleton();
-        renderMemberStatsAndFans(); 
-      } else {
-        showSkeleton(); // 🌟 แสดงแถบกระพริบโหลด (...) รอจนกว่า Apps Script จะส่งข้อมูลมาครบทั้งหมด
-      }
-
-      updateButtonStyles();
-      fetchLatestMemberStats(); 
-      loadMemberTimelinePosts(); 
-      loadMemberSpecialThanks(); 
-    }
-  
-async function fetchLatestMemberStats() {
-      if (!memberName) return;
-      
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
-
-      try {
-        const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
-        const res = await resp.json();
-        
-        if (res.status === "success") {
-          const oldStats = localStorage.getItem('current_member_stats');
-          const oldFans = localStorage.getItem('current_member_fans');
-          
-          // ตรวจสอบว่าข้อมูลมีอัปเดตไหม ถ้ามีค่อยอัปเดต Cache และ Render ใหม่
-          if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
-            if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
-            if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
+            if (user.profile_img && user.profile_img.toString().trim() !== "") {
+                document.getElementById('user-avatar').src = user.profile_img;
+            } else {
+                document.getElementById('user-avatar').src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
+            }
             
-            if (typeof removeSkeleton === "function") removeSkeleton(); 
-            renderMemberStatsAndFans(); 
-          } else {
-             // ถ้าข้อมูลเหมือนเดิมเป๊ะ ให้แค่ลบ Skeleton ออกเฉยๆ
-             if (typeof removeSkeleton === "function") removeSkeleton();
-          }
-        } else {
-          if (typeof removeSkeleton === "function") removeSkeleton();
-        }
-      } catch (e) {
-        console.error("Error fetching latest member stats:", e);
-        if (typeof removeSkeleton === "function") removeSkeleton();
-      }
-    }
-
-    function updateButtonStyles() {
-      const btnKami = document.getElementById('btn-kami-trigger');
-      const btnOshi = document.getElementById('btn-oshi-trigger');
+            document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
+            
+            const userRole = user.role || user.position || "BLM48 Member";
+            document.getElementById('user-role').textContent = userRole;
+            
+            fetchAndRenderUserOshiBoard();
+            await fetchMembersImageDB();
+        };
       
-      if (!btnKami || !btnOshi) return; 
-      if (!user) return;
+        function openMemberProfile(name, fallbackImg, fallbackStatus) {
+            localStorage.removeItem('current_member_stats');
+            localStorage.removeItem('current_member_fans');
 
-      const searchName = memberName.toLowerCase();
-      const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
-      const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
+            const key = name.toString().trim().toLowerCase();
+            // 🌟 ดึงข้อมูลตัวเลขจริงที่แมปไว้จากฐานข้อมูลหลังบ้านมาใส่แคชทันที
+            const stats = memberFullDataMap[key] || { total_kami: 0, total_oshi: 0, all_time_total: 0 };
 
-      if (currentKamioshi === searchName) {
-        btnKami.innerHTML = '<i class="fas fa-heart-broken"></i> <span>REMOVE KAMI</span>';
-        btnKami.style.backgroundColor = "#ffe3e3"; btnKami.style.color = "#e03131"; btnKami.style.borderColor = "#ffa8a8";
-      } else {
-        btnKami.innerHTML = '<i class="fas fa-crown"></i> <span>+ KAMI</span>';
-        btnKami.style.backgroundColor = ""; btnKami.style.color = ""; btnKami.style.borderColor = "";
-      }
+            const statsToCache = {
+              name: name,
+              status: memberStatusMap[key] === 'graduated' ? "Graduated" : (fallbackStatus || "Active"),
+              profile_img: memberImageMap[key] || fallbackImg || "",
+              total_kami: stats.total_kami,         // 🚀 ตัวเลขจริงส่งตรงถึงหน้า member.html ไม่ขึ้น ... แล้ว!
+              total_oshi: stats.total_oshi,         // 🚀 ตัวเลขจริงส่งตรงถึงหน้า member.html ไม่ขึ้น ... แล้ว!
+              all_time_total: stats.all_time_total  // 🚀 ตัวเลขจริงส่งตรงถึงหน้า member.html ไม่ขึ้น ... แล้ว!
+            };
 
-      if (oshiArray.includes(searchName)) {
-        btnOshi.innerHTML = '<i class="fas fa-heart-broken"></i> <span>UN-OSHI</span>';
-        btnOshi.style.backgroundColor = "#fff4e6"; btnOshi.style.color = "#d9480f"; btnOshi.style.borderColor = "#ffd8a8";
-      } else {
-        btnOshi.innerHTML = '<i class="fas fa-heart"></i> <span>+ OSHI</span>';
-        btnOshi.style.backgroundColor = ""; btnOshi.style.color = ""; btnOshi.style.borderColor = "";
-      }
-    }
-  
- async function loadMemberSpecialThanks() {
-        const container = document.getElementById('champ-thanks-container');
-        const content = document.getElementById('champ-thanks-content');
-        if (!container || !content || !memberName) return;
+            localStorage.setItem('current_member_stats', JSON.stringify(statsToCache));
+            window.location.href = `member.html?name=${encodeURIComponent(name)}`;
+        }
 
-        let champData = [];
-        const localData = sessionStorage.getItem('blm_champ_history');
-        
-        if (localData) {
-            champData = JSON.parse(localData);
-        } else {
+        async function fetchMembersImageDB() {
+            const cacheKey = 'blm48_members_images_cache';
+            const cacheStatusKey = 'blm48_members_status_cache'; 
+            const cacheFullKey = 'blm48_members_stats_full_cache'; // 🌟 คีย์แคชใหม่สำหรับเก็บสถิติ
+            const cacheTimeKey = 'blm48_members_images_time';
+            const tenMinutes = 10 * 60 * 1000; 
+            
+            const cachedData = localStorage.getItem(cacheKey);
+            const cachedStatus = localStorage.getItem(cacheStatusKey);
+            const cachedFull = localStorage.getItem(cacheFullKey);
+            const cachedTime = localStorage.getItem(cacheTimeKey);
+            const now = new Date().getTime();
+            
+            if (cachedData && cachedStatus && cachedFull && cachedTime && (now - cachedTime < tenMinutes)) {
+                memberImageMap = JSON.parse(cachedData);
+                memberStatusMap = JSON.parse(cachedStatus);
+                memberFullDataMap = JSON.parse(cachedFull); // 🌟 ดึงสถิติจริงจากแคช
+                console.log("🚀 ดึงรูปและสถานะเมมเบอร์จาก Cache สำเร็จ");
+                if(rawOshiBoardData) renderContent(rawOshiBoardData);
+                return;
+            }
+
             try {
-                // 👍 ตรงนี้จะเรียกใช้งาน scriptURL จากด้านบนสุดได้ฉลุย ไม่เออร์เรอร์แล้วครับ!
-                const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
-                const result = await response.json();
-                if (result.status === "success" && result.data) {
-                    champData = result.data;
-                    sessionStorage.setItem('blm_champ_history', JSON.stringify(champData));
-                }
-            } catch (e) {
-                console.error("Failed to load champ history", e);
+                const response = await fetch(`${scriptURL}?action=getRanking`);
+                const members = await response.json();
+                
+                let tempMap = {};
+                let tempStatusMap = {};
+                let tempFullMap = {}; // 🌟
+                members.forEach(m => {
+                    if (m.name) {
+                        const key = m.name.toString().trim().toLowerCase();
+                        tempMap[key] = m.profile_img || "";
+                        const currentStatus = m.status || m.type || "";
+                        tempStatusMap[key] = currentStatus.toString().trim().toLowerCase() === "graduated" ? "graduated" : "active";
+                        
+                        // 🌟 บันทึกสถิติตัวเลขจากหลังบ้านลงกล่องความจำชั่วคราว
+                        tempFullMap[key] = {
+                            total_kami: Number(m.total_kami) || 0,
+                            total_oshi: Number(m.total_oshi) || 0,
+                            all_time_total: Number(m.all_time_total) || 0
+                        };
+                    }
+                });
+                
+                memberImageMap = tempMap;
+                memberStatusMap = tempStatusMap;
+                memberFullDataMap = tempFullMap; // 🌟
+                
+                localStorage.setItem(cacheKey, JSON.stringify(tempMap));
+                localStorage.setItem(cacheStatusKey, JSON.stringify(tempStatusMap));
+                localStorage.setItem(cacheFullKey, JSON.stringify(tempFullMap)); // 🌟 เซฟตัวเลขลงเบราว์เซอร์
+                localStorage.setItem(cacheTimeKey, now.toString());
+                
+                if(rawOshiBoardData) renderContent(rawOshiBoardData);
+                
+            } catch (err) {
+                console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
             }
         }
 
-        const memberChamps = champData.filter(c => c.name && c.name.toLowerCase() === memberName.toLowerCase());
+// ==========================================
+// 🎨 ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชันหน้าย่อย)
+// ==========================================
+function loadChampThemeSubPage() {
+  const CACHE_KEY = "bnl_winner_theme_cache";
+  
+  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
+  const cachedDataStr = localStorage.getItem(CACHE_KEY);
+  if (cachedDataStr) {
+    try { 
+        const cachedObj = JSON.parse(cachedDataStr);
+        // 🌟 ดึงมาเฉพาะข้อมูลแชมป์ (ถ้าหลังบ้านส่งเป็น .champ มา ก็ดึงแค่ champ)
+        const champOnly = cachedObj.champ ? cachedObj.champ : cachedObj;
+        applySubPageTheme(champOnly); 
+    } catch (e) {}
+  }
 
-        if (memberChamps.length > 0) {
-            container.style.display = 'block';
-            content.innerHTML = '';
+  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+  if (!finalURL) return;
+
+  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
+  fetch(`${finalURL}?action=getWinnerTheme`)
+    .then(response => response.json())
+    .then(newData => {
+      // 🌟 สกัดเอามาเฉพาะข้อมูลไอคอนของแชมป์ (ทิ้งข้อมูล Splash วันเกิดไปเลยสำหรับหน้านี้)
+      const newChampData = newData.champ ? newData.champ : newData;
+
+      if (newChampData && newChampData.name) {
+        
+        // แปลงข้อมูลแคชปัจจุบันเพื่อเอามาเทียบว่ามีอะไรอัปเดตไหม
+        let cacheChampStr = "";
+        if (cachedDataStr) {
+            try {
+                const parsed = JSON.parse(cachedDataStr);
+                cacheChampStr = JSON.stringify(parsed.champ ? parsed.champ : parsed);
+            } catch(e) {}
+        }
+
+        // ถ้าพบว่าไอคอนแชมป์มีการเปลี่ยนแปลง ค่อยเรนเดอร์ใหม่
+        if (cacheChampStr !== JSON.stringify(newChampData)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // เซฟแพ็กเกจเต็มลงแคชเผื่อหน้า index มาใช้
+          applySubPageTheme(newChampData); // อัปเดตไอคอนบนจอให้เป็นปัจจุบันทันที
+        }
+      }
+    }).catch(e => console.error(e));
+}
+
+function applySubPageTheme(champData) {
+  if (!champData) return;
+  // อัปเดตแค่ Navbar โลด ไม่ต้องยุ่งกับ Splash Screen ใดๆ
+  updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+  updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+  updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+  updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+}
+
+function updateSubPageIcon(imgId, fallbackId, iconUrl) {
+  const imgElement = document.getElementById(imgId);
+  const fallbackElement = document.getElementById(fallbackId);
+  if (imgElement && fallbackElement) {
+    if (iconUrl && iconUrl.trim() !== "") {
+      imgElement.src = iconUrl;
+      imgElement.style.display = 'block';
+      fallbackElement.style.display = 'none';
+    } else {
+      imgElement.style.display = 'none';
+      fallbackElement.style.display = 'block';
+    }
+  }
+}
+
+/**
+ * ฟังก์ชันปิดหน้าจอโหลดวงกลมคุกกี้หมุนๆ แบบปลอดภัย
+ */
+function hideThemeLoadingScreen() {
+  const appLoading = document.getElementById('app-loading-screen');
+  if (appLoading) appLoading.style.display = 'none';
+}
+
+        function renderContent(data) {
+            const kamiArea = document.getElementById('kami-content-area');
+            const oshiArea = document.getElementById('oshi-content-area');
+            if (!kamiArea || !oshiArea) return;
+
+            const clearBrokenImg = "this.onerror=null; this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';";
             
-            memberChamps.forEach(champ => {
-                const thankYouMessage = champ.message ? champ.message : "";
-                let imgHtml = '';
-                if (champ.postImage && champ.postImage.trim() !== "") {
-                    imgHtml = `<img src="${champ.postImage}" class="member-thanks-img" alt="Special Thanks Art">`;
-                }
+            if (!memberImageMap || Object.keys(memberImageMap).length === 0) {
+                const imgCache = localStorage.getItem('blm48_members_images_cache');
+                const statusCache = localStorage.getItem('blm48_members_status_cache');
+                const fullCache = localStorage.getItem('blm48_members_stats_full_cache'); // 🌟
+                if (imgCache) memberImageMap = JSON.parse(imgCache);
+                if (statusCache) memberStatusMap = JSON.parse(statusCache);
+                if (fullCache) memberFullDataMap = JSON.parse(fullCache); // 🌟
+            }
 
-                const card = `
-                    <div class="member-thanks-card">
-                        <div class="member-thanks-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
-                        <div class="member-thanks-msg" id="msg-${champ.monthYear.replace(/\s/g, '')}">
-                            ${thankYouMessage}
-                        </div>
-                        <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">แสดงเพิ่มเติม</div>
-                        ${imgHtml}
-                    </div>
-                `;
-                content.insertAdjacentHTML('beforeend', card);
-            });
+            const userAvatar = document.getElementById('user-avatar');
+            if (userAvatar) {
+                userAvatar.src = data.profile_img || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                userAvatar.setAttribute('onerror', clearBrokenImg);
+            }
+
+            // 👑 เรนเดอร์ คามิโอชิหลัก (Kami-Oshi) + เปลี่ยนเป็นเรียก openMemberProfile
+            let kamiHTML = "";
+            if (data.kamioshi) {
+                const kamiName = data.kamioshi.toString().trim();
+                const kamiKey = kamiName.toLowerCase();
+                const rawImg = memberImageMap[kamiKey] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                const isGraduated = memberStatusMap[kamiKey] === "graduated";
+                
+                kamiHTML = `
+                    <div class="kami-container">
+                        <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                        <a href="javascript:void(0);" onclick="openMemberProfile('${kamiName}', '${getImg(rawImg)}', '${isGraduated ? 'Graduated' : 'Active'}')" class="member-profile-link">
+                            <div class="kami-avatar-frame">
+                                <i class="fa-solid fa-crown crown-tag"></i>
+                                <img src="${getImg(rawImg)}"
+                                     class="kami-img" 
+                                     alt="${kamiName}" loading="lazy" 
+                                     onerror="${clearBrokenImg}">
+                                ${isGraduated ? `<div class="kami-grad-cap"><i class="fa-solid fa-graduation-cap"></i></div>` : ''}
+                            </div>
+                            <div class="kami-title-container">
+                                <div class="kami-title-name">${kamiName}</div>
+                                ${isGraduated ? `<span class="badge-graduated">GRADUATED</span>` : ''}
+                            </div>
+                        </a>
+                        <span class="badge-kami" style="margin-top:4px;"><i class="fa-solid fa-heart"></i> Kamioshi</span>
+                    </div>`;
+            } else {
+                kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
+            }
+
+            // ❤️ เรนเดอร์ โอชิสมทบ (Oshi) + เปลี่ยนเป็นเรียก openMemberProfile
+            let oshiHTML = "";
+            const processedOshis = [...(data.oshi || [])].filter(o => o.toLowerCase() !== (data.kamioshi || "").toLowerCase());
+            
+            if (processedOshis.length > 0) {
+                processedOshis.forEach(oshiName => {
+                    const oshiKey = oshiName.toString().trim().toLowerCase();
+                    const rawImg = memberImageMap[oshiKey] || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+                    const isGraduated = memberStatusMap[oshiKey] === "graduated";
+                    
+                    oshiHTML += `
+                        <div class="oshi-box-card">
+                            <a href="javascript:void(0);" onclick="openMemberProfile('${oshiName}', '${getImg(rawImg)}', '${isGraduated ? 'Graduated' : 'Active'}')" class="oshi-card-link">
+                                <div class="oshi-pic-wrapper">
+                                     <img src="${getImg(rawImg)}"
+                                          class="oshi-pic" 
+                                          alt="${oshiName}" loading="lazy" 
+                                          onerror="${clearBrokenImg}">
+                                     ${isGraduated ? `<div class="oshi-grad-cap"><i class="fa-solid fa-graduation-cap"></i></div>` : ''}
+                                </div>
+                                <div class="oshi-info-center">
+                                    <div class="oshi-name-wrapper">
+                                        <div class="oshi-display-name">${oshiName}</div>
+                                        ${isGraduated ? `<span class="badge-graduated">GRADUATED</span>` : ''}
+                                    </div>
+                                    <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
+                                </div>
+                            </a>
+                            <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>`;
+                });
+            } else {
+                oshiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกโอชิ</div>`;
+            }
+
+            kamiArea.innerHTML = kamiHTML;
+            oshiArea.innerHTML = oshiHTML;
         }
-    }
-  
-   function toggleMsg(id) {
-        const el = document.getElementById('msg-' + id);
-        const btn = el.nextElementSibling;
-        el.classList.toggle('expanded');
-        btn.innerText = el.classList.contains('expanded') ? 'แสดงน้อยลง' : 'แสดงเพิ่มเติม';
-    }
 
-    function goBack() { 
-      if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.location.href = 'index.html';
-      }
-    }
+        function fetchAndRenderUserOshiBoard() {
+            const kamiArea = document.getElementById('kami-content-area');
+            const oshiArea = document.getElementById('oshi-content-area');
+            
+            const currentUsername = user ? user.username : "";
+            const cacheKey = `blm48_oshi_board_cache_${currentUsername}`;
+            const cachedDataStr = localStorage.getItem(cacheKey);
+            let hasCache = false;
 
-    async function setOshi(type) {
-      if (!checkLoginStatus()) return;
-      const username = user.username;
-      const searchName = memberName.toLowerCase();
-      const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
-      const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
-      const isAlreadyOshi = oshiArray.includes(searchName);
-
-      let action = "", confirmText = "", subTitle = "";
-
-      if (type === 'kami') {
-        if (currentKamioshi === searchName) {
-          action = "removeOshi"; confirmText = `คุณต้องการลบ ${memberName} ออกจากรายการ "คามิโอชิ" ใช่ไหมงับ?`; subTitle = "ยกเลิกคามิโอชิ";
-        } else {
-          action = "setKamioshi"; 
-          confirmText = user.kamioshi 
-            ? `คุณมีคามิโอชิอยู่แล้วคือ ${user.kamioshi} ต้องการเปลี่ยนมาเลือก ${memberName} เป็นคามิโอชิแทนใช่หรือไม่?`
-            : `ตั้งให้ ${memberName} เป็น "คามิโอชิ" ของคุณใช่หรือไม่?`;
-          subTitle = "ยืนยันรายการ";
-        }
-      } else {
-        if (currentKamioshi === searchName) {
-          return Swal.fire('ข้อมูลซ้ำซ้อน', `${memberName} เป็นคามิโอชิหลักของคุณอยู่แล้วค่ะ 👑`, 'warning');
-        }
-        if (isAlreadyOshi) {
-          action = "removeOshi"; confirmText = `คุณต้องการเลิกติดตาม (Un-Oshi) ${memberName} ใช่ไหมงับ?`; subTitle = "ยกเลิกการติดตาม";
-        } else {
-          action = "setOshi"; confirmText = `ติดตาม (Oshi) ${memberName} ใช่หรือไม่?`; subTitle = "ยืนยันรายการ";
-        }
-      }
-
-      const finalConfirm = await Swal.fire({
-        title: subTitle, text: confirmText, icon: 'question', showCancelButton: true,
-        confirmButtonColor: '#ff85a2', cancelButtonColor: '#aaa', confirmButtonText: 'ตกลง', cancelButtonText: 'ยกเลิก'
-      });
-
-      if (!finalConfirm.isConfirmed) return;
-
-      Swal.fire({ title: 'กำลังอัปเดตข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-      try {
-        const resp = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({ action: action, type: type, username: username, memberName: memberName })
-        });
-        const res = await resp.json();
-        if (res.status === "success") {
-          const kamiElement = document.getElementById('mb-kami');
-          const oshiElement = document.getElementById('mb-oshi');
-          let currentKamiNum = parseInt(kamiElement.innerText) || 0;
-          let currentOshiNum = parseInt(oshiElement.innerText) || 0;
-
-          if (type === 'kami') {
-            kamiElement.innerText = (action === "removeOshi") ? Math.max(0, currentKamiNum - 1) : currentKamiNum + 1;
-          } else {
-            oshiElement.innerText = (action === "removeOshi") ? Math.max(0, currentOshiNum - 1) : currentOshiNum + 1;
-          }
-
-          await syncUserData(); 
-          showSkeleton();
-          await fetchLatestMemberStats();
-
-          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: res.message, timer: 1500, showConfirmButton: false });
-        } else { Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้ค่ะ', 'error'); }
-      } catch (e) { Swal.fire('เกิดข้อผิดพลาด!', 'การเชื่อมต่อขัดข้อง', 'error'); }
-    }
-
-    function actionKami() { setOshi('kami'); }
-    function actionOshi() { setOshi('oshi'); }
-  
-    function formatMemberScore(num) {
-      if (!num || isNaN(num)) return '0';
-      const number = Number(num);
-      if (number >= 1000000) { return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'; }
-      if (number >= 1000) { return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K'; }
-      return number.toLocaleString(); 
-    }
-
-function actionCookie() {
-      if (!checkLoginStatus()) return;
-
-      if (!user || !user.role || user.role.toLowerCase() !== 'user') {
-        Swal.fire({ title: 'คำเตือน', text: 'คุณไม่สามารถปาคุกกี้ได้ เนื่องจากคุณเป็นเมมเบอร์หรือแอดมิน', icon: 'error', confirmButtonColor: '#ff85a2' });
-        return;
-      }
-
-      const btnCookie = document.getElementById('btn-cookie-trigger');
-      if (btnCookie && btnCookie.getAttribute('data-graduated') === 'true') {
-        Swal.fire({ 
-          title: 'GRADUATED', 
-          text: 'เมมเบอร์คนนี้จบการศึกษาแล้ว ไม่สามารถส่งคุกกี้ให้ได้ แต่ยังสนับสนุนด้วยการกดเป็น Oshi หรือ Kami ได้อยู่ค่ะ!', 
-          icon: 'info', 
-          confirmButtonColor: '#ff85a2' 
-        });
-        return;
-      }
-
-      const userCookies = user.cookie || 0;
-
-      Swal.fire({
-        title: `ปาคุกกี้ให้ ${escapeHtml(memberName)}`,
-        html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${userCookies.toLocaleString()}</b> ชิ้น</p>`,
-        input: 'number', inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการส่ง', showCancelButton: true,
-        confirmButtonColor: '#ff85a2', confirmButtonText: 'ส่งคุกกี้', cancelButtonText: 'ยกเลิก',
-        inputValidator: (value) => {
-          if (!value || parseInt(value) <= 0) { return 'กรุณาระบุจำนวนคุกกี้ที่ถูกต้องด้วยงับ!'; }
-          if (parseInt(value) > userCookies) { return `คุกกี้ไม่พอค่ะ! คุณมีคุกกี้เหลือแค่ ${userCookies.toLocaleString()} ชิ้นเท่านั้น`; }
-        }
-      }).then(async (result) => {
-        if (result.value) {
-          const amountSent = parseInt(result.value);
-          Swal.fire({ title: 'กำลังส่งคุกกี้ให้เมมเบอร์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-          try {
-            const resp = await fetch(scriptURL, {
-              method: 'POST',
-              body: JSON.stringify({ action: 'giveCookie', username: user.username, memberName: memberName, amount: amountSent })
-            });
-            const res = await resp.json();
-
-            if (res.status === "success") {
-              // 🌟 [แก้บั๊กตรงนี้] ดึงคะแนนดิบๆ จาก LocalStorage มาบวกแทนการดึงจากหน้าจอ
-              const savedStatsStr = localStorage.getItem('current_member_stats');
-              if (savedStatsStr) {
+            if (cachedDataStr) {
                 try {
-                  const m = JSON.parse(savedStatsStr);
-                  const currentRawScore = m.all_time_total || 0;
-                  const newScore = currentRawScore + amountSent;
-                  
-                  // อัปเดตตัวเลขให้เนียนตา ก่อนรอโหลดข้อมูลจริงจากเซิร์ฟเวอร์
-                  const scoreElement = document.getElementById('mb-score');
-                  if (scoreElement) scoreElement.innerText = formatMemberScore(newScore);
-                  
-                  // เซฟค่าใหม่ลง Cache ชั่วคราวไปเลย
-                  m.all_time_total = newScore;
-                  localStorage.setItem('current_member_stats', JSON.stringify(m));
-                } catch(e) { console.error(e); }
-              }
+                    const cachedData = JSON.parse(cachedDataStr);
+                    if (cachedData) {
+                        rawOshiBoardData = cachedData;
+                        renderContent(cachedData);
+                        hasCache = true;
+                    }
+                } catch (e) {
+                    console.error("เกิดข้อผิดพลาดในการดึงข้อมูลแคชบอร์ด:", e);
+                }
+            }
 
-              await syncUserData(); 
-              // ✨ ลบ showSkeleton() ออกตรงนี้ เพื่อไม่ให้จอกระพริบ (ให้เลขมันขึ้นไปเลย แล้วไปโหลดเงียบๆ เบื้องหลัง)
-              fetchLatestMemberStats(); // ปล่อยให้ไปดึงข้อมูลจริงเงียบๆ เบื้องหลัง
-              
-              Swal.fire({ title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ', text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`, icon: 'success', confirmButtonColor: '#ff85a2' });
-            } else { Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error'); }
-          } catch (e) { Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง', 'error'); }
+            if (!hasCache) {
+                kamiArea.innerHTML = `
+                    <div class="kami-container skeleton-card">
+                        <div class="kami-avatar-frame skeleton-circle"></div>
+                        <div class="skeleton-text" style="width: 100px; margin: 8px auto;"></div>
+                    </div>`;
+                    
+                oshiArea.innerHTML = Array(4).fill(0).map(() => `
+                    <div class="oshi-box-card skeleton-card">
+                        <div class="oshi-pic skeleton-circle" style="width:54px; height:54px;"></div>
+                        <div class="oshi-info-center">
+                            <div class="skeleton-text" style="width: 80px; margin-bottom: 6px;"></div>
+                            <div class="skeleton-text" style="width: 50px; height: 10px;"></div>
+                        </div>
+                    </div>`).join('');
+            }
+
+            fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}&_=${Date.now()}`)
+                .then(response => response.json())
+                .then(res => {
+                    if (res.status === "success" && res.data) {
+                        localStorage.setItem(cacheKey, JSON.stringify(res.data));
+                        rawOshiBoardData = res.data;
+                        renderContent(res.data);
+                    }
+                })
+                .catch(err => {
+                    console.error("Error loading user oshi board from server:", err);
+                    if (!hasCache) {
+                        kamiArea.innerHTML = `<div class="empty-heart-state" style="color:var(--danger-red);">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรชอีกครั้ง</div>`;
+                        oshiArea.innerHTML = "";
+                    }
+                });
         }
-      });
-    }
-  
-  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
-function formatThaiDate(dateStr) {
-  if (!dateStr) return '';
-  
-  // แยกส่วนวันที่และเวลาออกจากกัน (รองรับรูปแบบ YYYY-MM-DD HH:mm:ss)
-  const parts = dateStr.trim().split(/[- :]/);
-  if (parts.length < 5) return dateStr; // คืนค่าเดิมหากรูปแบบไม่ใช่เวลาสำเร็จรูป
-  
-  const year = parseInt(parts[0]);
-  const month = parseInt(parts[1]);
-  const day = parseInt(parts[2]);
-  const hour = parts[3];
-  const min = parts[4];
-  
-  const thaiMonths = [
-    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
-    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-  ];
-  
-  const thaiYear = year + 543; // แปลง ค.ศ. เป็น พ.ศ.
-  
-  return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
-}
-  
-  function escapeHtml(text) {
-      if (!text) return '';
-      return text.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    function hasManagementPermission(postAuthorUsername) {
-        if (!user) return false;
-        if (user.role === 'CEO' || user.role === 'Admin') return true;
-        return user.username === postAuthorUsername;
-    }
-
-function renderPost(post) {
-  if (!post) return '';
-
-  const currentUser = getUserSession();
-  const canManage = hasManagementPermission(post.authorUsername);
-
-  const authorProfileImg = post.profile_img || 'https://via.placeholder.com/40';
-  const authorName = escapeHtml(post.authorName || 'Anonymous Member');
-  
-  // [ข้อที่ 1] แปลงวันที่ให้เป็นภาษาไทยสวยงาม
-  const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
-  const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
-  
-  const postContent = escapeHtml(post.content || ''); 
-  const postLikes = post.likes || 0;
-  const postId = post.id || ''; 
-  const displayImage = post.imageUrl || post.imageURL || '';
-  const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
-
-  const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
-  const postContainerClass = isChampPost ? 'post-card champ-special-post' : 'post-card';
-  
-  const specialBadge = isChampPost ? `
-    <div class="champ-post-badge">
-      <i class="fas fa-crown"></i> Champ of the Month Special Thanks
-    </div>
-  ` : '';
-
-  const champCardStyle = isChampPost 
-    ? `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;` 
-    : `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
-
-  const verifiedBadgeIcon = `
-    <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-      <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-    </svg>
-  `;
-  const isPostVerified = post.isVerified ? verifiedBadgeIcon : '';
-       
-  let isGraduated = false;
-  if (post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') {
-    isGraduated = true;
-  } else {
-    const savedStatsStr = localStorage.getItem('current_member_stats');
-    if (savedStatsStr) {
-      try {
-        const savedStats = JSON.parse(savedStatsStr);
-        if (savedStats.status && savedStats.status.toLowerCase() === 'graduated' && 
-            (post.authorName.toLowerCase() === savedStats.name.toLowerCase() || post.authorUsername.toLowerCase() === savedStats.username.toLowerCase())) {
-          isGraduated = true;
-        }
-      } catch(e) {}
-    }
-  }
-
-  // [ข้อที่ 2] ปรับโครงสร้างรูปโปรไฟล์ให้ติดไอคอนสีเทา-หมวกขาว และเอาข้อความ "Graduated" ด้านล่างออกตามที่ต้องการ
-  const profileImgHtml = isGraduated ? `
-    <div style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0;">
-      <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef;">
-      <div style="position: absolute; bottom: -2px; right: -2px; background: #888888; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
-        <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
-      </div>
-    </div>
-  ` : `<img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; object-fit: cover;">`;
-
-  // ตัดตัวอักษรคำว่า Graduated ออกไปแล้ว (ปล่อยเป็นค่าว่างไว้) เพื่อความคลีน
-  const graduatedSubtext = ''; 
-
-  let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-  
-  if (window.listenForComments) {
-    setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
-  }
-
-  let mediaHtml = '';
-  if (post.audioURL) {
-    mediaHtml += `
-      <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
-        <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
-        <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
-          <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
-        </button>
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-          <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
-            <span>Voice Note</span>
-            <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
-          </div>
-          <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
-            <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  if (post.videoURL) {
-    mediaHtml += `
-      <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
-        <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
-      </div>
-    `;
-  }
-
-  let imagesHtml = '';
-  if (displayImage) {
-    const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
-    const visibleImages = imageUrls.slice(0, 4);
-    
-    if (imageUrls.length === 1) {
-      imagesHtml += `
-        <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
-          <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
-        </div>
-      `;
-    } else {
-      imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
-      visibleImages.forEach((url, index) => {
-        imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
-        imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
-        if (index === 3 && imageUrls.length > 4) {
-          imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
-        }
-        imagesHtml += `</div>`;
-      });
-      imagesHtml += `</div>`;
-    }
-  }
-
-  const actionMenu = canManage ? `
-    <div class="post-menu-container">
-      <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
-        <i class="fa-solid fa-ellipsis-vertical"></i>
-      </button>
-      <div class="post-dropdown-menu" id="dropdown-${postId}">
-        <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(post.content || '')}')">
-          <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
-        </button>
-        <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
-          <i class="fa-solid fa-trash"></i> ลบโพสต์
-        </button>
-      </div>
-    </div>
-  ` : '';
-      
-  return `
-    <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
-      ${specialBadge}
-      ${actionMenu}
-      
-      <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
-        ${profileImgHtml}
-        <div>
-          <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
-          <div style="font-size: 0.8rem; color: gray;">
-            ${postTimestamp} ${graduatedSubtext}
-          </div>
-        </div>
-      </div>
-      
-      <div class="post-body" style="margin-bottom: 15px;">
-        <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
-        ${imagesHtml}
-        ${mediaHtml}
-      </div>
-      
-      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
-        </button>
-        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
-        </button>
-      </div>
-
-      <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-        <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
-          ${commentsHtml}
-        </div>
-        <div class="comment-input-box" style="display: flex; gap: 8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-          <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
- async function loadMemberTimelinePosts() {
-  if (window.isTimelineLoading) return;
-  const container = document.getElementById('posts-container');
-  if (!container) return;
-
-  // 🛠️ ดึงสถานะปัจจุบันของเมมเบอร์คนนี้จากคลังสถิติหน้าเว็บมาเตรียมไว้ทันทีแบบ Real-time
-  try {
-    const savedStatsStr = localStorage.getItem('current_member_stats');
-    if (savedStatsStr) {
-      const savedStats = JSON.parse(savedStatsStr);
-      window.currentMemberStatus = savedStats.status || '';
-    } else {
-      window.currentMemberStatus = '';
-    }
-  } catch(e) {
-    window.currentMemberStatus = '';
-  }
-
-  const cachedPostsStr = localStorage.getItem('blm48_posts_cache');
-  const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
-
-  if (cachedPostsStr && isContainerEmpty) {
-    try {
-      let allCachedPosts = JSON.parse(cachedPostsStr);
-      let memberCachedPosts = allCachedPosts.filter(post => 
-          (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-          (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-      );
-      
-      if (memberCachedPosts.length > 0) {
-        let tempPosts = [...memberCachedPosts];
-        tempPosts.reverse();
-        const loadingMsg = document.getElementById('loading-msg');
-        if (loadingMsg) loadingMsg.remove();
         
-        tempPosts.forEach(post => {
-          container.insertAdjacentHTML('afterbegin', renderPost(post));
+        async function executeDeleteAction(type, memberName) {
+            const typeText = type === 'kami' ? 'คามิโอชิหลัก' : 'โอชิ';
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการลบข้อมูล?',
+                text: `คุณต้องการจะลบ ${memberName} ออกจาก ${typeText}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ff85a2',
+                cancelButtonColor: '#ccc',
+                confirmButtonText: 'ใช่, ลบออกเลย',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            Swal.fire({ title: 'กำลังอัพเดทข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            try {
+                const response = await fetch(scriptURL, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        action: 'removeOshi',
+                        username: currentUsername,
+                        type: type,
+                        memberName: memberName
+                    })
+                });
+                
+                const res = await response.json();
+                if (res.status === "success") {
+                    Swal.fire('สำเร็จ!', 'ระบบลบรายชื่อออกจากโอชิเรียบร้อยแล้วค่ะ', 'success');
+                    fetchAndRenderUserOshiBoard(); 
+                } else {
+                    Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบข้อมูลได้', 'error');
+                }
+            } catch (err) {
+                Swal.fire('ล้มเหลว!', 'ระบบติดต่อตารางข้อมูลขัดข้อง กรุณาลองอีกครั้งนะงับ', 'error');
+            }
+        }
+
+        function checkNotificationBadge() {
+            const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
+            const badgeElement = document.getElementById("global-noti-badge");
+            if (badgeElement) {
+                badgeElement.style.display = hasNewNoti === "true" ? "block" : "none";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof checkNotificationBadge === 'function') {
+                checkNotificationBadge();
+            }
+            loadChampThemeSubPage(); // 🚀 เรียกใช้งานฟังก์ชันที่แก้ใหม่
+
+            const tabProfileImg = document.getElementById('tab-profile-img');
+            if (tabProfileImg) {
+                let currentUser = null;
+                if (typeof user !== 'undefined' && user) {
+                    currentUser = user;
+                } else {
+                    const sessionStr = localStorage.getItem("bnl_session"); 
+                    if (sessionStr) {
+                        try {
+                            const session = JSON.parse(sessionStr);
+                            currentUser = session.data || session.user || session; 
+                        } catch (e) {}
+                    }
+                }
+                if (currentUser && currentUser.profile_img) {
+                    tabProfileImg.src = typeof getImg === 'function' ? getImg(currentUser.profile_img) : currentUser.profile_img;
+                }
+            }
         });
-      }
-    } catch (e) {
-      console.error("ล้มเหลวในการอ่านโพสต์จากแคช:", e);
-    }
-  }
-
-  const hasExistingPosts = container.querySelectorAll('.post-card').length > 0;
-
-  if (!hasExistingPosts) {
-    if (!document.getElementById('loading-msg')) {
-       container.innerHTML = `
-         <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
-           <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
-         </div>`;
-    }
-  }
-
-  try {
-    window.isTimelineLoading = true;
-    const currentUser = getUserSession();
-    const username = currentUser ? currentUser.username : "";
-    const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
-    
-    let posts = await response.json();
-    
-    if (posts && posts.length > 0) {
-      const oldPostsCache = localStorage.getItem('blm48_posts_cache');
-      if (oldPostsCache !== JSON.stringify(posts)) {
-        localStorage.removeItem('blm48_posts_cache');
-      }
-      localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
-    }
-    
-    const loadingMsg = document.getElementById('loading-msg');
-    if (loadingMsg) loadingMsg.remove();
-
-    if (!posts || posts.length === 0) {
-        if (!hasExistingPosts) {
-           container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
-        }
-        return;
-    }
-
-    let memberPosts = posts.filter(post => 
-        (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-        (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-    );
-
-    if (memberPosts.length === 0) {
-        if (!hasExistingPosts) {
-           container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">Not Posts Yet</div>';
-        }
-        return;
-    }
-
-    memberPosts.reverse(); 
-
-    memberPosts.forEach(post => {
-      const existingPost = document.getElementById(`post-${post.id}`);
-      if (existingPost) {
-        const likeCountEl = document.getElementById(`like-count-${post.id}`);
-        if (likeCountEl) likeCountEl.innerText = post.likes;
-        
-        const heartIcon = document.getElementById(`heart-${post.id}`);
-        if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-      } else {
-        container.insertAdjacentHTML('afterbegin', renderPost(post));
-      }
-    });
-    
-  } catch (error) {
-    console.error("โหลดฟีดล้มเหลว:", error);
-    if (!hasExistingPosts) {
-       container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
-    }
-  } finally {
-    window.isTimelineLoading = false;
-  }
-}
-
-function togglePostMenu(event, postId) {
-  event.stopPropagation(); 
-  const targetMenu = document.getElementById(`dropdown-${postId}`);
-  
-  document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
-    if (menu !== targetMenu) {
-      menu.style.display = 'none';
-    }
-  });
-
-  if (targetMenu) {
-    if (targetMenu.style.display === 'block') {
-      targetMenu.style.display = 'none';
-    } else {
-      targetMenu.style.display = 'block';
-    }
-  }
-}
-
-document.addEventListener('click', function() {
-  document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
-    menu.style.display = 'none';
-  });
-});
-  
-    async function deletePostUi(postId) {
-      const result = await Swal.fire({
-        title: 'ลบโพสต์นี้?', text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!", icon: 'warning',
-        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: '#d33', confirmButtonText: 'ลบเลย!'
-      });
-
-      if (result.isConfirmed) {
-        const currentUser = getUserSession();
-        const userRole = currentUser ? (currentUser.role || "") : "";
-        const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
-        const data = await response.json();
-        if (data.status === 'success') {
-          document.getElementById(`post-${postId}`).remove();
-          Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อยงับ', 'success');
-        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error'); }
-      }
-    }
-
-    async function editPostUi(postId, encodedContent) {
-      const oldContent = decodeURIComponent(encodedContent);
-      const { value: newText } = await Swal.fire({
-        title: 'แก้ไขโพสต์', input: 'textarea', inputValue: oldContent,
-        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: 'gray'
-      });
-
-      if (newText && newText !== oldContent) {
-        const currentUser = getUserSession();
-        const userRole = currentUser ? (currentUser.role || "") : "";
-        const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
-        const data = await response.json();
-        if (data.status === 'success') {
-          document.getElementById(`content-${postId}`).innerText = newText;
-          Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
-        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error'); }
-      }
-    }
-
-    function toggleBlmAudio(postId) {
-      const audio = document.getElementById(`audio-player-${postId}`);
-      const icon = document.getElementById(`audio-icon-${postId}`);
-      if (!audio) return;
-
-      document.querySelectorAll('audio').forEach(aud => {
-        if (aud.id !== `audio-player-${postId}` && !aud.paused) {
-          aud.pause();
-          const otherId = aud.id.replace('audio-player-', '');
-          const otherIcon = document.getElementById(`audio-icon-${otherId}`);
-          if (otherIcon) { otherIcon.className = 'fa-solid fa-play'; otherIcon.style.marginLeft = '2px'; }
-        }
-      });
-
-      if (audio.paused) {
-        audio.play(); icon.className = 'fa-solid fa-pause'; icon.style.marginLeft = '0px';
-        audio.ontimeupdate = () => {
-          const progress = document.getElementById(`audio-progress-${postId}`);
-          const timeLabel = document.getElementById(`audio-time-${postId}`);
-          if (progress) progress.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
-          if (timeLabel) timeLabel.innerText = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration || 0)}`;
-        };
-        audio.onended = () => {
-          icon.className = 'fa-solid fa-play'; icon.style.marginLeft = '2px';
-          const progress = document.getElementById(`audio-progress-${postId}`);
-          if (progress) progress.style.width = '0%';
-        };
-      } else { audio.pause(); icon.className = 'fa-solid fa-play'; icon.style.marginLeft = '2px'; }
-    }
-
-    function seekBlmAudio(event, postId) {
-      const audio = document.getElementById(`audio-player-${postId}`);
-      const container = document.getElementById(`audio-progress-container-${postId}`);
-      if (!audio || !container) return;
-      const rect = container.getBoundingClientRect();
-      audio.currentTime = ((event.clientX - rect.left) / rect.width) * audio.duration;
-    }
-
-    function formatAudioTime(secs) {
-      if (isNaN(secs)) return "0:00";
-      const minutes = Math.floor(secs / 60); const seconds = Math.floor(secs % 60);
-      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    }
-
-    let currentGallery = [];
-    let currentIndex = 0;
-
-    function openImageViewer(index, galleryArray) {
-      currentGallery = Array.isArray(galleryArray) ? galleryArray : [galleryArray];
-      currentIndex = index;
-      updateViewer();
-      document.getElementById('image-viewer-modal').style.display = 'flex';
-    }
-
-    function updateViewer() {
-      const img = document.getElementById('full-size-image');
-      const prevBtn = document.getElementById('prev-btn');
-      const nextBtn = document.getElementById('next-btn');
-      img.src = currentGallery[currentIndex];
-      prevBtn.style.display = (currentIndex === 0) ? 'none' : 'block';
-      nextBtn.style.display = (currentIndex === currentGallery.length - 1) ? 'none' : 'block';
-    }
-
-    function changeImage(step) {
-      currentIndex += step;
-      if (currentIndex >= 0 && currentIndex < currentGallery.length) { updateViewer(); }
-    }
-
-    function closeImageViewer() { document.getElementById('image-viewer-modal').style.display = 'none'; }
-
-    window.onload = loadMemberData;
-  
-    document.addEventListener("DOMContentLoaded", function() {
-    // ดึงค่าจาก localStorage ออกมาเก็บในตัวแปร (ถ้าไม่มีค่าให้ใช้ค่าเริ่มต้น)
-    const storedKamiOshi = localStorage.getItem('kamiOshi') || 'ยังไม่ได้เลือก';
-    const storedOshi = localStorage.getItem('oshi') || 'ยังไม่ได้เลือก';
-    const storedCookie = localStorage.getItem('cookie') || '0';
-    const storedLike = localStorage.getItem('like') || '0';
-
-    // ค้นหา Element ตาม ID ที่กำหนดไว้ข้างบน
-    const kamiEl = document.getElementById('member-kami-oshi');
-    const oshiEl = document.getElementById('member-oshi');
-    const cookieEl = document.getElementById('member-cookie');
-    const likeEl = document.getElementById('member-like');
-
-    // ส่งค่าไปแทนที่ข้อความบนหน้าเว็บเพื่อแสดงผลพร้อมกัน
-    if (kamiEl) kamiEl.innerText = storedKamiOshi;
-    if (oshiEl) oshiEl.innerText = storedOshi;
-    if (cookieEl) cookieEl.innerText = storedCookie;
-    if (likeEl) likeEl.innerText = storedLike;
-});
 </script>
-
-<!-- =========================================================================
-     📡 REALTIME FIREBASE MODULAR SYSTEM
-     ========================================================================= -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-  import { getDatabase, ref as dbRef, push, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
-    authDomain: "blm48-official-site.firebaseapp.com",
-    projectId: "blm48-official-site",
-    databaseURL: "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    storageBucket: "blm48-official-site.firebasestorage.app",
-    messagingSenderId: "924510827472",
-    appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-
-  window.firebaseDatabase = database;
-  window.fbRef = dbRef;       
-  window.fbPush = push;       
-  window.fbOnValue = onValue; 
-
-  window.toggleCommentSection = function(postId) {
-    const section = document.getElementById(`comment-section-${postId}`);
-    if (!section) return;
-    if (section.style.display === "none" || section.style.display === "") {
-      section.style.display = "block";
-      window.listenForComments(postId);
-    } else { section.style.display = "none"; }
-  }
-
-  window.likePost = async function(postId) {
-    const currentUser = getUserSession();
-    if (!currentUser || !currentUser.username) {
-      Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: '#ff85a2' });
-      return;
-    }
-    const likeSpan = document.getElementById(`like-count-${postId}`);
-    const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
-    if (!heartIcon || !likeSpan) return;
-    
-    const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
-    heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
-    heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
-    likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) - 1 : parseInt(likeSpan.innerText) + 1;
-    
-    try {
-      const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
-      const result = await response.json();
-      if (result.status === "success") {
-        likeSpan.innerText = result.likes;
-        heartIcon.classList.toggle('fa-solid', result.isLiked);
-        heartIcon.classList.toggle('fa-regular', !result.isLiked);
-      }
-    } catch (error) { console.error("Like Error:", error); }
-  }
-
-  window.listenForComments = function(postId) {
-    const db = window.firebaseDatabase;
-    const refFunc = window.fbRef;
-    const onValueFunc = window.fbOnValue;
-    const commentListEl = document.getElementById(`comment-list-${postId}`);
-    const commentCountEl = document.getElementById(`comment-count-${postId}`);
-    
-    if (!commentListEl || !db || !refFunc || !onValueFunc) return;
-    const commentRef = refFunc(db, `comments/${postId}`);
-
-    onValueFunc(commentRef, (snapshot) => {
-      commentListEl.innerHTML = ''; 
-      const data = snapshot.val();
-      
-      if (!data) {
-        commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาประเดิมคนแรกกันเถอะงับ!</div>`;
-        if (commentCountEl) commentCountEl.innerText = "0";
-        return;
-      }
-
-      const commentsArray = Object.values(data);
-      if (commentCountEl) commentCountEl.innerText = commentsArray.length;
-
-      const allowedRoles = ['member', 'admin', 'ceo'];
-      const verifiedBadgeIcon = `<svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24"><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/></svg>`;
-
-      commentsArray.forEach(cmt => {
-        const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
-        const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
-        const commentHtml = `
-          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
-            <div style="font-size: 0.88rem; width: 100%;">
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <b style="color: #ff85a2;">${cmt.name}</b> ${isCmtVerified}
-                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${cmt.role || 'user'}</span>
-              </div>
-              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${cmt.text}</div>
-            </div>
-          </div>`;
-        commentListEl.insertAdjacentHTML('beforeend', commentHtml);
-      });
-      commentListEl.scrollTop = commentListEl.scrollHeight;
-    });
-  };
-
-  window.submitComment = async function(postId, btnElement) {
-    const currentUser = getUserSession();
-    if (!currentUser || !currentUser.username) {
-      Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนแสดงความคิดเห็นนะงับ', 'warning'); return;
-    }
-    const inputEl = document.getElementById(`comment-input-${postId}`);
-    if (!inputEl) return;
-    const commentText = inputEl.value.trim();
-    if (!commentText || (btnElement && btnElement.disabled)) return;
-
-    const db = window.firebaseDatabase;
-    const refFunc = window.fbRef;
-    const pushFunc = window.fbPush;
-    if (!db || !refFunc || !pushFunc) return;
-
-    let originalText = btnElement ? btnElement.innerText : "SEND";
-    if (btnElement) { btnElement.innerText = "..."; btnElement.disabled = true; }
-    inputEl.disabled = true;
-
-    try {
-      const commentPostRef = refFunc(db, `comments/${postId}`);
-      await pushFunc(commentPostRef, {
-        username: currentUser.username,
-        name: currentUser.name || currentUser.username || 'Anonymous',
-        role: currentUser.role || 'user',
-        profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
-        text: commentText, timestamp: Date.now()
-      });
-
-      fetch(scriptURL, {
-        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'addComment', postId: postId, username: currentUser.username, text: commentText })
-      }).catch(e => console.error("Sheets Sync error:", e));
-
-      inputEl.value = ""; 
-    } catch (error) { Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error'); } 
-    finally { if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; } inputEl.disabled = false; }
-  };
-
-  setInterval(() => {
-    document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
-      const postId = card.id.replace('post-', '');
-      if (postId && window.listenForComments) {
-        window.listenForComments(postId);
-        card.setAttribute('data-firebase-ready', 'true');
-      }
-    });
-  }, 300);
-</script>
-
-<div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
-  <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">×</span>
-  <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
-  <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
-  <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
-</div>
-
 </body>
 </html>
