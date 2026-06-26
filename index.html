@@ -2608,14 +2608,12 @@ async function fetchActiveCampaigns() {
   if (!scrollerContainer) return;
 
   try {
-    // 🔥 แก้จุดที่ 1: เปลี่ยนมาเรียก Action ของชีตแคมเปญโดยเฉพาะ ไม่ปนกับอันอื่น
+    // 🔥 เรียก Action ของชีตแคมเปญโดยเฉพาะ
     const response = await fetch(`${scriptURL}?action=getCampaignCollections`);
     const result = await response.json();
 
     if (result.status === "success") {
-      const campaigns = result.data; // ได้ข้อมูลเฉพาะแถวที่มีข้อมูลส่งมาจากหลังบ้านแล้ว
-      
-      // 💡 จุดที่ 2: เอาการ filter Status ออกแล้ว เพราะหลังบ้านกรองแถวที่มีข้อมูลมาให้เลยเด็ดขาด
+      const campaigns = result.data; 
 
       if (campaigns.length === 0) {
         scrollerContainer.innerHTML = `
@@ -2629,7 +2627,6 @@ async function fetchActiveCampaigns() {
 
       // วนลูปสร้างการ์ดจากข้อมูลชีต campaign
       campaigns.forEach(campaign => {
-        // 🔥 แก้จุดที่ 3: เปลี่ยนชื่อคีย์ให้ตรงกับ 5 คอลัมน์ที่กำหนดไว้ในชีตเป๊ะๆ
         const id = campaign.CampaignID;
         const title = campaign.CampaignName;
         const coverImg = campaign.CoverImage || "https://via.placeholder.com/260x135?text=No+Image";
@@ -2648,11 +2645,9 @@ async function fetchActiveCampaigns() {
           displayTokenName = "GE Token";
         }
 
-        const cardLink = document.createElement('a');
+        // 🛑 แก้จุดนี้: เปลี่ยนจาก 'a' เป็น 'div' และเอา href ออก เพื่อให้เป็นแค่กล่องโชว์เฉยๆ กดไม่ได้
+        const cardLink = document.createElement('div');
         cardLink.className = 'campaign-card';
-        
-        // 💡 ส่ง ID ไปที่หน้าโหวต (คงชื่อ parameter 'collectionId' ไว้เผื่อหน้า vote.html นำไปแกะใช้ต่อ)
-        cardLink.href = `vote.html?collectionId=${encodeURIComponent(id)}`; 
 
         cardLink.innerHTML = `
           <img src="${coverImg}" alt="${title}" loading="lazy">
