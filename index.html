@@ -680,9 +680,28 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       padding: 0px 15px 0 15px; 
       cursor: grab; 
       user-select: none; 
-      min-height: 270px; 
+      min-height: auto !important;
       scrollbar-width: none !important;
       -ms-overflow-style: none !important;
+    }
+    
+    /* 2. บังคับความสูง 270px และให้ชิดขอบล่าง "เฉพาะกล่องแท่งกราฟ Ranking" เท่านั้น */
+    #ranking-list.horizontal-list {
+      min-height: 270px !important;
+      align-items: flex-end !important; 
+    }
+
+    /* 3. จัดระเบียบกล่อง Top Fans ตอนเปิด ให้เนื้อหาพอดีและอยู่กึ่งกลาง */
+    #global-fan-list.horizontal-list {
+      align-items: center !important;
+      padding: 10px 15px !important;
+    }
+
+    /* 4. จัดระเบียบกล่อง Campaign และ Trending Video ให้การ์ดชิดขอบบน ไม่ดันเนื้อหาลงไปลึก */
+    #campaign-scroller.horizontal-list,
+    #mv-scroller.horizontal-list {
+      align-items: flex-start !important;
+      padding: 10px 15px 5px 15px !important;
     }
 
     /* ซ่อนแถบเลื่อน (Scrollbar) ทุกเบราว์เซอร์ */
@@ -2640,7 +2659,7 @@ async function fetchActiveCampaigns() {
           <div class="campaign-info">
             <div class="campaign-title">${title}</div>
             <div class="campaign-stats">
-              ${iconHtml} ยอดรวม: ${Number(totalAmount).toLocaleString()} ${displayTokenName}
+              ${iconHtml} ${Number(totalAmount).toLocaleString()} ${displayTokenName}
             </div>
           </div>
         `;
