@@ -2405,14 +2405,12 @@ function loadChampOfTheMonth() {
     });
 }
 
-/**
- * ฟังก์ชันสำหรับสั่งให้นำข้อมูลไปวาดลงหน้าจอ (สลับหน้า Splash อัตโนมัติ)
- */
 function applyThemeAndToggleSplash(themeData, toggleKey) {
   if (!themeData || !themeData.champ) return;
   
   const champ = themeData.champ;
   const birthdaySplash = themeData.birthdaySplash; // ถ้าไม่มีคนเกิด จะเป็นค่าว่าง ""
+  const birthdayBanner = themeData.birthdayBanner; // 📌 รับค่า Banner วันเกิดมาด้วย
   
   const mainSplash = document.getElementById('main-splash');
   const splashScreen = document.getElementById('splash-screen');
@@ -2438,7 +2436,7 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
   if (mainSplash && splashToShow) {
     mainSplash.src = splashToShow;
     
-    // โชว์ Splash ไว้สักพักแล้วเฟดออก (ใส่ไว้ให้ตรงนี้เผื่อเรียกใช้ครับ)
+    // โชว์ Splash ไว้สักพักแล้วเฟดออก
     if(splashScreen) {
        splashScreen.style.display = "flex";
        setTimeout(() => splashScreen.style.opacity = "1", 10);
@@ -2446,6 +2444,28 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
            splashScreen.style.opacity = "0";
            setTimeout(() => splashScreen.style.display = "none", 500);
        }, 3000); // ระยะเวลาโชว์ 3 วินาที
+    }
+  }
+
+  // =========================================================
+  // 🎂 📌 เพิ่มโค้ดส่วน HBD Banner ตรงนี้ (ดึงจาก themeData)
+  // =========================================================
+  if (birthdayBanner && birthdayBanner !== "") {
+    const bannerContainer = document.getElementById("autoBannerContainer");
+    
+    // เช็คก่อนว่ามี element คอนเทนเนอร์ และยังไม่ได้แทรกรูปวันเกิดลงไป (ป้องกันการแทรกรูปซ้ำซ้อน)
+    if (bannerContainer && !document.getElementById("hbd-banner-img")) {
+        const hbdBannerHTML = `
+            <a href="#" class="auto-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: block;">
+                <img id="hbd-banner-img" src="${birthdayBanner}" alt="Happy Birthday Banner" style="width: 100%; height: auto; display: block; object-fit: cover;">
+            </a>
+        `;
+        
+        // แทรกแบนเนอร์วันเกิดให้โชว์เป็นอันดับแรกสุดใน slider
+        bannerContainer.insertAdjacentHTML('afterbegin', hbdBannerHTML);
+        
+        // 💡 หมายเหตุ: หากในสคริปต์ของหน้า HTML มีฟังก์ชันอัปเดตจุดไข่ปลา (Dots)
+        // อาจจะต้องเรียกฟังก์ชันเหล่านั้นซ้ำที่นี่ด้วย เช่น ถ้ามีฟังก์ชันชื่อ initBanner() ก็ให้เรียกใช้ตรงนี้ครับ
     }
   }
   
