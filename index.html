@@ -2103,7 +2103,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   
 <div class="shop-banner-slider-wrapper" style="position: relative; margin: 20px 15px; border-radius: 16px; overflow: hidden;">
     
-    <div id="autoBannerContainer" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; background-color: #ffeef2; -ms-overflow-style: none;">
+    <div id="autoBannerContainer" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; background-color: #ffeef2; -ms-overflow-style: none; cursor: grab;">
 
         <a href="majorvote.html" class="auto-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: block;">
             <img src="https://lh3.googleusercontent.com/d/16SXJ_JzMNVGMoSQ9iEnU5gkvKK-5OVFW=s1000" alt="BLM48 Campaign Banner" style="width: 100%; height: auto; display: block; object-fit: cover;">
@@ -2407,52 +2407,48 @@ function loadChampOfTheMonth() {
     });
 }
 
+// =========================================================
+// 1. ฟังก์ชันจัดการธีม และแทรกแบนเนอร์วันเกิด
+// =========================================================
 function applyThemeAndToggleSplash(themeData, toggleKey) {
   if (!themeData || !themeData.champ) return;
   
   const champ = themeData.champ;
-  const birthdaySplash = themeData.birthdaySplash; // ถ้าไม่มีคนเกิด จะเป็นค่าว่าง ""
-  const birthdayBanner = themeData.birthdayBanner; // 📌 รับค่า Banner วันเกิดมาด้วย
+  const birthdaySplash = themeData.birthdaySplash; 
+  const birthdayBanner = themeData.birthdayBanner; 
   
   const mainSplash = document.getElementById('main-splash');
   const splashScreen = document.getElementById('splash-screen');
   
-  let splashToShow = champ.splash; // เริ่มต้นให้โชว์รูปแชมป์ก่อน
+  let splashToShow = champ.splash; 
 
-  // 🔄 ระบบสลับหน้าจอ (จะทำงานก็ต่อเมื่อ "วันนี้มีวันเกิด" เท่านั้น)
   if (birthdaySplash) {
     const lastShown = localStorage.getItem(toggleKey);
     
     if (lastShown === "birthday") {
-      // ครั้งที่แล้วโชว์วันเกิดไปแล้ว -> รอบนี้ขอโชว์รูปแชมป์
       splashToShow = champ.splash;
       localStorage.setItem(toggleKey, "champ");
     } else {
-      // เข้าแอปครั้งแรก หรือรอบที่แล้วโชว์แชมป์ -> รอบนี้ขอโชว์วันเกิด
       splashToShow = birthdaySplash;
       localStorage.setItem(toggleKey, "birthday");
     }
   }
 
-  // เปลี่ยนรูปภาพหน้าจอ Splash Screen
   if (mainSplash && splashToShow) {
     mainSplash.src = splashToShow;
     
-    // โชว์ Splash ไว้สักพักแล้วเฟดออก
     if(splashScreen) {
        splashScreen.style.display = "flex";
        setTimeout(() => splashScreen.style.opacity = "1", 10);
        setTimeout(() => {
            splashScreen.style.opacity = "0";
            setTimeout(() => splashScreen.style.display = "none", 500);
-       }, 3000); // ระยะเวลาโชว์ 3 วินาที
+       }, 3000); 
     }
   }
 
-  // =========================================================
-  // 🎂 📌 เพิ่มโค้ดส่วน HBD Banner ตรงนี้ (ดึงจาก themeData)
-  // =========================================================
-    if (birthdayBanner && birthdayBanner !== "") {
+  // 🎂 📌 ส่วน HBD Banner
+  if (birthdayBanner && birthdayBanner !== "") {
     const bannerContainer = document.getElementById("autoBannerContainer");
     
     if (bannerContainer && !document.getElementById("hbd-banner-img")) {
@@ -2464,17 +2460,127 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
         
         bannerContainer.insertAdjacentHTML('afterbegin', hbdBannerHTML);
         
-        // 🎂 📌 สั่งคำนวณตัวเลขแบนเนอร์ใหม่ทันทีหลังจากแทรกแบนเนอร์วันเกิดแล้ว!
-        initBannerCounter();
+        // 🚀 เรียกใช้ระบบสไลด์ตัวใหม่ หลังจากแทรกรูปวันเกิดเสร็จ!
+        initBannerFeatures();
     }
   } else {
-    // 📌 กรณีที่วันนี้ไม่มีวันเกิด ก็ให้สั่งรันนับจำนวนรูปปกติ (3 รูปเดิม)
-    initBannerCounter();
+    // 🚀 กรณีไม่มีวันเกิด ก็เรียกใช้ระบบสไลด์ตัวใหม่เพื่อนับ 3 รูปปกติ
+    initBannerFeatures();
   }
   
-  // 🌟 ไม่ว่ารูป Splash จะเป็นใคร "ไอคอน" จะถูกบังคับให้เป็นของแชมป์เสมอ!
   applyIconsOnly(champ);
 }
+
+// =========================================================
+// 2. ระบบแบนเนอร์ All-in-One (ใส่ต่อกันด้านล่างได้เลยครับ)
+// =========================================================
+function initBannerFeatures() {
+  const container = document.getElementById("autoBannerContainer");
+  const counter = document.getElementById("bannerCounterContainer");
+  if (!container) return;
+
+  const items = container.querySelectorAll(".auto-banner-item");
+  const totalItems = items.length;
+
+  if (totalItems === 0) {
+    if (counter) counter.style.display = "none";
+    return;
+  } else {
+    if (counter) counter.style.display = "block";
+  }
+
+  // ระบบคำนวณตัวเลข (01/03)
+  function updateCounterText() {
+    if (!counter) return;
+    const width = container.clientWidth;
+    if (width === 0) return;
+    
+    let currentIndex = Math.round(container.scrollLeft / width) + 1;
+    if (currentIndex > totalItems) currentIndex = totalItems; 
+    
+    const currentStr = String(currentIndex).padStart(2, '0');
+    const totalStr = String(totalItems).padStart(2, '0');
+    counter.innerText = `${currentStr}/${totalStr}`;
+  }
+
+  container.removeEventListener("scroll", updateCounterText);
+  container.addEventListener("scroll", updateCounterText);
+  updateCounterText();
+
+  // ระบบเลื่อนอัตโนมัติ (Auto-play)
+  // เช็คก่อนว่ามี interval เก่าค้างอยู่ไหม ถ้ามีให้เคลียร์ก่อน
+  if (window.bannerAutoPlayInterval) {
+      clearInterval(window.bannerAutoPlayInterval);
+  }
+  const autoPlayDelay = 3500; 
+
+  function startAutoPlay() {
+    stopAutoPlay(); 
+    window.bannerAutoPlayInterval = setInterval(() => {
+      const width = container.clientWidth;
+      const maxScroll = container.scrollWidth - width;
+      
+      if (container.scrollLeft >= maxScroll - 10) {
+         container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+         container.scrollBy({ left: width, behavior: 'smooth' });
+      }
+    }, autoPlayDelay);
+  }
+
+  function stopAutoPlay() {
+    clearInterval(window.bannerAutoPlayInterval);
+  }
+  
+  startAutoPlay(); 
+
+  // ระบบคลิกแล้วลากด้วยเมาส์
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  container.addEventListener('mousedown', (e) => {
+    isDown = true;
+    container.style.cursor = 'grabbing'; 
+    container.style.scrollSnapType = 'none'; 
+    startX = e.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+    stopAutoPlay(); 
+  });
+
+  container.addEventListener('mouseleave', () => {
+    if (!isDown) return;
+    isDown = false;
+    container.style.cursor = 'grab';
+    container.style.scrollSnapType = 'x mandatory'; 
+    startAutoPlay(); 
+  });
+
+  container.addEventListener('mouseup', () => {
+    isDown = false;
+    container.style.cursor = 'grab';
+    container.style.scrollSnapType = 'x mandatory';
+    startAutoPlay();
+  });
+
+  container.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startX) * 1.5; 
+    container.scrollLeft = scrollLeft - walk;
+  });
+
+  container.querySelectorAll('img').forEach(img => {
+    img.addEventListener('dragstart', (e) => e.preventDefault());
+  });
+
+  container.addEventListener('touchstart', stopAutoPlay, {passive: true});
+  container.addEventListener('touchend', startAutoPlay, {passive: true});
+}
+
+// 🚀 สั่งให้ทำงานตอนเปิดหน้าเว็บครั้งแรกด้วย เผื่อเว็บโหลดเสร็จก่อนหลังบ้านตอบกลับ
+document.addEventListener("DOMContentLoaded", initBannerFeatures);
 
 /**
  * ฟังก์ชันแยกสำหรับใช้อัปเดตแค่ไอคอนแถบด้านล่าง
