@@ -2103,7 +2103,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   
 <div class="shop-banner-slider-wrapper" style="position: relative; margin: 20px 15px; border-radius: 16px; overflow: hidden;">
     
-    <div id="autoBannerContainer" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; background-color: #ffeef2;">
+    <div id="autoBannerContainer" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; background-color: #ffeef2; -ms-overflow-style: none;">
 
         <a href="majorvote.html" class="auto-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: block;">
             <img src="https://lh3.googleusercontent.com/d/16SXJ_JzMNVGMoSQ9iEnU5gkvKK-5OVFW=s1000" alt="BLM48 Campaign Banner" style="width: 100%; height: auto; display: block; object-fit: cover;">
@@ -2119,7 +2119,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
     </div>
     
-    <div id="bannerDotsContainer" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; background: rgba(0, 0, 0, 0.15); padding: 5px 8px; border-radius: 10px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);"></div>
+    <div id="bannerCounterContainer" style="position: absolute; bottom: 12px; right: 15px; z-index: 10; background: rgba(0, 0, 0, 0.45); color: #ffffff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; font-family: sans-serif; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); letter-spacing: 0.5px;">
+        01/03
+    </div>
 </div>
 
     <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
@@ -2450,10 +2452,9 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
   // =========================================================
   // 🎂 📌 เพิ่มโค้ดส่วน HBD Banner ตรงนี้ (ดึงจาก themeData)
   // =========================================================
-  if (birthdayBanner && birthdayBanner !== "") {
+    if (birthdayBanner && birthdayBanner !== "") {
     const bannerContainer = document.getElementById("autoBannerContainer");
     
-    // เช็คก่อนว่ามี element คอนเทนเนอร์ และยังไม่ได้แทรกรูปวันเกิดลงไป (ป้องกันการแทรกรูปซ้ำซ้อน)
     if (bannerContainer && !document.getElementById("hbd-banner-img")) {
         const hbdBannerHTML = `
             <a href="#" class="auto-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: block;">
@@ -2461,12 +2462,14 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
             </a>
         `;
         
-        // แทรกแบนเนอร์วันเกิดให้โชว์เป็นอันดับแรกสุดใน slider
         bannerContainer.insertAdjacentHTML('afterbegin', hbdBannerHTML);
         
-        // 💡 หมายเหตุ: หากในสคริปต์ของหน้า HTML มีฟังก์ชันอัปเดตจุดไข่ปลา (Dots)
-        // อาจจะต้องเรียกฟังก์ชันเหล่านั้นซ้ำที่นี่ด้วย เช่น ถ้ามีฟังก์ชันชื่อ initBanner() ก็ให้เรียกใช้ตรงนี้ครับ
+        // 🎂 📌 สั่งคำนวณตัวเลขแบนเนอร์ใหม่ทันทีหลังจากแทรกแบนเนอร์วันเกิดแล้ว!
+        initBannerCounter();
     }
+  } else {
+    // 📌 กรณีที่วันนี้ไม่มีวันเกิด ก็ให้สั่งรันนับจำนวนรูปปกติ (3 รูปเดิม)
+    initBannerCounter();
   }
   
   // 🌟 ไม่ว่ารูป Splash จะเป็นใคร "ไอคอน" จะถูกบังคับให้เป็นของแชมป์เสมอ!
@@ -2522,6 +2525,49 @@ window.addEventListener('pageshow', function(event) {
     if(typeof loadWalletFromCache === "function") loadWalletFromCache();
   }
 });
+  
+function initBannerCounter() {
+  const container = document.getElementById("autoBannerContainer");
+  const counter = document.getElementById("bannerCounterContainer");
+  if (!container || !counter) return;
+
+  // ค้นหาแบนเนอร์ทั้งหมดที่มีอยู่ในตอนนั้น
+  const items = container.querySelectorAll(".auto-banner-item");
+  const totalItems = items.length;
+
+  // ถ้าไม่มีรูปเลย ให้ซ่อนกล่องตัวเลขไปเลย
+  if (totalItems === 0) {
+    counter.style.display = "none";
+    return;
+  } else {
+    counter.style.display = "block";
+  }
+
+  // ฟังก์ชันคำนวณหน้าปัจจุบันจากการ Scroll
+  function updateCounterText() {
+    const width = container.clientWidth;
+    if (width === 0) return;
+    
+    // คำนวณว่าตอนนี้สไลด์อยู่ที่หน้ารูปที่เท่าไหร่
+    const currentIndex = Math.round(container.scrollLeft / width) + 1;
+    
+    // แปลงเลขให้เป็นสไตล์ 01, 02 (ใส่ padStart เผื่อเลขหลักเดียว)
+    const currentStr = String(currentIndex).padStart(2, '0');
+    const totalStr = String(totalItems).padStart(2, '0');
+    
+    counter.innerText = `${currentStr}/${totalStr}`;
+  }
+
+  // ให้ทำงานครั้งแรกทันทีที่โหลดหน้าเว็บ
+  updateCounterText();
+
+  // ดักจับเหตุการณ์ตอนผู้ใช้ปัดสไลด์ ให้เปลี่ยนเลขตาม
+  container.removeEventListener("scroll", updateCounterText); // ลบอันเก่าออกก่อนกันเบิ้ล
+  container.addEventListener("scroll", updateCounterText);
+}
+
+// 🚀 สั่งให้ทำงานตอนเปิดหน้าเว็บครั้งแรก
+document.addEventListener("DOMContentLoaded", initBannerCounter);
 
 // =========================================================================
 // 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันเวอร์ชันเคลียร์บั๊ก)
