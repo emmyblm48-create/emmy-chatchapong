@@ -1058,33 +1058,65 @@ async function fetchLatestMemberStats() {
 
       if (!finalConfirm.isConfirmed) return;
 
-      Swal.fire({ title: 'กำลังอัปเดตข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      // ==========================================
+      // 🚀 1. OPTIMISTIC UI: อัปเดตหน้าจอทันที ไม่ต้องรอเซิร์ฟเวอร์!
+      // ==========================================
+      const kamiElement = document.getElementById('mb-kami');
+      const oshiElement = document.getElementById('mb-oshi');
+      let currentKamiNum = parseInt(kamiElement.innerText) || 0;
+      let currentOshiNum = parseInt(oshiElement.innerText) || 0;
 
+      // เซฟค่าเก่าไว้เผื่อ Error จะได้ Rollback กลับได้
+      const backupKamiNum = currentKamiNum;
+      const backupOshiNum = currentOshiNum;
+      const backupUserKami = user.kamioshi;
+      const backupUserOshi = [...(user.oshi || [])];
+
+      // อัปเดตตัวเลข
+      if (type === 'kami') {
+        kamiElement.innerText = (action === "removeOshi") ? Math.max(0, currentKamiNum - 1) : currentKamiNum + 1;
+        user.kamioshi = (action === "removeOshi") ? "" : memberName; // อัปเดตข้อมูลจำลองในเครื่อง
+      } else {
+        oshiElement.innerText = (action === "removeOshi") ? Math.max(0, currentOshiNum - 1) : currentOshiNum + 1;
+        if (action === "removeOshi") {
+            user.oshi = user.oshi.filter(o => o.toLowerCase() !== searchName);
+        } else {
+            if (!user.oshi) user.oshi = [];
+            user.oshi.push(memberName);
+        }
+      }
+      
+      updateButtonStyles(); // สลับสีปุ่มทันที
+
+      // โชว์แจ้งเตือนมุมจอแบบไม่บล็อกหน้าเว็บ
+      Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'กำลังบันทึกข้อมูล...', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+
+      // ==========================================
+      // 🚀 2. แอบส่งข้อมูลเงียบๆ ไปหลังบ้าน
+      // ==========================================
       try {
         const resp = await fetch(scriptURL, {
           method: 'POST',
           body: JSON.stringify({ action: action, type: type, username: username, memberName: memberName })
         });
         const res = await resp.json();
+        
         if (res.status === "success") {
-          const kamiElement = document.getElementById('mb-kami');
-          const oshiElement = document.getElementById('mb-oshi');
-          let currentKamiNum = parseInt(kamiElement.innerText) || 0;
-          let currentOshiNum = parseInt(oshiElement.innerText) || 0;
-
-          if (type === 'kami') {
-            kamiElement.innerText = (action === "removeOshi") ? Math.max(0, currentKamiNum - 1) : currentKamiNum + 1;
-          } else {
-            oshiElement.innerText = (action === "removeOshi") ? Math.max(0, currentOshiNum - 1) : currentOshiNum + 1;
-          }
-
-          await syncUserData(); 
-          showSkeleton();
-          await fetchLatestMemberStats();
-
-          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: res.message, timer: 1500, showConfirmButton: false });
-        } else { Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้ค่ะ', 'error'); }
-      } catch (e) { Swal.fire('เกิดข้อผิดพลาด!', 'การเชื่อมต่อขัดข้อง', 'error'); }
+          syncUserData(); // ดึงซิงค์เงียบๆ
+          fetchLatestMemberStats();
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'สำเร็จ!', text: res.message, timer: 1500, showConfirmButton: false });
+        } else { 
+            throw new Error(res.message); // โยนไปเข้า catch เพื่อ Rollback
+        }
+      } catch (e) { 
+        // ถ้าระบบหลังบ้านพัง ให้ดึงค่าเดิมกลับมาคืนหน้าจอ (Rollback)
+        kamiElement.innerText = backupKamiNum;
+        oshiElement.innerText = backupOshiNum;
+        user.kamioshi = backupUserKami;
+        user.oshi = backupUserOshi;
+        updateButtonStyles();
+        Swal.fire('ผิดพลาด', 'การเชื่อมต่อขัดข้อง ระบบได้คืนค่าเดิมแล้วค่ะ', 'error'); 
+      }
     }
 
     function actionKami() { setOshi('kami'); }
@@ -1098,7 +1130,7 @@ async function fetchLatestMemberStats() {
       return number.toLocaleString(); 
     }
 
-function actionCookie() {
+    function actionCookie() {
       if (!checkLoginStatus()) return;
 
       if (!user || !user.role || user.role.toLowerCase() !== 'user') {
@@ -1131,8 +1163,35 @@ function actionCookie() {
       }).then(async (result) => {
         if (result.value) {
           const amountSent = parseInt(result.value);
-          Swal.fire({ title: 'กำลังส่งคุกกี้ให้เมมเบอร์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          
+          // ==========================================
+          // 🚀 1. OPTIMISTIC UI: อัปเดตตัวเลขคุกกี้หลอกตาทันที!
+          // ==========================================
+          user.cookie = userCookies - amountSent; // หักคุกกี้ในเครื่องผู้ใช้ทันที
 
+          const scoreElement = document.getElementById('mb-score');
+          const savedStatsStr = localStorage.getItem('current_member_stats');
+          let backupScore = 0;
+          let m = null;
+          
+          if (savedStatsStr) {
+            try {
+              m = JSON.parse(savedStatsStr);
+              backupScore = m.all_time_total || 0;
+              const newScore = backupScore + amountSent;
+              
+              if (scoreElement) scoreElement.innerText = formatMemberScore(newScore);
+              
+              m.all_time_total = newScore;
+              localStorage.setItem('current_member_stats', JSON.stringify(m));
+            } catch(e) { console.error(e); }
+          }
+
+          Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'กำลังส่งคุกกี้...', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+
+          // ==========================================
+          // 🚀 2. แอบส่งข้อมูลเงียบๆ เบื้องหลัง
+          // ==========================================
           try {
             const resp = await fetch(scriptURL, {
               method: 'POST',
@@ -1141,31 +1200,23 @@ function actionCookie() {
             const res = await resp.json();
 
             if (res.status === "success") {
-              // 🌟 [แก้บั๊กตรงนี้] ดึงคะแนนดิบๆ จาก LocalStorage มาบวกแทนการดึงจากหน้าจอ
-              const savedStatsStr = localStorage.getItem('current_member_stats');
-              if (savedStatsStr) {
-                try {
-                  const m = JSON.parse(savedStatsStr);
-                  const currentRawScore = m.all_time_total || 0;
-                  const newScore = currentRawScore + amountSent;
-                  
-                  // อัปเดตตัวเลขให้เนียนตา ก่อนรอโหลดข้อมูลจริงจากเซิร์ฟเวอร์
-                  const scoreElement = document.getElementById('mb-score');
-                  if (scoreElement) scoreElement.innerText = formatMemberScore(newScore);
-                  
-                  // เซฟค่าใหม่ลง Cache ชั่วคราวไปเลย
-                  m.all_time_total = newScore;
-                  localStorage.setItem('current_member_stats', JSON.stringify(m));
-                } catch(e) { console.error(e); }
-              }
-
-              await syncUserData(); 
-              // ✨ ลบ showSkeleton() ออกตรงนี้ เพื่อไม่ให้จอกระพริบ (ให้เลขมันขึ้นไปเลย แล้วไปโหลดเงียบๆ เบื้องหลัง)
-              fetchLatestMemberStats(); // ปล่อยให้ไปดึงข้อมูลจริงเงียบๆ เบื้องหลัง
+              syncUserData(); 
+              fetchLatestMemberStats(); 
               
-              Swal.fire({ title: 'ขอบคุณสำหรับแรงสนับสนุนนะคะ', text: `ส่งคุกกี้จำนวน ${amountSent.toLocaleString()} ชิ้นให้ ${memberName} สำเร็จแล้วงับ! 🍪✨`, icon: 'success', confirmButtonColor: '#ff85a2' });
-            } else { Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error'); }
-          } catch (e) { Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ไม่ตอบสนอง', 'error'); }
+              Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `ส่งให้ ${memberName} ${amountSent.toLocaleString()} ชิ้นแล้ว!`, showConfirmButton: false, timer: 2500 });
+            } else { 
+                throw new Error(res.message); 
+            }
+          } catch (e) { 
+            // Rollback ถ้าส่งไม่สำเร็จ
+            user.cookie = userCookies; // คืนคุกกี้ให้ผู้ใช้
+            if (m) {
+                m.all_time_total = backupScore;
+                localStorage.setItem('current_member_stats', JSON.stringify(m));
+                if (scoreElement) scoreElement.innerText = formatMemberScore(backupScore);
+            }
+            Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ขัดข้อง ได้คืนคุกกี้ให้คุณแล้วค่ะ', 'error'); 
+          }
         }
       });
     }
