@@ -681,7 +681,7 @@
       } catch (e) { console.error("Sync Error:", e); }
     }
 
-async function fetchLatestMemberStats() {
+    async function fetchLatestMemberStats() {
       if (!memberName) return;
       
       // เอา const scriptURL เดิมตรงบรรทัดนี้ออกได้เลยครับ เพราะใช้ตัวแปรด้านบนแทนแล้ว ✨
@@ -892,38 +892,48 @@ function renderMemberStatsAndFans() {
       loadMemberSpecialThanks(); 
     }
   
-async function fetchLatestMemberStats() {
-      if (!memberName) return;
-      
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
+  async function fetchLatestMemberStats() {
+  if (!memberName) return;
+  
+  // 🔗 ใส่ URL หลังบ้านไว้ตรงนี้เหมือนเดิม เพื่อให้ฟังก์ชันดึงไปใช้ได้ถูกต้อง
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
-      try {
-        const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
-        const res = await resp.json();
+  try {
+    // 🚀 เปลี่ยนมาใช้การส่งแบบ POST และแนบ JSON body แทนแบบเดิมที่เคย Error <
+    const resp = await fetch(scriptURL, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        action: 'getMemberDetail', 
+        name: memberName 
+      })
+    });
+    
+    const res = await resp.json();
+    
+    if (res.status === "success") {
+      const oldStats = localStorage.getItem('current_member_stats');
+      const oldFans = localStorage.getItem('current_member_fans');
+      
+      // ตรวจสอบว่าข้อมูลมีอัปเดตไหม ถ้ามีค่อยอัปเดต Cache และ Render ใหม่
+      if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
+        if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
+        if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
         
-        if (res.status === "success") {
-          const oldStats = localStorage.getItem('current_member_stats');
-          const oldFans = localStorage.getItem('current_member_fans');
-          
-          // ตรวจสอบว่าข้อมูลมีอัปเดตไหม ถ้ามีค่อยอัปเดต Cache และ Render ใหม่
-          if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
-            if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
-            if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
-            
-            if (typeof removeSkeleton === "function") removeSkeleton(); 
-            renderMemberStatsAndFans(); 
-          } else {
-             // ถ้าข้อมูลเหมือนเดิมเป๊ะ ให้แค่ลบ Skeleton ออกเฉยๆ
-             if (typeof removeSkeleton === "function") removeSkeleton();
-          }
-        } else {
-          if (typeof removeSkeleton === "function") removeSkeleton();
-        }
-      } catch (e) {
-        console.error("Error fetching latest member stats:", e);
-        if (typeof removeSkeleton === "function") removeSkeleton();
+        if (typeof removeSkeleton === "function") removeSkeleton(); 
+        renderMemberStatsAndFans(); 
+      } else {
+         // ถ้าข้อมูลเหมือนเดิมเป๊ะ ให้แค่ลบ Skeleton ออกเฉยๆ
+         if (typeof removeSkeleton === "function") removeSkeleton();
       }
+    } else {
+      console.error("Server Error:", res.message);
+      if (typeof removeSkeleton === "function") removeSkeleton();
     }
+  } catch (e) {
+    console.error("Error fetching latest member stats:", e);
+    if (typeof removeSkeleton === "function") removeSkeleton();
+  }
+}
 
     function updateButtonStyles() {
       const btnKami = document.getElementById('btn-kami-trigger');
