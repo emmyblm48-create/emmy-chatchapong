@@ -568,7 +568,7 @@ if (action === "claimMonthlyCookie") {
 }
 
     // ==========================================
-    // 🎫 8. Redeem Code
+    // 🎫 8. Redeem Code (เวอร์ชันอัปเดตตามตาราง image_89d0bc.png)
     // ==========================================
     if (action === "redeemCode") {
       const codeData = codeSheet.getDataRange().getValues();
@@ -586,10 +586,27 @@ if (action === "claimMonthlyCookie") {
       const totalUsedCount = usageData.filter(row => row[1].toString() === data.code).length;
       if (totalUsedCount >= maxLimit) return jsonResponse({status: "error", message: "โค้ดนี้ถูกใช้งานครบจำนวนแล้ว"});
 
-      const rewardType = codeData[cIdx][1].toString().toLowerCase();
+      const rewardType = codeData[cIdx][1].toString().toLowerCase().trim();
       const rewardAmount = Number(codeData[cIdx][2]);
-      const targetCol = (rewardType === 'cookie') ? 7 : 6;
       
+      // 🎯 แมปปิ้งตำแหน่งคอลัมน์ให้ตรงเป๊ะกับตารางในภาพ image_89d0bc.png
+      let targetCol;
+      let displayType = "";
+
+      if (rewardType === 'token') {
+        targetCol = 6;  // ช่อง F (token)
+        displayType = "Token";
+      } else if (rewardType === 'cookie') {
+        targetCol = 7;  // ช่อง G (cookie)
+        displayType = "Cookie";
+      } else if (rewardType === 'getoken' || rewardType === 'geToken') {
+        targetCol = 8;  // ช่อง H (geToken)
+        displayType = "GE Token";
+      } else {
+        return jsonResponse({status: "error", message: "ประเภทรางวัลของโค้ดนี้ไม่ถูกต้องในระบบ (ต้องเป็น token, cookie หรือ getoken)"});
+      }
+      
+      // ดึงค่าเดิม บวกรวมค่าใหม่ และอัปเดตลงชีตผู้ใช้
       const currentVal = Number(userSheet.getRange(userIndex + 1, targetCol).getValue()) || 0;
       const newVal = currentVal + rewardAmount;
 
@@ -597,8 +614,12 @@ if (action === "claimMonthlyCookie") {
       codeUsageSheet.appendRow([data.username, data.code, now]);
       writeLog(data.username, "Redeem Code", data.code, rewardAmount);
 
-      return jsonResponse({status: "success", message: `ได้รับ ${rewardAmount} ${rewardType} เรียบร้อย!`, newValue: newVal});
-    }   
+      return jsonResponse({
+        status: "success", 
+        message: `ได้รับ ${rewardAmount.toLocaleString()} ${displayType} เรียบร้อย!`, 
+        newValue: newVal
+      });
+    } 
 
     // ==========================================
     // 💸 9. คืนเงิน Top Fan
@@ -736,53 +757,71 @@ function doGet(e) {
         return getInventoryProcess(e.parameter.username);
       }
 
-    // =========================================================================
-    // 🎨 [เวอร์ชันอัปเกรด] ACTION: ดึงข้อมูลธีมผู้ชนะ โดยจับคู่กับชีต members (คอลัมน์ L-P)
+ // =========================================================================
+    // 🎨 [เวอร์ชันแพ็กเกจคู่] ACTION: ดึงข้อมูลธีมผู้ชนะ และรูป Splash วันเกิด 
     // =========================================================================
     if (action === "getWinnerTheme") {
-      // 1. หาชื่อผู้ชนะล่าสุดจากชีต champofthemonth ก่อนครับ
-      const champSheet = SS.getSheetByName("champofthemonth");
-      if (!champSheet) return jsonResponse({ success: false, message: "หาชีทชื่อ 'champofthemonth' ไม่เจอ" });
-      
-      const champRows = champSheet.getDataRange().getValues();
-      if (champRows.length <= 1) return jsonResponse({ success: false, message: "ยังไม่มีข้อมูลแชมป์ในระบบ" });
-      
-      // ดึงแถวล่าสุด คอลัมน์ B (Index 1) คือชื่อของแชมป์เดือนนี้
-      const winnerName = champRows[champRows.length - 1][1] ? champRows[champRows.length - 1][1].toString().trim() : "";
-      if (!winnerName) return jsonResponse({ success: false, message: "ไม่พบชื่อผู้ชนะในแถวล่าสุดของชีต champofthemonth" });
-
-      // 2. นำชื่อผู้ชนะไปค้นหาธีมและไอคอนต่างๆ ในชีต members
       const memberSheet = SS.getSheetByName("members");
       if (!memberSheet) return jsonResponse({ success: false, message: "หาชีทชื่อ 'members' ไม่เจอ" });
-      
       const memberRows = memberSheet.getDataRange().getValues();
-      let champTheme = null;
       
-      // วนลูปหาแถวของเมมเบอร์ที่ชื่อตรงกับผู้ชนะ (คอลัมน์ C คือชื่อเมมเบอร์ ยึดเป็น Index 2)
-      for (let i = 1; i < memberRows.length; i++) {
-        const mName = memberRows[i][2] ? memberRows[i][2].toString().trim() : "";
-        
-        if (mName.toLowerCase() === winnerName.toLowerCase()) {
-          // 💡 ในสคริปต์จะนับคอลัมน์แรก (A) เป็นเลข 0 ดังนั้นคอลัมน์ L-P จะตรงกับเลข 11-15 ครับ
-          champTheme = {
-            name: mName,
-            splash: memberRows[i][11] ? memberRows[i][11].toString().trim() : "",    // คอลัมน์ L (Splash_URL)
-            homeIcon: memberRows[i][12] ? memberRows[i][12].toString().trim() : "",  // คอลัมน์ M (Nav_Home_URL)
-            kamiIcon: memberRows[i][13] ? memberRows[i][13].toString().trim() : "",  // คอลัมน์ N (Nav_Kami_URL)
-            cartIcon: memberRows[i][14] ? memberRows[i][14].toString().trim() : "",  // คอลัมน์ O (Nav_Cart_URL)
-            notiIcon: memberRows[i][15] ? memberRows[i][15].toString().trim() : ""   // คอลัมน์ P (Nav_Noti_URL)
-          };
-          break; // เจอแล้วให้หยุดลูปทันที
+      // 🏆 1. ดึงข้อมูลธีมแชมป์ (เพื่อเอาไอคอนมาใช้เสมอ)
+      const champSheet = SS.getSheetByName("champofthemonth");
+      const champRows = champSheet ? champSheet.getDataRange().getValues() : [];
+      const winnerName = champRows.length > 1 && champRows[champRows.length - 1][1] ? champRows[champRows.length - 1][1].toString().trim() : "";
+      
+      let champTheme = { name: "", splash: "", homeIcon: "", kamiIcon: "", cartIcon: "", notiIcon: "" };
+      if (winnerName) {
+        for (let i = 1; i < memberRows.length; i++) {
+          const mName = memberRows[i][2] ? memberRows[i][2].toString().trim() : "";
+          if (mName.toLowerCase() === winnerName.toLowerCase()) {
+            champTheme = {
+              name: mName,
+              splash: memberRows[i][11] ? memberRows[i][11].toString().trim() : "",
+              homeIcon: memberRows[i][12] ? memberRows[i][12].toString().trim() : "",
+              kamiIcon: memberRows[i][13] ? memberRows[i][13].toString().trim() : "",
+              cartIcon: memberRows[i][14] ? memberRows[i][14].toString().trim() : "",
+              notiIcon: memberRows[i][15] ? memberRows[i][15].toString().trim() : ""
+            };
+            break;
+          }
         }
       }
+
+      // 🎂 2. ตรวจสอบวันเกิด (ดึงเฉพาะรูป Splash และ Banner)
+      const birthdayColIndex = 17; // คอลัมน์ R (วันเกิด)
+      const today = new Date();
+      let birthdaySplash = ""; 
+      let birthdayBanner = ""; // 📌 เพิ่มตัวแปรสำหรับรับ Banner HBD
       
-      // กรณีถ้าชื่อแชมป์สะกดไม่ตรงกับในชีต members
-      if (!champTheme) {
-        return jsonResponse({ success: false, message: "ไม่พบข้อมูลธีมของเมมเบอร์ชื่อ '" + winnerName + "' ในชีต members (กรุณาเช็คตัวสะกด)" });
+      for (let i = 1; i < memberRows.length; i++) {
+        const bData = memberRows[i][birthdayColIndex];
+        if (!bData) continue;
+        
+        let isBirthday = false;
+        if (bData instanceof Date) {
+          if (bData.getDate() === today.getDate() && (bData.getMonth() + 1) === (today.getMonth() + 1)) isBirthday = true;
+        } else {
+          const bStr = bData.toString().trim();
+          const currentShortDate1 = today.getDate() + "/" + (today.getMonth() + 1);
+          const currentShortDate2 = (today.getDate() < 10 ? "0" + today.getDate() : today.getDate()) + "/" + ((today.getMonth() + 1) < 10 ? "0" + (today.getMonth() + 1) : (today.getMonth() + 1));
+          if (bStr.includes(currentShortDate1) || bStr.includes(currentShortDate2)) isBirthday = true;
+        }
+        
+        if (isBirthday) {
+          birthdaySplash = memberRows[i][18] ? memberRows[i][18].toString().trim() : ""; // คอลัมน์ S (Splash)
+          birthdayBanner = memberRows[i][19] ? memberRows[i][19].toString().trim() : ""; // 📌 คอลัมน์ T (Banner) ดึง Index ที่ 19
+          break; 
+        }
       }
-      
-      // ส่งข้อมูลธีมทั้งหมดกลับไปหน้าบ้าน
-      return jsonResponse(champTheme);
+
+      // 📦 3. ส่งข้อมูลกลับไปแบบแพ็กเกจคู่ (แชมป์ + วันเกิด)
+      return jsonResponse({
+        success: true,
+        champ: champTheme,
+        birthdaySplash: birthdaySplash, // ถ้าไม่มีใครเกิด จะเป็นค่าว่าง ""
+        birthdayBanner: birthdayBanner  // 📌 ส่ง Banner กลับไปด้วย
+      });
     }
 
 
@@ -1060,69 +1099,69 @@ function doGet(e) {
     }
 
     // --- 🎒 ระบบดึงข้อมูลของในกระเป๋าแยกตาม Collections ---
-    if (action === "getMyInventory") {
-        if (!username) return jsonResponse({ status: "fail", message: "กรุณาระบุ username" });
+if (action === "getMyInventory") {
+    if (!username) return jsonResponse({ status: "fail", message: "กรุณาระบุ username" });
 
-        const invSheet = SS.getSheetByName("Inventory");
-        const collectSheet = SS.getSheetByName("Collections");
-        if (!invSheet || !collectSheet) return jsonResponse({ status: "error", message: "หาชีทไม่เจอ" });
+    const invSheet = SS.getSheetByName("Inventory");
+    const collectSheet = SS.getSheetByName("Collections");
+    
+    if (!invSheet || !collectSheet) return jsonResponse({ status: "error", message: "หาชีทไม่เจอ" });
 
-        // 1. สร้าง Map เพื่อดึงชื่อ Collection จาก ID (เฉพาะตู้สุ่มกาชาปกติ)
-        const colRows = collectSheet.getDataRange().getValues().slice(1);
-        const colMap = {}; 
-        colRows.forEach(row => {
-            colMap[row[0].toString().trim()] = row[1]; 
-        });
+    // 1. สร้าง Map เพื่อดึงชื่อ Collection จาก ID สำหรับแสดงผล/ทำ Sub-filter
+    const colRows = collectSheet.getDataRange().getValues().slice(1);
+    const colMap = {}; 
+    colRows.forEach(row => {
+        if(row[0]) colMap[row[0].toString().trim()] = row[1] ? row[1].toString().trim() : ""; 
+    });
 
-        // 2. ประมวลผล Inventory
-        const invRows = invSheet.getDataRange().getValues().slice(1);
-        const userInventoryMap = {};
+    // 2. ประมวลผล Inventory
+    const invRows = invSheet.getDataRange().getValues().slice(1);
+    const userInventoryMap = {};
 
-        invRows.forEach(row => {
-            const itemUser = row[1] ? row[1].toString().trim() : "";
-            const itemType = row[2] ? row[2].toString().trim() : "";     
-            const collectionID = row[3] ? row[3].toString().trim() : ""; 
-            const itemName = row[4] ? row[4].toString().trim() : "";    
-            const itemImg = row[5] ? row[5].toString().trim() : "";     
+    invRows.forEach(row => {
+        const itemUser = row[1] ? row[1].toString().trim() : "";
+        const itemType = row[2] ? row[2].toString().trim() : "";     
+        const collectionID = row[3] ? row[3].toString().trim() : ""; 
+        const itemName = row[4] ? row[4].toString().trim() : "";    
+        const itemImg = row[5] ? row[5].toString().trim() : "";     
 
-            if (itemUser === username && itemName) {
-                // ✨ บรรทัดแก้ไข: ดักเช็คถ้าเป็นไอดีร้านคาเฟ่ ให้กำหนดชื่อหมวดหมู่เองเลย
-                let colName = colMap[collectionID] || "หมวดหมู่อื่นๆ";
-                if (collectionID === "BLM48_Cafe") {
-                    colName = "BLM48 Cafe ☕";
-                }
+        if (itemUser === username && itemName) {
+            let colName = colMap[collectionID] || "หมวดหมู่อื่นๆ";
+            let parentCategory = "หมวดหมู่อื่นๆ"; // ใช้สำหรับจัดกลุ่มใหญ่
 
-                const uniqueKey = collectionID + "_" + itemName;
-
-                if (!userInventoryMap[uniqueKey]) {
-                    userInventoryMap[uniqueKey] = {
-                        name: itemName,
-                        collection: colName,
-                        img: itemImg || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=300',
-                        qty: 0
-                    };
-                }
-                userInventoryMap[uniqueKey].qty++;
+            // 🌸 เช็คว่าเป็นกลุ่ม Thank You Card หรือไม่
+            if (itemType === "Thank You Card" || collectionID.toLowerCase().includes("votemajor")) {
+                parentCategory = "Thank You Card";
+                // ดึงชื่อแคมเปญจริงมาใส่ใน subCollection (เช่น "BLM48 Tanabata 2026")
+                colName = colMap[collectionID] || "แคมเปญโหวตพิเศษ"; 
+            } 
+            // ☕ เช็คว่าเป็นกลุ่ม Cafe
+            else if (collectionID === "BLM48_Cafe" || collectionID === "coll_cafe" || colName.toLowerCase().includes("cafe")) {
+                parentCategory = "BLM48 Cafe";
+                colName = "BLM48 Cafe ☕";
             }
-        });
-
-        // 3. จัดกลุ่มข้อมูลแยกตาม CollectionName และเรียง A-Z
-        const categorized = {};
-        Object.values(userInventoryMap).forEach(item => {
-            const groupKey = item.collection; 
-            
-            if (!categorized[groupKey]) {
-                categorized[groupKey] = [];
+            // 💿 เช็คว่าเป็นกลุ่ม Coaster
+            else if (colName.toLowerCase().includes("coaster")) {
+                parentCategory = "Coaster";
             }
-            categorized[groupKey].push(item);
-        });
 
-        for (const colName in categorized) {
-            categorized[colName].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+            const uniqueKey = collectionID + "_" + itemName;
+
+            if (!userInventoryMap[uniqueKey]) {
+                userInventoryMap[uniqueKey] = {
+                    name: itemName,
+                    category: parentCategory, // กลุ่มหลัก (Coaster, Thank You Card, Cafe)
+                    subCollection: colName,   // กลุ่มย่อย (BLM48 Tanabata 2026, Coaster "BINGO!")
+                    img: itemImg || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=300',
+                    qty: 0
+                };
+            }
+            userInventoryMap[uniqueKey].qty++;
         }
+    });
 
-        return jsonResponse({ status: "success", inventory: categorized });
-    }
+    return jsonResponse({ status: "success", inventory: Object.values(userInventoryMap) });
+}
 
   // รองรับการดึงค่าผ่าน action = getMemberCount
     if (e.parameter.action === 'getMemberCount') {
@@ -1151,21 +1190,64 @@ function doGet(e) {
       }
     }
 
-    // --- 📜 ดึงประวัติส่วนตัว (Logs) ---
+    // --- 📜 ดึงประวัติส่วนตัว (Logs) แบบครบชุด ---
     if (action === "getMyHistory") {
       if (!username) return jsonResponse({ status: "fail", message: "กรุณาระบุ username" });
+      
       const fanLogSheet = SS.getSheetByName('fanLogs'); 
       const logSheet = SS.getSheetByName('logs');
+      const majorVoteSheet = SS.getSheetByName("majorVoteLogs"); 
+      const voteCollectionSheet = SS.getSheetByName("majorVoteCollections"); // ✨ ดึงชีตแคมเปญ
       
+      // 1. ดึงประวัติการปาคุกกี้
       const fanLogsData = fanLogSheet ? fanLogSheet.getDataRange().getValues().slice(1) : [];
       const myGiveLogs = fanLogsData.filter(row => row[1] && row[1].toString().trim() === username)
                                     .map(row => ({ timestamp: row[0], member: row[2], amount: row[3] })).reverse();
 
+      // 2. ดึงประวัติการซื้อของ
       const logsData = logSheet ? logSheet.getDataRange().getValues().slice(1) : [];
       const myPurchaseLogs = logsData.filter(row => row[1] && row[1].toString().trim() === username)
                                         .map(row => ({ timestamp: row[0], action: row[2], target: row[3], amount: row[4] })).reverse();
 
-      return jsonResponse({ status: "success", giveLogs: myGiveLogs, purchaseHistory: myPurchaseLogs });
+      // ✨ สร้างกล่องความจำ (Dictionary) สำหรับแคมเปญโหวต เพื่อแปลง ID เป็นชื่อ Title และ TokenType
+      let campaignMap = {};
+      if (voteCollectionSheet) {
+          const campData = voteCollectionSheet.getDataRange().getValues();
+          for (let i = 1; i < campData.length; i++) {
+              const campId = campData[i][0] ? campData[i][0].toString().trim() : "";
+              if (campId) {
+                  campaignMap[campId] = {
+                      title: campData[i][1] ? campData[i][1].toString().trim() : campId, // คอลัมน์ B (Title)
+                      tokenType: campData[i][7] ? campData[i][7].toString().trim() : "Vote" // คอลัมน์ H (TokenType)
+                  };
+              }
+          }
+      }
+
+      // 3. ✨ ดึงประวัติการโหวต (Major Vote) และนำไปจับคู่กับชื่อแคมเปญ
+      const voteData = majorVoteSheet ? majorVoteSheet.getDataRange().getValues().slice(1) : [];
+      const myVoteLogs = voteData.filter(row => row[1] && row[1].toString().trim() === username)
+                                 .map(row => {
+                                     const colId = row[2] ? row[2].toString().trim() : "";
+                                     // ถ้ามีข้อมูลใน Map ให้ดึงมาใช้ ถ้าไม่มีให้ใช้ค่าตั้งต้น
+                                     const campInfo = campaignMap[colId] || { title: colId, tokenType: "Vote" };
+                                     
+                                     return { 
+                                         timestamp: row[0], 
+                                         campaignTitle: campInfo.title, // ชื่อ Title ของการโหวต
+                                         tokenType: campInfo.tokenType, // ประเภท TokenType
+                                         member: row[3],
+                                         amount: row[4]
+                                     };
+                                 }).reverse();
+
+      // 📦 ส่งข้อมูลทั้ง 3 ก้อนกลับไปให้หน้าบ้าน
+      return jsonResponse({ 
+        status: "success", 
+        giveLogs: myGiveLogs, 
+        purchaseHistory: myPurchaseLogs,
+        voteLogs: myVoteLogs 
+      });
     }
 
     // --- 🔑 ระบบ Login / User Info ---
@@ -1322,7 +1404,7 @@ function doGet(e) {
     return jsonResponse(responseData);
   }
 
-// =========================================================================
+    // =========================================================================
     // 🗳️ ACTION 1: ดึงข้อมูลแคมเปญ Major Vote ทั้งหมด (หน้าแรก)
     // =========================================================================
     if (action === "getMajorVoteCollections") {
@@ -1346,113 +1428,332 @@ function doGet(e) {
       
       return sendJsonResponse({ status: "success", data: campaigns }); // 🛠️ แก้จุดนี้
     }
+
     // =========================================================================
-    // 👥 ACTION 2: ดึงข้อมูลรายชื่อเมมเบอร์ Candidates ตามแคมเปญโหวต
+    // 🏆 [NEW ACTION]: ดึงข้อมูลจากชีต champaign (เฉพาะคอลัมน์ที่กำหนด & แถวที่มีข้อมูล)
+    // =========================================================================
+    if (action === "getCampaignCollections") {
+      const champSheet = SS.getSheetByName("campaign");
+      if (!champSheet) {
+        return sendJsonResponse({ status: "error", message: "หาชีท 'campaign' ไม่เจอ" });
+      }
+      
+      const lastRow = champSheet.getLastRow();
+      if (lastRow <= 1) {
+        return sendJsonResponse({ status: "success", data: [] });
+      }
+      
+      // ดึงข้อมูลทั้งหมดในชีต champaign
+      const rows = champSheet.getDataRange().getValues();
+      const headers = rows[0].map(h => h.toString().trim());
+      const campaigns = [];
+      
+      // ค้นหาตำแหน่ง Index ของแต่ละคอลัมน์ตามที่คุณเอ็มมี่กำหนดไว้
+      const idxId = headers.indexOf("CampaignID");
+      const idxName = headers.indexOf("CampaignName");
+      const idxCover = headers.indexOf("CoverImage");
+      const idxAmount = headers.indexOf("TotalAmount");
+      const idxCurrency = headers.indexOf("CurrencyType");
+      
+      for (let i = 1; i < rows.length; i++) {
+        // 1. ตรวจสอบเงื่อนไข: ดึงเฉพาะ row ที่มีข้อมูล (ถ้าไม่มี CampaignID หรือแถวว่างให้ข้ามทันที)
+        const campaignId = idxId !== -1 ? rows[i][idxId] : rows[i][0];
+        if (!campaignId || campaignId.toString().trim() === "") {
+          continue; 
+        }
+        
+        // 2. จัดโครงสร้าง Object ดึงเฉพาะคอลัมน์ที่คุณเอ็มมี่กำหนด
+        let obj = {};
+        obj["CampaignID"] = campaignId;
+        obj["CampaignName"] = idxName !== -1 ? rows[i][idxName] : "";
+        obj["CoverImage"] = idxCover !== -1 ? rows[i][idxCover] : "";
+        obj["TotalAmount"] = idxAmount !== -1 ? Number(rows[i][idxAmount]) || 0 : 0;
+        obj["CurrencyType"] = idxCurrency !== -1 ? rows[i][idxCurrency] : "";
+        
+        // 💡 (เผื่อไว้สำหรับหน้าบ้าน HTML เดิม) แมปค่าให้เข้ากับตัวแปรที่หน้าบ้านเคยเรียกใช้
+        obj["VoteCollectionID"] = obj["CampaignID"];
+        obj["Title"] = obj["CampaignName"];
+        obj["totalAmount"] = obj["TotalAmount"];
+        
+        campaigns.push(obj);
+      }
+      
+      return sendJsonResponse({ status: "success", data: campaigns });
+    }
+
+    // =========================================================================
+    // 🗳️ ACTION 1: ดึงเฉพาะแคมเปญที่อยู่ในช่วงเวลาจัดกิจกรรม (คอลัมน์ A-H)
+    // =========================================================================
+    if (action === "getMajorVoteCollections") {
+      const voteColSheet = SS.getSheetByName("majorVoteCollections");
+      if (!voteColSheet) return sendJsonResponse({ status: "error", message: "หาชีท 'majorVoteCollections' ไม่เจอ" });
+      
+      // ดึงข้อมูลตั้งแต่คอลัมน์ A ถึง H (8 คอลัมน์)
+      const lastRow = voteColSheet.getLastRow();
+      if (lastRow <= 1) return sendJsonResponse({ status: "success", data: [] });
+      
+      const rows = voteColSheet.getRange(1, 1, lastRow, 8).getValues(); 
+      const headers = rows[0];
+      const campaigns = [];
+      const nowTime = new Date().getTime();
+      
+      for (let i = 1; i < rows.length; i++) {
+        if (!rows[i][0]) continue; 
+        let obj = {};
+        for (let j = 0; j < headers.length; j++) {
+          obj[headers[j]] = rows[i][j];
+        }
+
+        // 🔍 [FIXED INDEX]: ตรวจสอบเงื่อนไขวันเวลาจัดกิจกรรม 
+        // อ้างอิงจากหัวตาราง: StartTime (คอลัมน์ E / Index 4), EndTime (คอลัมน์ F / Index 5)
+        if (obj.StartTime && obj.EndTime) {
+          const startTime = new Date(obj.StartTime).getTime();
+          const endTime = new Date(obj.EndTime).getTime();
+
+          if (!isNaN(startTime) && !isNaN(endTime)) {
+            if (nowTime < startTime || nowTime > endTime) {
+              continue; // ❌ ไม่อยู่ในช่วงเวลา -> ข้ามไปเลย
+            }
+          }
+        }
+        
+        // 🔍 [FIXED INDEX]: ใช้ค่า Status จากชีตตรงๆ (Status อยู่คอลัมน์ G / Index 6)
+        let sheetStatus = obj.Status ? obj.Status.toString().trim().toLowerCase() : "closed";
+        obj["CalculatedStatus"] = sheetStatus; 
+        
+        campaigns.push(obj);
+      }
+      
+      return sendJsonResponse({ status: "success", data: campaigns });
+    }
+
+    // =========================================================================
+    // 👥 ACTION 2: ดึงข้อมูล Candidates (คอลัมน์ A-G)
     // =========================================================================
     if (action === "getMajorVoteCandidates") {
       const collectionId = e.parameter.collectionId ? e.parameter.collectionId.toString().trim() : "";
-      if (!collectionId) return sendJsonResponse({ status: "error", message: "ไม่พบ Collection ID" }); // 🛠️ แก้จุดนี้
+      if (!collectionId) return sendJsonResponse({ status: "error", message: "ไม่พบ Collection ID" });
 
       const candSheet = SS.getSheetByName("majorVoteCandidates");
-      if (!candSheet) return sendJsonResponse({ status: "error", message: "หาชีท 'majorVoteCandidates' ไม่เจอ" }); // 🛠️ แก้จุดนี้
+      if (!candSheet) return sendJsonResponse({ status: "error", message: "หาชีท 'majorVoteCandidates' ไม่เจอ" });
 
-      const rows = candSheet.getDataRange().getValues();
+      const voteColSheet = SS.getSheetByName("majorVoteCollections");
+      if (!voteColSheet) return sendJsonResponse({ status: "error", message: "หาชีท 'majorVoteCollections' ไม่เจอ" });
+
+      // 1. ตรวจสอบสถานะของแคมเปญจากชีตหลัก majorVoteCollections (A-H)
+      const colLastRow = voteColSheet.getLastRow();
+      const colRows = voteColSheet.getRange(1, 1, colLastRow, 8).getValues();
+      let targetTokenType = "";
+      let campaignStatus = "closed"; 
+
+      for (let i = 1; i < colRows.length; i++) {
+        if (colRows[i][0] && colRows[i][0].toString().trim() === collectionId) {
+          // 🔍 [FIXED INDEX]: TokenType อยู่คอลัมน์ H (Index 7), Status อยู่คอลัมน์ G (Index 6)
+          campaignStatus = colRows[i][6] ? colRows[i][6].toString().trim().toLowerCase() : "closed"; 
+          targetTokenType = colRows[i][7] ? colRows[i][7].toString().trim() : ""; 
+          break;
+        }
+      }
+
+      // 2. ดึงข้อมูลผู้สมัครจากชีต majorVoteCandidates (A-G)
+      const candLastRow = candSheet.getLastRow();
+      if (candLastRow <= 1) return sendJsonResponse({ status: "success", campaignTimeStatus: campaignStatus, data: [] });
+      
+      const rows = candSheet.getRange(1, 1, candLastRow, 7).getValues();
       const headers = rows[0];
       const candidates = [];
+      let totalVotesInCampaign = 0; 
 
-      // วนลูปหา Candidate ที่ตรงกับ VoteCollectionID ที่ส่งมา (คอลัมน์ B หรือ Index 1)
       for (let i = 1; i < rows.length; i++) {
-        if (rows[i][1] && rows[i][1].toString().trim() === collectionId) {
+        const candCollectionId = rows[i][1] ? rows[i][1].toString().trim() : "";
+        // 🔍 [FIXED INDEX]: TokenType ในชีต Candidates อยู่คอลัมน์ E (Index 4)
+        const candTokenType = rows[i][4] ? rows[i][4].toString().trim() : ""; 
+
+        if (candCollectionId === collectionId) {
+          if (targetTokenType && candTokenType !== targetTokenType) {
+            continue;
+          }
+
           let obj = {};
           for (let j = 0; j < headers.length; j++) {
             obj[headers[j]] = rows[i][j];
           }
+          
+          // 💡 แมปปิ้งตัวแปรให้ตรงกับหน้าเว็บ HTML ของคุณ
+          // MemberName (คอลัมน์ C / Index 2), ProfileMember (คอลัมน์ D / Index 3)
+          obj["name"] = obj["MemberName"] || rows[i][2]; 
+          obj["profile_img"] = obj["ProfileMember"] || rows[i][3];
+          
+          // 🔍 [FIXED INDEX]: CurrentVotes อยู่คอลัมน์ F (Index 5)
+          let votes = Number(obj.CurrentVotes) || 0;
+          totalVotesInCampaign += votes;
           candidates.push(obj);
         }
       }
 
-      // เรียงลำดับจากคะแนนโหวต (CurrentVotes) มากไปน้อย เพื่อเตรียมใช้ในหน้า Ranking
-      candidates.sort((a, b) => (Number(b.CurrentVotes) || 0) - (Number(a.CurrentVotes) || 0));
-
-      return sendJsonResponse({ status: "success", data: candidates });
-    }
-    // =========================================================================
-    // ✍️ ACTION 3: ระบบส่งคะแนนโหวต (ตัด Token/GE Token -> อัปเดตคะแนน -> ลง Log)
-    // =========================================================================
-    if (action === "submitMajorVote") {
-      // ป้องกันข้อมูลชนกันตอนโหวตพร้อมๆ กัน
-      const lock = LockService.getScriptLock();
-      lock.waitLock(10000); 
-
-      try {
-        const collectionId = e.parameter.collectionId;
-        const candidateName = e.parameter.candidateName;
-        const voteAmount = Number(e.parameter.voteAmount);
-        
-        if (!username || !collectionId || !candidateName || voteAmount <= 0) {
-          return sendJsonResponse({ status: "error", message: "ข้อมูลโหวตไม่ครบถ้วน หรือจำนวนโหวตไม่ถูกต้อง" });
-        }
-
-        const userSheet = SS.getSheetByName("users");
-        const candSheet = SS.getSheetByName("majorVoteCandidates");
-        const logSheet = SS.getSheetByName("majorVoteLogs");
-
-        // 1. หาข้อมูล Candidate ว่าใช้เหรียญประเภทไหน (Token หรือ GEToken)
-        const candRows = candSheet.getDataRange().getValues();
-        let candRowIndex = -1;
-        let tokenTypeRequired = "token"; // ค่าเริ่มต้น
-        let currentVotes = 0;
-        let tyCardUrl = "";
-
-        for (let i = 1; i < candRows.length; i++) {
-          if (candRows[i][1] == collectionId && candRows[i][2] == candidateName) {
-            candRowIndex = i + 1; // Index สำหรับ getRange
-            tokenTypeRequired = candRows[i][4] ? candRows[i][4].toString().trim() : "token"; // คอลัมน์ TokenType
-            currentVotes = Number(candRows[i][5]) || 0; // คอลัมน์ CurrentVotes
-            tyCardUrl = candRows[i][6] ? candRows[i][6].toString().trim() : ""; // คอลัมน์ ThankYouCardURL
-            break;
-          }
-        }
-
-        if (candRowIndex === -1) return sendJsonResponse({ status: "error", message: "ไม่พบข้อมูลผู้สมัครนี้" }); // 🛠️ แก้จุดนี้
-
-        // 2. ตรวจสอบยอดเงิน User
-        const userRows = userSheet.getDataRange().getValues();
-        let userRowIndex = -1;
-        let currentBalance = 0;
-        let balanceColIndex = tokenTypeRequired === "geToken" ? 8 : 6; // คอลัมน์ H (Index 7) คือ geToken, F (Index 5) คือ token ปกติ
-
-        for (let i = 1; i < userRows.length; i++) {
-          if (userRows[i][0] == username) {
-            userRowIndex = i + 1;
-            currentBalance = Number(userRows[i][balanceColIndex - 1]) || 0;
-            break;
-          }
-        }
-
-        if (userRowIndex === -1) return sendJsonResponse({ status: "error", message: "ไม่พบผู้ใช้งาน" }); // 🛠️ แก้จุดนี้
-        if (currentBalance < voteAmount) return sendJsonResponse({ status: "error", message: "เหรียญไม่เพียงพอสำหรับการโหวต" }); // 🛠️ แก้จุดนี้
-
-        // 3. เริ่มการอัปเดตข้อมูล
-        // 3.1 ตัดเหรียญ User
-        userSheet.getRange(userRowIndex, balanceColIndex).setValue(currentBalance - voteAmount);
-        
-        // 3.2 เพิ่มคะแนนให้ Candidate
-        candSheet.getRange(candRowIndex, 6).setValue(currentVotes + voteAmount); // คอลัมน์ F (CurrentVotes)
-        
-        // 3.3 บันทึกประวัติลง majorVoteLogs
-        logSheet.appendRow([new Date(), username, collectionId, candidateName, voteAmount]);
-
-        return sendJsonResponse({ // 🛠️ แก้จุดนี้
-          status: "success", 
-          message: "โหวตสำเร็จ!", 
-          thankYouCard: tyCardUrl 
+      // 3. จัดการเรียงลำดับตามสถานะแคมเปญ
+      if (campaignStatus === "open") {
+        candidates.sort((a, b) => {
+          let nameA = String(a.name || "").trim();
+          let nameB = String(b.name || "").trim();
+          return nameA.localeCompare(nameB, 'th');
         });
-
-      } finally {
-        lock.releaseLock();
+      } else {
+        candidates.sort((a, b) => (Number(b.CurrentVotes) || 0) - (Number(a.CurrentVotes) || 0));
       }
+
+      // คำนวณเปอร์เซ็นต์คะแนนโหวต (CurrentVotes / คะแนนรวมทั้งหมด)
+      candidates.forEach(cand => {
+        let votes = Number(cand.CurrentVotes) || 0;
+        let percentage = totalVotesInCampaign > 0 ? ((votes / totalVotesInCampaign) * 100).toFixed(2) : "0.00";
+        cand["VotePercentage"] = percentage + "%";
+      });
+
+      return sendJsonResponse({ 
+        status: "success", 
+        campaignTimeStatus: campaignStatus, 
+        data: candidates 
+      });
     }
+
+ // =========================================================================
+      // ✍️ ACTION 3: ระบบบันทึกโหวต หักเหรียญ ลงประวัติ และเพิ่มเข้าคลังอัตโนมัติ
+      // =========================================================================
+      if (action === "submitMajorVote") {
+        const lock = LockService.getScriptLock();
+        lock.waitLock(10000); 
+
+        try {
+          const collectionId = e.parameter.collectionId;
+          const candidateName = e.parameter.candidateName; 
+          const voteAmount = Number(e.parameter.voteAmount);
+          
+          if (!username || !collectionId || !candidateName || voteAmount <= 0) {
+            return sendJsonResponse({ status: "error", message: "ข้อมูลโหวตไม่ครบถ้วน หรือจำนวนโหวตไม่ถูกต้อง" });
+          }
+
+          const userSheet = SS.getSheetByName("users");
+          const candSheet = SS.getSheetByName("majorVoteCandidates");
+          const logSheet = SS.getSheetByName("majorVoteLogs");
+          const voteColSheet = SS.getSheetByName("majorVoteCollections");
+          const inventorySheet = SS.getSheetByName("Inventory");
+
+          // 1. ตรวจเช็กสถานะแคมเปญจาก majorVoteCollections
+          const colLastRow = voteColSheet.getLastRow();
+          const colRows = voteColSheet.getRange(1, 1, colLastRow, 8).getValues();
+          let isAvailable = false;
+          for(let i = 1; i < colRows.length; i++) {
+            if(colRows[i][0] == collectionId && String(colRows[i][6]).toLowerCase() === "open") {
+              isAvailable = true;
+              break;
+            }
+          }
+          if(!isAvailable) return sendJsonResponse({ status: "error", message: "ขออภัยค่ะ แคมเปญนี้ปิดรับคะแนนโหวตเรียบร้อยแล้ว" });
+
+          // 2. ค้นหาแถวของผู้สมัครในชีต majorVoteCandidates
+          const candLastRow = candSheet.getLastRow();
+          const candRows = candSheet.getRange(1, 1, candLastRow, candSheet.getLastColumn()).getValues();
+          const candHeaders = candRows[0];
+
+          // หา Index คอลัมน์จากชื่อหัวข้อ
+          const idxVoteCollectionId = candHeaders.indexOf("VoteCollectionID");
+          const idxMemberName = candHeaders.indexOf("MemberName");
+          const idxTokenType = candHeaders.indexOf("TokenType");
+          const idxCurrentVotes = candHeaders.indexOf("CurrentVotes");
+          const idxThankYouCard = candHeaders.indexOf("ThankYouCardURL"); 
+
+          // ป้องกัน Error กรณีหาหัวคอลัมน์ไม่เจอ
+          if (idxVoteCollectionId === -1 || idxMemberName === -1 || idxCurrentVotes === -1 || idxThankYouCard === -1) {
+            return sendJsonResponse({ status: "error", message: "ระบบขัดข้อง: โครงสร้างตารางไม่ถูกต้อง" });
+          }
+
+          let candRowIndex = -1;
+          let tokenTypeRequired = "token"; 
+          let currentVotes = 0;
+          let tyCardUrl = "";
+
+          for (let i = 1; i < candRows.length; i++) {
+            if (candRows[i][idxVoteCollectionId] == collectionId && candRows[i][idxMemberName] == candidateName) {
+              candRowIndex = i + 1; 
+              tokenTypeRequired = candRows[i][idxTokenType] ? candRows[i][idxTokenType].toString().trim() : "token";
+              currentVotes = Number(candRows[i][idxCurrentVotes]) || 0;
+              tyCardUrl = candRows[i][idxThankYouCard] ? candRows[i][idxThankYouCard].toString().trim() : "";
+              break;
+            }
+          }
+
+          if (candRowIndex === -1) return sendJsonResponse({ status: "error", message: "ไม่พบข้อมูลผู้สมัครรายนี้ในแคมเปญ" });
+
+          // 3. ตรวจเช็กและหักเหรียญผู้ใช้ในชีต users
+              const userRows = userSheet.getDataRange().getValues();
+              let userRowIndex = -1;
+              let currentBalance = 0;
+              let balanceColIndex = tokenTypeRequired === "geToken" ? 8 : 6; 
+
+              for (let i = 1; i < userRows.length; i++) {
+                if (userRows[i][0] == username) {
+                  userRowIndex = i + 1;
+                  currentBalance = Number(userRows[i][balanceColIndex - 1]) || 0;
+                  break;
+                }
+              }
+
+              if (userRowIndex === -1) return sendJsonResponse({ status: "error", message: "ไม่พบผู้ใช้งานในระบบ" });
+              
+              // แจ้งเตือนเวลาเหรียญไม่พอให้ตรงกับชนิด Token
+              const displayTokenName = tokenTypeRequired === "geToken" ? "GE Token" : "Token";
+              if (currentBalance < voteAmount) return sendJsonResponse({ status: "error", message: `จำนวน ${displayTokenName} ของคุณไม่เพียงพอสำหรับการโหวต` });
+
+          
+          // 4. บันทึกหักยอดเงินและเพิ่มคะแนนโหวต
+          userSheet.getRange(userRowIndex, balanceColIndex).setValue(currentBalance - voteAmount);
+          candSheet.getRange(candRowIndex, idxCurrentVotes + 1).setValue(currentVotes + voteAmount); 
+          
+          // 5. บันทึกประวัติลงชีต majorVoteLogs 
+          logSheet.appendRow([new Date(), username, collectionId, candidateName, voteAmount]);
+
+          // 6. ดึงชื่อแคมเปญโหวต (Title) เพื่อใช้เป็นหมวดหมู่ และบันทึก Thank You Card เข้าคลัง
+          let voteCampaignTitle = "Thank You Card"; 
+          if (voteColSheet) {
+            const colLastRow = voteColSheet.getLastRow();
+            const colRows = voteColSheet.getRange(1, 1, colLastRow, 2).getValues(); 
+            for (let i = 1; i < colRows.length; i++) {
+              if (colRows[i][0] == collectionId) {
+                voteCampaignTitle = colRows[i][1] ? colRows[i][1].toString().trim() : voteCampaignTitle;
+                break;
+              }
+            }
+          }
+
+          // บันทึกเข้าชีต Inventory อัตโนมัติ
+          if (inventorySheet && tyCardUrl !== "" && tyCardUrl !== "-") {
+            inventorySheet.appendRow([
+              new Date(), 
+              username, 
+              "Thank You Card", // ItemType
+              collectionId,     // CollectionID 
+              "Thank You Card - " + candidateName, // ItemName
+              tyCardUrl
+            ]);
+          }
+
+          // บังคับให้ Google Sheet บันทึกข้อมูลทั้งหมดทันทีก่อนคลาย Lock
+          SpreadsheetApp.flush();
+
+          // ✨ เพิ่ม tokenType แนบกลับไปให้หน้าบ้านตรงนี้
+          return sendJsonResponse({ 
+            status: "success", 
+            message: "โหวตสำเร็จเรียบร้อยและบันทึกการ์ดขอบคุณเข้าคลังของคุณแล้ว!", 
+            thankYouCard: tyCardUrl,
+            tokenType: displayTokenName  // ส่งคำว่า "Token" หรือ "GE Token" กลับไปให้ป๊อปอัปแสดงผล
+          });
+          
+        } catch (error) {
+           return sendJsonResponse({ status: "error", message: "Error: " + error.message });
+        } finally {
+           lock.releaseLock();
+        }
+      }
 
     // ==========================================
     // 👑 ดึงรายละเอียดสถิติและ Top Fans ของเมมเบอร์รายคน (เวอร์ชันอ่านคุกกี้, Kami, Oshi, Likes โคตรไว!)
@@ -1572,7 +1873,10 @@ function updateRanking(sheet, memberName, amount) {
   if (rowIndex !== -1) {
     // หาเดือนปัจจุบันเป็นภาษาอังกฤษ
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const currentMonth = monthNames[new Date().getMonth()];
+    
+    // 🇹🇭 ปรับจุดที่ 1: บังคับให้หาเดือนปัจจุบันอิงตามไทม์โซนประเทศไทย (Asia/Bangkok)
+    const nowInTH = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+    const currentMonth = monthNames[nowInTH.getMonth()];
     
     // ค้นหาว่าเดือนปัจจุบันอยู่คอลัมน์ไหน
     const monthColIndex = headers.indexOf(currentMonth);
@@ -1603,7 +1907,7 @@ function getRankingData() {
         memberMap[mName] = {
           status: row[6] ? row[6].toString().trim() : "Active", // คอลัมน์ G (Index 6)
           profile_img: row[7] ? row[7].toString().trim() : "",  // คอลัมน์ H (Index 7)
-          total_cookies: Number(row[8]) || 0,                   // คอลัมน์ I (Index 8) - Total Cookie
+          total_cookies: Number(row[8]) || 0,                    // คอลัมน์ I (Index 8) - Total Cookie
           total_kami: Number(row[9]) || 0,                      // คอลัมน์ J (Index 9) - Total Kami
           total_oshi: Number(row[10]) || 0,                      // คอลัมน์ K (Index 10) - Total Oshi
           totalLikes: Number(row[16]) || 0
@@ -1618,7 +1922,10 @@ function getRankingData() {
   
   // หาเดือนปัจจุบัน
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const currentMonth = monthNames[new Date().getMonth()];
+  
+  // 🇹🇭 ปรับจุดที่ 2: บังคับให้ดึงเดือนปัจจุบันสำหรับจัดอันดับอิงตามไทม์โซนประเทศไทยเช่นกัน
+  const nowInTH = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
+  const currentMonth = monthNames[nowInTH.getMonth()];
   const monthColIndex = headers.indexOf(currentMonth);
   
   const results = rows.map(row => {
