@@ -2057,7 +2057,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 <div class="ranking-wrapper" style="position: relative; overflow: hidden;">
   
-  <div class="bg-decorations">
+  <div id="bg-decorations" class="bg-decorations">
   <i class="fa-solid fa-crown decor-item d1-1"></i>
   <i class="fa-solid fa-crown decor-item d1-2"></i>
   <i class="fa-solid fa-crown decor-item d1-3"></i>
@@ -3852,37 +3852,31 @@ function closeImageViewer() {
   document.getElementById('image-viewer-modal').style.display = 'none';
 }
   
-  (function() {
+(function() {
     const container = document.getElementById('autoBannerContainer');
+    if (!container) return; // 🛡️ ดักไว้เผื่อหน้าไหนไม่มีสไลเดอร์จะได้ไม่พัง
+
     const items = container.querySelectorAll('.auto-banner-item');
-    const dotsContainer = document.getElementById('bannerDotsContainer');
+    const counterContainer = document.getElementById('bannerCounterContainer'); // 👈 เปลี่ยนมาดึงกล่องตัวเลขแทน
     const totalBanners = items.length;
     let currentIndex = 0;
     let autoSlideTimer;
 
     if (totalBanners === 0) return;
 
-    // 1. สร้างจุดไข่ปลาบอกตำแหน่งข้างล่างแบบไดนามิกตามจริง
-    items.forEach((_, idx) => {
-        const dot = document.createElement('div');
-        dot.className = `banner-dot ${idx === 0 ? 'active' : ''}`;
-        dotsContainer.appendChild(dot);
-    });
-
-    const dots = dotsContainer.querySelectorAll('.banner-dot');
-
-    // 2. ฟังก์ชันช่วยปรับความสว่างของจุดให้ตรงกับแผ่นปัจจุบัน
-    function updateDots(index) {
-        dots.forEach((dot, idx) => {
-            if (idx === index) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
-        });
+    // 1. ฟังก์ชันอัปเดตตัวเลขบอกหน้า (เช่น 01|03)
+    function updateCounter(index) {
+        if (counterContainer) {
+            const currentStr = String(index + 1).padStart(2, '0'); // เติม 0 ข้างหน้าให้เป็น 01, 02
+            const totalStr = String(totalBanners).padStart(2, '0');
+            counterContainer.innerText = `${currentStr}|${totalStr}`;
+        }
     }
 
-    // 3. ฟังก์ชันสั่งเลื่อนหน้าสไลด์ถัดไป
+    // เรียกอัปเดตครั้งแรกตอนเปิดหน้าเว็บ
+    updateCounter(currentIndex);
+
+    // 2. ฟังก์ชันสั่งเลื่อนหน้าสไลด์ถัดไป
     function slideNext() {
         if (totalBanners <= 1) return;
         currentIndex = (currentIndex + 1) % totalBanners;
@@ -3892,29 +3886,29 @@ function closeImageViewer() {
             left: currentIndex * slideWidth,
             behavior: 'smooth'
         });
-        updateDots(currentIndex);
+        updateCounter(currentIndex); // 👈 อัปเดตตัวเลขเมื่อเปลี่ยนหน้า
     }
 
-    // 4. สั่งให้ระบบเริ่มนับเวลาเลื่อนอัตโนมัติ (สไลด์ทุกๆ 3.5 วินาที)
+    // 3. สั่งให้ระบบเริ่มนับเวลาเลื่อนอัตโนมัติ (สไลด์ทุกๆ 3.5 วินาที)
     function startAutoSlide() {
         autoSlideTimer = setInterval(slideNext, 3500);
     }
 
     startAutoSlide();
 
-    // 5. ระบบตรวจจับความเคลื่อนไหวเวลามีคนเอานิ้วมาปัด (Scroll)
+    // 4. ระบบตรวจจับความเคลื่อนไหวเวลามีคนเอานิ้วมาปัด (Scroll)
     container.addEventListener('scroll', () => {
         const slideWidth = container.clientWidth;
         if (slideWidth > 0) {
             const scrolledIndex = Math.round(container.scrollLeft / slideWidth);
             if (scrolledIndex !== currentIndex && scrolledIndex < totalBanners) {
                 currentIndex = scrolledIndex;
-                updateDots(currentIndex);
+                updateCounter(currentIndex); // 👈 อัปเดตตัวเลขเมื่อเอานิ้วปัด
             }
         }
     });
 
-    // 6. ฟังก์ชันเคลียร์ไทม์เมอร์เมื่อผู้ใช้สัมผัสหน้าจอ และนับต่อทันทีเมื่อปล่อยมือ
+    // 5. ฟังก์ชันเคลียร์ไทม์เมอร์เมื่อผู้ใช้สัมผัสหน้าจอ
     const clearTimer = () => clearInterval(autoSlideTimer);
     const resetTimer = () => {
         clearInterval(autoSlideTimer); 
