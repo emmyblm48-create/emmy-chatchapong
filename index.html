@@ -2015,12 +2015,12 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="champ-banner" onclick="window.location.href='specialthanks.html?index=0'">
       <div class="champ-info">
         <div class="champ-badge"><i class="fas fa-crown"></i> Champ of the Month</div>
-        <div class="champ-title" id="home-champ-name">Jih</div>
-        <div class="champ-month" id="home-champ-month">ประจำเดือนมิถุนายน</div>
+        <div class="champ-title" id="home-champ-name">Emmy</div>
+        <div class="champ-month" id="home-champ-month">ประจำเดือนพฤษภาคม</div>
         <button class="champ-btn-view">view special thanks <i class="fas fa-chevron-right"></i></button>
       </div>
       <div class="champ-img-container">
-        <img src="https://lh3.googleusercontent.com/d/18vKL61xUhi97V2fut6AxXDfaPv204UMG=s1000" id="home-champ-img" class="champ-img" alt="Champ">
+        <img src="https://lh3.googleusercontent.com/d/1FZNJQWvzZxUi4ZfCdTmhWLMTfDtUTZ3p=s400" id="home-champ-img" class="champ-img" alt="Champ">
       </div>
 </div>
   
@@ -3953,6 +3953,72 @@ function closeImageViewer() {
       } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
     }
   }
+  
+
+  // ⚡ ฟังก์ชันโหลดข้อมูลแดชบอร์ดหน้าแรกแบบ Real-Time และปลอดภัย
+  async function loadRealTimeDashboard() {
+    const username = localStorage.getItem("username"); // ดึง Username จากระบบล็อกอิน
+    if (!username) return;
+
+    try {
+      const response = await fetch(scriptURL, { // เปลี่ยนเป็น URL ของ Google Apps Script ของคุณ
+        method: "POST",
+        body: JSON.stringify({
+          action: "getDashboardData",
+          username: username
+        })
+      });
+
+      const res = await response.json();
+
+      if (res.status === "success") {
+        // 1. อัปเดตยอดเงินคงเหลือ (ตรวจเช็คความปลอดภัยก่อน จะได้ไม่เกิด Error บนหน้าแรก)
+        const tokenElement = document.getElementById("user-token");
+        const cookieElement = document.getElementById("user-cookie");
+
+        if (tokenElement && res.user) {
+          tokenElement.innerText = Number(res.user.token).toLocaleString() || 0;
+        }
+        if (cookieElement && res.user) {
+          cookieElement.innerText = Number(res.user.cookie).toLocaleString() || 0;
+        }
+
+        // 2. นำข้อมูลแคมเปญไปวาดลงบนหน้าแรกที่ id="campaign-scroller"
+        if (res.campaigns && res.campaigns.length > 0) {
+          renderCampaignsHTML(res.campaigns);
+        }
+      } else {
+        console.error("ดึงข้อมูลแดชบอร์ดไม่สำเร็จ:", res.message);
+      }
+    } catch (error) {
+      console.error("Network Error:", error);
+    }
+  }
+
+  // 🎨 ฟังก์ชันสำหรับวาดการ์ดแคมเปญโหวต ลงในกล่อง #campaign-scroller บนหน้าแรก
+  function renderCampaignsHTML(campaigns) {
+    const scroller = document.getElementById("campaign-scroller");
+    if (!scroller) return;
+
+    let html = "";
+    campaigns.forEach(camp => {
+      html += `
+        <a href="majorvote.html" class="campaign-card-item" style="flex: 0 0 auto; width: 260px; margin-right: 15px; text-decoration: none; display: block; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(255,133,162,0.05); border: 1px solid #ffe6eb; transition: transform 0.2s;">
+          <img src="${camp.CoverImage}" alt="${camp.CampaignName}" style="width: 100%; height: 130px; object-fit: cover; display: block;">
+          <div style="padding: 12px; text-align: left;">
+            <div style="font-size: 13px; font-weight: 600; color: #ff6b8b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${camp.CampaignName}
+            </div>
+            <div style="font-size: 11px; color: #a39095;">
+              <i class="fas fa-vote-yea"></i> คลิกเพื่อร่วมโหวตเมมเบอร์
+            </div>
+          </div>
+        </a>
+      `;
+    });
+
+    scroller.innerHTML = html;
+  }
 
   async function doLogin() {
     const u = document.getElementById('login-user').value;
@@ -4062,6 +4128,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateUI();
   hideAppLoading(); 
   loadData();
+  loadRealTimeDashboard();
   
   if (user) {
     syncUserData(); 
