@@ -1,26 +1,30 @@
 const SS = SpreadsheetApp.getActiveSpreadsheet();
 
 function doPost(e) {
+  if (!e) return jsonResponse({ status: "error", message: "No POST data received" });
+
+  let data = {};
+  if (e.postData && e.postData.contents) {
+    try {
+      data = JSON.parse(e.postData.contents);
+    } catch (parseErr) {
+      // เผื่อหน้าบ้านไม่ได้ส่งมาเป็น JSON
+    }
+  }
+
+  const action = e.parameter.action || data.action; 
+  const username = (e.parameter.username || data.username || "").toString().trim();
+  const collectionId = (e.parameter.collectionId || data.collectionId || "").toString().trim();
+
+  // ⚡ [เพิ่มจุดนี้] ถ้าเป็นการขอข้อมูล Dashboard ให้ส่งข้อมูลกลับทันที โดยไม่ต้องไปต่อคิวรอ Lock 
+  if (action === "getDashboardData") {
+    return getDashboardDataProcess(username);
+  }
+
+  // --- 🔒 ระบบ Lock เดิมของเอ็มมี่จะเริ่มทำงานตั้งแต่บรรทัดนี้ลงไป เพื่อใช้เฉพาะตอนส่งโหวต/ซื้อของ ---
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(10000); // ป้องกันข้อมูลชนกัน
-    
-    if (!e) return jsonResponse({ status: "error", message: "No POST data received" });
-
-    // 🚨 [เพิ่มจุดนี้] แกะข้อมูล JSON Body ที่ส่งมาจากหน้าบ้านมาเก็บไว้ในตัวแปร data
-    let data = {};
-    if (e.postData && e.postData.contents) {
-      try {
-        data = JSON.parse(e.postData.contents);
-      } catch (parseErr) {
-        // เผื่อหน้าบ้านไม่ได้ส่งมาเป็น JSON
-      }
-    }
-
-    // ✅ ดึงค่ามารอไว้ในตัวแปรตรง ๆ โดยเช็คทั้งจาก parameter และ JSON data เพื่อความปลอดภัยสูงสุด
-    const action = e.parameter.action || data.action; 
-    const username = (e.parameter.username || data.username || "").toString().trim();
-    const collectionId = (e.parameter.collectionId || data.collectionId || "").toString().trim();
+    lock.waitLock(10000); // ป้องกันข้อมูลชนกันเฉพาะตอนเขียนข้อมูลลงชีต
 
     const now = new Date();
     const currentMonthYear = (now.getMonth() + 1) + "/" + now.getFullYear();
@@ -1616,7 +1620,7 @@ if (action === "getMyInventory") {
       });
     }
 
- // =========================================================================
+      // =========================================================================
       // ✍️ ACTION 3: ระบบบันทึกโหวต หักเหรียญ ลงประวัติ และเพิ่มเข้าคลังอัตโนมัติ
       // =========================================================================
       if (action === "submitMajorVote") {
@@ -2328,4 +2332,58 @@ function writeLog(u, action, target, amount) {
 
 function jsonResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getDashboardDataProcess(username) {
+  try {
+    var result = {
+      status: "success",
+      user: null,
+      campaigns: []
+    };
+
+    // 1. ดึงข้อมูลยอดเงินคงเหลือล่าสุดของผู้ใช้จากชีต 'users'
+    var userSheet = SS.getSheetByName('users');
+    if (userSheet) {
+      var userData = userSheet.getDataRange().getValues();
+      var userHeaders = userData[0];
+      var uIdx = userHeaders.indexOf("username");
+      
+      if (uIdx !== -1 && username) {
+        // วนลูปค้นหาข้อมูลแถวของ Username นั้น ๆ
+        for (var i = 1; i < userData.length; i++) {
+          if (userData[i][uIdx] == username) {
+            var userObj = {};
+            for (var j = 0; j < userHeaders.length; j++) {
+              userObj[userHeaders[j]] = userData[i][j];
+            }
+            result.user = userObj; // เก็บข้อมูลผู้ใช้ (เช่น token, cookie, geToken)
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. ดึงข้อมูลรายการ Campaign ทั้งหมดจากชีต 'campaign'
+    var campaignSheet = SS.getSheetByName('campaign');
+    if (campaignSheet) {
+      var campaignData = campaignSheet.getDataRange().getValues();
+      var campaignHeaders = campaignData[0];
+      
+      for (var k = 1; k < campaignData.length; k++) {
+        var campObj = {};
+        for (var m = 0; m < campaignHeaders.length; m++) {
+          campObj[campaignHeaders[m]] = campaignData[k][m];
+        }
+        result.campaigns.push(campObj); // เพิ่มข้อมูล Campaign เข้าไปในรายการ
+      }
+    }
+
+    // ส่งผลลัพธ์ข้อมูลทั้งหมดกลับไปหน้าบ้าน (ใช้ฟังก์ชันแปลง JSON เดิมในระบบของเอ็มมี่)
+    // หมายเหตุ: หากในระบบใช้ชื่อฟังก์ชัน jsonResponse ให้เปลี่ยนเป็น jsonResponse(result) นะครับ
+    return sendJsonResponse(result);
+
+  } catch (error) {
+    return sendJsonResponse({ status: "error", message: "เกิดข้อผิดพลาดคลาวด์: " + error.toString() });
+  }
 }
