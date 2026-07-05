@@ -498,60 +498,92 @@
     });
   
   // 📥 ฟังก์ชันสร้างและแสดง Wallet Code (Receive)
-function showReceiveCode() {
-    if (!username) {
-        Swal.fire({
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่พบข้อมูลการเข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อนทำรายการ',
-            icon: 'error',
-            confirmButtonColor: '#ff85a2',
-            confirmButtonText: 'OK'
-        });
-        return;
-    }
+  function showReceiveCode() {
+      if (!username) {
+          Swal.fire({
+              title: 'เกิดข้อผิดพลาด',
+              text: 'ไม่พบข้อมูลการเข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อนทำรายการ',
+              icon: 'error',
+              confirmButtonColor: '#ff85a2',
+              confirmButtonText: 'OK'
+          });
+          return;
+      }
 
-    // 1. จำลอง SUBSTITUTE(A3, "-", "")
-    let cleanUsername = username.replace(/-/g, "");
-    
-    // 2. จำลอง VALUE(...)
-    let numValue = Number(cleanUsername);
+      // 1. จำลอง SUBSTITUTE(A3, "-", "")
+      let cleanUsername = username.replace(/-/g, "");
 
-    // ดักจับกรณีที่ username มีตัวอักษรผสมอยู่และกลายเป็น NaN (Not-a-Number)
-    if (isNaN(numValue)) {
-        Swal.fire({
-            title: 'เกิดข้อผิดพลาด',
-            text: 'รูปแบบบัญชีผู้ใช้งานไม่ถูกต้อง ไม่สามารถดำเนินการสร้างรหัสได้',
-            icon: 'error',
-            confirmButtonColor: '#ff85a2',
-            confirmButtonText: 'OK'
-        });
-        return;
-    }
+      // 2. จำลอง VALUE(...)
+      let numValue = Number(cleanUsername);
 
-    // 3. คูณ 84729
-    let multipliedValue = numValue * 84729;
+      // ดักจับกรณีที่ username มีตัวอักษรผสมอยู่และกลายเป็น NaN (Not-a-Number)
+      if (isNaN(numValue)) {
+          Swal.fire({
+              title: 'เกิดข้อผิดพลาด',
+              text: 'รูปแบบบัญชีผู้ใช้งานไม่ถูกต้อง ไม่สามารถดำเนินการสร้างรหัสได้',
+              icon: 'error',
+              confirmButtonColor: '#ff85a2',
+              confirmButtonText: 'OK'
+          });
+          return;
+      }
 
-    // 4. จำลอง DEC2HEX(..., 6) และ UPPER()
-    // ใช้ .toString(16) แปลงเป็นฐาน 16, .toUpperCase() ทำตัวพิมพ์ใหญ่, และ .padStart(6, '0') เพื่อให้ครบ 6 หลัก
-    let hexCode = multipliedValue.toString(16).toUpperCase().padStart(6, '0');
+      // 3. คูณ 84729
+      let multipliedValue = numValue * 84729;
 
-    // 5. ต่อ String ด้วย "BLM-"
-    let finalWalletCode = "BLM-" + hexCode;
+      // 4. จำลอง DEC2HEX(..., 6) และ UPPER()
+      // ใช้ .toString(16) แปลงเป็นฐาน 16, .toUpperCase() ทำตัวพิมพ์ใหญ่, และ .padStart(6, '0') เพื่อให้ครบ 6 หลัก
+      let hexCode = multipliedValue.toString(16).toUpperCase().padStart(6, '0');
 
-    // แสดงผลผ่าน SweetAlert2 แบบเป็นทางการ
-    Swal.fire({
-        title: 'Your Wallet Code',
-        html: `
-            <div style="font-size: 24px; font-weight: 700; color: #ff85a2; padding: 20px; background: #fff0f5; border-radius: 12px; margin-top: 10px; letter-spacing: 2px;">
-                ${finalWalletCode}
-            </div>
-            <p style="font-size: 14px; color: #888; margin-top: 15px;">กรุณาใช้รหัสนี้สำหรับการรับ Token</p>
-        `,
-        icon: 'info',
-        confirmButtonColor: '#ff85a2',
-        confirmButtonText: 'Close'
-    });
-}
+      // 5. ต่อ String ด้วย "BLM-"
+      let finalWalletCode = "BLM-" + hexCode;
+
+      // แสดงผลผ่าน SweetAlert2 แบบเป็นทางการ พร้อมฟังก์ชัน Copy
+      Swal.fire({
+          title: 'Your Wallet Code',
+          html: `
+              <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 20px; background: #fff0f5; border-radius: 12px; margin-top: 10px;">
+                  <span style="font-size: 24px; font-weight: 700; color: #ff85a2; letter-spacing: 2px;">
+                      ${finalWalletCode}
+                  </span>
+                  <button id="copy-code-btn" style="background: none; border: none; color: #ff85a2; cursor: pointer; font-size: 22px; transition: 0.2s;" title="Copy to clipboard">
+                      <i class="fas fa-copy"></i>
+                  </button>
+              </div>
+              <p id="copy-status-text" style="font-size: 13px; color: #20c997; margin-top: 8px; font-weight: 600; height: 15px; visibility: hidden;">
+                  Copied successfully!
+              </p>
+              <p style="font-size: 14px; color: #888; margin-top: 5px;">
+                  Use this address to receive BLM tokens from BLM48 Membership
+              </p>
+          `,
+          icon: 'info',
+          confirmButtonColor: '#ff85a2',
+          confirmButtonText: 'Close',
+          didOpen: () => {
+              // ดักจับเหตุการณ์การกดปุ่ม Copy เมื่อ Popup เปิดขึ้นมาแล้ว
+              const copyBtn = document.getElementById('copy-code-btn');
+              const statusText = document.getElementById('copy-status-text');
+
+              copyBtn.addEventListener('click', () => {
+                  // คำสั่งคัดลอกข้อความลง Clipboard
+                  navigator.clipboard.writeText(finalWalletCode).then(() => {
+                      // เปลี่ยนไอคอนเป็นเครื่องหมายถูกสีเขียว
+                      copyBtn.innerHTML = '<i class="fas fa-check-circle" style="color: #20c997;"></i>';
+                      statusText.style.visibility = 'visible'; // แสดงข้อความสำเร็จ
+
+                      // คืนค่ากลับเป็นไอคอนเดิมหลังจากผ่านไป 2 วินาที
+                      setTimeout(() => {
+                          copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                          statusText.style.visibility = 'hidden';
+                      }, 2000);
+                  }).catch(err => {
+                      console.error('Failed to copy: ', err);
+                  });
+              });
+          }
+      });
+  }
 </script>
 </body>
 </html>
