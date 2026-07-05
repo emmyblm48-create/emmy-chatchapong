@@ -187,7 +187,13 @@
     margin-top: 8px;
     font-family: 'Quicksand', 'Kanit', sans-serif;
 }
-
+    /* 📥 ปุ่ม Receive (โทนสีเหลืองพาสเทล) */
+    .btn-receive .circle-icon {
+        background-color: #fff8d6 !important; /* เหลืองอ่อนโปร่งแสง */
+        color: #f5b041 !important;            /* ไอคอนสีเหลืองอมส้ม */
+        box-shadow: 0 4px 12px rgba(245, 176, 65, 0.2);
+    }
+      
     </style>
 </head>
 <body>
@@ -227,6 +233,10 @@
     </div>
   
 <div class="wallet-actions-container">
+    <button onclick="showReceiveCode()" class="circle-action-btn btn-receive" type="button">
+        <div class="circle-icon"><i class="fas fa-qrcode"></i></div>
+        <span class="circle-label">Receive</span>
+    </button>
     <button onclick="redeemCode()" class="circle-action-btn btn-redeem-code" type="button">
         <div class="circle-icon"><i class="fas fa-ticket-alt"></i></div>
         <span class="circle-label">Redeem</span>
@@ -486,6 +496,62 @@
     window.addEventListener("pageshow", function(event) {
         initPage();
     });
+  
+  // 📥 ฟังก์ชันสร้างและแสดง Wallet Code (Receive)
+function showReceiveCode() {
+    if (!username) {
+        Swal.fire({
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่พบข้อมูลการเข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อนทำรายการ',
+            icon: 'error',
+            confirmButtonColor: '#ff85a2',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
+    // 1. จำลอง SUBSTITUTE(A3, "-", "")
+    let cleanUsername = username.replace(/-/g, "");
+    
+    // 2. จำลอง VALUE(...)
+    let numValue = Number(cleanUsername);
+
+    // ดักจับกรณีที่ username มีตัวอักษรผสมอยู่และกลายเป็น NaN (Not-a-Number)
+    if (isNaN(numValue)) {
+        Swal.fire({
+            title: 'เกิดข้อผิดพลาด',
+            text: 'รูปแบบบัญชีผู้ใช้งานไม่ถูกต้อง ไม่สามารถดำเนินการสร้างรหัสได้',
+            icon: 'error',
+            confirmButtonColor: '#ff85a2',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+
+    // 3. คูณ 84729
+    let multipliedValue = numValue * 84729;
+
+    // 4. จำลอง DEC2HEX(..., 6) และ UPPER()
+    // ใช้ .toString(16) แปลงเป็นฐาน 16, .toUpperCase() ทำตัวพิมพ์ใหญ่, และ .padStart(6, '0') เพื่อให้ครบ 6 หลัก
+    let hexCode = multipliedValue.toString(16).toUpperCase().padStart(6, '0');
+
+    // 5. ต่อ String ด้วย "BLM-"
+    let finalWalletCode = "BLM-" + hexCode;
+
+    // แสดงผลผ่าน SweetAlert2 แบบเป็นทางการ
+    Swal.fire({
+        title: 'Your Wallet Code',
+        html: `
+            <div style="font-size: 24px; font-weight: 700; color: #ff85a2; padding: 20px; background: #fff0f5; border-radius: 12px; margin-top: 10px; letter-spacing: 2px;">
+                ${finalWalletCode}
+            </div>
+            <p style="font-size: 14px; color: #888; margin-top: 15px;">กรุณาใช้รหัสนี้สำหรับการรับ Token</p>
+        `,
+        icon: 'info',
+        confirmButtonColor: '#ff85a2',
+        confirmButtonText: 'Close'
+    });
+}
 </script>
 </body>
 </html>
