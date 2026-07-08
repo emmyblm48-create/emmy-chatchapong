@@ -563,94 +563,113 @@
         return Array.from(subs).sort((a, b) => a.localeCompare(b, 'th'));
     }
 
-    // ฟังก์ชันสร้างปุ่มตัวกรองหลักและตัวกรองย่อย
-    function renderFilters() {
-        const primaryTabsContainer = document.getElementById('primary-tabs');
-        if (!primaryTabsContainer) return;
-        
-        primaryTabsContainer.innerHTML = '';
+   function renderFilters() {
+    const primaryTabsContainer = document.getElementById('primary-tabs');
+    if (!primaryTabsContainer) return;
+    
+    primaryTabsContainer.innerHTML = '';
 
-        // 1. ปุ่มหลัก: ทั้งหมด
-        const btnAll = document.createElement('button');
-        btnAll.className = `btn-tab ${currentPrimaryTab === 'all' ? 'active' : ''}`;
-        btnAll.innerHTML = `<i class="fa-solid fa-border-all"></i> ทั้งหมด`;
-        btnAll.onclick = () => selectPrimaryTab('all');
-        primaryTabsContainer.appendChild(btnAll);
-
-        // 2. ปุ่มหลัก: BLM48 Cafe
-        if (hasCategory('BLM48 Cafe')) {
-            const btnCafe = document.createElement('button');
-            btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
-            btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
-            btnCafe.onclick = () => selectPrimaryTab('cafe');
-            primaryTabsContainer.appendChild(btnCafe);
-        }
-
-        // 3. ปุ่มหลัก: Coaster
-        if (hasCategory('Coaster')) {
-            const btnCoaster = document.createElement('button');
-            btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
-            btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc"></i> Coaster`;
-            btnCoaster.onclick = () => selectPrimaryTab('coaster');
-            primaryTabsContainer.appendChild(btnCoaster);
-        }
-
-        // 4. ปุ่มหลัก: Thank You Card (รวบรวมแคมเปญโหวตทั้งหมดมาไว้ที่นี่ตามที่เอ็มมี่ดีไซน์ 🌸)
-        if (hasCategory('Thank You Card')) {
-            const btnThankYou = document.createElement('button');
-            btnThankYou.className = `btn-tab ${currentPrimaryTab === 'thankyou' ? 'active' : ''}`;
-            btnThankYou.innerHTML = `<i class="fa-solid fa-heart"></i> Thank You Card`;
-            btnThankYou.onclick = () => selectPrimaryTab('thankyou');
-            primaryTabsContainer.appendChild(btnThankYou);
-        }
-
-        // 5. ปุ่มหลัก: หมวดหมู่อื่นๆ
-        if (hasCategory('หมวดหมู่อื่นๆ')) {
-            const btnOthers = document.createElement('button');
-            btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
-            btnOthers.innerHTML = `<i class="fa-solid fa-box-archive"></i> หมวดหมู่อื่นๆ`;
-            btnOthers.onclick = () => selectPrimaryTab('others');
-            primaryTabsContainer.appendChild(btnOthers);
-        }
-
-        // --- 🔘 ระบบจัดการพาเนลตัวกรองย่อย (Sub Filters Panel) ---
-        const coasterSubPanel = document.getElementById('coaster-sub-panel');
-        const coasterTabsContainer = document.getElementById('coaster-tabs');
-        
-        // ตรวจสอบว่าแท็บหลักต้องการตัวกรองย่อยไหม
-        let targetCategory = '';
-        if (currentPrimaryTab === 'coaster') targetCategory = 'Coaster';
-        if (currentPrimaryTab === 'thankyou') targetCategory = 'Thank You Card';
-
-        if (targetCategory !== '' && coasterSubPanel && coasterTabsContainer) {
-            const subCollections = getSubCollections(targetCategory);
-            coasterSubPanel.classList.remove('hidden');
-            coasterTabsContainer.innerHTML = '';
-
-            // 1. สร้างปุ่มย่อย: แสดงทั้งหมดของหมวดนั้นๆ
-            const btnSubAll = document.createElement('button');
-            btnSubAll.className = `btn-sub-tab ${currentSubTab === 'all' ? 'active' : ''}`;
-            btnSubAll.textContent = targetCategory === 'Coaster' ? 'Coaster ทั้งหมด' : 'การ์ดทั้งหมด';
-            btnSubAll.onclick = () => selectSubTab('all');
-            coasterTabsContainer.appendChild(btnSubAll);
-
-            // 2. สร้างปุ่มย่อยรายชื่อชื่องานจริง (เช่น BLM48 Tanabata 2026)
-            subCollections.forEach(subName => {
-                const btnSub = document.createElement('button');
-                btnSub.className = `btn-sub-tab ${currentSubTab === subName ? 'active' : ''}`;
-                
-                // ตกแต่งชื่อแสดงผลให้สวยงาม
-                let displayName = subName.replace('votemajor_', '').replace('gacha_', '');
-                displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
-                
-                btnSub.textContent = displayName;
-                btnSub.onclick = () => selectSubTab(subName);
-                coasterTabsContainer.appendChild(btnSub);
-            });
-        } else if (coasterSubPanel) {
-            coasterSubPanel.classList.add('hidden');
-        }
+    // 1. ปุ่มหลัก: ทั้งหมด
+    const btnAll = document.createElement('button');
+    btnAll.className = `btn-tab ${currentPrimaryTab === 'all' ? 'active' : ''}`;
+    btnAll.innerHTML = `<i class="fa-solid fa-border-all"></i> All`;
+    btnAll.onclick = () => selectPrimaryTab('all');
+    primaryTabsContainer.appendChild(btnAll);
+     
+    // ⭐ 2. ปุ่มหลักที่เพิ่มใหม่: BLM48 SSR Photo (รองรับทั้งเช็กจาก ID หรือ Name)
+    if (hasCategory('BLM48 SSR Photo') || hasCategory('SSR_card')) {
+        const btnSSR = document.createElement('button');
+        btnSSR.className = `btn-tab ${currentPrimaryTab === 'ssr' ? 'active' : ''}`;
+        btnSSR.innerHTML = `<i class="fa-solid fa-star text-yellow-400"></i> SSR`;
+        btnSSR.onclick = () => selectPrimaryTab('ssr');
+        primaryTabsContainer.appendChild(btnSSR);
     }
+
+    // 3. ปุ่มหลัก: BLM48 Cafe
+    if (hasCategory('BLM48 Cafe')) {
+        const btnCafe = document.createElement('button');
+        btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
+        btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
+        btnCafe.onclick = () => selectPrimaryTab('cafe');
+        primaryTabsContainer.appendChild(btnCafe);
+    }
+
+    // 4. ปุ่มหลัก: Coaster
+    if (hasCategory('Coaster')) {
+        const btnCoaster = document.createElement('button');
+        btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
+        btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc"></i> Coaster`;
+        btnCoaster.onclick = () => selectPrimaryTab('coaster');
+        primaryTabsContainer.appendChild(btnCoaster);
+    }
+
+    // 5. ปุ่มหลัก: Thank You Card
+    if (hasCategory('Thank You Card')) {
+        const btnThankYou = document.createElement('button');
+        btnThankYou.className = `btn-tab ${currentPrimaryTab === 'thankyou' ? 'active' : ''}`;
+        btnThankYou.innerHTML = `<i class="fa-solid fa-heart"></i> Thank You Card`;
+        btnThankYou.onclick = () => selectPrimaryTab('thankyou');
+        primaryTabsContainer.appendChild(btnThankYou);
+    }
+
+    // 6. ปุ่มหลัก: หมวดหมู่อื่นๆ
+    if (hasCategory('หมวดหมู่อื่นๆ')) {
+        const btnOthers = document.createElement('button');
+        btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
+        btnOthers.innerHTML = `<i class="fa-solid fa-box-archive"></i> Other`;
+        btnOthers.onclick = () => selectPrimaryTab('others');
+        primaryTabsContainer.appendChild(btnOthers);
+    }
+
+    // --- 🔘 ระบบจัดการพาเนลตัวกรองย่อย (Sub Filters Panel) ---
+    const coasterSubPanel = document.getElementById('coaster-sub-panel');
+    const coasterTabsContainer = document.getElementById('coaster-tabs');
+    
+    // ตรวจสอบว่าแท็บหลักต้องการตัวกรองย่อยไหม
+    let targetCategory = '';
+    if (currentPrimaryTab === 'coaster') targetCategory = 'Coaster';
+    if (currentPrimaryTab === 'thankyou') targetCategory = 'Thank You Card';
+    // ดึงข้อมูลซับคอลเลกชันของ SSR มาแสดงผล (ถ้ามี)
+    if (currentPrimaryTab === 'ssr') targetCategory = hasCategory('BLM48 SSR Photo') ? 'BLM48 SSR Photo' : 'SSR_card';
+
+    if (targetCategory !== '' && coasterSubPanel && coasterTabsContainer) {
+        const subCollections = getSubCollections(targetCategory);
+        coasterSubPanel.classList.remove('hidden');
+        coasterTabsContainer.innerHTML = '';
+
+        // 1. สร้างปุ่มย่อย: แสดงทั้งหมดของหมวดนั้นๆ
+        const btnSubAll = document.createElement('button');
+        btnSubAll.className = `btn-sub-tab ${currentSubTab === 'all' ? 'active' : ''}`;
+        
+        // กำหนดข้อความปุ่มย่อยทั้งหมดตามหมวดหมู่
+        if (targetCategory === 'Coaster') {
+            btnSubAll.textContent = 'Coaster ทั้งหมด';
+        } else if (targetCategory === 'Thank You Card') {
+            btnSubAll.textContent = 'การ์ดทั้งหมด';
+        } else {
+            btnSubAll.textContent = 'รูป SSR ทั้งหมด';
+        }
+        
+        btnSubAll.onclick = () => selectSubTab('all');
+        coasterTabsContainer.appendChild(btnSubAll);
+
+        // 2. สร้างปุ่มย่อยรายชื่อชื่องานจริง
+        subCollections.forEach(subName => {
+            const btnSub = document.createElement('button');
+            btnSub.className = `btn-sub-tab ${currentSubTab === subName ? 'active' : ''}`;
+            
+            // ตกแต่งชื่อแสดงผลให้สวยงาม
+            let displayName = subName.replace('votemajor_', '').replace('gacha_', '');
+            displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+            
+            btnSub.textContent = displayName;
+            btnSub.onclick = () => selectSubTab(subName);
+            coasterTabsContainer.appendChild(btnSub);
+        });
+    } else if (coasterSubPanel) {
+        coasterSubPanel.classList.add('hidden');
+    }
+}
 
     function selectPrimaryTab(tabName) {
         currentPrimaryTab = tabName;
@@ -749,4 +768,4 @@
     }
 </script>
 </body>
-</html>
+</html> 
