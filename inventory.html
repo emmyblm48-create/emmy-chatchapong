@@ -684,78 +684,82 @@
         renderInventoryData();
     }
 
-    // ฟังก์ชันวาดการ์ดไอเทมสะสมลงหน้าจอตามฟิลเตอร์
-    function renderInventoryData() {
-        const container = document.getElementById('inventory-container');
-        container.innerHTML = "";
-        
-        if (!globalInventoryData || globalInventoryData.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ</p>`;
-            return;
-        }
-
-        // คัดกรองไอเทมตามเงื่อนไขที่เลือก
-        let filteredItems = globalInventoryData.filter(item => {
-            if (currentPrimaryTab === 'cafe' && item.category !== 'BLM48 Cafe') return false;
-            if (currentPrimaryTab === 'coaster' && item.category !== 'Coaster') return false;
-            if (currentPrimaryTab === 'thankyou' && item.category !== 'Thank You Card') return false;
-            if (currentPrimaryTab === 'others' && item.category !== 'หมวดหมู่อื่นๆ') return false;
-
-            // ตัวกรองย่อย
-            if (currentSubTab !== 'all' && item.subCollection !== currentSubTab) return false;
-
-            return true;
-        });
-
-        if (filteredItems.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:#999; margin-top:40px; font-size:13px;">ไม่พบไอเทมในหมวดหมู่นี้งับ</p>`;
-            return;
-        }
-
-        // จัดกลุ่มไอเทมแยกตามชื่องานย่อยเพื่อทำกล่อง Section หัวข้อ
-        const grouped = {};
-        filteredItems.forEach(item => {
-            if (!grouped[item.subCollection]) grouped[item.subCollection] = [];
-            grouped[item.subCollection].push(item);
-        });
-
-        // เรียงกลุ่มหัวข้อตามตัวอักษรไทย ก-ฮ
-        const sortedGroupKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'th'));
-
-        sortedGroupKeys.forEach(subName => {
-            const items = grouped[subName].sort((a, b) => a.name.localeCompare(b.name, 'th'));
-
-            const section = document.createElement('div');
-            section.className = 'collection-section';
-            
-            const title = document.createElement('div');
-            title.className = 'collection-title';
-            title.innerHTML = `
-                <span>${subName}</span>
-                <span class="collection-count-badge">${items.length} รายการ</span>
-            `;
-            section.appendChild(title);
-            
-            const grid = document.createElement('div');
-            grid.className = 'item-grid';
-            
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'item-card';
-                card.onclick = () => openPreview(item.img);
-                
-                card.innerHTML = `
-                    <span class="item-qty">x${item.qty}</span>
-                    <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
-                    <div class="item-name" title="${item.name}">${item.name}</div>
-                `;
-                grid.appendChild(card);
-            });
-            
-            section.appendChild(grid);
-            container.appendChild(section);
-        });
+   // ฟังก์ชันวาดการ์ดไอเทมสะสมลงหน้าจอตามฟิลเตอร์
+function renderInventoryData() {
+    const container = document.getElementById('inventory-container');
+    container.innerHTML = "";
+    
+    if (!globalInventoryData || globalInventoryData.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ</p>`;
+        return;
     }
+
+    // คัดกรองไอเทมตามเงื่อนไขที่เลือก
+    let filteredItems = globalInventoryData.filter(item => {
+        if (currentPrimaryTab === 'cafe' && item.category !== 'BLM48 Cafe') return false;
+        if (currentPrimaryTab === 'coaster' && item.category !== 'Coaster') return false;
+        if (currentPrimaryTab === 'thankyou' && item.category !== 'Thank You Card') return false;
+        
+        // ⭐ เพิ่มเงื่อนไขเช็กสำหรับแท็บ SSR (เช็กเผื่อไว้ให้ทั้ง Name และ ID)
+        if (currentPrimaryTab === 'ssr' && item.category !== 'BLM48 SSR Photo' && item.category !== 'SSR_card') return false;
+        
+        if (currentPrimaryTab === 'others' && item.category !== 'หมวดหมู่อื่นๆ') return false;
+
+        // ตัวกรองย่อย
+        if (currentSubTab !== 'all' && item.subCollection !== currentSubTab) return false;
+
+        return true;
+    });
+
+    if (filteredItems.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:#999; margin-top:40px; font-size:13px;">ไม่พบไอเทมในหมวดหมู่นี้งับ</p>`;
+        return;
+    }
+
+    // จัดกลุ่มไอเทมแยกตามชื่องานย่อยเพื่อทำกล่อง Section หัวข้อ
+    const grouped = {};
+    filteredItems.forEach(item => {
+        if (!grouped[item.subCollection]) grouped[item.subCollection] = [];
+        grouped[item.subCollection].push(item);
+    });
+
+    // เรียงกลุ่มหัวข้อตามตัวอักษรไทย ก-ฮ
+    const sortedGroupKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'th'));
+
+    sortedGroupKeys.forEach(subName => {
+        const items = grouped[subName].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
+        const section = document.createElement('div');
+        section.className = 'collection-section';
+        
+        const title = document.createElement('div');
+        title.className = 'collection-title';
+        title.innerHTML = `
+            <span>${subName}</span>
+            <span class="collection-count-badge">${items.length} รายการ</span>
+        `;
+        section.appendChild(title);
+        
+        const grid = document.createElement('div');
+        grid.className = 'item-grid';
+        
+        items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            card.onclick = () => openPreview(item.img);
+            
+            card.innerHTML = `
+                <span class="item-qty">x${item.qty}</span>
+                <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
+                <div class="item-name" title="${item.name}">${item.name}</div>
+            `;
+            grid.appendChild(card);
+        });
+        
+        section.appendChild(grid);
+        container.appendChild(section);
+    });
+}
 
     function openPreview(src) {
         document.getElementById('previewImg').src = src;
