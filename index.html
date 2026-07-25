@@ -1987,9 +1987,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <img id="main-splash" src="https://lh3.googleusercontent.com/d/1nvKkrs0bjgR8YAL8VKLDIxooRUtSekcb=s1000" style="width: 100%; height: 100%; object-fit: cover;">
 </div>
 
-<!-- Overlay สำหรับปิด Sidebar -->
-<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
-
 <!-- 3. Navbar (ปรับปรุงปุ่ม) -->
 <nav class="navbar">
     <div class="logo-container" style="display: flex; align-items: center;">
@@ -2155,7 +2152,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 </div>
 </div>
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
-<input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleImageUpload(event, user.username)">
 
 <footer style="padding: 60px 20px 40px 20px; text-align: center; color: #c5c5c5; font-size: 11px; letter-spacing: 0.5px; line-height: 1.6;">
     <div style="font-family: 'Kanit', sans-serif; font-weight: 700; color: #999; margin-bottom: 6px; letter-spacing: 1px;">BLM48 MEMBERSHIP</div>
@@ -2210,7 +2206,7 @@ function checkVersion() {
 // ==========================================
 // 👑 4. UI & SIDEBAR & THEME CONTROLS
 // ==========================================
-function history() {
+function goToHistoryPage() {
   window.location.href = 'history.html';
 }
 
@@ -2334,20 +2330,6 @@ async function loadData() {
 }
 
 // ฟังก์ชันรวมรีเฟรชข้อมูลทั้งหมด (เรียกใช้ตอนเลื่อนจอดึงข้อมูล หรือกดปุ่มรีเฟรช)
-async function refreshAppData() {
-  if (typeof showAppLoading === 'function') showAppLoading();
-  try {
-    await loadData();
-    await syncUserData();
-    if (typeof refreshCountFromSheets === 'function') {
-      await refreshCountFromSheets();
-    }
-  } catch (error) {
-    console.error("Refresh App Error:", error);
-  } finally {
-    if (typeof hideAppLoading === 'function') hideAppLoading();
-  }
-}
 // ==========================================
 // 🎨 ระบบโหลดธีมผู้ชนะประจำเดือนแบบมีระบบ Cache & Sync อัปเดต
 // ==========================================
@@ -2747,6 +2729,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// สลับโหมดมืด/สว่าง แล้วจำค่าไว้ใน localStorage (key: theme)
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+}
+
 // ✨ จุดที่ 2: ดักจับตอนไฟล์ทั้งหมด (รวมถึงรูปภาพ) โหลดเสร็จสมบูรณ์
 window.addEventListener('load', () => {
   // ตรวจสอบระบบ Dark Mode
@@ -2963,11 +2951,11 @@ function renderRanking(data) {
     card.className = `member-card ${rankClass}`;
     
     card.innerHTML = `
-     <div class="img-wrapper" onclick="openMemberProfile('${m.name}')">
+     <div class="img-wrapper" onclick="openMemberProfile('${escapeAttr(m.name)}')">
         <img src="${getImg(m.profile_img)}" loading="lazy">
         <div class="rank-badge">${badgeContent}</div>
       </div>
-      <div class="name-text" style="margin-bottom: 10px;">${m.name}</div>
+      <div class="name-text" style="margin-bottom: 10px;">${escapeHtml(m.name)}</div>
 
       <div class="cookie-text" style="margin-bottom: 15px;">
         <i class="fas fa-cookie-bite" style="color: #d2691e;"></i> 
@@ -3299,7 +3287,20 @@ document.addEventListener('DOMContentLoaded', renderTracker);
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-    }  
+    }
+
+    // ใช้สำหรับแทรกค่าลงในอาร์กิวเมนต์ onclick="fn('${...}')" อย่างปลอดภัย (กันทั้งเบรกออกจาก HTML attribute และ JS string)
+    function escapeAttr(text) {
+      if (!text) return '';
+      return text
+        .toString()
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
   
   // ฟังก์ชันตรวจสอบสิทธิ์ระดับสูง
     function hasManagementPermission(postAuthorUsername) {
@@ -3951,8 +3952,8 @@ function closeImageViewer() {
 
   // ⚡ ฟังก์ชันโหลดข้อมูลแดชบอร์ดหน้าแรกแบบ Real-Time และปลอดภัย
   async function loadRealTimeDashboard() {
-    const username = localStorage.getItem("username"); // ดึง Username จากระบบล็อกอิน
-    if (!username) return;
+    const sessionUser = getUserSession(); // ดึง Username จาก session จริง (bnl_session) แทนคีย์ 'username' ที่ไม่เคยถูกเซ็ตค่า
+    const username = sessionUser ? sessionUser.username : "";
 
     try {
       const response = await fetch(scriptURL, { // เปลี่ยนเป็น URL ของ Google Apps Script ของคุณ
@@ -4014,22 +4015,7 @@ function closeImageViewer() {
     scroller.innerHTML = html;
   }
 
-  async function doLogin() {
-    const u = document.getElementById('login-user').value;
-    const p = document.getElementById('login-pass').value;
-    if(!u || !p) return Swal.fire('เตือน', 'กรุณากรอกข้อมูลให้ครบค่ะ', 'warning');
-    Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', didOpen: () => Swal.showLoading() });
-    try {
-      const resp = await fetch(`${scriptURL}?action=login&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`);
-      const result = await resp.json();
-      if (result.status === "success") { 
-        user = result.data; saveUserSession(user); closeModal(); updateUI(); loadData();
-        Swal.fire('ยินดีต้อนรับ', `สวัสดีค่ะคุณ ${user.name}`, 'success');
-      } else { Swal.fire('ล้มเหลว', 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'error'); }
-    } catch(e) { Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error'); }
-  }
-  
-  function openLogin() { 
+  function openLogin() {
     window.location.href = 'login.html';
   }
   
@@ -4050,15 +4036,49 @@ function setupUserProfile(user) {
   }
 }
   
-  function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+  // --- แก้ไขชื่อเล่น ---
+  async function updateDisplayName() {
+    if (!user || (user.role || '').toLowerCase() !== "user") return;
+
+    const { value: newName } = await Swal.fire({
+      title: 'แก้ไขชื่อของคุณ',
+      input: 'text',
+      inputLabel: 'กรอกชื่อใหม่ที่ต้องการ',
+      inputValue: user.name,
+      showCancelButton: true,
+      confirmButtonColor: '#ff85a2',
+      inputValidator: (value) => {
+        if (!value) return 'กรุณากรอกชื่อด้วยนะคะ'
+        if (value.length > 20) return 'ชื่อยาวเกินไปหน่อยค่ะ'
+      }
+    });
+
+    if (newName) {
+      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        const response = await fetch(scriptURL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'updateName', username: user.username, newName: newName })
+        });
+        const res = await response.json();
+        if (res.status === "success") {
+          user.name = newName;
+          saveUserSession(user);
+          setupUserProfile(user);
+          Swal.fire('สำเร็จ!', 'เปลี่ยนชื่อเรียบร้อยแล้วค่ะ', 'success');
+        } else {
+          Swal.fire('Error', res.message || 'ไม่สามารถเปลี่ยนชื่อได้ในขณะนี้', 'error');
+        }
+      } catch (error) { Swal.fire('Error', 'ไม่สามารถเปลี่ยนชื่อได้ในขณะนี้', 'error'); }
+    }
+  }
 
    function getImg(url) {
     if (!url) return 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
 
     if (url.includes('drive.google.com')) {
       const match = url.match(/[-\w]{25,}/);
-      // 🎯 แก้ไข: เติม $ และกำหนดตัวแปรดึงค่า Array ตัวแรก [0] เพื่อให้ระบบแปลงลิงก์รูปภาพได้อย่างถูกต้อง
-      return match ? `https://lh3.googleusercontent.com/u/0/d/$${match[0]}` : url;
+      return match ? `https://lh3.googleusercontent.com/u/0/d/${match[0]}` : url;
     }
 
     if (url.startsWith('data:image')) return url;
@@ -4098,10 +4118,13 @@ async function refreshAppData() {
   showAppLoading();
   try {
     // โหลดข้อมูล Ranking และ Top Fans ใหม่
-    await loadData(); 
+    await loadData();
     // ถ้ามี User ล็อกอินอยู่ ให้ซิงค์ข้อมูลกระเป๋าเงินด้วย
     if (typeof user !== 'undefined' && user) {
-      await syncUserData(); 
+      await syncUserData();
+    }
+    if (typeof refreshCountFromSheets === 'function') {
+      await refreshCountFromSheets();
     }
     console.log("Data Refreshed!");
   } catch (error) {
@@ -4329,14 +4352,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const commentHtml = `
           <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+            <img src="${escapeHtml(cmt.profile_img)}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
             <div style="font-size: 0.88rem; width: 100%;">
               <div style="display: flex; align-items: center; gap: 4px;">
-                <b style="color: #ff85a2;">${cmt.name}</b>
+                <b style="color: #ff85a2;">${escapeHtml(cmt.name)}</b>
                 ${isCmtVerified}
-                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${cmt.role || 'user'}</span>
+                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${escapeHtml(cmt.role || 'user')}</span>
               </div>
-              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${cmt.text}</div>
+              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
             </div>
           </div>
         `;
@@ -4396,7 +4419,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       await pushFunc(commentPostRef, newCommentData);
 
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbzPrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
       fetch(scriptURL, {
         method: 'POST',
         mode: 'no-cors',
@@ -4510,11 +4533,10 @@ document.addEventListener("DOMContentLoaded", () => {
   </a>
 
 </div>
-</body>
-</html>
+
 <div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
   <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">&times;</span>
-  
+
   <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
   <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
   <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>

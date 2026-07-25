@@ -75,6 +75,16 @@
     // ดึงค่า URL ของสคริปต์มาจากหน้าที่พี่ใช้งานอยู่
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
+    function escapeHtml(text) {
+      if (text === undefined || text === null) return '';
+      return text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     async function loadHistory() {
         const session = localStorage.getItem('bnl_session');
         if (!session) {
@@ -88,7 +98,7 @@
         const historyContent = document.getElementById('history-content');
 
         try {
-            const response = await fetch(`${scriptURL}?action=getMyHistory&username=${username}`);
+            const response = await fetch(`${scriptURL}?action=getMyHistory&username=${encodeURIComponent(username)}`);
             const res = await response.json();
 
             if (res.status === "success") {
@@ -99,10 +109,10 @@
                             ${res.purchaseHistory?.length ? res.purchaseHistory.map(log => `
                                 <div class="fan-row">
                                     <div class="fan-info">
-                                        <div class="fan-name">${log.action}: ${log.target}</div>
+                                        <div class="fan-name">${escapeHtml(log.action)}: ${escapeHtml(log.target)}</div>
                                         <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
                                     </div>
-                                    <div class="fan-cookies">${log.amount}</div>
+                                    <div class="fan-cookies">${escapeHtml(log.amount)}</div>
                                 </div>
                             `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่มีประวัติการซื้อไอเทมงับ</p>'}
                         </div>
@@ -114,10 +124,10 @@
                             ${res.giveLogs?.length ? res.giveLogs.map(log => `
                                 <div class="fan-row">
                                     <div class="fan-info">
-                                        <div class="fan-name">ปาให้: ${log.member}</div>
+                                        <div class="fan-name">ปาให้: ${escapeHtml(log.member)}</div>
                                         <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
                                     </div>
-                                    <div class="fan-cookies">${log.amount} 🍪</div>
+                                    <div class="fan-cookies">${escapeHtml(log.amount)} 🍪</div>
                                 </div>
                             `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่เคยปาคุกกี้เลยงับ</p>'}
                         </div>
@@ -129,11 +139,11 @@
                             ${res.voteLogs?.length ? res.voteLogs.map(log => `
                                 <div class="fan-row">
                                     <div class="fan-info">
-                                        <div class="fan-name">Vote to ${log.member}</div>
+                                        <div class="fan-name">Vote to ${escapeHtml(log.member)}</div>
                                         <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
-                                        <div class="timestamp" style="font-size: 10px; color: #88b3f7; margin-top: 2px;">Major Vote: ${log.campaignTitle}</div>
+                                        <div class="timestamp" style="font-size: 10px; color: #88b3f7; margin-top: 2px;">Major Vote: ${escapeHtml(log.campaignTitle)}</div>
                                     </div>
-                                    <div class="fan-cookies" style="color: #ff6b81;">${log.amount} ${log.tokenType}</div>
+                                    <div class="fan-cookies" style="color: #ff6b81;">${escapeHtml(log.amount)} ${escapeHtml(log.tokenType)}</div>
                                 </div>
                             `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่มีประวัติการโหวตงับ</p>'}
                         </div>

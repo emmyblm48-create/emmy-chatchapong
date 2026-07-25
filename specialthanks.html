@@ -297,6 +297,16 @@
         // API ประจำโปรเจกต์
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
+        function escapeHtml(text) {
+          if (text === undefined || text === null) return '';
+          return text.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const indexParam = urlParams.get('index');
@@ -351,15 +361,15 @@
             container.innerHTML = `
                 <div class="avatar-wrapper">
                     <div class="avatar-frame">
-                        <img class="member-avatar" src="${avatarImg}" alt="${data.name}" onerror="this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400'">
+                        <img class="member-avatar" src="${avatarImg}" alt="${escapeHtml(data.name)}" onerror="this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400'">
                     </div>
                     <i class="fa-solid fa-crown crown-icon"></i>
                 </div>
 
-                <h1 class="member-name">${data.name}</h1>
-                
+                <h1 class="member-name">${escapeHtml(data.name)}</h1>
+
                 <div class="period-badge">
-                    <i class="fa-regular fa-calendar"></i> ${data.monthYear}
+                    <i class="fa-regular fa-calendar"></i> ${escapeHtml(data.monthYear)}
                 </div>
 
                 <div class="cookie-stats">
@@ -371,7 +381,7 @@
                     <div class="message-title">
                         <i class="fa-solid fa-heart"></i> Message from Member
                     </div>
-                    <div class="message-content">${thankYouMessage}</div>
+                    <div class="message-content">${escapeHtml(thankYouMessage)}</div>
                 </div>
 
                 <div class="artwork-section" id="artwork-wrapper">

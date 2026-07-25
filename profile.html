@@ -262,6 +262,8 @@
     .icon-blue { color: #4dabf7; background: #e7f5ff !important; }
     .icon-gold { color: #f59f00; background: #fff9db !important; }
     .icon-gray { color: #868e96; background: #f1f3f5 !important; }
+    .icon-purple { color: #9775fa; background: #f3f0ff !important; }
+    .icon-dark { color: #495057; background: #e9ecef !important; }
 
     #app-loading-screen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -534,7 +536,7 @@ body {
     <i class="fas fa-chevron-right menu-arrow"></i>
   </a>
   
-  <a href="login.html" class="menu-item menu-logout">
+  <a href="#" class="menu-item menu-logout" onclick="confirmLogout(); return false;">
   <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
   <div class="menu-text">Logout</div>
   </a>
@@ -592,7 +594,8 @@ body {
     const avatarEl = document.getElementById('pf-avatar');
     if (user.profile_img) {
       if (user.profile_img.includes('drive.google.com')) {
-         avatarEl.src = `https://lh3.googleusercontent.com/u/0/d/$${user.profile_img.match(/[-\w]{25,}/)}`;
+         const driveMatch = user.profile_img.match(/[-\w]{25,}/);
+         avatarEl.src = driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : user.profile_img;
       } else {
          avatarEl.src = user.profile_img;
       }
@@ -1061,7 +1064,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
 
   function checkNotificationBadge() {
   const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
-  const badgeElement = document.getElementById("global-noti-badge");
+  const badgeElement = document.getElementById("noti-badge");
   
   if (badgeElement) {
     if (hasNewNoti === "true") {

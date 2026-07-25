@@ -582,20 +582,20 @@
       }
     };
     
-function loadChampThemeSubPage() {
+function loadChampThemeSubPage(scriptURL) {
   const CACHE_KEY = "bnl_winner_theme_cache";
-  
+
   // 1. ดึงแคชมาแสดงผลทันที (ลดการกระพริบของไอคอน)
   const cachedDataStr = localStorage.getItem(CACHE_KEY);
   if (cachedDataStr) {
-    try { 
+    try {
         const cachedObj = JSON.parse(cachedDataStr);
         const champOnly = cachedObj.champ ? cachedObj.champ : cachedObj;
-        applySubPageTheme(champOnly); 
+        applySubPageTheme(champOnly);
     } catch (e) {}
   }
 
-  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
+  const finalURL = scriptURL || '';
   if (!finalURL) return;
 
   // 2. ตรวจสอบอัปเดตจากเซิร์ฟเวอร์
@@ -644,13 +644,32 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
 }
     
     // =========================================================
+    // 👁️ 4.5 ระบบจดจำว่าแจ้งเตือนไหนถูกอ่านแล้ว (เก็บ id/timestamp ไว้ใน localStorage)
+    // =========================================================
+    const READ_NOTI_KEY = "blm48_read_noti_ids";
+
+    function getReadNotiIds() {
+      try { return new Set(JSON.parse(localStorage.getItem(READ_NOTI_KEY) || "[]")); }
+      catch (e) { return new Set(); }
+    }
+
+    function markNotiIdsRead(ids) {
+      const readSet = getReadNotiIds();
+      ids.forEach(id => readSet.add(id));
+      // กันไม่ให้ localStorage บวมไม่มีที่สิ้นสุด เก็บไว้แค่ 300 รายการล่าสุด
+      const trimmed = Array.from(readSet).slice(-300);
+      localStorage.setItem(READ_NOTI_KEY, JSON.stringify(trimmed));
+    }
+
+    // =========================================================
     // 🎨 5. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
     // =========================================================
     function renderUI() {
       if (myNotifications && myNotifications.length > 0) {
-        notiListContainer.innerHTML = ""; 
-        
+        notiListContainer.innerHTML = "";
+
         const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
+        const readIds = getReadNotiIds();
 
         sortedList.forEach(noti => {
           const notiDate = new Date(noti.timestamp);
@@ -667,7 +686,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
             : '';
 
           const item = document.createElement("div");
-          item.className = "noti-item unread"; 
+          item.className = readIds.has(noti.timestamp) ? "noti-item" : "noti-item unread";
           item.innerHTML = `
             <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
             <div class="noti-content">
@@ -678,6 +697,9 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
           `;
           notiListContainer.appendChild(item);
         });
+
+        // เปิดหน้านี้แล้วถือว่าอ่านทุกรายการที่เห็นแล้ว ครั้งต่อไปจะไม่ขึ้น unread ซ้ำ
+        markNotiIdsRead(sortedList.map(n => n.timestamp));
       } else {
         notiListContainer.innerHTML = `
           <div class="empty-noti">

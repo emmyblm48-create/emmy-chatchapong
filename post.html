@@ -494,14 +494,15 @@
   const imageInput = document.getElementById('post-image');
   imageInput.addEventListener('change', function() {
     if (this.files && this.files.length > 0) {
-      Array.from(this.files).forEach(file => {
+      // จองตำแหน่งไว้ล่วงหน้าตามลำดับไฟล์ที่เลือก เพื่อไม่ให้ลำดับรูปสลับกันตอน FileReader อ่านเสร็จไม่พร้อมกัน
+      const startIndex = selectedImageFiles.length;
+      const files = Array.from(this.files);
+      files.forEach((file, i) => { selectedImageFiles[startIndex + i] = { file: file, preview: null }; });
+
+      files.forEach((file, i) => {
         const reader = new FileReader();
         reader.onload = function(e) {
-          // บันทึกเข้า Array ของหน้าเว็บ
-          selectedImageFiles.push({
-            file: file,
-            preview: e.target.result
-          });
+          selectedImageFiles[startIndex + i].preview = e.target.result;
           renderImagePreviews();
         }
         reader.readAsDataURL(file);

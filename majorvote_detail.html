@@ -210,10 +210,29 @@
         return fixedUrl;
     }
 
+    // ใช้สำหรับแทรกค่าลงในอาร์กิวเมนต์ onclick="fn('${...}')" อย่างปลอดภัย
+    function escapeAttr(text) {
+        if (!text) return '';
+        return text.toString()
+            .replace(/\\/g, "\\\\")
+            .replace(/'/g, "\\'")
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
     function getUsername() {
         try {
-            const session = JSON.parse(localStorage.getItem('bnl_session'));
-            return session ? (session.data?.username || session.username || "") : "";
+            const sessionStr = localStorage.getItem('bnl_session');
+            if (!sessionStr) return "";
+            const session = JSON.parse(sessionStr);
+            const expiryTime = session.expiry || session.expire;
+            if (expiryTime && new Date().getTime() > expiryTime) {
+                localStorage.removeItem('bnl_session');
+                return "";
+            }
+            return session.data?.username || session.username || "";
         } catch(e) { return ""; }
     }
 
@@ -292,10 +311,10 @@
                 <div class="candidate-card">
                     <div class="candidate-img-wrapper">
                         <i class="fa-solid fa-user cand-avatar-fallback"></i>
-                        <img src="${mImg}" class="candidate-img" alt="${mName}" onerror="this.style.display='none';">
+                        <img src="${mImg}" class="candidate-img" alt="${escapeAttr(mName)}" onerror="this.style.display='none';">
                     </div>
                     <div class="candidate-name">${mName}</div>
-                    <button class="vote-action-btn" onclick="handleVoteClick('${mName}')">
+                    <button class="vote-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}')">
                         <i class="fa-solid fa-heart"></i> Vote
                     </button>
                 </div>

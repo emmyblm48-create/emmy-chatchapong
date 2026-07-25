@@ -533,7 +533,7 @@
       const locationText = info.Location_TH ? ` | <i class="fa-solid fa-location-dot"></i> ${info.Location_TH}` : '';
       
       const defaultTier = event.Tiers[0];
-      const isAvailable = Number(defaultTier.Stock) > 0;
+      const isAvailable = Number(defaultTier.Stock) > 0 && !!userData && Number(userData.token || 0) >= Number(defaultTier.CostTokens);
       const benefitText = defaultTier.Benefits_TH || defaultTier.BenefitDetails;
 
       let cardHtml = `
@@ -587,14 +587,16 @@
     card.querySelector('.stock-text span').textContent = tierData.Stock;
     
     const buyBtn = card.querySelector('.buy-btn');
-    const isAvailable = Number(tierData.Stock) > 0;
+    const isAvailable = Number(tierData.Stock) > 0 && !!userData && Number(userData.token || 0) >= Number(tierData.CostTokens);
     buyBtn.disabled = !isAvailable;
     
     buyBtn.setAttribute('onclick', `triggerBuyTicket('${tierData.TicketID || tierData.TierID}', '${tierData.BenefitTier || tierData.TierName}', ${tierData.CostTokens})`);
     buyBtn.querySelector('span').textContent = ` ${Number(tierData.CostTokens).toLocaleString()} Tokens`;
   }
 
+  let isBuyingTicket = false;
   function triggerBuyTicket(ticketId, tier, cost) {
+    if (isBuyingTicket) return;
     Swal.fire({
       title: 'Confirm Ticket Order?',
       html: `คุณต้องการใช้ Tokens จำนวน <strong>${Number(cost).toLocaleString()} Tokens</strong> เพื่อจองบัตรระดับ <strong>${tier}</strong> ใช่หรือไม่?`,
@@ -606,11 +608,12 @@
       cancelButtonText: 'Cancel'
     }).then(async (result) => {
       if (result.isConfirmed) {
+        isBuyingTicket = true;
         Swal.fire({ title: 'กำลังซื้อบัตร...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         try {
           const response = await fetch(`${scriptURL}?action=buyTicket&username=${encodeURIComponent(userData.username)}&ticketId=${encodeURIComponent(ticketId)}&benefitTier=${encodeURIComponent(tier)}`);
           const res = await response.json();
-          
+
           if(res.status === "success") {
             Swal.fire({
               title: 'Success',
@@ -629,9 +632,11 @@
             });
           } else {
             Swal.fire('Error', res.message, 'error');
+            isBuyingTicket = false;
           }
         } catch (e) {
           Swal.fire('Network Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูล Google Sheets หลังบ้านได้สำเร็จ', 'error');
+          isBuyingTicket = false;
         }
       }
     });

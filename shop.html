@@ -34,6 +34,9 @@
           --cafe-brown: #8b5a2b;
           --cafe-light: #fff9f5;
           --cafe-green: #a8e6cf;
+          --soft-pink: #ffe3e8;
+          --silver: #c0c0c0;
+          --bronze: #cd7f32;
         }
 
         body { 
@@ -1227,7 +1230,7 @@
 </div>
 
 <div class="section-title">
-   Official Merchandise
+   Gacha Collection
 </div>
 
 <div class="merch-grid" id="merch-container">
@@ -1989,27 +1992,10 @@ document.addEventListener('click', function(e) {
     }
 });
   
-async function refreshShopData() {
-    showAppLoading(); 
-    try {
-        const response = await fetch(`${scriptURL}?action=getShopData`);
-        const res = await response.json();
-        if (res.status === "success") {
-            // โหลดข้อมูลร้านค้าเพิ่มเติม
-        }
-    } catch (error) {
-        console.error(error);
-    } finally {
-        hideAppLoading(); 
-    }
-}
-
-function hideSplashScreen() {
-    const splash = document.getElementById('splash-screen');
-    if (splash) {
-        splash.style.opacity = '0';
-        setTimeout(() => splash.style.display = 'none', 500);
-    }
+// สลับโหมดมืด/สว่าง แล้วจำค่าไว้ใน localStorage (key: theme)
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
 }
 
 if (localStorage.getItem('theme') === 'dark' && typeof toggleDarkMode === 'function') {
@@ -2051,32 +2037,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const remainingTime = Math.max(0, 500 - elapsedTime); 
         
         setTimeout(() => {
-            if (typeof hideSplashScreen === 'function') {
-                hideSplashScreen();
-            } else if (typeof hideAppLoading === 'function') {
+            if (typeof hideAppLoading === 'function') {
                 hideAppLoading();
             }
         }, remainingTime);
     }
 });
-  
-// ฟังก์ชันสากลเรียกการยืนยันแบบน่ารักสไตล์ BLM48
-function openConfirmModal(title, detail, onConfirmCallback) {
-    const modal = document.getElementById('blm-confirm-modal');
-    document.getElementById('confirm-title').innerText = title;
-    document.getElementById('confirm-detail').innerText = detail;
-    
-    modal.classList.add('active');
-    
-    document.getElementById('btn-confirm-cancel').onclick = function() {
-        modal.classList.remove('active');
-    };
-    
-    document.getElementById('btn-confirm-submit').onclick = function() {
-        modal.classList.remove('active');
-        if(onConfirmCallback) onConfirmCallback(); 
-    };
-}
   
 // อนิเมชันไข่สั่นพาสเทลเพื่อความตื่นเต้นของการสุ่ม
 function playGachaAnimation(itemName, itemImg, onCloseCallback) {
@@ -2108,7 +2074,7 @@ function playGachaAnimation(itemName, itemImg, onCloseCallback) {
 
 function checkNotificationBadge() {
   const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
-  const badgeElement = document.getElementById("global-noti-badge");
+  const badgeElement = document.getElementById("noti-badge");
   
   if (badgeElement) {
     if (hasNewNoti === "true") {

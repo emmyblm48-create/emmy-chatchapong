@@ -370,12 +370,22 @@
 
     function getImg(url) {
         if (!url || url.trim() === "") {
-            return fallbackAvatarURL; 
+            return fallbackAvatarURL;
         }
         if (url.includes('googleusercontent.com')) {
             return url + '=s200';
         }
         return url;
+    }
+
+    function escapeHtml(text) {
+      if (text === undefined || text === null) return '';
+      return text.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     async function fetchAllMembers() {
@@ -433,8 +443,8 @@
               <img src="${getImg(imgUrl)}" class="member-avatar" onerror="this.onerror=null; this.src='${fallbackAvatarURL}';">
             </div>
             <div class="member-info">
-              <div class="member-nickname">${m.name}</div>
-              <div class="member-fullname">${fullNameText}</div>
+              <div class="member-nickname">${escapeHtml(m.name)}</div>
+              <div class="member-fullname">${escapeHtml(fullNameText)}</div>
             </div>
             <i class="fas fa-chevron-right chevron-icon"></i>
           `;
@@ -464,10 +474,10 @@
             </div>
             <div class="member-info">
               <div class="member-nickname">
-                ${m.name} 
+                ${escapeHtml(m.name)}
                 <i class="fas fa-graduation-cap" style="color: #94a3b8; font-size: 14px; margin-left: 6px;" title="Graduated"></i>
               </div>
-              <div class="member-fullname">${fullNameText}</div>
+              <div class="member-fullname">${escapeHtml(fullNameText)}</div>
             </div>
             <i class="fas fa-chevron-right chevron-icon"></i>
           `;

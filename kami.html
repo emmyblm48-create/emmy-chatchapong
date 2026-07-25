@@ -504,6 +504,7 @@
   background: #ffeb9c; 
   border-top: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 28px 28px 0 0; /* เพิ่มความโค้งมนให้ดูละมุนรับกับบาร์ที่สูงขึ้น */
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08); /* เพิ่มมิติเงาให้ดูลอยแยกชั้นชัดเจน */
   z-index: 1;
 }
 
@@ -665,6 +666,18 @@
             return session.data;
         }
       
+        // ใช้สำหรับแทรกค่าลงในอาร์กิวเมนต์ onclick="fn('${...}')" อย่างปลอดภัย
+        function escapeAttr(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/\\/g, "\\\\")
+                .replace(/'/g, "\\'")
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
         function getImg(url) {
             if (!url || url === "") return 'https://via.placeholder.com/150';
             if (url.includes('drive.google.com')) {
@@ -897,10 +910,10 @@ function hideThemeLoadingScreen() {
                 
                 kamiHTML = `
                     <div class="kami-container">
-                        <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${kamiName}')">
+                        <button type="button" class="btn-remove-kami" onclick="executeDeleteAction('kami', '${escapeAttr(kamiName)}')">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
-                        <a href="javascript:void(0);" onclick="openMemberProfile('${kamiName}', '${getImg(rawImg)}', '${isGraduated ? 'Graduated' : 'Active'}')" class="member-profile-link">
+                        <a href="javascript:void(0);" onclick="openMemberProfile('${escapeAttr(kamiName)}', '${escapeAttr(getImg(rawImg))}', '${isGraduated ? 'Graduated' : 'Active'}')" class="member-profile-link">
                             <div class="kami-avatar-frame">
                                 <i class="fa-solid fa-crown crown-tag"></i>
                                 <img src="${getImg(rawImg)}"
@@ -932,7 +945,7 @@ function hideThemeLoadingScreen() {
                     
                     oshiHTML += `
                         <div class="oshi-box-card">
-                            <a href="javascript:void(0);" onclick="openMemberProfile('${oshiName}', '${getImg(rawImg)}', '${isGraduated ? 'Graduated' : 'Active'}')" class="oshi-card-link">
+                            <a href="javascript:void(0);" onclick="openMemberProfile('${escapeAttr(oshiName)}', '${escapeAttr(getImg(rawImg))}', '${isGraduated ? 'Graduated' : 'Active'}')" class="oshi-card-link">
                                 <div class="oshi-pic-wrapper">
                                      <img src="${getImg(rawImg)}"
                                           class="oshi-pic" 
@@ -948,7 +961,7 @@ function hideThemeLoadingScreen() {
                                     <span class="badge-oshi"><i class="fa-solid fa-heart"></i> Oshi</span>
                                 </div>
                             </a>
-                            <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${oshiName}')">
+                            <button type="button" class="btn-remove-oshi" onclick="executeDeleteAction('oshi', '${escapeAttr(oshiName)}')">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>`;
@@ -1060,7 +1073,7 @@ function hideThemeLoadingScreen() {
 
         function checkNotificationBadge() {
             const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
-            const badgeElement = document.getElementById("global-noti-badge");
+            const badgeElement = document.getElementById("noti-badge");
             if (badgeElement) {
                 badgeElement.style.display = hasNewNoti === "true" ? "block" : "none";
             }

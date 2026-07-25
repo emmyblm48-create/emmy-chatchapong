@@ -578,6 +578,7 @@
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
+      <div id="avatar-grad-icon" class="grad-profile-badge" style="display: none;"><i class="fas fa-graduation-cap"></i></div>
       <div class="hero-gradient"></div>
     </div>
 
@@ -679,37 +680,6 @@
           updateButtonStyles(); 
         }
       } catch (e) { console.error("Sync Error:", e); }
-    }
-
-    async function fetchLatestMemberStats() {
-      if (!memberName) return;
-      
-      // เอา const scriptURL เดิมตรงบรรทัดนี้ออกได้เลยครับ เพราะใช้ตัวแปรด้านบนแทนแล้ว ✨
-
-      try {
-        const resp = await fetch(`${scriptURL}?action=getMemberDetail&name=${encodeURIComponent(memberName)}&_=${Date.now()}`);
-        const res = await resp.json();
-        
-        if (res.status === "success") {
-          const oldStats = localStorage.getItem('current_member_stats');
-          const oldFans = localStorage.getItem('current_member_fans');
-          
-          if (oldStats !== JSON.stringify(res.stats) || oldFans !== JSON.stringify(res.fans)) {
-            if (res.stats) localStorage.setItem('current_member_stats', JSON.stringify(res.stats));
-            if (res.fans) localStorage.setItem('current_member_fans', JSON.stringify(res.fans));
-            
-            if (typeof removeSkeleton === "function") removeSkeleton(); 
-            renderMemberStatsAndFans(); 
-          } else {
-             if (typeof removeSkeleton === "function") removeSkeleton();
-          }
-        } else {
-          if (typeof removeSkeleton === "function") removeSkeleton();
-        }
-      } catch (e) {
-        console.error("Error fetching latest member stats:", e);
-        if (typeof removeSkeleton === "function") removeSkeleton();
-      }
     }
 
     function getImg(url) {
@@ -894,9 +864,6 @@ function renderMemberStatsAndFans() {
   
   async function fetchLatestMemberStats() {
   if (!memberName) return;
-  
-  // 🔗 ใส่ URL หลังบ้านไว้ตรงนี้เหมือนเดิม เพื่อให้ฟังก์ชันดึงไปใช้ได้ถูกต้อง
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
   try {
     // 🚀 เปลี่ยนมาใช้การส่งแบบ POST และแนบ JSON body แทนแบบเดิมที่เคย Error <
@@ -944,7 +911,7 @@ function renderMemberStatsAndFans() {
 
       const searchName = memberName.toLowerCase();
       const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
-      const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
+      const oshiArray = Array.isArray(user.oshi) ? user.oshi.filter(Boolean).map(s => s.toString().toLowerCase()) : [];
 
       if (currentKamioshi === searchName) {
         btnKami.innerHTML = '<i class="fas fa-heart-broken"></i> <span>REMOVE KAMI</span>';
@@ -1035,7 +1002,7 @@ function renderMemberStatsAndFans() {
       const username = user.username;
       const searchName = memberName.toLowerCase();
       const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
-      const oshiArray = Array.isArray(user.oshi) ? user.oshi.map(s => s.toLowerCase()) : [];
+      const oshiArray = Array.isArray(user.oshi) ? user.oshi.filter(Boolean).map(s => s.toString().toLowerCase()) : [];
       const isAlreadyOshi = oshiArray.includes(searchName);
 
       let action = "", confirmText = "", subTitle = "";
@@ -1609,13 +1576,23 @@ document.addEventListener('click', function() {
 
       if (result.isConfirmed) {
         const currentUser = getUserSession();
-        const userRole = currentUser ? (currentUser.role || "") : "";
-        const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}`);
-        const data = await response.json();
-        if (data.status === 'success') {
-          document.getElementById(`post-${postId}`).remove();
-          Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อยงับ', 'success');
-        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error'); }
+        if (!currentUser) {
+          Swal.fire('กรุณาเข้าสู่ระบบ', 'เซสชันหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่ค่ะ', 'warning');
+          return;
+        }
+        const userRole = currentUser.role || "";
+        try {
+          const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}&role=${encodeURIComponent(userRole)}`);
+          const data = await response.json();
+          if (data.status === 'success') {
+            const postEl = document.getElementById(`post-${postId}`);
+            if (postEl) postEl.remove();
+            Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อยงับ', 'success');
+          } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error'); }
+        } catch (e) {
+          console.error("Delete Post Error:", e);
+          Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ค่ะ', 'error');
+        }
       }
     }
 
@@ -1628,13 +1605,23 @@ document.addEventListener('click', function() {
 
       if (newText && newText !== oldContent) {
         const currentUser = getUserSession();
-        const userRole = currentUser ? (currentUser.role || "") : "";
-        const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
-        const data = await response.json();
-        if (data.status === 'success') {
-          document.getElementById(`content-${postId}`).innerText = newText;
-          Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
-        } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error'); }
+        if (!currentUser) {
+          Swal.fire('กรุณาเข้าสู่ระบบ', 'เซสชันหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่ค่ะ', 'warning');
+          return;
+        }
+        const userRole = currentUser.role || "";
+        try {
+          const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
+          const data = await response.json();
+          if (data.status === 'success') {
+            const contentEl = document.getElementById(`content-${postId}`);
+            if (contentEl) contentEl.innerText = newText;
+            Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
+          } else { Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error'); }
+        } catch (e) {
+          console.error("Edit Post Error:", e);
+          Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ค่ะ', 'error');
+        }
       }
     }
 
@@ -1709,26 +1696,6 @@ document.addEventListener('click', function() {
     function closeImageViewer() { document.getElementById('image-viewer-modal').style.display = 'none'; }
 
     window.onload = loadMemberData;
-  
-    document.addEventListener("DOMContentLoaded", function() {
-    // ดึงค่าจาก localStorage ออกมาเก็บในตัวแปร (ถ้าไม่มีค่าให้ใช้ค่าเริ่มต้น)
-    const storedKamiOshi = localStorage.getItem('kamiOshi') || 'ยังไม่ได้เลือก';
-    const storedOshi = localStorage.getItem('oshi') || 'ยังไม่ได้เลือก';
-    const storedCookie = localStorage.getItem('cookie') || '0';
-    const storedLike = localStorage.getItem('like') || '0';
-
-    // ค้นหา Element ตาม ID ที่กำหนดไว้ข้างบน
-    const kamiEl = document.getElementById('member-kami-oshi');
-    const oshiEl = document.getElementById('member-oshi');
-    const cookieEl = document.getElementById('member-cookie');
-    const likeEl = document.getElementById('member-like');
-
-    // ส่งค่าไปแทนที่ข้อความบนหน้าเว็บเพื่อแสดงผลพร้อมกัน
-    if (kamiEl) kamiEl.innerText = storedKamiOshi;
-    if (oshiEl) oshiEl.innerText = storedOshi;
-    if (cookieEl) cookieEl.innerText = storedCookie;
-    if (likeEl) likeEl.innerText = storedLike;
-});
 </script>
 
 <!-- =========================================================================
@@ -1822,13 +1789,13 @@ document.addEventListener('click', function() {
         const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
         const commentHtml = `
           <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-            <img src="${cmt.profile_img}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+            <img src="${escapeHtml(cmt.profile_img)}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
             <div style="font-size: 0.88rem; width: 100%;">
               <div style="display: flex; align-items: center; gap: 4px;">
-                <b style="color: #ff85a2;">${cmt.name}</b> ${isCmtVerified}
-                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${cmt.role || 'user'}</span>
+                <b style="color: #ff85a2;">${escapeHtml(cmt.name)}</b> ${isCmtVerified}
+                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${escapeHtml(cmt.role || 'user')}</span>
               </div>
-              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${cmt.text}</div>
+              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
             </div>
           </div>`;
         commentListEl.insertAdjacentHTML('beforeend', commentHtml);
