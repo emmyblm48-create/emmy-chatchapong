@@ -376,16 +376,6 @@
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
         let globalChampData = [];
 
-        function escapeHtml(text) {
-          if (text === undefined || text === null) return '';
-          return text.toString()
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-        }
-
         async function loadChampHistoryData() {
             const cachedData = sessionStorage.getItem('blm_champ_history');
             if (cachedData) {
@@ -451,8 +441,8 @@
                     statusBadge = `<span class="grad-badge"><i class="fa-solid fa-graduation-cap"></i> GRADUATED</span>`;
                     statusProfileIcon = `<div class="grad-icon-profile"><i class="fa-solid fa-graduation-cap"></i></div>`;
                 } else if (isNotInSystem) {
-                    statusBadge = `<span class="grad-badge"><i class="fa-solid fa-circle-question"></i> UNLISTED</span>`;
-                    statusProfileIcon = `<div class="grad-icon-profile"><i class="fa-solid fa-circle-question"></i></div>`;
+                    statusBadge = `<span class="grad-badge"><i class="fa-solid fa-graduation-cap"></i> GRADUATED</span>`;
+                    statusProfileIcon = `<div class="grad-icon-profile"><i class="fa-solid fa-graduation-cap"></i></div>`;
                 }
 
                 // ปรับเปลี่ยนโครงสร้างภายใน: แยกเป็นส่วนเนื้อหาด้านบน (box-main-content) และปุ่มบาร์ยาวด้านล่าง (view-thanks-bottom-btn)
@@ -460,12 +450,12 @@
                     <div class="box-main-content">
                         <div class="avatar-frame">
                             ${statusProfileIcon}
-                            <img class="member-avatar" loading="lazy" src="${avatarImg}" alt="${escapeHtml(memberName)}" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'">
+                            <img class="member-avatar" loading="lazy" src="${avatarImg}" alt="${memberName}" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'">
                             <i class="fa-solid fa-crown crown-mini"></i>
                         </div>
                         <div class="member-details">
-                            <span class="period-text">The Winner ${escapeHtml(champ.monthYear || 'ไม่ระบุช่วงเวลา')}</span>
-                            <h2 class="member-name">${escapeHtml(memberName)} ${statusBadge}</h2>
+                            <span class="period-text">The Winner ${champ.monthYear || 'ไม่ระบุช่วงเวลา'}</span>
+                            <h2 class="member-name">${memberName} ${statusBadge}</h2>
                             <span class="cookie-amount"><i class="fa-solid fa-cookie"></i> ${formatCookieCount} Cookies</span>
                         </div>
                     </div>
