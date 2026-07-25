@@ -280,12 +280,14 @@
             .replace(/'/g, "&#039;");
     }
 
-    // อ่านจากคอลัมน์ TokenType ของแคมเปญ (H): เว้นว่าง = เปิดรับทั้ง Token และ GE Token (ดูรายละเอียดจริงได้ในหน้าแคมเปญ)
+    // อ่านจากคอลัมน์ TokenType ของแคมเปญ (H): เว้นว่าง = เปิดรับทั้ง Token และ GE Token, ใส่ "Gift" = แคมเปญนี้ใช้ Gift ล้วนๆ ไม่มีโหวตด้วยเหรียญเลย
     // และคอลัมน์ EnableGift (I) ที่ backend แปลงเป็น boolean ให้แล้ว
     function getCampaignMethodBadges(camp) {
         const tokenType = camp.TokenType ? camp.TokenType.toString().trim().toLowerCase() : '';
         const badges = [];
-        if (tokenType === 'getoken') {
+        if (tokenType === 'gift') {
+            // แคมเปญ Gift ล้วนๆ ไม่ต้องโชว์ badge Token/GE Token เลย
+        } else if (tokenType === 'getoken') {
             badges.push({ label: 'GE Token', cls: 'mb-getoken' });
         } else if (tokenType === 'token') {
             badges.push({ label: 'Token', cls: 'mb-token' });
