@@ -580,6 +580,24 @@
 
         .cookie-fall { position: fixed; top: -50px; z-index: -1; color: #e6b38a; pointer-events: none; animation: falling linear forwards; opacity: 0.6; }
         @keyframes falling { to { transform: translateY(110vh) rotate(360deg); } }
+
+        /* 🎉 เอฟเฟกต์ฉลองตอนซื้อสำเร็จ ใช้ร่วมกันทุกจุดในหน้า Shop (Cookie / Gacha / Cafe) */
+        .purchase-confetti-piece {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            pointer-events: none;
+            z-index: 20000;
+            opacity: 1;
+            animation: purchaseConfettiBurst 0.9s ease-out forwards;
+        }
+        @keyframes purchaseConfettiBurst {
+            0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; }
+        }
           
         .inventory-grid {
             display: grid;
@@ -640,113 +658,6 @@
             text-overflow: ellipsis;  
         }
 
-        .merch-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-          gap: 25px;
-          padding: 20px 0;
-          justify-content: start;
-        }
-
-        .merch-card-large {
-          background: #ffffff;
-          border: 1px solid #ffebf0; 
-          border-radius: 20px; 
-          box-shadow: 0 8px 20px rgba(255, 183, 202, 0.15); 
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-          width: 100%;
-          max-width: 320px; 
-          margin: 0 auto;
-        }
-
-        .merch-card-large:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 28px rgba(255, 183, 202, 0.25);
-        }
-
-        .card-img-wrapper {
-          width: 100%;
-          aspect-ratio: 1 / 1; 
-          overflow: hidden;
-          background-color: #fcf8f2;
-        }
-
-        .card-img-wrapper img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover; 
-          transition: transform 0.5s ease;
-        }
-
-        .merch-card-large:hover .card-img-wrapper img {
-          transform: scale(1.04); 
-        }
-
-        .card-info {
-          padding: 20px;
-          text-align: center;
-          flex-grow: 1;
-        }
-
-        .card-tag {
-          font-size: 14px;
-          color: #ff6b8b;
-          font-weight: bold;
-          margin-bottom: 6px;
-        }
-
-        .card-title {
-          font-size: 18px;
-          color: #4a4a4a;
-          margin: 0 0 8px 0;
-          font-weight: 700;
-          line-height: 1.4;
-        }
-
-        .card-subtitle {
-          font-size: 13px;
-          color: #a0a0a0;
-          margin: 0;
-        }
-
-        .card-action {
-          padding: 0 20px 20px 20px;
-          text-align: center;
-        }
-
-        .btn-token-buy {
-          width: 100%;
-          background: #fff0f3;
-          border: 1px solid #ffccd5;
-          color: #ff5376;
-          padding: 12px 15px;
-          font-size: 16px;
-          font-weight: bold;
-          border-radius: 12px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .btn-token-buy:hover {
-          background: #ff5376;
-          color: #ffffff;
-          border-color: #ff5376;
-          box-shadow: 0 4px 12px rgba(255, 83, 118, 0.3);
-        }
-
-        .token-icon-inline {
-          width: 18px;
-          height: 18px;
-          object-fit: contain;
-        }
-          
         .shop-loading-screen {
             position: fixed;
             top: 0;
@@ -1207,7 +1118,7 @@
             <span class="merch-category">[Pack]</span>
             <h3 class="merch-title">100 Cookies</h3>
             <p class="merch-subtitle">เติมคุกกี้สำหรับใช้งานทั่วไป</p>
-            <button class="merch-button" onclick="buyCookies(10, 100)">
+            <button class="merch-button" onclick="buyCookies(10, 100, 'https://lh3.googleusercontent.com/d/1iYnw_eiQS4LZvHXF2bLEF7utf0wHi-FF=s1000')">
                 <i class="fas fa-coins"></i> 10 Tokens
             </button>
         </div>
@@ -1222,7 +1133,7 @@
             <span class="merch-category" style="color: #ff6b8b;">[Value Pack]</span>
             <h3 class="merch-title">1,000 Cookies</h3>
             <p class="merch-subtitle">เติมคุกกี้สำหรับใช้งานทั่วไป</p>
-            <button class="merch-button" onclick="buyCookies(100, 1000)">
+            <button class="merch-button" onclick="buyCookies(100, 1000, 'https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000')">
                 <i class="fas fa-coins"></i> 100 Tokens
             </button>
         </div>
@@ -1426,6 +1337,27 @@ function setupTopBarProfile() {
     }
 }
 
+// 🎉 เอฟเฟกต์ฉลองตอนซื้อของสำเร็จ ยิงเป็นสะเก็ดสีสันบานออกจากกึ่งกลางจอ ใช้ร่วมกันทุกจุดในหน้า Shop
+function celebratePurchase() {
+    const colors = ['#ff69b4', '#ffd700', '#a8e6cf', '#ff85a2', '#ffffff', '#d2691e'];
+    const count = 24;
+    for (let i = 0; i < count; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'purchase-confetti-piece';
+        const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
+        const distance = 80 + Math.random() * 120;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance - 40; // ลอยขึ้นนิดนึงก่อนร่วง ดูมีชีวิตชีวา
+        piece.style.setProperty('--tx', tx + 'px');
+        piece.style.setProperty('--ty', ty + 'px');
+        piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 0.15) + 's';
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1300);
+    }
+}
+
 // 2. อัปเดตการแสดงผลยอดเงินในกระเป๋า
 function updateWalletUI() {
     const walletBar = document.getElementById('shop-wallet-bar');
@@ -1564,7 +1496,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
 }
   
 // 🛒 5. ระบบแลกซื้อคุกกี้
-async function buyCookies(tokenPrice, cookieReward) {
+async function buyCookies(tokenPrice, cookieReward, itemImg) {
     if (!userData) return;
 
     if (Number(userData.token) < tokenPrice) {
@@ -1583,10 +1515,10 @@ async function buyCookies(tokenPrice, cookieReward) {
     });
 
     if (confirmResult.isConfirmed) {
-        Swal.fire({ 
-            title: 'กำลังบันทึกข้อมูล...', 
-            allowOutsideClick: false, 
-            didOpen: () => Swal.showLoading() 
+        Swal.fire({
+            title: 'กำลังบันทึกข้อมูล...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
         });
 
         try {
@@ -1611,8 +1543,34 @@ async function buyCookies(tokenPrice, cookieReward) {
                 newSession.data = userData;
                 localStorage.setItem('bnl_session', JSON.stringify(newSession));
 
-                updateWalletUI(); 
-                Swal.fire('สำเร็จ!', res.message, 'success');
+                updateWalletUI();
+
+                // 🎉 เอฟเฟกต์ฉลองสไตล์เดียวกับ Gacha/Cafe เพื่อให้หน้าตาสอดคล้องกันทั้งร้าน
+                Swal.fire({
+                    title: `เติมคุกกี้สำเร็จ!`,
+                    html: `
+                        <style>
+                            .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
+                            .blm-cute-name { font-size: 21px; color: #ff1493; font-weight: bold; margin-bottom: 6px; }
+                            .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; line-height: 1.5; }
+                            .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fff5f7; }
+                            @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+                        </style>
+                        <div class="blm-cute-reveal-container">
+                            <div class="blm-cute-name">+${cookieReward.toLocaleString()} Cookies</div>
+                            <div class="blm-cute-sub">เติมคุกกี้เข้ากระเป๋าเรียบร้อยแล้วค่ะ</div>
+                        </div>
+                    `,
+                    imageUrl: itemImg,
+                    imageWidth: 160,
+                    imageHeight: 160,
+                    imageAlt: 'Cookies',
+                    confirmButtonText: `Yummy!`,
+                    confirmButtonColor: '#ff5376',
+                    background: '#ffffff',
+                    borderRadius: '24px',
+                    didOpen: () => celebratePurchase()
+                });
             } else {
                 Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
             }
@@ -1712,7 +1670,8 @@ async function buyGacha(collectionId) {
         confirmButtonText: `Collect`,
         confirmButtonColor: '#ff5376',
         background: '#ffffff',
-        borderRadius: '24px'
+        borderRadius: '24px',
+        didOpen: () => celebratePurchase()
       });
       
       if(res.newToken !== undefined) {
@@ -1922,7 +1881,8 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
                 confirmButtonText: `Delicious!`,
                 confirmButtonColor: '#ff5376',
                 background: '#ffffff',
-                borderRadius: '24px'
+                borderRadius: '24px',
+                didOpen: () => celebratePurchase()
             });
         } else {
             Swal.fire({
