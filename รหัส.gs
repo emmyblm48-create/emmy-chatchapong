@@ -16,15 +16,109 @@ function doPost(e) {
   const username = (e.parameter.username || data.username || "").toString().trim();
   const collectionId = (e.parameter.collectionId || data.collectionId || "").toString().trim();
 
-  // ⚡ [เพิ่มจุดนี้] ถ้าเป็นการขอข้อมูล Dashboard ให้ส่งข้อมูลกลับทันที โดยไม่ต้องไปต่อคิวรอ Lock 
+  // ⚡ [เพิ่มจุดนี้] ถ้าเป็นการขอข้อมูลรวมแดชบอร์ดหน้าแรก (ข้าม Lock เพื่อความเร็ว)
   if (action === "getDashboardData") {
     return getDashboardDataProcess(username);
   }
 
-  // --- 🔒 ระบบ Lock เดิมของเอ็มมี่จะเริ่มทำงานตั้งแต่บรรทัดนี้ลงไป เพื่อใช้เฉพาะตอนส่งโหวต/ซื้อของ ---
+  // =========================================================================
+  // 👑 [เพิ่มจุดนี้] ดึงรายละเอียดสถิติและ Top Fans ของเมมเบอร์รายคน (Bypass Lock โคตรไว!)
+  // =========================================================================
+  if (action === "getMemberDetail") {
+    // 🛠️ แก้ไขให้ดึงค่าอย่างปลอดภัย รองรับ JSON Body จากหน้าบ้าน
+    const nameParam = (data.name || e.parameter.name || "").toString().trim();
+    if (!nameParam) return jsonResponse({ status: "fail", message: "กรุณาระบุชื่อเมมเบอร์" }); 
+
+    const memberSheet = SS.getSheetByName("members");
+    if (!memberSheet) return jsonResponse({ status: "error", message: "หาชีทชื่อ 'members' ไม่เจอ" }); 
+    const memberRows = memberSheet.getDataRange().getValues();
+    
+    // กำหนดตำแหน่ง Index ของคอลัมน์ในชีท members ตรงๆ
+    const nameColIndex = 2;   // คอลัมน์ C (Index 2) -> ชื่อเมมเบอร์
+    const statusColIndex = 6; // คอลัมน์ G (Index 6) -> สถานะเมมเบอร์ (เช่น Graduated)
+    const imgColIndex = 7;    // คอลัมน์ H (Index 7) -> รูปโปรไฟล์
+    const cookieColIndex = 8; // คอลัมน์ I (Index 8) -> ยอดคุกกี้รวมที่ดึงมาจากชีท ranking 🍪
+    const kamiColIndex = 9;   // คอลัมน์ J (Index 9) -> ยอดรวม Kami-Oshi 
+    const oshiColIndex = 10;  // คอลัมน์ K (Index 10) -> ยอดรวม Oshi
+    const likesColIndex = 16; // คอลัมน์ Q (Index 16) -> ยอดรวมไลค์ (จากสูตรที่เราทำไว้)
+
+    let profileImg = "";
+    let allTimeTotal = 0;
+    let memberStatus = ""; 
+    let totalKami = 0; 
+    let totalOshi = 0; 
+    let totalLikes = 0; 
+
+    // ค้นหาแถวของเมมเบอร์ที่ระบุในชีท members
+    const mIndex = memberRows.findIndex(row => row[nameColIndex] && row[nameColIndex].toString().trim().toLowerCase() === nameParam.toLowerCase());
+    
+    if (mIndex !== -1) {
+      profileImg = memberRows[mIndex][imgColIndex] ? memberRows[mIndex][imgColIndex].toString().trim() : "";
+      allTimeTotal = Number(memberRows[mIndex][cookieColIndex]) || 0;
+      memberStatus = memberRows[mIndex][statusColIndex] ? memberRows[mIndex][statusColIndex].toString().trim() : ""; 
+      totalKami = Number(memberRows[mIndex][kamiColIndex]) || 0;
+      totalOshi = Number(memberRows[mIndex][oshiColIndex]) || 0;
+      totalLikes = Number(memberRows[mIndex][likesColIndex]) || 0; 
+    }
+
+    // [ส่วนที่ 2: ดึงข้อมูลชื่อและรูปของ Users มาแมปเพื่อความเร็ว]
+    const userSheet = SS.getSheetByName("users");
+    const userMap = {}; 
+    
+    if (userSheet) {
+      const userRows = userSheet.getDataRange().getValues().slice(1);
+      userRows.forEach(row => {
+        const uName = row[0] ? row[0].toString().trim() : "";
+        if (uName) {
+          userMap[uName] = {
+            name: row[2] ? row[2].toString().trim() : uName,
+            img: row[4] ? row[4].toString().trim() : ""
+          };
+        }
+      });
+    }
+
+    // [ส่วนที่ 3: fanLogs ประมวลผลหา Top Fans ของเมมเบอร์]
+    const fanLogSheet = SS.getSheetByName("fanLogs");
+    const fanMap = {}; 
+    if (fanLogSheet) {
+      const fanLogsData = fanLogSheet.getDataRange().getValues().slice(1);
+      fanLogsData.forEach(row => {
+        const logUser = row[1] ? row[1].toString().trim() : ""; 
+        const logMember = row[2] ? row[2].toString().trim().toLowerCase() : ""; 
+        const logAmount = Number(row[3]) || 0; 
+        if (logMember === nameParam.toLowerCase()) {
+          if (!fanMap[logUser]) {
+            const uInfo = userMap[logUser] || { name: logUser, img: "" };
+            fanMap[logUser] = { username: logUser, name: uInfo.name, img: uInfo.img, total: 0 };
+          }
+          fanMap[logUser].total += logAmount;
+        }
+      });
+    }
+
+    const fansArray = Object.values(fanMap).sort((a, b) => b.total - a.total);
+
+    // 🛠️ แก้จุดส่งกลับให้ใช้ฟังก์ชัน jsonResponse หลักของระบบ
+    return jsonResponse({
+      status: "success",
+      stats: {
+        name: nameParam, 
+        status: memberStatus, 
+        profile_img: profileImg,
+        total_kami: totalKami,  
+        total_oshi: totalOshi,  
+        total_likes: totalLikes,
+        all_time_total: allTimeTotal 
+      },
+      fans: fansArray
+    });
+  }
+
+  // --- 🔒 ระบบ Lock เดิมของระบบจะเริ่มทำงานตั้งแต่บรรทัดนี้ลงไป (ใช้เฉพาะตอนมีธุรกรรมเขียนข้อมูล) ---
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(10000); // ป้องกันข้อมูลชนกันเฉพาะตอนเขียนข้อมูลลงชีต
+    lock.waitLock(10000); 
 
     const now = new Date();
     const currentMonthYear = (now.getMonth() + 1) + "/" + now.getFullYear();
@@ -1136,17 +1230,25 @@ if (action === "getMyInventory") {
             // 🌸 เช็คว่าเป็นกลุ่ม Thank You Card หรือไม่
             if (itemType === "Thank You Card" || collectionID.toLowerCase().includes("votemajor")) {
                 parentCategory = "Thank You Card";
-                // ดึงชื่อแคมเปญจริงมาใส่ใน subCollection (เช่น "BLM48 Tanabata 2026")
                 colName = colMap[collectionID] || "แคมเปญโหวตพิเศษ"; 
             } 
             // ☕ เช็คว่าเป็นกลุ่ม Cafe
             else if (collectionID === "BLM48_Cafe" || collectionID === "coll_cafe" || colName.toLowerCase().includes("cafe")) {
                 parentCategory = "BLM48 Cafe";
-                colName = "BLM48 Cafe ☕";
+                colName = "BLM48 Cafe";
             }
             // 💿 เช็คว่าเป็นกลุ่ม Coaster
             else if (colName.toLowerCase().includes("coaster")) {
                 parentCategory = "Coaster";
+            }
+            // ⭐ [เพิ่มใหม่] เช็คว่าเป็นกลุ่ม SSR Photo (เช็คจาก CollectionID หรือชื่อที่มีคำว่า ssr)
+            else if (collectionID === "SSR_card" || colName.toLowerCase().includes("ssr")) {
+                parentCategory = "BLM48 SSR Photo"; // ให้ตรงกับที่ Frontend ใช้ค้นหา
+                
+                // ถ้าในชีท Collections ไม่มีชื่อระบุไว้ ให้ใช้ชื่อตั้งต้นที่สวยงาม
+                if (colName === "หมวดหมู่อื่นๆ") {
+                    colName = "BLM48 SSR Photo";
+                }
             }
 
             const uniqueKey = collectionID + "_" + itemName;
@@ -1154,8 +1256,8 @@ if (action === "getMyInventory") {
             if (!userInventoryMap[uniqueKey]) {
                 userInventoryMap[uniqueKey] = {
                     name: itemName,
-                    category: parentCategory, // กลุ่มหลัก (Coaster, Thank You Card, Cafe)
-                    subCollection: colName,   // กลุ่มย่อย (BLM48 Tanabata 2026, Coaster "BINGO!")
+                    category: parentCategory, // กลุ่มหลัก (Coaster, Thank You Card, Cafe, BLM48 SSR Photo)
+                    subCollection: colName,   // กลุ่มย่อย (เช่นชื่องานโหวต หรือชื่อตู้สุ่ม SSR)
                     img: itemImg || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=300',
                     qty: 0
                 };
