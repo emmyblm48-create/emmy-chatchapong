@@ -757,22 +757,30 @@
         `).join('');
     }
 
+    // ปิดกล่องเลือกของขวัญไว้ก่อนเสมอตอนจะเด้ง SweetAlert ขึ้นมา (กันไม่ให้ป๊อปอัปไปซ้อนอยู่หลังโมดัลของขวัญ)
+    function reopenGiftModalIfStillPicking() {
+        const overlay = document.getElementById('gift-modal-overlay');
+        if (overlay) overlay.style.display = 'flex';
+    }
+
     function confirmSendGift(giftId) {
         const item = giftCatalog.find(g => String(g.GiftID) === String(giftId));
         if (!item) return;
 
         const balance = getUserCookieBalance();
         if (balance < Number(item.CostCookies)) {
+            closeGiftModal();
             Swal.fire({
                 title: 'คุกกี้ไม่พอ',
                 text: `คุณมี ${balance.toLocaleString()} Cookies แต่ของขวัญนี้ต้องใช้ ${Number(item.CostCookies).toLocaleString()} Cookies`,
                 icon: 'warning',
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#ff85a2'
-            });
+            }).then(() => reopenGiftModalIfStillPicking());
             return;
         }
 
+        closeGiftModal();
         Swal.fire({
             title: `ปา "${item.GiftName}" ให้คุณ ${activeGiftCandidate}?`,
             html: `ใช้ <strong>${Number(item.CostCookies).toLocaleString()} Cookies</strong> เพื่อมอบคะแนน <strong>${Number(item.Points).toLocaleString()}</strong> แต้ม`,
@@ -784,6 +792,8 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 executeSendGiftAPI(item);
+            } else {
+                reopenGiftModalIfStillPicking();
             }
         });
     }
@@ -831,7 +841,7 @@
                     icon: 'error',
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#ff85a2'
-                });
+                }).then(() => reopenGiftModalIfStillPicking());
             }
         } catch (err) {
             console.error("Send Gift Error:", err);
@@ -841,7 +851,7 @@
                 icon: 'error',
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#ff85a2'
-            });
+            }).then(() => reopenGiftModalIfStillPicking());
         }
     }
 
