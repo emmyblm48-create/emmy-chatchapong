@@ -118,6 +118,11 @@
 
         .major-vote-info { padding: 16px; background: white; position: relative; z-index: 3; }
         .major-vote-title { font-weight: 600; font-size: 16px; margin: 0 0 6px 0; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vote-method-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+        .method-badge { font-size: 9.5px; font-weight: 700; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.3px; }
+        .method-badge.mb-token { background: #fff0f5; color: #ff85a2; }
+        .method-badge.mb-getoken { background: #e8f6fd; color: #2980b9; }
+        .method-badge.mb-gift { background: #fff8e6; color: #b8860b; }
         .card-footer-action { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #f5f5f5; font-size: 12px; color: #888; }
         .go-vote-btn { color: var(--blm-pink); font-weight: 600; display: flex; align-items: center; gap: 4px; }
         .loading-text { text-align: center; width: 100%; color: #999; padding: 40px 20px; font-size: 14px; }
@@ -262,8 +267,41 @@
         </div>
     </div>
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
-    const APP_VERSION = '1.0.5'; 
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
+    const APP_VERSION = '1.0.5';
+
+    function escapeHtml(text) {
+        if (text === undefined || text === null) return '';
+        return text.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // อ่านจากคอลัมน์ TokenType ของแคมเปญ (H): เว้นว่าง = เปิดรับทั้ง Token และ GE Token (ดูรายละเอียดจริงได้ในหน้าแคมเปญ)
+    // และคอลัมน์ EnableGift (I) ที่ backend แปลงเป็น boolean ให้แล้ว
+    function getCampaignMethodBadges(camp) {
+        const tokenType = camp.TokenType ? camp.TokenType.toString().trim().toLowerCase() : '';
+        const badges = [];
+        if (tokenType === 'getoken') {
+            badges.push({ label: 'GE Token', cls: 'mb-getoken' });
+        } else if (tokenType === 'token') {
+            badges.push({ label: 'Token', cls: 'mb-token' });
+        } else {
+            badges.push({ label: 'Token', cls: 'mb-token' });
+            badges.push({ label: 'GE Token', cls: 'mb-getoken' });
+        }
+        if (camp.EnableGift === true || camp.EnableGift === 'TRUE') {
+            badges.push({ label: 'Gift', cls: 'mb-gift' });
+        }
+        return badges;
+    }
+
+    function buildMethodBadgesHtml(badges) {
+        return badges.map(b => `<span class="method-badge ${b.cls}">${b.label}</span>`).join('');
+    }
 
     function getUsernameFromSession() {
         try {
@@ -404,7 +442,8 @@
 
             const hasValidImage = coverImgUrl && coverImgUrl.trim() !== "" && !coverImgUrl.includes("placeholder");
             const imageSrc = hasValidImage ? coverImgUrl : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-            
+            const methodBadges = getCampaignMethodBadges(camp);
+
             const cardHtml = `
                 <a href="majorvote_detail.html?id=${encodeURIComponent(camp.VoteCollectionID)}&status=${encodeURIComponent(status.toLowerCase())}" class="major-vote-card">
                     <div class="card-image-wrapper">
@@ -419,7 +458,8 @@
                         <img src="${imageSrc}" alt="Vote" style="${hasValidImage ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none';">
                     </div>
                     <div class="major-vote-info">
-                        <h4 class="major-vote-title">${camp.Title || 'Coming Soon'}</h4>
+                        <h4 class="major-vote-title">${escapeHtml(camp.Title || 'Coming Soon')}</h4>
+                        <div class="vote-method-badges">${buildMethodBadgesHtml(methodBadges)}</div>
                         <div class="card-footer-action">
                             <span>${isOpen ? 'Voting Now' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
                             <span class="go-vote-btn">

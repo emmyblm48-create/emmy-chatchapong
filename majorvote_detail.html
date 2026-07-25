@@ -67,6 +67,15 @@
         .campaign-title { font-size: 20px; font-weight: 600; margin: 0 0 10px 0; color: #333; }
         .campaign-desc { font-size: 14px; color: #666; line-height: 1.6; margin: 0; }
 
+        /* Wallet Strip (Token / GE Token / Cookie) */
+        .dv-wallet-strip { display: flex; gap: 8px; margin: 0 20px 15px; }
+        .dv-wallet-item { flex: 1; background: white; border: 1px solid #ffeef2; border-radius: 16px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .dv-wallet-icon { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; flex-shrink: 0; }
+        .dv-wallet-icon-fa { width: 26px; height: 26px; border-radius: 50%; background: #fff5e6; color: #ff9a3c; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+        .dv-wallet-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+        .dv-wallet-label { font-size: 10px; color: #999; font-weight: 500; }
+        .dv-wallet-value { font-size: 13px; color: #333; font-weight: 700; font-family: 'Kanit', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
         /* Title Section */
         .section-title { font-family: 'Kanit', sans-serif; font-weight: 600; color: #444; margin: 25px 0 15px 20px; font-size: 16px; border-left: 5px solid var(--primary-pink); padding-left: 12px; }
 
@@ -78,8 +87,38 @@
         .cand-avatar-fallback { position: absolute; color: #ff85a2; opacity: 0.3; font-size: 2.2rem; z-index: 1; }
         .candidate-name { font-weight: 500; font-size: 14px; color: #333; text-align: center; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
         
-        .vote-action-btn { background: var(--blm-pink); color: white; border: none; padding: 8px 20px; border-radius: 25px; font-family: 'Kanit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3); width: 100%; transition: transform 0.1s; }
+        .vote-action-btn { background: var(--blm-pink); color: white; border: none; padding: 8px 6px; border-radius: 25px; font-family: 'Kanit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3); width: 100%; transition: transform 0.1s; white-space: nowrap; }
         .vote-action-btn:active { transform: scale(0.95); }
+
+        .candidate-actions { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+        .candidate-actions .vote-action-btn,
+        .candidate-actions .getoken-action-btn,
+        .candidate-actions .gift-action-btn { flex: 1 1 calc(50% - 3px); }
+        .getoken-action-btn { background: linear-gradient(135deg, #6dd5fa, #2980b9); color: #fff; border: none; padding: 8px 6px; border-radius: 25px; font-family: 'Kanit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(41,128,185,0.3); transition: transform 0.1s; white-space: nowrap; }
+        .getoken-action-btn:active { transform: scale(0.95); }
+        .gift-action-btn { background: linear-gradient(135deg, #ffd76e, #ffb347); color: #6b4400; border: none; padding: 8px 6px; border-radius: 25px; font-family: 'Kanit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,179,71,0.35); transition: transform 0.1s; white-space: nowrap; }
+        .gift-action-btn:active { transform: scale(0.95); }
+
+        /* Gift Modal */
+        .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end; justify-content: center; }
+        .gift-modal-box { background: #fff; width: 100%; max-width: 480px; max-height: 82vh; border-radius: 24px 24px 0 0; padding: 18px 18px 20px; display: flex; flex-direction: column; animation: gift-modal-slide-up 0.25s ease; }
+        @keyframes gift-modal-slide-up { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .gift-modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+        .gift-modal-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+        .gift-modal-target { color: var(--blm-pink); }
+        .gift-modal-balance { font-size: 13px; color: #ff9a3c; font-weight: 600; margin-top: 4px; }
+        .gift-modal-close { background: #f5f5f5; border: none; width: 32px; height: 32px; border-radius: 50%; color: #888; cursor: pointer; flex-shrink: 0; font-size: 14px; }
+        .gift-tier-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #ffeef2; }
+        .gift-tier-tab { flex-shrink: 0; background: #fff5f7; color: #ff85a2; border: 1px solid #ffd7e0; padding: 7px 16px; border-radius: 20px; font-family: 'Kanit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; }
+        .gift-tier-tab.active { background: var(--blm-pink); color: #fff; border-color: var(--blm-pink); }
+        .gift-items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; overflow-y: auto; padding-bottom: 4px; }
+        .gift-item-card { background: #fffaf5; border: 1px solid #ffe9d6; border-radius: 16px; padding: 10px; text-align: center; cursor: pointer; transition: transform 0.1s; }
+        .gift-item-card:active { transform: scale(0.96); }
+        .gift-item-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; margin-bottom: 6px; background: #f5f5f5; }
+        .gift-item-name { font-size: 12.5px; font-weight: 600; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gift-item-cost { font-size: 12px; color: #ff9a3c; font-weight: 600; margin-top: 3px; }
+        .gift-item-points { font-size: 10.5px; color: #999; margin-top: 1px; }
+        .gift-loading, .gift-empty { grid-column: 1/-1; text-align: center; color: #999; padding: 30px 10px; font-size: 13px; }
 
         /* Ranking List Mode (อัปเดตดีไซน์พิเศษตามบรีฟเอ็มมี่) */
         .ranking-list { display: flex; flex-direction: column; gap: 14px; padding: 0 20px; }
@@ -172,6 +211,30 @@
         </div>
     </div>
 
+    <div class="dv-wallet-strip" id="dv-wallet-strip" style="display: none;">
+        <div class="dv-wallet-item">
+            <img src="https://lh3.googleusercontent.com/d/1LxHGOclJIl4Xqxi0dI5_Y235t6lfAiCZ=s1000" class="dv-wallet-icon" alt="Token" onerror="this.src='https://placehold.co/40?text=TK'">
+            <div class="dv-wallet-text">
+                <span class="dv-wallet-label">Token</span>
+                <span class="dv-wallet-value" id="dv-token-balance">-</span>
+            </div>
+        </div>
+        <div class="dv-wallet-item">
+            <img src="https://lh3.googleusercontent.com/d/1Fiw60kJvy6QmIhzrkgzEjMj85POwcoiZ=s1000" class="dv-wallet-icon" alt="GE Token" onerror="this.src='https://placehold.co/40?text=GE'">
+            <div class="dv-wallet-text">
+                <span class="dv-wallet-label">GE Token</span>
+                <span class="dv-wallet-value" id="dv-getoken-balance">-</span>
+            </div>
+        </div>
+        <div class="dv-wallet-item">
+            <div class="dv-wallet-icon-fa"><i class="fa-solid fa-cookie-bite"></i></div>
+            <div class="dv-wallet-text">
+                <span class="dv-wallet-label">Cookies</span>
+                <span class="dv-wallet-value" id="dv-cookie-balance">-</span>
+            </div>
+        </div>
+    </div>
+
     <div class="section-title" id="mode-title">BLM48 Members</div>
 
     <div id="voting-view" class="candidates-grid" style="display: none;"></div>
@@ -180,6 +243,20 @@
 
     <div id="loading-spinner" class="loading-view">
         <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+    </div>
+
+    <div id="gift-modal-overlay" class="gift-modal-overlay">
+        <div class="gift-modal-box">
+            <div class="gift-modal-header">
+                <div>
+                    <div class="gift-modal-title">🎁 ปาของขวัญให้ <span id="gift-modal-target" class="gift-modal-target"></span></div>
+                    <div class="gift-modal-balance"><i class="fa-solid fa-cookie-bite"></i> <span id="gift-modal-cookie-balance">0</span> Cookies</div>
+                </div>
+                <button type="button" class="gift-modal-close" onclick="closeGiftModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="gift-tier-tabs" id="gift-tier-tabs"></div>
+            <div class="gift-items-grid" id="gift-items-grid"></div>
+        </div>
     </div>
 
 <script>
@@ -222,6 +299,17 @@
             .replace(/>/g, "&gt;");
     }
 
+    // ใช้สำหรับแสดงข้อความในหน้าเว็บ (ไม่ใช่ในอาร์กิวเมนต์ onclick)
+    function escapeHtml(text) {
+        if (text === undefined || text === null) return '';
+        return text.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function getUsername() {
         try {
             const sessionStr = localStorage.getItem('bnl_session');
@@ -236,13 +324,52 @@
         } catch(e) { return ""; }
     }
 
+    function getSessionUserData() {
+        try {
+            const session = JSON.parse(localStorage.getItem('bnl_session'));
+            return session ? (session.data || session.user || session) : null;
+        } catch (e) { return null; }
+    }
+
+    // =========================================================
+    // 💰 ระบบรองรับหลายสกุลเงินต่อกิจกรรม (Token / GE Token / Gift-Cookie)
+    // =========================================================
+    // ผู้สมัครแต่ละคนอาจโหวตได้ด้วย Token, GEToken หรือทั้งคู่ (แล้วแต่ว่ามีแถวใน majorVoteCandidates กี่ TokenType)
+    // ส่วน Gift เปิด/ปิดได้ทั้งแคมเปญ ผ่านคอลัมน์ EnableGift ในชีต majorVoteCollections — backend ส่ง enableGift กลับมาให้ตรงๆ
+    let campaignEnableGift = false;
+
+    function getUserBalance(tokenType) {
+        const userData = getSessionUserData();
+        if (!userData) return 0;
+        if (tokenType === 'GEToken') {
+            return Number(userData.GEToken !== undefined ? userData.GEToken : (userData.geToken || 0));
+        }
+        return Number(userData.token || 0);
+    }
+
+    function getUserCookieBalance() {
+        const userData = getSessionUserData();
+        return userData ? Number(userData.cookie || 0) : 0;
+    }
+
+    function renderWalletStrip() {
+        const strip = document.getElementById('dv-wallet-strip');
+        const userData = getSessionUserData();
+        if (!strip || !userData) return;
+        strip.style.display = 'flex';
+        document.getElementById('dv-token-balance').textContent = getUserBalance('Token').toLocaleString();
+        document.getElementById('dv-getoken-balance').textContent = getUserBalance('GEToken').toLocaleString();
+        document.getElementById('dv-cookie-balance').textContent = getUserCookieBalance().toLocaleString();
+    }
+
     async function initDetailPage() {
         if (!campaignId) {
             Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสกิจกรรมแคมเปญโหวตในระบบ', 'error').then(() => window.history.back());
             return;
         }
+        renderWalletStrip();
         setupHeaderFromCache();
-        await fetchCandidatesFromBackend(); 
+        await fetchCandidatesFromBackend();
     }
 
     function setupHeaderFromCache() {
@@ -275,10 +402,12 @@
                 const candidates = result.data || [];
                 document.getElementById("loading-spinner").style.display = "none";
 
+                campaignEnableGift = !!result.enableGift;
+
                 if (result.campaignTimeStatus === 'open') {
-                    setupVotingMode(candidates); 
+                    setupVotingMode(candidates);
                 } else {
-                    setupRankingMode(candidates); 
+                    setupRankingMode(candidates);
                 }
             } else {
                 document.getElementById("loading-spinner").innerHTML = `ไม่พบข้อมูลรายชื่อผู้สมัคร`;
@@ -304,7 +433,7 @@
         }
 
         candidates.forEach(member => {
-            const mName = member.MemberName || 'Member'; 
+            const mName = member.MemberName || 'Member';
             const mImg = fixSecureImageUrl(member.ProfileMember || member.ImageURL || member.profile);
 
             const cardHtml = `
@@ -313,14 +442,39 @@
                         <i class="fa-solid fa-user cand-avatar-fallback"></i>
                         <img src="${mImg}" class="candidate-img" alt="${escapeAttr(mName)}" onerror="this.style.display='none';">
                     </div>
-                    <div class="candidate-name">${mName}</div>
-                    <button class="vote-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}')">
-                        <i class="fa-solid fa-heart"></i> Vote
-                    </button>
+                    <div class="candidate-name">${escapeHtml(mName)}</div>
+                    <div class="candidate-actions">
+                        ${buildCandidateActionButtons(mName, member.TokenTypes)}
+                    </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', cardHtml);
         });
+    }
+
+    // สร้างปุ่มร่วมสนุกตามที่มีจริงสำหรับผู้สมัครคนนี้ (Token / GEToken มาจาก TokenTypes ที่ backend ส่งมา, Gift มาจากค่าเปิด/ปิดของทั้งแคมเปญ)
+    function buildCandidateActionButtons(mName, tokenTypes) {
+        const types = Array.isArray(tokenTypes) ? tokenTypes : ['token'];
+        let buttons = '';
+        if (types.includes('token')) {
+            buttons += `
+                <button class="vote-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'Token')">
+                    <i class="fa-solid fa-heart"></i> Vote
+                </button>`;
+        }
+        if (types.includes('getoken')) {
+            buttons += `
+                <button class="getoken-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'GEToken')">
+                    <i class="fa-solid fa-star"></i> GE Vote
+                </button>`;
+        }
+        if (campaignEnableGift) {
+            buttons += `
+                <button class="gift-action-btn" onclick="openGiftModal('${escapeAttr(mName)}')">
+                    <i class="fa-solid fa-gift"></i> Gift
+                </button>`;
+        }
+        return buttons;
     }
 
     function setupRankingMode(candidates) {
@@ -370,7 +524,7 @@
                     </div>
                     <div class="rank-info">
                         <span class="rank-status-text">${placementText}</span>
-                        <span class="rank-name">${mName}</span>
+                        <span class="rank-name">${escapeHtml(mName)}</span>
                         <span class="rank-score"><i class="fa-solid fa-coins"></i> ${voteCount}</span>
                         <span class="rank-percentage">(${percentStr})</span>
                     </div>
@@ -381,7 +535,12 @@
         });
     }
 
-    function handleVoteClick(candidateName) {
+    const TOKEN_TYPE_LABELS = { Token: 'BLM48 Token', GEToken: 'GE Token' };
+
+    function handleVoteClick(candidateName, tokenType) {
+        tokenType = tokenType === 'GEToken' ? 'GEToken' : 'Token';
+        const tokenLabel = TOKEN_TYPE_LABELS[tokenType];
+
         const username = getUsername();
         if (!username) {
             Swal.fire({
@@ -394,9 +553,11 @@
             return;
         }
 
+        const balance = getUserBalance(tokenType);
+
         Swal.fire({
             title: `ลงคะแนนโหวตให้คุณ ${candidateName}`,
-            text: 'Vote using BLM48 Token',
+            text: `Vote using ${tokenLabel} (คงเหลือ ${balance.toLocaleString()})`,
             input: 'number',
             inputAttributes: { min: 1, step: 1 },
             showCancelButton: true,
@@ -405,34 +566,54 @@
             confirmButtonColor: '#ff85a2',
             inputValidator: (value) => {
                 if (!value || value.trim() === "" || Number(value) <= 0 || value.includes('.')) {
-                    return 'ขั้นต่ำในการโหวตคือ 1 Tokens';
+                    return `ขั้นต่ำในการโหวตคือ 1 ${tokenLabel}`;
+                }
+                if (Number(value) > balance) {
+                    return `${tokenLabel} ไม่พอ (คุณมี ${balance.toLocaleString()})`;
                 }
             }
         }).then(async (result) => {
             if (result.isConfirmed && result.value) {
                 const sanitizedAmount = Math.floor(Number(result.value));
-                executeVoteAPI(candidateName, sanitizedAmount);
+                executeVoteAPI(candidateName, sanitizedAmount, tokenType);
             }
         });
     }
 
-    async function executeVoteAPI(candidateName, voteAmount) {
-        Swal.fire({ 
-            title: 'กำลังลงคะแนน...', 
-            allowOutsideClick: false, 
-            didOpen: () => Swal.showLoading() 
+    async function executeVoteAPI(candidateName, voteAmount, tokenType) {
+        tokenType = tokenType === 'GEToken' ? 'GEToken' : 'Token';
+
+        Swal.fire({
+            title: 'กำลังลงคะแนน...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
         });
 
         try {
             const username = getUsername();
-            const url = `${scriptURL}?action=submitMajorVote&username=${encodeURIComponent(username)}&collectionId=${encodeURIComponent(campaignId)}&candidateName=${encodeURIComponent(candidateName)}&voteAmount=${voteAmount}`;
-            
+            const url = `${scriptURL}?action=submitMajorVote&username=${encodeURIComponent(username)}&collectionId=${encodeURIComponent(campaignId)}&candidateName=${encodeURIComponent(candidateName)}&voteAmount=${voteAmount}&tokenType=${encodeURIComponent(tokenType)}`;
+
             const response = await fetch(url);
             const res = await response.json();
 
             if (res.status === "success") {
-                // เช็กชนิดของ Token เพื่อแสดงคำให้ถูกต้อง (ถ้าหลังบ้านไม่ส่งมาให้ใช้คำว่า Token เป็นค่าเริ่มต้น)
-                const usedTokenType = res.tokenType ? res.tokenType : "Token";
+                // เช็กชนิดของ Token เพื่อแสดงคำให้ถูกต้อง (ถ้าหลังบ้านไม่ส่งมาให้ใช้ชนิดที่เราส่งไปเป็นค่าเริ่มต้น)
+                const usedTokenType = res.tokenType ? res.tokenType : tokenType;
+
+                // อัปเดตยอดคงเหลือใน session ให้ตรงกับหลังบ้านทันที
+                try {
+                    const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
+                    const userData = sessionUpdate.data || sessionUpdate.user || sessionUpdate;
+                    if (res.newBalance !== undefined) {
+                        if (usedTokenType === 'GEToken') userData.GEToken = Number(res.newBalance);
+                        else userData.token = Number(res.newBalance);
+                    } else {
+                        if (usedTokenType === 'GEToken') userData.GEToken = Math.max(0, Number(getUserBalance('GEToken')) - voteAmount);
+                        else userData.token = Math.max(0, Number(getUserBalance('Token')) - voteAmount);
+                    }
+                    localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
+                    renderWalletStrip();
+                } catch (e) { console.error("Session Update Error:", e); }
 
                 if (res.thankYouCard && res.thankYouCard.trim() !== "") {
                     Swal.fire({
@@ -445,15 +626,15 @@
                         confirmButtonColor: '#ff85a2'
                     });
                 } else {
-                    Swal.fire({ 
-                        icon: 'success', 
-                        title: 'ดำเนินการลงคะแนนโหวตสำเร็จ', 
-                        text: `ระบบได้ทำการหัก ${usedTokenType} และบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว`, 
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ดำเนินการลงคะแนนโหวตสำเร็จ',
+                        text: `ระบบได้ทำการหัก ${usedTokenType} และบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว`,
                         confirmButtonText: 'OK',
-                        confirmButtonColor: '#ff85a2' 
+                        confirmButtonColor: '#ff85a2'
                     });
                 }
-                fetchCandidatesFromBackend(); 
+                fetchCandidatesFromBackend();
             } else {
                 Swal.fire({
                     title: 'การลงคะแนนโหวตไม่สำเร็จ',
@@ -465,6 +646,195 @@
             }
         } catch (err) {
             console.error("Submit Vote Error:", err);
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ff85a2'
+            });
+        }
+    }
+
+    // =========================================================
+    // 🎁 ระบบปาของขวัญ (Gift) ให้ผู้สมัคร — ใช้ Cookies แลกคะแนน
+    // =========================================================
+    let giftCatalog = [];
+    let giftCatalogLoaded = false;
+    let activeGiftCandidate = "";
+    let activeGiftTier = "Small";
+
+    const GIFT_TIER_LABELS = { Small: "Small", Medium: "Medium", Large: "Large", MembersDesign: "Members Design" };
+    const GIFT_TIER_ORDER = ["Small", "Medium", "Large", "MembersDesign"];
+
+    async function loadGiftCatalog() {
+        if (giftCatalogLoaded) return giftCatalog;
+        try {
+            const response = await fetch(`${scriptURL}?action=getGiftCatalog`);
+            const res = await response.json();
+            if (res.status === "success" && Array.isArray(res.data)) {
+                giftCatalog = res.data.filter(g => g.Active === true || g.Active === "TRUE" || g.Active === undefined);
+            }
+        } catch (e) {
+            console.error("Load Gift Catalog Error:", e);
+        }
+        giftCatalogLoaded = true;
+        return giftCatalog;
+    }
+
+    async function openGiftModal(candidateName) {
+        const username = getUsername();
+        if (!username) {
+            Swal.fire({
+                title: 'กรุณาเข้าสู่ระบบ',
+                text: 'คุณต้องเข้าสู่ระบบก่อนปาของขวัญให้เมมเบอร์',
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ff85a2'
+            });
+            return;
+        }
+
+        activeGiftCandidate = candidateName;
+        document.getElementById('gift-modal-target').textContent = candidateName;
+        document.getElementById('gift-modal-cookie-balance').textContent = getUserCookieBalance().toLocaleString();
+        document.getElementById('gift-modal-overlay').style.display = 'flex';
+
+        const grid = document.getElementById('gift-items-grid');
+        grid.innerHTML = `<div class="gift-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</div>`;
+        document.getElementById('gift-tier-tabs').innerHTML = '';
+
+        await loadGiftCatalog();
+
+        if (giftCatalog.length === 0) {
+            grid.innerHTML = `<div class="gift-empty">ยังไม่มีของขวัญให้เลือกในตอนนี้</div>`;
+            return;
+        }
+
+        renderGiftTabs();
+        renderGiftItems(activeGiftTier);
+    }
+
+    function closeGiftModal() {
+        document.getElementById('gift-modal-overlay').style.display = 'none';
+    }
+
+    function renderGiftTabs() {
+        const tabsContainer = document.getElementById('gift-tier-tabs');
+        let tiersPresent = GIFT_TIER_ORDER.filter(t => giftCatalog.some(g => g.Tier === t));
+        if (tiersPresent.length === 0) tiersPresent = [...new Set(giftCatalog.map(g => g.Tier))];
+        if (!tiersPresent.includes(activeGiftTier)) activeGiftTier = tiersPresent[0] || 'Small';
+
+        tabsContainer.innerHTML = tiersPresent.map(tier => `
+            <button type="button" class="gift-tier-tab ${tier === activeGiftTier ? 'active' : ''}" onclick="selectGiftTier('${escapeAttr(tier)}')">
+                ${escapeAttr(GIFT_TIER_LABELS[tier] || tier)}
+            </button>
+        `).join('');
+    }
+
+    function selectGiftTier(tier) {
+        activeGiftTier = tier;
+        renderGiftTabs();
+        renderGiftItems(tier);
+    }
+
+    function renderGiftItems(tier) {
+        const grid = document.getElementById('gift-items-grid');
+        const items = giftCatalog.filter(g => g.Tier === tier);
+
+        if (items.length === 0) {
+            grid.innerHTML = `<div class="gift-empty">ยังไม่มีของขวัญในระดับนี้</div>`;
+            return;
+        }
+
+        grid.innerHTML = items.map(item => `
+            <div class="gift-item-card" onclick="confirmSendGift('${escapeAttr(item.GiftID)}')">
+                <img src="${fixSecureImageUrl(item.ImageURL)}" class="gift-item-img" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+                <div class="gift-item-name">${escapeAttr(item.GiftName)}</div>
+                <div class="gift-item-cost"><i class="fa-solid fa-cookie-bite"></i> ${Number(item.CostCookies).toLocaleString()}</div>
+                <div class="gift-item-points">+${Number(item.Points).toLocaleString()} pts</div>
+            </div>
+        `).join('');
+    }
+
+    function confirmSendGift(giftId) {
+        const item = giftCatalog.find(g => String(g.GiftID) === String(giftId));
+        if (!item) return;
+
+        const balance = getUserCookieBalance();
+        if (balance < Number(item.CostCookies)) {
+            Swal.fire({
+                title: 'คุกกี้ไม่พอ',
+                text: `คุณมี ${balance.toLocaleString()} Cookies แต่ของขวัญนี้ต้องใช้ ${Number(item.CostCookies).toLocaleString()} Cookies`,
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ff85a2'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: `ปา "${item.GiftName}" ให้คุณ ${activeGiftCandidate}?`,
+            html: `ใช้ <strong>${Number(item.CostCookies).toLocaleString()} Cookies</strong> เพื่อมอบคะแนน <strong>${Number(item.Points).toLocaleString()}</strong> แต้ม`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#ff85a2'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                executeSendGiftAPI(item);
+            }
+        });
+    }
+
+    async function executeSendGiftAPI(item) {
+        Swal.fire({ title: 'กำลังส่งของขวัญ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const username = getUsername();
+            const response = await fetch(scriptURL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'sendGift',
+                    username: username,
+                    collectionId: campaignId,
+                    candidateName: activeGiftCandidate,
+                    giftId: item.GiftID
+                })
+            });
+            const res = await response.json();
+
+            if (res.status === "success") {
+                // อัปเดตยอด Cookie ในเซสชันให้ตรงกับหลังบ้านทันที
+                try {
+                    const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
+                    const userData = sessionUpdate.data || sessionUpdate.user || sessionUpdate;
+                    userData.cookie = (res.newBalance !== undefined) ? Number(res.newBalance) : Math.max(0, Number(userData.cookie || 0) - Number(item.CostCookies));
+                    localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
+                    renderWalletStrip();
+                } catch (e) { console.error("Session Update Error:", e); }
+
+                closeGiftModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ส่งของขวัญสำเร็จ!',
+                    text: `ปา "${item.GiftName}" ให้คุณ ${activeGiftCandidate} และมอบคะแนน ${Number(item.Points).toLocaleString()} แต้มเรียบร้อยแล้ว`,
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ff85a2'
+                });
+                fetchCandidatesFromBackend();
+            } else {
+                Swal.fire({
+                    title: 'ส่งของขวัญไม่สำเร็จ',
+                    text: res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักคุกกี้',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ff85a2'
+                });
+            }
+        } catch (err) {
+            console.error("Send Gift Error:", err);
             Swal.fire({
                 title: 'เกิดข้อผิดพลาด',
                 text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
