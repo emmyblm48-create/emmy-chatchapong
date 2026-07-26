@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Create Post | BLM48</title>
+  <script src="assets/js/common.js"></script>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <meta name="theme-color" content="#ffc0cb">
   <meta name="apple-mobile-web-app-title" content="BLM48">   
@@ -334,25 +335,6 @@
       .getPublicUrl(fileName);
 
     return publicUrlData.publicUrl; 
-  }
-  
-  function getUserSession() {
-    try {
-      const sessionStr = localStorage.getItem('bnl_session');
-      if (!sessionStr) return null;
-      
-      const session = JSON.parse(sessionStr);
-      const expiryTime = session.expiry || session.expire;
-      if (expiryTime && new Date().getTime() > expiryTime) {
-        localStorage.removeItem('bnl_session');
-        return null;
-      }
-      
-      return session.data || session.user || session;
-    } catch (e) {
-      console.error("Session Parse Error:", e);
-      return null;
-    }
   }
   
   let mediaRecorder;

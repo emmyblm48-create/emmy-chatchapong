@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <title>BLM48 Membership | My Kami-Oshi Members</title>
+    <script src="assets/js/common.js"></script>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -655,29 +656,6 @@
 <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
         
-        function getUserSession() {
-            const sessionStr = localStorage.getItem('bnl_session');
-            if (!sessionStr) return null;
-            const session = JSON.parse(sessionStr);
-            if (new Date().getTime() > session.expiry) {
-                localStorage.removeItem('bnl_session');
-                return null;
-            }
-            return session.data;
-        }
-      
-        // ใช้สำหรับแทรกค่าลงในอาร์กิวเมนต์ onclick="fn('${...}')" อย่างปลอดภัย
-        function escapeAttr(text) {
-            if (!text) return '';
-            return text.toString()
-                .replace(/\\/g, "\\\\")
-                .replace(/'/g, "\\'")
-                .replace(/&/g, "&amp;")
-                .replace(/"/g, "&quot;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
-        }
-
         function getImg(url) {
             if (!url || url === "") return 'https://via.placeholder.com/150';
             if (url.includes('drive.google.com')) {
@@ -1068,14 +1046,6 @@ function hideThemeLoadingScreen() {
                 }
             } catch (err) {
                 Swal.fire('ล้มเหลว!', 'ระบบติดต่อตารางข้อมูลขัดข้อง กรุณาลองอีกครั้งนะงับ', 'error');
-            }
-        }
-
-        function checkNotificationBadge() {
-            const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
-            const badgeElement = document.getElementById("noti-badge");
-            if (badgeElement) {
-                badgeElement.style.display = hasNewNoti === "true" ? "block" : "none";
             }
         }
 

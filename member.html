@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <script src="assets/js/common.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BLM48 Membership | Profile</title>
    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
@@ -651,24 +652,6 @@
     const memberName = urlParams.get('name');
     let user = null; 
 
-    function saveUserSession(userData) {
-      const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000);
-      localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
-    }
-
-    function getUserSession() {
-      const sessionStr = localStorage.getItem('bnl_session');
-      if (!sessionStr) return null;
-      try {
-        const session = JSON.parse(sessionStr);
-        if (new Date().getTime() > session.expiry) {
-          localStorage.removeItem('bnl_session');
-          return null;
-        }
-        return session.data;
-      } catch (e) { return null; }
-    }
-
     async function syncUserData() {
       if (!user) return;
       try {
@@ -1222,16 +1205,6 @@ function formatThaiDate(dateStr) {
   return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
 }
   
-  function escapeHtml(text) {
-      if (!text) return '';
-      return text.toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
         if (user.role === 'CEO' || user.role === 'Admin') return true;

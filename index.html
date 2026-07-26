@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <title>BLM48 Membership</title>
+    <script src="assets/js/common.js"></script>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <!-- สำหรับ iOS Home Screen Icon -->
@@ -2168,15 +2169,6 @@ var user = null;
 var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) || [];
 var currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
 
-// ==========================================
-// 👑 2. SESSION MANAGEMENT (ระบบจัดการเซสชันและล็อกอิน)
-// ==========================================
-function saveUserSession(userData) {
-  // ตั้งเวลาหมดอายุเซสชันล่วงหน้า 90 วัน
-  const expiry = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
-  localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
-}
-
 function isUserMember() {
   return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
 }
@@ -3273,31 +3265,7 @@ document.addEventListener('DOMContentLoaded', renderTracker);
       return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
     }
   
-    // 🛡️ ฟังก์ชันสำหรับป้องกันการพังของหน้าจอและ XSS (แปลงอักษรพิเศษ)
-    function escapeHtml(text) {
-      if (!text) return '';
-      return text
-        .toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
 
-    // ใช้สำหรับแทรกค่าลงในอาร์กิวเมนต์ onclick="fn('${...}')" อย่างปลอดภัย (กันทั้งเบรกออกจาก HTML attribute และ JS string)
-    function escapeAttr(text) {
-      if (!text) return '';
-      return text
-        .toString()
-        .replace(/\\/g, "\\\\")
-        .replace(/'/g, "\\'")
-        .replace(/&/g, "&amp;")
-        .replace(/"/g, "&quot;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    }
-  
   // ฟังก์ชันตรวจสอบสิทธิ์ระดับสูง
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
@@ -3713,23 +3681,6 @@ async function editPostUi(postId, encodedContent) {
   }
 }
 
-  window.checkNotificationBadge = function() {
-  const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
-  // 🎯 แก้ไขชื่อ ID ให้ตรงกับใน HTML ของแท็บเมนูด้านล่าง
-  const badgeElement = document.getElementById("noti-badge");
-  
-  if (badgeElement) {
-    if (hasNewNoti === "true") {
-      badgeElement.style.display = "block"; // 🔴 แสดงจุดแดง
-    } else {
-      badgeElement.style.display = "none";  // ⚪ ซ่อนจุดแดง
-    }
-  }
-}
-
-// สั่งให้รันเช็กทันทีตอนโหลดหน้าเสร็จ
-document.addEventListener("DOMContentLoaded", window.checkNotificationBadge);
-  
   // 🌟 ฟังก์ชัน เล่น/หยุด เสียงสไตล์ BLM48
 function toggleBlmAudio(postId) {
   const audio = document.getElementById(`audio-player-${postId}`);
@@ -4199,26 +4150,6 @@ document.addEventListener("DOMContentLoaded", () => {
   window.fbPush = push;       
   window.fbOnValue = onValue; 
 
-  /* ==========================================
-     🔒 ระบบจัดการ USER SESSION
-     ========================================== */
-  function getUserSession() {
-    try {
-      const sessionStr = localStorage.getItem('bnl_session');
-      if (!sessionStr) return null;
-      
-      const session = JSON.parse(sessionStr);
-      const expiryTime = session.expiry || session.expire;
-      if (expiryTime && new Date().getTime() > expiryTime) {
-        localStorage.removeItem('bnl_session');
-        return null;
-      }
-      return session.data || session.user || session;
-    } catch (e) {
-      console.error("Session Parse Error:", e);
-      return null;
-    }
-  }
   window.getUserSession = getUserSession;
 
   /* ==========================================

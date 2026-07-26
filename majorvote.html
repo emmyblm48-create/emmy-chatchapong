@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BLM48 | Major Vote</title>
+    <script src="assets/js/common.js"></script>
     <meta name="theme-color" content="#ffc0cb">
     
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/0">
@@ -270,16 +271,6 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     const APP_VERSION = '1.0.5';
 
-    function escapeHtml(text) {
-        if (text === undefined || text === null) return '';
-        return text.toString()
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
     // อ่านจากคอลัมน์ TokenType ของแคมเปญ (H): เว้นว่าง = เปิดรับทั้ง Token และ GE Token, ใส่ "Gift" = แคมเปญนี้ใช้ Gift ล้วนๆ ไม่มีโหวตด้วยเหรียญเลย
     // และคอลัมน์ EnableGift (I) ที่ backend แปลงเป็น boolean ให้แล้ว
     function getCampaignMethodBadges(camp) {
@@ -303,24 +294,6 @@
 
     function buildMethodBadgesHtml(badges) {
         return badges.map(b => `<span class="method-badge ${b.cls}">${b.label}</span>`).join('');
-    }
-
-    function getUsernameFromSession() {
-        try {
-            const sessionStr = localStorage.getItem('bnl_session');
-            if (!sessionStr) return "";
-            const session = JSON.parse(sessionStr);
-            const expiryTime = session.expiry || session.expire;
-            if (expiryTime && new Date().getTime() > expiryTime) {
-                localStorage.removeItem('bnl_session');
-                return "";
-            }
-            const userData = session.data || session.user || session;
-            return userData ? (userData.username || "") : "";
-        } catch (e) {
-            console.error("Session Parse Error:", e);
-            return "";
-        }
     }
 
     function checkAppVersion() {
