@@ -41,8 +41,9 @@
           --bronze: #cd7f32;
         }
 
-        body { 
-            font-family: 'Quicksand', 'Kanit', sans-serif; 
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
             background: linear-gradient(135deg, var(--light-pink) 0%, #fff 100%);
             margin: 0; padding: 0; min-height: 100vh;
         }
@@ -305,25 +306,75 @@
         .nav-icon:hover { color: var(--primary-pink); transform: scale(1.1); }
 
         /* Wallet Section */
-        .user-profile-bar { 
-            max-width: 900px; margin: 15px auto; background: white; border-radius: 20px; 
+        .user-profile-bar {
+            max-width: 900px; margin: 15px auto; background: white; border-radius: 20px;
             padding: 15px; border: 2px solid var(--soft-pink); box-shadow: 0 5px 15px rgba(255,133,162,0.05);
         }
         .wallet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .wallet-item { 
-            background: #fffcfd; border: 1px solid #ffeef2; padding: 10px; 
-            border-radius: 12px; font-size: 13px; text-align: center; font-weight: 700; color: #555; 
+        .wallet-item {
+            background: #fffcfd; border: 1px solid #ffeef2; padding: 10px 8px;
+            border-radius: 14px; font-size: 13px; text-align: center; font-weight: 700; color: #555;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .wallet-icon-circle {
+            width: 30px; height: 30px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px;
+        }
+        .wallet-label { font-size: 10px; color: #999; font-weight: 600; display: block; }
+        .wallet-value { font-size: 14px; color: #444; font-weight: 800; }
+
+        /* --- Shop Category Quick-Nav Chips --- */
+        .shop-category-nav {
+            max-width: 900px;
+            margin: 0 auto 10px;
+            padding: 4px 15px 10px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            position: sticky;
+            top: 58px;
+            z-index: 90;
+            background: linear-gradient(var(--light-pink) 0%, var(--light-pink) 70%, transparent 100%);
+        }
+        .shop-category-nav::-webkit-scrollbar { display: none; }
+        .shop-cat-chip {
+            flex: 0 0 auto;
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 16px;
+            border-radius: 50px;
+            background: white;
+            border: 1.5px solid #ffe0e8;
+            color: #ff85a2;
+            font-family: 'Kanit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(255,133,162,0.08);
+            transition: all 0.25s ease;
+        }
+        .shop-cat-chip.active {
+            background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(255,105,180,0.35);
         }
 
         /* --- Shop Layout --- */
-        .section-title { 
-            font-family: 'Kanit'; 
-            font-weight: 600; 
-            color: #444; 
-            margin: 25px 0 15px 20px; 
-            font-size: 18px; 
-            border-left: 5px solid var(--primary-pink); 
-            padding-left: 12px; 
+        .section-title {
+            font-family: 'Kanit';
+            font-weight: 600;
+            color: #444;
+            margin: 25px 0 15px 20px;
+            font-size: 18px;
+            border-left: 5px solid var(--primary-pink);
+            padding-left: 12px;
+            scroll-margin-top: 100px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* 🛒 ทั้งกล่องเก่าและกล่องใหม่จากหลังบ้าน: บังคับเป็น 2 คอลัมน์บนมือถือ */
@@ -338,17 +389,33 @@
         /* 📦 ดักตัวการ์ดทุกแบบ */
         .merch-card, .merch-card-large {
             background: #ffffff !important;
-            border-radius: 16px !important; 
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important; 
-            width: 100% !important;           
-            max-width: 100% !important; 
+            border-radius: 16px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+            width: 100% !important;
+            max-width: 100% !important;
             margin: 0 auto !important;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border: 1px solid rgba(255, 182, 193, 0.2) !important; 
+            border: 1px solid rgba(255, 182, 193, 0.2) !important;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-sizing: border-box;
+            position: relative;
+        }
+
+        .merch-badge {
+            position: absolute;
+            top: 10px;
+            left: -6px;
+            background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 4px 10px 4px 12px;
+            border-radius: 0 20px 20px 0;
+            box-shadow: 0 3px 8px rgba(255,105,180,0.4);
+            z-index: 2;
         }
 
         .merch-card:hover, .merch-card-large:hover {
@@ -798,23 +865,17 @@
             box-shadow: 0 2px 10px rgba(255, 192, 203, 0.1);
         }
 
-        .top-bar-back-btn {
-            background: none;
-            border: none;
-            color: #ff85a2;
-            cursor: pointer;
+        .top-bar-shop-title {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background-color 0.2s, transform 0.2s;
+            gap: 8px;
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 17px;
+            color: var(--primary-pink);
+            letter-spacing: 0.5px;
         }
-
-        .top-bar-back-btn:hover {
-            background-color: #fff0f2;
-            transform: scale(1.05);
-        }
+        .top-bar-shop-title i { font-size: 15px; }
 
         .top-bar-profile-link {
             display: flex;
@@ -979,13 +1040,10 @@
 </div>
 
 <div class="custom-top-bar">
-    <button class="top-bar-back-btn" onclick="window.history.back();" aria-label="ย้อนกลับ">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-    </button>
-    
+    <div class="top-bar-shop-title">
+        <i class="fas fa-bag-shopping"></i> BLM48 SHOP
+    </div>
+
     <a href="profile.html" class="top-bar-profile-link">
         <div class="top-bar-user-info">
             <span id="top-bar-username" class="top-bar-name">Loading...</span>
@@ -997,13 +1055,31 @@
 
 <div class="user-profile-bar" id="shop-wallet-bar">
     <div class="wallet">
-        <div class="wallet-item">Tokens: -</div>
-        <div class="wallet-item">Cookies: -</div>
-        <div class="wallet-item">GE Tokens: -</div>
+        <div class="wallet-item">
+            <div class="wallet-icon-circle" style="background:#fff4e0;color:#ffb347;"><i class="fas fa-coins"></i></div>
+            <span class="wallet-label">Tokens</span>
+            <span class="wallet-value">-</span>
+        </div>
+        <div class="wallet-item">
+            <div class="wallet-icon-circle" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
+            <span class="wallet-label">Cookies</span>
+            <span class="wallet-value">-</span>
+        </div>
+        <div class="wallet-item">
+            <div class="wallet-icon-circle" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-gem"></i></div>
+            <span class="wallet-label">GE Tokens</span>
+            <span class="wallet-value">-</span>
+        </div>
     </div>
 </div>
 
-<h2 class="section-title"> Cookie Shop</h2>
+<div class="shop-category-nav" id="shop-category-nav">
+    <a href="#section-cookie" class="shop-cat-chip active"><i class="fas fa-cookie-bite"></i> Cookie Shop</a>
+    <a href="#section-gacha" class="shop-cat-chip"><i class="fas fa-dice"></i> Gacha</a>
+    <a href="#section-cafe" class="shop-cat-chip"><i class="fas fa-mug-hot"></i> Cafe</a>
+</div>
+
+<h2 class="section-title" id="section-cookie"><i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> Cookie Shop</h2>
 <div class="shop-container">
     <!-- 100Cookie -->
     <div class="merch-card">
@@ -1021,6 +1097,7 @@
     </div>
     <!-- 1000Cookie -->
     <div class="merch-card">
+        <span class="merch-badge"><i class="fas fa-star"></i> Best Value</span>
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000" alt="1,000 Cookies" class="merch-image">
         </div>
@@ -1036,16 +1113,16 @@
     </div>
 </div>
 
-<div class="section-title">
-   Gacha Collection
+<div class="section-title" id="section-gacha">
+   <i class="fas fa-dice" style="color: var(--primary-pink);"></i> Gacha Collection
 </div>
 
 <div class="merch-grid" id="merch-container">
     <!-- เพิ่มสินค้าโดยระบบโหลดอัตโนมัติ -->
 </div>
 
-<div class="section-title">
-   <i class="fas fa-coffee" style="color: #d2b48c;"></i> BLM48 Cafe
+<div class="section-title" id="section-cafe">
+   <i class="fas fa-mug-hot" style="color: #d2b48c;"></i> BLM48 Cafe
 </div>
 <div class="shop-container">
     <!-- Suiito Matcha -->
@@ -1262,16 +1339,19 @@ function updateWalletUI() {
     walletBar.innerHTML = `
         <div class="wallet">
             <div class="wallet-item">
-                <span style="font-size: 10px; color: #888; display: block;">Tokens</span>
-                <i class="fas fa-coins" style="color: #ffb347;"></i> ${Number(userData.token).toLocaleString()}
+                <div class="wallet-icon-circle" style="background:#fff4e0;color:#ffb347;"><i class="fas fa-coins"></i></div>
+                <span class="wallet-label">Tokens</span>
+                <span class="wallet-value">${Number(userData.token).toLocaleString()}</span>
             </div>
             <div class="wallet-item">
-                <span style="font-size: 10px; color: #888; display: block;">Cookies</span>
-                <i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> ${Number(userData.cookie).toLocaleString()}
+                <div class="wallet-icon-circle" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
+                <span class="wallet-label">Cookies</span>
+                <span class="wallet-value">${Number(userData.cookie).toLocaleString()}</span>
             </div>
             <div class="wallet-item">
-                <span style="font-size: 10px; color: #888; display: block;">GE Tokens</span>
-                <i class="fas fa-gem" style="color: #4dabf7;"></i> ${Number(userData.geToken || 0).toLocaleString()}
+                <div class="wallet-icon-circle" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-gem"></i></div>
+                <span class="wallet-label">GE Tokens</span>
+                <span class="wallet-value">${Number(userData.geToken || 0).toLocaleString()}</span>
             </div>
         </div>
     `;
@@ -1841,6 +1921,41 @@ function closeImagePreview() {
     }
 }
 
+// 🧭 11. ไฮไลต์ปุ่มหมวดหมู่ด้านบนให้ตรงกับ Section ที่กำลังเลื่อนดูอยู่
+function setupShopCategoryNav() {
+    const chips = document.querySelectorAll('.shop-cat-chip');
+    const sections = Array.from(chips)
+        .map(chip => document.getElementById(chip.getAttribute('href').slice(1)))
+        .filter(Boolean);
+
+    if (!sections.length) return;
+
+    const triggerLine = 130; // px จากขอบบนของจอ (ใต้ top bar + chip nav ที่ sticky อยู่)
+    let ticking = false;
+
+    const updateActiveChip = () => {
+        ticking = false;
+        let currentSection = sections[0];
+        sections.forEach(section => {
+            if (section.getBoundingClientRect().top - triggerLine <= 0) {
+                currentSection = section;
+            }
+        });
+        chips.forEach(chip => {
+            chip.classList.toggle('active', chip.getAttribute('href') === `#${currentSection.id}`);
+        });
+    };
+
+    window.addEventListener('scroll', () => {
+        if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(updateActiveChip);
+        }
+    }, { passive: true });
+
+    updateActiveChip();
+}
+
 // ผูกการคลิกที่รูปภาพของเครื่องดื่มในคาเฟ่ เพื่อดูรูปแบบคมชัดสูง (ดักเฉพาะ .merch-image ไม่โดนตัวปุ่ม)
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('merch-image') && !e.target.closest('button')) {
@@ -1880,6 +1995,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
     }
+
+    setupShopCategoryNav();
 
     try {
         await Promise.all([
