@@ -66,6 +66,7 @@
             padding: 10px 20px;
             margin-bottom: 30px;
             border: 1px solid var(--card-border);
+            box-shadow: 0 4px 14px rgba(255,133,162,0.06);
             gap: 15px;
         }
 
@@ -119,8 +120,15 @@
         }
 
         .user-role-tag {
-            font-size: 11px;
-            color: #888;
+            font-size: 10px;
+            color: var(--primary-pink);
+            background: #fff0f3;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: inline-block;
+            width: fit-content;
+            margin-top: 2px;
         }
 
         .header-title-zone {
@@ -133,6 +141,15 @@
             font-size: 28px;
             margin: 0 0 6px 0;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header-title-zone h1 i {
+            font-size: 22px;
+            -webkit-text-stroke: 0;
         }
 
         .header-title-zone p {
@@ -252,15 +269,21 @@
             border-radius: 22px;
             padding: 20px;
             margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(255, 133, 162, 0.02);
+            box-shadow: 0 4px 15px rgba(255, 133, 162, 0.03);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .collection-section:hover {
+            box-shadow: 0 6px 20px rgba(255, 133, 162, 0.07);
         }
 
         .collection-title {
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
+            font-family: 'Kanit', sans-serif;
             color: var(--primary-pink);
             margin-bottom: 16px;
-            padding-left: 10px;
+            padding-left: 12px;
             border-left: 4px solid var(--primary-pink);
             line-height: 1.2;
             display: flex;
@@ -272,9 +295,9 @@
             font-size: 11px;
             background: #ffeef2;
             color: var(--primary-pink);
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 10px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .item-grid {
@@ -286,19 +309,20 @@
         .item-card {
             background: white;
             border: 1.5px solid var(--card-border);
-            border-radius: 18px;
-            padding: 14px;
+            border-radius: 20px;
+            padding: 10px 10px 14px;
             text-align: center;
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+            overflow: hidden;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 4px 10px rgba(0,0,0,0.01);
         }
 
         .item-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-4px);
             border-color: var(--primary-pink);
-            box-shadow: 0 6px 15px rgba(255, 133, 162, 0.08);
+            box-shadow: 0 10px 20px rgba(255, 133, 162, 0.12);
         }
 
         .item-qty {
@@ -309,30 +333,39 @@
             color: white;
             font-size: 10px;
             font-weight: bold;
-            padding: 2px 8px;
+            padding: 3px 9px;
             border-radius: 12px;
             box-shadow: 0 2px 6px rgba(255,133,162,0.3);
+            z-index: 2;
+        }
+
+        .item-img-wrap {
+            background: #fff9fa;
+            border-radius: 14px;
+            padding: 6px;
+            margin-bottom: 8px;
+            overflow: hidden;
         }
 
         .item-img {
             width: 100%;
             height: 110px;
             object-fit: contain;
-            margin: 8px auto;
+            margin: 0 auto;
             display: block;
-            border-radius: 10px;
-            transition: transform 0.3s;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
         }
 
         .item-card:hover .item-img {
-            transform: scale(1.05);
+            transform: scale(1.06);
         }
 
         .item-name {
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             color: #555;
-            margin-top: 8px;
+            margin-top: 4px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -436,7 +469,7 @@
         </div>
 
         <div class="header-title-zone">
-            <h1>My Inventory</h1>
+            <h1><i class="fa-solid fa-box-open"></i> My Inventory</h1>
             <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
         </div>
 
@@ -734,7 +767,9 @@ function renderInventoryData() {
             
             card.innerHTML = `
                 <span class="item-qty">x${item.qty}</span>
-                <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
+                <div class="item-img-wrap">
+                    <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
+                </div>
                 <div class="item-name" title="${item.name}">${item.name}</div>
             `;
             grid.appendChild(card);

@@ -308,21 +308,57 @@
         /* Wallet Section */
         .user-profile-bar {
             max-width: 900px; margin: 15px auto; background: white; border-radius: 20px;
-            padding: 15px; border: 2px solid var(--soft-pink); box-shadow: 0 5px 15px rgba(255,133,162,0.05);
+            padding: 16px; border: 2px solid var(--soft-pink); box-shadow: 0 5px 15px rgba(255,133,162,0.05);
+        }
+        .wallet-bar-title {
+            font-family: 'Kanit', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            color: #c9c9c9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 10px 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .wallet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .wallet-item {
-            background: #fffcfd; border: 1px solid #ffeef2; padding: 10px 8px;
-            border-radius: 14px; font-size: 13px; text-align: center; font-weight: 700; color: #555;
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            background: #fffcfd;
+            border: 1px solid #ffeef2;
+            padding: 8px 10px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .wallet-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--pastel-pink);
+            box-shadow: 0 6px 14px rgba(255,133,162,0.18);
         }
         .wallet-icon-circle {
-            width: 30px; height: 30px; border-radius: 50%;
+            flex: 0 0 auto;
+            width: 34px; height: 34px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 13px;
+            font-size: 14px;
         }
-        .wallet-label { font-size: 10px; color: #999; font-weight: 600; display: block; }
-        .wallet-value { font-size: 14px; color: #444; font-weight: 800; }
+        .wallet-text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            line-height: 1.25;
+        }
+        .wallet-label {
+            font-size: 10px; color: #999; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .wallet-value {
+            font-size: 15px; color: #444; font-weight: 800;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
 
         /* --- Shop Category Quick-Nav Chips --- */
         .shop-category-nav {
@@ -1053,22 +1089,29 @@
     </a>
 </div>
 
+<div class="wallet-bar-title"><i class="fas fa-wallet"></i> My Wallet</div>
 <div class="user-profile-bar" id="shop-wallet-bar">
     <div class="wallet">
         <div class="wallet-item">
             <div class="wallet-icon-circle" style="background:#fff4e0;color:#ffb347;"><i class="fas fa-coins"></i></div>
-            <span class="wallet-label">Tokens</span>
-            <span class="wallet-value">-</span>
+            <div class="wallet-text">
+                <span class="wallet-label">Tokens</span>
+                <span class="wallet-value">-</span>
+            </div>
         </div>
         <div class="wallet-item">
             <div class="wallet-icon-circle" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
-            <span class="wallet-label">Cookies</span>
-            <span class="wallet-value">-</span>
+            <div class="wallet-text">
+                <span class="wallet-label">Cookies</span>
+                <span class="wallet-value">-</span>
+            </div>
         </div>
         <div class="wallet-item">
             <div class="wallet-icon-circle" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-gem"></i></div>
-            <span class="wallet-label">GE Tokens</span>
-            <span class="wallet-value">-</span>
+            <div class="wallet-text">
+                <span class="wallet-label">GE Tokens</span>
+                <span class="wallet-value">-</span>
+            </div>
         </div>
     </div>
 </div>
@@ -1340,18 +1383,24 @@ function updateWalletUI() {
         <div class="wallet">
             <div class="wallet-item">
                 <div class="wallet-icon-circle" style="background:#fff4e0;color:#ffb347;"><i class="fas fa-coins"></i></div>
-                <span class="wallet-label">Tokens</span>
-                <span class="wallet-value">${Number(userData.token).toLocaleString()}</span>
+                <div class="wallet-text">
+                    <span class="wallet-label">Tokens</span>
+                    <span class="wallet-value">${Number(userData.token).toLocaleString()}</span>
+                </div>
             </div>
             <div class="wallet-item">
                 <div class="wallet-icon-circle" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
-                <span class="wallet-label">Cookies</span>
-                <span class="wallet-value">${Number(userData.cookie).toLocaleString()}</span>
+                <div class="wallet-text">
+                    <span class="wallet-label">Cookies</span>
+                    <span class="wallet-value">${Number(userData.cookie).toLocaleString()}</span>
+                </div>
             </div>
             <div class="wallet-item">
                 <div class="wallet-icon-circle" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-gem"></i></div>
-                <span class="wallet-label">GE Tokens</span>
-                <span class="wallet-value">${Number(userData.geToken || 0).toLocaleString()}</span>
+                <div class="wallet-text">
+                    <span class="wallet-label">GE Tokens</span>
+                    <span class="wallet-value">${Number(userData.geToken || 0).toLocaleString()}</span>
+                </div>
             </div>
         </div>
     `;
