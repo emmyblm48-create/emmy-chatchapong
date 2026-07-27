@@ -57,17 +57,22 @@
             }
         }
 
-        .top-navigation-bar {
+        /* --- Hero Header Card: back/profile row + title + live stats --- */
+        .inv-hero-card {
+            background: linear-gradient(135deg, #ffeef2 0%, #fff6f8 100%);
+            border-radius: 24px;
+            padding: 18px 20px 22px;
+            margin-bottom: 25px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 4px 14px rgba(255,133,162,0.06);
+        }
+
+        .inv-hero-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, #ffeef2 0%, #fff6f8 100%);
-            border-radius: 20px;
-            padding: 10px 20px;
-            margin-bottom: 30px;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 4px 14px rgba(255,133,162,0.06);
             gap: 15px;
+            margin-bottom: 18px;
         }
 
         .btn-back-top {
@@ -76,31 +81,33 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 14px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
             border: 1px solid var(--card-border);
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 6px rgba(255,133,162,0.05);
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(255,133,162,0.08);
             transition: 0.2s;
+            flex-shrink: 0;
         }
 
         .btn-back-top:hover {
             background: var(--primary-pink);
             color: white;
-            transform: translateX(-3px);
+            transform: scale(1.06);
         }
 
         .user-profile-box {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .user-avatar-img {
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--primary-pink);
@@ -113,7 +120,7 @@
         }
 
         .user-display-name {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #333;
             line-height: 1.2;
@@ -133,12 +140,12 @@
 
         .header-title-zone {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 18px;
         }
 
         .header-title-zone h1 {
             color: var(--primary-pink);
-            font-size: 28px;
+            font-size: 26px;
             margin: 0 0 6px 0;
             font-weight: 700;
             display: flex;
@@ -148,7 +155,7 @@
         }
 
         .header-title-zone h1 i {
-            font-size: 22px;
+            font-size: 21px;
             -webkit-text-stroke: 0;
         }
 
@@ -156,6 +163,51 @@
             color: #999;
             font-size: 13px;
             margin: 0;
+        }
+
+        .inv-stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .inv-stat-pill {
+            background: white;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .inv-stat-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .inv-stat-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.25;
+        }
+
+        .inv-stat-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: #333;
+        }
+
+        .inv-stat-label {
+            font-size: 10.5px;
+            color: #999;
+            font-weight: 600;
         }
 
         .filter-section-container {
@@ -307,10 +359,11 @@
         }
 
         .item-card {
+            --tier-color: var(--primary-pink);
             background: white;
             border: 1.5px solid var(--card-border);
             border-radius: 20px;
-            padding: 10px 10px 14px;
+            padding: 13px 10px 14px;
             text-align: center;
             position: relative;
             cursor: pointer;
@@ -319,23 +372,31 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.01);
         }
 
+        .item-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--tier-color);
+        }
+
         .item-card:hover {
             transform: translateY(-4px);
-            border-color: var(--primary-pink);
+            border-color: var(--tier-color);
             box-shadow: 0 10px 20px rgba(255, 133, 162, 0.12);
         }
 
         .item-qty {
             position: absolute;
-            top: 10px;
+            top: 13px;
             right: 10px;
-            background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
+            background: var(--tier-color);
             color: white;
             font-size: 10px;
             font-weight: bold;
             padding: 3px 9px;
             border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(255,133,162,0.3);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             z-index: 2;
         }
 
@@ -370,6 +431,21 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        .inv-state-box {
+            text-align: center;
+            color: #bbb;
+            font-family: 'Kanit', sans-serif;
+            font-size: 13px;
+            padding: 50px 20px;
+        }
+        .inv-state-box i {
+            font-size: 32px;
+            color: #ffd7e1;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .inv-state-box.is-error i { color: #ffb3c1; }
 
         .modal-overlay {
             display: none;
@@ -457,20 +533,39 @@
 <body>
 
     <div class="app-wrapper">
-        <div class="top-navigation-bar">
-            <a href="index.html" class="btn-back-top"><i class="fa-solid fa-house"></i> กลับหน้าหลัก</a>
-            <div class="user-profile-box">
-                <img id="user-avatar" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" alt="Profile" class="user-avatar-img">
-                <div class="user-profile-info">
-                    <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
-                    <span id="user-role" class="user-role-tag"></span>
+        <div class="inv-hero-card">
+            <div class="inv-hero-top">
+                <a href="index.html" class="btn-back-top" aria-label="กลับหน้าหลัก"><i class="fa-solid fa-chevron-left"></i></a>
+                <div class="user-profile-box">
+                    <img id="user-avatar" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" alt="Profile" class="user-avatar-img">
+                    <div class="user-profile-info">
+                        <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
+                        <span id="user-role" class="user-role-tag"></span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="header-title-zone">
-            <h1><i class="fa-solid fa-box-open"></i> My Inventory</h1>
-            <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
+            <div class="header-title-zone">
+                <h1><i class="fa-solid fa-box-open"></i> My Inventory</h1>
+                <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
+            </div>
+
+            <div class="inv-stats-row">
+                <div class="inv-stat-pill">
+                    <div class="inv-stat-icon" style="background:#fdf0e6;color:var(--primary-pink);"><i class="fa-solid fa-layer-group"></i></div>
+                    <div class="inv-stat-text">
+                        <span class="inv-stat-value" id="stat-total-items">0</span>
+                        <span class="inv-stat-label">Total Items</span>
+                    </div>
+                </div>
+                <div class="inv-stat-pill">
+                    <div class="inv-stat-icon" style="background:#e7f5ff;color:#4dabf7;"><i class="fa-solid fa-book-bookmark"></i></div>
+                    <div class="inv-stat-text">
+                        <span class="inv-stat-value" id="stat-total-collections">0</span>
+                        <span class="inv-stat-label">Collections</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="filter-section-container">
@@ -487,7 +582,7 @@
     </div>
     
         <div id="inventory-container">
-            <p style="text-align:center; color:#aaa; font-size:13px;">กำลังหาคอลเลกชันของคุณ...</p>
+            <div class="inv-state-box"><i class="fa-solid fa-spinner fa-spin"></i>กำลังหาคอลเลกชันของคุณ...</div>
         </div>
     </div>
 
@@ -545,22 +640,53 @@
     // โหลดข้อมูลแบบ Anti-Cache เพื่อให้ได้ของในกระเป๋าล่าสุดแบบเรียลไทม์
     async function loadMyInventory() {
         const container = document.getElementById('inventory-container');
-        container.innerHTML = `<p style="text-align:center; color:#aaa; font-size:13px;">กำลังเปิดค้นหากระเป๋าสะสมดิจิทัลล่าสุด...</p>`;
-        
+        container.innerHTML = `<div class="inv-state-box"><i class="fa-solid fa-spinner fa-spin"></i>กำลังเปิดค้นหากระเป๋าสะสมดิจิทัลล่าสุด...</div>`;
+
         try {
             const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}&_=${new Date().getTime()}`);
             const res = await response.json();
-            
+
             if (res.status === "success") {
                 globalInventoryData = res.inventory; // จะได้เป็น Array ของไอเทมทั้งหมดมา
+                updateInventoryStats();
                 renderFilters();
                 renderInventoryData();
             } else {
-                container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</p>`;
+                container.innerHTML = `<div class="inv-state-box is-error"><i class="fa-solid fa-triangle-exclamation"></i>ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</div>`;
             }
         } catch (err) {
             console.error(err);
-            container.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</p>`;
+            container.innerHTML = `<div class="inv-state-box is-error"><i class="fa-solid fa-triangle-exclamation"></i>โหลดข้อมูลกระเป๋าขัดข้อง กรุณาลองใหม่อีกครั้งนะงับ</div>`;
+        }
+    }
+
+    // 📊 คำนวณสถิติภาพรวมของกระเป๋า (จำนวนไอเทมทั้งหมด / จำนวนคอลเลกชัน) แสดงบน Hero Card
+    function updateInventoryStats() {
+        const totalItemsEl = document.getElementById('stat-total-items');
+        const totalCollectionsEl = document.getElementById('stat-total-collections');
+        if (!globalInventoryData) return;
+
+        const totalItems = globalInventoryData.reduce((sum, item) => sum + (Number(item.qty) || 0), 0);
+        const totalCollections = new Set(globalInventoryData.map(item => item.subCollection).filter(Boolean)).size;
+
+        if (totalItemsEl) totalItemsEl.textContent = totalItems.toLocaleString();
+        if (totalCollectionsEl) totalCollectionsEl.textContent = totalCollections.toLocaleString();
+    }
+
+    // 🎨 กำหนดสีประจำหมวดหมู่ ให้แต่ละไอเทมมีโทนสีต่างกันตามระดับ/ประเภท เหมือนการ์ดสะสม
+    function getTierColor(category) {
+        switch (category) {
+            case 'BLM48 SSR Photo':
+            case 'SSR_card':
+                return '#e0b953'; // ทอง
+            case 'BLM48 Cafe':
+                return '#4caf82'; // เขียวมิ้นต์
+            case 'Coaster':
+                return '#4dabf7'; // ฟ้า
+            case 'Thank You Card':
+                return '#ff85a2'; // ชมพู
+            default:
+                return '#a0a0a0'; // เทา สำหรับหมวดหมู่อื่นๆ
         }
     }
 
@@ -707,7 +833,7 @@ function renderInventoryData() {
     container.innerHTML = "";
     
     if (!globalInventoryData || globalInventoryData.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:#aaa; margin-top:40px; font-size:13px;">กระเป๋ายังว่างเปล่าอยู่เลยงับ</p>`;
+        container.innerHTML = `<div class="inv-state-box"><i class="fa-solid fa-box-open"></i>กระเป๋ายังว่างเปล่าอยู่เลยงับ</div>`;
         return;
     }
 
@@ -729,7 +855,7 @@ function renderInventoryData() {
     });
 
     if (filteredItems.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:#999; margin-top:40px; font-size:13px;">ไม่พบไอเทมในหมวดหมู่นี้งับ</p>`;
+        container.innerHTML = `<div class="inv-state-box"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบไอเทมในหมวดหมู่นี้งับ</div>`;
         return;
     }
 
@@ -763,8 +889,9 @@ function renderInventoryData() {
         items.forEach(item => {
             const card = document.createElement('div');
             card.className = 'item-card';
+            card.style.setProperty('--tier-color', getTierColor(item.category));
             card.onclick = () => openPreview(item.img);
-            
+
             card.innerHTML = `
                 <span class="item-qty">x${item.qty}</span>
                 <div class="item-img-wrap">

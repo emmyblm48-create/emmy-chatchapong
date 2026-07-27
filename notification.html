@@ -569,7 +569,8 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
 
         sortedList.forEach(noti => {
           const notiDate = new Date(noti.timestamp);
-          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+          const dateString = notiDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' });
+          const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
 
           const checkRole = (noti.role || "").toLowerCase().trim();
           const showVerified = (checkRole === "admin" || checkRole === "ceo");
@@ -587,7 +588,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
             <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
             <div class="noti-content">
               <p class="noti-text"><strong>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
-              <div class="noti-time">${timeString}</div>
+              <div class="noti-time">${dateString} · ${timeString}</div>
             </div>
             ${deleteBtn}
           `;

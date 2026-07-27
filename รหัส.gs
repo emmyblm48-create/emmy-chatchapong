@@ -121,7 +121,6 @@ function doPost(e) {
     lock.waitLock(10000); 
 
     const now = new Date();
-    const currentMonthYear = (now.getMonth() + 1) + "/" + now.getFullYear();
 
     const userSheet = SS.getSheetByName('users');
     const logSheet = SS.getSheetByName('logs');
@@ -994,8 +993,9 @@ function doGet(e) {
       }
 
       // 🎂 2. ตรวจสอบวันเกิด (ดึงเฉพาะรูป Splash และ Banner)
+      // 🇹🇭 บังคับให้เช็ก "วันนี้" อิงตามไทม์โซนประเทศไทย (Asia/Bangkok) ไม่ใช่โซนเวลาของเซิร์ฟเวอร์สคริปต์
       const birthdayColIndex = 17; // คอลัมน์ R (วันเกิด)
-      const today = new Date();
+      const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
       let birthdaySplash = ""; 
       let birthdayBanner = ""; // 📌 เพิ่มตัวแปรสำหรับรับ Banner HBD
       
@@ -1173,7 +1173,8 @@ function doGet(e) {
         // B. ถ้าพบชื่อเมมเบอร์ ให้ดำเนินการเช็คเดือนและอัปเดตชีต ranking
         if (memberName) {
           // ดึงชื่อเดือนภาษาอังกฤษจาก Timestamp ของโพสต์ เพื่อเอาไปหาคอลัมน์ในบรรทัดแรก
-          const postDate = new Date(postTimestampStr);
+          // 🇹🇭 บังคับให้อิงเดือนตามไทม์โซนประเทศไทย (Asia/Bangkok) กันโพสต์ใกล้เที่ยงคืนตกไปคนละเดือน
+          const postDate = new Date(new Date(postTimestampStr).toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
           const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
           const targetMonth = months[postDate.getMonth()];
 
@@ -2481,12 +2482,14 @@ function updateLikeToCookieRanking(postId, isLikedAction) {
       break;
     }
   }
-  
+
   if (!authorUsername) return; // ไม่พบข้อมูลโพสต์
-  
+
   // หาชื่อเดือนจาก Timestamp ของโพสต์ (แปลงเป็นข้อความภาษาอังกฤษตัวเล็กเพื่อเอาไปเทียบหัวตาราง)
+  // 🇹🇭 บังคับให้อิงเดือนตามไทม์โซนประเทศไทย (Asia/Bangkok) กันโพสต์ใกล้เที่ยงคืนตกไปคนละเดือน
+  var postTimestampTH = new Date(postTimestamp.toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
   var months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
-  var targetMonth = months[postTimestamp.getMonth()]; 
+  var targetMonth = months[postTimestampTH.getMonth()];
   
   // 2. ค้นหาชื่อเมมเบอร์จากชีต users โดยใช้ Username
   var usersData = usersSheet.getDataRange().getValues();
