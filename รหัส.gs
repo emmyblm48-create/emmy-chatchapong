@@ -1454,12 +1454,27 @@ if (action === "getMyInventory") {
                                      };
                                  }).reverse();
 
-      // 📦 ส่งข้อมูลทั้ง 3 ก้อนกลับไปให้หน้าบ้าน
-      return jsonResponse({ 
-        status: "success", 
-        giveLogs: myGiveLogs, 
+      // 4. 🎁 ดึงประวัติการส่งของขวัญ (Gift) จากชีต giftLogs
+      const giftLogSheet = SS.getSheetByName("giftLogs");
+      const giftLogData = giftLogSheet ? giftLogSheet.getDataRange().getValues().slice(1) : [];
+      const myGiftLogs = giftLogData.filter(row => row[1] && row[1].toString().trim() === username)
+                                     .map(row => ({
+                                         timestamp: row[0],
+                                         candidateName: row[3],
+                                         giftName: row[5],
+                                         tier: row[6],
+                                         costCookies: Number(row[7]) || 0,
+                                         points: Number(row[8]) || 0,
+                                         quantity: Number(row[9]) || 1
+                                     })).reverse();
+
+      // 📦 ส่งข้อมูลทั้ง 4 ก้อนกลับไปให้หน้าบ้าน
+      return jsonResponse({
+        status: "success",
+        giveLogs: myGiveLogs,
         purchaseHistory: myPurchaseLogs,
-        voteLogs: myVoteLogs 
+        voteLogs: myVoteLogs,
+        giftLogs: myGiftLogs
       });
     }
 

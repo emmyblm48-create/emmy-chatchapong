@@ -2744,6 +2744,61 @@ window.addEventListener('pageshow', function(event) {
 // ==========================================
 // 🗳️ 7. FETCH CAMPAIGN DATA (ดึงแคมเปญโหวต)
 // ==========================================
+// 🎨 วาดการ์ดแคมเปญลงบนหน้าแรก ใช้ร่วมกันทั้งจุดที่โหลดครั้งแรกและจุดรีเฟรชแบบเรียลไทม์
+function renderCampaignCards(campaigns) {
+  const scrollerContainer = document.getElementById('campaign-scroller');
+  if (!scrollerContainer) return;
+
+  if (!campaigns || campaigns.length === 0) {
+    scrollerContainer.innerHTML = `
+      <div style="text-align: center; width: 100%; color: #999; padding: 20px; font-size: 14px;">
+        📭 ยังไม่มีแคมเปญโหวตในขณะนี้
+      </div>`;
+    return;
+  }
+
+  scrollerContainer.innerHTML = ''; // ล้างข้อความ Loading ออก
+
+  // วนลูปสร้างการ์ดจากข้อมูลชีต campaign
+  campaigns.forEach(campaign => {
+    const title = campaign.CampaignName;
+    const coverImg = campaign.CoverImage || "https://lh3.googleusercontent.com/d/1DMvowEnRuxYIUQFnb6paHJWYBHCALPCw=s1000";
+    const totalAmount = campaign.TotalAmount || 0;
+    const currencyType = campaign.CurrencyType ? campaign.CurrencyType.trim() : "token";
+
+    // กำหนดไอคอนให้ตรงกับประเภทเงิน (CurrencyType)
+    let iconHtml = '<i class="fa-solid fa-coins"></i>';
+    let displayTokenName = "Token";
+
+    if (currencyType.toLowerCase() === 'cookie') {
+      iconHtml = '<i class="fa-solid fa-cookie" style="color: #d2691e;"></i>';
+      displayTokenName = "Cookie";
+    } else if (currencyType.toLowerCase() === 'getoken') {
+      iconHtml = '<i class="fa-solid fa-gem" style="color: #4da6ff;"></i>';
+      displayTokenName = "GE Token";
+    } else if (currencyType.toLowerCase() === 'gift') {
+      iconHtml = '<i class="fa-solid fa-gift" style="color: #ff69b4;"></i>';
+      displayTokenName = "Gift";
+    }
+
+    // 🛑 แก้จุดนี้: เปลี่ยนจาก 'a' เป็น 'div' และเอา href ออก เพื่อให้เป็นแค่กล่องโชว์เฉยๆ กดไม่ได้
+    const cardLink = document.createElement('div');
+    cardLink.className = 'campaign-card';
+
+    cardLink.innerHTML = `
+      <img src="${coverImg}" alt="${title}" loading="lazy">
+      <div class="campaign-info">
+        <div class="campaign-title">${title}</div>
+        <div class="campaign-stats">
+          ${iconHtml} ${Number(totalAmount).toLocaleString()} ${displayTokenName}
+        </div>
+      </div>
+    `;
+
+    scrollerContainer.appendChild(cardLink);
+  });
+}
+
 async function fetchActiveCampaigns() {
   const scrollerContainer = document.getElementById('campaign-scroller');
   if (!scrollerContainer) return;
@@ -2754,55 +2809,7 @@ async function fetchActiveCampaigns() {
     const result = await response.json();
 
     if (result.status === "success") {
-      const campaigns = result.data; 
-
-      if (campaigns.length === 0) {
-        scrollerContainer.innerHTML = `
-          <div style="text-align: center; width: 100%; color: #999; padding: 20px; font-size: 14px;">
-            📭 ยังไม่มีแคมเปญโหวตในขณะนี้
-          </div>`;
-        return;
-      }
-
-      scrollerContainer.innerHTML = ''; // ล้างข้อความ Loading ออก
-
-      // วนลูปสร้างการ์ดจากข้อมูลชีต campaign
-      campaigns.forEach(campaign => {
-        const id = campaign.CampaignID;
-        const title = campaign.CampaignName;
-        const coverImg = campaign.CoverImage || "https://lh3.googleusercontent.com/d/1DMvowEnRuxYIUQFnb6paHJWYBHCALPCw=s1000";
-        const totalAmount = campaign.TotalAmount || 0; 
-        const currencyType = campaign.CurrencyType ? campaign.CurrencyType.trim() : "token";
-
-        // กำหนดไอคอนให้ตรงกับประเภทเงิน (CurrencyType)
-        let iconHtml = '<i class="fa-solid fa-coins"></i>';
-        let displayTokenName = "Token";
-        
-        if (currencyType.toLowerCase() === 'cookie') {
-          iconHtml = '<i class="fa-solid fa-cookie" style="color: #d2691e;"></i>';
-          displayTokenName = "Cookie";
-        } else if (currencyType.toLowerCase() === 'getoken') {
-          iconHtml = '<i class="fa-solid fa-gem" style="color: #4da6ff;"></i>';
-          displayTokenName = "GE Token";
-        }
-
-        // 🛑 แก้จุดนี้: เปลี่ยนจาก 'a' เป็น 'div' และเอา href ออก เพื่อให้เป็นแค่กล่องโชว์เฉยๆ กดไม่ได้
-        const cardLink = document.createElement('div');
-        cardLink.className = 'campaign-card';
-
-        cardLink.innerHTML = `
-          <img src="${coverImg}" alt="${title}" loading="lazy">
-          <div class="campaign-info">
-            <div class="campaign-title">${title}</div>
-            <div class="campaign-stats">
-              ${iconHtml} ${Number(totalAmount).toLocaleString()} ${displayTokenName}
-            </div>
-          </div>
-        `;
-
-        scrollerContainer.appendChild(cardLink);
-      });
-
+      renderCampaignCards(result.data);
     } else {
       scrollerContainer.innerHTML = `<div style="color:red; padding:10px; font-size:12px;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
     }
@@ -3380,21 +3387,11 @@ function renderPost(post) {
   // ... (โค้ดส่วน MediaHtml Audio/Video และรูปภาพเหมือนเดิม) ...
   let mediaHtml = '';
   if (post.audioURL) {
+    // 🔇 ฟีเจอร์แนบเสียงพูดถูกปิดให้บริการแล้ว โพสเก่าที่เคยมีเสียงแนบเลยแสดงคำเตือนน่ารักๆ แทนเครื่องเล่นเสียง
     mediaHtml += `
-      <div class="blm-audio-player" style="margin-top: 12px; background: #fff0f3; border: 1px solid #ffe3e8; border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; max-width: 400px; box-shadow: 0 2px 8px rgba(255, 133, 162, 0.05);">
-        <audio id="audio-player-${postId}" src="${post.audioURL}"></audio>
-        <button onclick="toggleBlmAudio('${postId}')" id="audio-btn-${postId}" style="background: #ff85a2; border: none; width: 32px; height: 32px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 5px rgba(255, 133, 162, 0.3);">
-          <i class="fa-solid fa-play" style="font-size: 0.85rem; margin-left: 2px;" id="audio-icon-${postId}"></i>
-        </button>
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-          <div style="font-size: 0.75rem; color: #ff85a2; font-weight: bold; display: flex; justify-content: space-between;">
-            <span>Voice Note</span>
-            <span id="audio-time-${postId}" style="color: #999;">0:00 / 0:00</span>
-          </div>
-          <div style="position: relative; width: 100%; height: 6px; background: #ffe3e8; border-radius: 3px; overflow: hidden; cursor: pointer;" onclick="seekBlmAudio(event, '${postId}')" id="audio-progress-container-${postId}">
-            <div id="audio-progress-${postId}" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff85a2, #ffb3c6); border-radius: 3px; transition: width 0.1s linear;"></div>
-          </div>
-        </div>
+      <div style="margin-top: 12px; background: #fff5f7; border: 1px dashed #ffc0cb; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; max-width: 400px;">
+        <i class="fa-solid fa-microphone-slash" style="color: #ff85a2; font-size: 1.1rem;"></i>
+        <span style="font-size: 0.8rem; color: #a68a90;">โพสนี้เคยมีข้อความเสียงแนบอยู่ แต่ตอนนี้ฟีเจอร์นี้ปิดให้บริการแล้วนะ 🙈</span>
       </div>
     `;
   }
@@ -3681,85 +3678,6 @@ async function editPostUi(postId, encodedContent) {
   }
 }
 
-  // 🌟 ฟังก์ชัน เล่น/หยุด เสียงสไตล์ BLM48
-function toggleBlmAudio(postId) {
-  const audio = document.getElementById(`audio-player-${postId}`);
-  const btn = document.getElementById(`audio-btn-${postId}`);
-  const icon = document.getElementById(`audio-icon-${postId}`);
-  
-  if (!audio) return;
-
-  // หยุดเสียงตัวอื่นที่กำลังเล่นอยู่ก่อน (เผื่อเปิดพร้อมกันหลายเพลง)
-  document.querySelectorAll('audio').forEach(aud => {
-    if (aud.id !== `audio-player-${postId}` && !aud.paused) {
-      aud.pause();
-      const otherId = aud.id.replace('audio-player-', '');
-      const otherIcon = document.getElementById(`audio-icon-${otherId}`);
-      const otherBtn = document.getElementById(`audio-btn-${otherId}`);
-      if (otherIcon) {
-        otherIcon.className = 'fa-solid fa-play';
-        otherIcon.style.marginLeft = '2px';
-      }
-    }
-  });
-
-  if (audio.paused) {
-    audio.play();
-    icon.className = 'fa-solid fa-pause';
-    icon.style.marginLeft = '0px';
-    
-    // ตั้งค่าอัปเดตแถบ Progress และเวลาเมื่อเสียงกำลังเล่น
-    audio.ontimeupdate = () => {
-      const progress = document.getElementById(`audio-progress-${postId}`);
-      const timeLabel = document.getElementById(`audio-time-${postId}`);
-      
-      if (progress) {
-        const percentage = (audio.currentTime / audio.duration) * 100;
-        progress.style.width = `${percentage}%`;
-      }
-      
-      if (timeLabel) {
-        timeLabel.innerText = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration || 0)}`;
-      }
-    };
-    
-    // เมื่อเล่นจบให้รีเซ็ตปุ่มกลับเป็น Play
-    audio.onended = () => {
-      icon.className = 'fa-solid fa-play';
-      icon.style.marginLeft = '2px';
-      const progress = document.getElementById(`audio-progress-${postId}`);
-      if (progress) progress.style.width = '0%';
-    };
-    
-  } else {
-    audio.pause();
-    icon.className = 'fa-solid fa-play';
-    icon.style.marginLeft = '2px';
-  }
-}
-
-// 🌟 ฟังก์ชันสำหรับกดข้ามเวลาบนแถบ Progress
-function seekBlmAudio(event, postId) {
-  const audio = document.getElementById(`audio-player-${postId}`);
-  const container = document.getElementById(`audio-progress-container-${postId}`);
-  if (!audio || !container) return;
-  
-  const rect = container.getBoundingClientRect();
-  const clickX = event.clientX - rect.left;
-  const width = rect.width;
-  const clickPercentage = clickX / width;
-  
-  audio.currentTime = clickPercentage * audio.duration;
-}
-
-// 🌟 ฟังก์ชันแปลงวินาทีให้เป็นรูปแบบ นาที:วินาที (เช่น 0:45)
-function formatAudioTime(secs) {
-  if (isNaN(secs)) return "0:00";
-  const minutes = Math.floor(secs / 60);
-  const seconds = Math.floor(secs % 60);
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-}
-  
 // เก็บข้อมูลรูปภาพปัจจุบัน
 let currentGallery = [];
 let currentIndex = 0;
@@ -3855,7 +3773,7 @@ async function redeemCode() {
 
         // 2. นำข้อมูลแคมเปญไปวาดลงบนหน้าแรกที่ id="campaign-scroller"
         if (res.campaigns && res.campaigns.length > 0) {
-          renderCampaignsHTML(res.campaigns);
+          renderCampaignCards(res.campaigns);
         }
       } else {
         console.error("ดึงข้อมูลแดชบอร์ดไม่สำเร็จ:", res.message);

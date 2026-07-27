@@ -5,150 +5,437 @@
     <meta charset="UTF-8">
     <title>BLM48 Membership | History</title>
     <script src="assets/js/common.js"></script>
-     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <!-- สำหรับ iOS Home Screen Icon -->
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
     <!-- สำหรับ Android และ Chrome -->
     <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
     <!-- กำหนดชื่อแอปที่จะขึ้นใต้ไอคอนบนหน้าจอ Home Screen -->
-    <meta name="apple-mobile-web-app-title" content="BLM48">   
+    <meta name="apple-mobile-web-app-title" content="BLM48">
     <!-- ทำให้แถบด้านบน (Status Bar) ดูเป็นแอปมากขึ้น -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
-    <meta name="theme-color" content="#ffc0cb">
-    <style>
-        body { font-family: 'Quicksand', 'Kanit', sans-serif; background: linear-gradient(135deg, #ffeb9c 0%, #ffffff 100%); margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h2 { text-align: center; color: #ff6b81; }
-        
-        .history-section { margin-top: 20px; }
-        .history-title { border-bottom: 2px solid #ffc0cb; padding-bottom: 5px; margin-bottom: 10px; font-weight: 500; color: #555; }
-        
-        .history-scroll-container { max-height: 400px; overflow-y: auto; background: #fafafa; border-radius: 10px; padding: 10px; }
-        
-        .fan-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px dashed #ddd; }
-        .fan-info .fan-name { font-weight: bold; font-size: 14px; }
-        .fan-info .timestamp { font-size: 10px; color: #aaa; }
-        .fan-cookies { color: #4dabf7; font-weight: bold; }
-        
-        .back-btn { 
-    display: block; 
-    width: 100%; 
-    padding: 12px 0; /* ปรับ padding ให้สมดุลขึ้น */
-    margin-top: 20px; 
-    background: #ffc0cb; 
-    color: white; 
-    border: none; 
-    border-radius: 12px; /* เพิ่มความโค้งให้เข้ากับธีม */
-    cursor: pointer; 
-    text-align: center; 
-    text-decoration: none;
-    box-sizing: border-box; /* 🎯 ตัวนี้สำคัญมาก: ช่วยให้ขนาด width 100% ไม่ทะลุขอบ */
-    font-weight: 500;
-    transition: background 0.3s; /* เพิ่มลูกเล่นตอนกด */
-}
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-/* เพิ่มให้ปุ่มดูน่ารักขึ้นเวลากด */
-.back-btn:active {
-    background: #ffb3c1;
-    transform: scale(0.98);
-}
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #ffeb9c 0%, #ffffff 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* --- Top Bar --- */
+        .top-navigation-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
+        }
+
+        .back-circle-btn {
+            flex: 0 0 auto;
+            background: #fff0f3;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-pink);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+
+        .top-bar-title {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .page-wrapper {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 18px 16px 50px;
+        }
+
+        .header-title-zone {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-family: 'Kanit', sans-serif;
+            font-size: 24px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .header-title-zone p {
+            color: #999;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        /* --- Filter Tabs --- */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 18px;
+            scrollbar-width: none;
+        }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+
+        .filter-tab {
+            flex: 0 0 auto;
+            background: white;
+            color: #888;
+            border: 1px solid var(--card-border);
+            padding: 8px 18px;
+            border-radius: 14px;
+            font-family: 'Kanit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .filter-tab:hover { border-color: var(--primary-pink); color: var(--primary-pink); }
+        .filter-tab.active {
+            background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
+            color: white;
+            border-color: transparent;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255,133,162,0.3);
+        }
+
+        /* --- Timeline List --- */
+        .entry-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .entry-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.02);
+        }
+
+        .entry-icon {
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .entry-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .entry-title {
+            font-weight: 700;
+            font-size: 13.5px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .entry-subtitle {
+            font-size: 11.5px;
+            color: #999;
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .entry-timestamp {
+            font-size: 10px;
+            color: #ccc;
+            margin-top: 2px;
+        }
+
+        .entry-amount {
+            flex: 0 0 auto;
+            text-align: right;
+        }
+        .entry-amount-main {
+            font-weight: 800;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .entry-amount-sub {
+            font-size: 10.5px;
+            color: #d9a300;
+            font-weight: 600;
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #bbb;
+            font-family: 'Kanit', sans-serif;
+            font-size: 13px;
+            padding: 50px 20px;
+        }
+        .empty-state i {
+            font-size: 30px;
+            color: #ffd7e1;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .loading-state {
+            text-align: center;
+            color: #bbb;
+            font-size: 13px;
+            padding: 40px 20px;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Usage History</h2>
-    
-    <div id="history-content">
-        <p style="text-align:center; color:#aaa;">กำลังโหลดข้อมูลนะคะ...</p>
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">Transaction History</div>
+</div>
+
+<div class="page-wrapper">
+    <div class="header-title-zone">
+        <h1><i class="fa-solid fa-clock-rotate-left"></i> ประวัติการทำธุรกรรม</h1>
+        <p>รวมทุกความเคลื่อนไหวในบัญชีของคุณไว้ที่เดียว</p>
     </div>
 
-    <a href="index.html" class="back-btn">กลับหน้าหลัก</a>
+    <div class="filter-tabs" id="filter-tabs">
+        <button type="button" class="filter-tab active" data-type="all"><i class="fa-solid fa-layer-group"></i> All</button>
+        <button type="button" class="filter-tab" data-type="purchase"><i class="fa-solid fa-bag-shopping"></i> Shop</button>
+        <button type="button" class="filter-tab" data-type="gift"><i class="fa-solid fa-gift"></i> Gift</button>
+        <button type="button" class="filter-tab" data-type="vote"><i class="fa-solid fa-check-to-slot"></i> Vote</button>
+        <button type="button" class="filter-tab" data-type="cookie"><i class="fa-solid fa-cookie-bite"></i> Cookie</button>
+    </div>
+
+    <div id="history-content">
+        <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูลนะคะ...</div>
+    </div>
 </div>
 
 <script>
     // ดึงค่า URL ของสคริปต์มาจากหน้าที่พี่ใช้งานอยู่
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 
+    let allEntries = [];
+    let currentFilter = 'all';
+
+    // ย้อนกลับไปหน้าก่อนหน้า ถ้าไม่มีประวัติให้ตีกลับไปหน้าแรกแทน
+    function goBack() {
+        if (document.referrer && window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = 'index.html';
+        }
+    }
+
+    function safeDate(ts) {
+        const d = new Date(ts);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function timeMs(ts) {
+        const d = safeDate(ts);
+        return d ? d.getTime() : 0;
+    }
+
+    function formatTime(ts) {
+        const d = safeDate(ts);
+        return d ? d.toLocaleString() : '-';
+    }
+
     async function loadHistory() {
-        const session = localStorage.getItem('bnl_session');
-        if (!session) {
-            alert('กรุณาล็อกอินก่อนงับ');
-            window.location.href = 'login.html';
+        const userData = getUserSession();
+        if (!userData || !userData.username) {
+            Swal.fire('กรุณาล็อกอินก่อนงับ', '', 'warning').then(() => {
+                window.location.href = 'login.html';
+            });
             return;
         }
 
-        const userData = JSON.parse(session).data;
-        const username = userData.username;
         const historyContent = document.getElementById('history-content');
 
         try {
-            const response = await fetch(`${scriptURL}?action=getMyHistory&username=${encodeURIComponent(username)}`);
+            const response = await fetch(`${scriptURL}?action=getMyHistory&username=${encodeURIComponent(userData.username)}`);
             const res = await response.json();
 
             if (res.status === "success") {
-                let html = `
-                    <div class="history-section">
-                        <div class="history-title">History</div>
-                        <div class="history-scroll-container">
-                            ${res.purchaseHistory?.length ? res.purchaseHistory.map(log => `
-                                <div class="fan-row">
-                                    <div class="fan-info">
-                                        <div class="fan-name">${escapeHtml(log.action)}: ${escapeHtml(log.target)}</div>
-                                        <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
-                                    </div>
-                                    <div class="fan-cookies">${escapeHtml(log.amount)}</div>
-                                </div>
-                            `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่มีประวัติการซื้อไอเทมงับ</p>'}
-                        </div>
-                    </div>
-
-                    <div class="history-section">
-                        <div class="history-title">Send Cookie</div>
-                        <div class="history-scroll-container">
-                            ${res.giveLogs?.length ? res.giveLogs.map(log => `
-                                <div class="fan-row">
-                                    <div class="fan-info">
-                                        <div class="fan-name">ปาให้: ${escapeHtml(log.member)}</div>
-                                        <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
-                                    </div>
-                                    <div class="fan-cookies">${escapeHtml(log.amount)} 🍪</div>
-                                </div>
-                            `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่เคยปาคุกกี้เลยงับ</p>'}
-                        </div>
-                    </div>
-                    
-                   <div class="history-section">
-                        <div class="history-title">Transaction History</div>
-                        <div class="history-scroll-container">
-                            ${res.voteLogs?.length ? res.voteLogs.map(log => `
-                                <div class="fan-row">
-                                    <div class="fan-info">
-                                        <div class="fan-name">Vote to ${escapeHtml(log.member)}</div>
-                                        <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
-                                        <div class="timestamp" style="font-size: 10px; color: #88b3f7; margin-top: 2px;">Major Vote: ${escapeHtml(log.campaignTitle)}</div>
-                                    </div>
-                                    <div class="fan-cookies" style="color: #ff6b81;">${escapeHtml(log.amount)} ${escapeHtml(log.tokenType)}</div>
-                                </div>
-                            `).join('') : '<p style="text-align:center; color:#ccc; font-size:12px;">ยังไม่มีประวัติการโหวตงับ</p>'}
-                        </div>
-                    </div>
-                `;
-                historyContent.innerHTML = html;
+                allEntries = buildUnifiedEntries(res);
+                renderEntries(currentFilter);
             } else {
-                historyContent.innerHTML = "<p style='text-align:center;'>ไม่พบข้อมูลประวัติงับ</p>";
+                historyContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>ไม่พบข้อมูลประวัติงับ</div>`;
             }
         } catch (e) {
             console.error(e);
-            historyContent.innerHTML = "<p style='text-align:center;'>เกิดข้อผิดพลาดในการโหลดข้อมูล</p>";
+            historyContent.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
         }
     }
+
+    // 🧩 รวมประวัติทั้ง 4 ประเภทให้อยู่ในรูปแบบเดียวกัน เพื่อแสดงเป็นไทม์ไลน์เดียวกันได้
+    function buildUnifiedEntries(res) {
+        const entries = [];
+
+        (res.purchaseHistory || []).forEach(log => {
+            entries.push({
+                type: 'purchase',
+                iconClass: 'fa-solid fa-bag-shopping',
+                iconBg: '#e7f5ff',
+                iconColor: '#4dabf7',
+                title: escapeHtml(log.action),
+                subtitle: escapeHtml(log.target),
+                amountText: escapeHtml(log.amount),
+                amountColor: '#4dabf7',
+                subAmountText: '',
+                timestamp: log.timestamp
+            });
+        });
+
+        (res.giveLogs || []).forEach(log => {
+            entries.push({
+                type: 'cookie',
+                iconClass: 'fa-solid fa-cookie-bite',
+                iconBg: '#fdf0e6',
+                iconColor: '#d2691e',
+                title: `ปาคุกกี้ให้ ${escapeHtml(log.member)}`,
+                subtitle: 'Send Cookie',
+                amountText: `${escapeHtml(log.amount)} 🍪`,
+                amountColor: '#d2691e',
+                subAmountText: '',
+                timestamp: log.timestamp
+            });
+        });
+
+        (res.voteLogs || []).forEach(log => {
+            entries.push({
+                type: 'vote',
+                iconClass: 'fa-solid fa-check-to-slot',
+                iconBg: '#ffe3ee',
+                iconColor: '#ff6b81',
+                title: `Vote ให้ ${escapeHtml(log.member)}`,
+                subtitle: escapeHtml(log.campaignTitle),
+                amountText: `${escapeHtml(log.amount)} ${escapeHtml(log.tokenType)}`,
+                amountColor: '#ff6b81',
+                subAmountText: '',
+                timestamp: log.timestamp
+            });
+        });
+
+        (res.giftLogs || []).forEach(log => {
+            const qty = Number(log.quantity) || 1;
+            const totalCost = (Number(log.costCookies) || 0) * qty;
+            const totalPoints = (Number(log.points) || 0) * qty;
+            entries.push({
+                type: 'gift',
+                iconClass: 'fa-solid fa-gift',
+                iconBg: '#fff0f6',
+                iconColor: '#ff69b4',
+                title: `ส่ง "${escapeHtml(log.giftName)}" x${qty} ให้ ${escapeHtml(log.candidateName)}`,
+                subtitle: escapeHtml(log.tier),
+                amountText: `-${totalCost.toLocaleString()} 🍪`,
+                amountColor: '#ff5376',
+                subAmountText: `+${totalPoints.toLocaleString()} pts`,
+                timestamp: log.timestamp
+            });
+        });
+
+        entries.sort((a, b) => timeMs(b.timestamp) - timeMs(a.timestamp));
+        return entries;
+    }
+
+    function renderEntries(filterType) {
+        currentFilter = filterType;
+        const historyContent = document.getElementById('history-content');
+        const filtered = filterType === 'all' ? allEntries : allEntries.filter(e => e.type === filterType);
+
+        if (filtered.length === 0) {
+            historyContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-inbox"></i>
+                    ยังไม่มีประวัติในหมวดนี้เลยงับ
+                </div>`;
+            return;
+        }
+
+        historyContent.innerHTML = `
+            <div class="entry-list">
+                ${filtered.map(e => `
+                    <div class="entry-row">
+                        <div class="entry-icon" style="background:${e.iconBg}; color:${e.iconColor};"><i class="${e.iconClass}"></i></div>
+                        <div class="entry-body">
+                            <div class="entry-title">${e.title}</div>
+                            <div class="entry-subtitle">${e.subtitle}</div>
+                            <div class="entry-timestamp">${formatTime(e.timestamp)}</div>
+                        </div>
+                        <div class="entry-amount">
+                            <div class="entry-amount-main" style="color:${e.amountColor};">${e.amountText}</div>
+                            ${e.subAmountText ? `<div class="entry-amount-sub">${e.subAmountText}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    // ผูกปุ่มแท็บกรองหมวดหมู่
+    document.getElementById('filter-tabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-tab');
+        if (!btn) return;
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        renderEntries(btn.dataset.type);
+    });
 
     // เรียกโหลดข้อมูลทันทีที่เปิดหน้า
     loadHistory();
