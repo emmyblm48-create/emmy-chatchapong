@@ -2910,26 +2910,39 @@ function renderTrendingMVs() {
   });
 }
   
-// 🔼🔽 เทียบอันดับปัจจุบันกับอันดับที่บันทึกไว้ล่าสุด เพื่อโชว์ไอคอนขึ้น/ลง/เท่าเดิม
-const RANKING_SNAPSHOT_KEY = 'bnl_ranking_prev_snapshot';
+// 🔼🔽 เทียบอันดับปัจจุบันกับอันดับล่าสุด เพื่อโชว์ไอคอนขึ้น/ลง/เท่าเดิม
+// 📌 สำคัญ: ไอคอนขึ้น/ลงต้อง "ค้างไว้" จนกว่าจะมีการเปลี่ยนแปลงจริงครั้งถัดไป
+//    เลยแยกเก็บ 2 ค่า: lastRank (ไว้เช็คว่ามีการขยับใหม่ไหม) กับ stickyIndicator (ไอคอนที่ค้างแสดงไว้)
+//    ถ้ารอบนี้อันดับเท่าเดิมกับรอบก่อน จะใช้ stickyIndicator เดิมต่อ ไม่รีเซ็ตกลับเป็นขีดกลาง
+const RANKING_LAST_RANK_KEY = 'bnl_ranking_last_rank';
+const RANKING_STICKY_INDICATOR_KEY = 'bnl_ranking_sticky_indicator';
 
-function getRankChangeIndicator(name, currentRank) {
-  let snapshot = {};
-  try { snapshot = JSON.parse(localStorage.getItem(RANKING_SNAPSHOT_KEY) || '{}'); } catch (e) {}
-
-  const prevRank = snapshot[name];
-  if (prevRank === undefined) {
-    return { icon: 'fa-star', color: '#4dabf7' }; // ยังไม่เคยมีข้อมูลเทียบ (เข้าอันดับครั้งแรก)
-  }
-  if (currentRank < prevRank) return { icon: 'fa-caret-up', color: '#2ecc71' };   // ขึ้นอันดับ
-  if (currentRank > prevRank) return { icon: 'fa-caret-down', color: '#ff5c5c' }; // ตกอันดับ
-  return { icon: 'fa-minus', color: '#bbb' }; // อันดับเท่าเดิม
+function loadRankingTrackingMaps() {
+  let lastRankMap = {};
+  let stickyMap = {};
+  try { lastRankMap = JSON.parse(localStorage.getItem(RANKING_LAST_RANK_KEY) || '{}'); } catch (e) {}
+  try { stickyMap = JSON.parse(localStorage.getItem(RANKING_STICKY_INDICATOR_KEY) || '{}'); } catch (e) {}
+  return { lastRankMap, stickyMap };
 }
 
-function saveRankingSnapshot(activeMembers) {
-  const snapshot = {};
-  activeMembers.forEach((m, i) => { snapshot[m.name] = i; });
-  localStorage.setItem(RANKING_SNAPSHOT_KEY, JSON.stringify(snapshot));
+function getRankChangeIndicator(name, currentRank, lastRankMap, stickyMap) {
+  const lastRank = lastRankMap[name];
+
+  if (lastRank === undefined) {
+    return { icon: 'fa-star', color: '#4dabf7' }; // ยังไม่เคยมีข้อมูลเทียบ (เข้าอันดับครั้งแรก)
+  }
+  if (currentRank < lastRank) return { icon: 'fa-caret-up', color: '#2ecc71' };   // ขึ้นอันดับจริงรอบนี้
+  if (currentRank > lastRank) return { icon: 'fa-caret-down', color: '#ff5c5c' }; // ตกอันดับจริงรอบนี้
+
+  // อันดับไม่ขยับจากรอบก่อน -> ค้างไอคอนเดิมที่เคยขึ้น/ลงไว้ต่อ (ถ้ายังไม่เคยมีให้ใช้ขีดกลาง)
+  return stickyMap[name] || { icon: 'fa-minus', color: '#bbb' };
+}
+
+function saveRankingTrackingMaps(activeMembers, indicatorsByName) {
+  const newLastRankMap = {};
+  activeMembers.forEach((m, i) => { newLastRankMap[m.name] = i; });
+  localStorage.setItem(RANKING_LAST_RANK_KEY, JSON.stringify(newLastRankMap));
+  localStorage.setItem(RANKING_STICKY_INDICATOR_KEY, JSON.stringify(indicatorsByName));
 }
 
 function renderRanking(data) {
@@ -2956,6 +2969,10 @@ function renderRanking(data) {
   const MIN_BAR_HEIGHT = 175; // จุดต่ำสุดที่การันตีว่าเนื้อหาในการ์ดยังโชว์ครบ ไม่จมหาย
   const MAX_BAR_HEIGHT = 260;
 
+  // โหลดข้อมูลอันดับ/ไอคอนค้างไว้ล่าสุดมาก่อน 1 ครั้ง แล้วใช้ร่วมกันกับทุกคนในลูปนี้
+  const { lastRankMap, stickyMap } = loadRankingTrackingMaps();
+  const indicatorsByName = {};
+
   // ส่วนแสดงผลด้านล่างวิ่งตามปกติ...
   activeMembers.forEach((m, i) => {
     const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
@@ -2966,7 +2983,8 @@ function renderRanking(data) {
     const cookies = Number(m.monthly_cookies) || 0;
     const ratio = cookies / maxCookies;
     const barHeight = Math.round(MIN_BAR_HEIGHT + ratio * (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT));
-    const rankChange = getRankChangeIndicator(m.name, i);
+    const rankChange = getRankChangeIndicator(m.name, i, lastRankMap, stickyMap);
+    indicatorsByName[m.name] = rankChange;
 
     const card = document.createElement('div');
     card.className = `member-card ${rankClass}`;
@@ -2987,7 +3005,7 @@ function renderRanking(data) {
     list.appendChild(card);
   });
 
-  saveRankingSnapshot(activeMembers);
+  saveRankingTrackingMaps(activeMembers, indicatorsByName);
 }
   
 function toggleTopFans() {
