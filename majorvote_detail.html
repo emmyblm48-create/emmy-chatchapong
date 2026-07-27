@@ -27,7 +27,6 @@
             --primary-pink: #ff85a2;
             --blm-pink: #ff85a2;
             --blm-light-pink: #fff0f5;
-            --bg-dreamy: #fdf6f7;
             --text-dark: #4a4a4a;
             --gold: #ffd700;
             --silver: #c0c0c0;
@@ -36,7 +35,7 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
-            background-color: var(--bg-dreamy);
+            background: linear-gradient(135deg, #ffeb9c 0%, #ffffff 100%);
             color: var(--text-dark);
             margin: 0; padding: 0; padding-top: 70px; padding-bottom: 40px;
         }
@@ -128,7 +127,6 @@
         .gift-qty-row { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 8px 2px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
         .gift-qty-btn { flex-shrink: 0; background: #f5f5f5; color: #555; border: 1px solid #ececec; padding: 6px 14px; border-radius: 18px; font-family: 'Kanit', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; }
         .gift-qty-btn.active { background: #fff0d9; color: #a85d00; border-color: #ffcb73; }
-        .gift-qty-btn.gift-qty-custom { margin-left: auto; }
 
         .gift-bottom-bar { display: flex; align-items: center; gap: 10px; padding-top: 8px; flex-shrink: 0; }
         .gift-balance-chip { display: flex; align-items: center; gap: 6px; background: #fff8ec; color: #b8860b; border: 1px solid #ffe6ae; border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 700; }
@@ -763,39 +761,15 @@
 
     function renderQtyRow() {
         const row = document.getElementById('gift-qty-row');
-        const isCustom = !GIFT_QTY_PRESETS.includes(selectedGiftQty);
         row.innerHTML = GIFT_QTY_PRESETS.map(q => `
-            <button type="button" class="gift-qty-btn ${!isCustom && q === selectedGiftQty ? 'active' : ''}" onclick="selectGiftQuantity(${q})">x${q}</button>
-        `).join('') + `
-            <button type="button" class="gift-qty-btn gift-qty-custom ${isCustom ? 'active' : ''}" onclick="customGiftQuantity()">${isCustom ? 'x' + selectedGiftQty.toLocaleString() : 'Customize'}</button>
-        `;
+            <button type="button" class="gift-qty-btn ${q === selectedGiftQty ? 'active' : ''}" onclick="selectGiftQuantity(${q})">x${q}</button>
+        `).join('');
     }
 
     function selectGiftQuantity(qty) {
         selectedGiftQty = qty;
         renderQtyRow();
         updateGiftBottomBar();
-    }
-
-    async function customGiftQuantity() {
-        const { value } = await Swal.fire({
-            title: 'ระบุจำนวน',
-            input: 'number',
-            inputAttributes: { min: 1, step: 1 },
-            inputValue: selectedGiftQty,
-            showCancelButton: true,
-            confirmButtonText: 'ตกลง',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#ff85a2',
-            inputValidator: (v) => {
-                if (!v || Number(v) <= 0 || v.toString().includes('.')) return 'กรุณาระบุจำนวนเต็มที่มากกว่า 0';
-            }
-        });
-        if (value) {
-            selectedGiftQty = Math.floor(Number(value));
-            renderQtyRow();
-            updateGiftBottomBar();
-        }
     }
 
     function getSelectedGiftItem() {

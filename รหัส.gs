@@ -819,8 +819,16 @@ if (action === "claimMonthlyCookie") {
         const giftCandidateName = (data.candidateName || e.parameter.candidateName || "").toString().trim();
         const giftId = (data.giftId || e.parameter.giftId || "").toString().trim();
 
+        // 🔢 จำนวนที่ส่ง รองรับเฉพาะ x1 / x10 / x50 / x100 เท่านั้น (ตัดช่องกรอกจำนวนเองออกแล้ว)
+        const GIFT_QTY_PRESETS = [1, 10, 50, 100];
+        const giftQtyRaw = data.quantity !== undefined ? data.quantity : e.parameter.quantity;
+        const giftQty = Math.floor(Number(giftQtyRaw)) || 1;
+
         if (!username || !giftCollectionId || !giftCandidateName || !giftId) {
           return jsonResponse({ status: "error", message: "ข้อมูลไม่ครบถ้วนสำหรับการส่งของขวัญ" });
+        }
+        if (GIFT_QTY_PRESETS.indexOf(giftQty) === -1) {
+          return jsonResponse({ status: "error", message: "จำนวนที่เลือกไม่ถูกต้อง กรุณาเลือก x1, x10, x50 หรือ x100" });
         }
         if (userIndex === -1) return jsonResponse({ status: "error", message: "ไม่พบผู้ใช้งานในระบบ" });
 
@@ -862,9 +870,11 @@ if (action === "claimMonthlyCookie") {
         }
         if (!selectedGift) return jsonResponse({ status: "error", message: "ไม่พบของขวัญชิ้นนี้ในระบบ" });
 
-        // 3. ตรวจเช็กยอดคุกกี้ของผู้ใช้ (คอลัมน์ G / Index 6)
+        // 3. ตรวจเช็กยอดคุกกี้ของผู้ใช้ (คอลัมน์ G / Index 6) เทียบกับราคารวมตามจำนวนที่เลือก
         const giftCurrentCookie = Number(userDataRow[6]) || 0;
-        if (giftCurrentCookie < selectedGift.cost) {
+        const giftTotalCost = selectedGift.cost * giftQty;
+        const giftTotalPoints = selectedGift.points * giftQty;
+        if (giftCurrentCookie < giftTotalCost) {
           return jsonResponse({ status: "error", message: "คุกกี้ของคุณไม่เพียงพอสำหรับของขวัญชิ้นนี้" });
         }
 
@@ -888,24 +898,24 @@ if (action === "claimMonthlyCookie") {
         }
         if (giftCandRowIndex === -1) return jsonResponse({ status: "error", message: "ไม่พบผู้สมัครรายนี้ในแคมเปญ" });
 
-        // 5. หักคุกกี้ + เพิ่มคะแนนให้ผู้สมัคร
-        const giftNewBalance = giftCurrentCookie - selectedGift.cost;
+        // 5. หักคุกกี้ + เพิ่มคะแนนให้ผู้สมัคร (คูณตามจำนวนที่เลือกส่ง)
+        const giftNewBalance = giftCurrentCookie - giftTotalCost;
         userSheet.getRange(userIndex + 1, 7).setValue(giftNewBalance); // คอลัมน์ G (คุกกี้)
-        giftCandSheet.getRange(giftCandRowIndex, idxGCurrentVotes + 1).setValue(giftCandCurrentVotes + selectedGift.points);
+        giftCandSheet.getRange(giftCandRowIndex, idxGCurrentVotes + 1).setValue(giftCandCurrentVotes + giftTotalPoints);
 
-        // 6. บันทึกประวัติลงชีต giftLogs (สร้างอัตโนมัติถ้ายังไม่มี)
+        // 6. บันทึกประวัติลงชีต giftLogs (สร้างอัตโนมัติถ้ายังไม่มี) — CostCookies/Points คือราคา/แต้มต่อชิ้น, Quantity คือจำนวนที่ส่ง
         let giftLogSheet = SS.getSheetByName("giftLogs");
         if (!giftLogSheet) {
           giftLogSheet = SS.insertSheet("giftLogs");
-          giftLogSheet.appendRow(["Timestamp", "Username", "CollectionID", "CandidateName", "GiftID", "GiftName", "Tier", "CostCookies", "Points"]);
+          giftLogSheet.appendRow(["Timestamp", "Username", "CollectionID", "CandidateName", "GiftID", "GiftName", "Tier", "CostCookies", "Points", "Quantity"]);
         }
-        giftLogSheet.appendRow([new Date(), username, giftCollectionId, giftCandidateName, giftId, selectedGift.name, selectedGift.tier, selectedGift.cost, selectedGift.points]);
+        giftLogSheet.appendRow([new Date(), username, giftCollectionId, giftCandidateName, giftId, selectedGift.name, selectedGift.tier, selectedGift.cost, selectedGift.points, giftQty]);
 
         SpreadsheetApp.flush();
 
         return jsonResponse({
           status: "success",
-          message: `ส่ง "${selectedGift.name}" ให้ ${giftCandidateName} เรียบร้อยแล้วค่ะ`,
+          message: `ส่ง "${selectedGift.name}" x${giftQty} ให้ ${giftCandidateName} เรียบร้อยแล้วค่ะ`,
           newBalance: giftNewBalance
         });
       }
