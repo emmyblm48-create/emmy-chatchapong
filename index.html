@@ -799,19 +799,19 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       transform: translateY(-4px); 
     }
 
-    /* ความสูงของแท่งกราฟ */
-    .rank-1 { height: 250px !important; background: rgba(254, 228, 121, 0.4) !important;}
-    .rank-2 { height: 240px !important; background: rgba(254, 228, 121, 0.4) !important;}
-    .rank-3 { height: 230px !important; background: rgba(254, 228, 121, 0.4) !important;}
-    
-    .rank-other {
-        height: 220px !important; 
+    /* ความสูงของแท่งกราฟ: กำหนดผ่าน inline style ตามสัดส่วนคะแนนจริงของแต่ละคน (ดู applyRankingBarHeight ใน JS) */
+    .member-card { min-height: 175px; }
+
+    .rank-1, .rank-2, .rank-3, .rank-other {
         background: rgba(254, 228, 121, 0.4) !important;
+    }
+
+    .rank-other {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        padding-top: 0px; 
+        padding-top: 0px;
     }
 
     /* กรอบรูปภาพ */
@@ -859,12 +859,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
             padding-right: 0 !important;
         }
 
-        /* ความสูงของแท่งกราฟ */
-        .rank-1 { height: 250px !important; }
-        .rank-2 { height: 240px !important; }
-        .rank-3 { height: 230px !important; }
-        .rank-other { height: 220px !important; }
-    
         /* ✅ รวบโค้ดกล่องรูปภาพเข้าด้วยกัน แล้วล็อคกึ่งกลางแบบเด็ดขาด */
         .img-wrapper,
         .rank-1 .img-wrapper,
@@ -963,7 +957,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       .wallet { grid-template-columns: 1fr 1fr; }
       .wallet-item:last-child { grid-column: span 2; }
       .member-card { width: 150px; padding: 20px 10px; }
-      .rank-1 { height: 280px; }
       .img-wrapper { width: 85px; height: 85px; }
       .rank-1 .img-wrapper { width: 100px; height: 100px; }
     }
@@ -2917,23 +2910,51 @@ function renderTrendingMVs() {
   });
 }
   
+// 🔼🔽 เทียบอันดับปัจจุบันกับอันดับที่บันทึกไว้ล่าสุด เพื่อโชว์ไอคอนขึ้น/ลง/เท่าเดิม
+const RANKING_SNAPSHOT_KEY = 'bnl_ranking_prev_snapshot';
+
+function getRankChangeIndicator(name, currentRank) {
+  let snapshot = {};
+  try { snapshot = JSON.parse(localStorage.getItem(RANKING_SNAPSHOT_KEY) || '{}'); } catch (e) {}
+
+  const prevRank = snapshot[name];
+  if (prevRank === undefined) {
+    return { icon: 'fa-star', color: '#4dabf7' }; // ยังไม่เคยมีข้อมูลเทียบ (เข้าอันดับครั้งแรก)
+  }
+  if (currentRank < prevRank) return { icon: 'fa-caret-up', color: '#2ecc71' };   // ขึ้นอันดับ
+  if (currentRank > prevRank) return { icon: 'fa-caret-down', color: '#ff5c5c' }; // ตกอันดับ
+  return { icon: 'fa-minus', color: '#bbb' }; // อันดับเท่าเดิม
+}
+
+function saveRankingSnapshot(activeMembers) {
+  const snapshot = {};
+  activeMembers.forEach((m, i) => { snapshot[m.name] = i; });
+  localStorage.setItem(RANKING_SNAPSHOT_KEY, JSON.stringify(snapshot));
+}
+
 function renderRanking(data) {
   // 🌟 เพิ่มบรรทัดนี้ลงไปเลยครับ! เพื่อก๊อปปี้ข้อมูลไปให้ renderPost ใช้หาคน Graduated
-  window.memberData = data; 
+  window.memberData = data;
 
   const list = document.getElementById('ranking-list');
   if (!list) return;
   list.innerHTML = '';
   const isMember = isUserMember();
-  
+
   // 🎯 กรองข้อมูลแบบโคตรปลอดภัย: ลบช่องว่าง และแปลงเป็นตัวพิมพ์เล็กทั้งหมดก่อนเช็ค
   const activeMembers = data.filter(m => {
     const name = m.name ? m.name.toString().trim() : "";
     const status = m.status ? m.status.toString().trim().toLowerCase() : "";
-    
+
     // ถ้าไม่มีชื่อ หรือสถานะเท่ากับ 'graduated' จะถูกคัดออกทันที
-    return name && status !== 'graduated'; 
+    return name && status !== 'graduated';
   });
+
+  // 📊 ความสูงของแท่งกราฟอิงตามสัดส่วนคะแนนจริง (คนคะแนนเยอะแท่งสูง คนคะแนนน้อยแท่งเตี้ย)
+  // 🛡️ ใช้ min-height แทน height ตรงๆ เพื่อกันไม่ให้ชื่อ/เนื้อหาโดนตัด จม หรือหายไปเวลาคะแนนต่างกันเยอะๆ
+  const maxCookies = Math.max(...activeMembers.map(m => Number(m.monthly_cookies) || 0), 1);
+  const MIN_BAR_HEIGHT = 175; // จุดต่ำสุดที่การันตีว่าเนื้อหาในการ์ดยังโชว์ครบ ไม่จมหาย
+  const MAX_BAR_HEIGHT = 260;
 
   // ส่วนแสดงผลด้านล่างวิ่งตามปกติ...
   activeMembers.forEach((m, i) => {
@@ -2942,9 +2963,15 @@ function renderRanking(data) {
     if (i === 0) badgeContent = '<i class="fas fa-crown"></i>';
     else if (i === 1 || i === 2) badgeContent = '<i class="fas fa-medal"></i>';
 
+    const cookies = Number(m.monthly_cookies) || 0;
+    const ratio = cookies / maxCookies;
+    const barHeight = Math.round(MIN_BAR_HEIGHT + ratio * (MAX_BAR_HEIGHT - MIN_BAR_HEIGHT));
+    const rankChange = getRankChangeIndicator(m.name, i);
+
     const card = document.createElement('div');
     card.className = `member-card ${rankClass}`;
-    
+    card.style.minHeight = `${barHeight}px`;
+
     card.innerHTML = `
      <div class="img-wrapper" onclick="openMemberProfile('${escapeAttr(m.name)}')">
         <img src="${getImg(m.profile_img)}" loading="lazy">
@@ -2953,12 +2980,14 @@ function renderRanking(data) {
       <div class="name-text" style="margin-bottom: 10px;">${escapeHtml(m.name)}</div>
 
       <div class="cookie-text" style="margin-bottom: 15px;">
-        <i class="fas fa-cookie-bite" style="color: #d2691e;"></i> 
+        <i class="fas ${rankChange.icon}" style="color: ${rankChange.color};"></i>
         ${Number(m.monthly_cookies || 0).toLocaleString()}
       </div>
     `;
     list.appendChild(card);
   });
+
+  saveRankingSnapshot(activeMembers);
 }
   
 function toggleTopFans() {
