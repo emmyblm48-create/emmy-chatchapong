@@ -2713,6 +2713,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 6. แอบโหลดข้อมูลอันดับเบื้องหลังแบบเงียบๆ
     if (typeof loadData === 'function') await loadData();
 
+    // 🔴 Realtime: มีคนปาคุกกี้ให้เมมเบอร์คนไหนก็ตาม -> อัปเดต Member Ranking ทันทีไม่ต้องรอโหลดหน้าใหม่
+    if (window.BLM48Realtime) {
+      window.BLM48Realtime.subscribeRanking((rankingUpdates) => {
+        if (!Array.isArray(currentRankingData) || currentRankingData.length === 0) return;
+        let changed = false;
+        Object.keys(rankingUpdates).forEach((memberKey) => {
+          const entry = rankingUpdates[memberKey];
+          if (!entry || entry.monthly_cookies === undefined) return;
+          const member = currentRankingData.find(m => m.name && m.name.toString().trim().toLowerCase() === memberKey.trim().toLowerCase());
+          if (member && member.monthly_cookies !== entry.monthly_cookies) {
+            member.monthly_cookies = entry.monthly_cookies;
+            changed = true;
+          }
+        });
+        if (changed) {
+          currentRankingData.sort((a, b) => (Number(b.monthly_cookies) || 0) - (Number(a.monthly_cookies) || 0));
+          localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
+          if (typeof renderRanking === 'function') renderRanking(currentRankingData);
+        }
+      });
+    }
+
   } catch (error) {
     console.error("เกิดข้อผิดพลาดในการเปิดหน้าแรก:", error);
     if (typeof hideAppLoading === 'function') hideAppLoading();
@@ -2938,13 +2960,13 @@ function getRankChangeIndicator(name, currentRank, lastRankMap, stickyMap) {
   const lastRank = lastRankMap[name];
 
   if (lastRank === undefined) {
-    return { icon: 'fa-star', color: '#4dabf7' }; // ยังไม่เคยมีข้อมูลเทียบ (เข้าอันดับครั้งแรก)
+    return { icon: 'fa-equals', color: '#bbb' }; // ยังไม่เคยมีข้อมูลเทียบ (เข้าอันดับครั้งแรก) -> ถือว่าเท่าเดิม
   }
   if (currentRank < lastRank) return { icon: 'fa-caret-up', color: '#2ecc71' };   // ขึ้นอันดับจริงรอบนี้
   if (currentRank > lastRank) return { icon: 'fa-caret-down', color: '#ff5c5c' }; // ตกอันดับจริงรอบนี้
 
-  // อันดับไม่ขยับจากรอบก่อน -> ค้างไอคอนเดิมที่เคยขึ้น/ลงไว้ต่อ (ถ้ายังไม่เคยมีให้ใช้ขีดกลาง)
-  return stickyMap[name] || { icon: 'fa-minus', color: '#bbb' };
+  // อันดับไม่ขยับจากรอบก่อน -> ค้างไอคอนเดิมที่เคยขึ้น/ลงไว้ต่อ (ถ้ายังไม่เคยมีให้ใช้ไอคอนเท่ากับ)
+  return stickyMap[name] || { icon: 'fa-equals', color: '#bbb' };
 }
 
 function saveRankingTrackingMaps(activeMembers, indicatorsByName) {

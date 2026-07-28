@@ -65,6 +65,13 @@ export function subscribeMajorVotes(collectionId, onUpdate) {
   });
 }
 
+// ยอดคุกกี้ประจำเดือนของสมาชิกทุกคน (Member Ranking) — path: ranking/{memberName}
+export function subscribeRanking(onUpdate) {
+  return onValue(ref(database, "ranking"), (snap) => {
+    if (snap.exists()) onUpdate(snap.val());
+  });
+}
+
 window.BLM48Realtime = {
   database,
   subscribeWallet,
@@ -72,4 +79,5 @@ window.BLM48Realtime = {
   subscribeNewPosts,
   subscribeNotifications,
   subscribeMajorVotes,
+  subscribeRanking,
 };

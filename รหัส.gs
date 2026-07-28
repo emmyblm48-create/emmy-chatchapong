@@ -450,12 +450,16 @@ if (action === "giveCookie") {
   // บันทึก Log กิจกรรม
   if (fanLogSheet) fanLogSheet.appendRow([new Date(), data.username, memberName, amount]);
   writeLog(data.username, "Give Cookie", memberName, amount);
-  if (rankSheet) updateRanking(rankSheet, memberName, amount);
+  let newMonthlyRanking = null;
+  if (rankSheet) newMonthlyRanking = updateRanking(rankSheet, memberName, amount);
 
   // สั่งบันทึกข้อมูลลง Sheet ทันที
   SpreadsheetApp.flush();
 
   firebaseWrite('users/' + firebaseKey(data.username) + '/wallet', { token: newTokenValue, cookie: newCookieValue, updatedAt: Date.now() }, 'patch');
+  if (newMonthlyRanking !== null) {
+    firebaseWrite('ranking/' + firebaseKey(memberName), { monthly_cookies: newMonthlyRanking, updatedAt: Date.now() });
+  }
 
   return jsonResponse({
     status: "success",
@@ -2181,26 +2185,29 @@ function updateRanking(sheet, memberName, amount) {
   const data = sheet.getDataRange().getValues();
   const headers = data[0]; // แถวหัวตาราง (มีชื่อเดือน)
   const rowIndex = data.findIndex(row => row[1] && row[1].toString().trim().toLowerCase() === memberName.trim().toLowerCase());
-  
+
   if (rowIndex !== -1) {
     // หาเดือนปัจจุบันเป็นภาษาอังกฤษ
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    
+
     // 🇹🇭 ปรับจุดที่ 1: บังคับให้หาเดือนปัจจุบันอิงตามไทม์โซนประเทศไทย (Asia/Bangkok)
     const nowInTH = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
     const currentMonth = monthNames[nowInTH.getMonth()];
-    
+
     // ค้นหาว่าเดือนปัจจุบันอยู่คอลัมน์ไหน
     const monthColIndex = headers.indexOf(currentMonth);
-    
+
     if (monthColIndex !== -1) {
       // ดึงค่ายอดเดิมของเดือนปัจจุบัน
       const currentMonthlyVal = Number(data[rowIndex][monthColIndex]) || 0;
-      
+      const newMonthlyVal = currentMonthlyVal + amount;
+
       // บันทึกเฉพาะในคอลัมน์ของเดือนนั้น ๆ (จะไม่ไปยุ่งกับคอลัมน์ R ที่เป็นสูตร SUM)
-      sheet.getRange(rowIndex + 1, monthColIndex + 1).setValue(currentMonthlyVal + amount);
+      sheet.getRange(rowIndex + 1, monthColIndex + 1).setValue(newMonthlyVal);
+      return newMonthlyVal;
     }
   }
+  return null;
 }
 
 function getRankingData() {
