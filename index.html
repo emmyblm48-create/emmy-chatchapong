@@ -2667,7 +2667,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 🌸 สั่งโหลดโพสต์ไทม์ไลน์ขึ้นมาค้างบนหน้าจอทันทีจาก Cache
     if (typeof loadTimelinePosts === 'function') {
-      loadTimelinePosts(); 
+      loadTimelinePosts();
+
+      // 🔴 Realtime: มีโพสต์ใหม่จากคนอื่นเข้ามา -> ดึงฟีดใหม่ให้ขึ้นแสดงทันทีโดยไม่ต้องรีเฟรช
+      if (window.BLM48Realtime) {
+        let newPostDebounce = null;
+        window.BLM48Realtime.subscribeNewPosts(Date.now(), () => {
+          clearTimeout(newPostDebounce);
+          newPostDebounce = setTimeout(() => loadTimelinePosts(), 500);
+        });
+      }
     }
 
     // 🚀 4. ซ่อนหน้าต่างโหลดตัวเล็ก (App Loading) เพื่อให้ระบบเบื้องหลังพร้อมทำงาน
@@ -3431,6 +3440,21 @@ function renderPost(post) {
     setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
   }
 
+  if (window.BLM48Realtime && postId) {
+    setTimeout(() => {
+      window.BLM48Realtime.subscribePostLikes(postId, ({ likes, likedBy }) => {
+        const likeSpan = document.getElementById(`like-count-${postId}`);
+        const heartIcon = document.getElementById(`heart-${postId}`);
+        if (likeSpan) likeSpan.innerText = likes;
+        if (heartIcon) {
+          const me = getUserSession();
+          const isLiked = me && Array.isArray(likedBy) ? likedBy.includes(me.username) : false;
+          heartIcon.className = (isLiked ? 'fa-solid' : 'fa-regular') + ' fa-heart';
+        }
+      });
+    }, 100);
+  }
+
   // ... (โค้ดส่วน MediaHtml Audio/Video และรูปภาพเหมือนเดิม) ...
   let mediaHtml = '';
   if (post.audioURL) {
@@ -3963,12 +3987,25 @@ document.addEventListener("DOMContentLoaded", () => {
   loadRealTimeDashboard();
   
   if (user) {
-    syncUserData(); 
+    syncUserData();
     setInterval(async () => {
       if (localStorage.getItem('bnl_session')) {
         await syncUserData();
       }
     }, 45000);
+
+    // 🔴 Realtime: ยอด Token/Cookie/GEToken เปลี่ยนที่ไหนก็ตาม -> อัปเดต session ทันทีไม่ต้องรอ poll 45s
+    if (window.BLM48Realtime) {
+      window.BLM48Realtime.subscribeWallet(user.username, (wallet) => {
+        const current = getUserSession();
+        if (!current) return;
+        if (wallet.token !== undefined) current.token = wallet.token;
+        if (wallet.cookie !== undefined) current.cookie = wallet.cookie;
+        if (wallet.geToken !== undefined) current.geToken = wallet.geToken;
+        saveUserSession(current);
+        user = current;
+      });
+    }
   }
 
   // ===================================================
@@ -4298,6 +4335,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 </script>
+<script type="module" src="assets/js/firebase-realtime.js"></script>
 <div class="bottom-tab-bar">
   
   <a href="index.html" class="tab-item active">

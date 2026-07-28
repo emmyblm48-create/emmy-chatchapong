@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BLM48 | Major Vote Detail</title>
     <script src="assets/js/common.js"></script>
+    <script type="module" src="assets/js/firebase-realtime.js"></script>
     <meta name="theme-color" content="#ffc0cb">
     
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/0">
@@ -352,6 +353,35 @@
         renderWalletStrip();
         setupHeaderFromCache();
         await fetchCandidatesFromBackend();
+        setupRealtimeSubscriptions();
+    }
+
+    // 🔴 Realtime: ยอดเงินและคะแนนโหวต/ของขวัญของผู้สมัคร เปลี่ยนจากที่ไหนก็ตาม (แท็บอื่น/คนอื่น) -> อัปเดตหน้านี้ทันที
+    function setupRealtimeSubscriptions() {
+        if (!window.BLM48Realtime) return;
+
+        const username = getUsername();
+        if (username) {
+            window.BLM48Realtime.subscribeWallet(username, (wallet) => {
+                const userData = getUserSession();
+                if (!userData) return;
+                if (wallet.token !== undefined) userData.token = wallet.token;
+                if (wallet.cookie !== undefined) userData.cookie = wallet.cookie;
+                if (wallet.geToken !== undefined) userData.geToken = wallet.geToken;
+                saveUserSession(userData);
+                renderWalletStrip();
+            });
+        }
+
+        window.BLM48Realtime.subscribeMajorVotes(campaignId, (votesByCandidate) => {
+            Object.keys(votesByCandidate).forEach((candidateName) => {
+                const row = document.querySelector(`.ranking-row[data-candidate="${CSS.escape(candidateName)}"]`);
+                if (!row) return;
+                const scoreEl = row.querySelector('.rank-score-value');
+                const votes = votesByCandidate[candidateName] && votesByCandidate[candidateName].votes;
+                if (scoreEl && votes !== undefined) scoreEl.textContent = Number(votes).toLocaleString();
+            });
+        });
     }
 
     function setupHeaderFromCache() {
@@ -498,7 +528,7 @@
             else if(rank === 3) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-3"></i>`;
 
             const rowHtml = `
-                <div class="ranking-row rank-row-${rank}">
+                <div class="ranking-row rank-row-${rank}" data-candidate="${escapeAttr(mName)}">
                     <div class="rank-number">${rank}</div>
                     <div class="rank-img-wrapper">
                         <i class="fa-solid fa-user cand-avatar-fallback"></i>
@@ -507,7 +537,7 @@
                     <div class="rank-info">
                         <span class="rank-status-text">${placementText}</span>
                         <span class="rank-name">${escapeHtml(mName)}</span>
-                        <span class="rank-score"><i class="fa-solid fa-coins"></i> ${voteCount}</span>
+                        <span class="rank-score"><i class="fa-solid fa-coins"></i> <span class="rank-score-value">${voteCount}</span></span>
                         <span class="rank-percentage">(${percentStr})</span>
                     </div>
                     ${medalHtml}

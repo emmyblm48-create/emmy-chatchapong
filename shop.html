@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>BLM48 Membership | SHOP</title>
     <script src="assets/js/common.js"></script>
+    <script type="module" src="assets/js/firebase-realtime.js"></script>
     <link rel="stylesheet" href="assets/css/common.css">
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
@@ -1275,6 +1276,17 @@ function initShop() {
 
     // อัปเดต UI หน้าเว็บหลังจากได้ข้อมูลผู้ใช้ชัวร์ๆ แล้ว
     updateWalletUI();
+
+    // 🔴 Realtime: ยอด Token/Cookie เปลี่ยนจากที่ไหนก็ตาม (ซื้อของ, กาชา, รับรางวัล ฯลฯ) -> อัปเดตหน้านี้ทันที
+    if (window.BLM48Realtime) {
+        window.BLM48Realtime.subscribeWallet(userData.username, (wallet) => {
+            if (wallet.token !== undefined) userData.token = wallet.token;
+            if (wallet.cookie !== undefined) userData.cookie = wallet.cookie;
+            if (wallet.geToken !== undefined) userData.geToken = wallet.geToken;
+            if (typeof saveUserSession === 'function') saveUserSession(userData);
+            updateWalletUI();
+        });
+    }
 }
 
 // 🎉 เอฟเฟกต์ฉลองตอนซื้อของสำเร็จ ยิงเป็นสะเก็ดสีสันบานออกจากกึ่งกลางจอ ใช้ร่วมกันทุกจุดในหน้า Shop

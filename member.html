@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <script src="assets/js/common.js"></script>
+  <script type="module" src="assets/js/firebase-realtime.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BLM48 Membership | Profile</title>
    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
@@ -816,7 +817,18 @@ function renderMemberStatsAndFans() {
     function loadMemberData() {
       if (!memberName) { window.location.href = 'index.html'; return; }
       user = getUserSession();
-      
+
+      // 🔴 Realtime: ยอด Token/Cookie เปลี่ยนจากที่ไหนก็ตาม -> อัปเดตปุ่มให้คุกกี้ทันที
+      if (user && window.BLM48Realtime) {
+        window.BLM48Realtime.subscribeWallet(user.username, (wallet) => {
+          if (wallet.token !== undefined) user.token = wallet.token;
+          if (wallet.cookie !== undefined) user.cookie = wallet.cookie;
+          if (wallet.geToken !== undefined) user.geToken = wallet.geToken;
+          saveUserSession(user);
+          if (typeof updateButtonStyles === 'function') updateButtonStyles();
+        });
+      }
+
       const savedStatsStr = localStorage.getItem('current_member_stats');
       let hasValidCache = false;
       

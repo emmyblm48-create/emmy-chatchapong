@@ -179,13 +179,21 @@ function doPost(e) {
       if (notiSheet.getLastRow() === 0) {
         notiSheet.appendRow(["writer", "action", "avatar", "role", "timestamp"]);
       }
+      const notiTimestamp = data.timestamp || Date.now();
       notiSheet.appendRow([
         data.writer || "Admin",
         data.action || "",
         data.avatar || "",
         data.role || "Admin",
-        data.timestamp || Date.now()
+        notiTimestamp
       ]);
+      firebaseWrite('notifications/' + firebaseKey(notiTimestamp), {
+        writer: data.writer || "Admin",
+        action: data.action || "",
+        avatar: data.avatar || "",
+        role: data.role || "Admin",
+        timestamp: notiTimestamp
+      });
       return jsonResponse({ status: "success", message: "Added" });
     }
 
@@ -197,14 +205,15 @@ function doPost(e) {
       // ค้นหาแถวที่มี timestamp ตรงกัน (แปลงเป็น String ก่อนเทียบกันเหนียว)
       // ใช้ i > 0 เพื่อไม่ให้มันเผลอไปลบหัวตาราง (แถวแรกสุด)
       for (var i = rows.length - 1; i > 0; i--) {
-        if (rows[i][4].toString() === data.timestamp.toString()) { 
+        if (rows[i][4].toString() === data.timestamp.toString()) {
           notiSheet.deleteRow(i + 1);
+          firebaseWrite('notifications/' + firebaseKey(data.timestamp), null, 'delete');
           return jsonResponse({ status: "success", message: "Deleted" });
         }
       }
       return jsonResponse({ status: "error", message: "Not found" });
     }
-    
+
     // =========================================================================
     // 🔔 4. ระบบล้างทั้งหมด (Clear All)
     // =========================================================================
@@ -213,6 +222,7 @@ function doPost(e) {
       if (notiSheet.getLastRow() > 1) {
         notiSheet.getRange(2, 1, notiSheet.getLastRow() - 1, notiSheet.getLastColumn()).clearContent();
       }
+      firebaseWrite('notifications', null, 'delete');
       return jsonResponse({ status: "success", message: "Cleared" });
     }
     
@@ -258,6 +268,8 @@ function doPost(e) {
         videoUrl    // คอลัมน์ I (Index 8) - บันทึกลิงก์วิดีโอ Supabase ลงที่นี่!
       ]);
 
+      firebaseWrite('postEvents/' + postId, { postId: postId, timestamp: now.getTime() });
+
       return jsonResponse({ status: "success", message: "บันทึกโพสต์ของเมมเบอร์สำเร็จแล้วงับ! 🌸", postId: postId });
     }
 
@@ -298,8 +310,10 @@ function doPost(e) {
       postSheet.getRange(rowNum, 5).setValue(currentLikes); // คอลัมน์ E
       postSheet.getRange(rowNum, 6).setValue(likedByArray.join(",")); // คอลัมน์ F
 
-      return jsonResponse({ 
-        status: "success", 
+      firebaseWrite('postLikes/' + firebaseKey(targetPostId), { likes: currentLikes, likedBy: likedByArray, updatedAt: Date.now() });
+
+      return jsonResponse({
+        status: "success",
         message: isLiked ? "กดใจให้เมมเบอร์แล้วน้า! 💖" : "ยกเลิกกดใจแล้วงับ",
         likes: currentLikes,
         isLiked: isLiked
@@ -351,6 +365,8 @@ function doPost(e) {
         logSheet.appendRow([now, username, "แลกซื้อคุกกี้", "-" + tokenPrice, "+" + cookieReward]);
       }
 
+      firebaseWrite('users/' + firebaseKey(username) + '/wallet', { token: newToken, cookie: newCookie, updatedAt: Date.now() }, 'patch');
+
       return jsonResponse({status: "success", message: "บันทึกข้อมูลเรียบร้อยแล้วค่ะ", newToken: newToken, newCookie: newCookie});
     }
 
@@ -371,8 +387,10 @@ function doPost(e) {
         const newToken = currentTokens - tokenCost;
         const newCookie = currentCookies + cookieGain;
 
-        userSheet.getRange(userIndex + 1, 6, 1, 2).setValues([[newToken, newCookie]]); 
-        
+        userSheet.getRange(userIndex + 1, 6, 1, 2).setValues([[newToken, newCookie]]);
+
+        firebaseWrite('users/' + firebaseKey(username) + '/wallet', { token: newToken, cookie: newCookie, updatedAt: Date.now() }, 'patch');
+
         return jsonResponse({status: "success", message: "ซื้อไอเทมสำเร็จ", newToken: newToken, newCookie: newCookie});
       } else {
         return jsonResponse({status: "error", message: "Token ไม่พอ"});
@@ -437,10 +455,12 @@ if (action === "giveCookie") {
   // สั่งบันทึกข้อมูลลง Sheet ทันที
   SpreadsheetApp.flush();
 
+  firebaseWrite('users/' + firebaseKey(data.username) + '/wallet', { token: newTokenValue, cookie: newCookieValue, updatedAt: Date.now() }, 'patch');
+
   return jsonResponse({
-    status: "success", 
-    message: "ส่งคุกกี้เรียบร้อย" + bonusMessage, 
-    remainingCookie: newCookieValue, 
+    status: "success",
+    message: "ส่งคุกกี้เรียบร้อย" + bonusMessage,
+    remainingCookie: newCookieValue,
     currentToken: newTokenValue
   });
 }
@@ -605,6 +625,8 @@ if (action === "giveCookie") {
       }
       if (SS.getSheetByName("logs")) SS.getSheetByName("logs").appendRow([new Date(), username, "Gacha", collectionName, cost]);
 
+      firebaseWrite('users/' + firebaseKey(username) + '/wallet', { token: newToken, updatedAt: Date.now() }, 'patch');
+
       // 🎉 ส่งข้อมูลกลับไปให้หน้าเว็บแสดงผล
       return jsonResponse({
         status: "success",
@@ -654,7 +676,9 @@ if (action === "claimMonthlyCookie") {
     writeLog(data.username, "Claim Monthly", autoMonthYear, 100);
 
     SpreadsheetApp.flush(); // บังคับบันทึกทันที
-    
+
+    firebaseWrite('users/' + firebaseKey(data.username) + '/wallet', { cookie: newCookieValue, updatedAt: Date.now() }, 'patch');
+
     return jsonResponse({status: "success", message: `รับคุกกี้ของเดือน ${autoMonthYear} เรียบร้อย!`, newCookie: newCookieValue});
 
   } catch (e) {
@@ -711,8 +735,11 @@ if (action === "claimMonthlyCookie") {
       codeUsageSheet.appendRow([data.username, data.code, now]);
       writeLog(data.username, "Redeem Code", data.code, rewardAmount);
 
+      const walletFieldName = rewardType === 'token' ? 'token' : (rewardType === 'cookie' ? 'cookie' : 'geToken');
+      firebaseWrite('users/' + firebaseKey(data.username) + '/wallet', { [walletFieldName]: newVal, updatedAt: Date.now() }, 'patch');
+
       return jsonResponse({
-        status: "success", 
+        status: "success",
         message: `ได้รับ ${rewardAmount.toLocaleString()} ${displayType} เรียบร้อย!`, 
         newValue: newVal
       });
@@ -737,8 +764,10 @@ if (action === "claimMonthlyCookie") {
         const uIdx = userRows.findIndex(row => row[0].toString() === topFan);
         if (uIdx !== -1) {
           const curC = Number(userRows[uIdx][6]) || 0;
-          userSheet.getRange(uIdx + 1, 7).setValue(curC + max);
+          const refundedCookie = curC + max;
+          userSheet.getRange(uIdx + 1, 7).setValue(refundedCookie);
           writeLog(topFan, "Refund Top Fan", "ALL", max);
+          firebaseWrite('users/' + firebaseKey(topFan) + '/wallet', { cookie: refundedCookie, updatedAt: Date.now() }, 'patch');
           return jsonResponse({status: "success", message: "คืนคุกกี้ให้ " + topFan + " แล้ว"});
         }
       }
@@ -794,11 +823,13 @@ if (action === "claimMonthlyCookie") {
               ]);
           }
 
-          // บันทึก Log การซื้อ 
+          // บันทึก Log การซื้อ
           const logSheet = SS.getSheetByName("logs");
           if (logSheet) {
               logSheet.appendRow([new Date(), reqUsername, "Buy Direct", reqItemName, reqPrice]);
           }
+
+          firebaseWrite('users/' + firebaseKey(reqUsername) + '/wallet', { token: newToken, updatedAt: Date.now() }, 'patch');
 
           // ตอบกลับเป็น JSON แจ้ง success กลับไปที่หน้าเว็บ
           return jsonResponse({
@@ -899,8 +930,9 @@ if (action === "claimMonthlyCookie") {
 
         // 5. หักคุกกี้ + เพิ่มคะแนนให้ผู้สมัคร (คูณตามจำนวนที่เลือกส่ง)
         const giftNewBalance = giftCurrentCookie - giftTotalCost;
+        const giftNewVotes = giftCandCurrentVotes + giftTotalPoints;
         userSheet.getRange(userIndex + 1, 7).setValue(giftNewBalance); // คอลัมน์ G (คุกกี้)
-        giftCandSheet.getRange(giftCandRowIndex, idxGCurrentVotes + 1).setValue(giftCandCurrentVotes + giftTotalPoints);
+        giftCandSheet.getRange(giftCandRowIndex, idxGCurrentVotes + 1).setValue(giftNewVotes);
 
         // 6. บันทึกประวัติลงชีต giftLogs (สร้างอัตโนมัติถ้ายังไม่มี) — CostCookies/Points คือราคา/แต้มต่อชิ้น, Quantity คือจำนวนที่ส่ง
         let giftLogSheet = SS.getSheetByName("giftLogs");
@@ -911,6 +943,9 @@ if (action === "claimMonthlyCookie") {
         giftLogSheet.appendRow([new Date(), username, giftCollectionId, giftCandidateName, giftId, selectedGift.name, selectedGift.tier, selectedGift.cost, selectedGift.points, giftQty]);
 
         SpreadsheetApp.flush();
+
+        firebaseWrite('users/' + firebaseKey(username) + '/wallet', { cookie: giftNewBalance, updatedAt: Date.now() }, 'patch');
+        firebaseWrite('majorVotes/' + firebaseKey(giftCollectionId) + '/' + firebaseKey(giftCandidateName), { votes: giftNewVotes, updatedAt: Date.now() });
 
         return jsonResponse({
           status: "success",
@@ -1950,8 +1985,13 @@ if (action === "getMyInventory") {
           
           // 4. บันทึกหักยอดเงินและเพิ่มคะแนนโหวต
           const newBalance = currentBalance - voteAmount;
+          const newCandVotes = currentVotes + voteAmount;
           userSheet.getRange(userRowIndex, balanceColIndex).setValue(newBalance);
-          candSheet.getRange(candRowIndex, idxCurrentVotes + 1).setValue(currentVotes + voteAmount);
+          candSheet.getRange(candRowIndex, idxCurrentVotes + 1).setValue(newCandVotes);
+
+          const walletField = tokenTypeRequired === "geToken" ? "geToken" : "token";
+          firebaseWrite('users/' + firebaseKey(username) + '/wallet', { [walletField]: newBalance, updatedAt: Date.now() }, 'patch');
+          firebaseWrite('majorVotes/' + firebaseKey(collectionId) + '/' + firebaseKey(candidateName), { votes: newCandVotes, updatedAt: Date.now() });
 
           // 5. บันทึกประวัติลงชีต majorVoteLogs (คอลัมน์ที่ 6 = ชนิดเหรียญที่ใช้โหวต)
           logSheet.appendRow([new Date(), username, collectionId, candidateName, voteAmount, displayTokenName]);
@@ -2585,6 +2625,31 @@ function writeLog(u, action, target, amount) {
 
 function jsonResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// =========================================================================
+// 🔥 Firebase Realtime Database mirror — best-effort push so the frontend
+// can subscribe live instead of polling. Never throws: a Firebase hiccup
+// must not break the Sheet write that already succeeded.
+// =========================================================================
+const FIREBASE_DB_URL = "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app";
+function firebaseKey(raw) {
+  return raw.toString().trim().replace(/[.#$\[\]\/]/g, "_");
+}
+function firebaseWrite(path, data, method) {
+  try {
+    const options = {
+      method: method || "put",
+      muteHttpExceptions: true
+    };
+    if (options.method !== "delete") {
+      options.contentType = "application/json";
+      options.payload = JSON.stringify(data);
+    }
+    UrlFetchApp.fetch(FIREBASE_DB_URL + "/" + path + ".json", options);
+  } catch (err) {
+    Logger.log("firebaseWrite failed for " + path + ": " + err.message);
+  }
 }
 
 function getDashboardDataProcess(username) {

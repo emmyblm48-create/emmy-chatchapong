@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Notifications | BLM48</title>
   <script src="assets/js/common.js"></script>
+  <script type="module" src="assets/js/firebase-realtime.js"></script>
   <link rel="stylesheet" href="assets/css/common.css">
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <meta name="theme-color" content="#ffc0cb">
@@ -700,6 +701,19 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
     // =========================================================
     btnRefresh.addEventListener("click", fetchNotifications);
     fetchNotifications();
+
+    // 🔴 Realtime: มีการแจ้งเตือนใหม่เข้ามา -> โผล่ขึ้นหน้าจอทันทีไม่ต้องกดรีเฟรช
+    if (window.BLM48Realtime) {
+      const liveSinceTs = Date.now();
+      window.BLM48Realtime.subscribeNotifications((noti) => {
+        if (!noti || !noti.timestamp || noti.timestamp <= liveSinceTs) return;
+        const alreadyExists = myNotifications.some(n => n.timestamp === noti.timestamp);
+        if (alreadyExists) return;
+        myNotifications.push(noti);
+        localStorage.setItem("blm48_notifications_cache", JSON.stringify(myNotifications));
+        renderUI();
+      });
+    }
 
     localStorage.setItem("blm48_has_new_noti", "false");
     const badgeElement = document.getElementById("noti-badge");
