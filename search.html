@@ -187,55 +187,46 @@
     }
     .search-input::placeholder { color: #cccccc; font-weight: 300; }
 
-    .header-divider {
-      height: 3px;
-      background: linear-gradient(90deg, var(--blmem-pink) 0%, var(--blmem-yellow-dark) 100%);
-      margin: 0 24px;
-      border-radius: 2px;
-      opacity: 0.7;
-    }
-
-    /* --- ตัวกรองวง (BLM48 / NPT48) --- */
-    .group-filter-tabs {
+    /* --- แท็บสลับวง (BLM48 / NPT48) --- */
+    .group-tabs {
       display: flex;
-      gap: 8px;
-      padding: 14px 24px 4px 24px;
       background: #fff;
+      border-bottom: 1px solid var(--border-color);
     }
-    .group-filter-tab {
-      border: 1.5px solid #eee;
-      background: #fdfdfd;
-      color: #999;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 6px 16px;
-      border-radius: 20px;
+    .group-tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px 0 12px 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #bbbbbb;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
       cursor: pointer;
       transition: 0.2s;
-      white-space: nowrap;
     }
-    .group-filter-tab.active[data-group="ALL"] {
-      background: var(--blmem-pink);
-      border-color: var(--blmem-pink);
-      color: #fff;
+    .group-tab.active[data-group="BLM48"] {
+      color: #e0a800;
+      border-bottom-color: #ffc107;
     }
-    .group-filter-tab.active[data-group="BLM48"] {
-      background: var(--blmem-pink);
-      border-color: var(--blmem-pink);
-      color: #fff;
+    .group-tab.active[data-group="NPT48"] {
+      color: #2f9fe0;
+      border-bottom-color: #6acbfc;
     }
-    .group-filter-tab.active[data-group="NPT48"] {
-      background: #6acbfc;
-      border-color: #6acbfc;
-      color: #fff;
-    }
-    .member-group-dot {
+    .graduated-badge {
       display: inline-block;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      margin-left: 6px;
-      vertical-align: middle;
+      background: #e2e8f0;
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: 8px;
+      text-transform: uppercase;
     }
 
     /* --- ส่วนรายการแถวเมมเบอร์ (List Items) --- */
@@ -391,12 +382,9 @@
           <input type="text" id="searchInput" class="search-input" placeholder="ค้นหาเมมเบอร์..." onkeyup="filterMembers()">
         </div>
       </div>
-      <div class="header-divider"></div>
-
-      <div class="group-filter-tabs" id="groupFilterTabs">
-        <button type="button" class="group-filter-tab active" data-group="ALL" onclick="selectGroupFilter('ALL')">ทั้งหมด</button>
-        <button type="button" class="group-filter-tab" data-group="BLM48" onclick="selectGroupFilter('BLM48')">BLM48</button>
-        <button type="button" class="group-filter-tab" data-group="NPT48" onclick="selectGroupFilter('NPT48')">NPT48</button>
+      <div class="group-tabs" id="groupTabs">
+        <button type="button" class="group-tab active" data-group="BLM48" onclick="selectGroupFilter('BLM48')">BLM48</button>
+        <button type="button" class="group-tab" data-group="NPT48" onclick="selectGroupFilter('NPT48')">NPT48</button>
       </div>
 
       <div class="member-list" id="memberList">
@@ -414,7 +402,7 @@
     const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
     
     let allMembers = [];
-    let currentGroupFilter = 'ALL';
+    let currentGroupFilter = 'BLM48';
 
     // 🔗 ตั้งค่าลิงก์รูปภาพสำรองตามที่เอ็มมี่ระบุ
     const fallbackAvatarURL = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
@@ -438,7 +426,7 @@
           // 🌟 [จุดสำคัญแก้ปัญหาแกรดหน่วง] ทำการกรองเอาเฉพาะแถวที่มีชื่อเมมเบอร์จริง ๆ (ไม่เป็นค่าว่าง)
           // แถวว่างเปล่าท้ายชีตจะถูกตัดทิ้งทั้งหมดตรงนี้ ทำให้วนลูปเร็วขึ้นมาก ไม่หน่วงเครื่องแน่นอนครับ
           allMembers = res.data.filter(m => m.name && m.name.toString().trim() !== "");
-          renderMembers(allMembers);
+          filterMembers();
         } else {
           document.getElementById('memberList').innerHTML = '<div class="empty-state">ไม่พบฐานข้อมูลเมมเบอร์</div>';
         }
@@ -474,20 +462,17 @@
           const item = document.createElement('a');
           item.className = 'member-item';
           item.href = `member.html?name=${encodeURIComponent(m.name)}`;
-          
+
           // 🔒 ป้องกันความต่างของชื่อคีย์เก่าและใหม่จากหลังบ้าน
           const imgUrl = m.profile || m.profile_img || '';
           const fullNameText = m['Full Name(EN)'] || m.full_name || "BLM48 Member";
-
-          const groupName = (m.group_name || 'BLM48').toString().trim().toUpperCase();
-          const groupDotColor = groupName === 'NPT48' ? '#6acbfc' : 'var(--blmem-pink)';
 
           item.innerHTML = `
             <div class="member-avatar-wrapper">
               <img src="${getImg(imgUrl)}" class="member-avatar" onerror="this.onerror=null; this.src='${fallbackAvatarURL}';">
             </div>
             <div class="member-info">
-              <div class="member-nickname">${escapeHtml(m.name)}<span class="member-group-dot" style="background: ${groupDotColor};" title="${groupName}"></span></div>
+              <div class="member-nickname">${escapeHtml(m.name)}</div>
               <div class="member-fullname">${escapeHtml(fullNameText)}</div>
             </div>
             <i class="fas fa-chevron-right chevron-icon"></i>
@@ -507,13 +492,10 @@
           const item = document.createElement('a');
           item.className = 'member-item graduated-item';
           item.href = `member.html?name=${encodeURIComponent(m.name)}`;
-          
+
           // 🔒 ป้องกันความต่างของชื่อคีย์เก่าและใหม่จากหลังบ้าน
           const imgUrl = m.profile || m.profile_img || '';
           const fullNameText = m['Full Name(EN)'] || m.full_name || "BLM48 Member";
-
-          const groupName = (m.group_name || 'BLM48').toString().trim().toUpperCase();
-          const groupDotColor = groupName === 'NPT48' ? '#6acbfc' : 'var(--blmem-pink)';
 
           item.innerHTML = `
             <div class="member-avatar-wrapper">
@@ -521,8 +503,7 @@
             </div>
             <div class="member-info">
               <div class="member-nickname">
-                ${escapeHtml(m.name)}<span class="member-group-dot" style="background: ${groupDotColor};" title="${groupName}"></span>
-                <i class="fas fa-graduation-cap" style="color: #94a3b8; font-size: 14px; margin-left: 6px;" title="Graduated"></i>
+                ${escapeHtml(m.name)}<span class="graduated-badge">Graduated</span>
               </div>
               <div class="member-fullname">${escapeHtml(fullNameText)}</div>
             </div>
@@ -535,7 +516,7 @@
 
     function selectGroupFilter(groupName) {
       currentGroupFilter = groupName;
-      document.querySelectorAll('#groupFilterTabs .group-filter-tab').forEach(tab => {
+      document.querySelectorAll('#groupTabs .group-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.group === groupName);
       });
       filterMembers();
@@ -549,7 +530,6 @@
           (m['Full Name(EN)'] || "").toLowerCase().includes(searchTerm);
 
         if (!matchesSearch) return false;
-        if (currentGroupFilter === 'ALL') return true;
 
         const groupName = (m.group_name || 'BLM48').toString().trim().toUpperCase();
         return groupName === currentGroupFilter;

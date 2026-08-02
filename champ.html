@@ -423,7 +423,13 @@
                 
                 const memberName = champ.name ? champ.name : 'Unknown Member';
                 const avatarImg = champ.profileImage ? champ.profileImage : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
-              
+
+                // 🎨 กรอบรูปแยกสีตามวง: BLM48 = เหลือง, NPT48 = ฟ้า #6acbfc
+                const isNPT48 = (champ.groupName || 'BLM48').toString().trim().toUpperCase() === 'NPT48';
+                const avatarFrameBg = isNPT48
+                    ? 'linear-gradient(45deg, #6acbfc, #e4f6ff, #a8e0fb)'
+                    : 'linear-gradient(45deg, #ffc107, #fff3cd, #ffe066)';
+
                 // 1. ตรวจสอบสถานะ Graduated
                 const isGraduated = champ.status === 'Graduated';
                 
@@ -445,7 +451,7 @@
                 // ปรับเปลี่ยนโครงสร้างภายใน: แยกเป็นส่วนเนื้อหาด้านบน (box-main-content) และปุ่มบาร์ยาวด้านล่าง (view-thanks-bottom-btn)
                 row.innerHTML = `
                     <div class="box-main-content">
-                        <div class="avatar-frame">
+                        <div class="avatar-frame" style="background: ${avatarFrameBg};">
                             ${statusProfileIcon}
                             <img class="member-avatar" loading="lazy" src="${avatarImg}" alt="${escapeHtml(memberName)}" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'">
                             <i class="fa-solid fa-crown crown-mini"></i>

@@ -1644,13 +1644,16 @@ if (action === "getMyInventory") {
     const membersData = memberSheet.getDataRange().getValues();
     const profileMap = {};
     const groupMap = {};
+    const statusMap = {};
     for (let i = 1; i < membersData.length; i++) {
       const mName = membersData[i][2] ? membersData[i][2].toString().trim() : "";
       const mProfile = membersData[i][7] ? membersData[i][7].toString().trim() : "";
       const mGroup = membersData[i][3] ? membersData[i][3].toString().trim() : "";
+      const mStatus = membersData[i][6] ? membersData[i][6].toString().trim() : "";
       if (mName) {
         profileMap[mName] = mProfile;
         groupMap[mName] = mGroup || "BLM48";
+        statusMap[mName] = mStatus || "Active";
       }
     }
 
@@ -1660,6 +1663,8 @@ if (action === "getMyInventory") {
     for (let j = 1; j < champData.length; j++) {
       const name = champData[j][1] ? champData[j][1].toString().trim() : "";
       if (name) {
+        // ถ้าไม่เจอชื่อนี้ในชีต members เลย แปลว่าไม่มีรายชื่ออยู่ในระบบแล้ว
+        const status = Object.prototype.hasOwnProperty.call(statusMap, name) ? statusMap[name] : "Not in System";
         champList.push({
           monthYear: champData[j][0] ? champData[j][0].toString().trim() : "",
           name: name,
@@ -1667,7 +1672,8 @@ if (action === "getMyInventory") {
           message: champData[j][3] ? champData[j][3].toString().trim() : "",
           postImage: champData[j][4] ? champData[j][4].toString().trim() : (champData[j][5] ? champData[j][5].toString().trim() : ""),
           profileImage: profileMap[name] || "",
-          groupName: groupMap[name] || "BLM48"
+          groupName: groupMap[name] || "BLM48",
+          status: status
         });
       }
     }
