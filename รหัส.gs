@@ -1643,15 +1643,20 @@ if (action === "getMyInventory") {
 
     const membersData = memberSheet.getDataRange().getValues();
     const profileMap = {};
+    const groupMap = {};
     for (let i = 1; i < membersData.length; i++) {
       const mName = membersData[i][2] ? membersData[i][2].toString().trim() : "";
       const mProfile = membersData[i][7] ? membersData[i][7].toString().trim() : "";
-      if (mName) profileMap[mName] = mProfile;
+      const mGroup = membersData[i][3] ? membersData[i][3].toString().trim() : "";
+      if (mName) {
+        profileMap[mName] = mProfile;
+        groupMap[mName] = mGroup || "BLM48";
+      }
     }
 
     const champData = champSheet.getDataRange().getValues();
     const champList = [];
-    
+
     for (let j = 1; j < champData.length; j++) {
       const name = champData[j][1] ? champData[j][1].toString().trim() : "";
       if (name) {
@@ -1661,7 +1666,8 @@ if (action === "getMyInventory") {
           totalCookie: champData[j][2] || 0,
           message: champData[j][3] ? champData[j][3].toString().trim() : "",
           postImage: champData[j][4] ? champData[j][4].toString().trim() : (champData[j][5] ? champData[j][5].toString().trim() : ""),
-          profileImage: profileMap[name] || "" 
+          profileImage: profileMap[name] || "",
+          groupName: groupMap[name] || "BLM48"
         });
       }
     }
@@ -2229,7 +2235,8 @@ function getRankingData() {
           total_cookies: Number(row[8]) || 0,                    // คอลัมน์ I (Index 8) - Total Cookie
           total_kami: Number(row[9]) || 0,                      // คอลัมน์ J (Index 9) - Total Kami
           total_oshi: Number(row[10]) || 0,                      // คอลัมน์ K (Index 10) - Total Oshi
-          totalLikes: Number(row[16]) || 0
+          totalLikes: Number(row[16]) || 0,
+          group_name: row[3] ? row[3].toString().trim() : "BLM48" // คอลัมน์ D (Index 3)
         };
       }
     });
@@ -2268,9 +2275,10 @@ function getRankingData() {
       total_kami: mData.total_kami || 0,            
       total_oshi: mData.total_oshi || 0,            
       all_time_total: mData.total_cookies || (Number(row[17]) || 0), // ใช้คุกกี้จาก members ก่อน ถ้าไม่มีค่อยไปเอาจาก R ใน ranking
-      profile_img: mData.profile_img || row[18],    
-      status: mData.status || "Active",             
-      totalLikes: mData.totalLikes || 0              
+      profile_img: mData.profile_img || row[18],
+      status: mData.status || "Active",
+      totalLikes: mData.totalLikes || 0,
+      group_name: mData.group_name || "BLM48"
     };
   });
   

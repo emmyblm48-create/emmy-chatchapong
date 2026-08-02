@@ -759,7 +759,7 @@ function renderMemberStatsAndFans() {
           title: 'กรุณาเข้าสู่ระบบ',
           text: 'คุณต้องเข้าสู่ระบบก่อนจึงจะร่วมกิจกรรมกับเมมเบอร์ได้ค่ะ 🌸',
           icon: 'warning',
-          confirmButtonColor: '#ff85a2',
+          confirmButtonColor: 'var(--blmem-pink)',
           confirmButtonText: 'รับทราบ'
         });
         return false;
@@ -1024,7 +1024,7 @@ function renderMemberStatsAndFans() {
 
       const finalConfirm = await Swal.fire({
         title: subTitle, text: confirmText, icon: 'question', showCancelButton: true,
-        confirmButtonColor: '#ff85a2', cancelButtonColor: '#aaa', confirmButtonText: 'ตกลง', cancelButtonText: 'ยกเลิก'
+        confirmButtonColor: 'var(--blmem-pink)', cancelButtonColor: '#aaa', confirmButtonText: 'ตกลง', cancelButtonText: 'ยกเลิก'
       });
 
       if (!finalConfirm.isConfirmed) return;
@@ -1105,7 +1105,7 @@ function renderMemberStatsAndFans() {
       if (!checkLoginStatus()) return;
 
       if (!user || !user.role || user.role.toLowerCase() !== 'user') {
-        Swal.fire({ title: 'คำเตือน', text: 'คุณไม่สามารถปาคุกกี้ได้ เนื่องจากคุณเป็นเมมเบอร์หรือแอดมิน', icon: 'error', confirmButtonColor: '#ff85a2' });
+        Swal.fire({ title: 'คำเตือน', text: 'คุณไม่สามารถปาคุกกี้ได้ เนื่องจากคุณเป็นเมมเบอร์หรือแอดมิน', icon: 'error', confirmButtonColor: 'var(--blmem-pink)' });
         return;
       }
 
@@ -1115,7 +1115,7 @@ function renderMemberStatsAndFans() {
           title: 'GRADUATED', 
           text: 'เมมเบอร์คนนี้จบการศึกษาแล้ว ไม่สามารถส่งคุกกี้ให้ได้ แต่ยังสนับสนุนด้วยการกดเป็น Oshi หรือ Kami ได้อยู่ค่ะ!', 
           icon: 'info', 
-          confirmButtonColor: '#ff85a2' 
+          confirmButtonColor: 'var(--blmem-pink)' 
         });
         return;
       }
@@ -1126,7 +1126,7 @@ function renderMemberStatsAndFans() {
         title: `ปาคุกกี้ให้ ${escapeHtml(memberName)}`,
         html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${userCookies.toLocaleString()}</b> ชิ้น</p>`,
         input: 'number', inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการส่ง', showCancelButton: true,
-        confirmButtonColor: '#ff85a2', confirmButtonText: 'ส่งคุกกี้', cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: 'var(--blmem-pink)', confirmButtonText: 'ส่งคุกกี้', cancelButtonText: 'ยกเลิก',
         inputValidator: (value) => {
           if (!value || parseInt(value) <= 0) { return 'กรุณาระบุจำนวนคุกกี้ที่ถูกต้องด้วยงับ!'; }
           if (parseInt(value) > userCookies) { return `คุกกี้ไม่พอค่ะ! คุณมีคุกกี้เหลือแค่ ${userCookies.toLocaleString()} ชิ้นเท่านั้น`; }
@@ -1301,7 +1301,7 @@ function renderPost(post) {
     // 🔇 ฟีเจอร์แนบเสียงพูดถูกปิดให้บริการแล้ว โพสเก่าที่เคยมีเสียงแนบเลยแสดงคำเตือนน่ารักๆ แทนเครื่องเล่นเสียง
     mediaHtml += `
       <div style="margin-top: 12px; background: #fff5f7; border: 1px dashed #ffc0cb; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; max-width: 400px;">
-        <i class="fa-solid fa-microphone-slash" style="color: #ff85a2; font-size: 1.1rem;"></i>
+        <i class="fa-solid fa-microphone-slash" style="color: var(--blmem-pink); font-size: 1.1rem;"></i>
         <span style="font-size: 0.8rem; color: #a68a90;">โพสนี้เคยมีข้อความเสียงแนบอยู่ แต่ตอนนี้ฟีเจอร์นี้ปิดให้บริการแล้วนะ 🙈</span>
       </div>
     `;
@@ -1364,7 +1364,7 @@ function renderPost(post) {
       <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
         ${profileImgHtml}
         <div>
-          <b style="color: #ff85a2;">${authorName} ${isPostVerified}</b>
+          <b style="color: var(--blmem-pink);">${authorName} ${isPostVerified}</b>
           <div style="font-size: 0.8rem; color: gray;">
             ${postTimestamp} ${graduatedSubtext}
           </div>
@@ -1378,7 +1378,7 @@ function renderPost(post) {
       </div>
       
       <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: #ff85a2; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        <button onclick="likePost('${postId}')" style="background: none; border: none; color: var(--blmem-pink); cursor: pointer; display: flex; align-items: center; gap: 6px;">
           <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
         </button>
         <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
@@ -1392,7 +1392,7 @@ function renderPost(post) {
         </div>
         <div class="comment-input-box" style="display: flex; gap: 8px;">
           <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-          <button onclick="submitComment('${postId}', this)" style="background: #ff85a2; color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
+          <button onclick="submitComment('${postId}', this)" style="background: var(--blmem-pink); color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
         </div>
       </div>
     </div>
@@ -1510,7 +1510,7 @@ function renderPost(post) {
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
     if (!hasExistingPosts) {
-       container.innerHTML = '<div style="text-align: center; color: #ff85a2; font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
+       container.innerHTML = '<div style="text-align: center; color: var(--blmem-pink); font-size: 13px; padding: 20px 0;">โหลดโพสต์ไม่สำเร็จ ลองใหม่อีกครั้งนะคะ</div>';
     }
   } finally {
     window.isTimelineLoading = false;
@@ -1545,7 +1545,7 @@ document.addEventListener('click', function() {
     async function deletePostUi(postId) {
       const result = await Swal.fire({
         title: 'ลบโพสต์นี้?', text: "ลบแล้วไม่สามารถกู้คืนได้นะงับ!", icon: 'warning',
-        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: '#d33', confirmButtonText: 'ลบเลย!'
+        showCancelButton: true, confirmButtonColor: 'var(--blmem-pink)', cancelButtonColor: '#d33', confirmButtonText: 'ลบเลย!'
       });
 
       if (result.isConfirmed) {
@@ -1574,7 +1574,7 @@ document.addEventListener('click', function() {
       const oldContent = decodeURIComponent(encodedContent);
       const { value: newText } = await Swal.fire({
         title: 'แก้ไขโพสต์', input: 'textarea', inputValue: oldContent,
-        showCancelButton: true, confirmButtonColor: '#ff85a2', cancelButtonColor: 'gray'
+        showCancelButton: true, confirmButtonColor: 'var(--blmem-pink)', cancelButtonColor: 'gray'
       });
 
       if (newText && newText !== oldContent) {
@@ -1665,7 +1665,7 @@ document.addEventListener('click', function() {
   window.likePost = async function(postId) {
     const currentUser = getUserSession();
     if (!currentUser || !currentUser.username) {
-      Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: '#ff85a2' });
+      Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: 'var(--blmem-pink)' });
       return;
     }
     const likeSpan = document.getElementById(`like-count-${postId}`);
@@ -1722,8 +1722,8 @@ document.addEventListener('click', function() {
             <img src="${escapeHtml(cmt.profile_img)}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
             <div style="font-size: 0.88rem; width: 100%;">
               <div style="display: flex; align-items: center; gap: 4px;">
-                <b style="color: #ff85a2;">${escapeHtml(cmt.name)}</b> ${isCmtVerified}
-                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: #ff85a2; border-radius: 4px; margin-left: auto;">${escapeHtml(cmt.role || 'user')}</span>
+                <b style="color: var(--blmem-pink);">${escapeHtml(cmt.name)}</b> ${isCmtVerified}
+                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: var(--blmem-pink); border-radius: 4px; margin-left: auto;">${escapeHtml(cmt.role || 'user')}</span>
               </div>
               <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
             </div>
