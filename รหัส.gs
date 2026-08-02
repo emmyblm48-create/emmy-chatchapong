@@ -1258,19 +1258,34 @@ function doGet(e) {
     else if (action === 'editPost') {
         const postId = e.parameter.postId;
         const reqUsername = e.parameter.username;
-        const reqUserRole = e.parameter.role; // รับ Role มาด้วย
         const newContent = e.parameter.newContent;
-        
+        // newImageUrl ถ้าไม่ส่งมาเลย (undefined) แปลว่าไม่แตะรูปภาพ ถ้าส่งมาเป็นค่าว่าง "" แปลว่าตั้งใจลบรูปทั้งหมด
+        const newImageUrl = e.parameter.newImageUrl;
+
+        // 🌟 ไม่ใช้ e.parameter.role จากหน้าบ้าน (แก้ไขให้เหมือน deletePost) แต่ไปหา Role จริงในชีต users กันมั่ว/ปลอมสิทธิ์
+        const userSheet = SS.getSheetByName('users');
+        const userData = userSheet.getDataRange().getValues();
+        let realRole = 'member';
+        for (let u = 1; u < userData.length; u++) {
+          if (userData[u][0] && userData[u][0].toString().trim() === reqUsername.toString().trim()) {
+            realRole = userData[u][3];
+            break;
+          }
+        }
+
         const postSheet = SS.getSheetByName('Posts');
         const postData = postSheet.getDataRange().getValues();
-        
+
         for (let i = 1; i < postData.length; i++) {
           const postAuthor = postData[i][1];
-          
+
           if (postData[i][0] == postId) {
             // เรียกใช้ฟังก์ชันเช็กสิทธิ์
-            if (canEditOrDelete({username: reqUsername, role: reqUserRole}, postAuthor)) {
+            if (canEditOrDelete({username: reqUsername, role: realRole}, postAuthor)) {
               postSheet.getRange(i + 1, 3).setValue(newContent);
+              if (typeof newImageUrl !== 'undefined') {
+                postSheet.getRange(i + 1, 4).setValue(newImageUrl);
+              }
               return jsonResponse({ status: "success", message: "Updated successfully" });
             } else {
               return jsonResponse({ status: "error", message: "Permission denied" });

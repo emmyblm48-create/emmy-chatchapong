@@ -3396,6 +3396,49 @@ document.addEventListener('DOMContentLoaded', renderTracker);
         return user.username === postAuthorUsername;
     }
   
+// 🖼️ สร้าง HTML แกลเลอรี่รูปภาพของโพสต์ (แยกออกมาให้เรียกซ้ำได้ตอนแก้ไขรูปในโพสต์แบบสด ๆ โดยไม่ต้องรีเฟรชทั้งโพสต์)
+function buildImagesHtml(displayImage) {
+  if (!displayImage) return '';
+  const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
+  if (imageUrls.length === 0) return '';
+
+  const visibleImages = imageUrls.slice(0, 4);
+  let imagesHtml = '';
+
+  if (imageUrls.length === 1) {
+    imagesHtml += `
+      <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
+        <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+      </div>
+    `;
+  } else if (imageUrls.length === 3) {
+    // 🖼️ เลย์เอาต์พิเศษสำหรับ 3 รูปพอดี: รูปแรกใหญ่ด้านบน อีก 2 รูปเรียงคู่ด้านล่าง (กริดสวยงามไม่มีช่องว่าง)
+    const allUrlsJs = imageUrls.map(u => `'${u}'`).join(',');
+    imagesHtml += `<div class="post-gallery post-gallery-3" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+    imagesHtml += `<div style="grid-column: 1 / span 2; position: relative; aspect-ratio: 16 / 10;">
+      <img src="${imageUrls[0]}" onclick="openImageViewer(0, [${allUrlsJs}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">
+    </div>`;
+    [1, 2].forEach(index => {
+      imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">
+        <img src="${imageUrls[index]}" onclick="openImageViewer(${index}, [${allUrlsJs}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">
+      </div>`;
+    });
+    imagesHtml += `</div>`;
+  } else {
+    imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+    visibleImages.forEach((url, index) => {
+      imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
+      imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
+      if (index === 3 && imageUrls.length > 4) {
+        imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
+      }
+      imagesHtml += `</div>`;
+    });
+    imagesHtml += `</div>`;
+  }
+  return imagesHtml;
+}
+
 function renderPost(post) {
   if (!post) return '';
 
@@ -3531,30 +3574,7 @@ function renderPost(post) {
     `;
   }
 
-  let imagesHtml = '';
-  if (displayImage) {
-    const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
-    const visibleImages = imageUrls.slice(0, 4);
-
-    if (imageUrls.length === 1) {
-      imagesHtml += `
-        <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
-          <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
-        </div>
-      `;
-    } else {
-      imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
-      visibleImages.forEach((url, index) => {
-        imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
-        imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
-        if (index === 3 && imageUrls.length > 4) {
-          imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
-        }
-        imagesHtml += `</div>`;
-      });
-      imagesHtml += `</div>`;
-    }
-  }
+  const imagesHtml = buildImagesHtml(displayImage);
 
   const actionMenu = canManage ? `
     <div class="post-menu-container">
@@ -3573,7 +3593,7 @@ function renderPost(post) {
   ` : '';
 
   return `
-    <div class="${postContainerClass}" id="post-${postId}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
+    <div class="${postContainerClass}" id="post-${postId}" data-images="${escapeAttr(displayImage)}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
       ${specialBadge}
       ${actionMenu}
 
@@ -3591,7 +3611,7 @@ function renderPost(post) {
 
       <div class="post-body" style="margin-bottom: 15px;">
         <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
-        ${imagesHtml}
+        <div id="post-images-${postId}">${imagesHtml}</div>
         ${mediaHtml}
       </div>
 
@@ -3777,31 +3797,85 @@ async function deletePostUi(postId) {
 }
   
 // ฟังก์ชันแก้ไขโพสต์ (อัปเดตให้ส่ง Role ไปหลังบ้าน)
+// 🖼️ รูปภาพที่กำลังแก้ไขอยู่ใน Modal แก้ไขโพสต์ (ลบ/สลับลำดับได้ก่อนกดบันทึก)
+let __editPostImages = [];
+
+function __renderEditPostImages() {
+  const container = document.getElementById('edit-post-img-list');
+  if (!container) return;
+
+  if (__editPostImages.length === 0) {
+    container.innerHTML = '<p style="color:#999; font-size:12px; margin:8px 0 0;">ไม่มีรูปภาพในโพสต์นี้</p>';
+    return;
+  }
+
+  container.innerHTML = __editPostImages.map((url, i) => `
+    <div style="position:relative; width:72px; height:72px; flex-shrink:0; margin-bottom:12px;">
+      <img src="${url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid #eee;">
+      <button type="button" onclick="__editPostRemoveImg(${i})" title="ลบรูปนี้" style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:#ff4757; color:#fff; border:none; font-size:11px; line-height:1; cursor:pointer;">✕</button>
+      <div style="position:absolute; bottom:-10px; left:0; right:0; display:flex; justify-content:center; gap:3px;">
+        <button type="button" onclick="__editPostMoveImg(${i},-1)" ${i === 0 ? 'disabled' : ''} style="width:18px; height:18px; border-radius:50%; border:1px solid #ddd; background:#fff; font-size:9px; cursor:pointer; ${i === 0 ? 'opacity:0.3;' : ''}">◀</button>
+        <button type="button" onclick="__editPostMoveImg(${i},1)" ${i === __editPostImages.length - 1 ? 'disabled' : ''} style="width:18px; height:18px; border-radius:50%; border:1px solid #ddd; background:#fff; font-size:9px; cursor:pointer; ${i === __editPostImages.length - 1 ? 'opacity:0.3;' : ''}">▶</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.__editPostRemoveImg = function(index) {
+  __editPostImages.splice(index, 1);
+  __renderEditPostImages();
+};
+
+window.__editPostMoveImg = function(index, direction) {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= __editPostImages.length) return;
+  const [moved] = __editPostImages.splice(index, 1);
+  __editPostImages.splice(newIndex, 0, moved);
+  __renderEditPostImages();
+};
+
 async function editPostUi(postId, encodedContent) {
   const oldContent = decodeURIComponent(encodedContent);
-  const { value: newText } = await Swal.fire({
+  const postEl = document.getElementById(`post-${postId}`);
+  const oldImageUrl = postEl ? (postEl.dataset.images || '') : '';
+  __editPostImages = oldImageUrl.split(',').map(s => s.trim()).filter(Boolean);
+
+  const { value: formValues } = await Swal.fire({
     title: 'แก้ไขโพสต์',
-    input: 'textarea',
-    inputValue: oldContent,
+    html: `
+      <textarea id="swal-edit-content" class="swal2-textarea" style="margin-top:0;">${escapeHtml(oldContent)}</textarea>
+      <div id="edit-post-img-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; text-align:left;"></div>
+    `,
+    didOpen: () => { __renderEditPostImages(); },
     showCancelButton: true,
     confirmButtonColor: 'var(--primary-pink)',
-    cancelButtonColor: 'gray'
+    cancelButtonColor: 'gray',
+    focusConfirm: false,
+    preConfirm: () => document.getElementById('swal-edit-content').value
   });
 
-  if (newText && newText !== oldContent) {
-    const currentUser = getUserSession();
-    const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
-    
-    // ✨ ทำการส่ง &role เพิ่มเติมเข้าไปใน URL พร้อมกับเนื้อหาใหม่
-    const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}`);
-    const data = await response.json();
+  if (typeof formValues === 'undefined') return; // กดยกเลิก
 
-    if (data.status === 'success') {
-      document.getElementById(`content-${postId}`).innerText = newText; // เปลี่ยนข้อความบนจอทันที
-      Swal.fire('สำเร็จ!', 'อัปเดตข้อความเรียบร้อย', 'success');
-    } else {
-      Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error');
-    }
+  const newText = formValues;
+  const newImageUrl = __editPostImages.join(',');
+
+  if (newText === oldContent && newImageUrl === oldImageUrl) return; // ไม่มีอะไรเปลี่ยน ไม่ต้องยิง request
+
+  const currentUser = getUserSession();
+  const userRole = currentUser ? (currentUser.role || "") : ""; // 🌟 ดึง role จาก session ปัจจุบัน
+
+  // ✨ ทำการส่ง &role และ &newImageUrl เพิ่มเติมเข้าไปใน URL พร้อมกับเนื้อหาใหม่
+  const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${currentUser.username}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}&newImageUrl=${encodeURIComponent(newImageUrl)}`);
+  const data = await response.json();
+
+  if (data.status === 'success') {
+    document.getElementById(`content-${postId}`).innerText = newText; // เปลี่ยนข้อความบนจอทันที
+    if (postEl) postEl.dataset.images = newImageUrl;
+    const imagesContainer = document.getElementById(`post-images-${postId}`);
+    if (imagesContainer) imagesContainer.innerHTML = buildImagesHtml(newImageUrl);
+    Swal.fire('สำเร็จ!', 'อัปเดตโพสต์เรียบร้อย', 'success');
+  } else {
+    Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error');
   }
 }
 
