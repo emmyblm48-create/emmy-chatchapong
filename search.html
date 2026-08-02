@@ -286,7 +286,7 @@
       border-radius: 50%;
       object-fit: cover;
       background: #fdfdfd;
-      border: 2px solid var(--blmem-pink);
+      border: 2px solid var(--search-group-color, var(--blmem-pink));
       box-shadow: 0 0 0 2px #fffdf0;
     }
 
@@ -419,9 +419,14 @@
 
     async function fetchAllMembers() {
       try {
-        const resp = await fetch(`${scriptURL}?action=getAllMembers&_=${Date.now()}`);
+        // ⏱️ กันหน้าค้างที่ "กำลังโหลด..." ตลอดไปถ้าเน็ต/เซิร์ฟเวอร์ไม่ตอบสนอง (timeout 15 วิ)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+        const resp = await fetch(`${scriptURL}?action=getAllMembers&_=${Date.now()}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         const res = await resp.json();
-        
+
         if (res.status === "success" && res.data) {
           // 🌟 [จุดสำคัญแก้ปัญหาแกรดหน่วง] ทำการกรองเอาเฉพาะแถวที่มีชื่อเมมเบอร์จริง ๆ (ไม่เป็นค่าว่าง)
           // แถวว่างเปล่าท้ายชีตจะถูกตัดทิ้งทั้งหมดตรงนี้ ทำให้วนลูปเร็วขึ้นมาก ไม่หน่วงเครื่องแน่นอนครับ
@@ -432,7 +437,8 @@
         }
       } catch (e) {
         console.error("Error fetching members:", e);
-        document.getElementById('memberList').innerHTML = '<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+        const isTimeout = e && e.name === 'AbortError';
+        document.getElementById('memberList').innerHTML = `<div class="empty-state">${isTimeout ? 'โหลดข้อมูลนานเกินไป กรุณาลองใหม่' : 'เกิดข้อผิดพลาดในการโหลดข้อมูล'}</div>`;
       }
     }
 
@@ -451,12 +457,10 @@
 
       // 1. หมวดหมู่แสดงผลเมมเบอร์ปัจจุบัน (Active Members)
       if (activeMembers.length > 0) {
-        if (graduatedMembers.length > 0) {
-          const activeTitle = document.createElement('div');
-          activeTitle.className = 'list-section-title';
-          activeTitle.innerHTML = `<i class="fas fa-users"></i> Members`;
-          listContainer.appendChild(activeTitle);
-        }
+        const activeTitle = document.createElement('div');
+        activeTitle.className = 'list-section-title';
+        activeTitle.innerHTML = `<i class="fas fa-users"></i> Members`;
+        listContainer.appendChild(activeTitle);
 
         activeMembers.forEach(m => {
           const item = document.createElement('a');
@@ -519,8 +523,16 @@
       document.querySelectorAll('#groupTabs .group-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.group === groupName);
       });
+      applyAvatarBorderColor();
       filterMembers();
     }
+
+    // 🎨 กรอบรูปเมมเบอร์ในหน้านี้เปลี่ยนสีตามแท็บวงที่กำลังดูอยู่ (BLM48 = เหลือง, NPT48 = ฟ้า)
+    function applyAvatarBorderColor() {
+      const color = currentGroupFilter === 'NPT48' ? '#6acbfc' : '#ffc107';
+      document.documentElement.style.setProperty('--search-group-color', color);
+    }
+    applyAvatarBorderColor();
 
     function filterMembers() {
       const searchTerm = document.getElementById('searchInput').value.toLowerCase();
