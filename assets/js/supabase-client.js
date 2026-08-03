@@ -46,3 +46,10 @@ function blm48GetInventory(username) {
 function blm48GetWallet(username) {
   return blm48Rpc('get_wallet', { p_username: username });
 }
+// yearMonth is 'YYYY-MM'; omit it to get the current month
+function blm48GetRanking(yearMonth) {
+  return blm48Rpc('get_ranking', { p_year_month: yearMonth || null });
+}
+function blm48GetRankingMonths() {
+  return blm48Rpc('get_ranking_months', {});
+}

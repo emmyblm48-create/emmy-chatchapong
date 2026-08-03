@@ -1207,11 +1207,11 @@ function doGet(e) {
           }
       }
 
-      // 🌟 [ส่วนเพิ่มใหม่] ตรวจสอบและบันทึกคะแนนคุกกี้ลงชีต ranking ตามเดือน
+      // 🌟 ตรวจสอบและบันทึกคะแนนคุกกี้ลง ranking_monthly บน Supabase ตามเดือนของโพสต์
+      // (ย้ายจากการเขียนลงชีต ranking ตรงๆ มาเป็นแหล่งเดียวกับ give_cookie เพื่อไม่ให้ยอดแยกกันสองที่)
       if (authorUsername && postTimestampStr) {
         const userSheet = SS.getSheetByName('users');
-        const rankingSheet = SS.getSheetByName('ranking');
-        
+
         // A. ค้นหาชื่อเมมเบอร์จากชีต users (เช็คคอลัมน์ A ตรงกับคอลัมน์ C)
         const userData = userSheet.getDataRange().getValues();
         let memberName = "";
@@ -1222,46 +1222,14 @@ function doGet(e) {
           }
         }
 
-        // B. ถ้าพบชื่อเมมเบอร์ ให้ดำเนินการเช็คเดือนและอัปเดตชีต ranking
         if (memberName) {
-          // ดึงชื่อเดือนภาษาอังกฤษจาก Timestamp ของโพสต์ เพื่อเอาไปหาคอลัมน์ในบรรทัดแรก
-          // 🇹🇭 บังคับให้อิงเดือนตามไทม์โซนประเทศไทย (Asia/Bangkok) กันโพสต์ใกล้เที่ยงคืนตกไปคนละเดือน
+          // 🇹🇭 บังคับให้อิงเดือน/ปีตามไทม์โซนประเทศไทย (Asia/Bangkok) กันโพสต์ใกล้เที่ยงคืนตกไปคนละเดือน
           const postDate = new Date(new Date(postTimestampStr).toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-          const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
-          const targetMonth = months[postDate.getMonth()];
+          const postYearMonth = Utilities.formatDate(postDate, "Asia/Bangkok", "yyyy-MM");
 
-          const rankingData = rankingSheet.getDataRange().getValues();
-          const headerRow = rankingData[0]; // แถวแรกของชีต ranking
-          
-          // ค้นหาตำแหน่งคอลัมน์ของเดือน (รองรับกรณีตัวอักษรพิมพ์เล็ก-ใหญ่ หรือมีเว้นวรรค เช่น "January ")
-          let targetColIdx = -1;
-          for (let c = 0; c < headerRow.length; c++) {
-            if (String(headerRow[c]).toLowerCase().trim() === targetMonth) {
-              targetColIdx = c + 1; // แปลงเป็น Base-1 สำหรับ getRange
-              break;
-            }
-          }
-
-          // ค้นหาแถวของเมมเบอร์คนนั้นในคอลัมน์ B (name)
-          let targetRowIdx = -1;
-          for (let r = 1; r < rankingData.length; r++) {
-            if (String(rankingData[r][1]).trim() === String(memberName).trim()) { // คอลัมน์ B: name
-              targetRowIdx = r + 1; // แปลงเป็น Base-1 สำหรับ getRange
-              break;
-            }
-          }
-
-          // C. เมื่อเจอตำแหน่งทั้ง แถว และ คอลัมน์ แล้ว ให้คำนวณแต้มคุกกี้
-          if (targetRowIdx > -1 && targetColIdx > -1) {
-            const cell = rankingSheet.getRange(targetRowIdx, targetColIdx);
-            const currentCookies = Number(cell.getValue()) || 0;
-            
-            // เงื่อนไข: 1 ไลก์ = 9 คุกกี้ (ถ้ากดไลก์บวก 9, ถอนไลก์ลบออก 9)
-            const cookieChange = isNowLiked ? 9 : -9;
-            
-            // ทำการบันทึกค่าใหม่ทับช่องเดิม โดยไม่กระทบกับคะแนนคุกกี้อื่นๆ ในระบบ
-            cell.setValue(currentCookies + cookieChange);
-          }
+          // เงื่อนไข: 1 ไลก์ = 9 คุกกี้ (ถ้ากดไลก์บวก 9, ถอนไลก์ลบออก 9)
+          const cookieChange = isNowLiked ? 9 : -9;
+          bumpRankingInSupabase_(memberName, postYearMonth, cookieChange);
         }
       }
 
@@ -2882,6 +2850,26 @@ function supabaseSelect_(table, queryString) {
     return [];
   }
   return JSON.parse(res.getContentText());
+}
+
+// เพิ่ม/ลบคุกกี้ในการจัดอันดับของเมมเบอร์คนหนึ่งสำหรับเดือน/ปีที่ระบุ (ใช้กับผลจากการกดไลก์โพสต์)
+// ฟังก์ชัน bump_ranking_monthly ฝั่ง Supabase ไม่ได้ grant ให้ anon เรียก — เรียกได้เฉพาะผ่าน service_role นี้เท่านั้น
+function bumpRankingInSupabase_(memberName, yearMonth, delta) {
+  try {
+    var cfg = getSupabaseConfig_();
+    var res = UrlFetchApp.fetch(cfg.url + '/rest/v1/rpc/bump_ranking_monthly', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { apikey: cfg.key, Authorization: 'Bearer ' + cfg.key },
+      payload: JSON.stringify({ p_member_name: memberName, p_year_month: yearMonth, p_delta: delta }),
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() >= 300) {
+      Logger.log('bumpRankingInSupabase_ failed: ' + res.getContentText());
+    }
+  } catch (err) {
+    Logger.log('bumpRankingInSupabase_ exception: ' + err.message);
+  }
 }
 
 // อ่านชีตเป็น array ของ object โดยใช้แถวหัวตารางเป็นคีย์ (ตัดช่องว่างหัว/ท้ายออกให้)
