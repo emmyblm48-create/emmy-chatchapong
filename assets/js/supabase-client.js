@@ -57,3 +57,18 @@ function blm48GetRankingMonths() {
 function blm48GetRankingFull(yearMonth) {
   return blm48Rpc('get_ranking_full', { p_year_month: yearMonth || null });
 }
+
+// Live-updates whenever anyone's monthly cookie total changes (give_cookie, likePost).
+// onChange is called with no arguments — caller decides what to re-fetch/re-render.
+// Debounced so a burst of cookies within the same window only triggers one refresh.
+function blm48SubscribeRanking(onChange, debounceMs) {
+  let timer = null;
+  const trigger = () => {
+    clearTimeout(timer);
+    timer = setTimeout(onChange, debounceMs || 400);
+  };
+  return blm48Supabase
+    .channel('ranking-monthly-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'ranking_monthly' }, trigger)
+    .subscribe();
+}

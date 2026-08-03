@@ -2320,15 +2320,15 @@ async function loadData() {
     try { renderChampBanner(JSON.parse(cachedChamp)); } catch(e) {}
   }
 
-  // 2. 📡 ยิงดึงข้อมูลใหม่ล่าสุดจาก Google Sheets เสมอ (ไม่ใช้ตัวบล็อกเวลา 3 นาทีแล้ว)
+  // 2. 📡 ยิงดึงข้อมูลใหม่ล่าสุดเสมอ (อันดับคุกกี้ดึงจาก Supabase ตามเดือนปัจจุบันตามไทม์โซนไทยอัตโนมัติ)
   try {
-    const [rankingResp, topFansResp, champResp] = await Promise.all([
-      fetch(`${scriptURL}?_=${Date.now()}`),
+    const [rankingData, topFansResp, champResp] = await Promise.all([
+      blm48GetRankingFull(), // ไม่ส่ง yearMonth = ให้ Supabase คิดเดือนปัจจุบันเองจาก Asia/Bangkok
       fetch(`${scriptURL}?action=getTopFans&_=${Date.now()}`),
       fetch(`${scriptURL}?action=getChampOfTheMonth&_=${Date.now()}`)
     ]);
 
-    currentRankingData = await rankingResp.json();
+    currentRankingData = Array.isArray(rankingData) ? rankingData : [];
     currentTopFansData = await topFansResp.json();
     const champJson = await champResp.json();
 
@@ -2756,24 +2756,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 6. แอบโหลดข้อมูลอันดับเบื้องหลังแบบเงียบๆ
     if (typeof loadData === 'function') await loadData();
 
-    // 🔴 Realtime: มีคนปาคุกกี้ให้เมมเบอร์คนไหนก็ตาม -> อัปเดต Member Ranking ทันทีไม่ต้องรอโหลดหน้าใหม่
-    if (window.BLM48Realtime) {
-      window.BLM48Realtime.subscribeRanking((rankingUpdates) => {
-        if (!Array.isArray(currentRankingData) || currentRankingData.length === 0) return;
-        let changed = false;
-        Object.keys(rankingUpdates).forEach((memberKey) => {
-          const entry = rankingUpdates[memberKey];
-          if (!entry || entry.monthly_cookies === undefined) return;
-          const member = currentRankingData.find(m => m.name && m.name.toString().trim().toLowerCase() === memberKey.trim().toLowerCase());
-          if (member && member.monthly_cookies !== entry.monthly_cookies) {
-            member.monthly_cookies = entry.monthly_cookies;
-            changed = true;
-          }
-        });
-        if (changed) {
-          currentRankingData.sort((a, b) => (Number(b.monthly_cookies) || 0) - (Number(a.monthly_cookies) || 0));
+    // 🔴 Realtime (Supabase): มีคนปาคุกกี้/กดใจโพสต์ให้เมมเบอร์คนไหนก็ตาม -> อัปเดต Member Ranking
+    // ทันทีไม่ต้องรอโหลดหน้าใหม่ เสมอเป็นเดือนปัจจุบันตามไทม์โซนไทย (ไม่มีตัวเลือกเดือนอื่น)
+    if (typeof blm48SubscribeRanking === 'function') {
+      blm48SubscribeRanking(async () => {
+        try {
+          const data = await blm48GetRankingFull();
+          if (!Array.isArray(data)) return;
+          currentRankingData = data;
           localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
           if (typeof renderRanking === 'function') renderRanking(currentRankingData);
+        } catch (e) {
+          console.error('Realtime ranking refresh error:', e);
         }
       });
     }
