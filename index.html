@@ -2080,9 +2080,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <i class="fa-solid fa-wand-magic-sparkles decor-item d5-3"></i>
 </div>
 
-  <div style="position: relative; z-index: 2; display: flex; justify-content: flex-end; padding: 0 15px 8px;">
-    <select id="ranking-month-select" onchange="changeRankingMonth(this.value)" style="font-family: 'Kanit', sans-serif; font-size: 12px; padding: 5px 10px; border-radius: 12px; border: 1px solid #ffd3e0; background: #fff; color: #ff5376;"></select>
-  </div>
   <div id="ranking-list" class="horizontal-list" style="position: relative; z-index: 2;"></div>
 </div>
   
@@ -2173,7 +2170,6 @@ const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWts
 
 var user = null;
 var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) || [];
-var selectedRankingMonth = null; // null = current month (ค่าจาก currentRankingData ตรงๆ)
 var currentTopFansData = JSON.parse(localStorage.getItem('bnl_topfans_cache')) || {};
 
 function isUserMember() {
@@ -2759,7 +2755,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // 6. แอบโหลดข้อมูลอันดับเบื้องหลังแบบเงียบๆ
     if (typeof loadData === 'function') await loadData();
-    if (typeof populateRankingMonthSelector === 'function') populateRankingMonthSelector();
 
     // 🔴 Realtime: มีคนปาคุกกี้ให้เมมเบอร์คนไหนก็ตาม -> อัปเดต Member Ranking ทันทีไม่ต้องรอโหลดหน้าใหม่
     if (window.BLM48Realtime) {
@@ -2778,8 +2773,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (changed) {
           currentRankingData.sort((a, b) => (Number(b.monthly_cookies) || 0) - (Number(a.monthly_cookies) || 0));
           localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
-          // อย่าไปทับหน้าจอถ้าผู้ใช้กำลังดูอันดับเดือนอื่นอยู่
-          if (!selectedRankingMonth && typeof renderRanking === 'function') renderRanking(currentRankingData);
+          if (typeof renderRanking === 'function') renderRanking(currentRankingData);
         }
       });
     }
@@ -3023,63 +3017,6 @@ function saveRankingTrackingMaps(activeMembers, indicatorsByName) {
   activeMembers.forEach((m, i) => { newLastRankMap[m.name] = i; });
   localStorage.setItem(RANKING_LAST_RANK_KEY, JSON.stringify(newLastRankMap));
   localStorage.setItem(RANKING_STICKY_INDICATOR_KEY, JSON.stringify(indicatorsByName));
-}
-
-// 🗓️ อันดับคุกกี้รายเดือน: ยอดคุกกี้จริงมาจาก Supabase (ranking_monthly) เสมอ ไม่ว่าจะเป็นเดือน
-// อดีต/ปัจจุบัน/อนาคต ส่วนรูป/สถานะ/กลุ่มเมมเบอร์ยังใช้ roster จาก currentRankingData เดิม (ไม่ค่อยเปลี่ยน)
-function currentYearMonth() {
-  const now = new Date();
-  return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-}
-
-async function populateRankingMonthSelector() {
-  const sel = document.getElementById('ranking-month-select');
-  if (!sel) return;
-  const currentYm = currentYearMonth();
-
-  let months = [];
-  try { months = await blm48GetRankingMonths(); } catch (e) { months = []; }
-  if (!Array.isArray(months)) months = [];
-  if (months.indexOf(currentYm) === -1) months.unshift(currentYm);
-  months.sort((a, b) => b.localeCompare(a));
-
-  const monthNamesTh = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-  sel.innerHTML = months.map(ym => {
-    const parts = ym.split('-');
-    const label = monthNamesTh[Number(parts[1]) - 1] + ' ' + (Number(parts[0]) + 543); // พ.ศ.
-    return `<option value="${ym}">${label}</option>`;
-  }).join('');
-  sel.value = currentYm;
-}
-
-async function changeRankingMonth(yearMonth) {
-  const currentYm = currentYearMonth();
-  selectedRankingMonth = (yearMonth === currentYm) ? null : yearMonth;
-
-  if (!Array.isArray(currentRankingData) || currentRankingData.length === 0) return;
-
-  // เดือนปัจจุบัน: ใช้ currentRankingData ตรงๆ (มาจาก getRankingData / realtime อยู่แล้ว)
-  if (!selectedRankingMonth) {
-    renderRanking(currentRankingData);
-    return;
-  }
-
-  try {
-    const monthTotals = await blm48GetRanking(selectedRankingMonth);
-    const totalsMap = {};
-    (Array.isArray(monthTotals) ? monthTotals : []).forEach(t => {
-      totalsMap[t.name.toString().trim().toLowerCase()] = Number(t.monthly_cookies) || 0;
-    });
-
-    const merged = currentRankingData.map(m => ({
-      ...m,
-      monthly_cookies: totalsMap[m.name ? m.name.toString().trim().toLowerCase() : ''] || 0
-    })).sort((a, b) => (Number(b.monthly_cookies) || 0) - (Number(a.monthly_cookies) || 0));
-
-    renderRanking(merged);
-  } catch (e) {
-    console.error('changeRankingMonth error:', e);
-  }
 }
 
 function renderRanking(data) {
