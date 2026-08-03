@@ -2805,7 +2805,7 @@ function getDashboardDataProcess(username) {
 //      (จะขอสิทธิ์ authorize — กดอนุญาตได้เลย)
 // =========================================================================
 
-var BLM48_SYNCED_SHEETS = ["Collections", "Items", "codes", "users"];
+var BLM48_SYNCED_SHEETS = ["Collections", "Items", "codes", "users", "members"];
 
 function getSupabaseConfig_() {
   var props = PropertiesService.getScriptProperties();
@@ -2870,6 +2870,26 @@ function bumpRankingInSupabase_(memberName, yearMonth, delta) {
   } catch (err) {
     Logger.log('bumpRankingInSupabase_ exception: ' + err.message);
   }
+}
+
+// ลบแถวออกจากตาราง Supabase ตามเงื่อนไข filter ของ PostgREST เช่น "username=eq.00-1"
+function supabaseDelete_(table, filterQuery) {
+  var cfg = getSupabaseConfig_();
+  var res = UrlFetchApp.fetch(cfg.url + '/rest/v1/' + table + '?' + filterQuery, {
+    method: 'delete',
+    headers: { apikey: cfg.key, Authorization: 'Bearer ' + cfg.key, Prefer: 'return=minimal' },
+    muteHttpExceptions: true
+  });
+  if (res.getResponseCode() >= 300) {
+    Logger.log('supabaseDelete_ ' + table + ' failed: ' + res.getContentText());
+  }
+}
+
+// แปลงค่าวันเกิดในชีต (อาจเป็น Date object หรือ string) ให้เป็น 'yyyy-MM-dd' — เอาแค่วัน/เดือนไปใช้จริง ปีไม่มีผล
+function sheetDateToISODate_(val) {
+  if (!val) return null;
+  if (val instanceof Date) return Utilities.formatDate(val, "Asia/Bangkok", "yyyy-MM-dd");
+  return null;
 }
 
 // อ่านชีตเป็น array ของ object โดยใช้แถวหัวตารางเป็นคีย์ (ตัดช่องว่างหัว/ท้ายออกให้)
@@ -2956,11 +2976,68 @@ function syncUsersProfileToSupabase_() {
   supabaseUpsert_('users?on_conflict=username', rows);
 }
 
+// เมมเบอร์: catalog เต็มรูปแบบ (โปรไฟล์, ธีมแชมป์, วันเกิด ฯลฯ) แอดมินยังแก้ในชีตนี้เหมือนเดิม
+function syncMembersToSupabase_() {
+  var data = readSheetAsObjects_("members");
+  var clean = function (v) { return (v === "#N/A" || v === "-" || v === "") ? null : v; };
+  var rows = data.filter(function (r) { return r.name && r.name.toString().trim() !== ""; })
+    .map(function (r) {
+      return {
+        member_id: r.member_id ? r.member_id.toString().trim() : null,
+        full_name_en: clean(r["Full Name(EN)"]),
+        name: r.name.toString().trim(),
+        group_name: clean(r.group_name),
+        generation: r.generation === "" ? null : r.generation.toString(),
+        team: clean(r.team),
+        status: clean(r.status),
+        profile_img: clean(r.profile),
+        total_cookie_legacy: r["total cookie"] === "" ? null : Number(r["total cookie"]),
+        total_kamioshi_legacy: r["total kamioshi"] === "" ? null : Number(r["total kamioshi"]),
+        total_oshi_legacy: r["total oshi"] === "" ? null : Number(r["total oshi"]),
+        splash_url: clean(r.Splash_URL),
+        nav_home_url: clean(r.Nav_Home_URL),
+        nav_kami_url: clean(r.Nav_Kami_URL),
+        nav_cart_url: clean(r.Nav_Cart_URL),
+        nav_noti_url: clean(r.Nav_Noti_URL),
+        total_like: r["total Like"] === "" ? null : Number(r["total Like"]),
+        birthday: sheetDateToISODate_(r.Birthday),
+        splash_bd_url: clean(r.SplashBD_URL),
+        banner_bd_url: clean(r.BannerBD_URL),
+        updated_at: new Date().toISOString()
+      };
+    })
+    .filter(function (r) { return r.member_id; });
+  supabaseUpsert_('members?on_conflict=member_id', rows);
+}
+
+// user_oshi: ตารางแยกที่ normalize มาจากคอลัมน์ kamioshi/oshi1..oshi10 ในชีต users
+// ผู้ใช้ยังกดตั้งค่าผ่าน setKamioshi/setOshi/removeOshi (เขียนลงชีตเหมือนเดิม) ฟังก์ชันนี้แค่ mirror
+// ทำแบบล้างของเก่าทั้งตารางแล้วใส่ใหม่ทั้งหมด เพราะข้อมูลไม่เยอะ (หลักร้อยแถว) ปลอดภัยกว่าไล่ diff เอง
+function syncUserOshiToSupabase_() {
+  var data = readSheetAsObjects_("users");
+  var rows = [];
+  data.forEach(function (r) {
+    var username = r.username ? r.username.toString().trim() : "";
+    if (!username) return;
+    var kamioshi = r.kamioshi ? r.kamioshi.toString().trim() : "";
+    if (kamioshi) rows.push({ username: username, member_name: kamioshi, relation: 'kamioshi' });
+    for (var i = 1; i <= 10; i++) {
+      var name = r['oshi' + i] ? r['oshi' + i].toString().trim() : "";
+      if (name) rows.push({ username: username, member_name: name, relation: 'oshi' });
+    }
+  });
+
+  // ต้องมี filter เสมอสำหรับ DELETE ผ่าน PostgREST — ใช้เงื่อนไขที่จริงเสมอเพื่อลบทั้งตาราง
+  supabaseDelete_('user_oshi', 'username=not.is.null');
+  supabaseUpsert_('user_oshi?on_conflict=username,member_name,relation', rows);
+}
+
 function syncSheetToSupabase_(sheetName) {
   if (sheetName === "Collections") syncCollectionsToSupabase_();
   else if (sheetName === "Items") syncItemsToSupabase_();
   else if (sheetName === "codes") syncCodesToSupabase_();
-  else if (sheetName === "users") syncUsersProfileToSupabase_();
+  else if (sheetName === "users") { syncUsersProfileToSupabase_(); syncUserOshiToSupabase_(); }
+  else if (sheetName === "members") syncMembersToSupabase_();
 }
 
 // ---------- ขาไป: ติดตั้งเป็น "installable trigger" เท่านั้น (onEdit ธรรมดายิง UrlFetchApp ไม่ได้) ----------

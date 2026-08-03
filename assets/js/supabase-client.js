@@ -53,3 +53,7 @@ function blm48GetRanking(yearMonth) {
 function blm48GetRankingMonths() {
   return blm48Rpc('get_ranking_months', {});
 }
+// full ranking board for one month: name, photo, status, group, monthly + all-time cookies, kami/oshi counts
+function blm48GetRankingFull(yearMonth) {
+  return blm48Rpc('get_ranking_full', { p_year_month: yearMonth || null });
+}
