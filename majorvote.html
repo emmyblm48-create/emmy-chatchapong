@@ -22,6 +22,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
     <style>
         :root {
             --primary-pink: #ff85a2;
@@ -344,21 +346,16 @@
 
     async function loadUserBalancesRealTime() {
         try {
-            const url = `${scriptURL}?action=getUserInfo&username=${encodeURIComponent(username)}&_=${new Date().getTime()}`;
-            const response = await fetch(url);
-            const result = await response.json();
-            
-            if (result.status === "success" && result.data) {
-                const tokenValue = result.data.Token !== undefined ? result.data.Token : (result.data.token || 0);
-                const geTokenValue = result.data.GEToken !== undefined ? result.data.GEToken : (result.data.geToken || 0);
-                
-                document.getElementById("token-balance").textContent = Number(tokenValue).toLocaleString();
-                document.getElementById("getoken-balance").textContent = Number(geTokenValue).toLocaleString();
-                
-                localStorage.setItem('bnl_vote_wallet_cache', JSON.stringify(result.data));
+            // token/cookie/geToken ตอนนี้ Supabase เป็นเจ้าของค่าจริง ดึงจากตรงนั้นแทนชีต
+            const wallet = await blm48GetWallet(username);
+            if (wallet && wallet.token !== undefined) {
+                document.getElementById("token-balance").textContent = Number(wallet.token).toLocaleString();
+                document.getElementById("getoken-balance").textContent = Number(wallet.geToken).toLocaleString();
+
+                localStorage.setItem('bnl_vote_wallet_cache', JSON.stringify(wallet));
             }
-        } catch (error) { 
-            console.error("โหลดยอดเงินเรียลไทม์ขัดข้อง:", error); 
+        } catch (error) {
+            console.error("โหลดยอดเงินเรียลไทม์ขัดข้อง:", error);
         }
     }
 
@@ -471,13 +468,9 @@
         if (code) {
             Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
             try {
-                const resp = await fetch(scriptURL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'redeemCode', username: username, code: code }) // ✨ เปลี่ยนเป็น username
-                });
-                const res = await resp.json();
-              
-                if (res.status === "success") { 
+                const res = await blm48RedeemCode(username, code);
+
+                if (res.status === "success") {
                     Swal.fire('สำเร็จ!', res.message, 'success').then(() => {
                         // ⚡ เรียกฟังก์ชันนี้เพื่อดึงยอดเงินล่าสุดมาแสดงทันทีโดยไม่ต้อง Refresh หน้าเว็บให้สะดุด
                         loadUserBalancesRealTime();

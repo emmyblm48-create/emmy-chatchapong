@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
     
     <style>
         :root {
@@ -643,16 +645,34 @@
         container.innerHTML = `<div class="inv-state-box"><i class="fa-solid fa-spinner fa-spin"></i>กำลังเปิดค้นหากระเป๋าสะสมดิจิทัลล่าสุด...</div>`;
 
         try {
-            const response = await fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}&_=${new Date().getTime()}`);
-            const res = await response.json();
+            // ของเก่า (ตั๋วคอนเสิร์ต, การ์ดขอบคุณจากโหวต/ของขวัญ) ยังอยู่ฝั่ง Google Sheets เหมือนเดิม
+            // ของใหม่ (กาชา, BLM48 Cafe) ย้ายไป Supabase แล้ว ต้องดึงมารวมกันทั้งสองที่
+            const [legacyRes, supabaseInventory] = await Promise.all([
+                fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}&_=${new Date().getTime()}`)
+                    .then(r => r.json()).catch(() => ({ status: "error", inventory: [] })),
+                blm48GetInventory(currentUsername).catch(() => [])
+            ]);
 
-            if (res.status === "success") {
-                globalInventoryData = res.inventory; // จะได้เป็น Array ของไอเทมทั้งหมดมา
+            if (legacyRes.status === "success" || Array.isArray(supabaseInventory)) {
+                const merged = {};
+                const addAll = (list) => {
+                    (list || []).forEach(item => {
+                        const key = item.category + '||' + item.name;
+                        if (!merged[key]) {
+                            merged[key] = { ...item, qty: 0 };
+                        }
+                        merged[key].qty += Number(item.qty) || 0;
+                    });
+                };
+                addAll(legacyRes.inventory);
+                addAll(supabaseInventory);
+
+                globalInventoryData = Object.values(merged);
                 updateInventoryStats();
                 renderFilters();
                 renderInventoryData();
             } else {
-                container.innerHTML = `<div class="inv-state-box is-error"><i class="fa-solid fa-triangle-exclamation"></i>ดึงข้อมูลล้มเหลว: ${res.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</div>`;
+                container.innerHTML = `<div class="inv-state-box is-error"><i class="fa-solid fa-triangle-exclamation"></i>ดึงข้อมูลล้มเหลว: ${legacyRes.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</div>`;
             }
         } catch (err) {
             console.error(err);

@@ -18,6 +18,8 @@
     <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -659,8 +661,16 @@
         const res = await resp.json();
         if (res.status === "success") {
           user = res.data;
-          saveUserSession(user); 
-          updateButtonStyles(); 
+          // token/cookie/geToken now live in Supabase (updated on every transaction),
+          // so overlay the live numbers instead of trusting the Sheets snapshot above.
+          const wallet = await blm48GetWallet(user.username);
+          if (wallet && wallet.token !== undefined) {
+            user.token = wallet.token;
+            user.cookie = wallet.cookie;
+            user.geToken = wallet.geToken;
+          }
+          saveUserSession(user);
+          updateButtonStyles();
         }
       } catch (e) { console.error("Sync Error:", e); }
     }
@@ -1164,11 +1174,7 @@ function renderMemberStatsAndFans() {
           // 🚀 2. แอบส่งข้อมูลเงียบๆ เบื้องหลัง
           // ==========================================
           try {
-            const resp = await fetch(scriptURL, {
-              method: 'POST',
-              body: JSON.stringify({ action: 'giveCookie', username: user.username, memberName: memberName, amount: amountSent })
-            });
-            const res = await resp.json();
+            const res = await blm48GiveCookie(user.username, memberName, amountSent);
 
             if (res.status === "success") {
               syncUserData(); 

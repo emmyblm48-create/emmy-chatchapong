@@ -25,6 +25,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
@@ -498,9 +500,16 @@ body {
       const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
       const res = await resp.json();
       if (res.status === "success") {
-        user = res.data; 
-        saveUserSession(user); 
-        updateProfileUI(); 
+        user = res.data;
+        // token/cookie/geToken now live in Supabase, overlay the live numbers
+        const wallet = await blm48GetWallet(user.username);
+        if (wallet && wallet.token !== undefined) {
+          user.token = wallet.token;
+          user.cookie = wallet.cookie;
+          user.geToken = wallet.geToken;
+        }
+        saveUserSession(user);
+        updateProfileUI();
       }
     } catch (e) { console.error("Sync Error:", e); }
   }
@@ -645,14 +654,10 @@ body {
     if (code) {
       Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading() });
       try {
-        const resp = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'redeemCode', username: user.username, code: code })
-        });
-        const res = await resp.json();
-        if (res.status === "success") { 
-          await syncUserData(); 
-          Swal.fire('สำเร็จ!', res.message, 'success'); 
+        const res = await blm48RedeemCode(user.username, code);
+        if (res.status === "success") {
+          await syncUserData();
+          Swal.fire('สำเร็จ!', res.message, 'success');
         } else { Swal.fire('ผิดพลาด', res.message, 'error'); }
       } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
     }

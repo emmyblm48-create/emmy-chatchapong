@@ -20,6 +20,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
@@ -2240,12 +2242,22 @@ async function syncUserData() {
 
     // เคสปกติ: หลังบ้านแจ้งว่าสำเร็จ (แปลว่ามียูสเซอร์ และในชีทมีรหัสผ่านถูกต้อง)
     if (result.success && result.status === "success") {
-  
+
+    // token/cookie/geToken ตอนนี้ Supabase เป็นเจ้าของค่าจริง ดึงมาทับของจากชีตอีกที
+    try {
+      const wallet = await blm48GetWallet(currentUsername);
+      if (wallet && wallet.token !== undefined) {
+        result.data.token = wallet.token;
+        result.data.cookie = wallet.cookie;
+        result.data.geToken = wallet.geToken;
+      }
+    } catch (e) { console.error("Wallet sync error:", e); }
+
     // 💡 แก้ไขบรรทัดนี้: ห่อให้มี success, status และ data เหมือนโครงสร้างดั้งเดิม
-    localStorage.setItem('bnl_session', JSON.stringify({ 
-      success: true, 
-      status: "success", 
-      data: result.data 
+    localStorage.setItem('bnl_session', JSON.stringify({
+      success: true,
+      status: "success",
+      data: result.data
     }));
       user = result.data; // อัปเดตตัวแปร Global ในหน้าเว็บ
       if (typeof updateUI === 'function') updateUI(); // อัปเดตแต้ม/รูปโปรไฟล์ล่าสุดบนหน้าจอ
@@ -3930,14 +3942,10 @@ async function redeemCode() {
     if (code) {
       Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading() });
       try {
-        const resp = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'redeemCode', username: user.username, code: code })
-        });
-        const res = await resp.json();
-        if (res.status === "success") { 
-          await syncUserData(); 
-          Swal.fire('สำเร็จ!', res.message, 'success'); 
+        const res = await blm48RedeemCode(user.username, code);
+        if (res.status === "success") {
+          await syncUserData();
+          Swal.fire('สำเร็จ!', res.message, 'success');
         } else { Swal.fire('ผิดพลาด', res.message, 'error'); }
       } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
     }
