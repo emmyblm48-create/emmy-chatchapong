@@ -22,6 +22,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
 
     <style>
         :root {
@@ -266,9 +268,6 @@
 </div>
 
 <script>
-    // ดึงค่า URL ของสคริปต์มาจากหน้าที่พี่ใช้งานอยู่
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-
     let allEntries = [];
     let currentFilter = 'all';
 
@@ -309,10 +308,10 @@
         const historyContent = document.getElementById('history-content');
 
         try {
-            const response = await fetch(`${scriptURL}?action=getMyHistory&username=${encodeURIComponent(userData.username)}`);
-            const res = await response.json();
+            // ประวัติทั้ง 4 ประเภทตอนนี้ sync เข้า Supabase แบบเรียลไทม์แล้ว อ่านจากตรงนั้นแทน Apps Script
+            const res = await blm48GetMyHistory(userData.username);
 
-            if (res.status === "success") {
+            if (res && res.status === "success") {
                 allEntries = buildUnifiedEntries(res);
                 renderEntries(currentFilter);
             } else {

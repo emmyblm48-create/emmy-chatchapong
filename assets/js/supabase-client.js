@@ -69,6 +69,10 @@ function blm48GetCampaigns() {
 function blm48GetVoteCollections() {
   return blm48Rpc('get_vote_collections', {});
 }
+// unified transaction history for history.html: giveLogs, purchaseHistory, voteLogs, giftLogs
+function blm48GetMyHistory(username) {
+  return blm48Rpc('get_my_history', { p_username: username });
+}
 
 // Live-updates whenever anyone's monthly cookie total changes (give_cookie, likePost).
 // onChange is called with no arguments — caller decides what to re-fetch/re-render.

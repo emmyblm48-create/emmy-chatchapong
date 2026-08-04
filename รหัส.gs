@@ -2805,7 +2805,7 @@ function getDashboardDataProcess(username) {
 //      (จะขอสิทธิ์ authorize — กดอนุญาตได้เลย)
 // =========================================================================
 
-var BLM48_SYNCED_SHEETS = ["Collections", "Items", "codes", "users", "members", "GiftCatalog", "campaign", "majorVoteCollections", "majorVoteCandidates"];
+var BLM48_SYNCED_SHEETS = ["Collections", "Items", "codes", "users", "members", "GiftCatalog", "campaign", "majorVoteCollections", "majorVoteCandidates", "giftLogs", "majorVoteLogs"];
 
 function getSupabaseConfig_() {
   var props = PropertiesService.getScriptProperties();
@@ -3042,6 +3042,68 @@ function syncSheetToSupabase_(sheetName) {
   else if (sheetName === "campaign") syncCampaignToSupabase_();
   else if (sheetName === "majorVoteCollections") syncMajorVoteCollectionsToSupabase_();
   else if (sheetName === "majorVoteCandidates") syncMajorVoteCandidatesToSupabase_();
+  else if (sheetName === "giftLogs") syncGiftLogsToSupabase_();
+  else if (sheetName === "majorVoteLogs") syncMajorVoteLogsToSupabase_();
+}
+
+// ซิงค์เฉพาะแถวใหม่ที่เพิ่มเข้าชีต log (append-only) เข้า Supabase — ใช้ watermark (แถวล่าสุดที่ซิงค์แล้ว)
+// เก็บใน Script Properties กันซิงค์ซ้ำ, และ map คอลัมน์จากชื่อหัวตารางจริงในชีต ไม่ hardcode ตำแหน่ง
+// เผื่อกรณีชีตมีลำดับ/ชื่อคอลัมน์ต่างจากที่คาดไว้ ปลอดภัยเพราะฝั่ง Supabase มี unique constraint
+// ตาม natural key ของแต่ละแถวอยู่แล้ว (on conflict do nothing) ซิงค์ซ้ำไม่ทำให้เกิดข้อมูลซ้ำ
+function syncNewLogRows_(sheetName, supabaseTableWithConflict, columnMapFn) {
+  var sheet = SS.getSheetByName(sheetName);
+  if (!sheet) return;
+  var props = PropertiesService.getScriptProperties();
+  var watermarkKey = 'logSyncRow_' + sheetName;
+  var lastSyncedRow = Number(props.getProperty(watermarkKey) || 1); // แถว 1 คือหัวตาราง
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= lastSyncedRow) return;
+
+  var numCols = sheet.getLastColumn();
+  var headers = sheet.getRange(1, 1, 1, numCols).getValues()[0].map(function (h) { return h.toString().trim(); });
+  var numRows = lastRow - lastSyncedRow;
+  var data = sheet.getRange(lastSyncedRow + 1, 1, numRows, numCols).getValues();
+
+  var rows = data
+    .filter(function (r) { return r[0]; })
+    .map(function (r) {
+      var obj = {};
+      headers.forEach(function (h, idx) { if (h) obj[h] = r[idx]; });
+      return columnMapFn(obj);
+    });
+
+  if (rows.length > 0) supabaseUpsert_(supabaseTableWithConflict, rows);
+  props.setProperty(watermarkKey, String(lastRow));
+}
+
+function syncGiftLogsToSupabase_() {
+  syncNewLogRows_("giftLogs", "gift_logs?on_conflict=created_at,username,candidate_name,gift_id", function (obj) {
+    return {
+      created_at: sheetDateTimeToISO_(obj.Timestamp),
+      username: obj.Username || null,
+      candidate_name: obj.CandidateName || null,
+      campaign_id: obj.CollectionID || obj.CampaignID || null,
+      gift_id: obj.GiftID || null,
+      gift_name: obj.GiftName || null,
+      tier: obj.Tier || null,
+      cost_cookies: Number(obj.CostCookies) || 0,
+      points_awarded: Number(obj.Points || obj.PointsAwarded) || 0,
+      quantity: Number(obj.Quantity || obj["จำนวน"]) || 1
+    };
+  });
+}
+
+function syncMajorVoteLogsToSupabase_() {
+  syncNewLogRows_("majorVoteLogs", "major_vote_logs?on_conflict=created_at,username,vote_collection_id,member_name", function (obj) {
+    return {
+      created_at: sheetDateTimeToISO_(obj.Timestamp),
+      username: obj.Username || null,
+      vote_collection_id: obj.VoteCollectionID || obj.CollectionID || null,
+      member_name: obj.MemberName || obj.CandidateName || null,
+      amount: Number(obj.Amount || obj.VoteAmount) || 0,
+      token_type: obj.TokenType || null
+    };
+  });
 }
 
 // แปลงค่าวันที่-เวลาในชีต (Date object) ให้เป็น ISO string เต็มรูปแบบ ใช้กับ StartTime/EndTime
