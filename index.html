@@ -2865,12 +2865,17 @@ async function fetchActiveCampaigns() {
   if (!scrollerContainer) return;
 
   try {
-    // 🔥 เรียก Action ของชีตแคมเปญโดยเฉพาะ
-    const response = await fetch(`${scriptURL}?action=getCampaignCollections`);
-    const result = await response.json();
-
-    if (result.status === "success") {
-      renderCampaignCards(result.data);
+    // ตาราง campaign ตอนนี้ sync เข้า Supabase แบบเรียลไทม์แล้ว อ่านจากตรงนั้นแทน Apps Script
+    const data = await blm48GetCampaigns();
+    if (Array.isArray(data)) {
+      const mapped = data.map(c => ({
+        CampaignID: c.campaignId,
+        CampaignName: c.campaignName,
+        CoverImage: c.coverImage,
+        TotalAmount: c.totalAmount,
+        CurrencyType: c.currencyType
+      }));
+      renderCampaignCards(mapped);
     } else {
       scrollerContainer.innerHTML = `<div style="color:red; padding:10px; font-size:12px;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
     }

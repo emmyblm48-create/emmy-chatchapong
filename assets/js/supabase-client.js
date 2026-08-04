@@ -58,6 +58,18 @@ function blm48GetRankingFull(yearMonth) {
   return blm48Rpc('get_ranking_full', { p_year_month: yearMonth || null });
 }
 
+// Reference/catalog data synced in from Google Sheets (GiftCatalog/campaign/
+// majorVoteCollections/majorVoteCandidates) - read-only, no ownership check needed.
+function blm48GetGiftCatalog() {
+  return blm48Rpc('get_gift_catalog', {});
+}
+function blm48GetCampaigns() {
+  return blm48Rpc('get_campaigns', {});
+}
+function blm48GetVoteCollections() {
+  return blm48Rpc('get_vote_collections', {});
+}
+
 // Live-updates whenever anyone's monthly cookie total changes (give_cookie, likePost).
 // onChange is called with no arguments — caller decides what to re-fetch/re-render.
 // Debounced so a burst of cookies within the same window only triggers one refresh.

@@ -2805,7 +2805,7 @@ function getDashboardDataProcess(username) {
 //      (จะขอสิทธิ์ authorize — กดอนุญาตได้เลย)
 // =========================================================================
 
-var BLM48_SYNCED_SHEETS = ["Collections", "Items", "codes", "users", "members"];
+var BLM48_SYNCED_SHEETS = ["Collections", "Items", "codes", "users", "members", "GiftCatalog", "campaign", "majorVoteCollections", "majorVoteCandidates"];
 
 function getSupabaseConfig_() {
   var props = PropertiesService.getScriptProperties();
@@ -3038,6 +3038,89 @@ function syncSheetToSupabase_(sheetName) {
   else if (sheetName === "codes") syncCodesToSupabase_();
   else if (sheetName === "users") { syncUsersProfileToSupabase_(); syncUserOshiToSupabase_(); }
   else if (sheetName === "members") syncMembersToSupabase_();
+  else if (sheetName === "GiftCatalog") syncGiftCatalogToSupabase_();
+  else if (sheetName === "campaign") syncCampaignToSupabase_();
+  else if (sheetName === "majorVoteCollections") syncMajorVoteCollectionsToSupabase_();
+  else if (sheetName === "majorVoteCandidates") syncMajorVoteCandidatesToSupabase_();
+}
+
+// แปลงค่าวันที่-เวลาในชีต (Date object) ให้เป็น ISO string เต็มรูปแบบ ใช้กับ StartTime/EndTime
+function sheetDateTimeToISO_(val) {
+  if (!val) return null;
+  if (val instanceof Date) return val.toISOString();
+  return null;
+}
+
+function syncGiftCatalogToSupabase_() {
+  var data = readSheetAsObjects_("GiftCatalog");
+  var rows = data.filter(function (r) { return r.GiftID && r.GiftID.toString().trim() !== ""; })
+    .map(function (r) {
+      return {
+        gift_id: r.GiftID.toString().trim(),
+        gift_name: r.GiftName || null,
+        tier: r.Tier || null,
+        cost_cookies: Number(r.CostCookies) || 0,
+        points: Number(r.Points) || 0,
+        image_url: r.ImageURL || null,
+        active: r.Active === true || r.Active === "TRUE",
+        updated_at: new Date().toISOString()
+      };
+    });
+  supabaseUpsert_('gift_catalog?on_conflict=gift_id', rows);
+}
+
+function syncCampaignToSupabase_() {
+  var data = readSheetAsObjects_("campaign");
+  var rows = data.filter(function (r) { return r.CampaignID && r.CampaignID.toString().trim() !== ""; })
+    .map(function (r) {
+      return {
+        campaign_id: r.CampaignID.toString().trim(),
+        campaign_name: r.CampaignName || null,
+        cover_image: r.CoverImage || null,
+        total_amount: Number(r.TotalAmount) || 0,
+        currency_type: r.CurrencyType || null,
+        updated_at: new Date().toISOString()
+      };
+    });
+  supabaseUpsert_('campaign?on_conflict=campaign_id', rows);
+}
+
+function syncMajorVoteCollectionsToSupabase_() {
+  var data = readSheetAsObjects_("majorVoteCollections");
+  var rows = data.filter(function (r) { return r.VoteCollectionID && r.VoteCollectionID.toString().trim() !== ""; })
+    .map(function (r) {
+      return {
+        vote_collection_id: r.VoteCollectionID.toString().trim(),
+        title: r.Title || null,
+        description: r.Description || null,
+        cover_image: r.CoverImage || null,
+        start_time: sheetDateTimeToISO_(r.StartTime),
+        end_time: sheetDateTimeToISO_(r.EndTime),
+        status: r.Status || null,
+        token_type: r.TokenType || null,
+        enable_gift: r.EnableGift === true || r.EnableGift === "TRUE",
+        updated_at: new Date().toISOString()
+      };
+    });
+  supabaseUpsert_('major_vote_collections?on_conflict=vote_collection_id', rows);
+}
+
+function syncMajorVoteCandidatesToSupabase_() {
+  var data = readSheetAsObjects_("majorVoteCandidates");
+  var rows = data.filter(function (r) { return r.CandidateID && r.CandidateID.toString().trim() !== ""; })
+    .map(function (r) {
+      return {
+        candidate_id: r.CandidateID.toString().trim(),
+        vote_collection_id: r.VoteCollectionID || null,
+        member_name: r.MemberName || null,
+        profile_member: r.ProfileMember || null,
+        token_type: r.TokenType || null,
+        current_votes: Number(r.CurrentVotes) || 0,
+        thank_you_card_url: r.ThankYouCardURL || null,
+        updated_at: new Date().toISOString()
+      };
+    });
+  supabaseUpsert_('major_vote_candidates?on_conflict=candidate_id', rows);
 }
 
 // ---------- ขาไป: ติดตั้งเป็น "installable trigger" เท่านั้น (onEdit ธรรมดายิง UrlFetchApp ไม่ได้) ----------

@@ -22,6 +22,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
 
     <style>
         :root {
@@ -687,10 +689,20 @@
     async function loadGiftCatalog() {
         if (giftCatalogLoaded) return giftCatalog;
         try {
-            const response = await fetch(`${scriptURL}?action=getGiftCatalog`);
-            const res = await response.json();
-            if (res.status === "success" && Array.isArray(res.data)) {
-                giftCatalog = res.data.filter(g => g.Active === true || g.Active === "TRUE" || g.Active === undefined);
+            // GiftCatalog ตอนนี้ sync เข้า Supabase แบบเรียลไทม์แล้ว อ่านจากตรงนั้นแทน Apps Script
+            const data = await blm48GetGiftCatalog();
+            if (Array.isArray(data)) {
+                giftCatalog = data
+                    .filter(g => g.active === true || g.active === undefined)
+                    .map(g => ({
+                        GiftID: g.giftId,
+                        GiftName: g.giftName,
+                        Tier: g.tier,
+                        CostCookies: g.costCookies,
+                        Points: g.points,
+                        ImageURL: g.imageUrl,
+                        Active: g.active
+                    }));
             }
         } catch (e) {
             console.error("Load Gift Catalog Error:", e);

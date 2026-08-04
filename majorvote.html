@@ -369,12 +369,22 @@
             } catch (e) { console.error(e); }
         }
         try {
-            const url = `${scriptURL}?action=getMajorVoteCollections&_=${new Date().getTime()}`;
-            const response = await fetch(url);
-            const result = await response.json();
-            if (result.status === "success" && result.data && result.data.length > 0) {
-                localStorage.setItem('blm48_major_votes_cache', JSON.stringify(result.data));
-                renderCampaignCards(result.data);
+            // ตารางแคมเปญโหวต (majorVoteCollections) ตอนนี้ sync เข้า Supabase แบบเรียลไทม์แล้ว อ่านจากตรงนั้นแทน Apps Script
+            const data = await blm48GetVoteCollections();
+            if (Array.isArray(data) && data.length > 0) {
+                const mapped = data.map(c => ({
+                    VoteCollectionID: c.voteCollectionId,
+                    Title: c.title,
+                    Description: c.description,
+                    CoverImage: c.coverImage,
+                    StartTime: c.startTime,
+                    EndTime: c.endTime,
+                    Status: c.status,
+                    TokenType: c.tokenType,
+                    EnableGift: c.enableGift
+                }));
+                localStorage.setItem('blm48_major_votes_cache', JSON.stringify(mapped));
+                renderCampaignCards(mapped);
             } else if (!cachedVotes) {
                 container.innerHTML = `<div class="loading-text">ไม่มีการกิจกรรมโหวตในขณะนี้</div>`;
             }
