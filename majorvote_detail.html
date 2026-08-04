@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BLM48 | Major Vote Detail</title>
-    <script src="assets/js/common.js"></script>
     <script type="module" src="assets/js/firebase-realtime.js"></script>
     <meta name="theme-color" content="#ffc0cb">
     
@@ -24,6 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
 
     <style>
         :root {
@@ -289,8 +289,6 @@
     </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-
     const urlParams = new URLSearchParams(window.location.search);
     const campaignId = urlParams.get('id');
 
@@ -359,30 +357,27 @@
     }
 
     // 🔴 Realtime: ยอดเงินและคะแนนโหวต/ของขวัญของผู้สมัคร เปลี่ยนจากที่ไหนก็ตาม (แท็บอื่น/คนอื่น) -> อัปเดตหน้านี้ทันที
+    // Supabase subscriptions only signal "something changed" (no payload) - re-fetch fresh data on each trigger.
     function setupRealtimeSubscriptions() {
-        if (!window.BLM48Realtime) return;
-
         const username = getUsername();
         if (username) {
-            window.BLM48Realtime.subscribeWallet(username, (wallet) => {
-                const userData = getUserSession();
-                if (!userData) return;
-                if (wallet.token !== undefined) userData.token = wallet.token;
-                if (wallet.cookie !== undefined) userData.cookie = wallet.cookie;
-                if (wallet.geToken !== undefined) userData.geToken = wallet.geToken;
-                saveUserSession(userData);
-                renderWalletStrip();
+            blm48SubscribeWallet(username, async () => {
+                try {
+                    const wallet = await blm48GetWallet(username);
+                    if (!wallet || wallet.token === undefined) return;
+                    const userData = getUserSession();
+                    if (!userData) return;
+                    if (wallet.token !== undefined) userData.token = wallet.token;
+                    if (wallet.cookie !== undefined) userData.cookie = wallet.cookie;
+                    if (wallet.geToken !== undefined) userData.geToken = wallet.geToken;
+                    saveUserSession(userData);
+                    renderWalletStrip();
+                } catch (e) { console.error("Wallet Realtime Refresh Error:", e); }
             });
         }
 
-        window.BLM48Realtime.subscribeMajorVotes(campaignId, (votesByCandidate) => {
-            Object.keys(votesByCandidate).forEach((candidateName) => {
-                const row = document.querySelector(`.ranking-row[data-candidate="${CSS.escape(candidateName)}"]`);
-                if (!row) return;
-                const scoreEl = row.querySelector('.rank-score-value');
-                const votes = votesByCandidate[candidateName] && votesByCandidate[candidateName].votes;
-                if (scoreEl && votes !== undefined) scoreEl.textContent = Number(votes).toLocaleString();
-            });
+        blm48SubscribeMajorVoteCandidates(campaignId, () => {
+            fetchCandidatesFromBackend();
         });
     }
 
@@ -409,8 +404,7 @@
 
     async function fetchCandidatesFromBackend() {
         try {
-            const response = await fetch(`${scriptURL}?action=getMajorVoteCandidates&collectionId=${encodeURIComponent(campaignId)}`);
-            const result = await response.json();
+            const result = await blm48GetMajorVoteCandidates(campaignId);
 
             if (result && result.status === "success" && result.data) {
                 const candidates = result.data || [];
@@ -605,10 +599,7 @@
 
         try {
             const username = getUsername();
-            const url = `${scriptURL}?action=submitMajorVote&username=${encodeURIComponent(username)}&collectionId=${encodeURIComponent(campaignId)}&candidateName=${encodeURIComponent(candidateName)}&voteAmount=${voteAmount}&tokenType=${encodeURIComponent(tokenType)}`;
-
-            const response = await fetch(url);
-            const res = await response.json();
+            const res = await blm48SubmitMajorVote(username, campaignId, candidateName, voteAmount, tokenType);
 
             if (res.status === "success") {
                 // เช็กชนิดของ Token เพื่อแสดงคำให้ถูกต้อง (ถ้าหลังบ้านไม่ส่งมาให้ใช้ชนิดที่เราส่งไปเป็นค่าเริ่มต้น)
@@ -858,18 +849,7 @@
 
         try {
             const username = getUsername();
-            const response = await fetch(scriptURL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'sendGift',
-                    username: username,
-                    collectionId: campaignId,
-                    candidateName: activeGiftCandidate,
-                    giftId: item.GiftID,
-                    quantity: selectedGiftQty
-                })
-            });
-            const res = await response.json();
+            const res = await blm48SendGift(username, campaignId, activeGiftCandidate, item.GiftID, selectedGiftQty);
 
             if (res.status === "success") {
                 // อัปเดตยอด Cookie ในเซสชันให้ตรงกับหลังบ้านทันที

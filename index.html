@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <title>BLM48 Membership</title>
-    <script src="assets/js/common.js"></script>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <!-- สำหรับ iOS Home Screen Icon -->
@@ -22,6 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/common.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
@@ -2160,13 +2160,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
 
 <script>
-  
-  window.scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 // ==========================================
 // 👑 1. CONFIG & GLOBAL VARIABLES (ประกาศตัวแปรสากลไว้บนสุด)
 // ==========================================
 const APP_VERSION = '1.0.5'; // ✨ เปลี่ยนเลขเวอร์ชันทุกครั้งที่มีการอัปเดตโค้ดสำคัญ
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec'; 
 
 var user = null;
 var currentRankingData = JSON.parse(localStorage.getItem('bnl_ranking_cache')) || [];
@@ -2236,9 +2233,8 @@ async function syncUserData() {
   }
 
   try {
-    // 2. ยิงไปถามหลังบ้านเพื่อดึงสถานะล่าสุดจาก Google Sheets
-    const response = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(currentUsername)}`);
-    const result = await response.json();
+    // 2. ยิงไปถามหลังบ้านเพื่อดึงสถานะล่าสุดจาก Supabase
+    const result = await blm48GetUserInfo(currentUsername);
 
     // เคสปกติ: หลังบ้านแจ้งว่าสำเร็จ (แปลว่ามียูสเซอร์ และในชีทมีรหัสผ่านถูกต้อง)
     if (result.success && result.status === "success") {
@@ -2322,15 +2318,14 @@ async function loadData() {
 
   // 2. 📡 ยิงดึงข้อมูลใหม่ล่าสุดเสมอ (อันดับคุกกี้ดึงจาก Supabase ตามเดือนปัจจุบันตามไทม์โซนไทยอัตโนมัติ)
   try {
-    const [rankingData, topFansData, champResp] = await Promise.all([
+    const [rankingData, topFansData, champJson] = await Promise.all([
       blm48GetRankingFull(), // ไม่ส่ง yearMonth = ให้ Supabase คิดเดือนปัจจุบันเองจาก Asia/Bangkok
       blm48GetTopFans(), // Top Fans ตอนนี้ดึงสดจาก Supabase แทน Apps Script เช่นกัน
-      fetch(`${scriptURL}?action=getChampOfTheMonth&_=${Date.now()}`)
+      blm48GetChampOfTheMonth()
     ]);
 
     currentRankingData = Array.isArray(rankingData) ? rankingData : [];
     currentTopFansData = topFansData || {};
-    const champJson = await champResp.json();
 
     // บันทึกข้อมูลเวอร์ชันใหม่ล่าสุดลงเครื่องแทนอันเก่า
     localStorage.setItem('bnl_ranking_cache', JSON.stringify(currentRankingData));
@@ -2347,7 +2342,7 @@ async function loadData() {
       renderChampBanner(latestChamp);
     }
 
-    console.log("อัปเดตข้อมูลใหม่ล่าสุดจาก Google Sheets เรียบร้อย");
+    console.log("อัปเดตข้อมูลใหม่ล่าสุดเรียบร้อย");
   } catch(e) {
     console.error("Load Data Error:", e);
   }
@@ -2373,9 +2368,7 @@ function loadChampOfTheMonth() {
   }
 
   // 2. แอบยิงไปถามหลังบ้านเงียบๆ ว่าข้อมูลมีการอัปเดตเปลี่ยนคนชนะหรือรูปภาพใหม่หรือยัง
-  // (อย่าลืมประกาศตัวแปร scriptURL ไว้ด้านบนโค้ดด้วยนะครับ)
-  fetch(`${scriptURL}?action=getWinnerTheme`)
-    .then(response => response.json())
+  blm48GetWinnerTheme()
     .then(newData => {
       if (newData && newData.success) {
         
@@ -3957,46 +3950,6 @@ async function redeemCode() {
   }
   
 
-  // ⚡ ฟังก์ชันโหลดข้อมูลแดชบอร์ดหน้าแรกแบบ Real-Time และปลอดภัย
-  async function loadRealTimeDashboard() {
-    const sessionUser = getUserSession(); // ดึง Username จาก session จริง (bnl_session) แทนคีย์ 'username' ที่ไม่เคยถูกเซ็ตค่า
-    const username = sessionUser ? sessionUser.username : "";
-
-    try {
-      const response = await fetch(scriptURL, { // เปลี่ยนเป็น URL ของ Google Apps Script ของคุณ
-        method: "POST",
-        body: JSON.stringify({
-          action: "getDashboardData",
-          username: username
-        })
-      });
-
-      const res = await response.json();
-
-      if (res.status === "success") {
-        // 1. อัปเดตยอดเงินคงเหลือ (ตรวจเช็คความปลอดภัยก่อน จะได้ไม่เกิด Error บนหน้าแรก)
-        const tokenElement = document.getElementById("user-token");
-        const cookieElement = document.getElementById("user-cookie");
-
-        if (tokenElement && res.user) {
-          tokenElement.innerText = Number(res.user.token).toLocaleString() || 0;
-        }
-        if (cookieElement && res.user) {
-          cookieElement.innerText = Number(res.user.cookie).toLocaleString() || 0;
-        }
-
-        // 2. นำข้อมูลแคมเปญไปวาดลงบนหน้าแรกที่ id="campaign-scroller"
-        if (res.campaigns && res.campaigns.length > 0) {
-          renderCampaignCards(res.campaigns);
-        }
-      } else {
-        console.error("ดึงข้อมูลแดชบอร์ดไม่สำเร็จ:", res.message);
-      }
-    } catch (error) {
-      console.error("Network Error:", error);
-    }
-  }
-
   function openLogin() {
     window.location.href = 'login.html';
   }
@@ -4121,10 +4074,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===================================================
   user = getUserSession(); 
   updateUI();
-  hideAppLoading(); 
+  hideAppLoading();
   loadData();
-  loadRealTimeDashboard();
-  
+
   if (user) {
     syncUserData();
     setInterval(async () => {
@@ -4335,15 +4287,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-// 📊 ระบบดึงสถิติจำนวนสมาชิกจาก Google Sheets (เก็บไว้)
+// 📊 ระบบดึงสถิติจำนวนสมาชิกจาก Supabase
   async function refreshCountFromSheets() {
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec?action=getMemberCount';
     const countElement = document.getElementById('total-members-count');
     if (!countElement) return;
 
     try {
-      const response = await fetch(scriptURL);
-      const data = await response.json();
+      const data = await blm48GetMemberCount();
       if (data && data.success) {
         countElement.textContent = Number(data.total).toLocaleString();
       } else {

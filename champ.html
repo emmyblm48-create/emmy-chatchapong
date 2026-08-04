@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLM48 Membership | View special thanks</title>
-    <script src="assets/js/common.js"></script>
     <link class="brand-favicon" rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     
@@ -16,9 +15,11 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://script.google.com">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
 
     <style>
         :root {
@@ -370,7 +371,6 @@
     </div>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
         let globalChampData = [];
 
         async function loadChampHistoryData() {
@@ -381,8 +381,7 @@
             }
 
             try {
-                const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
-                const result = await response.json();
+                const result = await blm48GetChampOfTheMonth();
 
                 if (result.status === "success") {
                     if (JSON.stringify(globalChampData) !== JSON.stringify(result.data)) {

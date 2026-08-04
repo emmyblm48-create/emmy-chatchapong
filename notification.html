@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Notifications | BLM48</title>
-  <script src="assets/js/common.js"></script>
   <script type="module" src="assets/js/firebase-realtime.js"></script>
   <link rel="stylesheet" href="assets/css/common.css">
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
@@ -26,7 +25,10 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/common.js"></script>
+
   <style>
     :root {
       --blm-pink: #ff85a2;
@@ -304,11 +306,8 @@
     const btnRefresh = document.getElementById("btn-refresh");
     const adminInputBox = document.getElementById("admin-input-box");
 
-    // 1. ย้ายลิงก์ Google Apps Script ขึ้นมาประกาศไว้ก่อน
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec";
-
-    // 2. เรียกฟังก์ชันโดยส่ง SCRIPT_URL เข้าไปในวงเล็บด้วย
-    loadChampThemeSubPage(SCRIPT_URL);
+    // เรียกฟังก์ชันโหลดธีมแชมป์ประจำเดือน (ผ่าน Supabase RPC แทน Apps Script แล้ว)
+    loadChampThemeSubPage();
 
     // =========================================================
     // 📦 1. ดึงข้อมูลเซสชันผู้ใช้
@@ -429,11 +428,13 @@
       btnRefresh.disabled = true;
 
       try {
-        const response = await fetch(`${SCRIPT_URL}?action=getNotifications`);
-        if (!response.ok) throw new Error("Network response was not ok");
-        
-        myNotifications = await response.json();
-        
+        const result = await blm48GetNotifications();
+        if (!Array.isArray(result)) {
+          throw new Error((result && result.message) || "Failed to load notifications");
+        }
+
+        myNotifications = result;
+
         // 💾 อัปเดตบันทึกข้อมูลสดใหม่ลง Cache ทันที
         localStorage.setItem("blm48_notifications_cache", JSON.stringify(myNotifications));
         renderUI();
@@ -459,19 +460,19 @@
     // =========================================================
     // 🗑️ 4. ฟังก์ชันลบเดี่ยวแบบ Global
     // =========================================================
-    window.deleteSingleNoti = async function(timestamp) {
+    window.deleteSingleNoti = async function(id) {
       const isConfirm = await cuteConfirm("คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนนี้? 🗑️");
-      if (!isConfirm) return; 
+      if (!isConfirm) return;
 
       btnRefresh.querySelector('i').classList.add('fa-spin');
 
       try {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify({ type: "delete", timestamp: timestamp })
-        });
+        const res = await blm48DeleteNotification(savedUsername, id);
+        if (res && res.status && res.status !== "success") {
+          throw new Error(res.message || "Delete failed");
+        }
 
-        fetchNotifications(); 
+        fetchNotifications();
         cuteToast("ลบการแจ้งเตือนสำเร็จแล้ว!"); 
 
       } catch (error) {
@@ -482,7 +483,7 @@
       }
     };
     
-function loadChampThemeSubPage(scriptURL) {
+function loadChampThemeSubPage() {
   const CACHE_KEY = "bnl_winner_theme_cache";
 
   // 1. ดึงแคชมาแสดงผลทันที (ลดการกระพริบของไอคอน)
@@ -495,12 +496,8 @@ function loadChampThemeSubPage(scriptURL) {
     } catch (e) {}
   }
 
-  const finalURL = scriptURL || '';
-  if (!finalURL) return;
-
   // 2. ตรวจสอบอัปเดตจากเซิร์ฟเวอร์
-  fetch(`${finalURL}?action=getWinnerTheme`)
-    .then(response => response.json())
+  blm48GetWinnerTheme()
     .then(newData => {
       const newChampData = newData.champ ? newData.champ : newData;
       if (newChampData && newChampData.name) {
@@ -582,8 +579,8 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
             <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
           </svg>` : '';
 
-          const deleteBtn = (checkRoleLower === "admin" || checkRoleLower === "ceo") 
-            ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.timestamp})"><i class="fa-solid fa-trash-can"></i></button>` 
+          const deleteBtn = (checkRoleLower === "admin" || checkRoleLower === "ceo")
+            ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.id})"><i class="fa-solid fa-trash-can"></i></button>`
             : '';
 
           const item = document.createElement("div");
@@ -625,20 +622,11 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
         btnAdd.disabled = true;
         btnAdd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
 
-        const newNotification = {
-          type: "add",
-          writer: savedName,
-          action: actionInput,
-          avatar: savedProfile,
-          role: savedRole, 
-          timestamp: Date.now()
-        };
-
         try {
-          await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify(newNotification)
-          });
+          const res = await blm48AddNotification(savedUsername, savedName, actionInput, savedProfile, savedRole);
+          if (res && res.status && res.status !== "success") {
+            throw new Error(res.message || "Post failed");
+          }
 
           if (window.firebaseDatabase && window.fbPush && window.fbRef) {
             const notiRef = window.fbRef(window.firebaseDatabase, 'notifications');
@@ -674,10 +662,10 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
         btnReset.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Clearing...';
 
         try {
-          await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ type: "clear", timestamp: Date.now() })
-          });
+          const res = await blm48ClearNotifications(savedUsername);
+          if (res && res.status && res.status !== "success") {
+            throw new Error(res.message || "Clear failed");
+          }
 
           await fetchNotifications();
           cuteToast("ล้างข้อมูลแจ้งเตือนทั้งหมดเรียบร้อยแล้ว!");

@@ -4,7 +4,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <title>BLM48 Membership | SHOP</title>
-    <script src="assets/js/common.js"></script>
     <script type="module" src="assets/js/firebase-realtime.js"></script>
     <link rel="stylesheet" href="assets/css/common.css">
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
@@ -26,7 +25,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
-    
+    <script src="assets/js/common.js"></script>
+
     <style>
         :root {
           --primary-pink: #ff69b4;
@@ -1262,7 +1262,6 @@
 </div>
 
 <script>
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
 let userData = null;
 
 // 1. โหลดข้อมูลผู้ใช้จากหน้าแรก (LocalStorage)
@@ -1353,8 +1352,7 @@ async function refreshPage() {
     });
 
     try {
-        const response = await fetch(`${scriptURL}?action=getUserData&username=${userData.username}`);
-        const result = await response.json();
+        const result = await blm48GetUserInfo(userData.username);
 
         if (result.status === "success") {
             userData = result.data;
@@ -1407,12 +1405,8 @@ function loadChampThemeSubPage() {
     } catch (e) {}
   }
 
-  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
-  if (!finalURL) return;
-
   // 2. ตรวจสอบอัปเดตจากเซิร์ฟเวอร์
-  fetch(`${finalURL}?action=getWinnerTheme`)
-    .then(response => response.json())
+  blm48GetWinnerTheme()
     .then(newData => {
       const newChampData = newData.champ ? newData.champ : newData;
       if (newChampData && newChampData.name) {
@@ -1482,18 +1476,7 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
         });
 
         try {
-            const formData = new FormData();
-            formData.append('action', 'exchangeCookies');
-            formData.append('username', userData.username);
-            formData.append('tokenPrice', tokenPrice);
-            formData.append('cookieReward', cookieReward);
-
-            const response = await fetch(scriptURL, {
-                method: 'POST',
-                body: formData
-            });
-
-            const res = await response.json();
+            const res = await blm48ExchangeCookies(userData.username, tokenPrice);
 
             if (res.status === "success") {
                 userData.token = res.newToken !== undefined ? res.newToken : (userData.token - tokenPrice);
@@ -1663,11 +1646,11 @@ async function loadGachaCollections() {
   if(!container) return;
   
   try {
-    const response = await fetch(`${scriptURL}?action=getCollections`);
-    const collections = await response.json();
-    
-    container.innerHTML = ""; 
-    
+    const response = await blm48GetGachaCollections();
+    const collections = response.data || [];
+
+    container.innerHTML = "";
+
     const gachaOnly = collections.filter(col => col.CollectionID && col.CollectionID.startsWith('gacha_'));
     
     if (gachaOnly.length === 0) {

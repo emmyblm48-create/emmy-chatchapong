@@ -2,7 +2,6 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <script src="assets/js/common.js"></script>
   <script type="module" src="assets/js/firebase-realtime.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BLM48 Membership | Profile</title>
@@ -20,7 +19,8 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
-  
+  <script src="assets/js/common.js"></script>
+
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -648,8 +648,6 @@
   </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    
     const urlParams = new URLSearchParams(window.location.search);
     const memberName = urlParams.get('name');
     let user = null; 
@@ -657,8 +655,7 @@
     async function syncUserData() {
       if (!user) return;
       try {
-        const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
-        const res = await resp.json();
+        const res = await blm48GetUserInfo(user.username);
         if (res.status === "success") {
           user = res.data;
           // token/cookie/geToken now live in Supabase (updated on every transaction),
@@ -942,9 +939,7 @@ function renderMemberStatsAndFans() {
             champData = JSON.parse(localData);
         } else {
             try {
-                // 👍 ตรงนี้จะเรียกใช้งาน scriptURL จากด้านบนสุดได้ฉลุย ไม่เออร์เรอร์แล้วครับ!
-                const response = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
-                const result = await response.json();
+                const result = await blm48GetChampOfTheMonth();
                 if (result.status === "success" && result.data) {
                     champData = result.data;
                     sessionStorage.setItem('blm_champ_history', JSON.stringify(champData));
@@ -1072,12 +1067,15 @@ function renderMemberStatsAndFans() {
       // 🚀 2. แอบส่งข้อมูลเงียบๆ ไปหลังบ้าน
       // ==========================================
       try {
-        const resp = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({ action: action, type: type, username: username, memberName: memberName })
-        });
-        const res = await resp.json();
-        
+        let res;
+        if (action === "setKamioshi") {
+          res = await blm48SetKamioshi(username, memberName);
+        } else if (action === "setOshi") {
+          res = await blm48SetOshi(username, memberName);
+        } else {
+          res = await blm48RemoveOshi(username, type, memberName);
+        }
+
         if (res.status === "success") {
           syncUserData(); // ดึงซิงค์เงียบๆ
           fetchLatestMemberStats();

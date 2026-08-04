@@ -4,7 +4,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
     <title>BLM48 Membership | Inventory</title>
-    <script src="assets/js/common.js"></script>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -22,7 +21,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
-    
+    <script src="assets/js/common.js"></script>
+
     <style>
         :root {
             --primary-pink: #ff85a2;
@@ -606,9 +606,6 @@
     </footer>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    
-
     let user = getUserSession();
     let currentUsername = user ? user.username : "";
     
@@ -645,15 +642,10 @@
         container.innerHTML = `<div class="inv-state-box"><i class="fa-solid fa-spinner fa-spin"></i>กำลังเปิดค้นหากระเป๋าสะสมดิจิทัลล่าสุด...</div>`;
 
         try {
-            // ของเก่า (ตั๋วคอนเสิร์ต, การ์ดขอบคุณจากโหวต/ของขวัญ) ยังอยู่ฝั่ง Google Sheets เหมือนเดิม
-            // ของใหม่ (กาชา, BLM48 Cafe) ย้ายไป Supabase แล้ว ต้องดึงมารวมกันทั้งสองที่
-            const [legacyRes, supabaseInventory] = await Promise.all([
-                fetch(`${scriptURL}?action=getMyInventory&username=${encodeURIComponent(currentUsername)}&_=${new Date().getTime()}`)
-                    .then(r => r.json()).catch(() => ({ status: "error", inventory: [] })),
-                blm48GetInventory(currentUsername).catch(() => [])
-            ]);
+            // ทุกไอเทม (กาชา, BLM48 Cafe, ตั๋วคอนเสิร์ต, การ์ดขอบคุณจากโหวต/ของขวัญ) อยู่ใน Supabase แล้วทั้งหมด
+            const supabaseInventory = await blm48GetInventory(currentUsername).catch(() => []);
 
-            if (legacyRes.status === "success" || Array.isArray(supabaseInventory)) {
+            if (Array.isArray(supabaseInventory)) {
                 const merged = {};
                 const addAll = (list) => {
                     (list || []).forEach(item => {
@@ -664,7 +656,6 @@
                         merged[key].qty += Number(item.qty) || 0;
                     });
                 };
-                addAll(legacyRes.inventory);
                 addAll(supabaseInventory);
 
                 globalInventoryData = Object.values(merged);
@@ -672,7 +663,7 @@
                 renderFilters();
                 renderInventoryData();
             } else {
-                container.innerHTML = `<div class="inv-state-box is-error"><i class="fa-solid fa-triangle-exclamation"></i>ดึงข้อมูลล้มเหลว: ${legacyRes.message || 'ระบุกระเป๋าไม่ถูกต้อง'}</div>`;
+                container.innerHTML = `<div class="inv-state-box is-error"><i class="fa-solid fa-triangle-exclamation"></i>ดึงข้อมูลล้มเหลว: ระบุกระเป๋าไม่ถูกต้อง</div>`;
             }
         } catch (err) {
             console.error(err);

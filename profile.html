@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BLM48 Membership | My Profile</title>
-  <script src="assets/js/common.js"></script>
   <link rel="stylesheet" href="assets/css/common.css">
    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
@@ -27,6 +26,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/common.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
@@ -420,7 +420,6 @@ body {
   </div>
 
 <script>
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
   let user = null;
   let activeCropper = null;
 
@@ -497,8 +496,7 @@ body {
   async function syncUserData() {
     if (!user) return;
     try {
-      const resp = await fetch(`${scriptURL}?action=getUserInfo&username=${encodeURIComponent(user.username)}&_=${Date.now()}`);
-      const res = await resp.json();
+      const res = await blm48GetUserInfo(user.username);
       if (res.status === "success") {
         user = res.data;
         // token/cookie/geToken now live in Supabase, overlay the live numbers
@@ -620,12 +618,8 @@ body {
 
     Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     try {
-      const resp = await fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'claimMonthlyCookie', username: user.username })
-      }); 
-      const res = await resp.json();
-      if (res.status === "success") { 
+      const res = await blm48ClaimMonthlyCookie(user.username);
+      if (res.status === "success") {
         await syncUserData(); 
         Swal.fire('สำเร็จ!', res.message, 'success'); 
       } else { 
@@ -793,12 +787,8 @@ function loadChampThemeSubPage() {
     } catch (e) {}
   }
 
-  const finalURL = typeof scriptURL !== 'undefined' ? scriptURL : (typeof SCRIPT_URL !== 'undefined' ? SCRIPT_URL : '');
-  if (!finalURL) return;
-
   // 2. ตรวจสอบอัปเดตจากเซิร์ฟเวอร์
-  fetch(`${finalURL}?action=getWinnerTheme`)
-    .then(response => response.json())
+  blm48GetWinnerTheme()
     .then(newData => {
       const newChampData = newData.champ ? newData.champ : newData;
       if (newChampData && newChampData.name) {

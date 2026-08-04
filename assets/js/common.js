@@ -114,9 +114,7 @@ async function applyGroupTheme() {
   applyGroupThemeVars(cachedGroup);
 
   try {
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-    const res = await fetch(`${scriptURL}?action=getChampOfTheMonth`);
-    const json = await res.json();
+    const json = await blm48GetChampOfTheMonth();
     if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
       // ข้อมูลถูก reverse ไว้จากฝั่งเซิร์ฟเวอร์แล้ว ตัวแรกคือแชมป์ล่าสุด
       const latestGroup = (json.data[0].groupName || 'BLM48').toString().trim().toUpperCase();

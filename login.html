@@ -16,7 +16,9 @@
 <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+
   <style>
     :root {
       --blm-pink: #ff85a2;
@@ -314,28 +316,24 @@
         return; // หยุดการทำงานทันที ไม่ส่งข้อมูลไปหลังบ้าน
       }
 
-      // URL ของ Web App Google Apps Script ของพี่เอ็มมี่
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-
       Swal.fire({
         title: 'กำลังตรวจสอบข้อมูล...',
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
 
-      // ส่ง Request ไปตรวจสอบล็อกอินที่ Sheets
-      fetch(`${scriptURL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
-        .then(response => response.json())
+      // ส่ง Request ไปตรวจสอบล็อกอินที่ Supabase
+      blm48Login(userVal, passVal)
         .then(result => {
           if (result.success) {
-            
+
             // 👑 ตั้งเวลาหมดอายุเซสชัน 90 วัน ให้แมตช์กับระบบหลักของพี่เอ็มมี่
-            const expireTime = new Date().getTime() + (90 * 24 * 60 * 60 * 1000); 
-            
+            const expireTime = new Date().getTime() + (90 * 24 * 60 * 60 * 1000);
+
             // 🎯 จัดโครงสร้าง Object (data และ expiry) ให้ตรงกับฟังก์ชัน getUserSession() เป๊ะๆ
             const sessionData = {
-              data: result.data,   
-              expiry: expireTime   
+              data: result.data,
+              expiry: expireTime
             };
 
             // บันทึกลง localStorage ในคีย์ bnl_session เพื่อให้อินเด็กซ์เอาไปแกะใช้งานต่อได้
@@ -353,7 +351,7 @@
               }
             }).then(() => {
               // 🎯 หมายเหตุ: ถ้าไฟล์หน้าหลักชื่อ index (1).html ให้เปลี่ยนตรงนี้เป็น 'index (1).html' นะครับ
-              window.location.href = 'index.html'; 
+              window.location.href = 'index.html';
             });
           } else {
             Swal.fire({
