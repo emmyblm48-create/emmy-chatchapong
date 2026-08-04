@@ -1230,6 +1230,9 @@ function doGet(e) {
           // เงื่อนไข: 1 ไลก์ = 9 คุกกี้ (ถ้ากดไลก์บวก 9, ถอนไลก์ลบออก 9)
           const cookieChange = isNowLiked ? 9 : -9;
           bumpRankingInSupabase_(memberName, postYearMonth, cookieChange);
+
+          // 🌟 ยอดไลก์รวมของเมมเบอร์ (โชว์ในหน้าโปรไฟล์เมมเบอร์) อัปเดตสดที่ Supabase ด้วยเช่นกัน
+          bumpMemberLikesInSupabase_(memberName, isNowLiked ? 1 : -1);
         }
       }
 
@@ -2872,6 +2875,26 @@ function bumpRankingInSupabase_(memberName, yearMonth, delta) {
   }
 }
 
+// เพิ่ม/ลบยอดไลก์รวมของเมมเบอร์ (ใช้ตอนกดไลก์/ถอนไลก์โพสต์ของเมมเบอร์คนนั้น)
+// ฟังก์ชัน bump_member_likes ฝั่ง Supabase ไม่ได้ grant ให้ anon เรียก — เรียกได้เฉพาะผ่าน service_role นี้เท่านั้น
+function bumpMemberLikesInSupabase_(memberName, delta) {
+  try {
+    var cfg = getSupabaseConfig_();
+    var res = UrlFetchApp.fetch(cfg.url + '/rest/v1/rpc/bump_member_likes', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { apikey: cfg.key, Authorization: 'Bearer ' + cfg.key },
+      payload: JSON.stringify({ p_member_name: memberName, p_delta: delta }),
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() >= 300) {
+      Logger.log('bumpMemberLikesInSupabase_ failed: ' + res.getContentText());
+    }
+  } catch (err) {
+    Logger.log('bumpMemberLikesInSupabase_ exception: ' + err.message);
+  }
+}
+
 // ลบแถวออกจากตาราง Supabase ตามเงื่อนไข filter ของ PostgREST เช่น "username=eq.00-1"
 function supabaseDelete_(table, filterQuery) {
   var cfg = getSupabaseConfig_();
@@ -2962,18 +2985,26 @@ function syncCodesToSupabase_() {
 
 // เฉพาะ username/password/role เท่านั้น — ไม่แตะ token/cookie/ge_token ของ Supabase เด็ดขาด
 // (คอลัมน์พวกนั้น Supabase เป็นเจ้าของค่าจริงแล้ว การไม่ส่งคีย์นี้ไปเลยจะทำให้ merge-duplicates ไม่ไปทับมัน)
+// อ่านตำแหน่งคอลัมน์ตรงๆ (เหมือนกับ getUserInfo) แทนการอ้างชื่อหัวตาราง เพราะชีต users
+// ไม่มีหัวตารางที่ตรงกับชื่อ name/profile_img แน่ชัด — A=username, B=password, C=name, D=role, E=profile_img
 function syncUsersProfileToSupabase_() {
-  var data = readSheetAsObjects_("users");
-  var rows = data.filter(function (r) { return r.username && r.username.toString().trim() !== ""; })
-    .map(function (r) {
-      return {
-        username: r.username.toString().trim(),
-        password: r.password === "" ? null : r.password,
-        role: (r.role || "user").toString().trim(),
-        updated_at: new Date().toISOString()
-      };
+  var sheet = SS.getSheetByName("users");
+  if (!sheet) return;
+  var rows = sheet.getDataRange().getValues();
+  var out = [];
+  for (var i = 1; i < rows.length; i++) {
+    var username = rows[i][0] ? rows[i][0].toString().trim() : "";
+    if (!username) continue;
+    out.push({
+      username: username,
+      password: rows[i][1] === "" ? null : rows[i][1],
+      role: (rows[i][3] || "user").toString().trim(),
+      name: rows[i][2] ? rows[i][2].toString().trim() : null,
+      profile_img: rows[i][4] ? rows[i][4].toString().trim() : null,
+      updated_at: new Date().toISOString()
     });
-  supabaseUpsert_('users?on_conflict=username', rows);
+  }
+  supabaseUpsert_('users?on_conflict=username', out);
 }
 
 // เมมเบอร์: catalog เต็มรูปแบบ (โปรไฟล์, ธีมแชมป์, วันเกิด ฯลฯ) แอดมินยังแก้ในชีตนี้เหมือนเดิม
@@ -2999,7 +3030,7 @@ function syncMembersToSupabase_() {
         nav_kami_url: clean(r.Nav_Kami_URL),
         nav_cart_url: clean(r.Nav_Cart_URL),
         nav_noti_url: clean(r.Nav_Noti_URL),
-        total_like: r["total Like"] === "" ? null : Number(r["total Like"]),
+        // total_like ไม่ sync จากชีตนี้แล้ว — ตอนนี้ Supabase เป็นเจ้าของค่าจริง อัปเดตสดผ่าน bump_member_likes ตอนกดไลก์โพสต์แทน
         birthday: sheetDateToISODate_(r.Birthday),
         splash_bd_url: clean(r.SplashBD_URL),
         banner_bd_url: clean(r.BannerBD_URL),

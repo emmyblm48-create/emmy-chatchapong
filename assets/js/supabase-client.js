@@ -74,6 +74,20 @@ function blm48GetMyHistory(username) {
   return blm48Rpc('get_my_history', { p_username: username });
 }
 
+// member.html profile stats: total_kami/total_oshi (live count from user_oshi),
+// total_likes (live counter bumped on every post like), all_time_total (sum of ranking_monthly)
+function blm48GetMemberStats(memberName) {
+  return blm48Rpc('get_member_stats', { p_member_name: memberName });
+}
+// top fans (by all-time cookies given) for one member - used on member.html
+function blm48GetMemberTopFans(memberName) {
+  return blm48Rpc('get_member_top_fans', { p_member_name: memberName });
+}
+// top fans for every member at once, keyed by member name - used on index.html's global Top Fans section
+function blm48GetTopFans() {
+  return blm48Rpc('get_top_fans', {});
+}
+
 // Live-updates whenever anyone's monthly cookie total changes (give_cookie, likePost).
 // onChange is called with no arguments — caller decides what to re-fetch/re-render.
 // Debounced so a burst of cookies within the same window only triggers one refresh.

@@ -870,17 +870,13 @@ function renderMemberStatsAndFans() {
   if (!memberName) return;
 
   try {
-    // 🚀 เปลี่ยนมาใช้การส่งแบบ POST และแนบ JSON body แทนแบบเดิมที่เคย Error <
-    const resp = await fetch(scriptURL, {
-      method: 'POST',
-      body: JSON.stringify({ 
-        action: 'getMemberDetail', 
-        name: memberName 
-      })
-    });
-    
-    const res = await resp.json();
-    
+    // สถิติเมมเบอร์ (Kami-Oshi/Oshi/Cookies/Likes) และ Top Fans ตอนนี้ดึงสดจาก Supabase แทน Apps Script
+    const [stats, fans] = await Promise.all([
+      blm48GetMemberStats(memberName),
+      blm48GetMemberTopFans(memberName)
+    ]);
+    const res = stats ? { status: "success", stats: stats, fans: fans || [] } : { status: "error", message: "ไม่พบข้อมูลเมมเบอร์" };
+
     if (res.status === "success") {
       const oldStats = localStorage.getItem('current_member_stats');
       const oldFans = localStorage.getItem('current_member_fans');

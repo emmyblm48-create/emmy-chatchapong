@@ -2322,14 +2322,14 @@ async function loadData() {
 
   // 2. 📡 ยิงดึงข้อมูลใหม่ล่าสุดเสมอ (อันดับคุกกี้ดึงจาก Supabase ตามเดือนปัจจุบันตามไทม์โซนไทยอัตโนมัติ)
   try {
-    const [rankingData, topFansResp, champResp] = await Promise.all([
+    const [rankingData, topFansData, champResp] = await Promise.all([
       blm48GetRankingFull(), // ไม่ส่ง yearMonth = ให้ Supabase คิดเดือนปัจจุบันเองจาก Asia/Bangkok
-      fetch(`${scriptURL}?action=getTopFans&_=${Date.now()}`),
+      blm48GetTopFans(), // Top Fans ตอนนี้ดึงสดจาก Supabase แทน Apps Script เช่นกัน
       fetch(`${scriptURL}?action=getChampOfTheMonth&_=${Date.now()}`)
     ]);
 
     currentRankingData = Array.isArray(rankingData) ? rankingData : [];
-    currentTopFansData = await topFansResp.json();
+    currentTopFansData = topFansData || {};
     const champJson = await champResp.json();
 
     // บันทึกข้อมูลเวอร์ชันใหม่ล่าสุดลงเครื่องแทนอันเก่า
