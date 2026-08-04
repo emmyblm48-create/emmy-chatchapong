@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Create Post | BLM48</title>
   <script src="assets/js/common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <meta name="theme-color" content="#ffc0cb">
   <meta name="apple-mobile-web-app-title" content="BLM48">   
@@ -374,26 +376,8 @@
         imageUrlString = uploadedUrls.join(',');
       }
 
-      // 2. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่หลังบ้าน Google App Script ของเอ็มมี่
-      const scriptURL = 'https://script.google.com/macros/s/AKfycbxF5G3E1HWhVTQOVGzWtsqSCZfXkq8ZrX6DqGKt_pcicYbi2_59B-ecEeeTU6-aqBEf/exec';
-
-      const params = new URLSearchParams();
-      params.append('action', 'createPost');
-      params.append('username', activeUsername);
-      params.append('content', content);
-      params.append('imageUrl', imageUrlString);
-      params.append('audioURL', '');
-      params.append('videoURL', '');
-
-      const resp = await fetch(scriptURL, {
-        method: 'POST',
-        body: params,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      });
-
-      const data = await resp.json();
+      // 2. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่ Supabase โดยตรง
+      const data = await blm48CreatePost(activeUsername, content, imageUrlString, '', '');
 
       if (data.status === "success") {
         Swal.fire({

@@ -1267,6 +1267,40 @@ function buildImagesHtml(displayImage) {
   return imagesHtml;
 }
 
+// 💬 สร้าง HTML รายการคอมเมนต์ (ใช้ทั้งตอนเรนเดอร์โพสต์ครั้งแรก และตอน refresh จาก Supabase Realtime)
+function buildCommentsHtml(comments) {
+  if (!comments || comments.length === 0) {
+    return `<div class="no-comment-placeholder" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">NOT COMMENTS YET.</div>`;
+  }
+
+  const allowedRoles = ['member', 'admin', 'ceo'];
+  const verifiedBadgeIcon = `
+    <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
+      <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+    </svg>
+  `;
+
+  return comments.map(cmt => {
+    const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
+    const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
+    const cmtImg = cmt.profile_img || 'https://via.placeholder.com/40';
+
+    return `
+      <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
+        <img src="${escapeAttr(cmtImg)}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+        <div style="font-size: 0.88rem; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <b style="color: var(--blmem-pink);">${escapeHtml(cmt.name)}</b>
+            ${isCmtVerified}
+            <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: var(--blmem-pink); border-radius: 4px; margin-left: auto;">${escapeHtml(cmt.role || 'user')}</span>
+          </div>
+          <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
 function renderPost(post) {
   if (!post) return '';
 
@@ -1335,11 +1369,8 @@ function renderPost(post) {
   // ตัดตัวอักษรคำว่า Graduated ออกไปแล้ว (ปล่อยเป็นค่าว่างไว้) เพื่อความคลีน
   const graduatedSubtext = ''; 
 
-  let commentsHtml = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">Loading comments...</div>`;
-  
-  if (window.listenForComments) {
-    setTimeout(() => { window.listenForComments(`${postId}`); }, 100);
-  }
+  const postComments = Array.isArray(post.comments) ? post.comments : [];
+  const commentsHtml = buildCommentsHtml(postComments);
 
   let mediaHtml = '';
   if (post.audioURL) {
@@ -1404,7 +1435,7 @@ function renderPost(post) {
           <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
         </button>
         <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">0</span>
+          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${postComments.length}</span>
         </button>
       </div>
 
@@ -1480,10 +1511,8 @@ function renderPost(post) {
     window.isTimelineLoading = true;
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
-    const response = await fetch(`${scriptURL}?action=getPosts&username=${encodeURIComponent(username)}`);
-    
-    let posts = await response.json();
-    
+    let posts = await blm48GetPosts(username);
+
     if (posts && posts.length > 0) {
       const oldPostsCache = localStorage.getItem('blm48_posts_cache');
       if (oldPostsCache !== JSON.stringify(posts)) {
@@ -1521,14 +1550,20 @@ function renderPost(post) {
       if (existingPost) {
         const likeCountEl = document.getElementById(`like-count-${post.id}`);
         if (likeCountEl) likeCountEl.innerText = post.likes;
-        
+
         const heartIcon = document.getElementById(`heart-${post.id}`);
         if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+
+        const postComments = Array.isArray(post.comments) ? post.comments : [];
+        const commentCountEl = document.getElementById(`comment-count-${post.id}`);
+        if (commentCountEl) commentCountEl.innerText = postComments.length;
+        const commentListEl = document.getElementById(`comment-list-${post.id}`);
+        if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments);
       } else {
         container.insertAdjacentHTML('afterbegin', renderPost(post));
       }
     });
-    
+
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
     if (!hasExistingPosts) {
@@ -1576,10 +1611,8 @@ document.addEventListener('click', function() {
           Swal.fire('กรุณาเข้าสู่ระบบ', 'เซสชันหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่ค่ะ', 'warning');
           return;
         }
-        const userRole = currentUser.role || "";
         try {
-          const response = await fetch(`${scriptURL}?action=deletePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}&role=${encodeURIComponent(userRole)}`);
-          const data = await response.json();
+          const data = await blm48DeletePost(currentUser.username, postId);
           if (data.status === 'success') {
             const postEl = document.getElementById(`post-${postId}`);
             if (postEl) postEl.remove();
@@ -1661,10 +1694,8 @@ document.addEventListener('click', function() {
         Swal.fire('กรุณาเข้าสู่ระบบ', 'เซสชันหมดอายุแล้ว กรุณาเข้าสู่ระบบใหม่ค่ะ', 'warning');
         return;
       }
-      const userRole = currentUser.role || "";
       try {
-        const response = await fetch(`${scriptURL}?action=editPost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}&role=${encodeURIComponent(userRole)}&newContent=${encodeURIComponent(newText)}&newImageUrl=${encodeURIComponent(newImageUrl)}`);
-        const data = await response.json();
+        const data = await blm48EditPost(currentUser.username, postId, newText, newImageUrl);
         if (data.status === 'success') {
           const contentEl = document.getElementById(`content-${postId}`);
           if (contentEl) contentEl.innerText = newText;
@@ -1709,37 +1740,13 @@ document.addEventListener('click', function() {
 </script>
 
 <!-- =========================================================================
-     📡 REALTIME FIREBASE MODULAR SYSTEM
+     📡 REALTIME POST SYSTEM (Supabase) - like/comment/toggle
      ========================================================================= -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-  import { getDatabase, ref as dbRef, push, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAx5JlVGm_IpuOhksQMTA6qli9vR-5rNas",
-    authDomain: "blm48-official-site.firebaseapp.com",
-    projectId: "blm48-official-site",
-    databaseURL: "https://blm48-official-site-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    storageBucket: "blm48-official-site.firebasestorage.app",
-    messagingSenderId: "924510827472",
-    appId: "1:924510827472:web:d2a5b5dcf0683a5c73ffd5"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-
-  window.firebaseDatabase = database;
-  window.fbRef = dbRef;       
-  window.fbPush = push;       
-  window.fbOnValue = onValue; 
-
+<script>
   window.toggleCommentSection = function(postId) {
     const section = document.getElementById(`comment-section-${postId}`);
     if (!section) return;
-    if (section.style.display === "none" || section.style.display === "") {
-      section.style.display = "block";
-      window.listenForComments(postId);
-    } else { section.style.display = "none"; }
+    section.style.display = (section.style.display === "none" || section.style.display === "") ? "block" : "none";
   }
 
   window.likePost = async function(postId) {
@@ -1751,15 +1758,14 @@ document.addEventListener('click', function() {
     const likeSpan = document.getElementById(`like-count-${postId}`);
     const heartIcon = document.querySelector(`#post-${postId} .fa-heart`);
     if (!heartIcon || !likeSpan) return;
-    
+
     const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
     heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
     heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
     likeSpan.innerText = isCurrentlyLiked ? parseInt(likeSpan.innerText) - 1 : parseInt(likeSpan.innerText) + 1;
-    
+
     try {
-      const response = await fetch(`${scriptURL}?action=likePost&postId=${postId}&username=${encodeURIComponent(currentUser.username)}`);
-      const result = await response.json();
+      const result = await blm48LikePost(currentUser.username, postId);
       if (result.status === "success") {
         likeSpan.innerText = result.likes;
         heartIcon.classList.toggle('fa-solid', result.isLiked);
@@ -1767,52 +1773,6 @@ document.addEventListener('click', function() {
       }
     } catch (error) { console.error("Like Error:", error); }
   }
-
-  window.listenForComments = function(postId) {
-    const db = window.firebaseDatabase;
-    const refFunc = window.fbRef;
-    const onValueFunc = window.fbOnValue;
-    const commentListEl = document.getElementById(`comment-list-${postId}`);
-    const commentCountEl = document.getElementById(`comment-count-${postId}`);
-    
-    if (!commentListEl || !db || !refFunc || !onValueFunc) return;
-    const commentRef = refFunc(db, `comments/${postId}`);
-
-    onValueFunc(commentRef, (snapshot) => {
-      commentListEl.innerHTML = ''; 
-      const data = snapshot.val();
-      
-      if (!data) {
-        commentListEl.innerHTML = `<div id="no-comment-${postId}" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">ยังไม่มีคอมเมนต์ มาประเดิมคนแรกกันเถอะงับ!</div>`;
-        if (commentCountEl) commentCountEl.innerText = "0";
-        return;
-      }
-
-      const commentsArray = Object.values(data);
-      if (commentCountEl) commentCountEl.innerText = commentsArray.length;
-
-      const allowedRoles = ['member', 'admin', 'ceo'];
-      const verifiedBadgeIcon = `<svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24"><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/></svg>`;
-
-      commentsArray.forEach(cmt => {
-        const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
-        const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
-        const commentHtml = `
-          <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-            <img src="${escapeHtml(cmt.profile_img)}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
-            <div style="font-size: 0.88rem; width: 100%;">
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <b style="color: var(--blmem-pink);">${escapeHtml(cmt.name)}</b> ${isCmtVerified}
-                <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: var(--blmem-pink); border-radius: 4px; margin-left: auto;">${escapeHtml(cmt.role || 'user')}</span>
-              </div>
-              <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
-            </div>
-          </div>`;
-        commentListEl.insertAdjacentHTML('beforeend', commentHtml);
-      });
-      commentListEl.scrollTop = commentListEl.scrollHeight;
-    });
-  };
 
   window.submitComment = async function(postId, btnElement) {
     const currentUser = getUserSession();
@@ -1824,44 +1784,39 @@ document.addEventListener('click', function() {
     const commentText = inputEl.value.trim();
     if (!commentText || (btnElement && btnElement.disabled)) return;
 
-    const db = window.firebaseDatabase;
-    const refFunc = window.fbRef;
-    const pushFunc = window.fbPush;
-    if (!db || !refFunc || !pushFunc) return;
-
     let originalText = btnElement ? btnElement.innerText : "SEND";
     if (btnElement) { btnElement.innerText = "..."; btnElement.disabled = true; }
     inputEl.disabled = true;
 
     try {
-      const commentPostRef = refFunc(db, `comments/${postId}`);
-      await pushFunc(commentPostRef, {
-        username: currentUser.username,
-        name: currentUser.name || currentUser.username || 'Anonymous',
-        role: currentUser.role || 'user',
-        profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
-        text: commentText, timestamp: Date.now()
-      });
+      const result = await blm48AddComment(currentUser.username, postId, commentText);
+      if (result.status !== 'success') throw new Error(result.message);
 
-      fetch(scriptURL, {
-        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'addComment', postId: postId, username: currentUser.username, text: commentText })
-      }).catch(e => console.error("Sheets Sync error:", e));
+      const commentListEl = document.getElementById(`comment-list-${postId}`);
+      const commentCountEl = document.getElementById(`comment-count-${postId}`);
+      if (commentListEl) {
+        const placeholder = commentListEl.querySelector('.no-comment-placeholder');
+        if (placeholder) placeholder.remove();
+        commentListEl.insertAdjacentHTML('beforeend', buildCommentsHtml([{
+          username: currentUser.username,
+          name: currentUser.name || currentUser.username || 'Anonymous',
+          role: currentUser.role || 'user',
+          profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
+          text: commentText
+        }]));
+        commentListEl.scrollTop = commentListEl.scrollHeight;
+      }
+      if (commentCountEl) commentCountEl.innerText = (parseInt(commentCountEl.innerText) || 0) + 1;
 
-      inputEl.value = ""; 
-    } catch (error) { Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error'); } 
+      inputEl.value = "";
+    } catch (error) { Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error'); }
     finally { if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; } inputEl.disabled = false; }
   };
 
-  setInterval(() => {
-    document.querySelectorAll('.post-card:not([data-firebase-ready="true"])').forEach(card => {
-      const postId = card.id.replace('post-', '');
-      if (postId && window.listenForComments) {
-        window.listenForComments(postId);
-        card.setAttribute('data-firebase-ready', 'true');
-      }
-    });
-  }, 300);
+  // มีคนไลก์/คอมเมนต์โพสต์ไหนก็ตาม -> รีเฟรชฟีดของเมมเบอร์คนนี้เงียบๆ
+  if (typeof blm48SubscribePosts === 'function') {
+    blm48SubscribePosts(() => { if (typeof loadMemberTimelinePosts === 'function') loadMemberTimelinePosts(); }, 500);
+  }
 </script>
 
 <div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">

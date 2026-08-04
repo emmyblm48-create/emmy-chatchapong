@@ -534,11 +534,7 @@ body {
     if (newName) {
       Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       try {
-        const response = await fetch(scriptURL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'updateName', username: user.username, newName: newName })
-        });
-        const res = await response.json();
+        const res = await blm48UpdateProfileName(user.username, newName);
         if (res.status === "success") {
           user.name = newName; 
           saveUserSession(user); 
@@ -869,18 +865,14 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
       if (!imgbbData.success) throw new Error("ImgBB อัปโหลดล้มเหลว");
       const finalImageUrl = imgbbData.data.url;
 
-      // 2. ซิงค์ส่งลิงก์ URL รูปภาพใหม่ตรงเข้าคอลัมน์กูเกิ้ลชีต
-      await fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'updateProfileImage',
-          username: user.username,
-          imageUrl: finalImageUrl
-        })
-      });
+      // 2. บันทึกลิงก์ URL รูปภาพใหม่ตรงเข้า Supabase
+      const res = await blm48UpdateProfileImage(user.username, finalImageUrl);
+      if (res.status !== 'success') throw new Error(res.message || 'อัปเดตรูปไม่สำเร็จ');
 
-      // 3. เรียกดึงข้อมูลเวอร์ชันล่าสุดมาโชว์บนหน้าจอทันที
-      await syncUserData();
+      // 3. อัปเดตหน้าจอทันทีจากค่าที่เพิ่งบันทึกไป (ไม่รอ syncUserData เพราะฝั่ง Sheets ยังไม่ทันซิงค์กลับ)
+      user.profile_img = finalImageUrl;
+      saveUserSession(user);
+      updateProfileUI();
       Swal.fire('สำเร็จแล้ว!', 'เปลี่ยนรูปภาพโปรไฟล์ของคุณเรียบร้อยงับ', 'success');
 
     } catch (error) {

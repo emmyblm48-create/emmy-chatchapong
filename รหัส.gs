@@ -2983,8 +2983,10 @@ function syncCodesToSupabase_() {
   supabaseUpsert_('codes?on_conflict=code', rows);
 }
 
-// เฉพาะ username/password/role เท่านั้น — ไม่แตะ token/cookie/ge_token ของ Supabase เด็ดขาด
+// เฉพาะ username/password/role เท่านั้น — ไม่แตะ token/cookie/ge_token/name/profile_img ของ Supabase เด็ดขาด
 // (คอลัมน์พวกนั้น Supabase เป็นเจ้าของค่าจริงแล้ว การไม่ส่งคีย์นี้ไปเลยจะทำให้ merge-duplicates ไม่ไปทับมัน)
+// name/profile_img ย้ายไปแก้ตรงที่ Supabase โดยตรงแล้ว (update_profile_name / update_profile_image RPC)
+// ไหลกลับมาโชว์ในชีตทาง mirrorWalletsToSheet_ แทน (เหมือน token/cookie/ge_token)
 // อ่านตำแหน่งคอลัมน์ตรงๆ (เหมือนกับ getUserInfo) แทนการอ้างชื่อหัวตาราง เพราะชีต users
 // ไม่มีหัวตารางที่ตรงกับชื่อ name/profile_img แน่ชัด — A=username, B=password, C=name, D=role, E=profile_img
 function syncUsersProfileToSupabase_() {
@@ -2999,8 +3001,6 @@ function syncUsersProfileToSupabase_() {
       username: username,
       password: rows[i][1] === "" ? null : rows[i][1],
       role: (rows[i][3] || "user").toString().trim(),
-      name: rows[i][2] ? rows[i][2].toString().trim() : null,
-      profile_img: rows[i][4] ? rows[i][4].toString().trim() : null,
       updated_at: new Date().toISOString()
     });
   }
@@ -3243,19 +3243,26 @@ function reverseSyncFromSupabase_() {
 function mirrorWalletsToSheet_() {
   var sheet = SS.getSheetByName('users');
   if (!sheet) return;
-  var wallets = supabaseSelect_('users', 'select=username,token,cookie,ge_token');
+  var wallets = supabaseSelect_('users', 'select=username,token,cookie,ge_token,name,profile_img');
   var walletMap = {};
   wallets.forEach(function (w) { walletMap[w.username] = w; });
 
   var rows = sheet.getDataRange().getValues();
-  var updates = [];
+  var walletUpdates = [];
+  var nameUpdates = [];
+  var profileImgUpdates = [];
   for (var i = 1; i < rows.length; i++) {
     var uname = rows[i][0] ? rows[i][0].toString().trim() : "";
     var w = walletMap[uname];
-    updates.push(w ? [Number(w.token), Number(w.cookie), Number(w.ge_token)] : [rows[i][5], rows[i][6], rows[i][7]]);
+    walletUpdates.push(w ? [Number(w.token), Number(w.cookie), Number(w.ge_token)] : [rows[i][5], rows[i][6], rows[i][7]]);
+    // name (col C) / profile_img (col E) — Supabase เป็นเจ้าของค่าจริงแล้ว (update_profile_name / update_profile_image RPC)
+    nameUpdates.push([w && w.name ? w.name : rows[i][2]]);
+    profileImgUpdates.push([w && w.profile_img ? w.profile_img : rows[i][4]]);
   }
-  if (updates.length > 0) {
-    sheet.getRange(2, 6, updates.length, 3).setValues(updates);
+  if (walletUpdates.length > 0) {
+    sheet.getRange(2, 6, walletUpdates.length, 3).setValues(walletUpdates);
+    sheet.getRange(2, 3, nameUpdates.length, 1).setValues(nameUpdates);
+    sheet.getRange(2, 5, profileImgUpdates.length, 1).setValues(profileImgUpdates);
   }
 }
 
