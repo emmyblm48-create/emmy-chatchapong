@@ -189,15 +189,70 @@
       70% { box-shadow: 0 0 0 8px rgba(255, 77, 77, 0); }
       100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
     }
-    #audio-preview-container {
+    /* แถบไล่เวลาระหว่างอัด แสดงให้เห็นว่าใกล้ครบ MAX_RECORD_SECONDS แค่ไหน */
+    #record-progress-track {
+      display: none;
+      height: 4px;
+      background: #ffe0e8;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    #record-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #ff4d4d;
+      border-radius: 3px;
+      transition: width 0.2s linear;
+    }
+    /* Voice message bubble - ใช้ทั้งพรีวิวตอนอัดในหน้านี้ และตอนแสดงผลในฟีด (index.html/member.html) */
+    .voice-msg-bubble {
       display: none;
       align-items: center;
       gap: 10px;
+      background: linear-gradient(135deg, #fff0f4, #ffffff);
+      border: 1px solid #ffd6e0;
+      border-radius: 20px;
+      padding: 8px 14px 8px 8px;
       margin-top: 12px;
     }
-    #audio-preview-player {
+    .voice-msg-play-btn {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--blm-pink);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+      box-shadow: 0 2px 6px rgba(255, 133, 162, 0.35);
+      transition: transform 0.15s;
+    }
+    .voice-msg-play-btn:active { transform: scale(0.9); }
+    .voice-msg-waveform {
       flex: 1;
-      height: 40px;
+      height: 5px;
+      background: #ffe0e8;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .voice-msg-progress {
+      height: 100%;
+      width: 0%;
+      background: var(--blm-pink);
+      border-radius: 3px;
+    }
+    .voice-msg-time {
+      flex-shrink: 0;
+      font-size: 0.72rem;
+      color: #a68a90;
+      font-variant-numeric: tabular-nums;
+      min-width: 30px;
+      text-align: right;
     }
     #audio-delete-btn {
       flex-shrink: 0;
@@ -264,8 +319,19 @@
     <button type="button" id="record-btn" class="custom-file-upload" onclick="toggleRecording()">
       <i class="fa-solid fa-microphone" id="record-btn-icon"></i> <span id="record-btn-label">Record Voice</span>
     </button>
-    <div id="audio-preview-container">
-      <audio id="audio-preview-player" controls></audio>
+    <div id="record-progress-track">
+      <div id="record-progress-bar"></div>
+    </div>
+    <div class="voice-msg-bubble" id="audio-preview-container">
+      <button type="button" class="voice-msg-play-btn" id="voice-play-btn-preview" onclick="toggleVoiceMessage('preview')">
+        <i class="fa-solid fa-play"></i>
+      </button>
+      <div class="voice-msg-waveform">
+        <div class="voice-msg-progress" id="voice-progress-preview"></div>
+      </div>
+      <span class="voice-msg-time" id="voice-time-preview">0:00</span>
+      <audio class="voice-msg-audio" id="voice-audio-preview" preload="metadata" style="display:none;"
+        ontimeupdate="updateVoiceProgress('preview')" onloadedmetadata="initVoiceDuration('preview')" onended="onVoiceEnded('preview')"></audio>
       <div id="audio-delete-btn" onclick="deleteRecordedAudio()"><i class="fa-solid fa-xmark"></i></div>
     </div>
   </div>
@@ -489,6 +555,7 @@
       mediaRecorder.onstop = () => {
         stream.getTracks().forEach(track => track.stop());
         clearInterval(recordingTimerInterval);
+        document.getElementById('record-progress-track').style.display = 'none';
         recordedAudioBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
         showAudioPreview(recordedAudioBlob);
         setRecordButtonState('idle');
@@ -496,11 +563,14 @@
 
       mediaRecorder.start();
       setRecordButtonState('recording');
+      document.getElementById('record-progress-track').style.display = 'block';
+      document.getElementById('record-progress-bar').style.width = '0%';
 
       const startTime = Date.now();
       recordingTimerInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         document.getElementById('record-btn-label').textContent = `Recording... ${elapsed}s`;
+        document.getElementById('record-progress-bar').style.width = `${Math.min(100, (elapsed / MAX_RECORD_SECONDS) * 100)}%`;
         if (elapsed >= MAX_RECORD_SECONDS) mediaRecorder.stop();
       }, 250);
     } catch (err) {
@@ -524,9 +594,13 @@
     }
   }
 
+  // ใช้คอมโพเนนต์ voice-msg-bubble ตัวเดียวกับที่แสดงในฟีด (index.html/member.html) เพื่อให้พรีวิวก่อนโพส
+  // หน้าตาตรงกับที่คนอื่นจะเห็นจริงๆ เป๊ะๆ - เล่นผ่าน toggleVoiceMessage('preview') จาก common.js ได้เลย
   function showAudioPreview(blob) {
-    const player = document.getElementById('audio-preview-player');
-    player.src = URL.createObjectURL(blob);
+    const audio = document.getElementById('voice-audio-preview');
+    audio.src = URL.createObjectURL(blob);
+    document.getElementById('voice-progress-preview').style.width = '0%';
+    document.getElementById('voice-play-btn-preview').innerHTML = '<i class="fa-solid fa-play"></i>';
     document.getElementById('audio-preview-container').style.display = 'flex';
     document.getElementById('record-btn').style.display = 'none';
   }
@@ -534,11 +608,15 @@
   window.deleteRecordedAudio = function() {
     recordedAudioBlob = null;
     recordedChunks = [];
-    const player = document.getElementById('audio-preview-player');
-    if (player.src) {
-      URL.revokeObjectURL(player.src);
-      player.removeAttribute('src');
+    const audio = document.getElementById('voice-audio-preview');
+    if (!audio.paused) audio.pause();
+    if (audio.src) {
+      URL.revokeObjectURL(audio.src);
+      audio.removeAttribute('src');
     }
+    document.getElementById('voice-progress-preview').style.width = '0%';
+    document.getElementById('voice-time-preview').textContent = '0:00';
+    document.getElementById('voice-play-btn-preview').innerHTML = '<i class="fa-solid fa-play"></i>';
     document.getElementById('audio-preview-container').style.display = 'none';
     document.getElementById('record-btn').style.display = 'flex';
   }
