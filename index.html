@@ -1552,6 +1552,12 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   /* =========================================
      🎯 DAILY MISSION MODAL
      ========================================= */
+  /* SweetAlert2's default z-index (1060) sits BELOW our custom modals (9999),
+     so any Swal.fire() triggered while this modal is open would render hidden
+     behind it - force it above every in-app modal. */
+  .swal2-container {
+    z-index: 100000 !important;
+  }
   #daily-mission-modal {
     display: none;
     position: fixed;
@@ -1658,9 +1664,18 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     font-weight: 800;
     font-size: 0.95rem;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     background: linear-gradient(135deg, #ffb6c1, var(--primary-pink, #ff85a2));
     color: #fff;
     box-shadow: 0 6px 14px rgba(255,133,162,0.35);
+  }
+  #mission-claim-btn i { font-size: 1.05rem; }
+  #mission-claim-btn.claimable {
+    background: linear-gradient(135deg, #7ee08c, #3cb371);
+    box-shadow: 0 6px 14px rgba(60,179,113,0.35);
   }
   #mission-claim-btn:disabled {
     background: #eee;
@@ -4190,15 +4205,19 @@ async function refreshAppData() {
 }
 
 // ==========================================
-// 🎯 DAILY MISSION (ให้คุกกี้ 10 / กดใจ 2 โพส / คอมเมนต์ 2 โพส ของเดือนนี้ -> รับ 5 Tokens)
+// 🎯 DAILY MISSION - แยกชุดภารกิจตาม role ฝั่งเซิร์ฟเวอร์ (get_daily_missions คืน role
+// มาด้วย และเลือกชุด missions ให้เองอยู่แล้ว ฝั่งนี้แค่ render ตาม key ที่ได้รับ):
+//   role=user:   ให้คุกกี้รวม 10 / กดใจ 2 โพส / คอมเมนต์ 2 โพส (ของเดือนนี้ ต่างโพสกัน)
+//   role=member: โพส 1 โพสต่อวัน / กดใจ 3 โพส (ของเดือนนี้ ต่างโพสกัน)
 // รีเซ็ตทุกเที่ยงคืนฝั่งเซิร์ฟเวอร์ (Asia/Bangkok) ความคืบหน้าถูกนับจาก
-// give_cookie/like_post/add_comment โดยตรง ที่นี่แค่อ่าน+กดรับรางวัล
+// give_cookie/like_post/add_comment/create_post โดยตรง ที่นี่แค่อ่าน+กดรับรางวัล
 // ==========================================
 let dailyMissionData = null;
 const MISSION_META = {
-  1: { icon: 'fa-cookie-bite', label: (p, t) => `ให้คุกกี้เมมเบอร์รวม ${t} Cookies` },
-  2: { icon: 'fa-heart',       label: (p, t) => `กดใจโพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` },
-  3: { icon: 'fa-comment-dots',label: (p, t) => `คอมเมนต์โพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` }
+  cookie:  { icon: 'fa-cookie-bite',   label: (p, t) => `ให้คุกกี้เมมเบอร์รวม ${t} Cookies` },
+  like:    { icon: 'fa-heart',         label: (p, t) => `กดใจโพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` },
+  comment: { icon: 'fa-comment-dots',  label: (p, t) => `คอมเมนต์โพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` },
+  post:    { icon: 'fa-pen-to-square', label: (p, t) => `โพสอัปเดตประจำวัน ${t} โพส` }
 };
 
 async function loadDailyMissions() {
@@ -4222,8 +4241,16 @@ function renderDailyMissionsModal() {
   const btn = document.getElementById('mission-claim-btn');
   if (!list || !btn || !dailyMissionData) return;
 
+  if (!dailyMissionData.missions || dailyMissionData.missions.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px 0;">บัญชีนี้ยังไม่มีภารกิจประจำวันค่ะ</div>';
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.textContent = 'ไม่มีภารกิจ';
+    return;
+  }
+
   list.innerHTML = dailyMissionData.missions.map(m => {
-    const meta = MISSION_META[m.id];
+    const meta = MISSION_META[m.key];
     const pct = Math.min(100, Math.round((m.progress / m.target) * 100));
     return `
       <div class="mission-item ${m.done ? 'done' : ''}">
@@ -4239,14 +4266,35 @@ function renderDailyMissionsModal() {
 
   if (dailyMissionData.claimed) {
     btn.disabled = true;
-    btn.textContent = 'รับของรางวัลวันนี้แล้ว 🎉';
+    btn.classList.remove('claimable');
+    btn.innerHTML = '<i class="fas fa-circle-check"></i> รับของรางวัลวันนี้แล้ว';
   } else if (dailyMissionData.allDone) {
     btn.disabled = false;
-    btn.textContent = `รับของขวัญ ${dailyMissionData.reward} Tokens 🎁`;
+    btn.classList.add('claimable');
+    btn.innerHTML = `<i class="fas fa-gift"></i> ${dailyMissionData.reward} Tokens`;
   } else {
     btn.disabled = true;
+    btn.classList.remove('claimable');
     btn.textContent = 'ทำภารกิจให้ครบก่อนนะ';
   }
+}
+
+// นับถอยหลังไปยังเที่ยงคืนถัดไปตามเวลาประเทศไทย (Asia/Bangkok) ไม่ใช่เวลาเครื่องผู้ใช้
+let missionCountdownTimer = null;
+function msUntilNextBangkokMidnight() {
+  const bkkNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+  const nextMidnight = new Date(bkkNow);
+  nextMidnight.setHours(24, 0, 0, 0);
+  return nextMidnight - bkkNow;
+}
+function tickMissionCountdown() {
+  const el = document.getElementById('mission-countdown');
+  if (!el) return;
+  const totalSec = Math.max(0, Math.floor(msUntilNextBangkokMidnight() / 1000));
+  const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSec % 60).padStart(2, '0');
+  el.textContent = `${h}:${m}:${s}`;
 }
 
 async function openDailyMissionModal() {
@@ -4258,6 +4306,10 @@ async function openDailyMissionModal() {
   if (modal) modal.style.display = 'flex';
   const list = document.getElementById('mission-item-list');
   if (list) list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px 0;">กำลังโหลด...</div>';
+
+  tickMissionCountdown();
+  if (!missionCountdownTimer) missionCountdownTimer = setInterval(tickMissionCountdown, 1000);
+
   await loadDailyMissions();
   renderDailyMissionsModal();
 }
@@ -4265,6 +4317,10 @@ async function openDailyMissionModal() {
 function closeDailyMissionModal() {
   const modal = document.getElementById('daily-mission-modal');
   if (modal) modal.style.display = 'none';
+  if (missionCountdownTimer) {
+    clearInterval(missionCountdownTimer);
+    missionCountdownTimer = null;
+  }
 }
 
 async function claimDailyMissionReward() {
@@ -4597,7 +4653,7 @@ document.addEventListener("DOMContentLoaded", () => {
   <div class="mission-card">
     <span class="mission-card-close" onclick="closeDailyMissionModal()">&times;</span>
     <div class="mission-card-title"><i class="fas fa-list-check"></i> ภารกิจประจำวัน</div>
-    <div class="mission-card-subtitle">ทำครบ 3 ภารกิจ รับ 5 Tokens ฟรี! รีเซ็ตทุกเที่ยงคืน</div>
+    <div class="mission-card-subtitle">ทำครบ 3 ภารกิจ รับ 5 Tokens ฟรี! รีเซ็ตในอีก <span id="mission-countdown">--:--:--</span></div>
     <div id="mission-item-list"></div>
     <button id="mission-claim-btn" disabled onclick="claimDailyMissionReward()">ทำภารกิจให้ครบก่อนนะ</button>
   </div>
