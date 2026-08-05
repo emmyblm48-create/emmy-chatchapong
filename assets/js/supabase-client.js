@@ -190,6 +190,16 @@ function blm48ClearNotifications(username) {
   return blm48Rpc('clear_notifications', { p_username: username });
 }
 
+// Live-updates whenever a new notification is inserted (admin-posted announcements,
+// and automatic ones like "a member posted" - see create_post). onInsert gets the raw
+// new row (id/writer/action/avatar/role/created_at), not the get_notifications() shape.
+function blm48SubscribeNotifications(onInsert) {
+  return blm48Supabase
+    .channel('notifications-feed-changes')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => onInsert(payload.new))
+    .subscribe();
+}
+
 // Major Vote - candidates list already reflects open/closed sort + percentages server-side.
 function blm48GetMajorVoteCandidates(collectionId) {
   return blm48Rpc('get_major_vote_candidates', { p_collection_id: collectionId });

@@ -76,6 +76,125 @@ function checkNotificationBadge() {
 document.addEventListener("DOMContentLoaded", checkNotificationBadge);
 
 // =========================================================================
+// 🔔 ระบบแจ้งเตือนเมื่อ Kami-Oshi/Oshi ของเราลงโพสใหม่ - ทำงานทุกหน้า (ไม่ใช่แค่ index.html)
+// ฟังผ่าน Supabase Realtime (blm48SubscribeNotifications, ดู supabase-client.js)
+// เพราะโพสของเมมเบอร์ถูก insert เข้า public.notifications ตรงจาก create_post RPC โดยตรง
+// เจอแล้วจะ 1) เปิดจุดแดงที่กระดิ่ง (ใช้ path เดิมของ checkNotificationBadge)
+// 2) โชว์แบนเนอร์แบบแจ้งเตือน iOS ลอยลงมาจากขอบบนจอ ไม่ว่าจะอยู่หน้าไหนของเว็บแอพ
+// =========================================================================
+
+// คืนรายชื่อเมมเบอร์ที่เป็น Kami-Oshi/Oshi ของผู้ใช้ปัจจุบัน (lowercase ไว้เทียบง่ายๆ)
+function getFavoriteMemberNames() {
+  const session = getUserSession();
+  if (!session) return [];
+  const names = [];
+  if (session.kamioshi) names.push(session.kamioshi);
+  if (Array.isArray(session.oshi)) names.push(...session.oshi);
+  return names.map(n => (n || '').toString().trim().toLowerCase()).filter(Boolean);
+}
+
+function injectIosNotificationStyles() {
+  if (document.getElementById('blm48-ios-noti-style')) return;
+  const style = document.createElement('style');
+  style.id = 'blm48-ios-noti-style';
+  style.textContent = `
+    .blm48-ios-noti {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      left: 50%;
+      width: min(92vw, 380px);
+      background: rgba(250,250,252,0.85);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      z-index: 999999;
+      cursor: pointer;
+      box-sizing: border-box;
+      transform: translateX(-50%) translateY(-140%);
+      opacity: 0;
+      transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+      font-family: 'Quicksand', 'Kanit', -apple-system, sans-serif;
+    }
+    .blm48-ios-noti.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .blm48-ios-noti-avatar { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; background: #eee; }
+    .blm48-ios-noti-body { flex: 1; min-width: 0; }
+    .blm48-ios-noti-row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .blm48-ios-noti-title { font-weight: 700; font-size: 0.85rem; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .blm48-ios-noti-time { font-size: 0.68rem; color: #888; flex: 0 0 auto; }
+    .blm48-ios-noti-text { font-size: 0.8rem; color: #333; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  `;
+  document.head.appendChild(style);
+}
+
+let blm48IosNotiTimer = null;
+// แสดงแบนเนอร์แจ้งเตือนสไตล์ iOS ลอยลงมาจากขอบบนจอ - ทำงานได้ทุกหน้าที่โหลด common.js
+function showIosNotification({ avatar, title, text, onClick }) {
+  injectIosNotificationStyles();
+  const existing = document.querySelector('.blm48-ios-noti');
+  if (existing) existing.remove();
+  if (blm48IosNotiTimer) clearTimeout(blm48IosNotiTimer);
+
+  const el = document.createElement('div');
+  el.className = 'blm48-ios-noti';
+  el.innerHTML = `
+    <img class="blm48-ios-noti-avatar" src="${escapeAttr(avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000')}" alt="">
+    <div class="blm48-ios-noti-body">
+      <div class="blm48-ios-noti-row1">
+        <span class="blm48-ios-noti-title">${escapeHtml(title)}</span>
+        <span class="blm48-ios-noti-time">now</span>
+      </div>
+      <div class="blm48-ios-noti-text">${escapeHtml(text || '')}</div>
+    </div>
+  `;
+  const dismiss = () => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 400);
+  };
+  el.addEventListener('click', () => {
+    dismiss();
+    if (typeof onClick === 'function') onClick();
+  });
+  document.body.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('show')));
+  blm48IosNotiTimer = setTimeout(dismiss, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!getUserSession() || typeof blm48SubscribeNotifications !== 'function') return;
+
+  const subscribedAt = Date.now();
+  blm48SubscribeNotifications((row) => {
+    if (!row || !row.writer) return;
+    const rowTs = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+    if (rowTs < subscribedAt) return; // ข้ามของเก่าที่อาจถูกส่งมาตอนเพิ่ง subscribe
+
+    // เช็ค favorites สดทุกครั้งที่มีแจ้งเตือนใหม่เข้ามา (ไม่ cache ไว้ตอน subscribe)
+    // เพราะตอนโหลดหน้าเสร็จใหม่ๆ session ในเครื่องอาจยังเป็นข้อมูลเก่า กว่า syncUserData()
+    // จะดึงข้อมูล kamioshi/oshi ล่าสุดจากเซิร์ฟเวอร์มาทับ ก็อาจจะผ่านไปหลังจากนี้แล้ว
+    const favorites = getFavoriteMemberNames();
+    if (favorites.length === 0) return;
+
+    const writerLower = row.writer.toString().trim().toLowerCase();
+    if (!favorites.includes(writerLower)) return;
+
+    localStorage.setItem('blm48_has_new_noti', 'true');
+    if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
+
+    showIosNotification({
+      avatar: row.avatar,
+      title: `${row.writer} ลงโพสใหม่แล้ว! 💌`,
+      text: row.action,
+      onClick: () => { window.location.href = 'notification.html'; }
+    });
+  });
+});
+
+// =========================================================================
 // 🎨 ระบบธีมสีตามวง — เปลี่ยนสีหลักของทั้งแอพเป็นสีวงของ Champ of the Month
 // ทุกหน้าประกาศตัวแปรสีธีมไว้คนละชื่อ (--primary-pink, --blm-pink, --blmem-pink)
 // ฟังก์ชันนี้ set ทับทุกชื่อไปพร้อมกัน หน้าไหนใช้ชื่อไหนอยู่ก็จะรับสีไปเอง
