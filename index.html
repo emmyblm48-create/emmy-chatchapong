@@ -1550,6 +1550,125 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     z-index: 10;
   }
   /* =========================================
+     🎯 DAILY MISSION MODAL
+     ========================================= */
+  #daily-mission-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .mission-card {
+    background: #fff;
+    border-radius: 22px;
+    width: 100%;
+    max-width: 360px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 22px 20px 20px 20px;
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  }
+  .mission-card-close {
+    position: absolute;
+    top: 14px; right: 16px;
+    font-size: 22px;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .mission-card-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--primary-pink, #ff85a2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .mission-card-subtitle {
+    font-size: 0.78rem;
+    color: #999;
+    margin-bottom: 16px;
+  }
+  .mission-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f5e6ea;
+  }
+  .mission-item:last-of-type { border-bottom: none; }
+  .mission-item-icon {
+    flex: 0 0 auto;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #fff0f3;
+    color: var(--primary-pink, #ff85a2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .mission-item.done .mission-item-icon {
+    background: #e8fbe8;
+    color: #3cb371;
+  }
+  .mission-item-body { flex: 1 1 auto; min-width: 0; }
+  .mission-item-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+  }
+  .mission-progress-bar {
+    height: 6px;
+    background: #f5e6ea;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .mission-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff9db1, var(--primary-pink, #ff85a2));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .mission-item-count {
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 4px;
+  }
+  .mission-item-check {
+    flex: 0 0 auto;
+    color: #3cb371;
+    font-size: 1.2rem;
+    display: none;
+  }
+  .mission-item.done .mission-item-check { display: block; }
+  #mission-claim-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffb6c1, var(--primary-pink, #ff85a2));
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(255,133,162,0.35);
+  }
+  #mission-claim-btn:disabled {
+    background: #eee;
+    color: #aaa;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  /* =========================================
      🍪 CUTE MONTHLY COOKIE COUNTDOWN (COMPACT & MINIMAL)
      ========================================= */
   .cookie-countdown-container {
@@ -2001,6 +2120,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 </div>
   
   <div class="nav-btns">
+    <a href="javascript:void(0)" class="nav-icon icon-wrapper" title="ภารกิจประจำวัน" onclick="openDailyMissionModal()">
+        <i class="fas fa-list-check"></i>
+        <span class="noti-badge" id="mission-badge" style="display: none;"></span>
+    </a>
     <a href="majorvote.html" class="nav-icon" title="Major Vote">
         <i class="fas fa-crown"></i>
     </a>
@@ -4066,22 +4189,124 @@ async function refreshAppData() {
   } 
 }
 
+// ==========================================
+// 🎯 DAILY MISSION (ให้คุกกี้ 10 / กดใจ 2 โพส / คอมเมนต์ 2 โพส ของเดือนนี้ -> รับ 5 Tokens)
+// รีเซ็ตทุกเที่ยงคืนฝั่งเซิร์ฟเวอร์ (Asia/Bangkok) ความคืบหน้าถูกนับจาก
+// give_cookie/like_post/add_comment โดยตรง ที่นี่แค่อ่าน+กดรับรางวัล
+// ==========================================
+let dailyMissionData = null;
+const MISSION_META = {
+  1: { icon: 'fa-cookie-bite', label: (p, t) => `ให้คุกกี้เมมเบอร์รวม ${t} Cookies` },
+  2: { icon: 'fa-heart',       label: (p, t) => `กดใจโพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` },
+  3: { icon: 'fa-comment-dots',label: (p, t) => `คอมเมนต์โพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` }
+};
+
+async function loadDailyMissions() {
+  if (!user || !user.username) return null;
+  try {
+    const res = await blm48GetDailyMissions(user.username);
+    if (res && res.status === 'success') {
+      dailyMissionData = res;
+      const badge = document.getElementById('mission-badge');
+      if (badge) badge.style.display = (res.allDone && !res.claimed) ? 'block' : 'none';
+    }
+    return dailyMissionData;
+  } catch (e) {
+    console.error('loadDailyMissions error:', e);
+    return null;
+  }
+}
+
+function renderDailyMissionsModal() {
+  const list = document.getElementById('mission-item-list');
+  const btn = document.getElementById('mission-claim-btn');
+  if (!list || !btn || !dailyMissionData) return;
+
+  list.innerHTML = dailyMissionData.missions.map(m => {
+    const meta = MISSION_META[m.id];
+    const pct = Math.min(100, Math.round((m.progress / m.target) * 100));
+    return `
+      <div class="mission-item ${m.done ? 'done' : ''}">
+        <div class="mission-item-icon"><i class="fas ${meta.icon}"></i></div>
+        <div class="mission-item-body">
+          <div class="mission-item-text">${escapeHtml(meta.label(m.progress, m.target))}</div>
+          <div class="mission-progress-bar"><div class="mission-progress-fill" style="width:${pct}%;"></div></div>
+          <div class="mission-item-count">${m.progress}/${m.target}</div>
+        </div>
+        <div class="mission-item-check"><i class="fas fa-circle-check"></i></div>
+      </div>`;
+  }).join('');
+
+  if (dailyMissionData.claimed) {
+    btn.disabled = true;
+    btn.textContent = 'รับของรางวัลวันนี้แล้ว 🎉';
+  } else if (dailyMissionData.allDone) {
+    btn.disabled = false;
+    btn.textContent = `รับของขวัญ ${dailyMissionData.reward} Tokens 🎁`;
+  } else {
+    btn.disabled = true;
+    btn.textContent = 'ทำภารกิจให้ครบก่อนนะ';
+  }
+}
+
+async function openDailyMissionModal() {
+  if (!user) {
+    Swal.fire('กรุณาเข้าสู่ระบบ', 'เข้าสู่ระบบก่อนเพื่อทำภารกิจประจำวันค่ะ', 'info');
+    return;
+  }
+  const modal = document.getElementById('daily-mission-modal');
+  if (modal) modal.style.display = 'flex';
+  const list = document.getElementById('mission-item-list');
+  if (list) list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px 0;">กำลังโหลด...</div>';
+  await loadDailyMissions();
+  renderDailyMissionsModal();
+}
+
+function closeDailyMissionModal() {
+  const modal = document.getElementById('daily-mission-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function claimDailyMissionReward() {
+  if (!user || !user.username) return;
+  const btn = document.getElementById('mission-claim-btn');
+  if (btn) btn.disabled = true;
+  Swal.fire({ title: 'กำลังรับของรางวัล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  try {
+    const res = await blm48ClaimDailyMissionReward(user.username);
+    if (res && res.status === 'success') {
+      await syncUserData();
+      await loadDailyMissions();
+      renderDailyMissionsModal();
+      Swal.fire('สำเร็จ!', res.message, 'success');
+    } else {
+      Swal.fire('ไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
+      renderDailyMissionsModal();
+    }
+  } catch (e) {
+    console.error('claimDailyMissionReward error:', e);
+    Swal.fire('ผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ', 'error');
+  }
+}
+
 // ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
-  
+
   // ===================================================
   // [ส่วนที่ 1] ระบบล็อกอิน UI และระบบ Background Auto-Kick (คงเดิมไว้)
   // ===================================================
-  user = getUserSession(); 
+  user = getUserSession();
   updateUI();
   hideAppLoading();
   loadData();
 
   if (user) {
     syncUserData();
+    loadDailyMissions();
     setInterval(async () => {
       if (localStorage.getItem('bnl_session')) {
         await syncUserData();
+        await loadDailyMissions();
       }
     }, 45000);
 
@@ -4366,6 +4591,16 @@ document.addEventListener("DOMContentLoaded", () => {
     <img id="tab-profile-img" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" style="border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
   </a>
 
+</div>
+
+<div id="daily-mission-modal">
+  <div class="mission-card">
+    <span class="mission-card-close" onclick="closeDailyMissionModal()">&times;</span>
+    <div class="mission-card-title"><i class="fas fa-list-check"></i> ภารกิจประจำวัน</div>
+    <div class="mission-card-subtitle">ทำครบ 3 ภารกิจ รับ 5 Tokens ฟรี! รีเซ็ตทุกเที่ยงคืน</div>
+    <div id="mission-item-list"></div>
+    <button id="mission-claim-btn" disabled onclick="claimDailyMissionReward()">ทำภารกิจให้ครบก่อนนะ</button>
+  </div>
 </div>
 
 <div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">

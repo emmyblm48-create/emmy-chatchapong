@@ -243,6 +243,16 @@ function blm48RemoveOshi(username, type, memberName) {
 function blm48ClaimMonthlyCookie(username) {
   return blm48Rpc('claim_monthly_cookie', { p_username: username });
 }
+
+// Daily missions (give 10 cookies / like 2 posts / comment 2 posts, all from
+// this month, resets 00:00 Asia/Bangkok). Progress is tracked server-side
+// inside give_cookie/like_post/add_comment - this is read-only + the claim.
+function blm48GetDailyMissions(username) {
+  return blm48Rpc('get_daily_missions', { p_username: username });
+}
+function blm48ClaimDailyMissionReward(username) {
+  return blm48Rpc('claim_daily_mission_reward', { p_username: username });
+}
 function blm48ExchangeCookies(username, tokenPrice) {
   return blm48Rpc('exchange_cookies', { p_username: username, p_token_price: tokenPrice });
 }
