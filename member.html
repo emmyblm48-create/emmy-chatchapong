@@ -227,6 +227,22 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
+    /* 👑 ป้าย "Kami-Oshi Days" ใต้ชื่อ - โชว์เฉพาะตอนดูเมมเบอร์ที่เป็นคามิโอชิของเราเอง */
+    .kami-days-badge {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, #ffe08a, #ffc107);
+      color: #6b4a00;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-top: 8px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+
 
     .stats-bar {
       display: grid;
@@ -591,7 +607,8 @@
       <div id="mb-name" class="member-name">กำลังโหลด...</div>
       <!-- 🎓 ป้ายกำกับสีเทา GRADUATED ใต้ชื่อ -->
       <div id="mb-grad-badge" class="graduated-badge"><i class="fas fa-graduation-cap"></i> Graduated</div>
-      <div id="mb-sub" class="member-sub">BLM48 MEMBER</div> 
+      <div id="mb-sub" class="member-sub">BLM48 MEMBER</div>
+      <div id="mb-kami-days-badge" class="kami-days-badge"><i class="fas fa-crown"></i> Kami-Oshi <span id="mb-kami-days-num">1</span> Days</div>
     </div>
 
      <div class="stats-bar">
@@ -910,12 +927,20 @@ function renderMemberStatsAndFans() {
       const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
       const oshiArray = Array.isArray(user.oshi) ? user.oshi.filter(Boolean).map(s => s.toString().toLowerCase()) : [];
 
+      const kamiDaysBadge = document.getElementById('mb-kami-days-badge');
+      const kamiDaysNum = document.getElementById('mb-kami-days-num');
+
       if (currentKamioshi === searchName) {
         btnKami.innerHTML = '<i class="fas fa-heart-broken"></i> <span>REMOVE KAMI</span>';
         btnKami.style.backgroundColor = "#ffe3e3"; btnKami.style.color = "#e03131"; btnKami.style.borderColor = "#ffa8a8";
+        if (kamiDaysBadge && kamiDaysNum) {
+          kamiDaysNum.textContent = user.kamioshiDays || 1;
+          kamiDaysBadge.style.display = "flex";
+        }
       } else {
         btnKami.innerHTML = '<i class="fas fa-crown"></i> <span>+ KAMI</span>';
         btnKami.style.backgroundColor = ""; btnKami.style.color = ""; btnKami.style.borderColor = "";
+        if (kamiDaysBadge) kamiDaysBadge.style.display = "none";
       }
 
       if (oshiArray.includes(searchName)) {
