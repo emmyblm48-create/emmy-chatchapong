@@ -3707,13 +3707,23 @@ function renderPost(post) {
   // ... (โค้ดส่วน MediaHtml Audio/Video และรูปภาพเหมือนเดิม) ...
   let mediaHtml = '';
   if (post.audioURL) {
-    // 🔇 ฟีเจอร์แนบเสียงพูดถูกปิดให้บริการแล้ว โพสเก่าที่เคยมีเสียงแนบเลยแสดงคำเตือนน่ารักๆ แทนเครื่องเล่นเสียง
-    mediaHtml += `
-      <div style="margin-top: 12px; background: #fff5f7; border: 1px dashed #ffc0cb; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; max-width: 400px;">
-        <i class="fa-solid fa-microphone-slash" style="color: var(--primary-pink); font-size: 1.1rem;"></i>
-        <span style="font-size: 0.8rem; color: #a68a90;">โพสนี้เคยมีข้อความเสียงแนบอยู่ แต่ตอนนี้ฟีเจอร์นี้ปิดให้บริการแล้วนะ 🙈</span>
-      </div>
-    `;
+    // 🎙️ โพสเก่าก่อน 2026-08-05 ชี้ไปที่โปรเจกต์ Supabase เดิมที่เลิกใช้แล้ว (kmolgfghbviwxqlhnlku) ลิงก์ตายแล้ว
+    // เลยยังต้องโชว์ข้อความแทน ส่วนคลิปเสียงใหม่ที่อัดผ่านฟีเจอร์ใน post.html (bucket post-audio) เล่นได้ปกติ
+    if (post.audioURL.includes('kmolgfghbviwxqlhnlku')) {
+      mediaHtml += `
+        <div style="margin-top: 12px; background: #fff5f7; border: 1px dashed #ffc0cb; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; max-width: 400px;">
+          <i class="fa-solid fa-microphone-slash" style="color: var(--primary-pink); font-size: 1.1rem;"></i>
+          <span style="font-size: 0.8rem; color: #a68a90;">โพสนี้เคยมีข้อความเสียงแนบอยู่ แต่ลิงก์เก่าใช้งานไม่ได้แล้วนะ 🙈</span>
+        </div>
+      `;
+    } else {
+      mediaHtml += `
+        <div style="margin-top: 12px; background: #fff5f7; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; max-width: 400px;">
+          <i class="fa-solid fa-microphone" style="color: var(--primary-pink); font-size: 1.1rem; flex-shrink: 0;"></i>
+          <audio controls src="${post.audioURL}" style="flex: 1; height: 36px; min-width: 0;"></audio>
+        </div>
+      `;
+    }
   }
 
   if (post.videoURL) {

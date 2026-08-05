@@ -137,6 +137,37 @@ function blm48AddComment(username, postId, text) {
   return blm48Rpc('add_comment', { p_username: username, p_post_id: postId, p_text: text });
 }
 
+// Uploads a recorded voice-clip Blob straight to the public "post-audio" Storage bucket
+// (created 2026-08-05, replaces the old audio pipeline that pointed at a since-abandoned
+// Supabase project) and returns its public URL for create_post/edit_post's audio param.
+// Same "anon key, no real auth session" trust model as every RPC above - anyone can upload,
+// but only into this bucket, capped by its own file_size_limit/allowed_mime_types.
+// Retries on transient failures (network blip, rate limit) same as the image upload path in
+// post.html. Generates a fresh random filePath per attempt so a lost success response never
+// collides with the retry (upsert:false would otherwise error out on an already-existing file).
+async function blm48UploadPostAudio(username, blob, retries = 2) {
+  const ext = blob.type.includes('mp4') ? 'm4a' : (blob.type.includes('ogg') ? 'ogg' : (blob.type.includes('wav') ? 'wav' : 'webm'));
+
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const filePath = `${username}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    try {
+      const { error } = await blm48Supabase.storage.from('post-audio').upload(filePath, blob, {
+        contentType: blob.type || 'audio/webm',
+        upsert: false
+      });
+      if (error) throw error;
+
+      const { data } = blm48Supabase.storage.from('post-audio').getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (err) {
+      lastError = err;
+      if (attempt === retries) throw lastError;
+      await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
+    }
+  }
+}
+
 // Profile updates - name (role='user' only, same as before) and photo, written straight to Supabase.
 function blm48UpdateProfileName(username, newName) {
   return blm48Rpc('update_profile_name', { p_username: username, p_new_name: newName });
