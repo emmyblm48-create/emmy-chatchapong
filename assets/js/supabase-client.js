@@ -168,6 +168,43 @@ async function blm48UploadPostAudio(username, blob, retries = 2) {
   }
 }
 
+// Shared upload helper for the image buckets below - same retry-with-fresh-filename pattern as
+// blm48UploadPostAudio. `file` can be a File or Blob; extension is guessed from its MIME type
+// (falls back to jpg since both callers compress/crop to JPEG client-side before calling this).
+async function blm48UploadImageToBucket(bucket, username, file, retries = 2) {
+  const type = file.type || 'image/jpeg';
+  const ext = type.includes('png') ? 'png' : (type.includes('webp') ? 'webp' : (type.includes('gif') ? 'gif' : 'jpg'));
+
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const filePath = `${username}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    try {
+      const { error } = await blm48Supabase.storage.from(bucket).upload(filePath, file, {
+        contentType: type,
+        upsert: false
+      });
+      if (error) throw error;
+
+      const { data } = blm48Supabase.storage.from(bucket).getPublicUrl(filePath);
+      return data.publicUrl;
+    } catch (err) {
+      lastError = err;
+      if (attempt === retries) throw lastError;
+      await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
+    }
+  }
+}
+
+// Replaces ImgBB (went down entirely on 2026-08-05, taking every image upload in the app down
+// with it) - post.html's gallery images and profile.html's profile picture now go straight to
+// Supabase Storage instead of a third-party host with no reliability guarantee.
+function blm48UploadPostImage(username, file, retries = 2) {
+  return blm48UploadImageToBucket('post-images', username, file, retries);
+}
+function blm48UploadProfileImage(username, file, retries = 2) {
+  return blm48UploadImageToBucket('profile-images', username, file, retries);
+}
+
 // Profile updates - name (role='user' only, same as before) and photo, written straight to Supabase.
 function blm48UpdateProfileName(username, newName) {
   return blm48Rpc('update_profile_name', { p_username: username, p_new_name: newName });

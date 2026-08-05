@@ -831,7 +831,8 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
   }
 }
 
-  // --- ส่งรูปเข้าคลัง ImgBB & อัปเดต Google Sheets ---
+  // --- ส่งรูปเข้า Supabase Storage & อัปเดตโปรไฟล์ ---
+  // (ย้ายออกจาก ImgBB เมื่อ 2026-08-05 เพราะ ImgBB ล่มทั้งโดเมน ทำให้อัปโหลดรูปไม่ได้เลยทั้งแอป)
   async function proceedToUploadProfile(blobFile) {
     Swal.fire({
       title: 'กำลังอัปเดตระบบ...',
@@ -841,19 +842,8 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
     });
 
     try {
-      // 1. ส่งขึ้นเซิร์ฟเวอร์ฝากรูปผ่านคีย์ API เดิมของคุณเอ็มมี่
-      const apiKey = '80ad839da07973eeefee57af54fc9f6d';
-      const formData = new FormData();
-      formData.append('image', blobFile, 'profile.jpg');
-
-      const imgbbResp = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-        method: 'POST',
-        body: formData
-      });
-      const imgbbData = await imgbbResp.json();
-
-      if (!imgbbData.success) throw new Error("ImgBB อัปโหลดล้มเหลว");
-      const finalImageUrl = imgbbData.data.url;
+      // 1. อัปโหลดขึ้น Supabase Storage bucket 'profile-images' (มี retry อัตโนมัติในตัวอยู่แล้ว)
+      const finalImageUrl = await blm48UploadProfileImage(user.username, blobFile);
 
       // 2. บันทึกลิงก์ URL รูปภาพใหม่ตรงเข้า Supabase
       const res = await blm48UpdateProfileImage(user.username, finalImageUrl);
