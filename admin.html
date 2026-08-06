@@ -235,6 +235,22 @@
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
 
+        <div class="section-title"><i class="fa-solid fa-toolbox"></i> เครื่องมือแอดมิน</div>
+        <div class="tool-grid">
+            <div class="tool-card" onclick="showAdminCreateAccountModal()">
+                <i class="fas fa-user-plus"></i>
+                <span>สร้างบัญชีผู้ใช้งาน</span>
+            </div>
+            <div class="tool-card" onclick="showAdminTransferModal()">
+                <i class="fas fa-money-bill-transfer"></i>
+                <span>โอน Token / Cookie / GEToken</span>
+            </div>
+            <div class="tool-card" onclick="showAdminTransferHistoryModal()">
+                <i class="fas fa-receipt"></i>
+                <span>ประวัติการโอน</span>
+            </div>
+        </div>
+
         <div class="section-title"><i class="fa-solid fa-chart-simple"></i> Dashboard Member</div>
         <div class="member-toolbar">
             <input type="text" id="member-search" class="search-input" placeholder="ค้นหาชื่อหรือ Username..." oninput="renderMemberDashboard()">
@@ -250,22 +266,6 @@
         </div>
         <div class="member-grid" id="member-dashboard-list">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
-        </div>
-
-        <div class="section-title"><i class="fa-solid fa-toolbox"></i> เครื่องมือแอดมิน</div>
-        <div class="tool-grid">
-            <div class="tool-card" onclick="showAdminCreateAccountModal()">
-                <i class="fas fa-user-plus"></i>
-                <span>สร้างบัญชีผู้ใช้งาน</span>
-            </div>
-            <div class="tool-card" onclick="showAdminTransferModal()">
-                <i class="fas fa-money-bill-transfer"></i>
-                <span>โอน Token / Cookie / GEToken</span>
-            </div>
-            <div class="tool-card" onclick="showAdminTransferHistoryModal()">
-                <i class="fas fa-receipt"></i>
-                <span>ประวัติการโอน</span>
-            </div>
         </div>
     </div>
 </div>
@@ -429,8 +429,12 @@
   }
 
   // =========================================================================
-  // 📊 Dashboard Member — สถิติการมีส่วนร่วมของ Role Member ทุกคน (Kami-Oshi/Oshi/
-  // Cookie/Likes/Post/Comment) พร้อมค้นหาและเรียงลำดับ
+  // 📊 Dashboard Member — สถิติของ "ไอดอล BLM48" ทุกคน (จาก public.members ไม่ใช่บัญชีแฟน)
+  // Kami-Oshi/Oshi = จำนวนแฟนที่เลือกไอดอลคนนี้เป็นคามิโอชิ/โอชิ (นับจาก user_oshi ตรงกับ
+  // สูตรเดียวกับที่ member.html ใช้ผ่าน get_member_stats), Cookie = ยอดรวมตลอดกาลจาก
+  // ranking_monthly, Likes = ตัวนับสะสมในตาราง members (total_like), Post/Comment = กิจกรรม
+  // ของบัญชีที่ผูกกับไอดอลคนนั้น (จับคู่ชื่อ). RPC จะรีเฟรช members.total_kamioshi_legacy/
+  // total_oshi_legacy/total_cookie_legacy ให้เป็นค่าล่าสุดทุกครั้งที่โหลดหน้านี้ด้วย
   // =========================================================================
   let memberDashboardCache = [];
 
@@ -472,7 +476,7 @@
           <img class="member-avatar" src="${escapeAttr(resolveDriveImage(m.profile_img))}">
           <div>
             <div class="member-name">${escapeHtml(m.name || m.username)}</div>
-            <div class="member-username">@${escapeHtml(m.username)}</div>
+            <div class="member-username">${m.username ? '@' + escapeHtml(m.username) : 'ไม่มีบัญชีผูกไว้'}</div>
           </div>
         </div>
         <div class="member-stats">
