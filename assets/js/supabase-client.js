@@ -373,6 +373,10 @@ function blm48AdminLookupUser(adminUsername, targetUsername) {
 function blm48AdminTransferWallet(adminUsername, targetUsername, token, cookie, geToken) {
   return blm48Rpc('admin_transfer_wallet', { p_admin_username: adminUsername, p_target_username: targetUsername, p_token: token, p_cookie: cookie, p_ge_token: geToken });
 }
+// Global audit log of every admin's wallet transfers (newest first), used by the "ประวัติการโอน" list.
+function blm48AdminGetTransferHistory(adminUsername, limit) {
+  return blm48Rpc('admin_get_transfer_history', { p_admin_username: adminUsername, p_limit: limit || 100 });
+}
 
 // Live-updates a Major Vote campaign's candidate rows. Replaces the old Firebase
 // majorVotes/{collectionId} subscription for the same reason as blm48SubscribeWallet.

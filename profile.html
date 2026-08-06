@@ -417,6 +417,12 @@ body {
     <i class="fas fa-chevron-right menu-arrow"></i>
   </a>
 
+  <a href="#" id="menu-admin-history" class="menu-item" style="display:none;" onclick="showAdminTransferHistoryModal(); return false;">
+    <div class="menu-icon icon-purple"><i class="fas fa-receipt"></i></div>
+    <div class="menu-text">ประวัติการโอน (Admin)</div>
+    <i class="fas fa-chevron-right menu-arrow"></i>
+  </a>
+
   <a href="https://blm48.vercel.app/index.html" target="_blank" class="menu-item">
     <div class="menu-icon icon-dark"><i class="fas fa-external-link-alt"></i></div>
     <div class="menu-text">Official Site</div>
@@ -491,8 +497,10 @@ body {
     const isAdmin = user.role && user.role.toLowerCase() === 'admin';
     const menuAdminCreate = document.getElementById('menu-admin-create');
     const menuAdminTransfer = document.getElementById('menu-admin-transfer');
+    const menuAdminHistory = document.getElementById('menu-admin-history');
     if (menuAdminCreate) menuAdminCreate.style.display = isAdmin ? 'flex' : 'none';
     if (menuAdminTransfer) menuAdminTransfer.style.display = isAdmin ? 'flex' : 'none';
+    if (menuAdminHistory) menuAdminHistory.style.display = isAdmin ? 'flex' : 'none';
     // เพิ่มการจัดการปุ่มรับคุกกี้ตามสถานะ Member
     const btnClaim = document.getElementById('btn-claim-monthly');
     if (btnClaim) {
@@ -916,7 +924,6 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
           <select id="admin-new-role" class="swal2-select" style="margin:0; width:100%;">
             <option value="user">User</option>
             <option value="member">Member</option>
-            <option value="admin">Admin</option>
           </select>
           <div style="font-size:12px; color:#999; margin-top:4px;">
             บัญชีใหม่จะได้รับ 10 Tokens, 100 Cookies, 0 GEToken และรูปโปรไฟล์เริ่มต้นให้อัตโนมัติ
@@ -1063,7 +1070,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
     try {
       const res = await blm48AdminTransferWallet(user.username, target.username, token, cookie, getoken);
       if (res.status === 'success') {
-        generateTransferSlip({ admin: user.username, target: res.data, token, cookie, getoken });
+        generateTransferSlip({ admin: user.username, target: res.data, token, cookie, getoken, refNo: res.refNo, createdAt: res.createdAt });
       } else {
         Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
       }
@@ -1073,14 +1080,36 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
   }
 
   // สร้างสลิปยืนยันการโอนแบบรูปภาพ (canvas) ให้แอดมินดาวน์โหลดเก็บเป็นหลักฐาน
-  function generateTransferSlip({ admin, target, token, cookie, getoken }) {
+  // สร้างสลิปยืนยันการโอนสไตล์ "สลิปธนาคาร" (การ์ดแนวตั้ง วงกลมติ๊กถูกสีเขียว
+  // + รายละเอียดแบบ label/value + เส้นปรุแบบใบเสร็จ) ให้แอดมินดาวน์โหลดเก็บเป็นหลักฐาน
+  // ใช้ได้ทั้งตอนโอนเสร็จใหม่ๆ (มี refNo/createdAt จาก server) และตอนเปิดดูย้อนหลังจากประวัติ
+  function generateTransferSlip({ admin, target, token, cookie, getoken, refNo, createdAt }) {
+    const items = [];
+    if (token > 0) items.push({ label: 'Token', amount: token, color: '#f59f00' });
+    if (cookie > 0) items.push({ label: 'Cookie', amount: cookie, color: '#d2691e' });
+    if (getoken > 0) items.push({ label: 'GEToken', amount: getoken, color: '#4dabf7' });
+
+    const W = 680;
+    const headerH = 96;
+    const checkCenterY = headerH + 74;
+    const amountsTop = checkCenterY + 90;
+    const amountRowH = 46;
+    const amountsBoxH = items.length * amountRowH + 30;
+    const detailsTop = amountsTop + amountsBoxH + 40;
+    const detailLabels = ['โอนจาก (Admin)', 'โอนไปยัง', 'Username ผู้รับ', 'บทบาท (Role)', 'วันที่ทำรายการ', 'เลขที่อ้างอิง'];
+    const detailRowH = 44;
+    const detailsBoxH = detailLabels.length * detailRowH + 30;
+    const perforationY = detailsTop + detailsBoxH + 30;
+    const footerH = 90;
+    const H = perforationY + footerH;
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const W = 900, H = 640;
     canvas.width = W;
     canvas.height = H;
 
-    const radius = 28;
+    // การ์ดพื้นหลังสีขาวมุมโค้ง
+    const radius = 24;
     ctx.beginPath();
     ctx.moveTo(radius, 0); ctx.lineTo(W - radius, 0); ctx.quadraticCurveTo(W, 0, W, radius);
     ctx.lineTo(W, H - radius); ctx.quadraticCurveTo(W, H, W - radius, H);
@@ -1091,94 +1120,112 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
 
+    // แถบหัวการ์ดไล่สีชมพู
     const grad = ctx.createLinearGradient(0, 0, W, 0);
     grad.addColorStop(0, '#ff85a2');
     grad.addColorStop(1, '#ffb199');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, 150);
+    ctx.fillRect(0, 0, W, headerH);
 
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 34px "Kanit", sans-serif';
-    ctx.fillText('BLM48 Membership', 40, 65);
-    ctx.font = '500 20px "Quicksand", sans-serif';
-    ctx.fillText('สลิปยืนยันการโอน (Transfer Slip)', 40, 100);
+    ctx.font = 'bold 24px "Kanit", sans-serif';
+    ctx.fillText('BLM48 Membership', W / 2, 40);
+    ctx.font = '500 15px "Quicksand", sans-serif';
+    ctx.fillText('ใบยืนยันการโอน (Transfer Receipt)', W / 2, 68);
 
-    ctx.textAlign = 'right';
-    ctx.font = 'bold 26px "Quicksand", sans-serif';
-    ctx.fillText('✓ สำเร็จ', W - 40, 80);
+    // วงกลมเช็คถูกสีเขียว (วาดด้วยวงกลมเต็ม + เส้นตรง 2 เส้น ไม่พึ่ง arc บางส่วนที่เสี่ยงผิดทิศ)
+    ctx.beginPath();
+    ctx.arc(W / 2, checkCenterY, 34, 0, Math.PI * 2);
+    ctx.fillStyle = '#2ecc71';
+    ctx.fill();
 
-    ctx.textAlign = 'left';
-    let y = 200;
-    ctx.font = '600 18px "Quicksand", sans-serif';
-    ctx.fillStyle = '#999';
-    ctx.fillText('โอนโดย (Admin)', 40, y);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 15, checkCenterY);
+    ctx.lineTo(W / 2 - 4, checkCenterY + 12);
+    ctx.lineTo(W / 2 + 17, checkCenterY - 14);
+    ctx.stroke();
+
     ctx.fillStyle = '#3a3a3a';
-    ctx.font = '600 24px "Kanit", sans-serif';
-    ctx.fillText(admin, 40, y + 32);
+    ctx.font = 'bold 22px "Kanit", sans-serif';
+    ctx.fillText('โอนเงินสำเร็จ', W / 2, checkCenterY + 62);
 
-    y += 90;
-    ctx.font = '600 18px "Quicksand", sans-serif';
-    ctx.fillStyle = '#999';
-    ctx.fillText('ถึง (ผู้รับ)', 40, y);
-    ctx.fillStyle = '#3a3a3a';
-    ctx.font = '600 24px "Kanit", sans-serif';
-    ctx.fillText(`${target.name || target.username} (@${target.username})`, 40, y + 32);
-
-    y += 80;
-    ctx.strokeStyle = '#ffe5ec';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 6]);
-    ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(W - 40, y); ctx.stroke();
-    ctx.setLineDash([]);
-
-    y += 45;
-    ctx.font = '600 20px "Quicksand", sans-serif';
-    ctx.fillStyle = '#999';
-    ctx.fillText('รายการที่โอน', 40, y);
-
-    y += 40;
-    const items = [];
-    if (token > 0) items.push(['Token', token, '#f59f00']);
-    if (cookie > 0) items.push(['Cookie', cookie, '#d2691e']);
-    if (getoken > 0) items.push(['GEToken', getoken, '#4dabf7']);
-
-    items.forEach(([label, amount, color]) => {
+    // กล่อง "รายการที่โอน" — พื้นหลังชมพูอ่อน ขอบโค้ง
+    drawRoundedBox(ctx, 40, amountsTop, W - 80, amountsBoxH, 14, '#fff0f3');
+    let y = amountsTop + 40;
+    items.forEach(item => {
       ctx.textAlign = 'left';
-      ctx.font = '500 22px "Quicksand", sans-serif';
+      ctx.font = '500 18px "Quicksand", sans-serif';
       ctx.fillStyle = '#3a3a3a';
-      ctx.fillText(label, 40, y);
+      ctx.fillText(item.label, 60, y);
       ctx.textAlign = 'right';
-      ctx.fillStyle = color;
-      ctx.font = 'bold 24px "Quicksand", sans-serif';
-      ctx.fillText('+' + Number(amount).toLocaleString(), W - 40, y);
-      y += 44;
+      ctx.fillStyle = item.color;
+      ctx.font = 'bold 22px "Quicksand", sans-serif';
+      ctx.fillText('+' + Number(item.amount).toLocaleString(), W - 60, y);
+      y += amountRowH;
     });
 
-    y += 20;
-    ctx.strokeStyle = '#ffe5ec';
+    // กล่อง "รายละเอียดรายการ" — เส้นขอบบางสไตล์สลิปธนาคาร
+    drawRoundedBox(ctx, 40, detailsTop, W - 80, detailsBoxH, 14, '#fbfbfb', '#f0f0f0');
+    const now = createdAt ? new Date(createdAt) : new Date();
+    const dateStr = now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+    const ref = refNo || ('TXN' + now.getTime());
+    const detailValues = [
+      admin,
+      target.name || target.username,
+      '@' + target.username,
+      (target.role || '').toUpperCase(),
+      dateStr,
+      ref
+    ];
+
+    y = detailsTop + 34;
+    detailLabels.forEach((label, i) => {
+      ctx.textAlign = 'left';
+      ctx.font = '400 15px "Quicksand", sans-serif';
+      ctx.fillStyle = '#999';
+      ctx.fillText(label, 60, y);
+      ctx.textAlign = 'right';
+      ctx.font = '600 15px "Quicksand", sans-serif';
+      ctx.fillStyle = '#3a3a3a';
+      ctx.fillText(detailValues[i], W - 60, y);
+      if (i < detailLabels.length - 1) {
+        ctx.strokeStyle = '#f0f0f0';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(60, y + 14); ctx.lineTo(W - 60, y + 14); ctx.stroke();
+      }
+      y += detailRowH;
+    });
+
+    // เส้นปรุแบบใบเสร็จ (จุดกลมประดับซ้าย-ขวา + เส้นประ)
+    ctx.fillStyle = '#ffe5ec';
+    ctx.beginPath(); ctx.arc(10, perforationY, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(W - 10, perforationY, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 2;
     ctx.setLineDash([6, 6]);
-    ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(W - 40, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(30, perforationY); ctx.lineTo(W - 30, perforationY); ctx.stroke();
     ctx.setLineDash([]);
 
-    y += 35;
-    const now = new Date();
-    const dateStr = now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
-    const ref = 'TXN' + now.getTime();
-    ctx.textAlign = 'left';
-    ctx.font = '400 15px "Quicksand", sans-serif';
-    ctx.fillStyle = '#999';
-    ctx.fillText('วันที่: ' + dateStr, 40, y);
-    ctx.fillText('เลขที่อ้างอิง: ' + ref, 40, y + 24);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#bbb';
+    ctx.font = '400 13px "Quicksand", sans-serif';
+    ctx.fillText('เอกสารนี้สร้างโดยระบบอัตโนมัติ ไม่ต้องลงลายมือชื่อ', W / 2, perforationY + 36);
+    ctx.font = '600 13px "Quicksand", sans-serif';
+    ctx.fillText('BLM48 Membership', W / 2, perforationY + 58);
 
     const dataUrl = canvas.toDataURL('image/png');
 
     Swal.fire({
-      title: 'โอนสำเร็จแล้ว!',
+      title: refNo ? 'สลิปการโอน' : 'โอนสำเร็จแล้ว!',
       html: `
         <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
-          <img src="${dataUrl}" style="width:100%; max-width:460px; border-radius:14px; box-shadow:0 8px 26px rgba(255,133,162,0.25);">
-          <a href="${dataUrl}" download="BLM48_Transfer_${target.username}_${Date.now()}.png" style="
+          <img src="${dataUrl}" style="width:100%; max-width:340px; border-radius:14px; box-shadow:0 8px 26px rgba(255,133,162,0.25);">
+          <a href="${dataUrl}" download="BLM48_Transfer_${target.username}_${ref}.png" style="
             display:inline-flex; align-items:center; gap:8px; padding:12px 32px;
             background: var(--blmem-pink); color:#fff; text-decoration:none; border-radius:25px;
             font-weight:bold; font-size:15px; box-shadow:0 4px 12px rgba(255,133,162,0.3);
@@ -1189,6 +1236,87 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
       `,
       showConfirmButton: false,
       showCloseButton: true
+    });
+  }
+
+  // วาดกล่องมุมโค้ง (พื้นหลัง + เส้นขอบทางเลือก) ใช้ร่วมกันในสลิป
+  function drawRoundedBox(ctx, x, y, w, h, r, fillColor, strokeColor) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    if (fillColor) { ctx.fillStyle = fillColor; ctx.fill(); }
+    if (strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = 1.5; ctx.stroke(); }
+  }
+
+  // =========================================================================
+  // 👑 ฟีเจอร์เฉพาะ Role Admin — ประวัติการโอน Token/Cookie/GEToken พร้อมเปิดดูสลิปย้อนหลัง
+  // =========================================================================
+  let adminTransferHistoryCache = [];
+
+  async function showAdminTransferHistoryModal() {
+    if (!user || user.role.toLowerCase() !== 'admin') return;
+
+    Swal.fire({ title: 'กำลังโหลดประวัติ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminGetTransferHistory(user.username);
+      if (res.status !== 'success') {
+        Swal.fire('ผิดพลาด', res.message || 'โหลดประวัติไม่สำเร็จ', 'error');
+        return;
+      }
+      adminTransferHistoryCache = res.data || [];
+      renderAdminTransferHistoryModal();
+    } catch (e) {
+      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
+  }
+
+  function renderAdminTransferHistoryModal() {
+    const rowsHtml = adminTransferHistoryCache.length === 0
+      ? `<div style="text-align:center; color:#999; padding:30px 0;">ยังไม่มีประวัติการโอน</div>`
+      : adminTransferHistoryCache.map((log, i) => {
+          const parts = [];
+          if (log.token > 0) parts.push(`<span><i class="fas fa-coins" style="color:#f59f00;"></i> ${Number(log.token).toLocaleString()}</span>`);
+          if (log.cookie > 0) parts.push(`<span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> ${Number(log.cookie).toLocaleString()}</span>`);
+          if (log.ge_token > 0) parts.push(`<span><i class="fas fa-gem" style="color:#4dabf7;"></i> ${Number(log.ge_token).toLocaleString()}</span>`);
+          const dt = new Date(log.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 4px; border-bottom:1px dashed #eee; gap:10px;">
+              <div style="text-align:left;">
+                <div style="font-weight:600; font-size:14px;">${escapeHtml(log.target_name || log.target_username)} <span style="color:#999; font-weight:400; font-size:12px;">@${escapeHtml(log.target_username)}</span></div>
+                <div style="font-size:12px; color:#999;">โดย ${escapeHtml(log.admin_username)} · ${dt}</div>
+                <div style="font-size:13px; margin-top:4px; display:flex; gap:10px;">${parts.join(' ')}</div>
+              </div>
+              <button onclick="reopenAdminTransferSlip(${i})" style="border:none; background:var(--blmem-pink-light); color:var(--blmem-pink); font-weight:600; padding:8px 14px; border-radius:20px; font-size:12px; cursor:pointer; white-space:nowrap;">
+                <i class="fas fa-receipt"></i> ดูสลิป
+              </button>
+            </div>
+          `;
+        }).join('');
+
+    Swal.fire({
+      title: 'ประวัติการโอน (Admin)',
+      html: `<div style="max-height:60vh; overflow-y:auto; text-align:left;">${rowsHtml}</div>`,
+      showConfirmButton: false,
+      showCloseButton: true,
+      width: 480
+    });
+  }
+
+  // เปิดสลิปซ้ำจากประวัติที่โหลดไว้ (regenerate ด้วยข้อมูลเดิม ref/วันที่เดิมทุกครั้ง)
+  function reopenAdminTransferSlip(index) {
+    const log = adminTransferHistoryCache[index];
+    if (!log) return;
+    generateTransferSlip({
+      admin: log.admin_username,
+      target: { username: log.target_username, name: log.target_name, role: log.target_role },
+      token: Number(log.token) || 0,
+      cookie: Number(log.cookie) || 0,
+      getoken: Number(log.ge_token) || 0,
+      refNo: log.ref_no,
+      createdAt: log.created_at
     });
   }
 
