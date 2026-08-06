@@ -22,6 +22,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
 
     <style>
         :root {
@@ -402,6 +403,19 @@
             z-index: 2;
         }
 
+        .item-book-badge {
+            position: absolute;
+            top: 13px;
+            left: 10px;
+            background: var(--tier-color);
+            color: white;
+            font-size: 11px;
+            padding: 4px 7px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            z-index: 2;
+        }
+
         .item-img-wrap {
             background: #fff9fa;
             border-radius: 14px;
@@ -567,6 +581,88 @@
             transform: scale(1.03);
             box-shadow: 0 6px 15px rgba(255,133,162,0.4);
         }
+
+        /* --- ตัวอ่าน E-Book (EPUB) สำหรับโฟโต้บุ๊ค --- */
+        .epub-reader-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #1c1c1e;
+            z-index: 2000;
+            flex-direction: column;
+        }
+        .epub-reader-overlay.active { display: flex; }
+
+        .epub-reader-header {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: #111;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .epub-reader-title {
+            flex: 1;
+            min-width: 0;
+            color: #fff;
+            font-family: 'Kanit';
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .epub-download-btn, .epub-close-btn {
+            flex: 0 0 auto;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .epub-close-btn:hover, .epub-download-btn:hover { background: var(--primary-pink); }
+
+        .epub-viewer {
+            flex: 1;
+            min-height: 0;
+            background: #fff;
+        }
+
+        .epub-reader-nav {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+            background: #111;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .epub-nav-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-pink);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .epub-page-indicator {
+            color: #ccc;
+            font-size: 12px;
+            font-family: 'Kanit';
+            min-width: 60px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -632,10 +728,29 @@
             <div class="modal-item-meta" id="previewMeta"></div>
             <div class="modal-action-buttons">
                 <button type="button" class="btn-close-modal" onclick="closePreview()">ปิด</button>
+                <button type="button" id="viewPhotoBookBtn" class="btn-save-image" style="display:none;" onclick="openEpubReaderFromPreview()">
+                    <i class="fa-solid fa-book-open"></i> อ่านโฟโต้บุ๊ค
+                </button>
                 <a id="saveImgBtn" href="" target="_blank" download="blm48_reward.png" class="btn-save-image">
                     <i class="fa-solid fa-download"></i> บันทึกรูปภาพ
                 </a>
             </div>
+        </div>
+    </div>
+
+    <div id="epubReaderModal" class="epub-reader-overlay">
+        <div class="epub-reader-header">
+            <div class="epub-reader-title" id="epubReaderTitle"></div>
+            <a id="epubDownloadLink" href="" download class="epub-download-btn" title="ดาวน์โหลดไฟล์ EPUB">
+                <i class="fa-solid fa-download"></i>
+            </a>
+            <button type="button" class="epub-close-btn" onclick="closeEpubReader()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="epubViewer" class="epub-viewer"></div>
+        <div class="epub-reader-nav">
+            <button type="button" class="epub-nav-btn" onclick="epubPrev()"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="epubPageIndicator" class="epub-page-indicator"></span>
+            <button type="button" class="epub-nav-btn" onclick="epubNext()"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
     </div>
 
@@ -944,6 +1059,7 @@ function renderInventoryData() {
 
             card.innerHTML = `
                 <span class="item-qty">x${item.qty}</span>
+                ${item.fileUrl ? '<span class="item-book-badge"><i class="fa-solid fa-book-open"></i></span>' : ''}
                 <div class="item-img-wrap">
                     <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
                 </div>
@@ -957,10 +1073,16 @@ function renderInventoryData() {
     });
 }
 
+    let currentPreviewItem = null;
+
     function openPreview(item) {
+        currentPreviewItem = item;
         document.getElementById('previewImg').src = item.img;
         document.getElementById('saveImgBtn').href = item.img;
         document.getElementById('previewName').textContent = item.name;
+
+        const viewPhotoBookBtn = document.getElementById('viewPhotoBookBtn');
+        viewPhotoBookBtn.style.display = item.fileUrl ? 'inline-flex' : 'none';
 
         const meta = document.getElementById('previewMeta');
         meta.style.setProperty('--tier-color', getTierColor(item.category));
@@ -972,10 +1094,66 @@ function renderInventoryData() {
 
         document.getElementById('previewModal').style.display = 'flex';
     }
-    
+
     function closePreview() {
         document.getElementById('previewModal').style.display = 'none';
     }
+
+    // =========================================================================
+    // 📖 ตัวอ่าน E-Book (EPUB) ในตัวสำหรับโฟโต้บุ๊ค — ใช้ epub.js เปิดอ่านไฟล์
+    // ที่โฮสต์อยู่บน Supabase Storage โดยตรง ไม่ต้องดาวน์โหลดออกไปเปิดแอปอื่น
+    // =========================================================================
+    let currentEpubBook = null;
+    let currentEpubRendition = null;
+
+    function openEpubReaderFromPreview() {
+        if (!currentPreviewItem || !currentPreviewItem.fileUrl) return;
+        closePreview();
+        openEpubReader(currentPreviewItem.fileUrl, currentPreviewItem.name);
+    }
+
+    function openEpubReader(fileUrl, title) {
+        const overlay = document.getElementById('epubReaderModal');
+        const viewerEl = document.getElementById('epubViewer');
+        document.getElementById('epubReaderTitle').textContent = title || '';
+        document.getElementById('epubDownloadLink').href = fileUrl;
+        document.getElementById('epubPageIndicator').textContent = '';
+        viewerEl.innerHTML = '';
+        overlay.classList.add('active');
+
+        currentEpubBook = ePub(fileUrl);
+        currentEpubRendition = currentEpubBook.renderTo('epubViewer', {
+            width: '100%',
+            height: '100%',
+            spread: 'none'
+        });
+        currentEpubRendition.display();
+
+        currentEpubBook.ready.then(() => currentEpubBook.locations.generate(600)).then(() => {
+            currentEpubRendition.on('relocated', (location) => {
+                const total = currentEpubBook.locations.length();
+                if (!total) return;
+                const current = currentEpubBook.locations.locationFromCfi(location.start.cfi);
+                document.getElementById('epubPageIndicator').textContent = `${current + 1} / ${total}`;
+            });
+        }).catch(() => { /* ไม่ต้องแสดงเลขหน้าถ้าคำนวณไม่สำเร็จ ไม่กระทบการอ่าน */ });
+    }
+
+    function closeEpubReader() {
+        document.getElementById('epubReaderModal').classList.remove('active');
+        if (currentEpubRendition) { currentEpubRendition.destroy(); currentEpubRendition = null; }
+        if (currentEpubBook) { currentEpubBook.destroy(); currentEpubBook = null; }
+    }
+
+    function epubNext() { if (currentEpubRendition) currentEpubRendition.next(); }
+    function epubPrev() { if (currentEpubRendition) currentEpubRendition.prev(); }
+
+    document.addEventListener('keydown', (e) => {
+        if (!document.getElementById('epubReaderModal').classList.contains('active')) return;
+        if (e.key === 'ArrowRight') epubNext();
+        if (e.key === 'ArrowLeft') epubPrev();
+        if (e.key === 'Escape') closeEpubReader();
+    });
 </script>
 </body>
 </html> 
