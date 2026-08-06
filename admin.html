@@ -157,6 +157,34 @@
         .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
         .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
 
+        /* --- Dashboard Member --- */
+        .member-toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+        .search-input, .sort-select {
+            border: 1px solid var(--card-border); border-radius: 12px;
+            padding: 9px 12px; font-size: 13px; font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: var(--text-dark); background: #fff;
+        }
+        .search-input { flex: 1; min-width: 0; }
+        .sort-select { flex: 0 0 auto; max-width: 140px; }
+        .search-input:focus, .sort-select:focus { outline: none; border-color: var(--primary-pink); }
+
+        .member-grid { display: flex; flex-direction: column; gap: 10px; }
+        .member-card {
+            background: white; border: 1px solid var(--card-border); border-radius: 16px;
+            padding: 12px 14px; box-shadow: 0 3px 10px rgba(0,0,0,0.02);
+        }
+        .member-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .member-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
+        .member-name { font-weight: 700; font-size: 13.5px; color: #333; }
+        .member-username { font-size: 11.5px; color: #999; }
+        .member-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .stat-chip {
+            background: #fbfbfb; border: 1px solid var(--card-border); border-radius: 10px;
+            padding: 6px 4px; text-align: center; font-size: 10.5px; color: #999;
+        }
+        .stat-chip i { margin-right: 3px; color: var(--primary-pink); }
+        .stat-chip b { display: block; font-family: 'Kanit', sans-serif; font-size: 15px; color: #333; margin-top: 2px; }
+
         /* --- Tool buttons --- */
         .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .tool-card {
@@ -207,6 +235,23 @@
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
 
+        <div class="section-title"><i class="fa-solid fa-chart-simple"></i> Dashboard Member</div>
+        <div class="member-toolbar">
+            <input type="text" id="member-search" class="search-input" placeholder="ค้นหาชื่อหรือ Username..." oninput="renderMemberDashboard()">
+            <select id="member-sort" class="sort-select" onchange="renderMemberDashboard()">
+                <option value="name">เรียงตามชื่อ</option>
+                <option value="kamioshiCount">Kami-Oshi มาก-น้อย</option>
+                <option value="oshiCount">Oshi มาก-น้อย</option>
+                <option value="cookie">Cookie มาก-น้อย</option>
+                <option value="totalLikes">Likes มาก-น้อย</option>
+                <option value="totalPosts">Post มาก-น้อย</option>
+                <option value="totalComments">Comment มาก-น้อย</option>
+            </select>
+        </div>
+        <div class="member-grid" id="member-dashboard-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+
         <div class="section-title"><i class="fa-solid fa-toolbox"></i> เครื่องมือแอดมิน</div>
         <div class="tool-grid">
             <div class="tool-card" onclick="showAdminCreateAccountModal()">
@@ -248,7 +293,7 @@
   }
 
   async function loadDashboard() {
-    Promise.all([loadStats(), loadPendingList()]);
+    Promise.all([loadStats(), loadPendingList(), loadMemberDashboard()]);
   }
 
   async function loadStats() {
@@ -381,6 +426,65 @@
         Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถลบได้', 'error');
       }
     } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+  }
+
+  // =========================================================================
+  // 📊 Dashboard Member — สถิติการมีส่วนร่วมของ Role Member ทุกคน (Kami-Oshi/Oshi/
+  // Cookie/Likes/Post/Comment) พร้อมค้นหาและเรียงลำดับ
+  // =========================================================================
+  let memberDashboardCache = [];
+
+  async function loadMemberDashboard() {
+    const list = document.getElementById('member-dashboard-list');
+    try {
+      const res = await blm48AdminGetMemberDashboard(user.username);
+      if (res.status !== 'success') { list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      memberDashboardCache = res.data || [];
+      renderMemberDashboard();
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderMemberDashboard() {
+    const list = document.getElementById('member-dashboard-list');
+    const term = (document.getElementById('member-search').value || '').trim().toLowerCase();
+    const sortKey = document.getElementById('member-sort').value;
+
+    let rows = memberDashboardCache.filter(m =>
+      !term || (m.name || '').toLowerCase().includes(term) || (m.username || '').toLowerCase().includes(term)
+    );
+
+    if (sortKey === 'name') {
+      rows.sort((a, b) => (a.name || a.username).localeCompare(b.name || b.username, 'th'));
+    } else {
+      rows.sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
+    }
+
+    if (rows.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบสมาชิกที่ค้นหา</div>`;
+      return;
+    }
+
+    list.innerHTML = rows.map(m => `
+      <div class="member-card">
+        <div class="member-card-head">
+          <img class="member-avatar" src="${escapeAttr(resolveDriveImage(m.profile_img))}">
+          <div>
+            <div class="member-name">${escapeHtml(m.name || m.username)}</div>
+            <div class="member-username">@${escapeHtml(m.username)}</div>
+          </div>
+        </div>
+        <div class="member-stats">
+          <div class="stat-chip"><i class="fas fa-crown"></i>Kami-Oshi<b>${m.kamioshiCount || 0}</b></div>
+          <div class="stat-chip"><i class="fas fa-star"></i>Oshi<b>${m.oshiCount || 0}</b></div>
+          <div class="stat-chip"><i class="fas fa-cookie-bite"></i>Cookie<b>${Number(m.cookie || 0).toLocaleString()}</b></div>
+          <div class="stat-chip"><i class="fas fa-heart"></i>Likes<b>${m.totalLikes || 0}</b></div>
+          <div class="stat-chip"><i class="fas fa-image"></i>Post<b>${m.totalPosts || 0}</b></div>
+          <div class="stat-chip"><i class="fas fa-comment"></i>Comment<b>${m.totalComments || 0}</b></div>
+        </div>
+      </div>
+    `).join('');
   }
 
   // =========================================================================

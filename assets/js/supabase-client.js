@@ -394,6 +394,12 @@ function blm48AdminGetDashboardStats(adminUsername) {
   return blm48Rpc('admin_get_dashboard_stats', { p_admin_username: adminUsername });
 }
 
+// Per-member engagement stats (Kami-Oshi/Oshi counts, cookie balance, likes/posts/comments)
+// for the "Dashboard Member" table in admin.html - scoped to role='member' accounts only.
+function blm48AdminGetMemberDashboard(adminUsername) {
+  return blm48Rpc('admin_get_member_dashboard', { p_admin_username: adminUsername });
+}
+
 // Live-updates a Major Vote campaign's candidate rows. Replaces the old Firebase
 // majorVotes/{collectionId} subscription for the same reason as blm48SubscribeWallet.
 function blm48SubscribeMajorVoteCandidates(collectionId, onChange) {
