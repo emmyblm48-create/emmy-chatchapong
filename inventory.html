@@ -634,6 +634,26 @@
             flex: 1;
             min-height: 0;
             background: #fff;
+            position: relative;
+        }
+
+        .epub-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #999;
+            font-family: 'Kanit';
+            font-size: 13px;
+            text-align: center;
+            padding: 30px;
+        }
+        .epub-loading i {
+            font-size: 26px;
+            color: var(--primary-pink);
         }
 
         .epub-reader-nav {
@@ -765,7 +785,7 @@
     
     // 🗂️ ตัวแปรสำหรับระบบตัวกรองอัจฉริยะ (แบบยืดหยุ่นรองรับอนาคต)
     let globalInventoryData = null; 
-    let currentPrimaryTab = 'all';  // 'all', 'cafe', 'coaster', 'thankyou', 'others'
+    let currentPrimaryTab = 'all';  // 'all', 'cafe', 'coaster', 'thankyou', 'photoset', 'photobook', 'others'
     let currentSubTab = 'all';      // 'all' หรือชื่องานย่อยเฉพาะ เช่น 'BLM48 Tanabata 2026'
 
     window.onload = async () => {
@@ -850,6 +870,10 @@
                 return '#4dabf7'; // ฟ้า
             case 'Thank You Card':
                 return 'var(--primary-pink)'; // ชมพู
+            case 'BLM48 PhotoSet':
+                return '#9775fa'; // ม่วง
+            case 'BLM48 Photobook':
+                return '#ff922b'; // ส้ม
             default:
                 return '#a0a0a0'; // เทา สำหรับหมวดหมู่อื่นๆ
         }
@@ -860,6 +884,7 @@
         if (!globalInventoryData) return false;
         return globalInventoryData.some(item => item.category === catName);
     }
+
 
     // ดึงรายชื่องานย่อย (Sub Collections) ทั้งหมดภายใต้กลุ่มหลัก
     function getSubCollections(catName) {
@@ -922,7 +947,25 @@
         primaryTabsContainer.appendChild(btnThankYou);
     }
 
-    // 6. ปุ่มหลัก: หมวดหมู่อื่นๆ
+    // 6. ปุ่มหลัก: BLM48 PhotoSet (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
+    if (hasCategory('BLM48 PhotoSet')) {
+        const btnPhotoSet = document.createElement('button');
+        btnPhotoSet.className = `btn-tab ${currentPrimaryTab === 'photoset' ? 'active' : ''}`;
+        btnPhotoSet.innerHTML = `<i class="fa-solid fa-images"></i> BLM48 PhotoSet`;
+        btnPhotoSet.onclick = () => selectPrimaryTab('photoset');
+        primaryTabsContainer.appendChild(btnPhotoSet);
+    }
+
+    // 7. ปุ่มหลัก: BLM48 Photobook (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
+    if (hasCategory('BLM48 Photobook')) {
+        const btnPhotobook = document.createElement('button');
+        btnPhotobook.className = `btn-tab ${currentPrimaryTab === 'photobook' ? 'active' : ''}`;
+        btnPhotobook.innerHTML = `<i class="fa-solid fa-book-open"></i> BLM48 Photobook`;
+        btnPhotobook.onclick = () => selectPrimaryTab('photobook');
+        primaryTabsContainer.appendChild(btnPhotobook);
+    }
+
+    // 8. ปุ่มหลัก: หมวดหมู่อื่นๆ
     if (hasCategory('หมวดหมู่อื่นๆ')) {
         const btnOthers = document.createElement('button');
         btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
@@ -939,6 +982,8 @@
     let targetCategory = '';
     if (currentPrimaryTab === 'coaster') targetCategory = 'Coaster';
     if (currentPrimaryTab === 'thankyou') targetCategory = 'Thank You Card';
+    if (currentPrimaryTab === 'photoset') targetCategory = 'BLM48 PhotoSet';
+    if (currentPrimaryTab === 'photobook') targetCategory = 'BLM48 Photobook';
 
     if (targetCategory !== '' && coasterSubPanel && coasterTabsContainer) {
         const subCollections = getSubCollections(targetCategory);
@@ -1011,6 +1056,9 @@ function renderInventoryData() {
         // ⭐ เพิ่มเงื่อนไขเช็กสำหรับแท็บ SSR (เช็กเผื่อไว้ให้ทั้ง Name และ ID)
         if (currentPrimaryTab === 'ssr' && item.category !== 'BLM48 SSR Photo' && item.category !== 'SSR_card') return false;
         
+        if (currentPrimaryTab === 'photoset' && item.category !== 'BLM48 PhotoSet') return false;
+        if (currentPrimaryTab === 'photobook' && item.category !== 'BLM48 Photobook') return false;
+
         if (currentPrimaryTab === 'others' && item.category !== 'หมวดหมู่อื่นๆ') return false;
 
         // ตัวกรองย่อย
@@ -1112,22 +1160,62 @@ function renderInventoryData() {
         openEpubReader(currentPreviewItem.fileUrl, currentPreviewItem.name);
     }
 
+    let epubLoadTimeout = null;
+
     function openEpubReader(fileUrl, title) {
         const overlay = document.getElementById('epubReaderModal');
         const viewerEl = document.getElementById('epubViewer');
         document.getElementById('epubReaderTitle').textContent = title || '';
         document.getElementById('epubDownloadLink').href = fileUrl;
         document.getElementById('epubPageIndicator').textContent = '';
-        viewerEl.innerHTML = '';
+        viewerEl.innerHTML = `<div class="epub-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดโฟโต้บุ๊ค...</div>`;
         overlay.classList.add('active');
+
+        // เรียก getBoundingClientRect() ทันทีหลังเปิด overlay เพื่อบังคับให้ browser
+        // reflow แบบ synchronous (ไม่พึ่ง requestAnimationFrame ซึ่งอาจไม่ทำงานถ้าแท็บไม่ active)
+        const rect = viewerEl.getBoundingClientRect();
+        const width = Math.max(Math.floor(rect.width), 280);
+        const height = Math.max(Math.floor(rect.height), 400);
+        viewerEl.innerHTML = `<div class="epub-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดโฟโต้บุ๊ค...</div>`;
+        startEpubRendition(fileUrl, width, height);
+    }
+
+    function startEpubRendition(fileUrl, width, height) {
+        const viewerEl = document.getElementById('epubViewer');
 
         currentEpubBook = ePub(fileUrl);
         currentEpubRendition = currentEpubBook.renderTo('epubViewer', {
-            width: '100%',
-            height: '100%',
-            spread: 'none'
+            width: width,
+            height: height,
+            spread: 'none',
+            flow: 'paginated',
+            manager: 'default'
         });
-        currentEpubRendition.display();
+
+        let rendered = false;
+        currentEpubRendition.on('rendered', () => { rendered = true; });
+
+        clearTimeout(epubLoadTimeout);
+        epubLoadTimeout = setTimeout(() => {
+            if (!rendered) {
+                viewerEl.innerHTML = `
+                    <div class="epub-loading">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        เปิดไฟล์ไม่สำเร็จ กรุณาลองใหม่ หรือดาวน์โหลดไฟล์แทน
+                    </div>
+                `;
+            }
+        }, 15000);
+
+        currentEpubRendition.display().catch((err) => {
+            console.error('epub display error:', err);
+            viewerEl.innerHTML = `
+                <div class="epub-loading">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    เปิดไฟล์ไม่สำเร็จ กรุณาลองใหม่ หรือดาวน์โหลดไฟล์แทน
+                </div>
+            `;
+        });
 
         currentEpubBook.ready.then(() => currentEpubBook.locations.generate(600)).then(() => {
             currentEpubRendition.on('relocated', (location) => {
@@ -1140,6 +1228,7 @@ function renderInventoryData() {
     }
 
     function closeEpubReader() {
+        clearTimeout(epubLoadTimeout);
         document.getElementById('epubReaderModal').classList.remove('active');
         if (currentEpubRendition) { currentEpubRendition.destroy(); currentEpubRendition = null; }
         if (currentEpubBook) { currentEpubBook.destroy(); currentEpubBook = null; }
