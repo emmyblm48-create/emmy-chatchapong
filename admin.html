@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #ffeb9c 0%, #ffffff 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* --- Top Bar (matches history.html) --- */
+        .top-navigation-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
+        }
+
+        .back-circle-btn {
+            flex: 0 0 auto;
+            background: #fff0f3;
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-pink);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+
+        .top-bar-title {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .page-wrapper {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 18px 16px 50px;
+        }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-family: 'Kanit', sans-serif;
+            font-size: 24px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .section-title {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            color: #333;
+            margin: 26px 0 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title .badge-count {
+            background: var(--primary-pink);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 1px 8px;
+        }
+
+        /* --- Stat cards --- */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .stat-card {
+            background: #fff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.02);
+        }
+        .stat-card.highlight { background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%); border-color: transparent; }
+        .stat-card .stat-label { font-size: 11.5px; color: #999; font-weight: 600; }
+        .stat-card.highlight .stat-label { color: rgba(255,255,255,0.85); }
+        .stat-card .stat-value { font-family: 'Kanit', sans-serif; font-size: 24px; font-weight: 700; color: #333; margin-top: 2px; }
+        .stat-card.highlight .stat-value { color: #fff; }
+
+        /* --- Pending approval / entry rows (matches history.html entry-row) --- */
+        .entry-list { display: flex; flex-direction: column; gap: 10px; }
+        .entry-row {
+            display: flex; align-items: center; gap: 12px;
+            background: white; border: 1px solid var(--card-border);
+            border-radius: 16px; padding: 12px 14px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.02);
+        }
+        .entry-avatar {
+            flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%;
+            object-fit: cover; background: #f3f3f3;
+        }
+        .entry-body { flex: 1; min-width: 0; }
+        .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-actions { flex: 0 0 auto; display: flex; gap: 6px; }
+        .btn-pill {
+            border: none; border-radius: 20px; font-size: 12px; font-weight: 600;
+            padding: 8px 14px; cursor: pointer; white-space: nowrap;
+        }
+        .btn-approve { background: #e6f9ee; color: #2ecc71; }
+        .btn-reject { background: #ffeef0; color: #ff5c7a; }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        /* --- Tool buttons --- */
+        .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .tool-card {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            background: white; border: 1px solid var(--card-border); border-radius: 16px;
+            padding: 18px 10px; cursor: pointer; text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.02); transition: 0.2s;
+        }
+        .tool-card:hover { border-color: var(--primary-pink); transform: translateY(-2px); }
+        .tool-card i { font-size: 22px; color: var(--primary-pink); }
+        .tool-card span { font-size: 12.5px; font-weight: 600; color: #333; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #admin-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">Admin Dashboard</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="admin-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-gauge-high"></i> Admin Dashboard</h1>
+            <p>ภาพรวมและเครื่องมือจัดการระบบ BLM48 Membership</p>
+        </div>
+
+        <div class="stat-grid" id="stat-grid">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+
+        <div class="section-title">
+            <i class="fa-solid fa-user-clock"></i> บัญชีรอการอนุมัติ
+            <span class="badge-count" id="pending-count-badge" style="display:none;">0</span>
+        </div>
+        <div class="entry-list" id="pending-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+
+        <div class="section-title"><i class="fa-solid fa-toolbox"></i> เครื่องมือแอดมิน</div>
+        <div class="tool-grid">
+            <div class="tool-card" onclick="showAdminCreateAccountModal()">
+                <i class="fas fa-user-plus"></i>
+                <span>สร้างบัญชีผู้ใช้งาน</span>
+            </div>
+            <div class="tool-card" onclick="showAdminTransferModal()">
+                <i class="fas fa-money-bill-transfer"></i>
+                <span>โอน Token / Cookie / GEToken</span>
+            </div>
+            <div class="tool-card" onclick="showAdminTransferHistoryModal()">
+                <i class="fas fa-receipt"></i>
+                <span>ประวัติการโอน</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'profile.html';
+    }
+  }
+
+  // ✂️ แปลงลิงก์ Google Drive เป็นลิงก์รูปที่โหลดได้จริง (ย้ายมาจาก profile.html)
+  function resolveDriveImage(url) {
+    const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+    if (!url) return fallback;
+    if (url.includes('drive.google.com')) {
+      const driveMatch = url.match(/[-\w]{25,}/);
+      return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+    }
+    return url;
+  }
+
+  async function loadDashboard() {
+    Promise.all([loadStats(), loadPendingList()]);
+  }
+
+  async function loadStats() {
+    const grid = document.getElementById('stat-grid');
+    try {
+      const res = await blm48AdminGetDashboardStats(user.username);
+      if (res.status !== 'success') { grid.innerHTML = `<div class="empty-state">โหลดสถิติไม่สำเร็จ</div>`; return; }
+      const d = res.data;
+      grid.innerHTML = `
+        <div class="stat-card highlight">
+          <div class="stat-label">รออนุมัติ</div>
+          <div class="stat-value">${d.pendingCount}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">บัญชีทั้งหมด</div>
+          <div class="stat-value">${d.totalAccounts}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">User</div>
+          <div class="stat-value">${d.totalUsers}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Member</div>
+          <div class="stat-value">${d.totalMembers}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">โอนวันนี้</div>
+          <div class="stat-value">${d.transfersToday}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">โอนทั้งหมด</div>
+          <div class="stat-value">${d.transfersTotal}</div>
+        </div>
+      `;
+    } catch (e) {
+      grid.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  let pendingCache = [];
+
+  async function loadPendingList() {
+    const list = document.getElementById('pending-list');
+    try {
+      const res = await blm48AdminGetPendingUsers(user.username);
+      if (res.status !== 'success') { list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      pendingCache = res.data || [];
+      renderPendingList();
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderPendingList() {
+    const list = document.getElementById('pending-list');
+    const badge = document.getElementById('pending-count-badge');
+    badge.style.display = pendingCache.length > 0 ? 'inline-block' : 'none';
+    badge.innerText = pendingCache.length;
+
+    if (pendingCache.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check"></i>ไม่มีบัญชีรอการอนุมัติค่ะ</div>`;
+      return;
+    }
+
+    list.innerHTML = pendingCache.map((u, i) => {
+      const dt = new Date(u.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+      return `
+        <div class="entry-row">
+          <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(u.profile_img))}">
+          <div class="entry-body">
+            <div class="entry-title">${escapeHtml(u.name || u.username)} <span style="color:#999; font-weight:400;">@${escapeHtml(u.username)}</span></div>
+            <div class="entry-subtitle">${escapeHtml((u.role || '').toUpperCase())} · สร้างเมื่อ ${dt}</div>
+          </div>
+          <div class="entry-actions">
+            <button class="btn-pill btn-approve" onclick="approvePending(${i})"><i class="fas fa-check"></i></button>
+            <button class="btn-pill btn-reject" onclick="rejectPending(${i})"><i class="fas fa-xmark"></i></button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function approvePending(index) {
+    const target = pendingCache[index];
+    if (!target) return;
+    const confirmResult = await Swal.fire({
+      title: 'อนุมัติบัญชีนี้?',
+      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะสามารถเข้าใช้งานได้ทันที`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: 'var(--primary-pink)',
+      confirmButtonText: 'อนุมัติ',
+      cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirmResult.isConfirmed) return;
+
+    Swal.fire({ title: 'กำลังอนุมัติ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminApproveUser(user.username, target.username);
+      if (res.status === 'success') {
+        Swal.fire('สำเร็จ!', 'อนุมัติบัญชีเรียบร้อยแล้ว', 'success');
+        loadDashboard();
+      } else {
+        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถอนุมัติได้', 'error');
+      }
+    } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+  }
+
+  async function rejectPending(index) {
+    const target = pendingCache[index];
+    if (!target) return;
+    const confirmResult = await Swal.fire({
+      title: 'ปฏิเสธและลบบัญชีนี้?',
+      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะถูกลบออกจากระบบถาวร`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff5c7a',
+      confirmButtonText: 'ลบบัญชี',
+      cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirmResult.isConfirmed) return;
+
+    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminRejectUser(user.username, target.username);
+      if (res.status === 'success') {
+        Swal.fire('สำเร็จ!', 'ปฏิเสธและลบบัญชีเรียบร้อยแล้ว', 'success');
+        loadDashboard();
+      } else {
+        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถลบได้', 'error');
+      }
+    } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+  }
+
+  // =========================================================================
+  // 👑 สร้างบัญชีผู้ใช้งานใหม่ (ย้ายมาจาก profile.html)
+  // =========================================================================
+  async function showAdminCreateAccountModal() {
+    Swal.fire({ title: 'กำลังเตรียมข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    let suggested = '00-';
+    try {
+      const sugRes = await blm48AdminSuggestUsername(user.username);
+      if (sugRes.status === 'success') suggested = sugRes.suggested;
+    } catch (e) { /* ปล่อยให้แอดมินกรอกเองถ้าดึงคำแนะนำไม่สำเร็จ */ }
+
+    const { value: formValues } = await Swal.fire({
+      title: 'สร้างบัญชีผู้ใช้งานใหม่',
+      html: `
+        <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+          <label style="font-size:13px; color:#666;">Username (รหัส BLM48 Membership)</label>
+          <input id="admin-new-username" class="swal2-input" style="margin:0;" value="${escapeAttr(suggested)}" placeholder="00-...">
+          <label style="font-size:13px; color:#666;">Password</label>
+          <input id="admin-new-password" type="text" class="swal2-input" style="margin:0;" placeholder="กำหนดรหัสผ่าน">
+          <label style="font-size:13px; color:#666;">Role</label>
+          <select id="admin-new-role" class="swal2-select" style="margin:0; width:100%;">
+            <option value="user">User</option>
+            <option value="member">Member</option>
+          </select>
+          <div style="font-size:12px; color:#999; margin-top:4px;">
+            บัญชีใหม่จะได้รับ 10 Tokens, 100 Cookies, 0 GEToken และรูปโปรไฟล์เริ่มต้นให้อัตโนมัติ<br>
+            สถานะเริ่มต้นจะเป็น "รออนุมัติ" — ต้องกดอนุมัติในหน้านี้ก่อน สมาชิกถึงจะล็อกอินได้ (ให้เข้ากลุ่ม Line ก่อน)
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--primary-pink)',
+      confirmButtonText: 'สร้างบัญชี',
+      cancelButtonText: 'ยกเลิก',
+      focusConfirm: false,
+      preConfirm: () => {
+        const uname = document.getElementById('admin-new-username').value.trim();
+        const pass = document.getElementById('admin-new-password').value;
+        const role = document.getElementById('admin-new-role').value;
+        if (!/^00-[0-9]+$/.test(uname)) {
+          Swal.showValidationMessage('Username ต้องขึ้นต้นด้วย 00- ตามด้วยตัวเลขเท่านั้น เช่น 00-191');
+          return false;
+        }
+        if (!pass) {
+          Swal.showValidationMessage('กรุณากรอกรหัสผ่าน');
+          return false;
+        }
+        return { username: uname, password: pass, role: role };
+      }
+    });
+
+    if (!formValues) return;
+
+    Swal.fire({ title: 'กำลังสร้างบัญชี...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminCreateUser(user.username, formValues.username, formValues.password, formValues.role);
+      if (res.status === 'success') {
+        Swal.fire({
+          icon: 'success',
+          title: 'สร้างบัญชีสำเร็จ!',
+          html: `
+            <div style="text-align:left; font-size:14px; line-height:1.9;">
+              <div><b>Username:</b> ${escapeHtml(formValues.username)}</div>
+              <div><b>Password:</b> ${escapeHtml(formValues.password)}</div>
+              <div><b>Role:</b> ${escapeHtml(formValues.role)}</div>
+            </div>
+            <div style="font-size:12px; color:#999; margin-top:10px;">กรุณาจดบันทึกและส่งต่อข้อมูลนี้ให้สมาชิกอย่างปลอดภัย (จะไม่แสดงซ้ำอีก) — บัญชีนี้อยู่ในสถานะ "รออนุมัติ" กดอนุมัติในหน้า Dashboard ได้เมื่อสมาชิกเข้ากลุ่ม Line แล้ว</div>
+          `
+        }).then(() => loadDashboard());
+      } else {
+        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถสร้างบัญชีได้', 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
+  }
+
+  // =========================================================================
+  // 👑 โอน Token / Cookie / GEToken ให้ User และ Member (ย้ายมาจาก profile.html)
+  // ขั้นตอน: 1) กรอกข้อมูล 2) ตรวจสอบ+ยืนยันข้อมูลผู้รับอีกครั้ง 3) โอน + ออกสลิป
+  // =========================================================================
+  async function showAdminTransferModal() {
+    const { value: step1 } = await Swal.fire({
+      title: 'โอน Token / Cookie / GEToken',
+      html: `
+        <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+          <label style="font-size:13px; color:#666;">Username ผู้รับ (User หรือ Member เท่านั้น)</label>
+          <input id="admin-tr-username" class="swal2-input" style="margin:0;" placeholder="เช่น 00-191">
+          <label style="font-size:13px; color:#666;">Token</label>
+          <input id="admin-tr-token" type="number" min="0" class="swal2-input" style="margin:0;" value="0">
+          <label style="font-size:13px; color:#666;">Cookie</label>
+          <input id="admin-tr-cookie" type="number" min="0" class="swal2-input" style="margin:0;" value="0">
+          <label style="font-size:13px; color:#666;">GEToken</label>
+          <input id="admin-tr-getoken" type="number" min="0" class="swal2-input" style="margin:0;" value="0">
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--primary-pink)',
+      confirmButtonText: 'ตรวจสอบข้อมูล',
+      cancelButtonText: 'ยกเลิก',
+      focusConfirm: false,
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        const uname = document.getElementById('admin-tr-username').value.trim();
+        const token = parseFloat(document.getElementById('admin-tr-token').value) || 0;
+        const cookie = parseFloat(document.getElementById('admin-tr-cookie').value) || 0;
+        const getoken = parseFloat(document.getElementById('admin-tr-getoken').value) || 0;
+
+        if (!uname) { Swal.showValidationMessage('กรุณากรอก Username ผู้รับ'); return false; }
+        if (token < 0 || cookie < 0 || getoken < 0) { Swal.showValidationMessage('จำนวนต้องไม่ติดลบ'); return false; }
+        if (token === 0 && cookie === 0 && getoken === 0) { Swal.showValidationMessage('กรุณากรอกจำนวนที่ต้องการโอนอย่างน้อย 1 ช่อง'); return false; }
+
+        try {
+          const lookup = await blm48AdminLookupUser(user.username, uname);
+          if (lookup.status !== 'success') {
+            Swal.showValidationMessage(lookup.message || 'ไม่พบผู้ใช้งานนี้');
+            return false;
+          }
+          return { target: lookup.data, token, cookie, getoken };
+        } catch (e) {
+          Swal.showValidationMessage('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+          return false;
+        }
+      }
+    });
+
+    if (!step1) return;
+
+    const { target, token, cookie, getoken } = step1;
+    const avatarSrc = resolveDriveImage(target.profile_img);
+
+    const confirmResult = await Swal.fire({
+      title: 'ยืนยันการโอน',
+      html: `
+        <div style="text-align:left; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px; padding:10px; background:#fff0f3; border-radius:14px;">
+            <img src="${escapeAttr(avatarSrc)}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#fff;">
+            <div>
+              <div style="font-weight:600;">${escapeHtml(target.name || target.username)}</div>
+              <div style="font-size:12px; color:#999;">@${escapeHtml(target.username)} · ${escapeHtml((target.role || '').toUpperCase())}</div>
+            </div>
+          </div>
+          <div style="font-size:13px; color:#666;">
+            ยอดคงเหลือปัจจุบัน:
+            <i class="fas fa-coins" style="color:#f59f00;"></i> ${escapeHtml(target.token)} ·
+            <i class="fas fa-cookie-bite" style="color:#d2691e;"></i> ${escapeHtml(target.cookie)} ·
+            <i class="fas fa-gem" style="color:#4dabf7;"></i> ${escapeHtml(target.geToken)}
+          </div>
+          <div style="border-top:1px dashed #eee; padding-top:10px; font-size:14px;">
+            <div style="color:#999; margin-bottom:4px;">จะโอนให้เพิ่ม:</div>
+            ${token > 0 ? `<div>+ ${escapeHtml(token)} Token</div>` : ''}
+            ${cookie > 0 ? `<div>+ ${escapeHtml(cookie)} Cookie</div>` : ''}
+            ${getoken > 0 ? `<div>+ ${escapeHtml(getoken)} GEToken</div>` : ''}
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--primary-pink)',
+      confirmButtonText: 'ยืนยันการโอน',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    Swal.fire({ title: 'กำลังโอน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminTransferWallet(user.username, target.username, token, cookie, getoken);
+      if (res.status === 'success') {
+        generateTransferSlip({ admin: user.username, adminName: user.name || user.username, target: res.data, token, cookie, getoken, refNo: res.refNo, createdAt: res.createdAt });
+      } else {
+        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
+  }
+
+  // สร้างสลิปยืนยันการโอนโดยเอาข้อมูลไปวางทับบนรูปพื้นหลังสลิปจริง (assets/images/transfer-slip-bg.png)
+  // ตำแหน่งพิกัดถูก calibrate ให้ตรงกับจุดวงเล็บในรูปตัวอย่างของแอดมิน
+  // ใช้ได้ทั้งตอนโอนเสร็จใหม่ๆ (มี refNo/createdAt จาก server) และตอนเปิดดูย้อนหลังจากประวัติ
+  async function generateTransferSlip({ admin, adminName, target, token, cookie, getoken, refNo, createdAt }) {
+    const now = createdAt ? new Date(createdAt) : new Date();
+    const dateStr = now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+    const ref = refNo || ('TXN' + now.getTime());
+
+    const bg = new Image();
+    const loaded = new Promise((resolve, reject) => {
+      bg.onload = resolve;
+      bg.onerror = reject;
+    });
+    bg.src = 'assets/images/transfer-slip-bg.png';
+
+    let canvas;
+    try {
+      await loaded;
+      canvas = document.createElement('canvas');
+      canvas.width = bg.naturalWidth;
+      canvas.height = bg.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bg, 0, 0);
+
+      const FONT = '500 30px "Kanit", sans-serif';
+      ctx.fillStyle = '#ffffff';
+
+      ctx.textAlign = 'right';
+      ctx.font = FONT;
+      ctx.fillText(dateStr, 1170, 135);
+
+      ctx.textAlign = 'left';
+      ctx.fillText('@' + admin, 280, 345);
+      ctx.fillText(adminName || admin, 280, 400);
+
+      ctx.fillText('@' + target.username, 280, 672);
+      ctx.fillText(target.name || target.username, 280, 722);
+
+      ctx.textAlign = 'right';
+      ctx.fillText(ref, 1170, 935);
+
+      const items = [];
+      if (token > 0) items.push({ label: 'Token', amount: token, color: '#f5c451' });
+      if (cookie > 0) items.push({ label: 'Cookie', amount: cookie, color: '#e0995e' });
+      if (getoken > 0) items.push({ label: 'GEToken', amount: getoken, color: '#79c2ff' });
+      let y = 1060;
+      items.forEach(item => {
+        ctx.fillStyle = item.color;
+        ctx.fillText('+' + Number(item.amount).toLocaleString() + ' ' + item.label, 1170, y);
+        y += 41;
+      });
+    } catch (e) {
+      Swal.fire('Error', 'โหลดรูปพื้นหลังสลิปไม่สำเร็จ (assets/images/transfer-slip-bg.png)', 'error');
+      return;
+    }
+
+    const dataUrl = canvas.toDataURL('image/png');
+
+    Swal.fire({
+      title: refNo ? 'สลิปการโอน' : 'โอนสำเร็จแล้ว!',
+      html: `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+          <img src="${dataUrl}" style="width:100%; max-width:340px; border-radius:14px; box-shadow:0 8px 26px rgba(255,133,162,0.25);">
+          <a href="${dataUrl}" download="BLM48_Transfer_${target.username}_${ref}.png" style="
+            display:inline-flex; align-items:center; gap:8px; padding:12px 32px;
+            background: var(--primary-pink); color:#fff; text-decoration:none; border-radius:25px;
+            font-weight:bold; font-size:15px; box-shadow:0 4px 12px rgba(255,133,162,0.3);
+          ">
+            <i class="fas fa-download"></i> บันทึกสลิป
+          </a>
+        </div>
+      `,
+      showConfirmButton: false,
+      showCloseButton: true
+    });
+  }
+
+  // =========================================================================
+  // 👑 ประวัติการโอน Token/Cookie/GEToken พร้อมเปิดดูสลิปย้อนหลัง (ย้ายมาจาก profile.html)
+  // =========================================================================
+  let adminTransferHistoryCache = [];
+
+  async function showAdminTransferHistoryModal() {
+    Swal.fire({ title: 'กำลังโหลดประวัติ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminGetTransferHistory(user.username);
+      if (res.status !== 'success') {
+        Swal.fire('ผิดพลาด', res.message || 'โหลดประวัติไม่สำเร็จ', 'error');
+        return;
+      }
+      adminTransferHistoryCache = res.data || [];
+      renderAdminTransferHistoryModal();
+    } catch (e) {
+      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
+  }
+
+  function renderAdminTransferHistoryModal() {
+    const rowsHtml = adminTransferHistoryCache.length === 0
+      ? `<div style="text-align:center; color:#999; padding:30px 0;">ยังไม่มีประวัติการโอน</div>`
+      : adminTransferHistoryCache.map((log, i) => {
+          const parts = [];
+          if (log.token > 0) parts.push(`<span><i class="fas fa-coins" style="color:#f59f00;"></i> ${Number(log.token).toLocaleString()}</span>`);
+          if (log.cookie > 0) parts.push(`<span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> ${Number(log.cookie).toLocaleString()}</span>`);
+          if (log.ge_token > 0) parts.push(`<span><i class="fas fa-gem" style="color:#4dabf7;"></i> ${Number(log.ge_token).toLocaleString()}</span>`);
+          const dt = new Date(log.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 4px; border-bottom:1px dashed #eee; gap:10px;">
+              <div style="text-align:left;">
+                <div style="font-weight:600; font-size:14px;">${escapeHtml(log.target_name || log.target_username)} <span style="color:#999; font-weight:400; font-size:12px;">@${escapeHtml(log.target_username)}</span></div>
+                <div style="font-size:12px; color:#999;">โดย ${escapeHtml(log.admin_username)} · ${dt}</div>
+                <div style="font-size:13px; margin-top:4px; display:flex; gap:10px;">${parts.join(' ')}</div>
+              </div>
+              <button onclick="reopenAdminTransferSlip(${i})" style="border:none; background:var(--soft-pink); color:var(--primary-pink); font-weight:600; padding:8px 14px; border-radius:20px; font-size:12px; cursor:pointer; white-space:nowrap;">
+                <i class="fas fa-receipt"></i> ดูสลิป
+              </button>
+            </div>
+          `;
+        }).join('');
+
+    Swal.fire({
+      title: 'ประวัติการโอน (Admin)',
+      html: `<div style="max-height:60vh; overflow-y:auto; text-align:left;">${rowsHtml}</div>`,
+      showConfirmButton: false,
+      showCloseButton: true,
+      width: 480
+    });
+  }
+
+  // เปิดสลิปซ้ำจากประวัติที่โหลดไว้ (regenerate ด้วยข้อมูลเดิม ref/วันที่เดิมทุกครั้ง)
+  function reopenAdminTransferSlip(index) {
+    const log = adminTransferHistoryCache[index];
+    if (!log) return;
+    generateTransferSlip({
+      admin: log.admin_username,
+      adminName: log.admin_username,
+      target: { username: log.target_username, name: log.target_name, role: log.target_role },
+      token: Number(log.token) || 0,
+      cookie: Number(log.cookie) || 0,
+      getoken: Number(log.ge_token) || 0,
+      refNo: log.ref_no,
+      createdAt: log.created_at
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (!user.role || user.role.toLowerCase() !== 'admin') {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('admin-content').style.display = 'block';
+    loadDashboard();
+  });
+</script>
+</body>
+</html>

@@ -378,6 +378,22 @@ function blm48AdminGetTransferHistory(adminUsername, limit) {
   return blm48Rpc('admin_get_transfer_history', { p_admin_username: adminUsername, p_limit: limit || 100 });
 }
 
+// Pending-account approval queue (admin.html Dashboard) - accounts admin_create_user makes
+// start life as status='pending' and are blocked from logging in until an admin approves them
+// (business rule: member must join the LINE group "BLM48 Membership" first).
+function blm48AdminGetPendingUsers(adminUsername) {
+  return blm48Rpc('admin_get_pending_users', { p_admin_username: adminUsername });
+}
+function blm48AdminApproveUser(adminUsername, targetUsername) {
+  return blm48Rpc('admin_approve_user', { p_admin_username: adminUsername, p_target_username: targetUsername });
+}
+function blm48AdminRejectUser(adminUsername, targetUsername) {
+  return blm48Rpc('admin_reject_user', { p_admin_username: adminUsername, p_target_username: targetUsername });
+}
+function blm48AdminGetDashboardStats(adminUsername) {
+  return blm48Rpc('admin_get_dashboard_stats', { p_admin_username: adminUsername });
+}
+
 // Live-updates a Major Vote campaign's candidate rows. Replaces the old Firebase
 // majorVotes/{collectionId} subscription for the same reason as blm48SubscribeWallet.
 function blm48SubscribeMajorVoteCandidates(collectionId, onChange) {
