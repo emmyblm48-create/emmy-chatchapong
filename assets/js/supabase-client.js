@@ -356,6 +356,24 @@ function blm48SubscribeWallet(username, onChange) {
     .subscribe();
 }
 
+// ---------------------------------------------------------------------------
+// Admin-only tools (profile.html, gated to role='admin' client-side, and to
+// role admin/ceo server-side inside each RPC) - create membership accounts
+// and top up a user/member's wallet with a confirmation + slip.
+// ---------------------------------------------------------------------------
+function blm48AdminSuggestUsername(adminUsername) {
+  return blm48Rpc('admin_suggest_username', { p_admin_username: adminUsername });
+}
+function blm48AdminCreateUser(adminUsername, newUsername, password, role) {
+  return blm48Rpc('admin_create_user', { p_admin_username: adminUsername, p_new_username: newUsername, p_password: password, p_role: role });
+}
+function blm48AdminLookupUser(adminUsername, targetUsername) {
+  return blm48Rpc('admin_lookup_user', { p_admin_username: adminUsername, p_target_username: targetUsername });
+}
+function blm48AdminTransferWallet(adminUsername, targetUsername, token, cookie, geToken) {
+  return blm48Rpc('admin_transfer_wallet', { p_admin_username: adminUsername, p_target_username: targetUsername, p_token: token, p_cookie: cookie, p_ge_token: geToken });
+}
+
 // Live-updates a Major Vote campaign's candidate rows. Replaces the old Firebase
 // majorVotes/{collectionId} subscription for the same reason as blm48SubscribeWallet.
 function blm48SubscribeMajorVoteCandidates(collectionId, onChange) {

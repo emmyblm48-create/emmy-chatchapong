@@ -405,6 +405,18 @@ body {
     <i class="fas fa-chevron-right menu-arrow"></i>
   </a>
 
+  <a href="#" id="menu-admin-create" class="menu-item" style="display:none;" onclick="showAdminCreateAccountModal(); return false;">
+    <div class="menu-icon icon-gold"><i class="fas fa-user-plus"></i></div>
+    <div class="menu-text">สร้างบัญชีผู้ใช้งาน (Admin)</div>
+    <i class="fas fa-chevron-right menu-arrow"></i>
+  </a>
+
+  <a href="#" id="menu-admin-transfer" class="menu-item" style="display:none;" onclick="showAdminTransferModal(); return false;">
+    <div class="menu-icon icon-blue"><i class="fas fa-money-bill-transfer"></i></div>
+    <div class="menu-text">โอน Token / Cookie / GEToken (Admin)</div>
+    <i class="fas fa-chevron-right menu-arrow"></i>
+  </a>
+
   <a href="https://blm48.vercel.app/index.html" target="_blank" class="menu-item">
     <div class="menu-icon icon-dark"><i class="fas fa-external-link-alt"></i></div>
     <div class="menu-text">Official Site</div>
@@ -474,6 +486,13 @@ body {
     if (user.role && user.role.toLowerCase() === 'user') {
       document.getElementById('edit-name-btn').style.display = 'inline-flex';
     }
+
+    // เมนูเฉพาะ Role Admin เท่านั้น (สร้างบัญชี / โอน Token-Cookie-GEToken)
+    const isAdmin = user.role && user.role.toLowerCase() === 'admin';
+    const menuAdminCreate = document.getElementById('menu-admin-create');
+    const menuAdminTransfer = document.getElementById('menu-admin-transfer');
+    if (menuAdminCreate) menuAdminCreate.style.display = isAdmin ? 'flex' : 'none';
+    if (menuAdminTransfer) menuAdminTransfer.style.display = isAdmin ? 'flex' : 'none';
     // เพิ่มการจัดการปุ่มรับคุกกี้ตามสถานะ Member
     const btnClaim = document.getElementById('btn-claim-monthly');
     if (btnClaim) {
@@ -859,6 +878,318 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
       console.error(error);
       Swal.fire('เกิดข้อผิดพลาด!', 'ไม่สามารถบันทึกรูปภาพได้ กรุณาลองใหม่อีกครั้งนะงับ', 'error');
     }
+  }
+
+  // ✂️ แปลงลิงก์ Google Drive เป็นลิงก์รูปที่โหลดได้จริง (ใช้ตรรกะเดียวกับ updateProfileUI)
+  function resolveDriveImage(url) {
+    const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+    if (!url) return fallback;
+    if (url.includes('drive.google.com')) {
+      const driveMatch = url.match(/[-\w]{25,}/);
+      return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+    }
+    return url;
+  }
+
+  // =========================================================================
+  // 👑 ฟีเจอร์เฉพาะ Role Admin — สร้างบัญชีผู้ใช้งานใหม่
+  // =========================================================================
+  async function showAdminCreateAccountModal() {
+    if (!user || user.role.toLowerCase() !== 'admin') return;
+
+    Swal.fire({ title: 'กำลังเตรียมข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    let suggested = '00-';
+    try {
+      const sugRes = await blm48AdminSuggestUsername(user.username);
+      if (sugRes.status === 'success') suggested = sugRes.suggested;
+    } catch (e) { /* ปล่อยให้แอดมินกรอกเองถ้าดึงคำแนะนำไม่สำเร็จ */ }
+
+    const { value: formValues } = await Swal.fire({
+      title: 'สร้างบัญชีผู้ใช้งานใหม่',
+      html: `
+        <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+          <label style="font-size:13px; color:#666;">Username (รหัส BLM48 Membership)</label>
+          <input id="admin-new-username" class="swal2-input" style="margin:0;" value="${escapeAttr(suggested)}" placeholder="00-...">
+          <label style="font-size:13px; color:#666;">Password</label>
+          <input id="admin-new-password" type="text" class="swal2-input" style="margin:0;" placeholder="กำหนดรหัสผ่าน">
+          <label style="font-size:13px; color:#666;">Role</label>
+          <select id="admin-new-role" class="swal2-select" style="margin:0; width:100%;">
+            <option value="user">User</option>
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+          </select>
+          <div style="font-size:12px; color:#999; margin-top:4px;">
+            บัญชีใหม่จะได้รับ 10 Tokens, 100 Cookies, 0 GEToken และรูปโปรไฟล์เริ่มต้นให้อัตโนมัติ
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--blmem-pink)',
+      confirmButtonText: 'สร้างบัญชี',
+      cancelButtonText: 'ยกเลิก',
+      focusConfirm: false,
+      preConfirm: () => {
+        const uname = document.getElementById('admin-new-username').value.trim();
+        const pass = document.getElementById('admin-new-password').value;
+        const role = document.getElementById('admin-new-role').value;
+        if (!/^00-[0-9]+$/.test(uname)) {
+          Swal.showValidationMessage('Username ต้องขึ้นต้นด้วย 00- ตามด้วยตัวเลขเท่านั้น เช่น 00-191');
+          return false;
+        }
+        if (!pass) {
+          Swal.showValidationMessage('กรุณากรอกรหัสผ่าน');
+          return false;
+        }
+        return { username: uname, password: pass, role: role };
+      }
+    });
+
+    if (!formValues) return;
+
+    Swal.fire({ title: 'กำลังสร้างบัญชี...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminCreateUser(user.username, formValues.username, formValues.password, formValues.role);
+      if (res.status === 'success') {
+        Swal.fire({
+          icon: 'success',
+          title: 'สร้างบัญชีสำเร็จ!',
+          html: `
+            <div style="text-align:left; font-size:14px; line-height:1.9;">
+              <div><b>Username:</b> ${escapeHtml(formValues.username)}</div>
+              <div><b>Password:</b> ${escapeHtml(formValues.password)}</div>
+              <div><b>Role:</b> ${escapeHtml(formValues.role)}</div>
+            </div>
+            <div style="font-size:12px; color:#999; margin-top:10px;">กรุณาจดบันทึกและส่งต่อข้อมูลนี้ให้สมาชิกอย่างปลอดภัย (จะไม่แสดงซ้ำอีก)</div>
+          `
+        });
+      } else {
+        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถสร้างบัญชีได้', 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
+  }
+
+  // =========================================================================
+  // 👑 ฟีเจอร์เฉพาะ Role Admin — โอน Token / Cookie / GEToken ให้ User และ Member
+  // ขั้นตอน: 1) กรอกข้อมูล 2) ตรวจสอบ+ยืนยันข้อมูลผู้รับอีกครั้ง 3) โอน + ออกสลิป
+  // =========================================================================
+  async function showAdminTransferModal() {
+    if (!user || user.role.toLowerCase() !== 'admin') return;
+
+    const { value: step1 } = await Swal.fire({
+      title: 'โอน Token / Cookie / GEToken',
+      html: `
+        <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+          <label style="font-size:13px; color:#666;">Username ผู้รับ (User หรือ Member เท่านั้น)</label>
+          <input id="admin-tr-username" class="swal2-input" style="margin:0;" placeholder="เช่น 00-191">
+          <label style="font-size:13px; color:#666;">Token</label>
+          <input id="admin-tr-token" type="number" min="0" class="swal2-input" style="margin:0;" value="0">
+          <label style="font-size:13px; color:#666;">Cookie</label>
+          <input id="admin-tr-cookie" type="number" min="0" class="swal2-input" style="margin:0;" value="0">
+          <label style="font-size:13px; color:#666;">GEToken</label>
+          <input id="admin-tr-getoken" type="number" min="0" class="swal2-input" style="margin:0;" value="0">
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--blmem-pink)',
+      confirmButtonText: 'ตรวจสอบข้อมูล',
+      cancelButtonText: 'ยกเลิก',
+      focusConfirm: false,
+      showLoaderOnConfirm: true,
+      preConfirm: async () => {
+        const uname = document.getElementById('admin-tr-username').value.trim();
+        const token = parseFloat(document.getElementById('admin-tr-token').value) || 0;
+        const cookie = parseFloat(document.getElementById('admin-tr-cookie').value) || 0;
+        const getoken = parseFloat(document.getElementById('admin-tr-getoken').value) || 0;
+
+        if (!uname) { Swal.showValidationMessage('กรุณากรอก Username ผู้รับ'); return false; }
+        if (token < 0 || cookie < 0 || getoken < 0) { Swal.showValidationMessage('จำนวนต้องไม่ติดลบ'); return false; }
+        if (token === 0 && cookie === 0 && getoken === 0) { Swal.showValidationMessage('กรุณากรอกจำนวนที่ต้องการโอนอย่างน้อย 1 ช่อง'); return false; }
+
+        try {
+          const lookup = await blm48AdminLookupUser(user.username, uname);
+          if (lookup.status !== 'success') {
+            Swal.showValidationMessage(lookup.message || 'ไม่พบผู้ใช้งานนี้');
+            return false;
+          }
+          return { target: lookup.data, token, cookie, getoken };
+        } catch (e) {
+          Swal.showValidationMessage('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+          return false;
+        }
+      }
+    });
+
+    if (!step1) return;
+
+    const { target, token, cookie, getoken } = step1;
+    const avatarSrc = resolveDriveImage(target.profile_img);
+
+    const confirmResult = await Swal.fire({
+      title: 'ยืนยันการโอน',
+      html: `
+        <div style="text-align:left; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px; padding:10px; background:#fff0f3; border-radius:14px;">
+            <img src="${escapeAttr(avatarSrc)}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; background:#fff;">
+            <div>
+              <div style="font-weight:600;">${escapeHtml(target.name || target.username)}</div>
+              <div style="font-size:12px; color:#999;">@${escapeHtml(target.username)} · ${escapeHtml((target.role || '').toUpperCase())}</div>
+            </div>
+          </div>
+          <div style="font-size:13px; color:#666;">
+            ยอดคงเหลือปัจจุบัน:
+            <i class="fas fa-coins" style="color:#f59f00;"></i> ${escapeHtml(target.token)} ·
+            <i class="fas fa-cookie-bite" style="color:#d2691e;"></i> ${escapeHtml(target.cookie)} ·
+            <i class="fas fa-gem" style="color:#4dabf7;"></i> ${escapeHtml(target.geToken)}
+          </div>
+          <div style="border-top:1px dashed #eee; padding-top:10px; font-size:14px;">
+            <div style="color:#999; margin-bottom:4px;">จะโอนให้เพิ่ม:</div>
+            ${token > 0 ? `<div>+ ${escapeHtml(token)} Token</div>` : ''}
+            ${cookie > 0 ? `<div>+ ${escapeHtml(cookie)} Cookie</div>` : ''}
+            ${getoken > 0 ? `<div>+ ${escapeHtml(getoken)} GEToken</div>` : ''}
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--blmem-pink)',
+      confirmButtonText: 'ยืนยันการโอน',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    Swal.fire({ title: 'กำลังโอน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminTransferWallet(user.username, target.username, token, cookie, getoken);
+      if (res.status === 'success') {
+        generateTransferSlip({ admin: user.username, target: res.data, token, cookie, getoken });
+      } else {
+        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
+      }
+    } catch (e) {
+      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
+  }
+
+  // สร้างสลิปยืนยันการโอนแบบรูปภาพ (canvas) ให้แอดมินดาวน์โหลดเก็บเป็นหลักฐาน
+  function generateTransferSlip({ admin, target, token, cookie, getoken }) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const W = 900, H = 640;
+    canvas.width = W;
+    canvas.height = H;
+
+    const radius = 28;
+    ctx.beginPath();
+    ctx.moveTo(radius, 0); ctx.lineTo(W - radius, 0); ctx.quadraticCurveTo(W, 0, W, radius);
+    ctx.lineTo(W, H - radius); ctx.quadraticCurveTo(W, H, W - radius, H);
+    ctx.lineTo(radius, H); ctx.quadraticCurveTo(0, H, 0, H - radius);
+    ctx.lineTo(0, radius); ctx.quadraticCurveTo(0, 0, radius, 0);
+    ctx.closePath(); ctx.clip();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    const grad = ctx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0, '#ff85a2');
+    grad.addColorStop(1, '#ffb199');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, 150);
+
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 34px "Kanit", sans-serif';
+    ctx.fillText('BLM48 Membership', 40, 65);
+    ctx.font = '500 20px "Quicksand", sans-serif';
+    ctx.fillText('สลิปยืนยันการโอน (Transfer Slip)', 40, 100);
+
+    ctx.textAlign = 'right';
+    ctx.font = 'bold 26px "Quicksand", sans-serif';
+    ctx.fillText('✓ สำเร็จ', W - 40, 80);
+
+    ctx.textAlign = 'left';
+    let y = 200;
+    ctx.font = '600 18px "Quicksand", sans-serif';
+    ctx.fillStyle = '#999';
+    ctx.fillText('โอนโดย (Admin)', 40, y);
+    ctx.fillStyle = '#3a3a3a';
+    ctx.font = '600 24px "Kanit", sans-serif';
+    ctx.fillText(admin, 40, y + 32);
+
+    y += 90;
+    ctx.font = '600 18px "Quicksand", sans-serif';
+    ctx.fillStyle = '#999';
+    ctx.fillText('ถึง (ผู้รับ)', 40, y);
+    ctx.fillStyle = '#3a3a3a';
+    ctx.font = '600 24px "Kanit", sans-serif';
+    ctx.fillText(`${target.name || target.username} (@${target.username})`, 40, y + 32);
+
+    y += 80;
+    ctx.strokeStyle = '#ffe5ec';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(W - 40, y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    y += 45;
+    ctx.font = '600 20px "Quicksand", sans-serif';
+    ctx.fillStyle = '#999';
+    ctx.fillText('รายการที่โอน', 40, y);
+
+    y += 40;
+    const items = [];
+    if (token > 0) items.push(['Token', token, '#f59f00']);
+    if (cookie > 0) items.push(['Cookie', cookie, '#d2691e']);
+    if (getoken > 0) items.push(['GEToken', getoken, '#4dabf7']);
+
+    items.forEach(([label, amount, color]) => {
+      ctx.textAlign = 'left';
+      ctx.font = '500 22px "Quicksand", sans-serif';
+      ctx.fillStyle = '#3a3a3a';
+      ctx.fillText(label, 40, y);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = color;
+      ctx.font = 'bold 24px "Quicksand", sans-serif';
+      ctx.fillText('+' + Number(amount).toLocaleString(), W - 40, y);
+      y += 44;
+    });
+
+    y += 20;
+    ctx.strokeStyle = '#ffe5ec';
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(W - 40, y); ctx.stroke();
+    ctx.setLineDash([]);
+
+    y += 35;
+    const now = new Date();
+    const dateStr = now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+    const ref = 'TXN' + now.getTime();
+    ctx.textAlign = 'left';
+    ctx.font = '400 15px "Quicksand", sans-serif';
+    ctx.fillStyle = '#999';
+    ctx.fillText('วันที่: ' + dateStr, 40, y);
+    ctx.fillText('เลขที่อ้างอิง: ' + ref, 40, y + 24);
+
+    const dataUrl = canvas.toDataURL('image/png');
+
+    Swal.fire({
+      title: 'โอนสำเร็จแล้ว!',
+      html: `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+          <img src="${dataUrl}" style="width:100%; max-width:460px; border-radius:14px; box-shadow:0 8px 26px rgba(255,133,162,0.25);">
+          <a href="${dataUrl}" download="BLM48_Transfer_${target.username}_${Date.now()}.png" style="
+            display:inline-flex; align-items:center; gap:8px; padding:12px 32px;
+            background: var(--blmem-pink); color:#fff; text-decoration:none; border-radius:25px;
+            font-weight:bold; font-size:15px; box-shadow:0 4px 12px rgba(255,133,162,0.3);
+          ">
+            <i class="fas fa-download"></i> บันทึกสลิป
+          </a>
+        </div>
+      `,
+      showConfirmButton: false,
+      showCloseButton: true
+    });
   }
 
   function confirmLogout() {
