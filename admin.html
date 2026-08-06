@@ -551,7 +551,7 @@
     try {
       const res = await blm48AdminTransferWallet(user.username, target.username, token, cookie, getoken);
       if (res.status === 'success') {
-        generateTransferSlip({ admin: user.username, adminName: user.name || user.username, target: res.data, token, cookie, getoken, refNo: res.refNo, createdAt: res.createdAt });
+        generateTransferSlip({ admin: user.username, adminName: user.name || user.username, adminAvatar: user.profile_img, target: res.data, token, cookie, getoken, refNo: res.refNo, createdAt: res.createdAt });
       } else {
         Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
       }
@@ -560,10 +560,35 @@
     }
   }
 
+  // โหลดรูปแบบปลอดภัย - คืนค่า null แทนที่จะ throw ถ้าโหลดไม่สำเร็จ (เผื่อโดเมนรูปไม่รองรับ CORS)
+  function loadImageSafe(src, useCors) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      if (useCors) img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
+
+  // วาดรูปโปรไฟล์แบบ cover-fit ครอบตัดเป็นวงกลม ทับลงบนวงกลมขาวในพื้นหลังสลิป
+  function drawCircleAvatar(ctx, img, cx, cy, r) {
+    if (!img) return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    const scale = Math.max((r * 2) / img.width, (r * 2) / img.height);
+    const w = img.width * scale, h = img.height * scale;
+    ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+    ctx.restore();
+  }
+
   // สร้างสลิปยืนยันการโอนโดยเอาข้อมูลไปวางทับบนรูปพื้นหลังสลิปจริง (assets/images/transfer-slip-bg.png)
   // ตำแหน่งพิกัดถูก calibrate ให้ตรงกับจุดวงเล็บในรูปตัวอย่างของแอดมิน
   // ใช้ได้ทั้งตอนโอนเสร็จใหม่ๆ (มี refNo/createdAt จาก server) และตอนเปิดดูย้อนหลังจากประวัติ
-  async function generateTransferSlip({ admin, adminName, target, token, cookie, getoken, refNo, createdAt }) {
+  async function generateTransferSlip({ admin, adminName, adminAvatar, target, token, cookie, getoken, refNo, createdAt }) {
     const now = createdAt ? new Date(createdAt) : new Date();
     const dateStr = now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
     const ref = refNo || ('TXN' + now.getTime());
@@ -575,48 +600,71 @@
     });
     bg.src = 'assets/images/transfer-slip-bg.png';
 
-    let canvas;
-    try {
-      await loaded;
-      canvas = document.createElement('canvas');
+    const drawSlip = async (includeAvatars) => {
+      const canvas = document.createElement('canvas');
       canvas.width = bg.naturalWidth;
       canvas.height = bg.naturalHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(bg, 0, 0);
 
-      const FONT = '500 30px "Kanit", sans-serif';
+      if (includeAvatars) {
+        const [adminImg, targetImg] = await Promise.all([
+          loadImageSafe(resolveDriveImage(adminAvatar), true),
+          loadImageSafe(resolveDriveImage(target.profile_img), true)
+        ]);
+        // พิกัดวงกลมนี้วัดจากพิกเซลจริงของรูปพื้นหลัง (สแกนหาขอบวงกลมขาว) ไม่ใช่กะด้วยตา
+        drawCircleAvatar(ctx, adminImg, 156, 306, 82);
+        drawCircleAvatar(ctx, targetImg, 156, 640, 82);
+      }
+
       ctx.fillStyle = '#ffffff';
 
       ctx.textAlign = 'right';
-      ctx.font = FONT;
-      ctx.fillText(dateStr, 1170, 135);
+      ctx.font = '600 38px "Kanit", sans-serif';
+      ctx.fillText(dateStr, 1140, 150);
 
+      ctx.font = '600 42px "Kanit", sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText('@' + admin, 280, 345);
-      ctx.fillText(adminName || admin, 280, 400);
+      ctx.fillText('@' + admin, 280, 352);
+      ctx.fillText(adminName || admin, 280, 414);
 
-      ctx.fillText('@' + target.username, 280, 672);
-      ctx.fillText(target.name || target.username, 280, 722);
+      ctx.fillText('@' + target.username, 280, 680);
+      ctx.fillText(target.name || target.username, 280, 742);
 
       ctx.textAlign = 'right';
-      ctx.fillText(ref, 1170, 935);
+      ctx.font = '600 46px "Kanit", sans-serif';
+      ctx.fillText(ref, 1170, 944);
 
       const items = [];
-      if (token > 0) items.push({ label: 'Token', amount: token, color: '#f5c451' });
-      if (cookie > 0) items.push({ label: 'Cookie', amount: cookie, color: '#e0995e' });
-      if (getoken > 0) items.push({ label: 'GEToken', amount: getoken, color: '#79c2ff' });
-      let y = 1060;
+      if (token > 0) items.push({ label: 'Token', amount: token });
+      if (cookie > 0) items.push({ label: 'Cookie', amount: cookie });
+      if (getoken > 0) items.push({ label: 'GEToken', amount: getoken });
+      let y = 1074;
+      ctx.font = '700 52px "Kanit", sans-serif';
       items.forEach(item => {
-        ctx.fillStyle = item.color;
-        ctx.fillText('+' + Number(item.amount).toLocaleString() + ' ' + item.label, 1170, y);
-        y += 41;
+        ctx.fillText(Number(item.amount).toLocaleString() + ' ' + item.label, 1170, y);
+        y += 62;
       });
+
+      return canvas;
+    };
+
+    let canvas, dataUrl;
+    try {
+      await loaded;
     } catch (e) {
       Swal.fire('Error', 'โหลดรูปพื้นหลังสลิปไม่สำเร็จ (assets/images/transfer-slip-bg.png)', 'error');
       return;
     }
 
-    const dataUrl = canvas.toDataURL('image/png');
+    try {
+      canvas = await drawSlip(true);
+      dataUrl = canvas.toDataURL('image/png');
+    } catch (e) {
+      // canvas ถูก taint เพราะโดเมนรูปโปรไฟล์ไม่รองรับ CORS - สร้างใหม่แบบไม่มีรูปโปรไฟล์แทน
+      canvas = await drawSlip(false);
+      dataUrl = canvas.toDataURL('image/png');
+    }
 
     Swal.fire({
       title: refNo ? 'สลิปการโอน' : 'โอนสำเร็จแล้ว!',
@@ -696,7 +744,8 @@
     generateTransferSlip({
       admin: log.admin_username,
       adminName: log.admin_username,
-      target: { username: log.target_username, name: log.target_name, role: log.target_role },
+      adminAvatar: log.admin_profile_img,
+      target: { username: log.target_username, name: log.target_name, role: log.target_role, profile_img: log.target_profile_img },
       token: Number(log.token) || 0,
       cookie: Number(log.cookie) || 0,
       getoken: Number(log.ge_token) || 0,
