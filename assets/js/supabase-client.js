@@ -19,12 +19,15 @@ async function blm48Rpc(fnName, params) {
     const { data, error } = await blm48Supabase.rpc(fnName, params);
     if (error) {
       console.error('blm48Rpc ' + fnName + ' error:', error);
-      return { status: 'error', message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ' };
+      // networkError: true = การเรียก RPC เองล้มเหลว (เช่น rate limit/timeout ตอนคนใช้งานพร้อมกันเยอะ)
+      // ไม่ใช่คำตอบจริงจากฐานข้อมูล ต้องแยกจาก success:false ที่มาจาก logic จริง (เช่นบัญชีถูกระงับ)
+      // เพื่อไม่ให้โค้ดฝั่งหน้าเว็บเข้าใจผิดว่าเป็นการถูกระงับแล้วเตะผู้ใช้ออก
+      return { status: 'error', networkError: true, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ' };
     }
     return data;
   } catch (e) {
     console.error('blm48Rpc ' + fnName + ' exception:', e);
-    return { status: 'error', message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ' };
+    return { status: 'error', networkError: true, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ' };
   }
 }
 

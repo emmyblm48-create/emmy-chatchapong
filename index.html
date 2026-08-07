@@ -2425,6 +2425,13 @@ async function syncUserData() {
     // 2. ยิงไปถามหลังบ้านเพื่อดึงสถานะล่าสุดจาก Supabase
     const result = await blm48GetUserInfo(currentUsername);
 
+    // 🚧 เชื่อมต่อ Supabase ไม่ได้ชั่วคราว (เช่น rate limit/timeout ตอนคนใช้งานพร้อมกันเยอะ)
+    // ไม่ใช่คำตอบจริงว่าบัญชีถูกระงับ ห้ามเตะผู้ใช้ออก รอตรวจสอบรอบถัดไปแทน (เหมือน catch ด้านล่าง)
+    if (result.networkError) {
+      console.warn('syncUserData: เชื่อมต่อ Supabase ไม่ได้ชั่วคราว ข้ามรอบตรวจสอบนี้ไปก่อน');
+      return;
+    }
+
     // เคสปกติ: หลังบ้านแจ้งว่าสำเร็จ (แปลว่ามียูสเซอร์ และในชีทมีรหัสผ่านถูกต้อง)
     if (result.success && result.status === "success") {
 
