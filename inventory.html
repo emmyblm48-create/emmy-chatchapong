@@ -22,7 +22,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 
     <style>
@@ -614,7 +613,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .epub-download-btn, .epub-close-btn {
+        .epub-close-btn {
             flex: 0 0 auto;
             width: 36px;
             height: 36px;
@@ -629,7 +628,7 @@
             text-decoration: none;
             font-size: 14px;
         }
-        .epub-close-btn:hover, .epub-download-btn:hover { background: var(--primary-pink); }
+        .epub-close-btn:hover { background: var(--primary-pink); }
 
         .epub-viewer {
             flex: 1;
@@ -642,7 +641,7 @@
             overflow: auto;
         }
 
-        /* --- StPageFlip: กล่องหนังสือที่พลิกหน้าได้จริงเหมือนกระดาษ ---
+        /* --- StPageFlip (โหมด Canvas: loadFromImages) ---
            #flipbookRoot ได้ class .stf__parent ติดที่ตัวมันเองจาก PageFlip
            (ไม่ใช่ลูกหลาน) จึงต้องใช้ compound selector ไม่ใช่ descendant */
         #flipbookRoot.stf__parent {
@@ -651,37 +650,17 @@
             box-sizing: border-box;
             transform: translateZ(0);
             touch-action: pan-y;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.35);
         }
         #flipbookRoot .stf__wrapper {
             position: relative;
             width: 100%;
             box-sizing: border-box;
         }
-        #flipbookRoot .stf__parent canvas {
+        #flipbookRoot canvas {
             position: absolute;
             width: 100%;
             height: 100%;
-            left: 0;
-            top: 0;
-        }
-        #flipbookRoot .stf__block {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            box-sizing: border-box;
-            perspective: 2000px;
-        }
-        #flipbookRoot .stf__item {
-            display: none;
-            position: absolute;
-            transform-style: preserve-3d;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.35);
-        }
-        #flipbookRoot .stf__outerShadow,
-        #flipbookRoot .stf__innerShadow,
-        #flipbookRoot .stf__hardShadow,
-        #flipbookRoot .stf__hardInnerShadow {
-            position: absolute;
             left: 0;
             top: 0;
         }
@@ -810,9 +789,6 @@
     <div id="epubReaderModal" class="epub-reader-overlay">
         <div class="epub-reader-header">
             <div class="epub-reader-title" id="epubReaderTitle"></div>
-            <a id="epubDownloadLink" href="" download class="epub-download-btn" title="ดาวน์โหลดไฟล์ EPUB">
-                <i class="fa-solid fa-download"></i>
-            </a>
             <button type="button" class="epub-close-btn" onclick="closeEpubReader()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div id="epubViewer" class="epub-viewer"></div>
@@ -1197,14 +1173,14 @@ function renderInventoryData() {
     }
 
     // =========================================================================
-    // 📖 ตัวอ่านโฟโต้บุ๊คแบบพลิกหน้าเหมือนกระดาษจริง (StPageFlip)
-    // ไฟล์ .epub ที่โฮสต์บน Supabase Storage คือ zip: แกะด้วย JSZip ในเบราว์เซอร์
-    // แล้วดึง div ต่อหน้า (page_0, page_1, ...) ออกมาป้อนให้ PageFlip เล่น animation
-    // โดยแปลงรูป/ฟอนต์ในไฟล์เป็น blob URL ก่อน (ไม่ต้องพึ่ง endpoint ภายนอกอื่นเลย)
+    // 📖 ตัวอ่านโฟโต้บุ๊คแบบพลิกหน้าเหมือนกระดาษจริง (StPageFlip, โหมด Canvas)
+    // แต่ละเล่มเก็บเป็น "โฟลเดอร์รูปภาพ" ใน Supabase Storage (bucket app-assets)
+    // ไฟล์ชื่อ page_001.jpg, page_002.jpg, ... โดย item.fileUrl เก็บแค่ path
+    // โฟลเดอร์ เช่น "photobooks/NOEL" — โหลดลิสต์ไฟล์แล้วป้อน URL ตรงๆ ให้ PageFlip
+    // (ไม่ต้องแกะ zip/HTML/font เองอีกต่อไป เบากว่าและเสถียรกว่าบน Safari มาก)
     // =========================================================================
+    const PHOTOBOOK_BUCKET = 'app-assets';
     let currentFlipBook = null;
-    let currentFlipBlobUrls = [];
-    let currentFlipAbort = null;
 
     function openEpubReaderFromPreview() {
         if (!currentPreviewItem || !currentPreviewItem.fileUrl) return;
@@ -1221,196 +1197,89 @@ function renderInventoryData() {
         `;
     }
 
-    async function openEpubReader(fileUrl, title) {
+    async function openEpubReader(folderPath, title) {
         const overlay = document.getElementById('epubReaderModal');
         const viewerEl = document.getElementById('epubViewer');
         document.getElementById('epubReaderTitle').textContent = title || '';
-        document.getElementById('epubDownloadLink').href = fileUrl;
         document.getElementById('epubPageIndicator').textContent = '';
         viewerEl.innerHTML = `<div class="epub-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดโฟโต้บุ๊ค...</div>`;
         overlay.classList.add('active');
 
-        currentFlipAbort = new AbortController();
-        // ไฟล์ ~16MB ต่อเล่ม ให้เวลาดาวน์โหลด+แกะไฟล์นานพอ ก่อนถือว่าล้มเหลวจริง
-        const timeoutId = setTimeout(() => currentFlipAbort.abort(), 90000);
-
         try {
-            const res = await fetch(fileUrl, { signal: currentFlipAbort.signal });
-            if (!res.ok) throw new Error('fetch failed: ' + res.status);
-            const buf = await res.arrayBuffer();
-            const zip = await JSZip.loadAsync(buf);
-            await buildFlipbookFromZip(zip, viewerEl);
+            const { data: files, error } = await blm48Supabase.storage
+                .from(PHOTOBOOK_BUCKET)
+                .list(folderPath, { sortBy: { column: 'name', order: 'asc' } });
+            if (error) throw error;
+
+            const imageFiles = (files || []).filter(f => /\.(jpe?g|png|webp)$/i.test(f.name));
+            if (!imageFiles.length) throw new Error('ไม่พบไฟล์รูปในโฟลเดอร์โฟโต้บุ๊ค: ' + folderPath);
+
+            const imageUrls = imageFiles.map(f =>
+                blm48Supabase.storage.from(PHOTOBOOK_BUCKET).getPublicUrl(folderPath + '/' + f.name).data.publicUrl);
+
+            await buildFlipbookFromImages(imageUrls, viewerEl);
         } catch (err) {
             console.error('flipbook load error:', err);
             showFlipbookError(viewerEl);
-        } finally {
-            clearTimeout(timeoutId);
         }
     }
 
-    async function buildFlipbookFromZip(zip, viewerEl) {
-        const containerXml = await zip.file('META-INF/container.xml').async('string');
-        const opfPath = new DOMParser().parseFromString(containerXml, 'application/xml')
-            .querySelector('rootfile').getAttribute('full-path');
-        const opfDir = opfPath.includes('/') ? opfPath.slice(0, opfPath.lastIndexOf('/') + 1) : '';
-        const opfXml = await zip.file(opfPath).async('string');
-        const opfDoc = new DOMParser().parseFromString(opfXml, 'application/xml');
-
-        const manifest = {};
-        opfDoc.querySelectorAll('manifest > item').forEach(el => {
-            manifest[el.getAttribute('id')] = el.getAttribute('href');
+    async function buildFlipbookFromImages(imageUrls, viewerEl) {
+        // วัดสัดส่วนจากรูปหน้าแรก แล้วคำนวณขนาดหนังสือให้พอดีพื้นที่แสดงผล
+        const naturalSize = await new Promise((resolve, reject) => {
+            const probe = new Image();
+            probe.onload = () => resolve({ w: probe.naturalWidth, h: probe.naturalHeight });
+            probe.onerror = () => reject(new Error('โหลดรูปหน้าแรกไม่สำเร็จ'));
+            probe.src = imageUrls[0];
         });
-        const spineIds = Array.from(opfDoc.querySelectorAll('spine > itemref')).map(el => el.getAttribute('idref'));
-        const contentHref = manifest[spineIds[0]];
-        if (!contentHref) throw new Error('ไม่พบไฟล์เนื้อหาใน spine');
-        const contentPath = opfDir + contentHref;
-        const contentDir = contentPath.includes('/') ? contentPath.slice(0, contentPath.lastIndexOf('/') + 1) : '';
-
-        const htmlText = await zip.file(contentPath).async('string');
-        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
-
-        const resolvePath = (base, rel) => {
-            if (/^(https?:)?\/\//.test(rel) || rel.startsWith('blob:') || rel.startsWith('data:')) return rel;
-            return new URL(rel, 'https://_/' + base).pathname.slice(1);
-        };
-
-        // แปลงเฉพาะไฟล์ "ฟอนต์" เป็น blob URL ล่วงหน้า (ไฟล์เล็ก ~50 ไฟล์ ไม่กี่ MB รวมกัน)
-        // ส่วนรูปภาพ (ตัวกินพื้นที่หลักของไฟล์ 16MB) จะแปลงแบบ lazy ทีละหน้าตอนจะอ่านจริง
-        // เพื่อไม่ให้ต้องแกะ/ถือ blob ของทั้งเล่มพร้อมกันในหน่วยความจำ (มือถือรุ่นเก่า/Safari
-        // อาจค้างหรือ error ถ้าแกะ ~150 ไฟล์รูปพร้อมกันตั้งแต่เปิดหน้าแรก)
-        const blobCache = {};
-        const getBlobUrl = async (p) => {
-            if (blobCache[p]) return blobCache[p];
-            const file = zip.file(p);
-            if (!file) return null;
-            const blob = await file.async('blob');
-            const url = URL.createObjectURL(blob);
-            blobCache[p] = url;
-            currentFlipBlobUrls.push(url);
-            return url;
-        };
-
-        // รวม stylesheet ที่หน้าเนื้อหาลิงก์ไว้ แล้ว rewrite path ฟอนต์เป็น blob URL
-        let combinedCss = '';
-        const cssLinks = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
-        for (const link of cssLinks) {
-            const cssPath = resolvePath(contentDir, link.getAttribute('href'));
-            const cssFile = zip.file(cssPath);
-            if (!cssFile) continue;
-            let cssText = await cssFile.async('string');
-            const cssDir = cssPath.includes('/') ? cssPath.slice(0, cssPath.lastIndexOf('/') + 1) : '';
-            const urlMatches = [...cssText.matchAll(/url\((['"]?)([^'")]+)\1\)/g)];
-            for (const m of urlMatches) {
-                const assetPath = resolvePath(cssDir, m[2]);
-                const url = await getBlobUrl(assetPath);
-                if (url) cssText = cssText.replace(m[0], `url(${url})`);
-            }
-            combinedCss += cssText + '\n';
-        }
-
-        // แปลง <object data="รูป.svg"><embed .../></object> เป็น <img> ธรรมดา
-        // (บาง WebKit/Safari เรนเดอร์ <object> ที่ data เป็น blob: ไม่นิ่ง ส่วน <img> รองรับกว้างกว่า)
-        // แล้วเก็บ path ไว้ใน data-asset-path เพื่อโหลด blob แบบ lazy ทีหลัง ไม่ใช่ตอนนี้
-        doc.querySelectorAll('object[data], embed[src]').forEach(el => {
-            const attr = el.hasAttribute('data') ? 'data' : 'src';
-            const assetPath = resolvePath(contentDir, el.getAttribute(attr));
-            const img = document.createElement('img');
-            img.className = el.className;
-            img.setAttribute('style', el.getAttribute('style') || '');
-            img.setAttribute('data-asset-path', assetPath);
-            el.replaceWith(img);
-        });
-        doc.querySelectorAll('img[src]').forEach(el => {
-            const assetPath = resolvePath(contentDir, el.getAttribute('src'));
-            el.removeAttribute('src');
-            el.setAttribute('data-asset-path', assetPath);
-        });
-
-        const pageEls = Array.from(doc.body.querySelectorAll(':scope > div[id^="page_"]'));
-        if (!pageEls.length) throw new Error('ไม่พบโครงสร้างหน้าในไฟล์');
-
-        // โหลดรูปจริงให้หน้า index ที่ระบุ (ถ้ายังไม่เคยโหลด) ใช้ตอนเปิดเล่มครั้งแรก
-        // และตอนพลิกหน้า เพื่อ prefetch หน้าถัดไปล่วงหน้าแบบเบาๆ
-        const preparedPages = new Set();
-        async function preparePage(index) {
-            if (index < 0 || index >= pageEls.length || preparedPages.has(index)) return;
-            preparedPages.add(index);
-            const imgs = pageEls[index].querySelectorAll('img[data-asset-path]');
-            await Promise.all(Array.from(imgs).map(async (img) => {
-                const url = await getBlobUrl(img.getAttribute('data-asset-path'));
-                if (url) img.src = url;
-            }));
-        }
-
-        document.getElementById('flipbookInjectedCss')?.remove();
-        const styleTag = document.createElement('style');
-        styleTag.id = 'flipbookInjectedCss';
-        styleTag.textContent = combinedCss;
-        document.head.appendChild(styleTag);
-
-        viewerEl.innerHTML = '';
-        const flipRoot = document.createElement('div');
-        flipRoot.id = 'flipbookRoot';
-        viewerEl.appendChild(flipRoot);
-
-        // วัดสัดส่วนหน้าจริงที่ font-size ฐาน 16px แล้วคำนวณ scale ให้พอดีพื้นที่แสดงผล
-        // (เนื้อหาในเล่มใช้หน่วย em ทั้งหมด ปรับ font-size ที่บรรพบุรุษเดียวก็ย่อ/ขยายทั้งเล่มได้)
-        const measureHost = document.createElement('div');
-        measureHost.style.cssText = 'position:absolute; visibility:hidden; pointer-events:none; font-size:16px; left:-9999px; top:-9999px;';
-        const probe = pageEls[0].cloneNode(true);
-        measureHost.appendChild(probe);
-        document.body.appendChild(measureHost);
-        const naturalW = probe.getBoundingClientRect().width || 1;
-        const naturalH = probe.getBoundingClientRect().height || 1;
-        document.body.removeChild(measureHost);
 
         const availW = Math.max(viewerEl.clientWidth - 24, 200);
         const availH = Math.max(viewerEl.clientHeight - 24, 200);
-        const scale = Math.min(availW / naturalW, availH / naturalH, 1) || 1;
-        const fontSizePx = 16 * scale;
-        const pageW = Math.round(naturalW * scale);
-        const pageH = Math.round(naturalH * scale);
+        const scale = Math.min(availW / naturalSize.w, availH / naturalSize.h, 1) || 1;
+        const displayW = Math.round(naturalSize.w * scale);
+        const displayH = Math.round(naturalSize.h * scale);
 
-        // ตั้ง font-size ที่ container แม่ (ไม่ใช่ตัว div หน้าโดยตรง เพราะ PageFlip
-        // จะเขียนทับ inline style ของ div หน้าทุกครั้งที่วาด/พลิกหน้า)
-        flipRoot.style.fontSize = fontSizePx + 'px';
+        // StPageFlip เซ็ตขนาด canvas ภายในเท่ากับขนาด CSS พอดี (ไม่คูณ devicePixelRatio)
+        // บนจอ Retina/มือถือความละเอียดสูงเลยเบลอเพราะจอ upscale canvas ให้ใหญ่ขึ้นอีกที
+        // แก้โดยสั่งให้ PageFlip เรนเดอร์ที่ความละเอียดสูงกว่าจริง (คูณ dpr) แล้วห่อด้วย
+        // container ขนาดจริงบนจอ + transform:scale ย่อกลับ ให้ตำแหน่งคลิก/ทัชยังตรงเหมือนเดิม
+        const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+        const renderW = Math.round(displayW * dpr);
+        const renderH = Math.round(displayH * dpr);
+
+        viewerEl.innerHTML = '';
+        const sizer = document.createElement('div');
+        sizer.style.cssText = `width:${displayW}px; height:${displayH}px; position:relative; overflow:hidden;`;
+        viewerEl.appendChild(sizer);
+
+        const flipRoot = document.createElement('div');
+        flipRoot.id = 'flipbookRoot';
+        flipRoot.style.cssText = `position:absolute; top:0; left:0; transform: scale(${1 / dpr}); transform-origin: top left;`;
+        sizer.appendChild(flipRoot);
 
         if (currentFlipBook) { currentFlipBook.destroy(); currentFlipBook = null; }
 
         currentFlipBook = new St.PageFlip(flipRoot, {
-            width: pageW,
-            height: pageH,
+            width: renderW,
+            height: renderH,
             size: 'fixed',
             showCover: false,
             maxShadowOpacity: 0.5,
             usePortrait: true,
             mobileScrollSupport: false
         });
-        currentFlipBook.loadFromHTML(pageEls);
+        currentFlipBook.loadFromImages(imageUrls);
 
-        // โหลดรูปของหน้าแรกๆ ก่อน (เผื่อ spread แบบ 2 หน้า) แล้วค่อย prefetch ต่อเนื่อง
-        await Promise.all([0, 1, 2].map(preparePage));
-
-        document.getElementById('epubPageIndicator').textContent = `1 / ${pageEls.length}`;
+        document.getElementById('epubPageIndicator').textContent = `1 / ${imageUrls.length}`;
         currentFlipBook.on('flip', (e) => {
-            document.getElementById('epubPageIndicator').textContent = `${e.data + 1} / ${pageEls.length}`;
-            // พลิกหน้าแล้ว โหลดรูปหน้าถัดไปล่วงหน้าเงียบๆ ให้พลิกต่อได้ลื่น
-            [e.data - 1, e.data, e.data + 1, e.data + 2].forEach(i => preparePage(i));
+            document.getElementById('epubPageIndicator').textContent = `${e.data + 1} / ${imageUrls.length}`;
         });
     }
 
-    function revokeFlipbookBlobUrls() {
-        currentFlipBlobUrls.forEach(u => URL.revokeObjectURL(u));
-        currentFlipBlobUrls = [];
-    }
-
     function closeEpubReader() {
-        if (currentFlipAbort) { currentFlipAbort.abort(); currentFlipAbort = null; }
         document.getElementById('epubReaderModal').classList.remove('active');
         if (currentFlipBook) { currentFlipBook.destroy(); currentFlipBook = null; }
         document.getElementById('epubViewer').innerHTML = '';
-        document.getElementById('flipbookInjectedCss')?.remove();
-        revokeFlipbookBlobUrls();
     }
 
     function epubNext() { if (currentFlipBook) currentFlipBook.flipNext(); }
