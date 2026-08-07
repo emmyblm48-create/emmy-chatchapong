@@ -22,7 +22,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 
     <style>
         :root {
@@ -635,6 +636,54 @@
             min-height: 0;
             background: #fff;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+        }
+
+        /* --- StPageFlip: กล่องหนังสือที่พลิกหน้าได้จริงเหมือนกระดาษ ---
+           #flipbookRoot ได้ class .stf__parent ติดที่ตัวมันเองจาก PageFlip
+           (ไม่ใช่ลูกหลาน) จึงต้องใช้ compound selector ไม่ใช่ descendant */
+        #flipbookRoot.stf__parent {
+            position: relative;
+            display: block;
+            box-sizing: border-box;
+            transform: translateZ(0);
+            touch-action: pan-y;
+        }
+        #flipbookRoot .stf__wrapper {
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #flipbookRoot .stf__parent canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+        }
+        #flipbookRoot .stf__block {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            perspective: 2000px;
+        }
+        #flipbookRoot .stf__item {
+            display: none;
+            position: absolute;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+        }
+        #flipbookRoot .stf__outerShadow,
+        #flipbookRoot .stf__innerShadow,
+        #flipbookRoot .stf__hardShadow,
+        #flipbookRoot .stf__hardInnerShadow {
+            position: absolute;
+            left: 0;
+            top: 0;
         }
 
         .epub-loading {
@@ -1148,11 +1197,14 @@ function renderInventoryData() {
     }
 
     // =========================================================================
-    // 📖 ตัวอ่าน E-Book (EPUB) ในตัวสำหรับโฟโต้บุ๊ค — ใช้ epub.js เปิดอ่านไฟล์
-    // ที่โฮสต์อยู่บน Supabase Storage โดยตรง ไม่ต้องดาวน์โหลดออกไปเปิดแอปอื่น
+    // 📖 ตัวอ่านโฟโต้บุ๊คแบบพลิกหน้าเหมือนกระดาษจริง (StPageFlip)
+    // ไฟล์ .epub ที่โฮสต์บน Supabase Storage คือ zip: แกะด้วย JSZip ในเบราว์เซอร์
+    // แล้วดึง div ต่อหน้า (page_0, page_1, ...) ออกมาป้อนให้ PageFlip เล่น animation
+    // โดยแปลงรูป/ฟอนต์ในไฟล์เป็น blob URL ก่อน (ไม่ต้องพึ่ง endpoint ภายนอกอื่นเลย)
     // =========================================================================
-    let currentEpubBook = null;
-    let currentEpubRendition = null;
+    let currentFlipBook = null;
+    let currentFlipBlobUrls = [];
+    let currentFlipAbort = null;
 
     function openEpubReaderFromPreview() {
         if (!currentPreviewItem || !currentPreviewItem.fileUrl) return;
@@ -1160,9 +1212,16 @@ function renderInventoryData() {
         openEpubReader(currentPreviewItem.fileUrl, currentPreviewItem.name);
     }
 
-    let epubLoadTimeout = null;
+    function showFlipbookError(viewerEl) {
+        viewerEl.innerHTML = `
+            <div class="epub-loading">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                เปิดไฟล์ไม่สำเร็จ กรุณาลองใหม่ หรือดาวน์โหลดไฟล์แทน
+            </div>
+        `;
+    }
 
-    function openEpubReader(fileUrl, title) {
+    async function openEpubReader(fileUrl, title) {
         const overlay = document.getElementById('epubReaderModal');
         const viewerEl = document.getElementById('epubViewer');
         document.getElementById('epubReaderTitle').textContent = title || '';
@@ -1171,71 +1230,155 @@ function renderInventoryData() {
         viewerEl.innerHTML = `<div class="epub-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดโฟโต้บุ๊ค...</div>`;
         overlay.classList.add('active');
 
-        // เรียก getBoundingClientRect() ทันทีหลังเปิด overlay เพื่อบังคับให้ browser
-        // reflow แบบ synchronous (ไม่พึ่ง requestAnimationFrame ซึ่งอาจไม่ทำงานถ้าแท็บไม่ active)
-        const rect = viewerEl.getBoundingClientRect();
-        const width = Math.max(Math.floor(rect.width), 280);
-        const height = Math.max(Math.floor(rect.height), 400);
-        viewerEl.innerHTML = `<div class="epub-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดโฟโต้บุ๊ค...</div>`;
-        startEpubRendition(fileUrl, width, height);
+        currentFlipAbort = new AbortController();
+        // ไฟล์ ~16MB ต่อเล่ม ให้เวลาดาวน์โหลด+แกะไฟล์นานพอ ก่อนถือว่าล้มเหลวจริง
+        const timeoutId = setTimeout(() => currentFlipAbort.abort(), 90000);
+
+        try {
+            const res = await fetch(fileUrl, { signal: currentFlipAbort.signal });
+            if (!res.ok) throw new Error('fetch failed: ' + res.status);
+            const buf = await res.arrayBuffer();
+            const zip = await JSZip.loadAsync(buf);
+            await buildFlipbookFromZip(zip, viewerEl);
+        } catch (err) {
+            console.error('flipbook load error:', err);
+            showFlipbookError(viewerEl);
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 
-    function startEpubRendition(fileUrl, width, height) {
-        const viewerEl = document.getElementById('epubViewer');
+    async function buildFlipbookFromZip(zip, viewerEl) {
+        const containerXml = await zip.file('META-INF/container.xml').async('string');
+        const opfPath = new DOMParser().parseFromString(containerXml, 'application/xml')
+            .querySelector('rootfile').getAttribute('full-path');
+        const opfDir = opfPath.includes('/') ? opfPath.slice(0, opfPath.lastIndexOf('/') + 1) : '';
+        const opfXml = await zip.file(opfPath).async('string');
+        const opfDoc = new DOMParser().parseFromString(opfXml, 'application/xml');
 
-        currentEpubBook = ePub(fileUrl);
-        currentEpubRendition = currentEpubBook.renderTo('epubViewer', {
-            width: width,
-            height: height,
-            spread: 'none',
-            flow: 'paginated',
-            manager: 'default'
+        const manifest = {};
+        opfDoc.querySelectorAll('manifest > item').forEach(el => {
+            manifest[el.getAttribute('id')] = el.getAttribute('href');
         });
+        const spineIds = Array.from(opfDoc.querySelectorAll('spine > itemref')).map(el => el.getAttribute('idref'));
+        const contentHref = manifest[spineIds[0]];
+        if (!contentHref) throw new Error('ไม่พบไฟล์เนื้อหาใน spine');
+        const contentPath = opfDir + contentHref;
+        const contentDir = contentPath.includes('/') ? contentPath.slice(0, contentPath.lastIndexOf('/') + 1) : '';
 
-        let rendered = false;
-        currentEpubRendition.on('rendered', () => { rendered = true; });
+        const htmlText = await zip.file(contentPath).async('string');
+        const doc = new DOMParser().parseFromString(htmlText, 'text/html');
 
-        clearTimeout(epubLoadTimeout);
-        epubLoadTimeout = setTimeout(() => {
-            if (!rendered) {
-                viewerEl.innerHTML = `
-                    <div class="epub-loading">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        เปิดไฟล์ไม่สำเร็จ กรุณาลองใหม่ หรือดาวน์โหลดไฟล์แทน
-                    </div>
-                `;
-            }
-        }, 15000);
+        const resolvePath = (base, rel) => {
+            if (/^(https?:)?\/\//.test(rel) || rel.startsWith('blob:') || rel.startsWith('data:')) return rel;
+            return new URL(rel, 'https://_/' + base).pathname.slice(1);
+        };
 
-        currentEpubRendition.display().catch((err) => {
-            console.error('epub display error:', err);
-            viewerEl.innerHTML = `
-                <div class="epub-loading">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    เปิดไฟล์ไม่สำเร็จ กรุณาลองใหม่ หรือดาวน์โหลดไฟล์แทน
-                </div>
-            `;
-        });
+        // แปลงไฟล์รูป/ฟอนต์ทุกไฟล์ในเล่มเป็น blob URL ล่วงหน้า
+        const blobUrls = {};
+        const assetPaths = Object.keys(zip.files).filter(p =>
+            !zip.files[p].dir && p !== contentPath && p !== opfPath && !p.startsWith('META-INF/'));
+        await Promise.all(assetPaths.map(async (p) => {
+            const blob = await zip.file(p).async('blob');
+            const url = URL.createObjectURL(blob);
+            blobUrls[p] = url;
+            currentFlipBlobUrls.push(url);
+        }));
 
-        currentEpubBook.ready.then(() => currentEpubBook.locations.generate(600)).then(() => {
-            currentEpubRendition.on('relocated', (location) => {
-                const total = currentEpubBook.locations.length();
-                if (!total) return;
-                const current = currentEpubBook.locations.locationFromCfi(location.start.cfi);
-                document.getElementById('epubPageIndicator').textContent = `${current + 1} / ${total}`;
+        // รวม stylesheet ที่หน้าเนื้อหาลิงก์ไว้ แล้ว rewrite path รูป/ฟอนต์เป็น blob URL
+        let combinedCss = '';
+        const cssLinks = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+        for (const link of cssLinks) {
+            const cssPath = resolvePath(contentDir, link.getAttribute('href'));
+            const cssFile = zip.file(cssPath);
+            if (!cssFile) continue;
+            let cssText = await cssFile.async('string');
+            const cssDir = cssPath.includes('/') ? cssPath.slice(0, cssPath.lastIndexOf('/') + 1) : '';
+            cssText = cssText.replace(/url\((['"]?)([^'")]+)\1\)/g, (m, q, rel) => {
+                const assetPath = resolvePath(cssDir, rel);
+                return blobUrls[assetPath] ? `url(${blobUrls[assetPath]})` : m;
             });
-        }).catch(() => { /* ไม่ต้องแสดงเลขหน้าถ้าคำนวณไม่สำเร็จ ไม่กระทบการอ่าน */ });
+            combinedCss += cssText + '\n';
+        }
+
+        // rewrite src/data ของรูปภายในหน้าเนื้อหา
+        doc.querySelectorAll('img[src], object[data], embed[src]').forEach(el => {
+            const attr = el.hasAttribute('data') ? 'data' : 'src';
+            const assetPath = resolvePath(contentDir, el.getAttribute(attr));
+            if (blobUrls[assetPath]) el.setAttribute(attr, blobUrls[assetPath]);
+        });
+
+        const pageEls = Array.from(doc.body.querySelectorAll(':scope > div[id^="page_"]'));
+        if (!pageEls.length) throw new Error('ไม่พบโครงสร้างหน้าในไฟล์');
+
+        document.getElementById('flipbookInjectedCss')?.remove();
+        const styleTag = document.createElement('style');
+        styleTag.id = 'flipbookInjectedCss';
+        styleTag.textContent = combinedCss;
+        document.head.appendChild(styleTag);
+
+        viewerEl.innerHTML = '';
+        const flipRoot = document.createElement('div');
+        flipRoot.id = 'flipbookRoot';
+        viewerEl.appendChild(flipRoot);
+
+        // วัดสัดส่วนหน้าจริงที่ font-size ฐาน 16px แล้วคำนวณ scale ให้พอดีพื้นที่แสดงผล
+        // (เนื้อหาในเล่มใช้หน่วย em ทั้งหมด ปรับ font-size ที่บรรพบุรุษเดียวก็ย่อ/ขยายทั้งเล่มได้)
+        const measureHost = document.createElement('div');
+        measureHost.style.cssText = 'position:absolute; visibility:hidden; pointer-events:none; font-size:16px; left:-9999px; top:-9999px;';
+        const probe = pageEls[0].cloneNode(true);
+        measureHost.appendChild(probe);
+        document.body.appendChild(measureHost);
+        const naturalW = probe.getBoundingClientRect().width || 1;
+        const naturalH = probe.getBoundingClientRect().height || 1;
+        document.body.removeChild(measureHost);
+
+        const availW = Math.max(viewerEl.clientWidth - 24, 200);
+        const availH = Math.max(viewerEl.clientHeight - 24, 200);
+        const scale = Math.min(availW / naturalW, availH / naturalH, 1) || 1;
+        const fontSizePx = 16 * scale;
+        const pageW = Math.round(naturalW * scale);
+        const pageH = Math.round(naturalH * scale);
+
+        // ตั้ง font-size ที่ container แม่ (ไม่ใช่ตัว div หน้าโดยตรง เพราะ PageFlip
+        // จะเขียนทับ inline style ของ div หน้าทุกครั้งที่วาด/พลิกหน้า)
+        flipRoot.style.fontSize = fontSizePx + 'px';
+
+        if (currentFlipBook) { currentFlipBook.destroy(); currentFlipBook = null; }
+
+        currentFlipBook = new St.PageFlip(flipRoot, {
+            width: pageW,
+            height: pageH,
+            size: 'fixed',
+            showCover: false,
+            maxShadowOpacity: 0.5,
+            usePortrait: true,
+            mobileScrollSupport: false
+        });
+        currentFlipBook.loadFromHTML(pageEls);
+
+        document.getElementById('epubPageIndicator').textContent = `1 / ${pageEls.length}`;
+        currentFlipBook.on('flip', (e) => {
+            document.getElementById('epubPageIndicator').textContent = `${e.data + 1} / ${pageEls.length}`;
+        });
+    }
+
+    function revokeFlipbookBlobUrls() {
+        currentFlipBlobUrls.forEach(u => URL.revokeObjectURL(u));
+        currentFlipBlobUrls = [];
     }
 
     function closeEpubReader() {
-        clearTimeout(epubLoadTimeout);
+        if (currentFlipAbort) { currentFlipAbort.abort(); currentFlipAbort = null; }
         document.getElementById('epubReaderModal').classList.remove('active');
-        if (currentEpubRendition) { currentEpubRendition.destroy(); currentEpubRendition = null; }
-        if (currentEpubBook) { currentEpubBook.destroy(); currentEpubBook = null; }
+        if (currentFlipBook) { currentFlipBook.destroy(); currentFlipBook = null; }
+        document.getElementById('epubViewer').innerHTML = '';
+        document.getElementById('flipbookInjectedCss')?.remove();
+        revokeFlipbookBlobUrls();
     }
 
-    function epubNext() { if (currentEpubRendition) currentEpubRendition.next(); }
-    function epubPrev() { if (currentEpubRendition) currentEpubRendition.prev(); }
+    function epubNext() { if (currentFlipBook) currentFlipBook.flipNext(); }
+    function epubPrev() { if (currentFlipBook) currentFlipBook.flipPrev(); }
 
     document.addEventListener('keydown', (e) => {
         if (!document.getElementById('epubReaderModal').classList.contains('active')) return;
