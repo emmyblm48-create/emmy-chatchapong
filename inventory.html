@@ -1236,13 +1236,16 @@ function renderInventoryData() {
             probe.src = imageUrls[0];
         });
 
-        // แสดงเป็นหนังสือกางกาง 2 หน้าซ้าย-ขวาเสมอ (ไม่สลับเป็นหน้าเดียวแม้จอแคบ)
-        // จึงคำนวณ scale จากความกว้างของ "คู่หน้า" (natural.w * 2) ไม่ใช่หน้าเดียว
+        // จอมือถือ (แคบกว่า 768px) แสดงหน้าเดียว ส่วนไอแพด/คอม (768px ขึ้นไป) แสดงกางกาง 2 หน้า
+        const isSpreadMode = window.innerWidth >= 768;
+
         const availW = Math.max(viewerEl.clientWidth - 24, 200);
         const availH = Math.max(viewerEl.clientHeight - 24, 200);
-        const scale = Math.min(availW / (naturalSize.w * 2), availH / naturalSize.h, 1) || 1;
+        // โหมดกางกาง 2 หน้า: คำนวณ scale จากความกว้างของ "คู่หน้า" (natural.w * 2)
+        const scale = Math.min(availW / (naturalSize.w * (isSpreadMode ? 2 : 1)), availH / naturalSize.h, 1) || 1;
         const displayW = Math.round(naturalSize.w * scale); // ขนาด 1 หน้าบนจอ
         const displayH = Math.round(naturalSize.h * scale);
+        const sizerWidthMultiplier = isSpreadMode ? 2 : 1;
 
         // StPageFlip เซ็ตขนาด canvas ภายในเท่ากับขนาด CSS พอดี (ไม่คูณ devicePixelRatio)
         // บนจอ Retina/มือถือความละเอียดสูงเลยเบลอเพราะจอ upscale canvas ให้ใหญ่ขึ้นอีกที
@@ -1254,8 +1257,8 @@ function renderInventoryData() {
 
         viewerEl.innerHTML = '';
         const sizer = document.createElement('div');
-        // sizer กว้าง 2 เท่าของ 1 หน้า เพราะแสดงเป็นคู่หน้าตลอด
-        sizer.style.cssText = `width:${displayW * 2}px; height:${displayH}px; position:relative; overflow:hidden;`;
+        // sizer กว้าง 1 เท่า (มือถือ) หรือ 2 เท่า (ไอแพด/คอม) ของ 1 หน้า ตาม isSpreadMode
+        sizer.style.cssText = `width:${displayW * sizerWidthMultiplier}px; height:${displayH}px; position:relative; overflow:hidden;`;
         viewerEl.appendChild(sizer);
 
         const flipRoot = document.createElement('div');
@@ -1271,7 +1274,7 @@ function renderInventoryData() {
             size: 'fixed',
             showCover: false,
             maxShadowOpacity: 0.5,
-            usePortrait: false,
+            usePortrait: !isSpreadMode,
             mobileScrollSupport: false
         });
         currentFlipBook.loadFromImages(imageUrls);
