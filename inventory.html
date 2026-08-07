@@ -742,7 +742,7 @@
                     </div>
                 </div>
                 <div class="inv-stat-pill">
-                    <div class="inv-stat-icon" style="background:#e7f5ff;color:#4dabf7;"><i class="fa-solid fa-book-bookmark"></i></div>
+                    <div class="inv-stat-icon" style="background:#e7f5ff;color:#4dabf7;"><i class="fa-solid fa-boxes-stacked"></i></div>
                     <div class="inv-stat-text">
                         <span class="inv-stat-value" id="stat-total-collections">0</span>
                         <span class="inv-stat-label">Collections</span>
@@ -945,22 +945,22 @@
         primaryTabsContainer.appendChild(btnSSR);
     }
 
-    // 3. ปุ่มหลัก: BLM48 Cafe
-    if (hasCategory('BLM48 Cafe')) {
-        const btnCafe = document.createElement('button');
-        btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
-        btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
-        btnCafe.onclick = () => selectPrimaryTab('cafe');
-        primaryTabsContainer.appendChild(btnCafe);
+    // 3. ปุ่มหลัก: BLM48 Photobook (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
+    if (hasCategory('BLM48 Photobook')) {
+        const btnPhotobook = document.createElement('button');
+        btnPhotobook.className = `btn-tab ${currentPrimaryTab === 'photobook' ? 'active' : ''}`;
+        btnPhotobook.innerHTML = `<i class="fa-solid fa-book-open"></i> BLM48 Photobook`;
+        btnPhotobook.onclick = () => selectPrimaryTab('photobook');
+        primaryTabsContainer.appendChild(btnPhotobook);
     }
 
-    // 4. ปุ่มหลัก: Coaster
-    if (hasCategory('Coaster')) {
-        const btnCoaster = document.createElement('button');
-        btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
-        btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc"></i> Coaster`;
-        btnCoaster.onclick = () => selectPrimaryTab('coaster');
-        primaryTabsContainer.appendChild(btnCoaster);
+    // 4. ปุ่มหลัก: BLM48 PhotoSet (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
+    if (hasCategory('BLM48 PhotoSet')) {
+        const btnPhotoSet = document.createElement('button');
+        btnPhotoSet.className = `btn-tab ${currentPrimaryTab === 'photoset' ? 'active' : ''}`;
+        btnPhotoSet.innerHTML = `<i class="fa-solid fa-images"></i> BLM48 PhotoSet`;
+        btnPhotoSet.onclick = () => selectPrimaryTab('photoset');
+        primaryTabsContainer.appendChild(btnPhotoSet);
     }
 
     // 5. ปุ่มหลัก: Thank You Card
@@ -972,22 +972,22 @@
         primaryTabsContainer.appendChild(btnThankYou);
     }
 
-    // 6. ปุ่มหลัก: BLM48 PhotoSet (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
-    if (hasCategory('BLM48 PhotoSet')) {
-        const btnPhotoSet = document.createElement('button');
-        btnPhotoSet.className = `btn-tab ${currentPrimaryTab === 'photoset' ? 'active' : ''}`;
-        btnPhotoSet.innerHTML = `<i class="fa-solid fa-images"></i> BLM48 PhotoSet`;
-        btnPhotoSet.onclick = () => selectPrimaryTab('photoset');
-        primaryTabsContainer.appendChild(btnPhotoSet);
+    // 6. ปุ่มหลัก: BLM48 Cafe
+    if (hasCategory('BLM48 Cafe')) {
+        const btnCafe = document.createElement('button');
+        btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
+        btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
+        btnCafe.onclick = () => selectPrimaryTab('cafe');
+        primaryTabsContainer.appendChild(btnCafe);
     }
 
-    // 7. ปุ่มหลัก: BLM48 Photobook (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
-    if (hasCategory('BLM48 Photobook')) {
-        const btnPhotobook = document.createElement('button');
-        btnPhotobook.className = `btn-tab ${currentPrimaryTab === 'photobook' ? 'active' : ''}`;
-        btnPhotobook.innerHTML = `<i class="fa-solid fa-book-open"></i> BLM48 Photobook`;
-        btnPhotobook.onclick = () => selectPrimaryTab('photobook');
-        primaryTabsContainer.appendChild(btnPhotobook);
+    // 7. ปุ่มหลัก: Coaster
+    if (hasCategory('Coaster')) {
+        const btnCoaster = document.createElement('button');
+        btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
+        btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc"></i> Coaster`;
+        btnCoaster.onclick = () => selectPrimaryTab('coaster');
+        primaryTabsContainer.appendChild(btnCoaster);
     }
 
     // 8. ปุ่มหลัก: หมวดหมู่อื่นๆ
@@ -1166,10 +1166,12 @@ function renderInventoryData() {
         `;
 
         document.getElementById('previewModal').style.display = 'flex';
+        blm48LockBodyScroll();
     }
 
     function closePreview() {
         document.getElementById('previewModal').style.display = 'none';
+        blm48UnlockBodyScroll();
     }
 
     // =========================================================================
@@ -1204,6 +1206,7 @@ function renderInventoryData() {
         document.getElementById('epubPageIndicator').textContent = '';
         viewerEl.innerHTML = `<div class="epub-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดโฟโต้บุ๊ค...</div>`;
         overlay.classList.add('active');
+        blm48LockBodyScroll();
 
         try {
             const { data: files, error } = await blm48Supabase.storage
@@ -1233,10 +1236,12 @@ function renderInventoryData() {
             probe.src = imageUrls[0];
         });
 
+        // แสดงเป็นหนังสือกางกาง 2 หน้าซ้าย-ขวาเสมอ (ไม่สลับเป็นหน้าเดียวแม้จอแคบ)
+        // จึงคำนวณ scale จากความกว้างของ "คู่หน้า" (natural.w * 2) ไม่ใช่หน้าเดียว
         const availW = Math.max(viewerEl.clientWidth - 24, 200);
         const availH = Math.max(viewerEl.clientHeight - 24, 200);
-        const scale = Math.min(availW / naturalSize.w, availH / naturalSize.h, 1) || 1;
-        const displayW = Math.round(naturalSize.w * scale);
+        const scale = Math.min(availW / (naturalSize.w * 2), availH / naturalSize.h, 1) || 1;
+        const displayW = Math.round(naturalSize.w * scale); // ขนาด 1 หน้าบนจอ
         const displayH = Math.round(naturalSize.h * scale);
 
         // StPageFlip เซ็ตขนาด canvas ภายในเท่ากับขนาด CSS พอดี (ไม่คูณ devicePixelRatio)
@@ -1249,7 +1254,8 @@ function renderInventoryData() {
 
         viewerEl.innerHTML = '';
         const sizer = document.createElement('div');
-        sizer.style.cssText = `width:${displayW}px; height:${displayH}px; position:relative; overflow:hidden;`;
+        // sizer กว้าง 2 เท่าของ 1 หน้า เพราะแสดงเป็นคู่หน้าตลอด
+        sizer.style.cssText = `width:${displayW * 2}px; height:${displayH}px; position:relative; overflow:hidden;`;
         viewerEl.appendChild(sizer);
 
         const flipRoot = document.createElement('div');
@@ -1265,7 +1271,7 @@ function renderInventoryData() {
             size: 'fixed',
             showCover: false,
             maxShadowOpacity: 0.5,
-            usePortrait: true,
+            usePortrait: false,
             mobileScrollSupport: false
         });
         currentFlipBook.loadFromImages(imageUrls);
@@ -1278,6 +1284,7 @@ function renderInventoryData() {
 
     function closeEpubReader() {
         document.getElementById('epubReaderModal').classList.remove('active');
+        blm48UnlockBodyScroll();
         if (currentFlipBook) { currentFlipBook.destroy(); currentFlipBook = null; }
         document.getElementById('epubViewer').innerHTML = '';
     }

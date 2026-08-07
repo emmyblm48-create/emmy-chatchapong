@@ -1809,6 +1809,7 @@ document.addEventListener('click', function() {
       currentIndex = index;
       updateViewer();
       document.getElementById('image-viewer-modal').style.display = 'flex';
+      blm48LockBodyScroll();
     }
 
     function updateViewer() {
@@ -1825,7 +1826,10 @@ document.addEventListener('click', function() {
       if (currentIndex >= 0 && currentIndex < currentGallery.length) { updateViewer(); }
     }
 
-    function closeImageViewer() { document.getElementById('image-viewer-modal').style.display = 'none'; }
+    function closeImageViewer() {
+      document.getElementById('image-viewer-modal').style.display = 'none';
+      blm48UnlockBodyScroll();
+    }
 
     window.onload = loadMemberData;
 </script>
@@ -1910,11 +1914,13 @@ document.addEventListener('click', function() {
   }
 </script>
 
-<div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
+<div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
   <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">×</span>
-  <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
-  <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
-  <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
+  <div onclick="event.stopPropagation()" style="display: contents;">
+    <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
+    <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
+    <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
+  </div>
 </div>
 
 </body>

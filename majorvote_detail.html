@@ -265,8 +265,8 @@
         <i class="fa-solid fa-spinner fa-spin"></i> Loading...
     </div>
 
-    <div id="gift-modal-overlay" class="gift-modal-overlay">
-        <div class="gift-modal-box">
+    <div id="gift-modal-overlay" class="gift-modal-overlay" onclick="closeGiftModal()">
+        <div class="gift-modal-box" onclick="event.stopPropagation()">
             <div class="gift-modal-drag-handle"></div>
             <button type="button" class="gift-modal-close" onclick="closeGiftModal()"><i class="fa-solid fa-xmark"></i></button>
 
@@ -723,6 +723,7 @@
         document.getElementById('gift-modal-avatar').src = fixSecureImageUrl(candidateImg);
         document.getElementById('gift-modal-cookie-balance').textContent = getUserCookieBalance().toLocaleString();
         document.getElementById('gift-modal-overlay').style.display = 'flex';
+        blm48LockBodyScroll();
 
         const grid = document.getElementById('gift-items-grid');
         grid.innerHTML = `<div class="gift-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</div>`;
@@ -744,6 +745,7 @@
 
     function closeGiftModal() {
         document.getElementById('gift-modal-overlay').style.display = 'none';
+        blm48UnlockBodyScroll();
     }
 
     function renderGiftTabs() {

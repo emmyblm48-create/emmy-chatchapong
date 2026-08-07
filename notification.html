@@ -383,8 +383,16 @@
           </div>
         `;
         document.body.appendChild(modal);
-        modal.querySelector('#btn-cute-ok').onclick = () => { modal.remove(); resolve(true); };
-        modal.querySelector('#btn-cute-cancel').onclick = () => { modal.remove(); resolve(false); };
+        blm48LockBodyScroll();
+        const closeCuteConfirm = (result) => {
+          modal.remove();
+          blm48UnlockBodyScroll();
+          resolve(result);
+        };
+        modal.querySelector('#btn-cute-ok').onclick = () => closeCuteConfirm(true);
+        modal.querySelector('#btn-cute-cancel').onclick = () => closeCuteConfirm(false);
+        // คลิกพื้นหลังนอกกล่อง (ไม่ใช่ตัวกล่องข้อความเอง) เพื่อปิด = เหมือนกดยกเลิก
+        modal.onclick = (e) => { if (e.target === modal) closeCuteConfirm(false); };
       });
     };
 

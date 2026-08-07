@@ -4107,6 +4107,7 @@ function openImageViewer(index, galleryArray) {
   
   updateViewer();
   document.getElementById('image-viewer-modal').style.display = 'flex';
+  blm48LockBodyScroll();
 }
 
 // 🌟 ฟังก์ชันอัปเดตรูปและปุ่มลูกศร
@@ -4133,6 +4134,7 @@ function changeImage(step) {
 // 🌟 ฟังก์ชันปิดรูปเต็มจอ
 function closeImageViewer() {
   document.getElementById('image-viewer-modal').style.display = 'none';
+  blm48UnlockBodyScroll();
 }
   
 async function redeemCode() {
@@ -4372,6 +4374,7 @@ async function openDailyMissionModal() {
   }
   const modal = document.getElementById('daily-mission-modal');
   if (modal) modal.style.display = 'flex';
+  blm48LockBodyScroll();
   const list = document.getElementById('mission-item-list');
   if (list) list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px 0;">กำลังโหลด...</div>';
 
@@ -4385,6 +4388,7 @@ async function openDailyMissionModal() {
 function closeDailyMissionModal() {
   const modal = document.getElementById('daily-mission-modal');
   if (modal) modal.style.display = 'none';
+  blm48UnlockBodyScroll();
   if (missionCountdownTimer) {
     clearInterval(missionCountdownTimer);
     missionCountdownTimer = null;
@@ -4717,8 +4721,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </div>
 
-<div id="daily-mission-modal">
-  <div class="mission-card">
+<div id="daily-mission-modal" onclick="closeDailyMissionModal()">
+  <div class="mission-card" onclick="event.stopPropagation()">
     <span class="mission-card-close" onclick="closeDailyMissionModal()">&times;</span>
     <div class="mission-card-title"><i class="fas fa-list-check"></i> ภารกิจประจำวัน</div>
     <div class="mission-card-subtitle">ทำภารกิจครบ รับ 5 Tokens ฟรี! รีเซ็ตในอีก <span id="mission-countdown">--:--:--</span></div>
@@ -4727,12 +4731,14 @@ document.addEventListener("DOMContentLoaded", () => {
   </div>
 </div>
 
-<div id="image-viewer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
+<div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
   <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">&times;</span>
 
-  <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
-  <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
-  <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
+  <div onclick="event.stopPropagation()" style="display: contents;">
+    <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
+    <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
+    <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
+  </div>
 </div>
 </body>
 </html>

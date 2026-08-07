@@ -1864,6 +1864,7 @@ function openImagePreview(imgSrc) {
             downloadBtn.href = imgSrc;
         }
         modal.style.display = 'flex';
+        blm48LockBodyScroll();
     }
 }
 
@@ -1871,6 +1872,7 @@ function closeImagePreview() {
     const modal = document.getElementById('image-preview-modal');
     if (modal) {
         modal.style.display = 'none';
+        blm48UnlockBodyScroll();
     }
 }
 
@@ -1943,21 +1945,28 @@ function playGachaAnimation(itemName, itemImg, onCloseCallback) {
     actingZone.style.display = 'block';
     resultZone.style.display = 'none';
     gachaModal.classList.add('active');
-    capsule.classList.add('shake-active'); 
-    
+    blm48LockBodyScroll();
+    capsule.classList.add('shake-active');
+
     setTimeout(() => {
         capsule.classList.remove('shake-active');
         actingZone.style.display = 'none';
-        
+
         document.getElementById('result-item-img').src = itemImg || 'https://lh3.googleusercontent.com/d/1Zoxx_r9xvfsItVGkd7OZkJU2FcO6zOoW=s1000';
         document.getElementById('result-item-name').innerText = itemName;
-        
+
         resultZone.style.display = 'block';
     }, 2500);
-    
-    document.getElementById('btn-gacha-close').onclick = function() {
+
+    const closeGachaModal = function() {
         gachaModal.classList.remove('active');
-        if(onCloseCallback) onCloseCallback(); 
+        blm48UnlockBodyScroll();
+        if(onCloseCallback) onCloseCallback();
+    };
+    document.getElementById('btn-gacha-close').onclick = closeGachaModal;
+    // คลิกพื้นหลังนอกกล่องเพื่อปิดได้ (เช็คว่าคลิกตรงพื้นหลังจริงๆ ไม่ใช่ตัวการ์ด/ปุ่มด้านใน)
+    gachaModal.onclick = function(e) {
+        if (e.target === gachaModal) closeGachaModal();
     };
 }
 

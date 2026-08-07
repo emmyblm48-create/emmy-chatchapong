@@ -314,4 +314,19 @@ function toggleVoiceMessage(postId) {
     btn.innerHTML = '<i class="fa-solid fa-play"></i>';
   }
 }
+
+// =========================================================================
+// ล็อกการเลื่อนพื้นหลังตอนเปิด popup/modal ใดๆ — ใช้ตัวนับแทน boolean เดียว
+// เผื่อกรณี modal ซ้อนกัน (เปิดอันที่ 2 ก่อนปิดอันแรก) จะได้ไม่ปลดล็อกก่อนเวลา
+// เรียก blm48LockBodyScroll() ตอนเปิด และ blm48UnlockBodyScroll() ตอนปิด เสมอเป็นคู่
+// =========================================================================
+let __blm48ScrollLockCount = 0;
+function blm48LockBodyScroll() {
+  __blm48ScrollLockCount++;
+  document.body.style.overflow = 'hidden';
+}
+function blm48UnlockBodyScroll() {
+  __blm48ScrollLockCount = Math.max(0, __blm48ScrollLockCount - 1);
+  if (__blm48ScrollLockCount === 0) document.body.style.overflow = '';
+}
 document.addEventListener("DOMContentLoaded", applyGroupTheme);
