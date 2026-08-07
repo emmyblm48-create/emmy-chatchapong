@@ -1274,18 +1274,23 @@ function renderInventoryData() {
             return new URL(rel, 'https://_/' + base).pathname.slice(1);
         };
 
-        // แปลงไฟล์รูป/ฟอนต์ทุกไฟล์ในเล่มเป็น blob URL ล่วงหน้า
-        const blobUrls = {};
-        const assetPaths = Object.keys(zip.files).filter(p =>
-            !zip.files[p].dir && p !== contentPath && p !== opfPath && !p.startsWith('META-INF/'));
-        await Promise.all(assetPaths.map(async (p) => {
-            const blob = await zip.file(p).async('blob');
+        // แปลงเฉพาะไฟล์ "ฟอนต์" เป็น blob URL ล่วงหน้า (ไฟล์เล็ก ~50 ไฟล์ ไม่กี่ MB รวมกัน)
+        // ส่วนรูปภาพ (ตัวกินพื้นที่หลักของไฟล์ 16MB) จะแปลงแบบ lazy ทีละหน้าตอนจะอ่านจริง
+        // เพื่อไม่ให้ต้องแกะ/ถือ blob ของทั้งเล่มพร้อมกันในหน่วยความจำ (มือถือรุ่นเก่า/Safari
+        // อาจค้างหรือ error ถ้าแกะ ~150 ไฟล์รูปพร้อมกันตั้งแต่เปิดหน้าแรก)
+        const blobCache = {};
+        const getBlobUrl = async (p) => {
+            if (blobCache[p]) return blobCache[p];
+            const file = zip.file(p);
+            if (!file) return null;
+            const blob = await file.async('blob');
             const url = URL.createObjectURL(blob);
-            blobUrls[p] = url;
+            blobCache[p] = url;
             currentFlipBlobUrls.push(url);
-        }));
+            return url;
+        };
 
-        // รวม stylesheet ที่หน้าเนื้อหาลิงก์ไว้ แล้ว rewrite path รูป/ฟอนต์เป็น blob URL
+        // รวม stylesheet ที่หน้าเนื้อหาลิงก์ไว้ แล้ว rewrite path ฟอนต์เป็น blob URL
         let combinedCss = '';
         const cssLinks = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
         for (const link of cssLinks) {
@@ -1294,22 +1299,48 @@ function renderInventoryData() {
             if (!cssFile) continue;
             let cssText = await cssFile.async('string');
             const cssDir = cssPath.includes('/') ? cssPath.slice(0, cssPath.lastIndexOf('/') + 1) : '';
-            cssText = cssText.replace(/url\((['"]?)([^'")]+)\1\)/g, (m, q, rel) => {
-                const assetPath = resolvePath(cssDir, rel);
-                return blobUrls[assetPath] ? `url(${blobUrls[assetPath]})` : m;
-            });
+            const urlMatches = [...cssText.matchAll(/url\((['"]?)([^'")]+)\1\)/g)];
+            for (const m of urlMatches) {
+                const assetPath = resolvePath(cssDir, m[2]);
+                const url = await getBlobUrl(assetPath);
+                if (url) cssText = cssText.replace(m[0], `url(${url})`);
+            }
             combinedCss += cssText + '\n';
         }
 
-        // rewrite src/data ของรูปภายในหน้าเนื้อหา
-        doc.querySelectorAll('img[src], object[data], embed[src]').forEach(el => {
+        // แปลง <object data="รูป.svg"><embed .../></object> เป็น <img> ธรรมดา
+        // (บาง WebKit/Safari เรนเดอร์ <object> ที่ data เป็น blob: ไม่นิ่ง ส่วน <img> รองรับกว้างกว่า)
+        // แล้วเก็บ path ไว้ใน data-asset-path เพื่อโหลด blob แบบ lazy ทีหลัง ไม่ใช่ตอนนี้
+        doc.querySelectorAll('object[data], embed[src]').forEach(el => {
             const attr = el.hasAttribute('data') ? 'data' : 'src';
             const assetPath = resolvePath(contentDir, el.getAttribute(attr));
-            if (blobUrls[assetPath]) el.setAttribute(attr, blobUrls[assetPath]);
+            const img = document.createElement('img');
+            img.className = el.className;
+            img.setAttribute('style', el.getAttribute('style') || '');
+            img.setAttribute('data-asset-path', assetPath);
+            el.replaceWith(img);
+        });
+        doc.querySelectorAll('img[src]').forEach(el => {
+            const assetPath = resolvePath(contentDir, el.getAttribute('src'));
+            el.removeAttribute('src');
+            el.setAttribute('data-asset-path', assetPath);
         });
 
         const pageEls = Array.from(doc.body.querySelectorAll(':scope > div[id^="page_"]'));
         if (!pageEls.length) throw new Error('ไม่พบโครงสร้างหน้าในไฟล์');
+
+        // โหลดรูปจริงให้หน้า index ที่ระบุ (ถ้ายังไม่เคยโหลด) ใช้ตอนเปิดเล่มครั้งแรก
+        // และตอนพลิกหน้า เพื่อ prefetch หน้าถัดไปล่วงหน้าแบบเบาๆ
+        const preparedPages = new Set();
+        async function preparePage(index) {
+            if (index < 0 || index >= pageEls.length || preparedPages.has(index)) return;
+            preparedPages.add(index);
+            const imgs = pageEls[index].querySelectorAll('img[data-asset-path]');
+            await Promise.all(Array.from(imgs).map(async (img) => {
+                const url = await getBlobUrl(img.getAttribute('data-asset-path'));
+                if (url) img.src = url;
+            }));
+        }
 
         document.getElementById('flipbookInjectedCss')?.remove();
         const styleTag = document.createElement('style');
@@ -1357,9 +1388,14 @@ function renderInventoryData() {
         });
         currentFlipBook.loadFromHTML(pageEls);
 
+        // โหลดรูปของหน้าแรกๆ ก่อน (เผื่อ spread แบบ 2 หน้า) แล้วค่อย prefetch ต่อเนื่อง
+        await Promise.all([0, 1, 2].map(preparePage));
+
         document.getElementById('epubPageIndicator').textContent = `1 / ${pageEls.length}`;
         currentFlipBook.on('flip', (e) => {
             document.getElementById('epubPageIndicator').textContent = `${e.data + 1} / ${pageEls.length}`;
+            // พลิกหน้าแล้ว โหลดรูปหน้าถัดไปล่วงหน้าเงียบๆ ให้พลิกต่อได้ลื่น
+            [e.data - 1, e.data, e.data + 1, e.data + 2].forEach(i => preparePage(i));
         });
     }
 
