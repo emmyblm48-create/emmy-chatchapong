@@ -1,0 +1,245 @@
+/* =========================================================================
+   BLM48 Membership — Glassmorphism design system
+   Shared across all pages via <link rel="stylesheet" href="assets/css/glassmorphism.css">.
+   Keeps the app's existing pink/gold brand palette, reworked into frosted-glass
+   surfaces floating over a soft gradient-blob backdrop.
+
+   Usage:
+   - Add class="glass-mesh-bg" to <body> to get the colorful blurred backdrop
+     that glass surfaces need to actually read as translucent.
+   - Apply .glass-panel / .glass-panel-strong to cards, containers, modals.
+   - Apply .glass-nav to top bars / bottom tab bars.
+   - Apply .glass-input to text inputs, selects, textareas.
+   - Apply .glass-chip for small pills/badges/tags.
+   Per-page <style> blocks may still override specific selectors — that's
+   expected, this file only supplies the shared tokens + reusable classes.
+   ========================================================================= */
+
+:root {
+  /* Brand colors (kept identical to the app's existing pink/gold palette) */
+  --glass-pink: #ff85a2;
+  --glass-pink-soft: #ffb3c6;
+  --glass-gold: #ffd700;
+  --glass-gold-soft: #ffeb9c;
+
+  /* Glass surface tokens
+     Tuned to mirror the "ambient glass" reference (edge-to-edge panels, near-
+     invisible borders, deep blur) while keeping the app's light cream/gold
+     palette instead of the reference's dark theme. */
+  --glass-blur: 26px;
+  --glass-blur-sm: 14px;
+  --glass-blur-lg: 42px;
+
+  --glass-bg: rgba(255, 255, 255, 0.28);
+  --glass-bg-strong: rgba(255, 255, 255, 0.46);
+  --glass-bg-soft: rgba(255, 255, 255, 0.16);
+  --glass-bg-dark: rgba(74, 44, 54, 0.28);
+
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-border-soft: rgba(255, 255, 255, 0.22);
+
+  --glass-shadow: 0 8px 32px rgba(120, 90, 60, 0.10), 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  --glass-shadow-sm: 0 4px 16px rgba(120, 90, 60, 0.08);
+  --glass-shadow-lg: 0 20px 60px rgba(120, 90, 60, 0.14), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+
+  --glass-radius: 24px;
+  --glass-radius-sm: 16px;
+  --glass-radius-lg: 32px;
+}
+
+/* -------------------------------------------------------------------------
+   Backdrop — a fixed, softly-blurred gradient mesh in the brand colors.
+   Everything glass sits on top of this so translucency actually shows.
+   Uses radial-gradients (naturally soft-edged) instead of filter:blur, since
+   filter:blur on a background-image is unreliable across browsers.
+   ------------------------------------------------------------------------- */
+body.glass-mesh-bg {
+  background-color: #fffdf6;
+  background-attachment: fixed;
+  background-image:
+    radial-gradient(circle at 12% 15%, rgba(255, 215, 0, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 88% 10%, rgba(255, 235, 156, 0.55) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(255, 215, 0, 0.16) 0%, transparent 45%),
+    radial-gradient(circle at 12% 88%, rgba(255, 235, 156, 0.45) 0%, transparent 45%),
+    linear-gradient(135deg, #ffffff 0%, #fffbf0 45%, #fff5d9 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* -------------------------------------------------------------------------
+   Core glass surfaces
+   ------------------------------------------------------------------------- */
+.glass-panel {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-panel-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-panel-soft {
+  background: var(--glass-bg-soft);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border-soft);
+  border-radius: var(--glass-radius-sm);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+/* Nav / top bars / bottom tab bars */
+.glass-nav {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 -4px 24px rgba(255, 133, 162, 0.16);
+}
+
+/* Modals / overlays */
+.glass-modal-overlay {
+  background: rgba(74, 44, 54, 0.35);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.glass-modal {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius-lg);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* Inputs */
+.glass-input {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.glass-input:focus {
+  border-color: var(--glass-pink);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 6px 18px rgba(255, 133, 162, 0.18);
+  outline: none;
+}
+
+/* Chips / badges / pills */
+.glass-chip {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  box-shadow: var(--glass-shadow-sm);
+}
+
+/* Buttons — primary CTAs stay solid/vivid for contrast & tap affordance;
+   this class is for secondary/ghost actions that should read as glass. */
+.glass-btn-ghost {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1.5px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--glass-pink);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.glass-btn-ghost:active {
+  transform: scale(0.96);
+}
+
+/* Divider that reads well over glass */
+.glass-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  border: none;
+}
+
+/* -------------------------------------------------------------------------
+   SweetAlert2 (Swal.fire) — alerts / confirm dialogs / toasts used across
+   every page. Overridden globally here so every popup looks the same
+   without each page needing its own copy. Uses !important because
+   SweetAlert2 injects its own stylesheet at runtime, often after this one.
+   ------------------------------------------------------------------------- */
+.swal2-popup {
+  background: var(--glass-bg-strong) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) !important;
+  backdrop-filter: blur(var(--glass-blur-lg)) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--glass-radius) !important;
+  box-shadow: var(--glass-shadow-lg) !important;
+  font-family: 'Quicksand', 'Kanit', sans-serif !important;
+}
+
+.swal2-title {
+  color: #4a4a4a !important;
+  font-weight: 700 !important;
+}
+
+.swal2-html-container {
+  color: #6b6b6b !important;
+}
+
+/* Dim/blur the page behind the popup instead of a flat dark scrim */
+.swal2-container {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-backdrop-hide {
+  background: rgba(74, 44, 54, 0.32) !important;
+}
+
+/* Primary action stays solid/vivid per the app's CTA rule */
+.swal2-confirm {
+  background: linear-gradient(90deg, var(--glass-pink), var(--glass-pink-soft)) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 6px 18px rgba(255, 133, 162, 0.35) !important;
+}
+
+/* Secondary actions read as glass, matching .glass-btn-ghost elsewhere */
+.swal2-cancel,
+.swal2-deny {
+  background: var(--glass-bg-strong) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) !important;
+  backdrop-filter: blur(var(--glass-blur-sm)) !important;
+  border: 1.5px solid var(--glass-border) !important;
+  color: #8a8a8a !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+}
+
+/* Compact toast notifications (Swal.fire({toast:true, ...})) */
+.swal2-toast {
+  background: var(--glass-bg-strong) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow-sm) !important;
+}
+
+/* Thin scrollbars that suit a glass UI (WebKit only; harmless elsewhere) */
+.glass-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.glass-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 133, 162, 0.35);
+  border-radius: 999px;
+}

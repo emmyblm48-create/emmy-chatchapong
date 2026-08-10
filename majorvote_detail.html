@@ -20,6 +20,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
@@ -38,7 +39,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
-            background: linear-gradient(135deg, #ffeb9c 0%, #ffffff 100%);
             color: var(--text-dark);
             margin: 0; padding: 0; padding-top: 70px; padding-bottom: 40px;
         }
@@ -46,8 +46,8 @@
         /* Top Navbar */
         .top-navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur-lg)); -webkit-backdrop-filter: blur(var(--glass-blur-lg));
             display: flex; align-items: center; justify-content: center;
             padding: 0 20px; box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
             z-index: 1000;
@@ -61,7 +61,7 @@
         .nav-title { font-weight: 600; font-size: 1.1rem; color: var(--text-dark); max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Campaign Header Section */
-        .campaign-header { background: white; margin: 15px 20px; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1px solid #ffeef2; }
+        .campaign-header { background: var(--glass-bg-strong); backdrop-filter: blur(var(--glass-blur-lg)); -webkit-backdrop-filter: blur(var(--glass-blur-lg)); margin: 15px 20px; border-radius: 24px; overflow: hidden; box-shadow: var(--glass-shadow-lg); border: 1px solid var(--glass-border); }
         .campaign-cover-wrapper { position: relative; width: 100%; height: 200px; background: linear-gradient(135deg, #ffeef2 0%, #ffd1dc 100%); display: flex; align-items: center; justify-content: center; }
         .campaign-cover { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 2; }
         .campaign-fallback-icon { position: absolute; color: var(--primary-pink); font-size: 3rem; opacity: 0.4; z-index: 1; }
@@ -72,7 +72,7 @@
 
         /* Wallet Strip (Token / GE Token / Cookie) */
         .dv-wallet-strip { display: flex; gap: 8px; margin: 0 20px 15px; }
-        .dv-wallet-item { flex: 1; background: white; border: 1px solid #ffeef2; border-radius: 16px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .dv-wallet-item { flex: 1; background: var(--glass-bg-strong); backdrop-filter: blur(var(--glass-blur-sm)); -webkit-backdrop-filter: blur(var(--glass-blur-sm)); border: 1px solid var(--glass-border); border-radius: 16px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; box-shadow: var(--glass-shadow-sm); }
         .dv-wallet-icon { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; flex-shrink: 0; }
         .dv-wallet-icon-fa { width: 26px; height: 26px; border-radius: 50%; background: #fff5e6; color: #ff9a3c; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
         .dv-wallet-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
@@ -84,7 +84,7 @@
 
         /* Voting Grid Mode */
         .candidates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; }
-        .candidate-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid rgba(255,179,193,0.15); display: flex; flex-direction: column; align-items: center; padding: 15px; position: relative; }
+        .candidate-card { background: var(--glass-bg-strong); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border-radius: 20px; overflow: hidden; box-shadow: var(--glass-shadow-sm); border: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; padding: 15px; position: relative; }
         .candidate-img-wrapper { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid #ffeef2; margin-bottom: 10px; background: #fafafa; position: relative; display: flex; align-items: center; justify-content: center; }
         .candidate-img { width: 100%; height: 100%; object-fit: cover; z-index: 2; }
         .cand-avatar-fallback { position: absolute; color: var(--primary-pink); opacity: 0.3; font-size: 2.2rem; z-index: 1; }
@@ -103,8 +103,8 @@
         .gift-action-btn:active { transform: scale(0.95); }
 
         /* Gift Modal (สไตล์แผงส่งของขวัญแบบไลฟ์สตรีม) */
-        .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end; justify-content: center; }
-        .gift-modal-box { background: #fff; width: 100%; max-width: 480px; max-height: 85vh; border-radius: 20px 20px 0 0; padding: 8px 16px 12px; display: flex; flex-direction: column; position: relative; animation: gift-modal-slide-up 0.25s ease; }
+        .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(74, 44, 54, 0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2000; align-items: flex-end; justify-content: center; }
+        .gift-modal-box { background: var(--glass-bg-strong); backdrop-filter: blur(var(--glass-blur-lg)); -webkit-backdrop-filter: blur(var(--glass-blur-lg)); border: 1px solid var(--glass-border); width: 100%; max-width: 480px; max-height: 85vh; border-radius: 20px 20px 0 0; padding: 8px 16px 12px; display: flex; flex-direction: column; position: relative; animation: gift-modal-slide-up 0.25s ease; box-shadow: var(--glass-shadow-lg); }
         @keyframes gift-modal-slide-up { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .gift-modal-drag-handle { width: 40px; height: 4px; border-radius: 3px; background: #e6e6e6; margin: 6px auto 4px; flex-shrink: 0; }
         .gift-modal-close { position: absolute; top: 10px; right: 14px; background: #f5f5f5; border: none; width: 28px; height: 28px; border-radius: 50%; color: #888; cursor: pointer; flex-shrink: 0; font-size: 13px; z-index: 2; }
@@ -142,15 +142,17 @@
 
         /* Ranking List Mode (อัปเดตดีไซน์พิเศษตามบรีฟเอ็มมี่) */
         .ranking-list { display: flex; flex-direction: column; gap: 14px; padding: 0 20px; }
-        .ranking-row { 
-            background: white; 
-            border-radius: 20px; 
-            padding: 14px 18px; 
-            display: flex; 
-            align-items: center; 
-            box-shadow: 0 4px 14px rgba(0,0,0,0.03); 
-            border: 1px solid #fcf0f2; 
-            position: relative; 
+        .ranking-row {
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border-radius: 20px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--glass-shadow-sm);
+            border: 1px solid var(--glass-border);
+            position: relative;
         }
         
         /* เลขจัดอันดับด้านหน้า */
@@ -160,9 +162,9 @@
         .rank-row-3 .rank-number { color: var(--bronze); font-size: 20px; }
         
         /* คุมโทนสีไล่ระดับอันดับ 1-3 */
-        .rank-row-1 { border: 1.5px solid rgba(255, 215, 0, 0.4); background: linear-gradient(90deg, #ffffff, #fffdf0); }
-        .rank-row-2 { border: 1.5px solid rgba(192, 192, 192, 0.4); background: linear-gradient(90deg, #ffffff, #f7f8fa); }
-        .rank-row-3 { border: 1.5px solid rgba(205, 127, 50, 0.3); background: linear-gradient(90deg, #ffffff, #fdf9f5); }
+        .rank-row-1 { border: 1.5px solid rgba(255, 215, 0, 0.4); background: linear-gradient(90deg, rgba(255,255,255,0.46), rgba(255,253,240,0.46)); }
+        .rank-row-2 { border: 1.5px solid rgba(192, 192, 192, 0.4); background: linear-gradient(90deg, rgba(255,255,255,0.46), rgba(247,248,250,0.46)); }
+        .rank-row-3 { border: 1.5px solid rgba(205, 127, 50, 0.3); background: linear-gradient(90deg, rgba(255,255,255,0.46), rgba(253,249,245,0.46)); }
         
         /* รูปโปรไฟล์ขนาดใหญ่ชัดเจน */
         .rank-img-wrapper { 
@@ -209,7 +211,7 @@
         .loading-view { text-align: center; color: #999; padding: 50px 20px; font-size: 14px; }
     </style>
 </head>
-<body>
+<body class="glass-mesh-bg">
 
     <div class="top-navbar">
         <div class="nav-left-actions">
