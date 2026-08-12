@@ -1447,13 +1447,13 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
     if (!userData) return;
 
     if (Number(userData.token) < tokenPrice) {
-        Swal.fire('Token ไม่พอค่ะ', 'ไปเติม Token ก่อนนะงับ', 'error');
+        Swal.fire('Token คงเหลือไม่เพียงพอ', 'กรุณาเติม Token ก่อนทำรายการ', 'error');
         return;
     }
 
     const confirmResult = await Swal.fire({
-        title: `ยืนยันการแลกซื้อ?`,
-        text: `ใช้ ${tokenPrice} Tokens แลกคุกกี้จำนวน ${cookieReward.toLocaleString()} Cookies`,
+        title: `ยืนยันการทำรายการแลกซื้อ`,
+        text: `ระบบจะใช้ ${tokenPrice} Tokens เพื่อแลกรับคุกกี้จำนวน ${cookieReward.toLocaleString()} Cookies`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#ff85a2',
@@ -1483,7 +1483,7 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
 
                 // 🎉 เอฟเฟกต์ฉลองสไตล์เดียวกับ Gacha/Cafe เพื่อให้หน้าตาสอดคล้องกันทั้งร้าน
                 Swal.fire({
-                    title: `เติมคุกกี้สำเร็จ!`,
+                    title: `ทำรายการสำเร็จ`,
                     html: `
                         <style>
                             .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
@@ -1494,14 +1494,14 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
                         </style>
                         <div class="blm-cute-reveal-container">
                             <div class="blm-cute-name">+${cookieReward.toLocaleString()} Cookies</div>
-                            <div class="blm-cute-sub">เติมคุกกี้เข้ากระเป๋าเรียบร้อยแล้วค่ะ</div>
+                            <div class="blm-cute-sub">ระบบได้เพิ่มคุกกี้เข้าบัญชีของท่านเรียบร้อยแล้ว</div>
                         </div>
                     `,
                     imageUrl: itemImg,
                     imageWidth: 160,
                     imageHeight: 160,
                     imageAlt: 'Cookies',
-                    confirmButtonText: `Yummy!`,
+                    confirmButtonText: `ตกลง`,
                     confirmButtonColor: '#ff5376',
                     background: '#ffffff',
                     borderRadius: '24px',
@@ -1512,7 +1512,7 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
             }
         } catch (error) {
             console.error("Error exchanging cookies:", error);
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่นะคะ', 'error');
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
         }
     }
 }
@@ -1526,12 +1526,12 @@ async function buyGacha(collectionId) {
   const iconStar = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#ffd700" style="display: inline-block; vertical-align: middle; margin: 0 2px;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
 
   const confirmResult = await Swal.fire({
-    title: `${iconHeartPink} ยืนยันการหมุนกาชาปอง ${iconHeartPink}`,
-    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">คุณต้องการใช้ Token เพื่อสุ่มไอเทมจากตู้นี้ใช่หรือไม่?<br><span style="color: #999; font-size: 12px;">(ระบบจะหัก Token ทันทีเมื่อกดยืนยัน)</span></div>`,
+    title: `${iconHeartPink} ยืนยันการทำรายการสุ่มไอเทม ${iconHeartPink}`,
+    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">ระบบจะทำการหัก Token เพื่อสุ่มไอเทมจากตู้นี้ ยืนยันการทำรายการหรือไม่<br><span style="color: #999; font-size: 12px;">(ระบบจะหัก Token ทันทีเมื่อกดยืนยัน)</span></div>`,
     icon: 'question',
     showCancelButton: true,
-    confirmButtonText: `Confirm`,
-    cancelButtonText: 'Cancel',
+    confirmButtonText: `ยืนยัน`,
+    cancelButtonText: 'ยกเลิก',
     confirmButtonColor: '#ff69b4', 
     cancelButtonColor: '#e0e0e0',
     background: '#ffffff',
@@ -1578,7 +1578,7 @@ async function buyGacha(collectionId) {
       localStorage.removeItem(`blm48_inventory_time_${username}`);
       
       Swal.fire({
-        title: `CONGRATULATIONS!`,
+        title: `ทำรายการสำเร็จ`,
         html: `
           <style>
             .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
@@ -1587,7 +1587,7 @@ async function buyGacha(collectionId) {
             .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fff5f7; }
             @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
           </style>
-          
+
           <div class="blm-cute-reveal-container">
             <div class="blm-cute-name">${res.itemName}</div>
             <div class="blm-cute-sub">${iconStar} [${res.itemType}] จากตู้ ${res.collectionName}</div>
@@ -1597,7 +1597,7 @@ async function buyGacha(collectionId) {
         imageWidth: 240,
         imageHeight: 240,
         imageAlt: res.itemName,
-        confirmButtonText: `Collect`,
+        confirmButtonText: `รับไอเทม`,
         confirmButtonColor: '#ff5376',
         background: '#ffffff',
         borderRadius: '24px',
@@ -1613,7 +1613,7 @@ async function buyGacha(collectionId) {
       }
     } else {
       Swal.fire({
-        title: 'หมุนไม่สำเร็จนะ',
+        title: 'ทำรายการไม่สำเร็จ',
         text: res.message,
         icon: 'warning',
         confirmButtonColor: '#ff5376',
@@ -1695,8 +1695,8 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
     // 1. ตรวจสอบ Token ว่าเพียงพอหรือไม่
     if (Number(userData.token) < price) {
         Swal.fire({
-            title: 'Token ไม่พอค่ะ',
-            html: '<div style="font-size: 14px; color: #666; font-family: \'Kanit\';">ไปเติม Token ก่อนมาอุดหนุนคาเฟ่นะงับ</div>',
+            title: 'Token คงเหลือไม่เพียงพอ',
+            html: '<div style="font-size: 14px; color: #666; font-family: \'Kanit\';">กรุณาเติม Token ก่อนสั่งซื้อสินค้าในคาเฟ่</div>',
             icon: 'error',
             confirmButtonColor: '#ff5376',
             background: '#ffffff',
@@ -1709,12 +1709,12 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
 
     // 2. ถามยืนยันการซื้อด้วยป๊อปอัปสไตล์น่ารัก
     const confirmResult = await Swal.fire({
-        title: `${iconHeartPink} รับ "${itemName}" ไหมคะ? ${iconHeartPink}`,
-        html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">ใช้ทั้งหมด <b style="color: #ff69b4;">${price} Tokens</b> ในการแลกซื้อเมนูแสนอร่อยนี้<br><span style="color: #999; font-size: 12px;">(เมนูจะเข้า Inventory ทันทีงับ)</span></div>`,
+        title: `${iconHeartPink} ยืนยันการสั่งซื้อ "${itemName}" ${iconHeartPink}`,
+        html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">ระบบจะใช้ <b style="color: #ff69b4;">${price} Tokens</b> ในการสั่งซื้อเมนูนี้<br><span style="color: #999; font-size: 12px;">(สินค้าจะเข้า Inventory ทันทีหลังยืนยัน)</span></div>`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: `Confirm`,
-        cancelButtonText: 'Cancel',
+        confirmButtonText: `ยืนยัน`,
+        cancelButtonText: 'ยกเลิก',
         confirmButtonColor: '#ff69b4', 
         cancelButtonColor: '#e0e0e0',
         background: '#ffffff',
@@ -1782,7 +1782,7 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
 
             // 5. แจ้งเตือนได้รับสินค้าสำเร็จพร้อมเอฟเฟกต์เด้ง
             Swal.fire({
-                title: `เสิร์ฟเรียบร้อยงับ!`,
+                title: `ทำรายการสำเร็จ`,
                 html: `
                     <style>
                         .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
@@ -1793,14 +1793,14 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
                     </style>
                     <div class="blm-cute-reveal-container">
                         <div class="blm-cute-name">${itemName}</div>
-                        <div class="blm-cute-sub">ได้รับเมนูแสนอร่อยเรียบร้อยแล้วค่ะ<br>ตรวจสอบได้ที่ Inventory นะคะ</div>
+                        <div class="blm-cute-sub">ระบบได้เพิ่มสินค้าเข้าบัญชีของท่านเรียบร้อยแล้ว<br>สามารถตรวจสอบได้ที่ Inventory</div>
                     </div>
                 `,
                 imageUrl: itemImg,
                 imageWidth: 200,
                 imageHeight: 200,
                 imageAlt: itemName,
-                confirmButtonText: `Delicious!`,
+                confirmButtonText: `ตกลง`,
                 confirmButtonColor: '#ff5376',
                 background: '#ffffff',
                 borderRadius: '24px',
@@ -1820,7 +1820,7 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
         console.error("Error buying cafe item:", error);
         Swal.fire({
             title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่นะคะ',
+            text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง',
             icon: 'error',
             confirmButtonColor: '#ff5376',
             background: '#ffffff',

@@ -623,25 +623,25 @@
   function triggerBuyTicket(ticketId, tier, cost) {
     if (isBuyingTicket) return;
     Swal.fire({
-      title: 'Confirm Ticket Order?',
-      html: `คุณต้องการใช้ Tokens จำนวน <strong>${Number(cost).toLocaleString()} Tokens</strong> เพื่อจองบัตรระดับ <strong>${tier}</strong> ใช่หรือไม่?`,
+      title: 'ยืนยันการสั่งจองบัตร',
+      html: `ระบบจะใช้ Tokens จำนวน <strong>${Number(cost).toLocaleString()} Tokens</strong> เพื่อสั่งจองบัตรระดับ <strong>${tier}</strong> ยืนยันการทำรายการหรือไม่`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: 'var(--primary-pink)',
       cancelButtonColor: '#95a5a6',
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: 'ยืนยัน',
+      cancelButtonText: 'ยกเลิก'
     }).then(async (result) => {
       if (result.isConfirmed) {
         isBuyingTicket = true;
-        Swal.fire({ title: 'กำลังซื้อบัตร...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        Swal.fire({ title: 'กำลังดำเนินการสั่งจองบัตร...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         try {
           const res = await blm48BuyTicket(userData.username, ticketId, tier);
 
           if(res.status === "success") {
             Swal.fire({
-              title: 'Success',
-              text: 'ระบบได้นำส่งเอกสารสิทธิ์และสิทธิประโยชน์เข้าสู่คลังส่วนตัวเรียบร้อยแล้วค่ะ',
+              title: 'ทำรายการสำเร็จ',
+              text: 'ระบบได้นำส่งเอกสารสิทธิ์และสิทธิประโยชน์เข้าสู่คลังส่วนตัวเรียบร้อยแล้ว',
               icon: 'success',
               confirmButtonColor: 'var(--primary-pink)'
             }).then(() => {
@@ -649,17 +649,17 @@
               const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
               sessionUpdate.data.token = userData.token;
               localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
-              
+
               // เคลียร์แคชตั๋วเพื่อให้ตอนรีโหลด บังคับดึงข้อมูล Stock ใหม่ล่าสุดร้อยเปอร์เซ็นต์
               localStorage.removeItem('blm48_tickets_cache');
               window.location.reload();
             });
           } else {
-            Swal.fire('Error', res.message, 'error');
+            Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
             isBuyingTicket = false;
           }
         } catch (e) {
-          Swal.fire('Network Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลหลังบ้านได้สำเร็จ', 'error');
+          Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
           isBuyingTicket = false;
         }
       }

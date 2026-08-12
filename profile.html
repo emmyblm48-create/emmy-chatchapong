@@ -490,7 +490,7 @@ body {
     const btnClaim = document.getElementById('btn-claim-monthly');
     if (btnClaim) {
       if (isUserMember()) {
-        btnClaim.onclick = () => Swal.fire('ขออภัย','เมมเบอร์รับคุกกี้ฟรีไม่ได้ค่ะ','info');
+        btnClaim.onclick = () => Swal.fire('ขออภัย','สิทธิ์รับคุกกี้ฟรีไม่ครอบคลุมสถานะเมมเบอร์','info');
         btnClaim.classList.add('btn-locked');
       } else {
         btnClaim.onclick = claimMonthly;
@@ -632,26 +632,28 @@ body {
     try {
       const res = await blm48ClaimMonthlyCookie(user.username);
       if (res.status === "success") {
-        await syncUserData(); 
-        Swal.fire('สำเร็จ!', res.message, 'success'); 
-      } else { 
-        Swal.fire('ขออภัย', res.message, 'info'); 
-        if (btnClaim) btnClaim.disabled = false; 
+        await syncUserData();
+        Swal.fire('ทำรายการสำเร็จ', res.message, 'success');
+      } else {
+        Swal.fire('ขออภัย', res.message, 'info');
+        if (btnClaim) btnClaim.disabled = false;
       }
-    } catch (e) { 
-      Swal.fire('Error', 'ระบบขัดข้อง', 'error'); 
-      if (btnClaim) btnClaim.disabled = false; 
+    } catch (e) {
+      Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+      if (btnClaim) btnClaim.disabled = false;
     }
   }
 
   // --- ฟังก์ชัน Redeem Code ---
   async function redeemCode() {
-    const { value: code } = await Swal.fire({ 
-      title: 'Redeem Code', 
-      input: 'text', 
-      inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...', 
+    const { value: code } = await Swal.fire({
+      title: 'กรอกรหัสแลกรับสิทธิ์',
+      input: 'text',
+      inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...',
       showCancelButton: true,
-      confirmButtonColor: 'var(--blmem-pink)'
+      confirmButtonColor: 'var(--blmem-pink)',
+      confirmButtonText: 'ยืนยัน',
+      cancelButtonText: 'ยกเลิก'
     });
     if (code) {
       Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading() });
@@ -659,9 +661,9 @@ body {
         const res = await blm48RedeemCode(user.username, code);
         if (res.status === "success") {
           await syncUserData();
-          Swal.fire('สำเร็จ!', res.message, 'success');
-        } else { Swal.fire('ผิดพลาด', res.message, 'error'); }
-      } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+          Swal.fire('ทำรายการสำเร็จ', res.message, 'success');
+        } else { Swal.fire('เกิดข้อผิดพลาด', res.message, 'error'); }
+      } catch (e) { Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error'); }
     }
   }
 

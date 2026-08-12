@@ -414,12 +414,12 @@
     try {
       const res = await blm48AdminApproveUser(user.username, target.username);
       if (res.status === 'success') {
-        Swal.fire('สำเร็จ!', 'อนุมัติบัญชีเรียบร้อยแล้ว', 'success');
+        Swal.fire('ทำรายการสำเร็จ', 'อนุมัติบัญชีเรียบร้อยแล้ว', 'success');
         loadDashboard();
       } else {
-        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถอนุมัติได้', 'error');
+        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถอนุมัติได้', 'error');
       }
-    } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+    } catch (e) { Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error'); }
   }
 
   async function rejectPending(index) {
@@ -440,12 +440,12 @@
     try {
       const res = await blm48AdminRejectUser(user.username, target.username);
       if (res.status === 'success') {
-        Swal.fire('สำเร็จ!', 'ปฏิเสธและลบบัญชีเรียบร้อยแล้ว', 'success');
+        Swal.fire('ทำรายการสำเร็จ', 'ปฏิเสธและลบบัญชีเรียบร้อยแล้ว', 'success');
         loadDashboard();
       } else {
-        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถลบได้', 'error');
+        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบได้', 'error');
       }
-    } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+    } catch (e) { Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error'); }
   }
 
   // =========================================================================
@@ -631,7 +631,7 @@
           }
           return { target: lookup.data, token, cookie, getoken };
         } catch (e) {
-          Swal.showValidationMessage('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+          Swal.showValidationMessage('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง');
           return false;
         }
       }
@@ -681,10 +681,10 @@
       if (res.status === 'success') {
         generateTransferSlip({ admin: user.username, adminName: user.name || user.username, adminAvatar: user.profile_img, target: res.data, token, cookie, getoken, refNo: res.refNo, createdAt: res.createdAt });
       } else {
-        Swal.fire('ผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
+        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
       }
     } catch (e) {
-      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+      Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
     }
   }
 
@@ -747,9 +747,9 @@
 
       ctx.fillStyle = '#ffffff';
 
-      ctx.textAlign = 'right';
+      ctx.textAlign = 'left';
       ctx.font = '600 38px "Kanit", sans-serif';
-      ctx.fillText(dateStr, 1120, 150);
+      ctx.fillText(dateStr, 64, 1250);
 
       ctx.font = '600 42px "Kanit", sans-serif';
       ctx.textAlign = 'left';
@@ -781,7 +781,7 @@
     try {
       await loaded;
     } catch (e) {
-      Swal.fire('Error', 'โหลดรูปพื้นหลังสลิปไม่สำเร็จ (assets/images/transfer-slip-bg.png)', 'error');
+      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดรูปพื้นหลังสลิปได้ (assets/images/transfer-slip-bg.png)', 'error');
       return;
     }
 
@@ -795,7 +795,7 @@
     }
 
     Swal.fire({
-      title: refNo ? 'สลิปการโอน' : 'โอนสำเร็จแล้ว!',
+      title: refNo ? 'สลิปการโอน' : 'ทำรายการโอนสำเร็จ',
       html: `
         <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
           <img src="${dataUrl}" style="width:100%; max-width:340px; border-radius:14px; box-shadow:0 8px 26px rgba(255,133,162,0.25);">
@@ -823,13 +823,13 @@
     try {
       const res = await blm48AdminGetTransferHistory(user.username);
       if (res.status !== 'success') {
-        Swal.fire('ผิดพลาด', res.message || 'โหลดประวัติไม่สำเร็จ', 'error');
+        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถโหลดประวัติได้', 'error');
         return;
       }
       adminTransferHistoryCache = res.data || [];
       renderAdminTransferHistoryModal();
     } catch (e) {
-      Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+      Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
     }
   }
 

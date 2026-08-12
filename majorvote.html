@@ -462,12 +462,12 @@
     // 🎟️ ฟังก์ชัน Redeem Code ที่แก้ไขตัวแปรเรียบร้อยแล้วค่ะ
     async function redeemCode() {
         if (!username) { // ✨ แก้ไขจาก !user เป็น !username
-            Swal.fire('ไม่พบเซสชัน', 'กรุณาเข้าสู่ระบบใหม่อีกครั้งนะคะ', 'error');
+            Swal.fire('ไม่พบเซสชัน', 'กรุณาเข้าสู่ระบบใหม่อีกครั้ง', 'error');
             return;
         }
 
-        const { value: code } = await Swal.fire({ 
-            title: 'Redeem Code', 
+        const { value: code } = await Swal.fire({
+            title: 'กรอกรหัสแลกรับสิทธิ์',
             input: 'text', 
             inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...', 
             showCancelButton: true,
@@ -482,16 +482,16 @@
                 const res = await blm48RedeemCode(username, code);
 
                 if (res.status === "success") {
-                    Swal.fire('สำเร็จ!', res.message, 'success').then(() => {
+                    Swal.fire('ทำรายการสำเร็จ', res.message, 'success').then(() => {
                         // ⚡ เรียกฟังก์ชันนี้เพื่อดึงยอดเงินล่าสุดมาแสดงทันทีโดยไม่ต้อง Refresh หน้าเว็บให้สะดุด
                         loadUserBalancesRealTime();
                     });
-                } else { 
-                    Swal.fire('ผิดพลาด', res.message, 'error'); 
+                } else {
+                    Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
                 }
-            } catch (e) { 
+            } catch (e) {
                 console.error(e);
-                Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ในขณะนี้งับ', 'error'); 
+                Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
             }
         }
     }
@@ -523,7 +523,7 @@
               text: 'ไม่พบข้อมูลการเข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อนทำรายการ',
               icon: 'error',
               confirmButtonColor: 'var(--primary-pink)',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'ตกลง'
           });
           return;
       }
@@ -541,7 +541,7 @@
               text: 'รูปแบบบัญชีผู้ใช้งานไม่ถูกต้อง ไม่สามารถดำเนินการสร้างรหัสได้',
               icon: 'error',
               confirmButtonColor: 'var(--primary-pink)',
-              confirmButtonText: 'OK'
+              confirmButtonText: 'ตกลง'
           });
           return;
       }
@@ -558,7 +558,7 @@
 
       // แสดงผลผ่าน SweetAlert2 แบบเป็นทางการ พร้อมฟังก์ชัน Copy
       Swal.fire({
-          title: 'Your Wallet Code',
+          title: 'รหัสกระเป๋าเงินของท่าน',
           html: `
               <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 20px; background: #fff0f5; border-radius: 12px; margin-top: 10px;">
                   <span style="font-size: 24px; font-weight: 700; color: var(--primary-pink); letter-spacing: 2px;">

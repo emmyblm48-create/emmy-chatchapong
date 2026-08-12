@@ -1182,17 +1182,17 @@ function renderMemberStatsAndFans() {
       if (!checkLoginStatus()) return;
 
       if (!user || !user.role || user.role.toLowerCase() !== 'user') {
-        Swal.fire({ title: 'คำเตือน', text: 'คุณไม่สามารถปาคุกกี้ได้ เนื่องจากคุณเป็นเมมเบอร์หรือแอดมิน', icon: 'error', confirmButtonColor: 'var(--blmem-pink)' });
+        Swal.fire({ title: 'คำเตือน', text: 'คุณไม่สามารถส่งคุกกี้ได้ เนื่องจากบัญชีนี้มีสถานะเป็นเมมเบอร์หรือแอดมิน', icon: 'error', confirmButtonColor: 'var(--blmem-pink)' });
         return;
       }
 
       const btnCookie = document.getElementById('btn-cookie-trigger');
       if (btnCookie && btnCookie.getAttribute('data-graduated') === 'true') {
-        Swal.fire({ 
-          title: 'GRADUATED', 
-          text: 'เมมเบอร์คนนี้จบการศึกษาแล้ว ไม่สามารถส่งคุกกี้ให้ได้ แต่ยังสนับสนุนด้วยการกดเป็น Oshi หรือ Kami ได้อยู่ค่ะ!', 
-          icon: 'info', 
-          confirmButtonColor: 'var(--blmem-pink)' 
+        Swal.fire({
+          title: 'จบการศึกษาแล้ว',
+          text: 'เมมเบอร์ท่านนี้จบการศึกษาแล้ว จึงไม่สามารถส่งคุกกี้ให้ได้ แต่ยังสามารถแสดงการสนับสนุนได้ด้วยการกำหนดเป็น Oshi หรือ Kami',
+          icon: 'info',
+          confirmButtonColor: 'var(--blmem-pink)'
         });
         return;
       }
@@ -1200,13 +1200,13 @@ function renderMemberStatsAndFans() {
       const userCookies = user.cookie || 0;
 
       Swal.fire({
-        title: `ปาคุกกี้ให้ ${escapeHtml(memberName)}`,
+        title: `ส่งคุกกี้ให้ ${escapeHtml(memberName)}`,
         html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${userCookies.toLocaleString()}</b> ชิ้น</p>`,
         input: 'number', inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการส่ง', showCancelButton: true,
         confirmButtonColor: 'var(--blmem-pink)', confirmButtonText: 'ส่งคุกกี้', cancelButtonText: 'ยกเลิก',
         inputValidator: (value) => {
-          if (!value || parseInt(value) <= 0) { return 'กรุณาระบุจำนวนคุกกี้ที่ถูกต้องด้วยงับ!'; }
-          if (parseInt(value) > userCookies) { return `คุกกี้ไม่พอค่ะ! คุณมีคุกกี้เหลือแค่ ${userCookies.toLocaleString()} ชิ้นเท่านั้น`; }
+          if (!value || parseInt(value) <= 0) { return 'กรุณาระบุจำนวนคุกกี้ให้ถูกต้อง'; }
+          if (parseInt(value) > userCookies) { return `คุกกี้คงเหลือไม่เพียงพอ ท่านมีคุกกี้คงเหลือ ${userCookies.toLocaleString()} ชิ้น`; }
         }
       }).then(async (result) => {
         if (result.value) {
@@ -1247,7 +1247,7 @@ function renderMemberStatsAndFans() {
               syncUserData(); 
               fetchLatestMemberStats(); 
               
-              Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `ส่งให้ ${memberName} ${amountSent.toLocaleString()} ชิ้นแล้ว!`, showConfirmButton: false, timer: 2500 });
+              Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: `ส่งคุกกี้ให้ ${memberName} จำนวน ${amountSent.toLocaleString()} ชิ้นเรียบร้อยแล้ว`, showConfirmButton: false, timer: 2500 });
             } else { 
                 throw new Error(res.message); 
             }
@@ -1259,7 +1259,7 @@ function renderMemberStatsAndFans() {
                 localStorage.setItem('current_member_stats', JSON.stringify(m));
                 if (scoreElement) scoreElement.innerText = formatMemberScore(backupScore);
             }
-            Swal.fire('เกิดข้อผิดพลาด!', 'เซิร์ฟเวอร์ขัดข้อง ได้คืนคุกกี้ให้คุณแล้วค่ะ', 'error'); 
+            Swal.fire('เกิดข้อผิดพลาด', 'ระบบขัดข้อง คุกกี้ได้ถูกคืนเข้าบัญชีของท่านเรียบร้อยแล้ว', 'error');
           }
         }
       });

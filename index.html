@@ -4164,11 +4164,13 @@ function closeImageViewer() {
   
 async function redeemCode() {
     if (!user) return openLogin();
-    const { value: code } = await Swal.fire({ 
-      title: 'Redeem Code', 
-      input: 'text', 
-      inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...', 
-      showCancelButton: true 
+    const { value: code } = await Swal.fire({
+      title: 'กรอกรหัสแลกรับสิทธิ์',
+      input: 'text',
+      inputPlaceholder: 'กรอกรหัสโค้ดที่นี่...',
+      showCancelButton: true,
+      confirmButtonText: 'ยืนยัน',
+      cancelButtonText: 'ยกเลิก'
     });
     if (code) {
       Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', didOpen: () => Swal.showLoading() });
@@ -4176,9 +4178,9 @@ async function redeemCode() {
         const res = await blm48RedeemCode(user.username, code);
         if (res.status === "success") {
           await syncUserData();
-          Swal.fire('สำเร็จ!', res.message, 'success');
-        } else { Swal.fire('ผิดพลาด', res.message, 'error'); }
-      } catch (e) { Swal.fire('Error', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+          Swal.fire('ทำรายการสำเร็จ', res.message, 'success');
+        } else { Swal.fire('เกิดข้อผิดพลาด', res.message, 'error'); }
+      } catch (e) { Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error'); }
     }
   }
   
@@ -4394,7 +4396,7 @@ function tickMissionCountdown() {
 
 async function openDailyMissionModal() {
   if (!user) {
-    Swal.fire('กรุณาเข้าสู่ระบบ', 'เข้าสู่ระบบก่อนเพื่อทำภารกิจประจำวันค่ะ', 'info');
+    Swal.fire('กรุณาเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนทำภารกิจประจำวัน', 'info');
     return;
   }
   const modal = document.getElementById('daily-mission-modal');
@@ -4431,14 +4433,14 @@ async function claimDailyMissionReward() {
       await syncUserData();
       await loadDailyMissions();
       renderDailyMissionsModal();
-      Swal.fire('สำเร็จ!', res.message, 'success');
+      Swal.fire('ทำรายการสำเร็จ', res.message, 'success');
     } else {
-      Swal.fire('ไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
+      Swal.fire('ทำรายการไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
       renderDailyMissionsModal();
     }
   } catch (e) {
     console.error('claimDailyMissionReward error:', e);
-    Swal.fire('ผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้งค่ะ', 'error');
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
   }
 }
 
