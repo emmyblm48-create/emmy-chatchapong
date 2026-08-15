@@ -194,8 +194,13 @@ body.glass-mesh-bg {
   color: #6b6b6b !important;
 }
 
-/* Dim/blur the page behind the popup instead of a flat dark scrim */
+/* Dim/blur the page behind the popup instead of a flat dark scrim.
+   z-index forced above every custom modal/overlay in the app (gift modal,
+   gacha modal, sidebar, etc. all sit at 1999-9999) so Swal always renders
+   on top instead of behind them, which otherwise tints its white background
+   through the modal's translucent scrim. */
 .swal2-container {
+  z-index: 20000 !important;
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
