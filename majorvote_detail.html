@@ -362,6 +362,16 @@
     // ผู้สมัครแต่ละคนอาจโหวตได้ด้วย Token, GEToken หรือทั้งคู่ (แล้วแต่ว่ามีแถวใน majorVoteCandidates กี่ TokenType)
     // ส่วน Gift เปิด/ปิดได้ทั้งแคมเปญ ผ่านคอลัมน์ EnableGift ในชีต majorVoteCollections — backend ส่ง enableGift กลับมาให้ตรงๆ
     let campaignEnableGift = false;
+    let campaignTokenType = ''; // สกุลเงินหลักที่แคมเปญนี้ใช้โหวตจริง ('token' / 'getoken' / 'gift') ใช้เลือกไอคอนหน้าคะแนนในหน้าสรุปอันดับ
+
+    // ไอคอน + สีของคะแนนในหน้าสรุปอันดับ ให้ตรงกับหมวดหมู่ที่แคมเปญนี้ใช้โหวตจริง
+    function getVoteCategoryIcon(tokenType) {
+        const t = (tokenType || '').toString().trim().toLowerCase();
+        if (t === 'getoken') return { icon: 'fa-gem', color: '#4dabf7' };
+        if (t === 'gift') return { icon: 'fa-gift', color: '#ff69b4' };
+        if (t === 'cookie') return { icon: 'fa-cookie-bite', color: '#d2691e' };
+        return { icon: 'fa-coins', color: '#ffd700' }; // ค่าเริ่มต้น: token
+    }
 
     function getUserBalance(tokenType) {
         const userData = getUserSession();
@@ -453,6 +463,7 @@
                 document.getElementById("loading-spinner").style.display = "none";
 
                 campaignEnableGift = !!result.enableGift;
+                campaignTokenType = result.tokenType || '';
 
                 if (result.campaignTimeStatus === 'open') {
                     setupVotingMode(candidates);
@@ -565,6 +576,8 @@
             else if(rank === 2) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-2"></i>`;
             else if(rank === 3) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-3"></i>`;
 
+            const scoreIcon = getVoteCategoryIcon(campaignTokenType);
+
             const rowHtml = `
                 <div class="ranking-row rank-row-${rank}" data-candidate="${escapeAttr(mName)}">
                     <div class="rank-number">${rank}</div>
@@ -575,7 +588,7 @@
                     <div class="rank-info">
                         <span class="rank-status-text">${placementText}</span>
                         <span class="rank-name">${escapeHtml(mName)}</span>
-                        <span class="rank-score"><i class="fa-solid fa-coins"></i> <span class="rank-score-value">${voteCount}</span></span>
+                        <span class="rank-score"><i class="fa-solid ${scoreIcon.icon}" style="color:${scoreIcon.color};"></i> <span class="rank-score-value">${voteCount}</span></span>
                         <span class="rank-percentage">(${percentStr})</span>
                     </div>
                     ${medalHtml}
