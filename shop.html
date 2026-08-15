@@ -1066,6 +1066,10 @@
         <div class="quick-tile-icon" style="background:#e8f7ee;color:#4caf82;"><i class="fas fa-mug-hot"></i></div>
         <span class="quick-tile-label">Cafe</span>
     </a>
+    <a href="#section-gift" class="quick-tile">
+        <div class="quick-tile-icon" style="background:#fff0f6;color:#ff69b4;"><i class="fas fa-gift"></i></div>
+        <span class="quick-tile-label">Gift Shop</span>
+    </a>
     <a href="inventory.html" class="quick-tile">
         <div class="quick-tile-icon" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-box-open"></i></div>
         <span class="quick-tile-label">My Items</span>
@@ -1191,9 +1195,15 @@
                 <i class="fas fa-coins"></i> Free
             </button>
         </div>
-    </div>        
+    </div>
 </div>
-      
+
+<h2 class="section-title" id="section-gift"><i class="fas fa-gift" style="color: #ff69b4;"></i> Gift Shop</h2>
+<p style="text-align:center; color:#999; font-size:13px; margin:-14px 0 20px 0; font-family:'Kanit';">ซื้อของขวัญเก็บเข้ากระเป๋าด้วยคุกกี้ แล้วไปเลือกส่งให้เมมเบอร์คนโปรดได้ที่หน้าโปรไฟล์เมมเบอร์</p>
+<div class="shop-container" id="gift-shop-container">
+    <div class="shop-empty-state"><i class="fas fa-spinner fa-spin"></i><span>กำลังโหลดร้านของขวัญ...</span></div>
+</div>
+
 <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
   <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
   <div>© 2026 Virtual Idol Cover Group</div>
@@ -1829,6 +1839,132 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
     }
 }
 
+// 🎁 8.5 ระบบร้านขายของขวัญ (ซื้อเก็บเข้ากระเป๋าด้วยคุกกี้ แล้วไปเลือกส่งให้เมมเบอร์ทีหลังที่หน้าโปรไฟล์เมมเบอร์)
+async function loadGiftShop() {
+    const container = document.getElementById('gift-shop-container');
+    if (!container) return;
+
+    try {
+        const catalog = await blm48GetGiftCatalog();
+        const activeGifts = (Array.isArray(catalog) ? catalog : []).filter(g => g.active === true || g.active === undefined);
+
+        if (activeGifts.length === 0) {
+            container.innerHTML = `
+                <div class="shop-empty-state">
+                    <i class="fas fa-gift"></i>
+                    <span>ยังไม่มีของขวัญวางจำหน่ายในขณะนี้</span>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        activeGifts.forEach(g => {
+            const safeImg = g.imageUrl || 'https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gift';
+            const safeName = (g.giftName || '').replace(/'/g, "\\'");
+            const cardHTML = `
+                <div class="merch-card">
+                    <div class="merch-image-container">
+                        <img src="${safeImg}" alt="${g.giftName || ''}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gift'">
+                    </div>
+                    <div class="merch-info">
+                        <span class="merch-category" style="color: #ff69b4;">[${g.tier === 'MembersDesign' ? 'BLM48' : 'Normal'}]</span>
+                        <h3 class="merch-title">${g.giftName || ''}</h3>
+                        <p class="merch-subtitle">+${(Number(g.points) || 0).toLocaleString()} pts เมื่อส่งให้เมมเบอร์</p>
+                        <button class="merch-button" onclick="buyGiftWalletItem('${g.giftId}', '${safeName}', ${Number(g.costCookies) || 0}, '${safeImg}')">
+                            <i class="fas fa-cookie-bite"></i> ${(Number(g.costCookies) || 0).toLocaleString()} Cookies
+                        </button>
+                    </div>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', cardHTML);
+        });
+    } catch (error) {
+        console.error('Error loading gift shop:', error);
+        container.innerHTML = `
+            <div class="shop-empty-state">
+                <i class="fas fa-triangle-exclamation" style="color:#ff9aad;"></i>
+                <span>เกิดข้อผิดพลาดในการโหลดร้านของขวัญ กรุณาลองใหม่อีกครั้งค่ะ</span>
+            </div>`;
+    }
+}
+
+async function buyGiftWalletItem(giftId, giftName, costCookies, itemImg) {
+    if (!userData) return;
+
+    const qtyOptions = [1, 10, 50, 100];
+    const { value: qty } = await Swal.fire({
+        title: `ซื้อ "${giftName}"`,
+        html: `<div style="font-size:14px; color:#666; font-family:'Kanit'; margin-bottom:6px;">คุณมีคุกกี้: <b>${(Number(userData.cookie) || 0).toLocaleString()}</b> ชิ้น</div>`,
+        input: 'select',
+        inputOptions: qtyOptions.reduce((acc, q) => { acc[q] = `x${q}  (${(costCookies * q).toLocaleString()} Cookies)`; return acc; }, {}),
+        inputValue: 1,
+        showCancelButton: true,
+        confirmButtonText: 'ซื้อ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#ff5376',
+        background: '#ffffff',
+        borderRadius: '24px'
+    });
+
+    if (qty === undefined || qty === null || qty === '') return;
+    const quantity = Number(qty);
+    const totalCost = costCookies * quantity;
+
+    if (Number(userData.cookie) < totalCost) {
+        Swal.fire({
+            title: 'คุกกี้คงเหลือไม่เพียงพอ',
+            text: `ต้องใช้ ${totalCost.toLocaleString()} Cookies แต่คุณมี ${(Number(userData.cookie) || 0).toLocaleString()} Cookies`,
+            icon: 'error',
+            confirmButtonColor: '#ff5376',
+            background: '#ffffff',
+            borderRadius: '24px'
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'กำลังห่อของขวัญ...',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        background: '#ffffff',
+        borderRadius: '24px',
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        const res = await blm48BuyGiftWallet(userData.username, giftId, quantity);
+
+        if (res.status === 'success') {
+            userData.cookie = res.newBalance !== undefined ? res.newBalance : (Number(userData.cookie) - totalCost);
+            const newSession = JSON.parse(localStorage.getItem('bnl_session'));
+            newSession.data = userData;
+            localStorage.setItem('bnl_session', JSON.stringify(newSession));
+            updateWalletUI();
+
+            Swal.fire({
+                title: 'ซื้อสำเร็จ',
+                html: `
+                    <div style="padding:5px 0; text-align:center;">
+                        <div style="font-size:18px; color:#ff1493; font-weight:bold; margin-bottom:6px;">"${giftName}" x${quantity}</div>
+                        <div style="color:#777; font-size:13px;">เก็บเข้ากระเป๋าของขวัญแล้วค่ะ ไปเลือกส่งให้เมมเบอร์คนโปรดได้ที่หน้าโปรไฟล์เมมเบอร์เลย</div>
+                    </div>`,
+                imageUrl: itemImg || undefined,
+                imageWidth: 160,
+                imageHeight: 160,
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#ff5376',
+                background: '#ffffff',
+                borderRadius: '24px',
+                didOpen: () => celebratePurchase()
+            });
+        } else {
+            Swal.fire({ title: 'ซื้อไม่สำเร็จ', text: res.message, icon: 'error', confirmButtonColor: '#ff5376', background: '#ffffff', borderRadius: '24px' });
+        }
+    } catch (error) {
+        console.error('Error buying gift:', error);
+        Swal.fire({ title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', icon: 'error', confirmButtonColor: '#ff5376', background: '#ffffff', borderRadius: '24px' });
+    }
+}
+
 // ⏳ 9. ระบบจัดการหน้าจอ Loading หน้าเว็บหลัก
 function showAppLoading() {
   const loader = document.getElementById('shop-loading-overlay');
@@ -1912,6 +2048,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         await Promise.all([
             typeof loadGachaCollections === 'function' ? loadGachaCollections() : Promise.resolve(),
+            typeof loadGiftShop === 'function' ? loadGiftShop() : Promise.resolve(),
             typeof initShop === 'function' ? initShop() : Promise.resolve()
         ]);
     } catch (error) {

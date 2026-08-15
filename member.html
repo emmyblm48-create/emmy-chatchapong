@@ -323,7 +323,7 @@
 
     .interaction-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 12px;
       margin-bottom: 28px;
     }
@@ -349,6 +349,34 @@
     .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
     .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
     .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
+    .btn-gift { background: #fff0f6; color: #ff69b4; border: 1px solid #ffb6d5; }
+
+    /* 🎁 Gift Wallet Modal (แผงเลือกของขวัญจากกระเป๋าส่งให้เมมเบอร์คนนี้) */
+    .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(74, 44, 54, 0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2000; align-items: flex-end; justify-content: center; }
+    .gift-modal-box { background: #ffffff; width: 100%; max-width: 480px; max-height: 85vh; border-radius: 20px 20px 0 0; padding: 8px 16px 12px; display: flex; flex-direction: column; position: relative; animation: gift-modal-slide-up 0.25s ease; box-shadow: 0 -4px 25px rgba(0,0,0,0.15); }
+    @keyframes gift-modal-slide-up { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .gift-modal-drag-handle { width: 40px; height: 4px; border-radius: 3px; background: #e6e6e6; margin: 6px auto 4px; flex-shrink: 0; }
+    .gift-modal-close { position: absolute; top: 10px; right: 14px; background: #f5f5f5; border: none; width: 28px; height: 28px; border-radius: 50%; color: #888; cursor: pointer; flex-shrink: 0; font-size: 13px; z-index: 2; }
+    .gift-modal-recipient { display: flex; flex-direction: column; align-items: center; padding: 6px 0 12px; flex-shrink: 0; }
+    .gift-modal-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blmem-pink); background: #f5f5f5; margin-bottom: 6px; }
+    .gift-modal-target { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; color: #333; }
+    .gift-items-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-y: auto; padding: 4px 2px 10px; flex: 1; min-height: 140px; }
+    .gift-item-card { background: none; border: 2px solid transparent; border-radius: 12px; padding: 6px 2px; text-align: center; cursor: pointer; transition: transform 0.1s, background 0.15s, border-color 0.15s; }
+    .gift-item-card:active { transform: scale(0.95); }
+    .gift-item-card.selected { background: #fff0f6; border-color: #ff69b4; }
+    .gift-item-img { width: 48px; height: 48px; object-fit: contain; margin: 0 auto 4px; background: #f7f7f7; border-radius: 10px; display: block; }
+    .gift-item-name { font-size: 11px; font-weight: 500; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gift-item-points { font-size: 10.5px; color: #ff69b4; font-weight: 600; margin-top: 2px; }
+    .gift-loading, .gift-empty { grid-column: 1/-1; text-align: center; color: #999; padding: 30px 10px; font-size: 13px; }
+    .gift-bottom-bar { display: flex; align-items: center; gap: 10px; padding-top: 8px; flex-shrink: 0; border-top: 1px solid #f5f5f5; }
+    .gift-qty-stepper { display: none; align-items: center; gap: 10px; background: #fff5f8; border: 1px solid #ffd7e6; border-radius: 20px; padding: 6px 10px; flex-shrink: 0; }
+    .gift-qty-stepper button { background: #ffffff; border: 1px solid #ffd7e6; color: #ff69b4; width: 24px; height: 24px; border-radius: 50%; font-weight: 700; cursor: pointer; line-height: 1; }
+    .gift-qty-stepper span { font-family: 'Kanit', sans-serif; font-weight: 700; color: #444; min-width: 18px; text-align: center; }
+    .gift-send-btn { flex: 1; background: linear-gradient(135deg, #ff9ec1, var(--blmem-pink)); color: #ffffff; border: none; border-radius: 22px; padding: 11px 0; font-family: 'Kanit', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
+    .gift-send-btn:disabled { background: #e0e0e0; color: #999; opacity: 1; cursor: not-allowed; }
+    @media (max-width: 360px) {
+      .gift-items-grid { grid-template-columns: repeat(3, 1fr); }
+    }
 
     .leaderboard-section {
       background: #ffffff;
@@ -687,6 +715,9 @@
         </button>
         <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
           <i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>
+        </button>
+        <button id="btn-gift-trigger" class="btn-interact btn-gift" onclick="actionGift()">
+          <i class="fas fa-gift"></i> <span>Gift</span>
         </button>
       </div>
 
@@ -1264,7 +1295,153 @@ function renderMemberStatsAndFans() {
         }
       });
     }
-  
+
+    // =========================================================
+    // 🎁 ระบบให้ของขวัญจากกระเป๋า (Gift Wallet) — เลือกของขวัญที่ซื้อไว้แล้วส่งให้เมมเบอร์คนนี้
+    // =========================================================
+    let myGiftWallet = [];
+    let selectedWalletGiftId = null;
+    let selectedWalletGiftQty = 1;
+    let isSendingWalletGift = false;
+
+    async function actionGift() {
+      if (!checkLoginStatus()) return;
+
+      if (!user || !user.role || user.role.toLowerCase() !== 'user') {
+        Swal.fire({ title: 'คำเตือน', text: 'คุณไม่สามารถส่งของขวัญได้ เนื่องจากบัญชีนี้มีสถานะเป็นเมมเบอร์หรือแอดมิน', icon: 'error', confirmButtonColor: 'var(--blmem-pink)' });
+        return;
+      }
+
+      const btnCookie = document.getElementById('btn-cookie-trigger');
+      if (btnCookie && btnCookie.getAttribute('data-graduated') === 'true') {
+        Swal.fire({
+          title: 'จบการศึกษาแล้ว',
+          text: 'เมมเบอร์ท่านนี้จบการศึกษาแล้ว จึงไม่สามารถส่งของขวัญให้ได้ แต่ยังสามารถแสดงการสนับสนุนได้ด้วยการกำหนดเป็น Oshi หรือ Kami',
+          icon: 'info',
+          confirmButtonColor: 'var(--blmem-pink)'
+        });
+        return;
+      }
+
+      let avatarUrl = '';
+      const savedStats = localStorage.getItem('current_member_stats');
+      if (savedStats) { try { avatarUrl = JSON.parse(savedStats).profile_img || ''; } catch (e) {} }
+
+      document.getElementById('gift-wallet-modal-target').textContent = memberName;
+      document.getElementById('gift-wallet-modal-avatar').src = getImg(avatarUrl);
+      document.getElementById('gift-wallet-modal-overlay').style.display = 'flex';
+      blm48LockBodyScroll();
+
+      selectedWalletGiftId = null;
+      selectedWalletGiftQty = 1;
+      const grid = document.getElementById('gift-wallet-items-grid');
+      grid.innerHTML = `<div class="gift-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังเปิดกระเป๋าของขวัญ...</div>`;
+
+      try {
+        const data = await blm48GetGiftWallet(user.username);
+        myGiftWallet = Array.isArray(data) ? data : [];
+      } catch (e) {
+        console.error('Load Gift Wallet Error:', e);
+        myGiftWallet = [];
+      }
+
+      renderGiftWalletItems();
+      updateGiftWalletBottomBar();
+    }
+
+    function closeGiftWalletModal() {
+      document.getElementById('gift-wallet-modal-overlay').style.display = 'none';
+      blm48UnlockBodyScroll();
+    }
+
+    function renderGiftWalletItems() {
+      const grid = document.getElementById('gift-wallet-items-grid');
+      if (!myGiftWallet.length) {
+        grid.innerHTML = `<div class="gift-empty">กระเป๋าของขวัญของคุณยังว่างอยู่ค่ะ ไปเลือกซื้อของขวัญเก็บไว้ได้ที่ Gift Shop ในหน้าร้านค้าก่อนนะคะ</div>`;
+        return;
+      }
+      grid.innerHTML = myGiftWallet.map(item => `
+        <div class="gift-item-card ${String(item.giftId) === String(selectedWalletGiftId) ? 'selected' : ''}" onclick="selectWalletGiftItem('${escapeAttr(item.giftId)}')">
+          <img src="${escapeAttr(item.imageUrl || '')}" class="gift-item-img" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
+          <div class="gift-item-name">${escapeHtml(item.giftName || '')}</div>
+          <div class="gift-item-points">มีอยู่ x${Number(item.qty).toLocaleString()}</div>
+        </div>
+      `).join('');
+    }
+
+    function selectWalletGiftItem(giftId) {
+      selectedWalletGiftId = giftId;
+      selectedWalletGiftQty = 1;
+      renderGiftWalletItems();
+      updateGiftWalletBottomBar();
+    }
+
+    function getSelectedWalletGiftItem() {
+      return myGiftWallet.find(g => String(g.giftId) === String(selectedWalletGiftId)) || null;
+    }
+
+    function stepGiftWalletQty(delta) {
+      const item = getSelectedWalletGiftItem();
+      if (!item) return;
+      const maxQty = Number(item.qty) || 0;
+      selectedWalletGiftQty = Math.min(maxQty, Math.max(1, selectedWalletGiftQty + delta));
+      updateGiftWalletBottomBar();
+    }
+
+    function updateGiftWalletBottomBar() {
+      const btn = document.getElementById('gift-wallet-send-btn');
+      const stepper = document.getElementById('gift-wallet-qty-stepper');
+      const item = getSelectedWalletGiftItem();
+
+      if (!item) {
+        btn.innerHTML = 'Send';
+        btn.disabled = true;
+        stepper.style.display = 'none';
+        return;
+      }
+
+      stepper.style.display = 'flex';
+      document.getElementById('gift-wallet-qty-value').textContent = selectedWalletGiftQty;
+      btn.innerHTML = `Send x${selectedWalletGiftQty}`;
+      btn.disabled = isSendingWalletGift;
+    }
+
+    async function sendSelectedWalletGift() {
+      const item = getSelectedWalletGiftItem();
+      if (!item || isSendingWalletGift) return;
+
+      isSendingWalletGift = true;
+      const btn = document.getElementById('gift-wallet-send-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      try {
+        const res = await blm48GiveGiftWallet(user.username, item.giftId, memberName, selectedWalletGiftQty);
+
+        if (res.status === 'success') {
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message || `ส่ง "${item.giftName}" ให้ ${memberName} สำเร็จ`, showConfirmButton: false, timer: 1800 });
+
+          const remainingQty = Number(item.qty) - selectedWalletGiftQty;
+          if (remainingQty <= 0) {
+            myGiftWallet = myGiftWallet.filter(g => String(g.giftId) !== String(item.giftId));
+            selectedWalletGiftId = null;
+          } else {
+            item.qty = remainingQty;
+            selectedWalletGiftQty = 1;
+          }
+          renderGiftWalletItems();
+        } else {
+          Swal.fire({ title: 'ส่งของขวัญไม่สำเร็จ', text: res.message || 'เกิดข้อผิดพลาดในการตรวจสอบของขวัญในกระเป๋า', icon: 'error', confirmButtonColor: 'var(--blmem-pink)' });
+        }
+      } catch (e) {
+        console.error('Send Wallet Gift Error:', e);
+        Swal.fire({ title: 'เกิดข้อผิดพลาด', text: 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้งค่ะ', icon: 'error', confirmButtonColor: 'var(--blmem-pink)' });
+      } finally {
+        isSendingWalletGift = false;
+        updateGiftWalletBottomBar();
+      }
+    }
+
   // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
 function formatThaiDate(dateStr) {
   if (!dateStr) return '';
@@ -1910,6 +2087,29 @@ document.addEventListener('click', function() {
     blm48SubscribePosts(() => { if (typeof loadMemberTimelinePosts === 'function') loadMemberTimelinePosts(); }, 500);
   }
 </script>
+
+<div id="gift-wallet-modal-overlay" class="gift-modal-overlay" onclick="closeGiftWalletModal()">
+    <div class="gift-modal-box" onclick="event.stopPropagation()">
+        <div class="gift-modal-drag-handle"></div>
+        <button type="button" class="gift-modal-close" onclick="closeGiftWalletModal()"><i class="fa-solid fa-xmark"></i></button>
+
+        <div class="gift-modal-recipient">
+            <img id="gift-wallet-modal-avatar" class="gift-modal-avatar" src="" alt="">
+            <div class="gift-modal-target" id="gift-wallet-modal-target"></div>
+        </div>
+
+        <div class="gift-items-grid" id="gift-wallet-items-grid"></div>
+
+        <div class="gift-bottom-bar">
+            <div class="gift-qty-stepper" id="gift-wallet-qty-stepper">
+                <button type="button" onclick="stepGiftWalletQty(-1)">−</button>
+                <span id="gift-wallet-qty-value">1</span>
+                <button type="button" onclick="stepGiftWalletQty(1)">+</button>
+            </div>
+            <button type="button" class="gift-send-btn" id="gift-wallet-send-btn" onclick="sendSelectedWalletGift()" disabled>Send</button>
+        </div>
+    </div>
+</div>
 
 <div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
   <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">×</span>
