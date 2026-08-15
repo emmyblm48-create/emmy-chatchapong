@@ -77,6 +77,18 @@ function blm48GetMyHistory(username) {
   return blm48Rpc('get_my_history', { p_username: username });
 }
 
+// 🎁 กระเป๋าของขวัญของ Major Vote: ตอนซื้อของขวัญจะเลือกได้ว่าจะ "โหวตให้เลย" หรือ "เก็บเข้ากระเป๋า"
+// ไว้ก่อน แล้วค่อยเอาของที่เก็บไว้มาโหวตให้ผู้สมัครในแคมเปญที่เปิดรับของขวัญทีหลังก็ได้
+function blm48BuyGiftWallet(username, giftId, quantity) {
+  return blm48Rpc('buy_gift_wallet', { p_username: username, p_gift_id: giftId, p_quantity: quantity });
+}
+function blm48GiveGiftWallet(username, collectionId, candidateName, giftId, quantity) {
+  return blm48Rpc('give_gift_wallet', { p_username: username, p_collection_id: collectionId, p_candidate_name: candidateName, p_gift_id: giftId, p_quantity: quantity });
+}
+function blm48GetGiftWallet(username) {
+  return blm48Rpc('get_gift_wallet', { p_username: username });
+}
+
 // member.html profile stats: total_kami/total_oshi (live count from user_oshi),
 // total_likes (live counter bumped on every post like), all_time_total (sum of ranking_monthly)
 function blm48GetMemberStats(memberName) {
