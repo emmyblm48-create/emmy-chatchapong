@@ -453,6 +453,22 @@
             z-index: 2;
         }
 
+        /* 🔥 ป้าย "ขายดี" คำนวณจากยอดซื้อจริงใน wallet_logs แยกป้ายจาก Best Value เพื่อไม่ให้ทับกัน */
+        .merch-badge-bestseller {
+            position: absolute;
+            top: 10px;
+            right: -6px;
+            background: linear-gradient(45deg, #ff9d42, #ffc247);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 4px 12px 4px 10px;
+            border-radius: 20px 0 0 20px;
+            box-shadow: 0 3px 8px rgba(255, 157, 66, 0.4);
+            z-index: 2;
+        }
+
         .merch-card:hover, .merch-card-large:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(255, 182, 193, 0.2) !important;
@@ -1073,9 +1089,9 @@
 </div>
 
 <h2 class="section-title" id="section-cookie"><i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> Cookie Shop</h2>
-<div class="shop-container">
+<div class="shop-container" id="cookie-shop-container">
     <!-- 100Cookie -->
-    <div class="merch-card">
+    <div class="merch-card" data-token-price="10">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1iYnw_eiQS4LZvHXF2bLEF7utf0wHi-FF=s1000" alt="100 Cookies" class="merch-image">
         </div>
@@ -1089,12 +1105,12 @@
         </div>
     </div>
     <!-- 1000Cookie -->
-    <div class="merch-card">
+    <div class="merch-card" data-token-price="100">
         <span class="merch-badge"><i class="fas fa-star"></i> Best Value</span>
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000" alt="1,000 Cookies" class="merch-image">
         </div>
-     
+
         <div class="merch-info">
             <span class="merch-category" style="color: #ff6b8b;">[Value Pack]</span>
             <h3 class="merch-title">1,000 Cookies</h3>
@@ -1117,9 +1133,9 @@
 <div class="section-title" id="section-cafe">
    <i class="fas fa-mug-hot" style="color: #d2b48c;"></i> BLM48 Cafe
 </div>
-<div class="shop-container">
+<div class="shop-container" id="cafe-shop-container">
     <!-- Suiito Matcha -->
-    <div class="merch-card">
+    <div class="merch-card" data-item-name="Suiito Matcha">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1RlRMVrtrYywqM9hxQ0uhZ8o-CwArgW-L=s1000" alt="Suiito Matcha" class="merch-image">
         </div>
@@ -1134,7 +1150,7 @@
     </div>
 
     <!-- Pinku Milk -->
-    <div class="merch-card">
+    <div class="merch-card" data-item-name="Pinku Milk">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1Z_w_47F4q3wHYBR-9J-DGorB6Mq47iS_=s1000" alt="Pinku Milk" class="merch-image">
         </div>
@@ -1147,9 +1163,9 @@
             </button>
         </div>
     </div>
-  
+
     <!-- Koi Cocoa -->
-    <div class="merch-card">
+    <div class="merch-card" data-item-name="Koi Cocoa">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1rrdhnBjpUpGxE_f4hYfqdNKednGmdclb=s1000" alt="Koi Cocoa" class="merch-image">
         </div>
@@ -1162,9 +1178,9 @@
             </button>
         </div>
     </div>
-  
+
     <!-- Thai Miruku Tea -->
-    <div class="merch-card">
+    <div class="merch-card" data-item-name="Thai Miruku Tea">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1boedtXP9kcBlxWialcEz8KBRg5A2cyz4=s1000" alt="Thai Miruku Tea" class="merch-image">
         </div>
@@ -1176,7 +1192,7 @@
                 <i class="fas fa-coins"></i> 5 Tokens
             </button>
         </div>
-    </div>    
+    </div>
   
     <!-- BLM48 Cafe Background -->
     <div class="merch-card">
@@ -1659,7 +1675,7 @@ async function loadGachaCollections() {
       const coverImg = col.CoverImage ? col.CoverImage : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
       
       const cardHTML = `
-          <div class="merch-card">
+          <div class="merch-card" data-collection-name="${escapeHtml(col.CollectionName)}">
             <div class="merch-image-container">
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
@@ -1685,6 +1701,35 @@ async function loadGachaCollections() {
       </div>`;
   } finally {
     hideAppLoading();
+  }
+}
+
+// 🔥 ป้าย "Best Seller" ต่อหมวดหมู่ (Cookie/Merchandise/Cafe) คำนวณจากยอดซื้อจริงใน wallet_logs
+// ต้องเรียกหลัง loadGachaCollections() render การ์ดกาชาเสร็จแล้ว การ์ด cookie/cafe เป็น static อยู่ใน DOM แต่แรกอยู่แล้ว
+function addBestSellerBadge(card) {
+  if (!card || card.querySelector('.merch-badge-bestseller')) return;
+  card.insertAdjacentHTML('afterbegin', '<span class="merch-badge-bestseller"><i class="fas fa-fire"></i> Best Seller</span>');
+}
+
+async function loadBestSellerBadges() {
+  try {
+    const res = await blm48GetShopBestSellers();
+    if (!res || res.status !== 'success') return;
+
+    if (res.cookieBestTokenPrice !== null && res.cookieBestTokenPrice !== undefined) {
+      const card = document.querySelector(`#cookie-shop-container .merch-card[data-token-price="${res.cookieBestTokenPrice}"]`);
+      addBestSellerBadge(card);
+    }
+    if (res.cafeBestItemName) {
+      const card = document.querySelector(`#cafe-shop-container .merch-card[data-item-name="${CSS.escape(res.cafeBestItemName)}"]`);
+      addBestSellerBadge(card);
+    }
+    if (res.gachaBestCollectionName) {
+      const card = document.querySelector(`#merch-container .merch-card[data-collection-name="${CSS.escape(res.gachaBestCollectionName)}"]`);
+      addBestSellerBadge(card);
+    }
+  } catch (error) {
+    console.error("Error loading best sellers:", error);
   }
 }
 
@@ -1914,6 +1959,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             typeof loadGachaCollections === 'function' ? loadGachaCollections() : Promise.resolve(),
             typeof initShop === 'function' ? initShop() : Promise.resolve()
         ]);
+        // ต้องรันหลัง loadGachaCollections เสร็จ เพราะการ์ดกาชาถูก render แบบไดนามิก ต้องมีอยู่ใน DOM ก่อนถึงจะแปะป้ายได้
+        if (typeof loadBestSellerBadges === 'function') loadBestSellerBadges();
     } catch (error) {
         console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลหน้าเว็บ:", error);
     } finally {

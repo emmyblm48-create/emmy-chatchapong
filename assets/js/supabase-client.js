@@ -355,6 +355,11 @@ function blm48GetGachaCollections() {
   return blm48Rpc('get_gacha_collections', {});
 }
 
+// Best-selling item per shop category (Cookie/Cafe/Gacha), by purchase count in wallet_logs.
+function blm48GetShopBestSellers() {
+  return blm48Rpc('get_shop_best_sellers', {});
+}
+
 // Live-updates a single user's wallet (token/cookie/geToken). Replaces the old
 // Firebase users/{username}/wallet subscription now that submitMajorVote/sendGift
 // write straight to Supabase instead of mirroring into Firebase.
