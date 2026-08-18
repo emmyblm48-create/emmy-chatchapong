@@ -1121,6 +1121,11 @@ function renderMemberStatsAndFans() {
       if (type === 'kami') {
         kamiElement.innerText = (action === "removeOshi") ? Math.max(0, currentKamiNum - 1) : currentKamiNum + 1;
         user.kamioshi = (action === "removeOshi") ? "" : memberName; // อัปเดตข้อมูลจำลองในเครื่อง
+        // ถ้าเพิ่งโปรโมทจาก Oshi ขึ้นเป็น Kami-Oshi ต้องลบออกจากรายการ Oshi เดิมด้วย ไม่งั้นจะซ้ำ
+        if (action === "setKamioshi" && isAlreadyOshi) {
+          oshiElement.innerText = Math.max(0, currentOshiNum - 1);
+          user.oshi = user.oshi.filter(o => o.toLowerCase() !== searchName);
+        }
       } else {
         oshiElement.innerText = (action === "removeOshi") ? Math.max(0, currentOshiNum - 1) : currentOshiNum + 1;
         if (action === "removeOshi") {
