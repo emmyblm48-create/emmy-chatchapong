@@ -117,7 +117,7 @@
             margin: 26px 0 12px;
             display: flex; align-items: center; gap: 8px;
         }
-        .section-title .badge-count {
+        .section-title .badge-count, .member-subsection-title .badge-count {
             background: var(--primary-pink);
             color: #fff;
             font-size: 11px;
@@ -195,6 +195,16 @@
         .search-input { flex: 1; min-width: 0; }
         .sort-select { flex: 0 0 auto; max-width: 140px; }
         .search-input:focus, .sort-select:focus { outline: none; border-color: var(--primary-pink); }
+
+        .member-subsection-title {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            color: #888;
+            margin: 16px 0 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .member-subsection-title i { color: var(--primary-pink); }
 
         .member-grid { display: flex; flex-direction: column; gap: 10px; }
         @media (min-width: 768px) {
@@ -348,7 +358,13 @@
                 <option value="totalComments">Comment มาก-น้อย</option>
             </select>
         </div>
-        <div class="member-grid" id="member-dashboard-list">
+        <div class="member-subsection-title"><i class="fa-solid fa-star"></i> Active <span class="badge-count" id="member-active-count">0</span></div>
+        <div class="member-grid" id="member-dashboard-list-active">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+
+        <div class="member-subsection-title"><i class="fa-solid fa-graduation-cap"></i> Graduated <span class="badge-count" id="member-graduated-count">0</span></div>
+        <div class="member-grid" id="member-dashboard-list-graduated">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
     </div>
@@ -568,38 +584,25 @@
   let memberDashboardCache = [];
 
   async function loadMemberDashboard() {
-    const list = document.getElementById('member-dashboard-list');
+    const activeList = document.getElementById('member-dashboard-list-active');
+    const graduatedList = document.getElementById('member-dashboard-list-graduated');
     try {
       const res = await blm48AdminGetMemberDashboard(user.username);
-      if (res.status !== 'success') { list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      if (res.status !== 'success') {
+        activeList.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`;
+        graduatedList.innerHTML = '';
+        return;
+      }
       memberDashboardCache = res.data || [];
       renderMemberDashboard();
     } catch (e) {
-      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+      activeList.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+      graduatedList.innerHTML = '';
     }
   }
 
-  function renderMemberDashboard() {
-    const list = document.getElementById('member-dashboard-list');
-    const term = (document.getElementById('member-search').value || '').trim().toLowerCase();
-    const sortKey = document.getElementById('member-sort').value;
-
-    let rows = memberDashboardCache.filter(m =>
-      !term || (m.name || '').toLowerCase().includes(term) || (m.username || '').toLowerCase().includes(term)
-    );
-
-    if (sortKey === 'name') {
-      rows.sort((a, b) => (a.name || a.username).localeCompare(b.name || b.username, 'th'));
-    } else {
-      rows.sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
-    }
-
-    if (rows.length === 0) {
-      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบสมาชิกที่ค้นหา</div>`;
-      return;
-    }
-
-    list.innerHTML = rows.map(m => `
+  function renderMemberCard(m) {
+    return `
       <div class="member-card">
         <div class="member-card-head">
           <img class="member-avatar" src="${escapeAttr(resolveDriveImage(m.profile_img))}">
@@ -617,7 +620,39 @@
           <div class="stat-chip"><i class="fas fa-comment"></i>Comment<b>${m.totalComments || 0}</b></div>
         </div>
       </div>
-    `).join('');
+    `;
+  }
+
+  // แยกตาม members.status ('Active' เป็นค่าเริ่มต้นถ้าไม่มีค่า/ค่าไม่รู้จัก, มีแค่ 'Graduated' เท่านั้นที่ต้องระบุชัด)
+  function renderMemberDashboard() {
+    const activeList = document.getElementById('member-dashboard-list-active');
+    const graduatedList = document.getElementById('member-dashboard-list-graduated');
+    const term = (document.getElementById('member-search').value || '').trim().toLowerCase();
+    const sortKey = document.getElementById('member-sort').value;
+
+    let rows = memberDashboardCache.filter(m =>
+      !term || (m.name || '').toLowerCase().includes(term) || (m.username || '').toLowerCase().includes(term)
+    );
+
+    if (sortKey === 'name') {
+      rows.sort((a, b) => (a.name || a.username).localeCompare(b.name || b.username, 'th'));
+    } else {
+      rows.sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
+    }
+
+    const activeRows = rows.filter(m => m.memberStatus !== 'Graduated');
+    const graduatedRows = rows.filter(m => m.memberStatus === 'Graduated');
+
+    document.getElementById('member-active-count').innerText = activeRows.length;
+    document.getElementById('member-graduated-count').innerText = graduatedRows.length;
+
+    activeList.innerHTML = activeRows.length
+      ? activeRows.map(renderMemberCard).join('')
+      : `<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบสมาชิกที่ค้นหา</div>`;
+
+    graduatedList.innerHTML = graduatedRows.length
+      ? graduatedRows.map(renderMemberCard).join('')
+      : `<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบสมาชิกที่ค้นหา</div>`;
   }
 
   // =========================================================================
