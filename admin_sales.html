@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | สรุปยอดขาย</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: var(--text-dark);
+            background: #ffffff;
+        }
+
+        .top-navigation-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
+        @media (min-width: 1024px) { .page-wrapper { max-width: 1080px; padding: 32px 32px 70px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-family: 'Kanit', sans-serif;
+            font-size: 24px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        @media (min-width: 1024px) {
+            .header-title-zone h1 { font-size: 30px; }
+            .header-title-zone p { font-size: 14px; }
+        }
+
+        .section-title {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            color: #333;
+            margin: 26px 0 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* --- Grand total cards --- */
+        .grand-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .grand-card {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
+            border-radius: 16px; padding: 16px; box-shadow: var(--glass-shadow-sm);
+        }
+        .grand-card .g-label { font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 600; }
+        .grand-card .g-value { font-family: 'Kanit', sans-serif; font-size: 26px; font-weight: 700; color: #fff; margin-top: 2px; }
+
+        /* --- Section cards (Cafe/Gacha/Tickets/Gifts) laid out in a responsive grid --- */
+        .sales-grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+        @media (min-width: 768px) { .sales-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .sales-card {
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 14px 16px; box-shadow: var(--glass-shadow-sm);
+        }
+        .sales-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+        .sales-card-head .s-title { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 14px; color: var(--primary-pink); display: flex; align-items: center; gap: 8px; }
+        .sales-card-head .s-note { font-size: 10.5px; color: #bbb; }
+
+        .sales-item-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px dashed #f0e6e9; }
+        .sales-item-row:first-of-type { border-top: none; }
+        .sales-item-thumb { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
+        .sales-item-info { flex: 1; min-width: 0; }
+        .sales-item-name { font-weight: 700; font-size: 12.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sales-item-sub { font-size: 10.5px; color: #999; }
+        .sales-item-numbers { flex: 0 0 auto; text-align: right; }
+        .sales-item-count { font-size: 10.5px; color: #999; }
+        .sales-item-revenue { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 13.5px; color: #333; }
+
+        .sales-card-totals {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--card-border);
+            font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 13px; color: #333;
+        }
+        .sales-card-totals span.t-value { color: var(--primary-pink); }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 30px 20px; }
+        .empty-state i { font-size: 26px; color: #ffd7e1; display: block; margin-bottom: 8px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #sales-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">สรุปยอดขาย</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="sales-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-chart-line"></i> สรุปยอดขาย</h1>
+            <p>ภาพรวมยอดขายทุกช่องทางในระบบ BLM48 Membership</p>
+        </div>
+
+        <div class="grand-grid" id="grand-grid">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+
+        <div class="section-title"><i class="fa-solid fa-store"></i> รายละเอียดยอดขาย</div>
+        <div class="sales-grid" id="sales-grid">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+
+  function goBack() {
+    window.location.href = 'admin.html';
+  }
+
+  function resolveDriveImage(url) {
+    const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+    if (!url) return fallback;
+    if (url.includes('drive.google.com')) {
+      const driveMatch = url.match(/[-\w]{25,}/);
+      return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+    }
+    return url;
+  }
+
+  function renderSalesItemRow(name, sub, thumb, count, countLabel, revenue, revenueUnit) {
+    return `
+      <div class="sales-item-row">
+        <img class="sales-item-thumb" src="${escapeAttr(resolveDriveImage(thumb))}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';">
+        <div class="sales-item-info">
+          <div class="sales-item-name">${escapeHtml(name || '-')}</div>
+          ${sub ? `<div class="sales-item-sub">${escapeHtml(sub)}</div>` : ''}
+        </div>
+        <div class="sales-item-numbers">
+          <div class="sales-item-count">${countLabel}: ${Number(count || 0).toLocaleString()}</div>
+          <div class="sales-item-revenue">${Number(revenue || 0).toLocaleString()} ${revenueUnit}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSalesCard(iconClass, title, note, itemsHtml, emptyText, totalsLabel, totalsValue) {
+    return `
+      <div class="sales-card">
+        <div class="sales-card-head">
+          <div class="s-title"><i class="fas ${iconClass}"></i> ${title}</div>
+          ${note ? `<div class="s-note">${note}</div>` : ''}
+        </div>
+        ${itemsHtml || `<div class="empty-state" style="padding:16px 0;"><i class="fa-solid fa-box-open"></i>${emptyText}</div>`}
+        ${totalsValue !== null ? `
+        <div class="sales-card-totals">
+          <span>${totalsLabel}</span>
+          <span class="t-value">${totalsValue}</span>
+        </div>` : ''}
+      </div>
+    `;
+  }
+
+  async function loadSalesSummary() {
+    const grandGrid = document.getElementById('grand-grid');
+    const salesGrid = document.getElementById('sales-grid');
+    try {
+      const res = await blm48AdminGetSalesSummary(user.username);
+      if (res.status !== 'success') {
+        grandGrid.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`;
+        salesGrid.innerHTML = '';
+        return;
+      }
+      const d = res.data || {};
+
+      grandGrid.innerHTML = `
+        <div class="grand-card">
+          <div class="g-label"><i class="fas fa-coins"></i> ยอดขายรวม (Token)</div>
+          <div class="g-value">${Number(d.grand?.tokenRevenue || 0).toLocaleString()}</div>
+        </div>
+        <div class="grand-card">
+          <div class="g-label"><i class="fas fa-cookie-bite"></i> ยอดขายรวม (Cookie)</div>
+          <div class="g-value">${Number(d.grand?.cookieRevenue || 0).toLocaleString()}</div>
+        </div>
+      `;
+
+      const cafeItems = (d.cafe?.items || []).map(it =>
+        renderSalesItemRow(it.name, null, it.imageUrl, it.salesCount, 'ขายแล้ว', it.tokenRevenue, 'Token')
+      ).join('');
+      const cafeCard = renderSalesCard('fa-mug-hot', 'ร้านคาเฟ่ (Cafe)', null, cafeItems,
+        'ยังไม่มีคำสั่งซื้อ', 'รวมทั้งหมด', `${Number(d.cafe?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
+
+      const gachaItems = (d.gacha?.items || []).map(it =>
+        renderSalesItemRow(it.name, null, it.coverImage, it.salesCount, 'สุ่มแล้ว', it.tokenRevenue, 'Token')
+      ).join('');
+      const gachaCard = renderSalesCard('fa-gift', 'ตู้กาชา (Gacha)', null, gachaItems,
+        'ยังไม่มีการสุ่ม', 'รวมทั้งหมด', `${Number(d.gacha?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
+
+      const ticketItems = (d.tickets?.items || []).map(it =>
+        renderSalesItemRow(it.eventName || it.tierName, `${it.tierName} · เหลือ ${Number(it.stockRemaining || 0).toLocaleString()} ใบ`, null, it.salesCount, 'ขายแล้ว', it.tokenRevenue, 'Token')
+      ).join('');
+      const ticketCard = renderSalesCard('fa-ticket', 'บัตรคอนเสิร์ต (Ticket)', 'นับตั้งแต่เริ่มบันทึก', ticketItems,
+        'ยังไม่มีบัตรในระบบ / ยังไม่มีคำสั่งซื้อ', 'รวมทั้งหมด', `${Number(d.tickets?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
+
+      const giftWalletItems = (d.giftsWallet?.items || []).map(it =>
+        renderSalesItemRow(it.name, it.tier, it.imageUrl, it.qtySold, 'ชิ้น', it.cookieRevenue, 'Cookie')
+      ).join('');
+      const giftWalletCard = renderSalesCard('fa-gifts', 'ของขวัญ - ซื้อเก็บกระเป๋า', 'ประมาณการ', giftWalletItems,
+        'ยังไม่มีการซื้อ', 'รวมทั้งหมด', `${Number(d.giftTotals?.walletCookieRevenue || 0).toLocaleString()} Cookie`);
+
+      const giftVoteItems = (d.giftsVote?.items || []).map(it =>
+        renderSalesItemRow(it.name, it.tier, null, it.qtySold, 'ชิ้น', it.cookieRevenue, 'Cookie')
+      ).join('');
+      const giftVoteCard = renderSalesCard('fa-heart', 'ของขวัญ - ส่งให้ไอดอล (Major Vote)', null, giftVoteItems,
+        'ยังไม่มีการส่งของขวัญ', 'รวมทั้งหมด', `${Number(d.giftTotals?.voteCookieRevenue || 0).toLocaleString()} Cookie`);
+
+      salesGrid.innerHTML = cafeCard + gachaCard + ticketCard + giftWalletCard + giftVoteCard;
+    } catch (e) {
+      grandGrid.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+      salesGrid.innerHTML = '';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    if (!user.role || user.role.toLowerCase() !== 'admin') {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('sales-content').style.display = 'block';
+    loadSalesSummary();
+  });
+</script>
+</body>
+</html>

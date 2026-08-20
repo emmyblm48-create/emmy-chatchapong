@@ -438,6 +438,12 @@ function blm48AdminSuspendUser(adminUsername, targetUsername, suspend) {
   return blm48Rpc('admin_suspend_user', { p_admin_username: adminUsername, p_target_username: targetUsername, p_suspend: suspend });
 }
 
+// System-wide sales summary (Cafe/Gacha/Tickets = Token; Gift Catalog, wallet + Major Vote
+// send channels = Cookie) - powers admin_sales.html.
+function blm48AdminGetSalesSummary(adminUsername) {
+  return blm48Rpc('admin_get_sales_summary', { p_admin_username: adminUsername });
+}
+
 // Live-updates a Major Vote campaign's candidate rows. Replaces the old Firebase
 // majorVotes/{collectionId} subscription for the same reason as blm48SubscribeWallet.
 function blm48SubscribeMajorVoteCandidates(collectionId, onChange) {
