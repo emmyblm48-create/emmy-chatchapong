@@ -171,12 +171,12 @@
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
 
-        <div class="section-title"><i class="fa-solid fa-coins"></i> ฝั่ง Token</div>
+        <div class="section-title"><i class="fa-solid fa-coins"></i>Token</div>
         <div class="sales-grid" id="sales-grid-token">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
 
-        <div class="section-title"><i class="fa-solid fa-cookie-bite"></i> ฝั่ง Cookie</div>
+        <div class="section-title"><i class="fa-solid fa-cookie-bite"></i>Cookie</div>
         <div class="sales-grid" id="sales-grid-cookie">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
@@ -237,32 +237,6 @@
     `;
   }
 
-  // ซื้อ Cookie (แลก Token): ไม่มีรายการย่อยเป็นแคตตาล็อก มีแค่ตัวเลขรวม เลยแสดงเป็นการ์ดสถิติ
-  // แยกต่างหาก ไม่ยุ่งกับยอดขายรวม (Cookie) ด้านบน เพราะทิศทางเงินตรงข้ามกับของขวัญ
-  // (ของขวัญ = Cookie ไหลออกจากผู้ใช้ / ซื้อ Cookie = Cookie ไหลเข้าผู้ใช้)
-  function renderCookieExchangeCard(d) {
-    return `
-      <div class="sales-card">
-        <div class="sales-card-head">
-          <div class="s-title"><i class="fas fa-money-bill-transfer"></i> ซื้อ Cookie (แลกด้วย Token)</div>
-        </div>
-        <div class="sales-item-row" style="border-top:none;">
-          <div class="sales-item-info">
-            <div class="sales-item-name">จำนวนครั้งที่แลก</div>
-            <div class="sales-item-sub">Token ที่ใช้แลกทั้งหมด</div>
-          </div>
-          <div class="sales-item-numbers">
-            <div class="sales-item-count">${Number(d.salesCount || 0).toLocaleString()} ครั้ง</div>
-            <div class="sales-item-revenue">${Number(d.tokenSpent || 0).toLocaleString()} Token</div>
-          </div>
-        </div>
-        <div class="sales-card-totals">
-          <span>Cookie ที่ขายได้</span>
-          <span class="t-value">${Number(d.cookieRevenue || 0).toLocaleString()} Cookie</span>
-        </div>
-      </div>
-    `;
-  }
 
   async function loadSalesSummary() {
     const grandGrid = document.getElementById('grand-grid');
@@ -292,13 +266,13 @@
       const cafeItems = (d.cafe?.items || []).map(it =>
         renderSalesItemRow(it.name, null, it.imageUrl, it.salesCount, 'ขายแล้ว', it.tokenRevenue, 'Token')
       ).join('');
-      const cafeCard = renderSalesCard('fa-mug-hot', 'ร้านคาเฟ่ (Cafe)', 'นับจากกระเป๋าไอเทม', cafeItems,
+      const cafeCard = renderSalesCard('fa-mug-hot', 'BLM48 Cafe', '', cafeItems,
         'ยังไม่มีคำสั่งซื้อ', 'รวมทั้งหมด', `${Number(d.cafe?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
 
       const gachaItems = (d.gacha?.items || []).map(it =>
         renderSalesItemRow(it.name + (it.status ? ` (${it.status})` : ''), null, it.coverImage, it.salesCount, 'สุ่มแล้ว', it.tokenRevenue, 'Token')
       ).join('');
-      const gachaCard = renderSalesCard('fa-gift', 'ตู้กาชา (Gacha)', 'นับจากกระเป๋าไอเทม รวมตู้ที่ปิดแล้ว', gachaItems,
+      const gachaCard = renderSalesCard('fa-gift', 'Official Merchandise', '', gachaItems,
         'ยังไม่มีการสุ่ม', 'รวมทั้งหมด', `${Number(d.gacha?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
 
       tokenGrid.innerHTML = cafeCard + gachaCard;
@@ -306,10 +280,16 @@
       const giftWalletItems = (d.giftsWallet?.items || []).map(it =>
         renderSalesItemRow(it.name, it.tier, it.imageUrl, it.qtySold, 'ชิ้น', it.cookieRevenue, 'Cookie')
       ).join('');
-      const giftWalletCard = renderSalesCard('fa-gifts', 'ของขวัญ (Gift)', 'ประมาณการ', giftWalletItems,
+      const giftWalletCard = renderSalesCard('fa-gifts', 'Gift Shop', '', giftWalletItems,
         'ยังไม่มีการซื้อ', 'รวมทั้งหมด', `${Number(d.giftsWallet?.totals?.cookieRevenue || 0).toLocaleString()} Cookie`);
 
-      const cookieExchangeCard = renderCookieExchangeCard(d.cookieExchange || {});
+      // แยกตามราคาขาย 2 ระดับที่มีจริงในระบบ (shop.html: 10 Token → 100 Cookie, 100 Token → 1000 Cookie)
+      const cookieExchangeItems = (d.cookieExchange?.items || []).map(it =>
+        renderSalesItemRow(`${Number(it.tokenPrice).toLocaleString()} Token → ${(Number(it.tokenPrice) * 10).toLocaleString()} Cookie`,
+          `ใช้ Token ไปทั้งหมด ${Number(it.tokenSpent || 0).toLocaleString()}`, null, it.salesCount, 'แลกแล้ว', it.cookieRevenue, 'Cookie')
+      ).join('');
+      const cookieExchangeCard = renderSalesCard('fa-money-bill-transfer', 'Cookie Shop', '', cookieExchangeItems,
+        'ยังไม่มีการแลก', 'รวมทั้งหมด', `${Number(d.cookieExchange?.totals?.cookieRevenue || 0).toLocaleString()} Cookie`);
 
       cookieGrid.innerHTML = giftWalletCard + cookieExchangeCard;
     } catch (e) {
