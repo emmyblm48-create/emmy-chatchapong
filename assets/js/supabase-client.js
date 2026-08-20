@@ -148,8 +148,11 @@ function blm48EditPost(username, postId, newContent, newImageUrl) {
 function blm48DeletePost(username, postId) {
   return blm48Rpc('delete_post', { p_username: username, p_post_id: postId });
 }
-function blm48AddComment(username, postId, text) {
-  return blm48Rpc('add_comment', { p_username: username, p_post_id: postId, p_text: text });
+function blm48AddComment(username, postId, text, parentCommentId) {
+  return blm48Rpc('add_comment', { p_username: username, p_post_id: postId, p_text: text, p_parent_comment_id: parentCommentId || null });
+}
+function blm48LikeComment(username, commentId) {
+  return blm48Rpc('like_comment', { p_username: username, p_comment_id: commentId });
 }
 
 // Uploads a recorded voice-clip Blob straight to the public "post-audio" Storage bucket

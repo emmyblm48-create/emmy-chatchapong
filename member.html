@@ -1344,36 +1344,80 @@ function buildImagesHtml(displayImage) {
 }
 
 // 💬 สร้าง HTML รายการคอมเมนต์ (ใช้ทั้งตอนเรนเดอร์โพสต์ครั้งแรก และตอน refresh จาก Supabase Realtime)
-function buildCommentsHtml(comments) {
-  if (!comments || comments.length === 0) {
-    return `<div class="no-comment-placeholder" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">NOT COMMENTS YET.</div>`;
-  }
-
-  const allowedRoles = ['member', 'admin', 'ceo'];
-  const verifiedBadgeIcon = `
+const commentAllowedRoles = ['member', 'admin', 'ceo'];
+const commentVerifiedBadgeIcon = `
     <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
       <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
     </svg>
   `;
 
-  return comments.map(cmt => {
-    const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
-    const isCmtVerified = allowedRoles.includes(currentRole) ? verifiedBadgeIcon : '';
-    const cmtImg = cmt.profile_img || 'https://via.placeholder.com/40';
+// สร้าง HTML ของคอมเมนต์/reply เดียว (ใช้ทั้งตอนเรนเดอร์ทั้งลิสต์ และตอนแทรกคอมเมนต์/reply ใหม่แบบ optimistic)
+function buildSingleCommentHtml(cmt, postId, isReply, repliesHtml) {
+  const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
+  const isCmtVerified = commentAllowedRoles.includes(currentRole) ? commentVerifiedBadgeIcon : '';
+  const cmtImg = cmt.profile_img || 'https://via.placeholder.com/40';
+  const commentId = cmt.commentId || '';
+  const likes = cmt.likes || 0;
+  const heartClass = cmt.isLiked ? 'fa-solid' : 'fa-regular';
+  const avatarSize = isReply ? 24 : 28;
 
-    return `
-      <div class="comment-item" style="display: flex; align-items: flex-start; margin-bottom: 10px; background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-        <img src="${escapeAttr(cmtImg)}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+  return `
+      <div class="comment-item" data-comment-id="${escapeAttr(commentId)}" style="display: flex; align-items: flex-start; margin-bottom: 10px; ${isReply ? 'margin-left: 34px;' : ''} background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
+        <img src="${escapeAttr(cmtImg)}" style="width: ${avatarSize}px; height: ${avatarSize}px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
         <div style="font-size: 0.88rem; width: 100%;">
           <div style="display: flex; align-items: center; gap: 4px;">
             <b style="color: var(--blmem-pink);">${escapeHtml(cmt.name)}</b>
             ${isCmtVerified}
-            <span class="role-badge" style="font-size: 8px; padding: 1px 4px; background: #ffe4e8; color: var(--blmem-pink); border-radius: 4px; margin-left: auto;">${escapeHtml(cmt.role || 'user')}</span>
           </div>
           <div style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
+          <div style="display: flex; align-items: center; gap: 14px; margin-top: 4px;">
+            <button onclick="toggleCommentLike('${commentId}')" style="background: none; border: none; color: var(--blmem-pink); cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; padding: 0;">
+              <i class="${heartClass} fa-heart" id="cmt-heart-${commentId}"></i> <span id="cmt-like-count-${commentId}">${likes}</span>
+            </button>
+            ${!isReply ? `<button onclick="toggleReplyBox('${commentId}')" style="background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; padding: 0;">Reply</button>` : ''}
+          </div>
+          ${!isReply ? `
+            <div id="replies-${commentId}">${repliesHtml || ''}</div>
+            <div class="reply-input-box" id="reply-box-${commentId}" style="display: none; gap: 8px; margin-top: 8px;">
+              <input type="text" id="reply-input-${commentId}" placeholder="Write a reply..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; outline: none;">
+              <button onclick="submitReply('${postId}', '${commentId}', this)" style="background: var(--blmem-pink); color: white; border: none; border-radius: 20px; padding: 0 12px; font-size: 0.8rem; cursor: pointer; font-weight: bold;">SEND</button>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
+}
+
+function buildCommentsHtml(comments, postId) {
+  if (!comments || comments.length === 0) {
+    return `<div class="no-comment-placeholder" style="color: gray; font-size: 0.8rem; text-align: center; margin: 10px 0;">NOT COMMENTS YET.</div>`;
+  }
+
+  // จัดกลุ่ม comment/reply เป็นชั้นเดียว: reply ทุกอันจะถูกผูกกับ comment แม่บนสุดเสมอ
+  const byId = {};
+  comments.forEach(c => { if (c.commentId) byId[c.commentId] = c; });
+  const topLevel = [];
+  const repliesByParent = {};
+  comments.forEach(c => {
+    if (!c.parentCommentId || !byId[c.parentCommentId]) {
+      topLevel.push(c);
+    } else {
+      let topId = c.parentCommentId;
+      let hops = 0;
+      while (byId[topId] && byId[topId].parentCommentId && byId[byId[topId].parentCommentId] && hops < 5) {
+        topId = byId[topId].parentCommentId;
+        hops++;
+      }
+      if (!repliesByParent[topId]) repliesByParent[topId] = [];
+      repliesByParent[topId].push(c);
+    }
+  });
+
+  return topLevel.map(cmt => {
+    const repliesHtml = (repliesByParent[cmt.commentId] || [])
+      .map(r => buildSingleCommentHtml(r, postId, true))
+      .join('');
+    return buildSingleCommentHtml(cmt, postId, false, repliesHtml);
   }).join('');
 }
 
@@ -1446,7 +1490,7 @@ function renderPost(post) {
   const graduatedSubtext = ''; 
 
   const postComments = Array.isArray(post.comments) ? post.comments : [];
-  const commentsHtml = buildCommentsHtml(postComments);
+  const commentsHtml = buildCommentsHtml(postComments, postId);
 
   let mediaHtml = '';
   if (post.audioURL) {
@@ -1651,7 +1695,7 @@ function renderPost(post) {
         const commentCountEl = document.getElementById(`comment-count-${post.id}`);
         if (commentCountEl) commentCountEl.innerText = postComments.length;
         const commentListEl = document.getElementById(`comment-list-${post.id}`);
-        if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments);
+        if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments, post.id);
       } else {
         container.insertAdjacentHTML('afterbegin', renderPost(post));
       }
@@ -1894,13 +1938,16 @@ document.addEventListener('click', function() {
       if (commentListEl) {
         const placeholder = commentListEl.querySelector('.no-comment-placeholder');
         if (placeholder) placeholder.remove();
-        commentListEl.insertAdjacentHTML('beforeend', buildCommentsHtml([{
+        commentListEl.insertAdjacentHTML('beforeend', buildSingleCommentHtml({
+          commentId: result.commentId,
           username: currentUser.username,
           name: currentUser.name || currentUser.username || 'Anonymous',
           role: currentUser.role || 'user',
           profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
-          text: commentText
-        }]));
+          text: commentText,
+          likes: 0,
+          isLiked: false
+        }, postId, false));
         commentListEl.scrollTop = commentListEl.scrollHeight;
       }
       if (commentCountEl) commentCountEl.innerText = (parseInt(commentCountEl.innerText) || 0) + 1;
@@ -1908,6 +1955,118 @@ document.addEventListener('click', function() {
       inputEl.value = "";
     } catch (error) { Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error'); }
     finally { if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; } inputEl.disabled = false; }
+  };
+
+  // 💖 กดใจคอมเมนต์/reply (เจ้าของโพสได้ 9 คุกกี้เหมือนกดใจโพส)
+  window.toggleCommentLike = async function(commentId) {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: 'var(--blmem-pink)' });
+      return;
+    }
+
+    const heartIcon = document.getElementById(`cmt-heart-${commentId}`);
+    const likeSpan = document.getElementById(`cmt-like-count-${commentId}`);
+    if (!heartIcon || !likeSpan) return;
+    if (heartIcon.dataset.loading === "true") return;
+    heartIcon.dataset.loading = "true";
+
+    const isCurrentlyLiked = heartIcon.classList.contains('fa-solid');
+    const currentLikes = parseInt(likeSpan.innerText) || 0;
+    heartIcon.classList.toggle('fa-solid', !isCurrentlyLiked);
+    heartIcon.classList.toggle('fa-regular', isCurrentlyLiked);
+    likeSpan.innerText = isCurrentlyLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1;
+
+    try {
+      const result = await blm48LikeComment(currentUser.username, commentId);
+      if (result.status === "success") {
+        likeSpan.innerText = result.likes;
+        heartIcon.classList.toggle('fa-solid', result.isLiked);
+        heartIcon.classList.toggle('fa-regular', !result.isLiked);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error) {
+      heartIcon.classList.toggle('fa-solid', isCurrentlyLiked);
+      heartIcon.classList.toggle('fa-regular', !isCurrentlyLiked);
+      likeSpan.innerText = currentLikes;
+      console.error("Like Comment Error:", error);
+    } finally {
+      delete heartIcon.dataset.loading;
+    }
+  };
+
+  // 💬 เปิด/ปิดกล่องตอบกลับคอมเมนต์
+  window.toggleReplyBox = function(commentId) {
+    const box = document.getElementById(`reply-box-${commentId}`);
+    if (!box) return;
+    const willShow = box.style.display === "none" || box.style.display === "";
+    box.style.display = willShow ? "flex" : "none";
+    if (willShow) {
+      const input = document.getElementById(`reply-input-${commentId}`);
+      if (input) input.focus();
+    }
+  };
+
+  // ↩️ ส่งคำตอบกลับคอมเมนต์ (นับเป็นคอมเมนต์ปกติ เจ้าของโพสได้ 9 คุกกี้เหมือนกัน)
+  window.submitReply = async function(postId, parentCommentId, btnElement) {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนตอบกลับนะงับ', 'warning');
+      return;
+    }
+
+    const inputEl = document.getElementById(`reply-input-${parentCommentId}`);
+    if (!inputEl) return;
+
+    const replyText = inputEl.value.trim();
+    if (btnElement && btnElement.disabled) return;
+    if (!replyText) {
+      Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
+      return;
+    }
+
+    let originalText = "";
+    if (btnElement) {
+      originalText = btnElement.innerText;
+      btnElement.innerText = "...";
+      btnElement.disabled = true;
+    }
+    inputEl.disabled = true;
+
+    try {
+      const result = await blm48AddComment(currentUser.username, postId, replyText, parentCommentId);
+      if (result.status !== 'success') throw new Error(result.message);
+
+      const repliesEl = document.getElementById(`replies-${parentCommentId}`);
+      if (repliesEl) {
+        repliesEl.insertAdjacentHTML('beforeend', buildSingleCommentHtml({
+          commentId: result.commentId,
+          username: currentUser.username,
+          name: currentUser.name || currentUser.username || 'Anonymous',
+          role: currentUser.role || 'user',
+          profile_img: currentUser.profile_img || 'https://via.placeholder.com/40?text=🌸',
+          text: replyText,
+          likes: 0,
+          isLiked: false
+        }, postId, true));
+      }
+      const commentCountEl2 = document.getElementById(`comment-count-${postId}`);
+      if (commentCountEl2) commentCountEl2.innerText = (parseInt(commentCountEl2.innerText) || 0) + 1;
+
+      inputEl.value = "";
+      toggleReplyBox(parentCommentId);
+
+    } catch (error) {
+      console.error("Submit Reply Error:", error);
+      Swal.fire('เกิดข้อผิดพลาด', 'ส่งการตอบกลับไม่สำเร็จงับ', 'error');
+    } finally {
+      if (btnElement) {
+        btnElement.innerText = originalText;
+        btnElement.disabled = false;
+      }
+      inputEl.disabled = false;
+    }
   };
 
   // มีคนไลก์/คอมเมนต์โพสต์ไหนก็ตาม -> รีเฟรชฟีดของเมมเบอร์คนนี้เงียบๆ
