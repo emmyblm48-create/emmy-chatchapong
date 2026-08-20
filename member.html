@@ -1352,7 +1352,8 @@ const commentVerifiedBadgeIcon = `
   `;
 
 // สร้าง HTML ของคอมเมนต์/reply เดียว (ใช้ทั้งตอนเรนเดอร์ทั้งลิสต์ และตอนแทรกคอมเมนต์/reply ใหม่แบบ optimistic)
-function buildSingleCommentHtml(cmt, postId, isReply, repliesHtml) {
+// replies: array ของ reply object ของคอมเมนต์นี้ (เฉพาะ top-level comment เท่านั้นที่มีค่า, reply เองไม่มี)
+function buildSingleCommentHtml(cmt, postId, isReply, replies) {
   const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
   const isCmtVerified = commentAllowedRoles.includes(currentRole) ? commentVerifiedBadgeIcon : '';
   const cmtImg = cmt.profile_img || 'https://via.placeholder.com/40';
@@ -1360,6 +1361,9 @@ function buildSingleCommentHtml(cmt, postId, isReply, repliesHtml) {
   const likes = cmt.likes || 0;
   const heartClass = cmt.isLiked ? 'fa-solid' : 'fa-regular';
   const avatarSize = isReply ? 24 : 28;
+  const replyList = Array.isArray(replies) ? replies : [];
+  const replyCount = replyList.length;
+  const repliesHtml = replyList.map(r => buildSingleCommentHtml(r, postId, true)).join('');
 
   return `
       <div class="comment-item" data-comment-id="${escapeAttr(commentId)}" style="display: flex; align-items: flex-start; margin-bottom: 10px; ${isReply ? 'margin-left: 34px;' : ''} background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
@@ -1377,7 +1381,10 @@ function buildSingleCommentHtml(cmt, postId, isReply, repliesHtml) {
             ${!isReply ? `<button onclick="toggleReplyBox('${commentId}')" style="background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; padding: 0;">Reply</button>` : ''}
           </div>
           ${!isReply ? `
-            <div id="replies-${commentId}">${repliesHtml || ''}</div>
+            <button id="replies-toggle-btn-${commentId}" onclick="toggleReplies('${commentId}')" style="background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; padding: 0; margin-top: 6px; align-items: center; gap: 5px; display: ${replyCount > 0 ? 'flex' : 'none'};">
+              <i class="fa-solid fa-chevron-down" id="replies-chevron-${commentId}"></i> <span id="replies-count-${commentId}">${replyCount}</span> การตอบกลับ
+            </button>
+            <div id="replies-${commentId}" style="display: none; margin-top: 4px;">${repliesHtml}</div>
             <div class="reply-input-box" id="reply-box-${commentId}" style="display: none; gap: 8px; margin-top: 8px;">
               <input type="text" id="reply-input-${commentId}" placeholder="Write a reply..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; outline: none;">
               <button onclick="submitReply('${postId}', '${commentId}', this)" style="background: var(--blmem-pink); color: white; border: none; border-radius: 20px; padding: 0 12px; font-size: 0.8rem; cursor: pointer; font-weight: bold;">SEND</button>
@@ -1413,12 +1420,7 @@ function buildCommentsHtml(comments, postId) {
     }
   });
 
-  return topLevel.map(cmt => {
-    const repliesHtml = (repliesByParent[cmt.commentId] || [])
-      .map(r => buildSingleCommentHtml(r, postId, true))
-      .join('');
-    return buildSingleCommentHtml(cmt, postId, false, repliesHtml);
-  }).join('');
+  return topLevel.map(cmt => buildSingleCommentHtml(cmt, postId, false, repliesByParent[cmt.commentId] || [])).join('');
 }
 
 function renderPost(post) {
@@ -2008,6 +2010,19 @@ document.addEventListener('click', function() {
     }
   };
 
+  // 🔽🔼 กดลูกศรเพื่อเปิด/ปิดรายการ reply ใต้คอมเมนต์
+  window.toggleReplies = function(commentId) {
+    const repliesEl = document.getElementById(`replies-${commentId}`);
+    const chevron = document.getElementById(`replies-chevron-${commentId}`);
+    if (!repliesEl) return;
+    const willShow = repliesEl.style.display === "none" || repliesEl.style.display === "";
+    repliesEl.style.display = willShow ? "block" : "none";
+    if (chevron) {
+      chevron.classList.toggle('fa-chevron-down', !willShow);
+      chevron.classList.toggle('fa-chevron-up', willShow);
+    }
+  };
+
   // ↩️ ส่งคำตอบกลับคอมเมนต์ (นับเป็นคอมเมนต์ปกติ เจ้าของโพสได้ 9 คุกกี้เหมือนกัน)
   window.submitReply = async function(postId, parentCommentId, btnElement) {
     const currentUser = getUserSession();
@@ -2053,6 +2068,15 @@ document.addEventListener('click', function() {
       }
       const commentCountEl2 = document.getElementById(`comment-count-${postId}`);
       if (commentCountEl2) commentCountEl2.innerText = (parseInt(commentCountEl2.innerText) || 0) + 1;
+
+      // อัปเดตตัวนับ + เปิดลูกศรโชว์ reply ที่เพิ่งตอบกลับไปให้เห็นทันที
+      const repliesCountEl = document.getElementById(`replies-count-${parentCommentId}`);
+      if (repliesCountEl) repliesCountEl.innerText = (parseInt(repliesCountEl.innerText) || 0) + 1;
+      const repliesToggleBtn = document.getElementById(`replies-toggle-btn-${parentCommentId}`);
+      if (repliesToggleBtn) repliesToggleBtn.style.display = 'flex';
+      if (repliesEl) repliesEl.style.display = 'block';
+      const repliesChevron = document.getElementById(`replies-chevron-${parentCommentId}`);
+      if (repliesChevron) { repliesChevron.classList.remove('fa-chevron-down'); repliesChevron.classList.add('fa-chevron-up'); }
 
       inputEl.value = "";
       toggleReplyBox(parentCommentId);
