@@ -420,6 +420,24 @@ function blm48AdminGetMemberDashboard(adminUsername) {
   return blm48Rpc('admin_get_member_dashboard', { p_admin_username: adminUsername });
 }
 
+// System-wide Token/Cookie/GEToken breakdown (in-wallet vs already-used), split by role
+// (user/member, admin excluded) - powers the "ภาพรวมกระเป๋าเงินในระบบ" section in admin.html.
+function blm48AdminGetWalletStats(adminUsername) {
+  return blm48Rpc('admin_get_wallet_stats', { p_admin_username: adminUsername });
+}
+
+// Search/list non-admin accounts (by username or name) for the suspend/unsuspend tool.
+function blm48AdminSearchUsers(adminUsername, query) {
+  return blm48Rpc('admin_search_users', { p_admin_username: adminUsername, p_query: query || '' });
+}
+
+// Suspend (p_suspend=true) or reinstate (p_suspend=false) a user/member account. A suspended
+// account is blocked from logging in and gets signed out on its next session refresh, same as
+// the existing "account deleted / password cleared" kick-out flow already wired app-wide.
+function blm48AdminSuspendUser(adminUsername, targetUsername, suspend) {
+  return blm48Rpc('admin_suspend_user', { p_admin_username: adminUsername, p_target_username: targetUsername, p_suspend: suspend });
+}
+
 // Live-updates a Major Vote campaign's candidate rows. Replaces the old Firebase
 // majorVotes/{collectionId} subscription for the same reason as blm48SubscribeWallet.
 function blm48SubscribeMajorVoteCandidates(collectionId, onChange) {
