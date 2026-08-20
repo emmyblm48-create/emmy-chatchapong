@@ -38,6 +38,7 @@
             padding: 0;
             min-height: 100vh;
             color: var(--text-dark);
+            background: #ffffff;
         }
 
         /* --- Top Bar (matches history.html) --- */
@@ -217,12 +218,34 @@
         .tool-card i { font-size: 22px; color: var(--primary-pink); }
         .tool-card span { font-size: 12.5px; font-weight: 600; color: #333; }
 
+        /* --- Wallet stats (Token/Cookie/GEToken, in-wallet vs used, by role) --- */
+        .wallet-role-card {
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 14px 16px; box-shadow: var(--glass-shadow-sm);
+            margin-bottom: 10px;
+        }
+        .wallet-role-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .wallet-role-head .role-name { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 14px; color: var(--primary-pink); }
+        .wallet-role-head .role-count { font-size: 11px; color: #999; }
+        .wallet-currency-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px dashed #f0e6e9; }
+        .wallet-currency-row:first-of-type { border-top: none; }
+        .wallet-currency-icon { flex: 0 0 24px; text-align: center; color: var(--primary-pink); font-size: 14px; }
+        .wallet-currency-label { flex: 0 0 62px; font-size: 12px; color: #666; font-weight: 600; }
+        .wallet-currency-values { flex: 1; display: flex; gap: 14px; }
+        .wallet-currency-values .v-block { flex: 1; min-width: 0; }
+        .wallet-currency-values .v-label { font-size: 10px; color: #aaa; }
+        .wallet-currency-values .v-num { font-family: 'Kanit', sans-serif; font-size: 15px; font-weight: 700; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wallet-currency-values .v-num.used { color: #ff5c7a; }
+
         #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #admin-content { display: none; }
     </style>
 </head>
-<body class="glass-mesh-bg">
+<body>
 
 <div class="top-navigation-bar">
     <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
@@ -247,6 +270,11 @@
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
 
+        <div class="section-title"><i class="fa-solid fa-coins"></i> ภาพรวมกระเป๋าเงินในระบบ (ไม่รวม Admin)</div>
+        <div id="wallet-stats-grid">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+
         <div class="section-title">
             <i class="fa-solid fa-user-clock"></i> บัญชีรอการอนุมัติ
             <span class="badge-count" id="pending-count-badge" style="display:none;">0</span>
@@ -268,6 +296,10 @@
             <div class="tool-card" onclick="showAdminTransferHistoryModal()">
                 <i class="fas fa-receipt"></i>
                 <span>ประวัติการโอน</span>
+            </div>
+            <div class="tool-card" onclick="showAdminManageAccountsModal()">
+                <i class="fas fa-user-shield"></i>
+                <span>จัดการ/ระงับบัญชี</span>
             </div>
         </div>
 
@@ -313,7 +345,52 @@
   }
 
   async function loadDashboard() {
-    Promise.all([loadStats(), loadPendingList(), loadMemberDashboard()]);
+    Promise.all([loadStats(), loadWalletStats(), loadPendingList(), loadMemberDashboard()]);
+  }
+
+  // =========================================================================
+  // 💰 ภาพรวมกระเป๋าเงินในระบบ — Token/Cookie/GEToken แยกอยู่ใน Wallet vs ใช้ไปแล้ว
+  // แยกตาม Role (User/Member เท่านั้น ไม่นับ Admin)
+  // =========================================================================
+  function renderWalletCurrencyRow(icon, label, data) {
+    const d = data || { wallet: 0, used: 0 };
+    return `
+      <div class="wallet-currency-row">
+        <div class="wallet-currency-icon"><i class="fas ${icon}"></i></div>
+        <div class="wallet-currency-label">${label}</div>
+        <div class="wallet-currency-values">
+          <div class="v-block"><div class="v-label">อยู่ใน Wallet</div><div class="v-num">${Number(d.wallet || 0).toLocaleString()}</div></div>
+          <div class="v-block"><div class="v-label">ใช้ไปแล้ว</div><div class="v-num used">${Number(d.used || 0).toLocaleString()}</div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderWalletRoleCard(roleLabel, d) {
+    if (!d) return '';
+    return `
+      <div class="wallet-role-card">
+        <div class="wallet-role-head">
+          <div class="role-name">${roleLabel}</div>
+          <div class="role-count">${d.accountCount || 0} บัญชี</div>
+        </div>
+        ${renderWalletCurrencyRow('fa-coins', 'Token', d.token)}
+        ${renderWalletCurrencyRow('fa-cookie-bite', 'Cookie', d.cookie)}
+        ${renderWalletCurrencyRow('fa-gem', 'GEToken', d.geToken)}
+      </div>
+    `;
+  }
+
+  async function loadWalletStats() {
+    const grid = document.getElementById('wallet-stats-grid');
+    try {
+      const res = await blm48AdminGetWalletStats(user.username);
+      if (res.status !== 'success') { grid.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      const d = res.data || {};
+      grid.innerHTML = renderWalletRoleCard('Role User', d.user) + renderWalletRoleCard('Role Member', d.member);
+    } catch (e) {
+      grid.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
   }
 
   async function loadStats() {
@@ -880,6 +957,118 @@
       refNo: log.ref_no,
       createdAt: log.created_at
     });
+  }
+
+  // =========================================================================
+  // 👑 จัดการ/ระงับบัญชีผู้ใช้งาน — ค้นหาบัญชี User/Member แล้วสลับสถานะ
+  // ระงับ/ปลดระงับ (บัญชีที่ถูกระงับจะล็อกอินไม่ได้ และถูกเด้งออกอัตโนมัติในรอบ
+  // ตรวจสอบ session ถัดไป เหมือนกลไก "บัญชีถูกลบ/ล้างรหัสผ่าน" ที่มีอยู่เดิม)
+  // =========================================================================
+  let adminManageCache = [];
+  let adminManageLastQuery = '';
+
+  async function showAdminManageAccountsModal(presetQuery) {
+    if (typeof presetQuery === 'string') adminManageLastQuery = presetQuery;
+    await Swal.fire({
+      title: 'จัดการบัญชีผู้ใช้งาน',
+      html: `
+        <div style="text-align:left;">
+          <input id="admin-manage-search" class="swal2-input" style="margin:0 0 10px;" placeholder="ค้นหาชื่อหรือ Username...">
+          <div id="admin-manage-list" style="max-height:50vh; overflow-y:auto;">
+            <div style="text-align:center; color:#999; padding:20px 0;"><i class="fa-solid fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+      `,
+      width: 480,
+      showConfirmButton: false,
+      showCloseButton: true,
+      didOpen: () => {
+        const input = document.getElementById('admin-manage-search');
+        input.value = adminManageLastQuery;
+        let debounceTimer;
+        input.addEventListener('input', () => {
+          adminManageLastQuery = input.value;
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => runAdminManageSearch(input.value), 300);
+        });
+        runAdminManageSearch(adminManageLastQuery);
+      }
+    });
+  }
+
+  async function runAdminManageSearch(query) {
+    const list = document.getElementById('admin-manage-list');
+    if (!list) return;
+    list.innerHTML = `<div style="text-align:center; color:#999; padding:20px 0;"><i class="fa-solid fa-spinner fa-spin"></i></div>`;
+    try {
+      const res = await blm48AdminSearchUsers(user.username, query);
+      if (res.status !== 'success') { list.innerHTML = `<div style="text-align:center; color:#999; padding:20px 0;">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      adminManageCache = res.data || [];
+      renderAdminManageList();
+    } catch (e) {
+      list.innerHTML = `<div style="text-align:center; color:#999; padding:20px 0;">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderAdminManageList() {
+    const list = document.getElementById('admin-manage-list');
+    if (!list) return;
+    if (adminManageCache.length === 0) {
+      list.innerHTML = `<div style="text-align:center; color:#999; padding:20px 0;">ไม่พบผู้ใช้งาน</div>`;
+      return;
+    }
+    list.innerHTML = adminManageCache.map((u, i) => {
+      const suspended = u.status === 'suspended';
+      const pending = u.status === 'pending';
+      return `
+        <div style="display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px dashed #eee;">
+          <img src="${escapeAttr(resolveDriveImage(u.profile_img))}" style="width:38px; height:38px; border-radius:50%; object-fit:cover; background:#f3f3f3; flex:0 0 auto;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:700; font-size:13px; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${escapeHtml(u.name || u.username)} <span style="color:#999; font-weight:400;">@${escapeHtml(u.username)}</span>
+            </div>
+            <div style="font-size:11px; color:#999;">
+              ${escapeHtml((u.role || '').toUpperCase())}${suspended ? ' · <span style="color:#ff5c7a; font-weight:600;">ถูกระงับ</span>' : pending ? ' · <span style="color:#f59f00; font-weight:600;">รออนุมัติ</span>' : ''}
+            </div>
+          </div>
+          ${pending ? '' : `
+          <button class="btn-pill" style="${suspended ? 'background:#e6f9ee; color:#2ecc71;' : 'background:#ffeef0; color:#ff5c7a;'}" onclick="toggleAdminSuspend(${i})">
+            ${suspended ? '<i class="fas fa-unlock"></i> ปลดระงับ' : '<i class="fas fa-ban"></i> ระงับ'}
+          </button>`}
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function toggleAdminSuspend(index) {
+    const target = adminManageCache[index];
+    if (!target) return;
+    const suspend = target.status !== 'suspended';
+
+    const confirmResult = await Swal.fire({
+      title: suspend ? 'ระงับบัญชีนี้?' : 'ปลดระงับบัญชีนี้?',
+      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) ${suspend ? 'จะไม่สามารถเข้าสู่ระบบได้จนกว่าจะปลดระงับค่ะ' : 'จะกลับมาใช้งานได้ตามปกติค่ะ'}`,
+      icon: suspend ? 'warning' : 'question',
+      showCancelButton: true,
+      confirmButtonColor: suspend ? '#ff5c7a' : 'var(--primary-pink)',
+      confirmButtonText: suspend ? 'ระงับบัญชี' : 'ปลดระงับ',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (!confirmResult.isConfirmed) { showAdminManageAccountsModal(); return; }
+
+    Swal.fire({ title: 'กำลังทำรายการ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminSuspendUser(user.username, target.username, suspend);
+      if (res.status === 'success') {
+        await Swal.fire({ icon: 'success', title: 'ทำรายการสำเร็จ', text: res.message, timer: 1300, showConfirmButton: false });
+      } else {
+        await Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error');
+      }
+    } catch (e) {
+      await Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+    }
+    showAdminManageAccountsModal();
   }
 
   window.addEventListener('DOMContentLoaded', () => {
