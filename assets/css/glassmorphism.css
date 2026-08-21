@@ -47,6 +47,17 @@
   --glass-radius-lg: 32px;
 }
 
+/* Site-wide zoom lockout (every page loads this file). Blocks pinch-zoom and
+   double-tap-zoom at the browser/compositor level, ahead of (and more
+   reliable than) the JS preventDefault guard in common.js / the inline
+   copies in login.html/chamgift.html/ticket.html — keep both, this is
+   belt-and-suspenders since some mobile browsers can still win the race
+   against JS-only prevention. pan-x/pan-y is kept (not "none") so normal
+   scrolling still works everywhere. */
+html, body {
+  touch-action: pan-x pan-y;
+}
+
 /* -------------------------------------------------------------------------
    Backdrop — a fixed, softly-blurred gradient mesh in the brand colors.
    Everything glass sits on top of this so translucency actually shows.

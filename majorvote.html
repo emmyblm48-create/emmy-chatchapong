@@ -523,7 +523,7 @@
             img: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',
             accent: '#cba034',
             bg: '#fdf6e3',
-            condition: 'ทุกบัญชี Role User จะได้รับ Copper Tier ตั้งแต่วันที่เปิดใช้งานบัญชี และคงระดับนี้ไว้เมื่อมี Token ถือครองเฉลี่ยต่อเดือนต่ำกว่า 150 Token',
+            condition: 'ทุกบัญชีจะได้รับ Copper Tier ตั้งแต่วันที่เปิดใช้งานบัญชี และคงระดับนี้ไว้เมื่อมี Token ถือครองเฉลี่ยต่อเดือนต่ำกว่า 150 Token',
             benefits: [
                 'ได้รับ Copper Membership Card ประจำตัว',
                 'รับคุกกี้รายเดือนที่ระดับ Copper 150 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
@@ -558,7 +558,9 @@
     function buildTierInfoHtml() {
         const cards = TIER_INFO_LIST.map(t => `
             <div style="display: flex; gap: 12px; align-items: flex-start; background: ${t.bg}; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 4px solid ${t.accent}; text-align: left;">
-                <img src="${t.img}" alt="${t.name}" style="width: 68px; height: 68px; object-fit: cover; border-radius: 10px; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.12);" onerror="this.style.display='none'">
+                <img src="${t.img}" alt="${t.name}" draggable="false" oncontextmenu="return false"
+                     style="width: 68px; height: 68px; object-fit: cover; object-position: left; border-radius: 10px; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.12); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; pointer-events: none;"
+                     onerror="this.style.display='none'">
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-weight: 700; font-size: 15px; color: ${t.accent}; margin-bottom: 4px;">${t.name}</div>
                     <div style="font-size: 12.5px; color: #666; margin-bottom: 8px; line-height: 1.5;">${t.condition}</div>
@@ -572,11 +574,11 @@
         return `
             <div style="text-align: left;">
                 <p style="font-size: 13px; color: #777; margin: 0 0 14px; line-height: 1.6;">
-                    ระดับ Tier ของคุณคำนวณจาก <strong>ค่าเฉลี่ยจำนวน Token ที่ถือครองในเดือนก่อนหน้า</strong> (ไม่ใช่ยอด Token ณ ปัจจุบัน) เพื่อไม่ให้การใช้ Token ซื้อของใน Shop/Cafe/Ticket ทำให้ Tier ตกทันที ระบบจะสรุประดับ Tier และอัปเดตสิทธิ์ให้อัตโนมัติทุกต้นเดือน
+                    ระดับ Tier ของคุณคำนวณจาก <strong>ค่าเฉลี่ยจำนวน Token ที่ถือครองในเดือนก่อนหน้า</strong> (ไม่ใช่ยอด Token ณ ปัจจุบัน) ระบบจะสรุประดับ Tier และอัปเดตสิทธิ์ให้อัตโนมัติทุกต้นเดือน
                 </p>
                 ${cards}
                 <p style="font-size: 11.5px; color: #999; margin-top: 4px; line-height: 1.6;">
-                    หมายเหตุ: สิทธิพิเศษของแต่ละ Tier ในโปรแกรม BLM48 Membership Tier รวมทั้งเงื่อนไขและอัตราการคำนวณ อาจมีการปรับเปลี่ยนตามความเหมาะสม โดยทีมงาน BLM48 จะประกาศการเปลี่ยนแปลงล่วงหน้าผ่านแอปพลิเคชัน BLM48 Membership ก่อนมีผลบังคับใช้
+                    หมายเหตุ: สิทธิพิเศษของแต่ละ Tier ใน BLM48 Membership Tier รวมทั้งเงื่อนไขและอัตราการคำนวณ อาจมีการปรับเปลี่ยนตามความเหมาะสม โดยทีมงาน BLM48 จะประกาศการเปลี่ยนแปลงล่วงหน้าผ่านแอปพลิเคชัน BLM48 Membership ก่อนมีผลบังคับใช้
                 </p>
             </div>
         `;
@@ -588,7 +590,7 @@
             html: buildTierInfoHtml(),
             width: 460,
             showConfirmButton: true,
-            confirmButtonText: 'เข้าใจแล้ว',
+            confirmButtonText: 'Close',
             confirmButtonColor: 'var(--primary-pink)',
             showCloseButton: true
         });

@@ -20,6 +20,7 @@
   document.addEventListener('wheel', function(e) {
     if (e.ctrlKey) e.preventDefault();
   }, { passive: false });
+  document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
 })();
 
 // อัปเดตตัวเลขคุกกี้สะสมของโพสต์บนจอทันที (real-time หลังกดใจ/คอมเมนต์/ตอบกลับ/กดใจคอมเมนต์)
