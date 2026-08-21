@@ -369,6 +369,10 @@ body {
           <div class="stat-num" style="color: #4dabf7;"><i class="fas fa-gem"></i> <span id="pf-getokens">0</span></div>
           <div class="stat-title">GETokens</div>
         </div>
+        <div class="stat-box" id="pf-fanscore-box" style="display: none;">
+          <div class="stat-num" style="color: #ff6b9d;"><i class="fas fa-heart-circle-check"></i> <span id="pf-fanscore">0</span></div>
+          <div class="stat-title">Fan Score</div>
+        </div>
       </div>
       <div class="bonus-container">
         <button id="btn-claim-monthly" class="btn-bonus btn-monthly"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
@@ -477,6 +481,18 @@ body {
     document.getElementById('pf-tokens').innerText = formatCompactNumber(user.token || 0);
     document.getElementById('pf-getokens').innerText = formatCompactNumber(user.geToken || 0);
 
+    // ยอดคุกกี้สะสม "อันดับแฟนคลับ" (ไม่ใช่คุกกี้ใช้ซื้อของ) โชว์เฉพาะ role user เท่านั้น
+    const fanScoreBox = document.getElementById('pf-fanscore-box');
+    const statsBar = document.querySelector('.stats-bar');
+    if (user.role && user.role.toLowerCase() === 'user') {
+      if (fanScoreBox) fanScoreBox.style.display = 'flex';
+      if (statsBar) statsBar.style.gridTemplateColumns = 'repeat(5, 1fr)';
+      document.getElementById('pf-fanscore').innerText = formatCompactNumber(user.fanCookies || 0);
+    } else {
+      if (fanScoreBox) fanScoreBox.style.display = 'none';
+      if (statsBar) statsBar.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    }
+
     if (user.role && user.role.toLowerCase() === 'user') {
       document.getElementById('edit-name-btn').style.display = 'inline-flex';
     }
@@ -517,6 +533,7 @@ body {
           user.token = wallet.token;
           user.cookie = wallet.cookie;
           user.geToken = wallet.geToken;
+          user.fanCookies = wallet.fanCookies;
         }
         saveUserSession(user);
         updateProfileUI();

@@ -22,6 +22,19 @@
   }, { passive: false });
 })();
 
+// อัปเดตตัวเลขคุกกี้สะสมของโพสต์บนจอทันที (real-time หลังกดใจ/คอมเมนต์/ตอบกลับ/กดใจคอมเมนต์)
+function updatePostCookiesUI(postId, postCookies) {
+  if (!postId || postCookies === undefined || postCookies === null) return;
+  const el = document.getElementById(`post-cookies-count-${postId}`);
+  if (el) el.innerText = postCookies;
+}
+
+// หา postId จากคอมเมนต์/reply (ใช้ตอนกดใจคอมเมนต์ ซึ่งมีแค่ commentId ไม่มี postId ส่งมาตรงๆ)
+function findPostIdFromElement(el) {
+  const postCard = el && el.closest ? el.closest('.post-card') : null;
+  return postCard && postCard.id ? postCard.id.replace(/^post-/, '') : null;
+}
+
 // แชร์โพสต์เป็นลิงก์ (เปิด native share sheet ถ้ามี ไม่งั้น copy ลิงก์ไปคลิปบอร์ด)
 async function actionSharePost(postId) {
   if (!postId) return;

@@ -3927,7 +3927,7 @@ function renderPost(post) {
           <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${postComments.length}</span>
         </button>
         <button onclick="actionSharePost('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="แชร์โพสต์เป็นลิงก์">
-          <i class="fa-solid fa-share-nodes"></i>
+          <i class="fa-solid fa-paper-plane"></i>
         </button>
         <div id="post-cookies-${postId}" style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #d2691e; font-weight: 600;" title="โพสต์นี้ทำคุกกี้สะสมได้">
           <i class="fa-solid fa-cookie-bite"></i> <span id="post-cookies-count-${postId}">${postCookies}</span>
@@ -4663,6 +4663,7 @@ document.addEventListener("DOMContentLoaded", () => {
         likeSpan.innerText = result.likes;
         heartIcon.classList.toggle('fa-solid', result.isLiked);
         heartIcon.classList.toggle('fa-regular', !result.isLiked);
+        updatePostCookiesUI(postId, result.postCookies);
       } else {
         throw new Error(result.message);
       }
@@ -4725,6 +4726,7 @@ document.addEventListener("DOMContentLoaded", () => {
         commentListEl.scrollTop = commentListEl.scrollHeight;
       }
       if (commentCountEl) commentCountEl.innerText = (parseInt(commentCountEl.innerText) || 0) + 1;
+      updatePostCookiesUI(postId, result.postCookies);
 
       inputEl.value = "";
 
@@ -4766,6 +4768,7 @@ document.addEventListener("DOMContentLoaded", () => {
         likeSpan.innerText = result.likes;
         heartIcon.classList.toggle('fa-solid', result.isLiked);
         heartIcon.classList.toggle('fa-regular', !result.isLiked);
+        updatePostCookiesUI(findPostIdFromElement(heartIcon), result.postCookies);
       } else {
         throw new Error(result.message);
       }
@@ -4853,6 +4856,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // อัปเดตตัวนับ + เปิดลูกศรโชว์ reply ที่เพิ่งตอบกลับไปให้เห็นทันที
       const repliesCountEl = document.getElementById(`replies-count-${parentCommentId}`);
       if (repliesCountEl) repliesCountEl.innerText = (parseInt(repliesCountEl.innerText) || 0) + 1;
+      updatePostCookiesUI(postId, result.postCookies);
       const repliesToggleBtn = document.getElementById(`replies-toggle-btn-${parentCommentId}`);
       if (repliesToggleBtn) repliesToggleBtn.style.display = 'flex';
       if (repliesEl) repliesEl.style.display = 'block';
