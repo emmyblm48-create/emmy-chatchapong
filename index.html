@@ -2460,6 +2460,7 @@ async function syncUserData() {
         result.data.token = wallet.token;
         result.data.cookie = wallet.cookie;
         result.data.geToken = wallet.geToken;
+        result.data.fanCookies = wallet.fanCookies;
       }
     } catch (e) { console.error("Wallet sync error:", e); }
 
@@ -3375,6 +3376,34 @@ function renderGlobalFans(rawData) {
       miniAvatar.onerror = function() { this.src = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'; };
       previewZone.appendChild(miniAvatar);
     });
+  }
+
+  // 💗 การ์ด Fan Score ของผู้ชมเอง (เฉพาะ role user) — ยอดเดียวกับที่โชว์ในหน้า profile.html
+  if (user && user.role && user.role.toLowerCase() === 'user') {
+    const fanScoreCard = document.createElement('div');
+    fanScoreCard.className = 'fan-card';
+    fanScoreCard.style = `
+      position: relative; min-width: 120px; background: #fff0f5;
+      padding: 20px 15px; border-radius: 25px; text-align: center;
+      border: 2px solid #ff6b9d; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      margin: 10px 5px; flex-shrink: 0;
+    `;
+    fanScoreCard.innerHTML = `
+      <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+        background: #ff6b9d; color: #fff;
+        padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap;">
+        <i class="fas fa-heart-circle-check"></i> Fan Score
+      </div>
+      <img src="${getImg(user.profile_img)}" style="width:65px; height:65px; border-radius:50%; border:3px solid #fef5f7; margin-top:5px; object-fit:cover;" onerror="this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'">
+      <div style="font-weight:700; font-size:14px; color:#444; margin-top:8px; white-space: nowrap; overflow:hidden; text-overflow:ellipsis;">
+        ${escapeHtml(user.name || user.username)}
+      </div>
+      <div style="font-size:12px; color:#ff6b9d; font-weight:700; margin-top:4px;">
+        <i class="fas fa-heart-circle-check"></i> ${Number(user.fanCookies || 0).toLocaleString()}
+      </div>
+    `;
+    list.appendChild(fanScoreCard);
   }
 
   // --- แสดงผลการ์ดด้านล่าง ---

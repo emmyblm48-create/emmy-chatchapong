@@ -730,6 +730,7 @@
             user.token = wallet.token;
             user.cookie = wallet.cookie;
             user.geToken = wallet.geToken;
+            user.fanCookies = wallet.fanCookies;
           }
           saveUserSession(user);
           updateButtonStyles();
@@ -804,11 +805,26 @@ function renderMemberStatsAndFans() {
   
   if (savedFans && fanContainer) {
     fanContainer.innerHTML = '';
+
+    // 💗 การ์ด Fan Score ของผู้ชมเอง (เฉพาะ role user) — ยอดเดียวกับที่โชว์ในหน้า profile.html
+    if (user && user.role && user.role.toLowerCase() === 'user') {
+      fanContainer.innerHTML += `
+        <div class="fan-row" style="background:#fff0f5; border-radius:14px; padding:10px 8px; margin-bottom:10px; border-bottom:none;">
+          <div class="fan-rank" style="color:#ff6b9d; font-size:16px;"><i class="fas fa-heart-circle-check"></i></div>
+          <img src="${getImg(user.profile_img)}" class="fan-avatar" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'">
+          <div class="fan-meta">
+            <div class="fan-name">Fan Score ของคุณ</div>
+            <div class="fan-amount" style="color:#ff6b9d;"><i class="fas fa-heart-circle-check"></i> ${Number(user.fanCookies || 0).toLocaleString()} คะแนน</div>
+          </div>
+        </div>
+      `;
+    }
+
     const fans = JSON.parse(savedFans);
     if (fans.length === 0) {
-      fanContainer.innerHTML = '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
+      fanContainer.innerHTML += '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
     } else {
-      fans.slice(0, 10).forEach((f, idx) => {
+      fans.forEach((f, idx) => {
         const row = document.createElement('div');
         row.className = 'fan-row';
         row.innerHTML = `
