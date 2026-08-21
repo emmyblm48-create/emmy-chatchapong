@@ -81,7 +81,57 @@
       background-color: rgba(255, 255, 255, 0.75);
       box-shadow: 0 0 0 3px rgba(255, 133, 162, 0.1);
     }
-    
+
+    .compose-wrap {
+      position: relative;
+    }
+    .compose-hint {
+      font-size: 0.72rem;
+      color: #b0949a;
+      margin-top: 6px;
+      padding-left: 2px;
+    }
+
+    /* Dropdown แนะนำเมมเบอร์เวลาพิมพ์ @ แท็กเมมเบอร์ในโพสต์ */
+    #mention-dropdown {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      margin-top: 6px;
+      background: #ffffff;
+      border: 1px solid #ffccd5;
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 20;
+    }
+    .mention-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .mention-option:hover,
+    .mention-option.active {
+      background: #fff0f3;
+    }
+    .mention-option img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .mention-option span {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--dark-text, #3a3a3a);
+    }
+
     /* Media Sections styling */
     .media-section {
       margin-top: 20px;
@@ -310,8 +360,14 @@
     New Post
   </div>
   
-  <textarea id="post-content" placeholder="Share something with the community..."></textarea>
-  
+  <div class="compose-wrap">
+    <textarea id="post-content" placeholder="Share something with the community..."></textarea>
+    <div id="mention-dropdown"></div>
+  </div>
+  <div class="compose-hint">
+    <i class="fa-solid fa-hashtag"></i> ใส่แฮชแท็ก &nbsp; <i class="fa-solid fa-link"></i> วางลิงก์ได้เลย &nbsp; <i class="fa-solid fa-at"></i> พิมพ์ @ เพื่อแท็กเมมเบอร์
+  </div>
+
   <div class="media-section">
     <div class="section-label">
       <i class="fa-regular fa-image"></i> Add Gallery
@@ -367,6 +423,130 @@
 
   // 🌟 [ตัวแปรส่วนกลางสำหรับจัดการ State]
   let selectedImageFiles = []; // เก็บ Array ของ Object รูปภาพ [{file: File, preview: base64/blob}]
+
+  // 🏷️ [แท็กเมมเบอร์] โหลดรายชื่อเมมเบอร์ทั้งหมดไว้ล่วงหน้า (RPC เดียวกับที่ search.html ใช้)
+  // เพื่อเอาไว้แสดง dropdown แนะนำตอนพิมพ์ @ ในกล่องข้อความ
+  const mentionFallbackAvatar = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+  let mentionMembers = [];
+  let mentionMatches = [];
+  let mentionActiveIndex = -1;
+  let mentionRange = null; // {start, end} ตำแหน่ง @token ปัจจุบันในข้อความ ใช้ตอนแทรกชื่อที่เลือก
+
+  blm48GetAllMembers().then(res => {
+    if (res && res.status === 'success' && Array.isArray(res.data)) {
+      mentionMembers = res.data.filter(m => m.name && m.name.toString().trim() !== '');
+    }
+  }).catch(err => console.error('โหลดรายชื่อเมมเบอร์สำหรับแท็กไม่สำเร็จ:', err));
+
+  const postContentEl = document.getElementById('post-content');
+  const mentionDropdownEl = document.getElementById('mention-dropdown');
+
+  // หา token "@..." ที่ตำแหน่ง cursor ปัจจุบันกำลังพิมพ์อยู่ (ถ้ามี) คืน {query, start, end} หรือ null
+  function findActiveMentionToken() {
+    const value = postContentEl.value;
+    const cursor = postContentEl.selectionStart;
+    const upToCursor = value.slice(0, cursor);
+    const atIndex = upToCursor.lastIndexOf('@');
+    if (atIndex === -1) return null;
+
+    // ถ้ามีช่องว่าง/ขึ้นบรรทัดใหม่คั่นระหว่าง @ กับ cursor แปลว่าพิมพ์คำอื่นต่อไปแล้ว ไม่ใช่ token นี้
+    const between = upToCursor.slice(atIndex + 1);
+    if (/\s/.test(between)) return null;
+
+    // @ ต้องอยู่ต้นข้อความ หรือมีช่องว่าง/ขึ้นบรรทัดใหม่นำหน้า ไม่ใช่ต่อจากตัวอักษรอื่น (กัน email-like)
+    const before = atIndex > 0 ? value[atIndex - 1] : '';
+    if (before && !/\s/.test(before)) return null;
+
+    return { query: between, start: atIndex, end: cursor };
+  }
+
+  function renderMentionDropdown() {
+    if (mentionMatches.length === 0) {
+      mentionDropdownEl.style.display = 'none';
+      mentionDropdownEl.innerHTML = '';
+      return;
+    }
+    mentionDropdownEl.innerHTML = mentionMatches.map((m, i) => {
+      const imgUrl = m.profile || m.profile_img || '';
+      const activeClass = i === mentionActiveIndex ? ' active' : '';
+      return `
+        <div class="mention-option${activeClass}" data-index="${i}">
+          <img src="${imgUrl || mentionFallbackAvatar}" onerror="this.onerror=null; this.src='${mentionFallbackAvatar}';">
+          <span>${escapeHtml(m.name)}</span>
+        </div>
+      `;
+    }).join('');
+    mentionDropdownEl.style.display = 'block';
+
+    mentionDropdownEl.querySelectorAll('.mention-option').forEach(opt => {
+      opt.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // กัน textarea เสีย focus ก่อน click event จะยิง
+        const idx = parseInt(opt.getAttribute('data-index'));
+        selectMention(mentionMatches[idx]);
+      });
+    });
+  }
+
+  function selectMention(member) {
+    if (!mentionRange) return;
+    const value = postContentEl.value;
+    const insertText = `@${member.name} `;
+    const newValue = value.slice(0, mentionRange.start) + insertText + value.slice(mentionRange.end);
+    postContentEl.value = newValue;
+    const newCursor = mentionRange.start + insertText.length;
+    postContentEl.focus();
+    postContentEl.setSelectionRange(newCursor, newCursor);
+    closeMentionDropdown();
+  }
+
+  function closeMentionDropdown() {
+    mentionMatches = [];
+    mentionActiveIndex = -1;
+    mentionRange = null;
+    mentionDropdownEl.style.display = 'none';
+    mentionDropdownEl.innerHTML = '';
+  }
+
+  function updateMentionDropdown() {
+    const token = findActiveMentionToken();
+    if (!token || mentionMembers.length === 0) {
+      closeMentionDropdown();
+      return;
+    }
+    mentionRange = { start: token.start, end: token.end };
+    const queryLower = token.query.toLowerCase();
+    mentionMatches = mentionMembers
+      .filter(m => m.name.toString().toLowerCase().includes(queryLower))
+      .slice(0, 6);
+    mentionActiveIndex = mentionMatches.length > 0 ? 0 : -1;
+    renderMentionDropdown();
+  }
+
+  postContentEl.addEventListener('input', updateMentionDropdown);
+  postContentEl.addEventListener('click', updateMentionDropdown);
+  postContentEl.addEventListener('blur', () => {
+    // หน่วงเล็กน้อยเพื่อให้ mousedown ของ .mention-option ทำงานก่อน blur จะปิด dropdown
+    setTimeout(closeMentionDropdown, 150);
+  });
+  postContentEl.addEventListener('keydown', (e) => {
+    if (mentionMatches.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      mentionActiveIndex = (mentionActiveIndex + 1) % mentionMatches.length;
+      renderMentionDropdown();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      mentionActiveIndex = (mentionActiveIndex - 1 + mentionMatches.length) % mentionMatches.length;
+      renderMentionDropdown();
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      if (mentionActiveIndex >= 0) {
+        e.preventDefault();
+        selectMention(mentionMatches[mentionActiveIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      closeMentionDropdown();
+    }
+  });
 
   // 🌟 ลดขนาดรูปก่อนอัปโหลดเสมอ - รูปจากกล้องมือถือมักใหญ่ 5-15MB ยิ่งไฟล์ใหญ่ยิ่งอัปโหลดนานและมีโอกาส
   // timeout/ล้มเหลวสูงขึ้นบนเน็ตมือถือที่ไม่เสถียร ย่อเหลือด้านยาวสุดไม่เกิน maxDimension แล้วบีบอัดเป็น JPEG

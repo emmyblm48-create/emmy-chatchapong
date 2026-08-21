@@ -112,6 +112,91 @@ function escapeAttr(text) {
     .replace(/>/g, "&gt;");
 }
 
+// แปลงเนื้อหาโพสต์เป็น HTML ที่แสดงผล: escape ทุกอย่างก่อนเสมอ (กัน XSS) แล้วค่อยแปลง
+// URL / #hashtag / @แท็กเมมเบอร์ ที่เจอเป็นลิงก์คลิกได้ทีหลังจากข้อความที่ escape แล้วเท่านั้น
+// ใช้แทน escapeHtml(post.content) ตรงๆ ในทุกที่ที่ render เนื้อหาโพสต์ (index.html, member.html)
+function formatPostContent(content) {
+  const raw = (content || '').toString();
+  // ลำดับ alternative สำคัญ: URL ต้องมาก่อน เพื่อกิน "#section" ท้ายลิงก์ไปด้วยกัน ไม่ให้ไปโดนจับเป็น hashtag ซ้ำ
+  // lookbehind กัน false positive: "C#" ไม่ให้เป็น hashtag, "user@email.com" ไม่ให้เป็นการแท็กเมมเบอร์
+  // \p{M} (combining mark) ต้องอยู่ในกลุ่มด้วย ไม่งั้นคำไทยที่มีสระ/วรรณยุกต์ลอย (เ, ็, ่, ้ ฯลฯ) จะถูกตัดคำกลางคัน
+  const pattern = /(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+)|(?<![\w#])#([\p{L}\p{M}\p{N}_]+)|(?<![\w@.])@([\p{L}\p{M}\p{N}_.]+)/gu;
+  const trailingPunctRe = /[.,!?;:'")\]}]+$/;
+
+  let result = '';
+  let lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(raw)) !== null) {
+    result += escapeHtml(raw.slice(lastIndex, match.index));
+
+    if (match[1]) {
+      // ตัดเครื่องหมายวรรคตอนท้ายประโยคที่ติดมากับ URL ออก (เช่น "...ดูที่ https://a.com/x." ไม่ให้จุดท้ายติดไปในลิงก์)
+      let url = match[1];
+      let trailing = '';
+      const trailMatch = url.match(trailingPunctRe);
+      if (trailMatch) {
+        trailing = trailMatch[0];
+        url = url.slice(0, -trailing.length);
+      }
+      const href = url.startsWith('www.') ? `https://${url}` : url;
+      result += `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" style="color:var(--primary-pink,#ff85a2);text-decoration:underline;word-break:break-all;">${escapeHtml(url)}</a>${escapeHtml(trailing)}`;
+    } else if (match[2]) {
+      const tag = match[2];
+      result += `<a href="javascript:void(0)" onclick="filterFeedByHashtag('${escapeAttr(tag)}')" style="color:#d4af37;font-weight:700;text-decoration:none;">#${escapeHtml(tag)}</a>`;
+    } else if (match[3]) {
+      const name = match[3];
+      result += `<a href="member?name=${encodeURIComponent(name)}" style="color:var(--primary-pink,#ff85a2);font-weight:700;text-decoration:none;">@${escapeHtml(name)}</a>`;
+    }
+
+    lastIndex = pattern.lastIndex;
+  }
+  result += escapeHtml(raw.slice(lastIndex));
+  return result;
+}
+
+// กรองฟีดที่โหลดไว้แล้วบนจอด้วยแฮชแท็ก (client-side ล้วนๆ ไม่ query เซิร์ฟเวอร์ใหม่)
+// ใช้ id/class ร่วมกันของ index.html และ member.html (#posts-container, .post-card, #content-<postId>)
+function filterFeedByHashtag(tag) {
+  const container = document.getElementById('posts-container');
+  if (!container || !tag) return;
+
+  const needle = '#' + tag.toString().trim().toLowerCase();
+  const cards = container.querySelectorAll('.post-card');
+  let matchCount = 0;
+  cards.forEach(card => {
+    const contentEl = card.querySelector('[id^="content-"]');
+    const text = contentEl ? contentEl.textContent.toLowerCase() : '';
+    const isMatch = text.includes(needle);
+    card.style.display = isMatch ? '' : 'none';
+    if (isMatch) matchCount++;
+  });
+
+  showHashtagFilterBar(tag, matchCount);
+}
+
+function showHashtagFilterBar(tag, matchCount) {
+  const container = document.getElementById('posts-container');
+  if (!container) return;
+  let bar = document.getElementById('hashtag-filter-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'hashtag-filter-bar';
+    bar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff0f3;border:1px solid #ffccd5;border-radius:12px;padding:10px 14px;margin-bottom:15px;font-size:0.85rem;color:#ff6b8b;font-weight:600;';
+    container.parentNode.insertBefore(bar, container);
+  }
+  bar.innerHTML = `
+    <span><i class="fa-solid fa-hashtag"></i> กำลังกรองด้วย #${escapeHtml(tag)} (${matchCount} โพสต์)</span>
+    <button onclick="clearHashtagFilter()" style="background:none;border:none;color:#ff6b8b;font-weight:700;cursor:pointer;font-size:0.85rem;">ล้างตัวกรอง <i class="fa-solid fa-xmark"></i></button>
+  `;
+}
+
+function clearHashtagFilter() {
+  const container = document.getElementById('posts-container');
+  if (container) container.querySelectorAll('.post-card').forEach(card => { card.style.display = ''; });
+  const bar = document.getElementById('hashtag-filter-bar');
+  if (bar) bar.remove();
+}
+
 // อ่าน session ผู้ใช้จาก localStorage คืนค่า user data object (หรือ null ถ้าไม่มี/หมดอายุ)
 function getUserSession() {
   try {
