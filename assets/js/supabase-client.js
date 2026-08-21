@@ -154,6 +154,9 @@ function blm48AddComment(username, postId, text, parentCommentId) {
 function blm48LikeComment(username, commentId) {
   return blm48Rpc('like_comment', { p_username: username, p_comment_id: commentId });
 }
+function blm48EditComment(username, commentId, text) {
+  return blm48Rpc('edit_comment', { p_username: username, p_comment_id: commentId, p_text: text });
+}
 
 // Uploads a recorded voice-clip Blob straight to the public "post-audio" Storage bucket
 // (created 2026-08-05, replaces the old audio pipeline that pointed at a since-abandoned
