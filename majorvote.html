@@ -139,8 +139,10 @@
       /* 🧁 โครงสร้างโซนปุ่ม Action วงกลมใต้กระเป๋าเงิน */
 .wallet-actions-container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 32px; /* ระยะห่างระหว่าง 2 ปุ่ม */
+    gap: 24px;
+    row-gap: 16px;
     margin-top: 20px;
     margin-bottom: 15px;
 }
@@ -192,6 +194,13 @@
     background-color: #f3f0ff !important; /* ม่วงอ่อนโปร่งแสง */
     color: #9775fa !important;            /* ไอคอนสีม่วงสด */
     box-shadow: 0 4px 12px rgba(151, 117, 250, 0.2);
+}
+
+/* 👑 ปุ่ม Tier Info (โทนสีทอง ให้เข้าชุดกับ Membership Card) */
+.btn-tier-info .circle-icon {
+    background-color: #fdf6e3 !important; /* เหลืองทองอ่อนโปร่งแสง */
+    color: #cba034 !important;            /* ไอคอนสีทองเข้ม */
+    box-shadow: 0 4px 12px rgba(203, 160, 52, 0.25);
 }
 
 .circle-action-btn .circle-label {
@@ -265,6 +274,11 @@
         <div class="circle-icon"><i class="fas fa-history"></i></div>
         <span class="circle-label">History</span>
     </a>
+
+    <button onclick="showTierBenefitsInfo()" class="circle-action-btn btn-tier-info" type="button">
+        <div class="circle-icon"><i class="fas fa-crown"></i></div>
+        <span class="circle-label">Tier</span>
+    </button>
 </div>
 
     <div class="section-title"> Major Vote</div>
@@ -499,6 +513,85 @@
                 Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
             }
         }
+    }
+
+    // --- ข้อมูล BLM48 Membership Tier (Copper/Silver/Gold ตามค่าเฉลี่ย Token ที่ถือครองรายเดือน) ---
+    const TIER_INFO_LIST = [
+        {
+            key: 'copper',
+            name: 'Copper Tier',
+            img: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',
+            accent: '#cba034',
+            bg: '#fdf6e3',
+            condition: 'ทุกบัญชี Role User จะได้รับ Copper Tier ตั้งแต่วันที่เปิดใช้งานบัญชี และคงระดับนี้ไว้เมื่อมี Token ถือครองเฉลี่ยต่อเดือนต่ำกว่า 150 Token',
+            benefits: [
+                'ได้รับ Copper Membership Card ประจำตัว',
+                'รับคุกกี้รายเดือนที่ระดับ Copper 150 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
+            ]
+        },
+        {
+            key: 'silver',
+            name: 'Silver Tier',
+            img: 'https://lh3.googleusercontent.com/d/1byHhVpGymz84M2MDHE30ewJVNNSFTYcI=s1000',
+            accent: '#8a97a0',
+            bg: '#f4f6f8',
+            condition: 'ได้รับสถานะ Silver Tier เมื่อมี Token ถือครองเฉลี่ยต่อเดือนตั้งแต่ 150 Token แต่ไม่ถึง 500 Token',
+            benefits: [
+                'ได้รับ Silver Membership Card ประจำตัว',
+                'รับคุกกี้รายเดือนที่ระดับ Silver 300 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
+            ]
+        },
+        {
+            key: 'gold',
+            name: 'Gold Tier',
+            img: 'https://lh3.googleusercontent.com/d/18ag8mAELvjn4IQQvboOxAXfB_PddYO17=s1000',
+            accent: '#cba034',
+            bg: '#fff8e1',
+            condition: 'ได้รับสถานะ Gold Tier เมื่อมี Token ถือครองเฉลี่ยต่อเดือนตั้งแต่ 500 Token ขึ้นไป',
+            benefits: [
+                'ได้รับ Gold Membership Card ประจำตัว',
+                'รับคุกกี้รายเดือนที่ระดับ Gold 500 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
+            ]
+        }
+    ];
+
+    function buildTierInfoHtml() {
+        const cards = TIER_INFO_LIST.map(t => `
+            <div style="display: flex; gap: 12px; align-items: flex-start; background: ${t.bg}; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 4px solid ${t.accent}; text-align: left;">
+                <img src="${t.img}" alt="${t.name}" style="width: 68px; height: 68px; object-fit: cover; border-radius: 10px; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.12);" onerror="this.style.display='none'">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 15px; color: ${t.accent}; margin-bottom: 4px;">${t.name}</div>
+                    <div style="font-size: 12.5px; color: #666; margin-bottom: 8px; line-height: 1.5;">${t.condition}</div>
+                    <div style="font-size: 12.5px; color: #444; line-height: 1.7;">
+                        ${t.benefits.map(b => `<div>• ${b}</div>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div style="text-align: left;">
+                <p style="font-size: 13px; color: #777; margin: 0 0 14px; line-height: 1.6;">
+                    ระดับ Tier ของคุณคำนวณจาก <strong>ค่าเฉลี่ยจำนวน Token ที่ถือครองในเดือนก่อนหน้า</strong> (ไม่ใช่ยอด Token ณ ปัจจุบัน) เพื่อไม่ให้การใช้ Token ซื้อของใน Shop/Cafe/Ticket ทำให้ Tier ตกทันที ระบบจะสรุประดับ Tier และอัปเดตสิทธิ์ให้อัตโนมัติทุกต้นเดือน
+                </p>
+                ${cards}
+                <p style="font-size: 11.5px; color: #999; margin-top: 4px; line-height: 1.6;">
+                    หมายเหตุ: สิทธิพิเศษของแต่ละ Tier ในโปรแกรม BLM48 Membership Tier รวมทั้งเงื่อนไขและอัตราการคำนวณ อาจมีการปรับเปลี่ยนตามความเหมาะสม โดยทีมงาน BLM48 จะประกาศการเปลี่ยนแปลงล่วงหน้าผ่านแอปพลิเคชัน BLM48 Membership ก่อนมีผลบังคับใช้
+                </p>
+            </div>
+        `;
+    }
+
+    function showTierBenefitsInfo() {
+        Swal.fire({
+            title: 'BLM48 Membership Tier',
+            html: buildTierInfoHtml(),
+            width: 460,
+            showConfirmButton: true,
+            confirmButtonText: 'เข้าใจแล้ว',
+            confirmButtonColor: 'var(--primary-pink)',
+            showCloseButton: true
+        });
     }
 
     async function handleManualRefresh() {
