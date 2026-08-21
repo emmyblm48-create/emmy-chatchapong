@@ -2797,6 +2797,10 @@ function getDashboardDataProcess(username) {
 //   2) ขากลับ (Supabase -> Sheets): ทุกๆ 10 นาที ดึงยอด token/cookie/geToken,
 //      ranking เดือนปัจจุบัน, และ log ใหม่ๆ กลับมาโชว์ในชีตให้แอดมินดู
 //      (ชีตไม่ใช่เจ้าของค่าจริงอีกต่อไปแล้วสำหรับ 3 คอลัมน์นี้)
+//   3) ทุกวันตอนตี 1 (เวลาไทย): snapshot ยอด Token ของทุกคนลง Supabase
+//      (token_daily_snapshots) ใช้คำนวณ Membership Tier (Copper/Silver/Gold)
+//      จากค่าเฉลี่ยการถือครองย้อนหลัง 1 เดือน — ดู get_membership_tier /
+//      claim_monthly_cookie ฝั่ง Supabase
 //
 // วิธีติดตั้ง (ทำครั้งเดียว):
 //   1. เปิด Project Settings (รูปเฟือง) ในตัวแก้ไข Apps Script
@@ -2892,6 +2896,28 @@ function bumpMemberLikesInSupabase_(memberName, delta) {
     }
   } catch (err) {
     Logger.log('bumpMemberLikesInSupabase_ exception: ' + err.message);
+  }
+}
+
+// Snapshot ยอด Token ของทุกคนลง token_daily_snapshots วันละครั้ง ใช้คำนวณ
+// ค่าเฉลี่ยการถือครองย้อนหลัง 1 เดือนสำหรับระบบ Membership Tier (Copper/
+// Silver/Gold) ฟังก์ชัน snapshot_all_token_balances ฝั่ง Supabase ไม่ได้
+// grant ให้ anon เรียก — เรียกได้เฉพาะผ่าน service_role นี้เท่านั้น
+function snapshotTokenBalancesInSupabase_() {
+  try {
+    var cfg = getSupabaseConfig_();
+    var res = UrlFetchApp.fetch(cfg.url + '/rest/v1/rpc/snapshot_all_token_balances', {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { apikey: cfg.key, Authorization: 'Bearer ' + cfg.key },
+      payload: JSON.stringify({}),
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() >= 300) {
+      Logger.log('snapshotTokenBalancesInSupabase_ failed: ' + res.getContentText());
+    }
+  } catch (err) {
+    Logger.log('snapshotTokenBalancesInSupabase_ exception: ' + err.message);
   }
 }
 
@@ -3316,17 +3342,20 @@ function setupBlm48SupabaseSync() {
   // ล้าง trigger เก่าของฟังก์ชันพวกนี้ก่อน กันสร้างซ้ำถ้ารันปุ่มนี้หลายครั้ง
   ScriptApp.getProjectTriggers().forEach(function (t) {
     var fn = t.getHandlerFunction();
-    if (fn === 'onEditInstallable' || fn === 'reverseSyncFromSupabase_') {
+    if (fn === 'onEditInstallable' || fn === 'reverseSyncFromSupabase_' || fn === 'snapshotTokenBalancesInSupabase_') {
       ScriptApp.deleteTrigger(t);
     }
   });
 
   ScriptApp.newTrigger('onEditInstallable').forSpreadsheet(SS).onEdit().create();
   ScriptApp.newTrigger('reverseSyncFromSupabase_').timeBased().everyMinutes(10).create();
+  // Snapshot ยอด Token ของทุกคนไว้ตอนตี 1 (เวลาไทย) ทุกวัน สำหรับระบบ Membership Tier
+  ScriptApp.newTrigger('snapshotTokenBalancesInSupabase_').timeBased().atHour(1).everyDays(1).inTimezone('Asia/Bangkok').create();
 
   // sync รอบแรกทันที ไม่ต้องรอแก้ชีตก่อน
   BLM48_SYNCED_SHEETS.forEach(syncSheetToSupabase_);
   reverseSyncFromSupabase_();
+  snapshotTokenBalancesInSupabase_();
 
   Logger.log('ตั้งค่า Supabase sync เรียบร้อยแล้วค่ะ');
 }

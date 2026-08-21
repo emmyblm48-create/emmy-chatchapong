@@ -339,8 +339,18 @@ function blm48RemoveOshi(username, type, memberName) {
 
 // Free monthly cookie claim (role='user' only) and token->cookie exchange
 // (rate is fixed server-side at 1:10, client-supplied reward is never trusted).
+// Monthly reward amount now depends on the caller's Membership Tier - see
+// blm48GetMembershipTier below.
 function blm48ClaimMonthlyCookie(username) {
   return blm48Rpc('claim_monthly_cookie', { p_username: username });
+}
+
+// Membership Tier for the profile Membership Card: role='member' always
+// gets {tier: null} (plain Member Card); role='user' gets 'copper' /
+// 'silver' / 'gold' based on last month's average Token holding, computed
+// server-side from daily snapshots.
+function blm48GetMembershipTier(username) {
+  return blm48Rpc('get_membership_tier', { p_username: username });
 }
 
 // Daily missions (give 10 cookies / like 2 posts / comment 2 posts, all from

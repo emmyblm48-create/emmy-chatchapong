@@ -685,18 +685,43 @@ body {
   }
 
   // --- ฟังก์ชันสร้างการ์ด Membership ---
-  function showMembershipCardModal() {
+  // การ์ดพื้นหลังแยกตาม Role/Tier: Member ได้ Member Card เสมอ
+  // ส่วน role=user จะได้ Copper/Silver/Gold ตาม Membership Tier (ค่าเฉลี่ยการถือ Token ย้อนหลัง 1 เดือน)
+  const MEMBERSHIP_CARD_IMAGES = {
+    member: 'https://lh3.googleusercontent.com/d/1z1rqVAMbE6a0-i-A_9W-PfErg0V8RSqy=s1000',
+    copper: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',
+    silver: 'https://lh3.googleusercontent.com/d/1byHhVpGymz84M2MDHE30ewJVNNSFTYcI=s1000',
+    gold: 'https://lh3.googleusercontent.com/d/18ag8mAELvjn4IQQvboOxAXfB_PddYO17=s1000'
+  };
+
+  async function showMembershipCardModal() {
     if (!user) return;
     Swal.fire({
       title: 'Loading...',
       html: '<div style="font-size: 14px; color: #666; margin-top: 10px;">กรุณารอสักครู่</div>',
       allowOutsideClick: false,
       showConfirmButton: false,
-      didOpen: () => {
+      didOpen: async () => {
         Swal.showLoading();
+
+        // เลือกภาพการ์ดตาม Role/Tier - ถ้าเรียก API ไม่สำเร็จ fallback เป็น Copper Card
+        let cardTier = null;
+        let cardKey = 'copper';
+        if (isUserMember()) {
+          cardKey = 'member';
+        } else {
+          try {
+            const tierRes = await blm48GetMembershipTier(user.username);
+            if (tierRes && tierRes.status === 'success' && tierRes.tier) {
+              cardTier = tierRes.tier;
+              cardKey = tierRes.tier;
+            }
+          } catch (e) { /* ใช้ Copper Card เป็นค่าเริ่มต้น */ }
+        }
+
         const bgImg = new Image();
-        bgImg.crossOrigin = "anonymous"; 
-        bgImg.src = 'https://lh3.googleusercontent.com/d/1iL8ovg2E52QWwiR8Z9OdAc7mQ3Zv5PWU=s1000'; 
+        bgImg.crossOrigin = "anonymous";
+        bgImg.src = MEMBERSHIP_CARD_IMAGES[cardKey] || MEMBERSHIP_CARD_IMAGES.copper;
 
         bgImg.onload = function() {
           const canvas = document.createElement('canvas');
@@ -725,9 +750,9 @@ body {
           ctx.font = 'bold ' + Math.floor(canvas.height * 0.055) + 'px "Kanit", "Prompt", sans-serif';
           ctx.fillText(user.name, textX, line1_Y);
 
-          // Role
-          const nameWidth = ctx.measureText(user.name).width; 
-          const roleText = (user.role || 'MEMBER').toUpperCase();
+          // Role (โชว์ชื่อ Tier แทน Role ถ้าเป็น user ที่มี Tier แล้ว)
+          const nameWidth = ctx.measureText(user.name).width;
+          const roleText = (cardTier || user.role || 'MEMBER').toUpperCase();
           ctx.font = '600 ' + Math.floor(canvas.height * 0.035) + 'px "Kanit", sans-serif';
           const roleWidth = ctx.measureText(roleText).width;
           
