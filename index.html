@@ -2206,8 +2206,8 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         <i class="fas fa-list-check"></i>
         <span class="noti-badge" id="mission-badge" style="display: none;"></span>
     </a>
-    <a href="majorvote" class="nav-icon" title="Major Vote">
-        <i class="fas fa-crown"></i>
+    <a href="shop" class="nav-icon" title="Shop">
+        <i class="fas fa-store"></i>
     </a>
     <!-- ปุ่มกระเป๋าแบบไอคอน -->
      <a href="inventory" class="nav-icon" title="Inventory">
@@ -2898,8 +2898,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 🔄 2. ตรวจสอบเวอร์ชันแอปและโหลดข้อมูลแชมป์
-    checkVersion(); 
+    checkVersion();
     loadChampOfTheMonth();
+
+    // 🛡️ ยิงโหลดรายชื่อเมมเบอร์จริงไว้ล่วงหน้าแบบไม่รอ (ใช้เช็คก่อนแปลง @แท็กในโพสเป็นลิงก์ กันแท็กชื่อไม่มีตัวตนจริง)
+    // ถ้า window.memberData มีจากแคช ranking อยู่แล้วจะข้ามการดึงซ้ำทันที (ดู getMemberNameLookup ใน common.js)
+    primeMemberNameCache();
     
     // 🎨 3. วาดหน้าจอแสดงผลด้วยข้อมูลเก่าจาก Cache ทันที เพื่อให้แอปเปิดไว
     if (typeof updateUI === 'function') updateUI();
@@ -4187,7 +4191,7 @@ async function editPostUi(postId, encodedContent) {
   const data = await blm48EditPost(currentUser.username, postId, newText, newImageUrl);
 
   if (data.status === 'success') {
-    document.getElementById(`content-${postId}`).innerText = newText; // เปลี่ยนข้อความบนจอทันที
+    document.getElementById(`content-${postId}`).innerHTML = formatPostContent(newText); // เปลี่ยนข้อความบนจอทันที (ผ่าน formatPostContent เพื่อให้ #hashtag/ลิงก์/@แท็ก ยังขึ้นหลังแก้ไขโพสต์)
     if (postEl) postEl.dataset.images = newImageUrl;
     const imagesContainer = document.getElementById(`post-images-${postId}`);
     if (imagesContainer) imagesContainer.innerHTML = buildImagesHtml(newImageUrl);
@@ -4380,9 +4384,12 @@ async function refreshAppData() {
 
 // ==========================================
 // 🎯 DAILY MISSION - แยกชุดภารกิจตาม role ฝั่งเซิร์ฟเวอร์ (get_daily_missions คืน role
-// มาด้วย และเลือกชุด missions ให้เองอยู่แล้ว ฝั่งนี้แค่ render ตาม key ที่ได้รับ):
-//   role=user:   ให้คุกกี้รวม 10 / กดใจ 2 โพส / คอมเมนต์ 2 โพส (ของเดือนนี้ ต่างโพสกัน)
-//   role=member: โพส 1 โพสต่อวัน / กดใจ 3 โพส (ของเดือนนี้ ต่างโพสกัน)
+// มาด้วย และเลือกชุด missions ให้เองอยู่แล้ว ฝั่งนี้แค่ render ตาม key/target ที่ได้รับ):
+//   role=user:   ให้คุกกี้รวม / กดใจ N โพส / คอมเมนต์ N โพส (ของเดือนนี้ ต่างโพสกัน)
+//   role=member: โพส 1 โพสต่อวัน / กดใจ N โพส (ของเดือนนี้ ต่างโพสกัน)
+// เป้าหมาย (target) ของแต่ละภารกิจสุ่มรายวันต่อคน (deterministic ผ่าน
+// _daily_mission_targets ฝั่ง SQL คร่อมค่าเดิมไม่ให้ยากขึ้น/ง่ายลง แค่ไม่ซ้ำเดิมทุกวัน)
+// ห้าม hardcode ตัวเลขเป้าหมายฝั่งนี้ - ใช้ค่า target ที่ RPC ส่งมาเสมอ
 // รีเซ็ตทุกเที่ยงคืนฝั่งเซิร์ฟเวอร์ (Asia/Bangkok) ความคืบหน้าถูกนับจาก
 // give_cookie/like_post/add_comment/create_post โดยตรง ที่นี่แค่อ่าน+กดรับรางวัล
 // ==========================================
@@ -5014,9 +5021,9 @@ document.addEventListener("DOMContentLoaded", () => {
     <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
   </a>
 
-  <a href="shop" class="tab-item">
-    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
-    <img id="nav-cart" src="" alt="Shop" style="display: none;">
+  <a href="majorvote" class="tab-item">
+    <i id="nav-cart-fallback" class="fa-solid fa-crown"></i>
+    <img id="nav-cart" src="" alt="Major Vote" style="display: none;">
   </a>
 
   <a href="notification" class="tab-item">

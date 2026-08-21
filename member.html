@@ -638,7 +638,7 @@
 }
 </style>
 </head>
-<body class="glass-mesh-bg">
+<body class="glass-mesh-bg force-white-bg">
 
   <div class="app-layout">
     <button class="back-circle-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
@@ -891,6 +891,10 @@ function renderMemberStatsAndFans() {
     function loadMemberData() {
       if (!memberName) { window.location.href = 'index'; return; }
       user = getUserSession();
+
+      // 🛡️ ยิงโหลดรายชื่อเมมเบอร์จริงไว้ล่วงหน้าแบบไม่รอ (หน้านี้ไม่มี window.memberData จากที่อื่นเหมือน index.html)
+      // ใช้เช็คก่อนแปลง @แท็กในโพสเป็นลิงก์ กันแท็กชื่อไม่มีตัวตนจริง (ดู getMemberNameLookup ใน common.js)
+      primeMemberNameCache();
 
       // 🔴 Realtime: ยอด Token/Cookie เปลี่ยนจากที่ไหนก็ตาม -> อัปเดตปุ่มให้คุกกี้ทันที
       if (user && window.BLM48Realtime) {
@@ -1857,7 +1861,7 @@ document.addEventListener('click', function() {
         const data = await blm48EditPost(currentUser.username, postId, newText, newImageUrl);
         if (data.status === 'success') {
           const contentEl = document.getElementById(`content-${postId}`);
-          if (contentEl) contentEl.innerText = newText;
+          if (contentEl) contentEl.innerHTML = formatPostContent(newText); // ผ่าน formatPostContent เพื่อให้ #hashtag/ลิงก์/@แท็ก ยังขึ้นหลังแก้ไขโพสต์
           if (postEl) postEl.dataset.images = newImageUrl;
           const imagesContainer = document.getElementById(`post-images-${postId}`);
           if (imagesContainer) imagesContainer.innerHTML = buildImagesHtml(newImageUrl);

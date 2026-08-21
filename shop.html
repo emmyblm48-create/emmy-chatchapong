@@ -49,6 +49,27 @@
             font-family: 'Quicksand', 'Kanit', sans-serif;
             margin: 0; padding: 0; min-height: 100vh;
         }
+
+        /* 📡 Top Navbar - Shop กลายเป็นหน้าย่อยเข้าถึงผ่านไอคอนบน index.html แล้ว (เดิมเป็นหน้าเมนูหลัก
+           มี bottom-tab-bar) เลยต้องมีปุ่มย้อนกลับแทน ก็อปปี้สไตล์เดียวกับที่ majorvote.html เคยใช้ */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: #ffffff;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            z-index: 1000;
+        }
+        .nav-left-actions {
+            position: absolute; left: 15px; display: flex; align-items: center; gap: 8px;
+        }
+        .nav-btn {
+            color: var(--primary-pink); font-size: 1rem; text-decoration: none;
+            width: 35px; height: 35px; display: flex;
+            align-items: center; justify-content: center;
+            border-radius: 50%; background: #fff0f5;
+            border: none; cursor: pointer; transition: transform 0.2s;
+        }
+        .nav-btn:active { transform: scale(0.9); }
       
         /* บังคับหน้าต่างทั้งหมดและ SweetAlert ให้ใช้ฟอนต์ Quicksand และ Kanit เท่านั้น */
         .confirm-box, .blm-overlay, .swal2-popup, .swal2-title, .swal2-html-container, .swal2-confirm, .swal2-cancel {
@@ -58,23 +79,21 @@
         /* ✨ SweetAlert2 ใช้ดีไซน์กระจกฝ้ากลางร่วมกับทุกหน้า (assets/css/glassmorphism.css)
            เหลือไว้แค่ font-family บังคับด้านบน ไม่ทับ style กระจกฝ้าอีกต่อไป */
 
-        /* ปรับแต่งการ์ดตู้กาชาและตั๋วให้ดูมีมิติเหมือนตู้เกมส์จริง */
+        /* 🤍 การ์ดร้านค้า/กาชา/ตั๋ว: พื้นขาวล้วน ไม่มี glass blur/เงา/glow ให้ดูลอยอีกต่อไป
+           ใช้เส้นขอบบางแทนเงาเพื่อให้ยังแยกขอบการ์ดออกจากพื้นหลังขาวได้ */
         .shop-card, .gacha-container, .ticket-card {
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
+            background: #ffffff;
+            border: 1px solid #f0f0f0;
             border-radius: 24px;
-            box-shadow: var(--glass-shadow);
-            transition: all 0.3s ease;
+            box-shadow: none;
+            transition: border-color 0.3s ease;
             overflow: hidden;
             position: relative;
         }
 
         .shop-card:hover {
-            transform: translateY(-5px);
             border-color: var(--primary-pink);
-            box-shadow: 0 12px 30px rgba(255, 105, 180, 0.3);
+            box-shadow: none;
         }
 
         /* ปุ่มกดสไตล์นุ่มฟู น่ารัก */
@@ -85,9 +104,9 @@
             border: none;
             border-radius: 50px;
             padding: 10px 24px;
-            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+            box-shadow: none;
             cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            transition: transform 0.1s ease;
         }
 
         .btn-shop-buy:active, .btn-gacha-spin:active {
@@ -290,72 +309,42 @@
         .nav-icon { background: none; border: none; color: #ffb3c1; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
         .nav-icon:hover { color: var(--primary-pink); transform: scale(1.1); }
 
-        /* Wallet Section */
+        /* Wallet Section - หน้าตาเดียวกับ .stats-bar/.stat-box ของหน้า profile.html:
+           การ์ดขาวล้วน แบ่งคอลัมน์ด้วยเส้นคั่นบางๆ ไม่มี glass blur/เงาลอย/glow ใดๆ */
         .user-profile-bar {
-            max-width: 900px; margin: 15px auto; background: var(--glass-bg-strong); border-radius: 20px;
-            backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
-            padding: 16px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+            max-width: 900px; margin: 15px auto; background: #ffffff; border-radius: 18px;
+            padding: 16px 5px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
         }
         .wallet-card-header {
             font-family: 'Kanit', sans-serif;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
             color: var(--dark-pink);
-            margin: 0 0 14px 2px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .wallet-card-header i {
-            width: 34px; height: 34px;
-            flex: 0 0 auto;
-            background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
-            color: white;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            box-shadow: 0 4px 10px rgba(255,105,180,0.3);
-        }
-        .wallet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .wallet-item {
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-sm));
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow-sm);
-            padding: 8px 10px;
-            border-radius: 50px;
+            margin: 0 16px 14px 16px;
             display: flex;
             align-items: center;
             gap: 8px;
-            min-width: 0;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
         }
-        .wallet-item:hover {
-            transform: translateY(-2px);
-            border-color: var(--pastel-pink);
-            box-shadow: 0 6px 14px rgba(255,133,162,0.18);
+        .wallet-card-header i {
+            color: var(--primary-pink);
+            font-size: 18px;
         }
-        .wallet-icon-circle {
-            flex: 0 0 auto;
-            width: 34px; height: 34px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
-        }
-        .wallet-text {
+        .wallet { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .wallet-item {
+            text-align: center;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             min-width: 0;
-            line-height: 1.25;
         }
-        .wallet-label {
-            font-size: 10px; color: #999; font-weight: 600;
+        .wallet-item:not(:last-child) { border-right: 1px solid #ffe5ec; }
+        .wallet-value {
+            font-size: 16px; color: #444; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .wallet-value {
-            font-size: 15px; color: #444; font-weight: 800;
+        .wallet-label {
+            font-size: 11px; color: #999; font-weight: 600; margin-top: 4px;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
@@ -384,7 +373,6 @@
             border-radius: 16px;
             display: flex; align-items: center; justify-content: center;
             font-size: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
         }
         .quick-tile-label {
             font-size: 11px;
@@ -419,21 +407,19 @@
             box-sizing: border-box;
         }
 
-        /* 📦 ดักตัวการ์ดทุกแบบ */
+        /* 📦 ดักตัวการ์ดทุกแบบ - พื้นขาวล้วน ไม่มี glass blur/เงา/glow ให้ดูลอย ใช้เส้นขอบบางแทน */
         .merch-card, .merch-card-large {
-            background: var(--glass-bg-strong) !important;
-            backdrop-filter: blur(var(--glass-blur)) !important;
-            -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+            background: #ffffff !important;
             border-radius: 16px !important;
-            box-shadow: var(--glass-shadow) !important;
+            box-shadow: none !important;
             width: 100% !important;
             max-width: 100% !important;
             margin: 0 auto !important;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border: 1px solid var(--glass-border) !important;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid #f0f0f0 !important;
+            transition: border-color 0.2s ease;
             box-sizing: border-box;
             position: relative;
         }
@@ -449,7 +435,7 @@
             letter-spacing: 0.5px;
             padding: 4px 10px 4px 12px;
             border-radius: 0 20px 20px 0;
-            box-shadow: 0 3px 8px rgba(255,105,180,0.4);
+            box-shadow: none;
             z-index: 2;
         }
 
@@ -465,13 +451,13 @@
             letter-spacing: 0.5px;
             padding: 4px 12px 4px 10px;
             border-radius: 20px 0 0 20px;
-            box-shadow: 0 3px 8px rgba(255, 157, 66, 0.4);
+            box-shadow: none;
             z-index: 2;
         }
 
         .merch-card:hover, .merch-card-large:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(255, 182, 193, 0.2) !important;
+            border-color: var(--primary-pink) !important;
+            box-shadow: none !important;
         }
 
         /* 🖼️ ดักกรอบรูปภาพ */
@@ -669,8 +655,9 @@
           background-color: var(--bg-color);
           color: #eee;
         }
-        body.dark-mode .navbar, 
-        body.dark-mode .user-profile-bar, 
+        body.dark-mode .navbar,
+        body.dark-mode .top-navbar,
+        body.dark-mode .user-profile-bar,
         body.dark-mode .member-card, 
         body.dark-mode .modal-box, 
         body.dark-mode #sidebar {
@@ -679,7 +666,8 @@
           color: white;
         }
         body.dark-mode .name-text, body.dark-mode .section-title { color: #fff; }
-        body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #444; }
+        body.dark-mode .wallet-item:not(:last-child) { border-right-color: #444; }
+        body.dark-mode .nav-btn { background: #444; color: #eee; }
           
         #sidebar {
           position: fixed;
@@ -712,8 +700,6 @@
         }
           
         @media (max-width: 600px) {
-          .wallet { grid-template-columns: 1fr 1fr; }
-          .wallet-item:last-child { grid-column: span 2; }
           .member-card { width: 150px; padding: 20px 10px; }
           .rank-1 { height: 280px; }
           .img-wrapper { width: 85px; height: 85px; }
@@ -958,7 +944,7 @@
         }
 
         body {
-            padding-bottom: 110px !important;
+            padding-top: 60px !important; /* เผื่อพื้นที่ให้ .top-navbar แบบ fixed ไม่บังเนื้อหา (เดิมเผื่อไว้ล่างสำหรับ bottom-tab-bar ที่ย้ายออกไปแล้ว) */
         }
           
         /* --- อนิเมชันไข่กาชาปองสั่นลุ้นรางวัล --- */
@@ -1014,7 +1000,15 @@
         }
     </style>
 </head>
-<body class="glass-mesh-bg">
+<body class="glass-mesh-bg force-white-bg">
+
+<div class="top-navbar">
+    <div class="nav-left-actions">
+        <button class="nav-btn" title="กลับ" onclick="history.back()" style="background: none; border: none; padding: 0; cursor: pointer;">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    </div>
+</div>
 
 <div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
     <div class="preview-modal-content" onclick="event.stopPropagation()">
@@ -1046,25 +1040,16 @@
     <div class="wallet-card-header"><i class="fas fa-wallet"></i> My Wallet</div>
     <div class="wallet" id="shop-wallet-bar">
         <div class="wallet-item">
-            <div class="wallet-icon-circle" style="background:#fff4e0;color:#ffb347;"><i class="fas fa-coins"></i></div>
-            <div class="wallet-text">
-                <span class="wallet-label">Tokens</span>
-                <span class="wallet-value">-</span>
-            </div>
+            <div class="wallet-value" style="color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i> -</div>
+            <div class="wallet-label">Cookies</div>
         </div>
         <div class="wallet-item">
-            <div class="wallet-icon-circle" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
-            <div class="wallet-text">
-                <span class="wallet-label">Cookies</span>
-                <span class="wallet-value">-</span>
-            </div>
+            <div class="wallet-value" style="color:#f59f00;"><i class="fas fa-coins"></i> -</div>
+            <div class="wallet-label">Tokens</div>
         </div>
         <div class="wallet-item">
-            <div class="wallet-icon-circle" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-gem"></i></div>
-            <div class="wallet-text">
-                <span class="wallet-label">GE Tokens</span>
-                <span class="wallet-value">-</span>
-            </div>
+            <div class="wallet-value" style="color:#4dabf7;"><i class="fas fa-gem"></i> -</div>
+            <div class="wallet-label">GE Tokens</div>
         </div>
     </div>
 </div>
@@ -1214,31 +1199,6 @@
   <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
   <div>© 2026 Virtual Idol Cover Group</div>
 </footer>
-    
-<div class="bottom-tab-bar">
-  <a href="index" class="tab-item">
-    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
-    <img id="nav-home" src="" alt="Home" style="display: none;">
-  </a>
-  <a href="kami" class="tab-item">
-    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
-    <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
-  </a>
-  <a href="shop" class="tab-item active">
-    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
-    <img id="nav-cart" src="" alt="Shop" style="display: none;">
-  </a>
-  <a href="notification" class="tab-item">
-    <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
-      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
-      <img id="nav-noti" src="" alt="Notification" style="display: none;">
-      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
-    </div>
-  </a>
-  <a href="profile" class="tab-item">
-    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="border-radius: 50%; object-fit: cover;">
-  </a>
-</div>
 
 <!-- 🎰 4. กล่องตู้สุ่มกาชาเดิมตามเดิม (ใช้สำหรับการสุ่มเพื่อความตื่นเต้น) -->
 <div id="blm-gacha-modal" class="blm-overlay">
@@ -1320,32 +1280,23 @@ function celebratePurchase() {
     }
 }
 
-// 2. อัปเดตการแสดงผลยอดเงินในกระเป๋า
+// 2. อัปเดตการแสดงผลยอดเงินในกระเป๋า (หน้าตาเดียวกับสถิติ Cookies/Tokens/GE Tokens ในหน้า profile.html)
 function updateWalletUI() {
     const walletBar = document.getElementById('shop-wallet-bar');
     if (!userData || !walletBar) return;
-    
+
     walletBar.innerHTML = `
         <div class="wallet-item">
-            <div class="wallet-icon-circle" style="background:#fff4e0;color:#ffb347;"><i class="fas fa-coins"></i></div>
-            <div class="wallet-text">
-                <span class="wallet-label">Tokens</span>
-                <span class="wallet-value">${Number(userData.token).toLocaleString()}</span>
-            </div>
+            <div class="wallet-value" style="color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i> ${Number(userData.cookie).toLocaleString()}</div>
+            <div class="wallet-label">Cookies</div>
         </div>
         <div class="wallet-item">
-            <div class="wallet-icon-circle" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
-            <div class="wallet-text">
-                <span class="wallet-label">Cookies</span>
-                <span class="wallet-value">${Number(userData.cookie).toLocaleString()}</span>
-            </div>
+            <div class="wallet-value" style="color:#f59f00;"><i class="fas fa-coins"></i> ${Number(userData.token).toLocaleString()}</div>
+            <div class="wallet-label">Tokens</div>
         </div>
         <div class="wallet-item">
-            <div class="wallet-icon-circle" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-gem"></i></div>
-            <div class="wallet-text">
-                <span class="wallet-label">GE Tokens</span>
-                <span class="wallet-value">${Number(userData.geToken || 0).toLocaleString()}</span>
-            </div>
+            <div class="wallet-value" style="color:#4dabf7;"><i class="fas fa-gem"></i> ${Number(userData.geToken || 0).toLocaleString()}</div>
+            <div class="wallet-label">GE Tokens</div>
         </div>
     `;
 }

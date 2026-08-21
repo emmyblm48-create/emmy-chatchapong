@@ -45,6 +45,13 @@
             color: var(--text-dark);
         }
 
+        /* 🤍 หน้านี้ขอพื้นหลังขาวล้วน แทนพื้นหลังไล่สีทอง-ครีมเริ่มต้นของ glass-mesh-bg (ทับด้วย
+           source order เพราะ style block นี้โหลดทีหลัง assets/css/glassmorphism.css) */
+        body.glass-mesh-bg {
+            background-color: #ffffff;
+            background-image: none;
+        }
+
         /* Layout เต็มหน้าจอ 100% */
         .app-wrapper {
             width: 100%;
@@ -241,6 +248,21 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
+        }
+
+        /* 👑 ป้าย "Kami-Oshi Days" หน้าตาเดียวกับ .kami-days-badge ในหน้า Member (member.html) */
+        .kami-days-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #ffe08a, #ffc107);
+            color: #6b4a00;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 14px;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
         }
 
         /* 🏷️ ป้ายข้อความ GRADUATED */
@@ -635,9 +657,9 @@
     <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
   </a>
 
-  <a href="shop" class="tab-item">
-    <i id="nav-cart-fallback" class="fa-solid fa-bag-shopping"></i>
-    <img id="nav-cart" src="" alt="Shop" style="display: none;">
+  <a href="majorvote" class="tab-item">
+    <i id="nav-cart-fallback" class="fa-solid fa-crown"></i>
+    <img id="nav-cart" src="" alt="Major Vote" style="display: none;">
   </a>
 
   <a href="notification" class="tab-item">
@@ -899,8 +921,7 @@ function hideThemeLoadingScreen() {
                                 ${isGraduated ? `<span class="badge-graduated">GRADUATED</span>` : ''}
                             </div>
                         </a>
-                        <span class="badge-kami" style="margin-top:4px;"><i class="fa-solid fa-heart"></i> Kamioshi</span>
-                        <span class="badge-kami" style="margin-top:4px; background-color:#fff8e1; color:#8a6d00; border-color:#ffe08a;"><i class="fa-solid fa-crown"></i> Kami-Oshi ${Number(data.kamioshiDays) || 1} Days</span>
+                        <span class="kami-days-badge" style="margin-top:4px;"><i class="fa-solid fa-crown"></i> Kami-Oshi ${Number(data.kamioshiDays) || 1} Days</span>
                     </div>`;
             } else {
                 kamiHTML = `<div class="empty-heart-state">คุณยังไม่ได้เลือกคามิโอชิ</div>`;
@@ -908,8 +929,11 @@ function hideThemeLoadingScreen() {
 
             // ❤️ เรนเดอร์ โอชิสมทบ (Oshi) + เปลี่ยนเป็นเรียก openMemberProfile
             let oshiHTML = "";
-            const processedOshis = [...(data.oshi || [])].filter(o => o.toLowerCase() !== (data.kamioshi || "").toLowerCase());
-            
+            // 🔤 เรียงชื่อ Oshi ตามตัวอักษร (ไม่สนตัวพิมพ์เล็ก-ใหญ่) ไม่ใช่ตามลำดับที่กดเลือกไว้เหมือนเดิม
+            const processedOshis = [...(data.oshi || [])]
+                .filter(o => o.toLowerCase() !== (data.kamioshi || "").toLowerCase())
+                .sort((a, b) => a.localeCompare(b, 'th', { sensitivity: 'base' }));
+
             if (processedOshis.length > 0) {
                 processedOshis.forEach(oshiName => {
                     const oshiKey = oshiName.toString().trim().toLowerCase();
