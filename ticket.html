@@ -23,6 +23,13 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
+  <script>
+    document.addEventListener('touchmove', function(e) { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) { const now = Date.now(); if (now - lastTouchEnd <= 300) e.preventDefault(); lastTouchEnd = now; }, false);
+    document.addEventListener('wheel', function(e) { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+  </script>
   <script type="module" src="assets/js/firebase-realtime.js"></script>
 
   <style>
@@ -384,7 +391,7 @@
     </div>
 
     <!-- ลิงก์โปรไฟล์ -->
-    <a href="profile.html" class="top-bar-profile-link">
+    <a href="profile" class="top-bar-profile-link">
       <div class="top-bar-user-info">
         <span id="top-bar-username" class="top-bar-name">Loading...</span>
         <span id="top-bar-user-role" class="top-bar-role">BLM48 Membership</span>
@@ -413,7 +420,7 @@
     if (document.referrer && window.history.length > 1) {
       window.history.back();
     } else {
-      window.location.href = 'index.html'; // ลิงก์ปลายทางกรณีไม่มีประวัติย้อนกลับ
+      window.location.href = 'index'; // ลิงก์ปลายทางกรณีไม่มีประวัติย้อนกลับ
     }
   }
 
@@ -421,7 +428,7 @@
     const session = localStorage.getItem('bnl_session');
     if (!session) {
       Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณากลับไปหน้าแรกเพื่อ Login', 'warning').then(() => {
-        window.location.href = 'login.html';
+        window.location.href = 'login';
       });
       return;
     }

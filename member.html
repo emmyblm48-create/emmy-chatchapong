@@ -887,7 +887,7 @@ function renderMemberStatsAndFans() {
     }
 
     function loadMemberData() {
-      if (!memberName) { window.location.href = 'index.html'; return; }
+      if (!memberName) { window.location.href = 'index'; return; }
       user = getUserSession();
 
       // 🔴 Realtime: ยอด Token/Cookie เปลี่ยนจากที่ไหนก็ตาม -> อัปเดตปุ่มให้คุกกี้ทันที
@@ -1061,7 +1061,7 @@ function renderMemberStatsAndFans() {
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        window.location.href = 'index.html';
+        window.location.href = 'index';
       }
     }
 
@@ -1436,9 +1436,10 @@ function renderPost(post) {
   const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
   const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
   
-  const postContent = escapeHtml(post.content || ''); 
+  const postContent = escapeHtml(post.content || '');
   const postLikes = post.likes || 0;
-  const postId = post.id || ''; 
+  const postCookies = post.cookies || 0;
+  const postId = post.id || '';
   const displayImage = post.imageUrl || post.imageURL || '';
   const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
 
@@ -1569,13 +1570,19 @@ function renderPost(post) {
         ${mediaHtml}
       </div>
       
-      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px;">
+      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px;">
         <button onclick="likePost('${postId}')" style="background: none; border: none; color: var(--blmem-pink); cursor: pointer; display: flex; align-items: center; gap: 6px;">
           <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
         </button>
         <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
           <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${postComments.length}</span>
         </button>
+        <button onclick="actionSharePost('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="แชร์โพสต์เป็นลิงก์">
+          <i class="fa-solid fa-share-nodes"></i>
+        </button>
+        <div id="post-cookies-${postId}" style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #d2691e; font-weight: 600;" title="โพสต์นี้ทำคุกกี้สะสมได้">
+          <i class="fa-solid fa-cookie-bite"></i> <span id="post-cookies-count-${postId}">${postCookies}</span>
+        </div>
       </div>
 
       <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
@@ -1689,6 +1696,9 @@ function renderPost(post) {
       if (existingPost) {
         const likeCountEl = document.getElementById(`like-count-${post.id}`);
         if (likeCountEl) likeCountEl.innerText = post.likes;
+
+        const cookieCountEl = document.getElementById(`post-cookies-count-${post.id}`);
+        if (cookieCountEl) cookieCountEl.innerText = post.cookies || 0;
 
         const heartIcon = document.getElementById(`heart-${post.id}`);
         if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';

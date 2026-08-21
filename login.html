@@ -19,6 +19,13 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
+  <script>
+    document.addEventListener('touchmove', function(e) { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) { const now = Date.now(); if (now - lastTouchEnd <= 300) e.preventDefault(); lastTouchEnd = now; }, false);
+    document.addEventListener('wheel', function(e) { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+  </script>
 
   <style>
     :root {
@@ -354,7 +361,7 @@
               }
             }).then(() => {
               // 🎯 หมายเหตุ: ถ้าไฟล์หน้าหลักชื่อ index (1).html ให้เปลี่ยนตรงนี้เป็น 'index (1).html' นะครับ
-              window.location.href = 'index.html';
+              window.location.href = 'index';
             });
           } else if (result.status === 'pending') {
             Swal.fire({

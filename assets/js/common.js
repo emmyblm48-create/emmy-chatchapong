@@ -5,6 +5,75 @@
 // need to change — only the duplicated function bodies are removed per page.
 // =========================================================================
 
+// ปิดการซูม/ขยายหน้าเว็บทุกหน้า (pinch-zoom, double-tap zoom, ctrl+scroll zoom)
+(function preventPageZoom() {
+  document.addEventListener('touchmove', function(e) {
+    if (e.touches && e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, false);
+  document.addEventListener('wheel', function(e) {
+    if (e.ctrlKey) e.preventDefault();
+  }, { passive: false });
+})();
+
+// แชร์โพสต์เป็นลิงก์ (เปิด native share sheet ถ้ามี ไม่งั้น copy ลิงก์ไปคลิปบอร์ด)
+async function actionSharePost(postId) {
+  if (!postId) return;
+  const shareUrl = `${window.location.origin}/index?post=${encodeURIComponent(postId)}`;
+  const shareData = { title: 'BLM48', text: 'มาดูโพสต์นี้ในแอป BLM48 กันเถอะ! 🌸', url: shareUrl };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // ผู้ใช้กดยกเลิกเอง ไม่ต้อง fallback
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    if (window.Swal) {
+      Swal.fire({ icon: 'success', title: 'คัดลอกลิงก์แล้ว!', text: 'วางลิงก์เพื่อแชร์โพสต์นี้ได้เลยน้า', timer: 1800, showConfirmButton: false });
+    }
+  } catch (e) {
+    if (window.Swal) {
+      Swal.fire({
+        icon: 'info',
+        title: 'ลิงก์โพสต์นี้',
+        html: `<input type="text" readonly value="${shareUrl}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;box-sizing:border-box;" onclick="this.select()">`,
+        confirmButtonText: 'ปิด'
+      });
+    }
+  }
+}
+
+// เลื่อนจอไปหาโพสต์ที่แชร์มา (?post=POST_ID) พร้อมไฮไลต์สั้นๆ ให้เห็นชัด
+function scrollToSharedPostFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get('post');
+    if (!postId) return;
+    const el = document.getElementById(`post-${postId}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const prevTransition = el.style.transition;
+    const prevBoxShadow = el.style.boxShadow;
+    el.style.transition = 'box-shadow 0.3s ease';
+    el.style.boxShadow = '0 0 0 3px #ff85a2';
+    setTimeout(() => {
+      el.style.boxShadow = prevBoxShadow;
+      setTimeout(() => { el.style.transition = prevTransition; }, 350);
+    }, 2200);
+  } catch (e) {}
+}
+
 // ใช้แสดงข้อความในหน้าเว็บ (ไม่ใช่ในอาร์กิวเมนต์ onclick)
 function escapeHtml(text) {
   if (text === undefined || text === null || text === '') return '';
