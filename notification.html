@@ -369,43 +369,54 @@
     // 🔔 2.6 ปุ่มเปิดการแจ้งเตือนแบบ Push (ทำงานแม้ปิดแอป/เบราว์เซอร์อยู่)
     // =========================================================
     const btnEnablePush = document.getElementById("btn-enable-push");
-    const pushStatusText = document.getElementById("push-status-text");
     const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandaloneApp = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+    let pushIsOn = false;
 
-    function updatePushUi() {
-      if (!btnEnablePush || !pushStatusText) return;
+    function renderPushButton() {
+      if (!btnEnablePush) return;
       if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-        pushStatusText.textContent = "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนแบบ Push ค่ะ";
+        btnEnablePush.innerHTML = '<i class="fa-solid fa-ban"></i> เบราว์เซอร์นี้ไม่รองรับ';
         btnEnablePush.disabled = true;
         return;
       }
       if (isIosDevice && !isStandaloneApp) {
-        pushStatusText.textContent = "บน iPhone/iPad ต้องกด \"เพิ่มลงหน้าจอโฮม\" จาก Safari ก่อน ถึงจะเปิดแจ้งเตือนได้ค่ะ";
+        btnEnablePush.innerHTML = '<i class="fa-solid fa-arrow-up-right-from-square"></i> เพิ่มลงหน้าจอโฮมก่อนนะคะ';
+        btnEnablePush.disabled = true;
         return;
       }
-      if (Notification.permission === "granted") {
-        pushStatusText.textContent = "";
-        btnEnablePush.innerHTML = '<i class="fa-solid fa-check"></i> เปิดใช้งานแล้ว';
+      if (Notification.permission === "denied") {
+        btnEnablePush.innerHTML = '<i class="fa-solid fa-ban"></i> ถูกปิดกั้นในตั้งค่าเบราว์เซอร์';
         btnEnablePush.disabled = true;
-      } else if (Notification.permission === "denied") {
-        pushStatusText.textContent = "คุณเคยปฏิเสธการแจ้งเตือนไว้ กรุณาเปิดสิทธิ์ในตั้งค่าเบราว์เซอร์ค่ะ";
-        btnEnablePush.disabled = true;
+        return;
       }
+
+      btnEnablePush.disabled = false;
+      btnEnablePush.innerHTML = pushIsOn
+        ? '<i class="fa-solid fa-bell-slash"></i> ปิดการแจ้งเตือน'
+        : '<i class="fa-solid fa-bell"></i> เปิดการแจ้งเตือน';
     }
-    updatePushUi();
+
+    async function refreshPushState() {
+      if (typeof getPushSubscriptionStatus === 'function') {
+        pushIsOn = (await getPushSubscriptionStatus()) === 'on';
+      }
+      renderPushButton();
+    }
+    refreshPushState();
 
     if (btnEnablePush) {
       btnEnablePush.addEventListener("click", async () => {
         btnEnablePush.disabled = true;
-        btnEnablePush.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังเปิด...';
-        const res = await subscribeToPush(savedUsername);
+        btnEnablePush.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังทำรายการ...';
+        const res = pushIsOn ? await unsubscribeFromPush(savedUsername) : await subscribeToPush(savedUsername);
         if (res.status === "success") {
-          cuteToast("เปิดการแจ้งเตือนบนมือถือสำเร็จแล้วค่ะ! 🔔");
+          pushIsOn = !pushIsOn;
+          cuteToast(pushIsOn ? "เปิดการแจ้งเตือนบนมือถือแล้วค่ะ! 🔔" : "ปิดการแจ้งเตือนบนมือถือแล้วค่ะ");
         } else {
-          cuteToast(res.message || "เปิดการแจ้งเตือนไม่สำเร็จ", "fa-triangle-exclamation");
+          cuteToast(res.message || "ทำรายการไม่สำเร็จ", "fa-triangle-exclamation");
         }
-        updatePushUi();
+        renderPushButton();
       });
     }
 
