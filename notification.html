@@ -398,6 +398,9 @@
     }
 
     async function refreshPushState() {
+      if (typeof ensurePushSubscriptionHealthy === 'function' && savedUsername) {
+        await ensurePushSubscriptionHealthy(savedUsername); // เผื่อ subscription หายไปเงียบๆ หลังปัดแอปทิ้ง
+      }
       if (typeof getPushSubscriptionStatus === 'function') {
         pushIsOn = (await getPushSubscriptionStatus()) === 'on';
       }

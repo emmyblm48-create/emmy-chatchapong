@@ -387,6 +387,67 @@ async function subscribeToPush(username) {
   }
 }
 
+// ปิดการแจ้งเตือน Push ของเบราว์เซอร์/อุปกรณ์นี้ - ยกเลิก subscription ฝั่งเบราว์เซอร์ และลบแถวที่
+// เคยบันทึกไว้ที่เซิร์ฟเวอร์ (endpoint นี้) ออกด้วย ไม่งั้นเซิร์ฟเวอร์จะยังพยายามส่ง push มาที่
+// endpoint ที่ใช้งานไม่ได้แล้วอยู่ดี
+async function unsubscribeFromPush(username) {
+  if (!('serviceWorker' in navigator)) return { status: 'success' };
+  try {
+    const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+    if (!registration) return { status: 'success' };
+
+    const subscription = await registration.pushManager.getSubscription();
+    if (!subscription) return { status: 'success' };
+
+    const endpoint = subscription.endpoint;
+    await subscription.unsubscribe();
+    if (username) await blm48RemovePushSubscription(username, endpoint);
+    return { status: 'success' };
+  } catch (e) {
+    console.error('unsubscribeFromPush error:', e);
+    return { status: 'error', message: 'ปิดการแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่อีกครั้งค่ะ' };
+  }
+}
+
+// คืนสถานะ subscription ปัจจุบันของเบราว์เซอร์นี้ ('on' / 'off' / 'unsupported') - ใช้ตอนโหลดหน้า
+// notification.html เพื่อโชว์ปุ่มถูกสถานะ (ไม่ใช้ Notification.permission เฉยๆ เพราะ permission
+// อาจ granted ไว้แล้วแต่ผู้ใช้กดปิด/ยกเลิก subscription เองทีหลังก็ได้)
+async function getPushSubscriptionStatus() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return 'unsupported';
+  try {
+    const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+    if (!registration) return 'off';
+    const subscription = await registration.pushManager.getSubscription();
+    return subscription ? 'on' : 'off';
+  } catch (e) {
+    return 'off';
+  }
+}
+
+// บางเบราว์เซอร์/บางเวอร์ชัน iOS จะเคลียร์ Push subscription ทิ้งเงียบๆ หลังปัดแอปทิ้ง (permission
+// ที่เคย "granted" ไว้ยังอยู่ แต่ subscription จริงหายไป) ทำให้ผู้ใช้ต้องมากดปุ่ม "เปิดการแจ้งเตือน"
+// ใหม่ทุกครั้ง ฟังก์ชันนี้เช็คแล้ว subscribe ให้ใหม่แบบเงียบๆ (ไม่ต้องขอ permission ซ้ำเพราะ
+// grant ไว้แล้ว ไม่มี prompt โผล่มากวนผู้ใช้) ทุกครั้งที่โหลดหน้าเว็บ - เรียกจาก DOMContentLoaded
+// ด้านล่าง (ทำงานทุกหน้า) และจาก notification.html ก่อน render ปุ่ม toggle
+async function ensurePushSubscriptionHealthy(username) {
+  if (!username) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const status = await getPushSubscriptionStatus();
+    if (status === 'off') {
+      await subscribeToPush(username);
+    }
+  } catch (e) {
+    console.error('ensurePushSubscriptionHealthy error:', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const session = getUserSession();
+  if (session && session.username) ensurePushSubscriptionHealthy(session.username);
+});
+
 function injectIosNotificationStyles() {
   if (document.getElementById('blm48-ios-noti-style')) return;
   const style = document.createElement('style');
