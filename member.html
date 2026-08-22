@@ -543,37 +543,51 @@
         overflow: hidden;
         transition: all 0.3s ease;
     }
-    .member-thanks-msg.expanded {
-        -webkit-line-clamp: unset; 
-    }
     .member-thanks-img {
         width: 100%;
         border-radius: 12px;
         object-fit: cover;
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
-  .more-btn {
-        color: #d4af37;
-        font-size: 0.8rem;
+    /* การ์ดแบบโชว์แค่รูป (ใช้เมื่อมีรูปแนบ) - แตะที่รูปเพื่อไปอ่านข้อความเต็มๆ ที่หน้า specialthanks */
+    .member-thanks-photo-card {
+        padding: 0;
+        overflow: hidden;
         cursor: pointer;
-        font-weight: bold;
-        margin-top: 5px;
-        display: inline-block;
+        transition: transform 0.15s ease;
     }
-    .member-thanks-engage-btn {
+    .member-thanks-photo-card:active {
+        transform: scale(0.98);
+    }
+    .member-thanks-photo-card .member-thanks-img {
+        border-radius: 0;
+        box-shadow: none;
+        display: block;
+        width: 100%;
+        max-height: 340px;
+        object-fit: cover;
+    }
+    .member-thanks-photo-badge {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        margin-bottom: 0;
+        z-index: 2;
+    }
+    .member-thanks-photo-hint {
+        position: absolute;
+        bottom: 10px;
+        right: 12px;
+        background: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 2px;
-        margin-top: 16px;
-        padding: 10px;
-        background: linear-gradient(135deg, #d4af37, #ffd700);
-        color: #fff;
-        border-radius: 20px;
-        font-size: 0.82rem;
-        font-weight: 700;
-        text-decoration: none;
-        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        gap: 5px;
+        z-index: 2;
     }
 .post-menu-container {
   position: absolute;
@@ -1043,50 +1057,46 @@ function renderMemberStatsAndFans() {
             }
         }
 
-        const memberChamps = champData.filter(c => c.name && c.name.toLowerCase() === memberName.toLowerCase());
+        // เก็บ index เดิมในอาเรย์เต็มไว้ด้วย (หน้า specialthanks อ่าน index จากอาเรย์เต็ม ไม่ใช่อาเรย์ที่กรองแล้ว)
+        const memberChamps = champData
+            .map((c, i) => Object.assign({}, c, { _fullIndex: i }))
+            .filter(c => c.name && c.name.toLowerCase() === memberName.toLowerCase());
 
         if (memberChamps.length > 0) {
             container.style.display = 'block';
             content.innerHTML = '';
-            
+
             memberChamps.forEach(champ => {
-                const thankYouMessage = champ.message ? champ.message : "";
-                let imgHtml = '';
-                if (champ.postImage && champ.postImage.trim() !== "") {
-                    imgHtml = `<img src="${champ.postImage}" class="member-thanks-img" alt="Special Thanks Art">`;
-                }
+                const hasImage = champ.postImage && champ.postImage.trim() !== "";
 
-                // ถ้าโพสขอบคุณนี้เป็นโพสจริงในฟีดแล้ว (Special Fans Day) แปะปุ่มพาไปกดใจ/คอมเมนต์/แชร์ได้เลย
-                const engageHtml = champ.postId ? `
-                    <a href="index?post=${encodeURIComponent(champ.postId)}" class="member-thanks-engage-btn">
-                        <i class="fa-solid fa-heart"></i> กดใจ &nbsp;<i class="fa-solid fa-comment"></i> คอมเมนต์ &nbsp;<i class="fa-solid fa-paper-plane"></i> แชร์
-                    </a>
-                ` : '';
-
-                const card = `
-                    <div class="member-thanks-card">
-                        <div class="member-thanks-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
-                        <div class="member-thanks-msg" id="msg-${champ.monthYear.replace(/\s/g, '')}">
-                            ${thankYouMessage}
+                if (hasImage) {
+                    // มีรูป -> โชว์แค่รูปเต็มการ์ด แตะเพื่อไปอ่านข้อความเต็มๆ ที่หน้า specialthanks
+                    const card = `
+                        <div class="member-thanks-card member-thanks-photo-card" onclick="location.href='specialthanks?index=${champ._fullIndex}'">
+                            <div class="member-thanks-badge member-thanks-photo-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
+                            <img src="${champ.postImage}" class="member-thanks-img" alt="Special Thanks Art">
+                            <div class="member-thanks-photo-hint"><i class="fa-solid fa-message"></i> อ่านข้อความเต็ม</div>
                         </div>
-                        <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">แสดงเพิ่มเติม</div>
-                        ${imgHtml}
-                        ${engageHtml}
-                    </div>
-                `;
-                content.insertAdjacentHTML('beforeend', card);
+                    `;
+                    content.insertAdjacentHTML('beforeend', card);
+                } else {
+                    // ไม่มีรูป -> ใช้การ์ดแบบเดิม (โชว์ตัวอย่างข้อความ + ปุ่มแสดงเพิ่มเติม)
+                    const thankYouMessage = champ.message ? champ.message : "";
+                    const card = `
+                        <div class="member-thanks-card" onclick="location.href='specialthanks?index=${champ._fullIndex}'">
+                            <div class="member-thanks-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
+                            <div class="member-thanks-msg" id="msg-${champ.monthYear.replace(/\s/g, '')}">
+                                ${thankYouMessage}
+                            </div>
+                        </div>
+                    `;
+                    content.insertAdjacentHTML('beforeend', card);
+                }
             });
         }
     }
   
-   function toggleMsg(id) {
-        const el = document.getElementById('msg-' + id);
-        const btn = el.nextElementSibling;
-        el.classList.toggle('expanded');
-        btn.innerText = el.classList.contains('expanded') ? 'แสดงน้อยลง' : 'แสดงเพิ่มเติม';
-    }
-
-    function goBack() { 
+    function goBack() {
       if (window.history.length > 1) {
         window.history.back();
       } else {
