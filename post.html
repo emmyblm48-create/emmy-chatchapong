@@ -350,16 +350,140 @@
       background-color: #ff6b8b;
       transform: translateY(-1px);
     }
+
+    /* Special Fans Day - one-time Champ of the Month thank-you post, styled to match the gold
+       "champ post" treatment already used for it in the feed (index.html/member.html). */
+    #champ-thanks-card {
+      display: none;
+      max-width: 500px;
+      margin: 40px auto 20px auto;
+      background: linear-gradient(to bottom, #fffdf0, #ffffff);
+      border: 2px solid #d4af37;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+    }
+    .champ-thanks-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #b8860b;
+      margin-bottom: 4px;
+    }
+    .champ-thanks-subtext {
+      font-size: 0.82rem;
+      color: #a68a5a;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    #champ-thanks-content {
+      width: 100%;
+      height: 110px;
+      border: 1px solid #ecd897;
+      border-radius: 16px;
+      padding: 16px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: none;
+      box-sizing: border-box;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+    #champ-thanks-content:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    }
+    .champ-thanks-upload {
+      border: 2px dashed #ecd897;
+      color: #b8860b;
+      background-color: rgba(255, 255, 255, 0.55);
+      padding: 12px;
+      border-radius: 14px;
+      width: 100%;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-sizing: border-box;
+      margin-top: 12px;
+      transition: all 0.2s;
+    }
+    .champ-thanks-upload:hover {
+      border-color: #d4af37;
+      background-color: #fff9e6;
+    }
+    #champ-thanks-preview-wrap {
+      display: none;
+      position: relative;
+      margin-top: 12px;
+    }
+    #champ-thanks-preview-wrap img {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 14px;
+      display: block;
+    }
+    #champ-thanks-preview-remove {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #d4af37;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .btn-champ-thanks-submit {
+      width: 100%;
+      height: 46px;
+      background: linear-gradient(135deg, #d4af37, #ffd700);
+      color: #fff;
+      border: none;
+      border-radius: 23px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-top: 18px;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
   </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
+
+<div id="champ-thanks-card">
+  <div class="champ-thanks-title"><i class="fa-solid fa-crown"></i> <span id="champ-thanks-month">Special Fans Day</span></div>
+  <div class="champ-thanks-subtext">คุณคือ Champ of the Month ประจำเดือนนี้! เขียนโพสขอบคุณแฟนๆ ได้เลยค่ะ (โพสพิเศษนี้โพสได้เพียงครั้งเดียวนะคะ 💛 ทุกคนกดใจ คอมเมนต์ แชร์โพสนี้ได้เหมือนโพสปกติเลย)</div>
+  <textarea id="champ-thanks-content" placeholder="เขียนข้อความขอบคุณแฟนๆ ที่นี่..."></textarea>
+  <label for="champ-thanks-image" class="champ-thanks-upload">
+    <i class="fa-regular fa-image"></i> <span id="champ-thanks-upload-label">Add a Photo</span>
+  </label>
+  <input type="file" id="champ-thanks-image" class="hidden-input" accept="image/*">
+  <div id="champ-thanks-preview-wrap">
+    <img id="champ-thanks-preview-img" src="">
+    <div id="champ-thanks-preview-remove"><i class="fa-solid fa-xmark"></i></div>
+  </div>
+  <button class="btn-champ-thanks-submit" onclick="submitChampThanks()">Publish Special Thanks</button>
+</div>
 
 <div class="post-container">
   <div class="header">
     <i class="fa-solid fa-chevron-left back-icon" onclick="window.location.href='index'"></i>
     New Post
   </div>
-  
+
   <div class="compose-wrap">
     <textarea id="post-content" placeholder="Share something with the community..."></textarea>
     <div id="mention-dropdown"></div>
@@ -423,6 +547,88 @@
 
   // 🌟 [ตัวแปรส่วนกลางสำหรับจัดการ State]
   let selectedImageFiles = []; // เก็บ Array ของ Object รูปภาพ [{file: File, preview: base64/blob}]
+
+  // 👑 [Special Fans Day] ถ้าผู้ใช้ที่ล็อกอินอยู่คือ Champ of the Month เดือนล่าสุดที่ยังไม่ได้โพสขอบคุณ
+  // จะโชว์การ์ดสีทองด้านบนให้พิมพ์โพสขอบคุณพิเศษนี้ได้ (โพสได้แค่ครั้งเดียว เช็คสถานะจากฝั่งเซิร์ฟเวอร์)
+  let champThanksImageFile = null;
+
+  (async function initChampThanks() {
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) return;
+    try {
+      const status = await blm48GetChampThanksStatus(currentUser.username);
+      if (status && status.status === 'success' && status.eligible) {
+        document.getElementById('champ-thanks-month').textContent = `Special Fans Day - ${status.monthYear || ''}`;
+        document.getElementById('champ-thanks-card').style.display = 'block';
+      }
+    } catch (err) {
+      console.error('โหลดสถานะ Champ of the Month ไม่สำเร็จ:', err);
+    }
+  })();
+
+  document.getElementById('champ-thanks-image').addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      champThanksImageFile = this.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('champ-thanks-preview-img').src = e.target.result;
+        document.getElementById('champ-thanks-preview-wrap').style.display = 'block';
+      };
+      reader.readAsDataURL(champThanksImageFile);
+    }
+  });
+  document.getElementById('champ-thanks-preview-remove').addEventListener('click', function() {
+    champThanksImageFile = null;
+    document.getElementById('champ-thanks-image').value = '';
+    document.getElementById('champ-thanks-preview-wrap').style.display = 'none';
+  });
+
+  window.submitChampThanks = async function() {
+    const content = document.getElementById('champ-thanks-content').value.trim();
+    const currentUser = getUserSession();
+
+    if (!currentUser || !currentUser.username) {
+      Swal.fire({ title: 'Session Expired', text: 'Please log in again to continue.', icon: 'warning', confirmButtonColor: '#d4af37' });
+      return;
+    }
+    if (!content) {
+      Swal.fire('ยังไม่มีข้อความ', 'กรุณาพิมพ์ข้อความขอบคุณก่อนโพสค่ะ', 'info');
+      return;
+    }
+
+    Swal.fire({
+      title: 'Publishing Special Thanks',
+      text: 'กำลังบันทึกโพสขอบคุณของคุณ...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    try {
+      let imageUrl = '';
+      if (champThanksImageFile) {
+        const compressed = await compressImageFile(champThanksImageFile);
+        imageUrl = await blm48UploadPostImage(currentUser.username, compressed);
+      }
+
+      const data = await blm48CreateChampThanksPost(currentUser.username, content, imageUrl);
+
+      if (data.status === 'success') {
+        Swal.fire({
+          title: 'ขอบคุณค่ะ! 👑',
+          text: 'โพสขอบคุณพิเศษของคุณเผยแพร่แล้ว แฟนๆ กดใจ คอมเมนต์ แชร์ได้เลย',
+          icon: 'success',
+          confirmButtonColor: '#d4af37'
+        }).then(() => {
+          window.location.href = `index?post=${encodeURIComponent(data.postId)}`;
+        });
+      } else {
+        Swal.fire('Server Error', data.message || 'Unable to complete request.', 'error');
+      }
+    } catch (error) {
+      console.error('Champ thanks submission failure:', error);
+      Swal.fire({ icon: 'error', title: 'Error Occurred', text: error.message || 'A system fault occurred during transmission. Please try again.' });
+    }
+  };
 
   // 🏷️ [แท็กเมมเบอร์] โหลดรายชื่อเมมเบอร์ทั้งหมดไว้ล่วงหน้า (RPC เดียวกับที่ search.html ใช้)
   // เพื่อเอาไว้แสดง dropdown แนะนำตอนพิมพ์ @ ในกล่องข้อความ

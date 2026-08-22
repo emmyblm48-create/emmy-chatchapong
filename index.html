@@ -4059,6 +4059,24 @@ async function loadTimelinePosts() {
   }
 }
 
+// 🌸 เปิดลิงก์แชร์โพสต์ (index?post=POST_xxx) หรือลิงก์ "View special thanks" จากหน้า champ.html/member.html
+// แล้วเลื่อนจอไปเจอโพสต์นั้นพร้อมไฮไลต์กรอบชมพูชั่วครู่ให้เห็นชัดว่าคือโพสต์ที่แชร์มา
+function scrollToSharedPostFromUrl() {
+  const targetPostId = new URLSearchParams(window.location.search).get('post');
+  if (!targetPostId) return;
+
+  const postEl = document.getElementById(`post-${targetPostId}`);
+  if (!postEl) return;
+
+  setTimeout(() => {
+    postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const originalBoxShadow = postEl.style.boxShadow;
+    postEl.style.transition = 'box-shadow 0.3s ease';
+    postEl.style.boxShadow = '0 0 0 3px var(--primary-pink, #ff85a2)';
+    setTimeout(() => { postEl.style.boxShadow = originalBoxShadow; }, 2200);
+  }, 150);
+}
+
   function togglePostMenu(event, postId) {
   event.stopPropagation(); // หยุดการส่งผ่าน Event ไม่ให้ไปกระตุ้นการคลิกของหน้าจอหลัก
   

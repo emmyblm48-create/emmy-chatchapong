@@ -322,6 +322,14 @@ function blm48BuyTicket(username, ticketId, tierName) {
 function blm48GetChampOfTheMonth() {
   return blm48Rpc('get_champ_of_the_month', {});
 }
+// Special Fans Day - lets the current unposted Champ of the Month write ONE real post (full
+// like/comment/reply/share) as her thank-you message, linked back onto her champ_of_the_month row.
+function blm48GetChampThanksStatus(username) {
+  return blm48Rpc('get_champ_thanks_status', { p_username: username });
+}
+function blm48CreateChampThanksPost(username, content, imageUrl) {
+  return blm48Rpc('create_champ_thanks_post', { p_username: username, p_content: content || '', p_image_url: imageUrl || '' });
+}
 function blm48GetWinnerTheme() {
   return blm48Rpc('get_winner_theme', {});
 }

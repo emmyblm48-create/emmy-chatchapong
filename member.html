@@ -560,6 +560,21 @@
         margin-top: 5px;
         display: inline-block;
     }
+    .member-thanks-engage-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        margin-top: 16px;
+        padding: 10px;
+        background: linear-gradient(135deg, #d4af37, #ffd700);
+        color: #fff;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
 .post-menu-container {
   position: absolute;
   top: 15px;
@@ -1041,6 +1056,13 @@ function renderMemberStatsAndFans() {
                     imgHtml = `<img src="${champ.postImage}" class="member-thanks-img" alt="Special Thanks Art">`;
                 }
 
+                // ถ้าโพสขอบคุณนี้เป็นโพสจริงในฟีดแล้ว (Special Fans Day) แปะปุ่มพาไปกดใจ/คอมเมนต์/แชร์ได้เลย
+                const engageHtml = champ.postId ? `
+                    <a href="index?post=${encodeURIComponent(champ.postId)}" class="member-thanks-engage-btn">
+                        <i class="fa-solid fa-heart"></i> กดใจ &nbsp;<i class="fa-solid fa-comment"></i> คอมเมนต์ &nbsp;<i class="fa-solid fa-paper-plane"></i> แชร์
+                    </a>
+                ` : '';
+
                 const card = `
                     <div class="member-thanks-card">
                         <div class="member-thanks-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
@@ -1049,6 +1071,7 @@ function renderMemberStatsAndFans() {
                         </div>
                         <div class="more-btn" onclick="toggleMsg('${champ.monthYear.replace(/\s/g, '')}')">แสดงเพิ่มเติม</div>
                         ${imgHtml}
+                        ${engageHtml}
                     </div>
                 `;
                 content.insertAdjacentHTML('beforeend', card);
