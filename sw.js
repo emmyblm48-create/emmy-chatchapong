@@ -19,15 +19,25 @@ self.addEventListener('push', (event) => {
     payload = { title: 'BLM48', body: event.data.text() };
   }
 
-  const title = payload.title || 'BLM48';
-  const options = {
-    body: payload.body || '',
-    icon: payload.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000',
-    badge: 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192',
-    data: { url: payload.url || '/notification' }
-  };
+  event.waitUntil((async () => {
+    // ถ้าผู้ใช้กำลังโฟกัสอยู่ในแท็บ/แอปนี้พอดี ไม่ต้องเด้ง OS banner ซ้อนกับสิ่งที่เห็นอยู่แล้ว -
+    // ส่งข้อมูลให้หน้าเว็บโชว์แบนเนอร์แบบในแอปแทน (ดู message listener ใน assets/js/common.js)
+    const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const focusedClient = allClients.find((c) => c.focused);
+    if (focusedClient) {
+      focusedClient.postMessage({ type: 'blm48-push', payload });
+      return;
+    }
 
-  event.waitUntil(self.registration.showNotification(title, options));
+    const title = payload.title || 'BLM48';
+    const options = {
+      body: payload.body || '',
+      icon: payload.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000',
+      badge: 'https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192',
+      data: { url: payload.url || '/notification' }
+    };
+    await self.registration.showNotification(title, options);
+  })());
 });
 
 self.addEventListener('notificationclick', (event) => {

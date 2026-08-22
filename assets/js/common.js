@@ -519,6 +519,17 @@ function showIosNotification({ avatar, title, text, onClick }) {
   blm48IosNotiTimer = setTimeout(dismiss, 5000);
 }
 
+// กันแจ้งเตือนซ้ำ: ตอนแท็บเปิดอยู่+subscribe push ไว้ด้วย มีโอกาสที่ทั้ง Realtime (ด้านล่าง)
+// และ Service Worker push message (ดูด้านล่างสุด) จะยิงมาถึงเกือบพร้อมกันสำหรับแจ้งเตือนแถวเดียวกัน
+// เก็บ id ที่เพิ่งโชว์ไปแล้วไว้ ใครมาถึงก่อนได้โชว์ อีกทางนึงข้ามไปเลย
+const __blm48ShownNotiIds = new Set();
+function blm48MarkNotiShown(id) {
+  if (id === undefined || id === null) return true;
+  if (__blm48ShownNotiIds.has(id)) return false;
+  __blm48ShownNotiIds.add(id);
+  return true;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!getUserSession() || typeof blm48SubscribeNotifications !== 'function') return;
 
@@ -532,6 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ในเครื่องอาจยังเป็นข้อมูลเก่า กว่า syncUserData() จะดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์มาทับ
     const currentUsername = getUsername();
     if (!currentUsername || row.recipient_username !== currentUsername) return;
+    if (!blm48MarkNotiShown(row.id)) return;
 
     localStorage.setItem('blm48_has_new_noti', 'true');
     if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
@@ -545,6 +557,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// เมื่อ Service Worker เจอ push event ตอนแท็บนี้กำลังโฟกัสอยู่พอดี (ดู sw.js) จะส่ง postMessage
+// มาแทนการเด้ง OS banner ซ้อนกับสิ่งที่เห็นอยู่แล้ว - โชว์เป็นแบนเนอร์ในแอปแบบเดียวกับข้างบนแทน
+// (นี่คือทางที่ทำให้ "อยู่ในแอปแล้วก็ยังเห็นแจ้งเตือน" ได้ ไม่ใช่แค่ตอนแอปถูกปิด/อยู่เบื้องหลัง)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    const msg = event.data;
+    if (!msg || msg.type !== 'blm48-push' || !msg.payload) return;
+    const payload = msg.payload;
+    if (!blm48MarkNotiShown(payload.id)) return;
+
+    localStorage.setItem('blm48_has_new_noti', 'true');
+    if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
+
+    showIosNotification({
+      avatar: payload.avatar,
+      title: payload.title,
+      text: payload.body,
+      onClick: () => { window.location.href = payload.url || 'notification.html'; }
+    });
+  });
+}
 
 // =========================================================================
 // 🎨 ระบบธีมสีตามวง — เปลี่ยนสีหลักของทั้งแอพเป็นสีวงของ Champ of the Month

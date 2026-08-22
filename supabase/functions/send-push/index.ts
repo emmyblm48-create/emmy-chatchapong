@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
 
   const url = row.post_id ? `/index?post=${encodeURIComponent(row.post_id)}` : "/notification";
   const notifPayload = JSON.stringify({
+    id: row.id,
     title: row.writer || "BLM48",
     body: row.action || "",
     avatar: row.avatar || "",
