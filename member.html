@@ -496,16 +496,22 @@
     #champ-thanks-content {
         display: flex;
         overflow-x: auto;
-        gap: 15px;
+        gap: 12px;
         padding-bottom: 10px;
         scroll-snap-type: x mandatory;
+        /* ซ่อนแถบเลื่อนแนวนอนแต่ยังเลื่อนด้วยนิ้ว/เมาส์ได้ตามปกติ */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    #champ-thanks-content::-webkit-scrollbar {
+        display: none;
     }
     .member-thanks-card {
-        flex: 0 0 85%; 
-        scroll-snap-align: center;
+        flex: 0 0 40%;
+        scroll-snap-align: start;
         background: linear-gradient(to bottom, #fffdf0, #ffffff);
         border: 2px solid #d4af37;
-        border-radius: 20px;
+        border-radius: 16px;
         padding: 20px;
         margin-bottom: 16px;
         box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
@@ -564,29 +570,32 @@
         box-shadow: none;
         display: block;
         width: 100%;
-        max-height: 340px;
+        height: 190px;
         object-fit: cover;
     }
     .member-thanks-photo-badge {
         position: absolute;
-        top: 12px;
-        left: 12px;
+        top: 10px;
+        left: 10px;
         margin-bottom: 0;
+        font-size: 0.7rem;
+        padding: 4px 10px;
+        gap: 4px;
         z-index: 2;
     }
     .member-thanks-photo-hint {
         position: absolute;
-        bottom: 10px;
-        right: 12px;
-        background: rgba(0, 0, 0, 0.5);
+        bottom: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.55);
         color: #fff;
-        font-size: 0.72rem;
+        font-size: 0.62rem;
         font-weight: 600;
-        padding: 5px 12px;
-        border-radius: 14px;
+        padding: 4px 9px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
         z-index: 2;
     }
 .post-menu-container {
@@ -1075,7 +1084,7 @@ function renderMemberStatsAndFans() {
                         <div class="member-thanks-card member-thanks-photo-card" onclick="location.href='specialthanks?index=${champ._fullIndex}'">
                             <div class="member-thanks-badge member-thanks-photo-badge"><i class="fas fa-crown"></i> ${champ.monthYear}</div>
                             <img src="${champ.postImage}" class="member-thanks-img" alt="Special Thanks Art">
-                            <div class="member-thanks-photo-hint"><i class="fa-solid fa-message"></i> อ่านข้อความเต็ม</div>
+                            <div class="member-thanks-photo-hint"><i class="fa-solid fa-message"></i> อ่านเพิ่ม</div>
                         </div>
                     `;
                     content.insertAdjacentHTML('beforeend', card);
