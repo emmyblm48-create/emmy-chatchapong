@@ -409,18 +409,24 @@ body {
     
 .bottom-tab-bar {
   /* 👑 Layer 1: ชั้นโปร่งใสล่างสุด ขยายความสูงรวมเพิ่มขึ้นเป็น 110px ให้ Nav ดูสูงเด่น */
-  height: calc(110px + env(safe-area-inset-bottom, 0px)); 
+  height: calc(110px + env(safe-area-inset-bottom, 0px));
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
   z-index: 999;
-  background: transparent; 
+  background: transparent;
   display: flex;
   justify-content: space-around;
   align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่างสุด */
   padding-bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
+  /* 🐛 แก้บัค iOS Safari: fixed element เลื่อนตามจอระหว่าง momentum scroll เพราะ WebKit
+     วาด layer ใหม่ทุกครั้งที่ scroll — บังคับให้ขึ้น GPU layer ของตัวเองค้างไว้เลย */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .bottom-tab-bar::before {

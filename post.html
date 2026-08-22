@@ -355,22 +355,53 @@
        "champ post" treatment already used for it in the feed (index.html/member.html). */
     #champ-thanks-card {
       display: none;
+      position: relative;
       max-width: 500px;
       margin: 40px auto 20px auto;
       background: linear-gradient(to bottom, #fffdf0, #ffffff);
       border: 2px solid #d4af37;
       border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+      padding: 28px 24px 24px 24px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(212, 175, 55, 0.25);
+      animation: champThanksEntrance 0.5s ease-out, champThanksGlow 2.6s ease-in-out infinite 0.5s;
+    }
+    @keyframes champThanksEntrance {
+      from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes champThanksGlow {
+      0%, 100% { box-shadow: 0 8px 24px rgba(212, 175, 55, 0.25); }
+      50% { box-shadow: 0 8px 32px rgba(212, 175, 55, 0.5); }
+    }
+    .champ-thanks-ribbon {
+      position: absolute;
+      top: 14px;
+      right: -30px;
+      transform: rotate(40deg);
+      background: linear-gradient(135deg, #d4af37, #ffd700);
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 4px 34px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     .champ-thanks-title {
       display: flex;
       align-items: center;
       gap: 8px;
       font-weight: 700;
-      font-size: 1.05rem;
+      font-size: 1.15rem;
       color: #b8860b;
       margin-bottom: 4px;
+    }
+    .champ-thanks-title i {
+      animation: champCrownBounce 1.8s ease-in-out infinite;
+    }
+    @keyframes champCrownBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-3px) rotate(-6deg); }
     }
     .champ-thanks-subtext {
       font-size: 0.82rem;
@@ -464,6 +495,7 @@
 <body class="glass-mesh-bg force-white-bg">
 
 <div id="champ-thanks-card">
+  <div class="champ-thanks-ribbon">EXCLUSIVE</div>
   <div class="champ-thanks-title"><i class="fa-solid fa-crown"></i> <span id="champ-thanks-month">Special Fans Day</span></div>
   <div class="champ-thanks-subtext">คุณคือ Champ of the Month ประจำเดือนนี้! เขียนโพสขอบคุณแฟนๆ ได้เลยค่ะ (โพสพิเศษนี้โพสได้เพียงครั้งเดียวนะคะ 💛 ทุกคนกดใจ คอมเมนต์ แชร์โพสนี้ได้เหมือนโพสปกติเลย)</div>
   <textarea id="champ-thanks-content" placeholder="เขียนข้อความขอบคุณแฟนๆ ที่นี่..."></textarea>
@@ -478,7 +510,11 @@
   <button class="btn-champ-thanks-submit" onclick="submitChampThanks()">Publish Special Thanks</button>
 </div>
 
-<div class="post-container">
+<div id="normal-post-toggle" style="display: none; text-align: center; max-width: 500px; margin: 4px auto 0 auto;">
+  <button type="button" onclick="toggleNormalPostSection()" id="normal-post-toggle-btn" style="background: none; border: none; color: #b0949a; font-size: 0.82rem; cursor: pointer; text-decoration: underline; padding: 10px;">หรือโพสต์แบบปกติ</button>
+</div>
+
+<div class="post-container" id="normal-post-container">
   <div class="header">
     <i class="fa-solid fa-chevron-left back-icon" onclick="window.location.href='index'"></i>
     New Post
@@ -560,11 +596,24 @@
       if (status && status.status === 'success' && status.eligible) {
         document.getElementById('champ-thanks-month').textContent = `Special Fans Day - ${status.monthYear || ''}`;
         document.getElementById('champ-thanks-card').style.display = 'block';
+        document.title = 'Special Fans Day | BLM48';
+
+        // ให้โพสขอบคุณพิเศษเป็นจุดสนใจหลักของหน้านี้ - ซ่อนฟอร์มโพสต์ปกติไว้ก่อน แต่ยังกดเปิดดูได้เผื่ออยากโพสต์ปกติด้วย
+        document.getElementById('normal-post-container').style.display = 'none';
+        document.getElementById('normal-post-toggle').style.display = 'block';
       }
     } catch (err) {
       console.error('โหลดสถานะ Champ of the Month ไม่สำเร็จ:', err);
     }
   })();
+
+  window.toggleNormalPostSection = function() {
+    const section = document.getElementById('normal-post-container');
+    const btn = document.getElementById('normal-post-toggle-btn');
+    const isHidden = section.style.display === 'none';
+    section.style.display = isHidden ? 'block' : 'none';
+    btn.textContent = isHidden ? 'ซ่อนโพสต์แบบปกติ' : 'หรือโพสต์แบบปกติ';
+  };
 
   document.getElementById('champ-thanks-image').addEventListener('change', function() {
     if (this.files && this.files[0]) {
