@@ -322,21 +322,69 @@ function checkNotificationBadge() {
 document.addEventListener("DOMContentLoaded", checkNotificationBadge);
 
 // =========================================================================
-// 🔔 ระบบแจ้งเตือนเมื่อ Kami-Oshi/Oshi ของเราลงโพสใหม่ - ทำงานทุกหน้า (ไม่ใช่แค่ index.html)
-// ฟังผ่าน Supabase Realtime (blm48SubscribeNotifications, ดู supabase-client.js)
-// เพราะโพสของเมมเบอร์ถูก insert เข้า public.notifications ตรงจาก create_post RPC โดยตรง
+// 🔔 ระบบแจ้งเตือนส่วนตัว (โพสของ Kami-Oshi/Oshi, คอมเมนต์/รีพาย/แท็กที่เกี่ยวกับเรา)
+// ทำงานทุกหน้า (ไม่ใช่แค่ index.html) ฟังผ่าน Supabase Realtime
+// (blm48SubscribeNotifications, ดู supabase-client.js) - แต่ละแถวใน public.notifications
+// ตอนนี้ scope มาเฉพาะผู้รับแล้วตั้งแต่ฝั่งเซิร์ฟเวอร์ (recipient_username, ดู create_post/
+// add_comment RPC) ฝั่งนี้แค่เช็คว่าแถวที่เข้ามาเป็นของเราหรือเปล่า ไม่ต้องคำนวณ favorites เอง
 // เจอแล้วจะ 1) เปิดจุดแดงที่กระดิ่ง (ใช้ path เดิมของ checkNotificationBadge)
 // 2) โชว์แบนเนอร์แบบแจ้งเตือน iOS ลอยลงมาจากขอบบนจอ ไม่ว่าจะอยู่หน้าไหนของเว็บแอพ
+//
+// การแจ้งเตือนแบบ Push จริง (ทำงานแม้ปิดแอป/เบราว์เซอร์) เป็นคนละกลไก - ยิงจากฝั่งเซิร์ฟเวอร์
+// ตรงผ่าน Database Webhook -> Edge Function "send-push" ทุกครั้งที่มีแถวส่วนตัวถูก insert
+// ไม่พึ่งพา Realtime/แท็บที่เปิดอยู่เลย ดู subscribeToPush() ด้านล่างสำหรับฝั่งขอ permission
 // =========================================================================
 
-// คืนรายชื่อเมมเบอร์ที่เป็น Kami-Oshi/Oshi ของผู้ใช้ปัจจุบัน (lowercase ไว้เทียบง่ายๆ)
-function getFavoriteMemberNames() {
-  const session = getUserSession();
-  if (!session) return [];
-  const names = [];
-  if (session.kamioshi) names.push(session.kamioshi);
-  if (Array.isArray(session.oshi)) names.push(...session.oshi);
-  return names.map(n => (n || '').toString().trim().toLowerCase()).filter(Boolean);
+// แปลง VAPID public key (base64url) เป็น Uint8Array ตามฟอร์แมตที่ PushManager.subscribe ต้องการ
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+const BLM48_VAPID_PUBLIC_KEY = 'BMmRmzp_a8BerbNj2lvLkAwRRJbyaWE5Ee7ItH3WmXa1D6HDVuGtDSTNT2G8N-GtmS3NUR79HzpvwPY8Nne6x_o';
+
+// ขอ permission แจ้งเตือน + สมัคร Push subscription ของเบราว์เซอร์/อุปกรณ์นี้ แล้วบันทึกไว้ที่
+// เซิร์ฟเวอร์ผูกกับ username ปัจจุบัน ต้องเรียกจาก user gesture (กดปุ่ม) เท่านั้น เบราว์เซอร์ส่วนใหญ่
+// จะบล็อก requestPermission() ที่ถูกยิงอัตโนมัติตอนโหลดหน้า
+async function subscribeToPush(username) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return { status: 'error', message: 'เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนแบบ Push ค่ะ' };
+  }
+  if (!username) {
+    return { status: 'error', message: 'กรุณาเข้าสู่ระบบก่อนเปิดการแจ้งเตือน' };
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      return { status: 'error', message: 'ไม่ได้รับอนุญาตให้แจ้งเตือนค่ะ' };
+    }
+
+    const registration = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(BLM48_VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const raw = subscription.toJSON();
+    const res = await blm48SavePushSubscription(username, raw.endpoint, raw.keys.p256dh, raw.keys.auth);
+    if (res && res.status && res.status !== 'success') {
+      return { status: 'error', message: res.message || 'บันทึกการแจ้งเตือนไม่สำเร็จ' };
+    }
+    return { status: 'success' };
+  } catch (e) {
+    console.error('subscribeToPush error:', e);
+    return { status: 'error', message: 'เปิดการแจ้งเตือนไม่สำเร็จ กรุณาลองใหม่อีกครั้งค่ะ' };
+  }
 }
 
 function injectIosNotificationStyles() {
@@ -415,27 +463,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const subscribedAt = Date.now();
   blm48SubscribeNotifications((row) => {
-    if (!row || !row.writer) return;
+    if (!row || !row.writer || !row.recipient_username) return; // broadcast/admin rows ไม่โชว์ toast (เหมือนเดิม)
     const rowTs = row.created_at ? new Date(row.created_at).getTime() : Date.now();
     if (rowTs < subscribedAt) return; // ข้ามของเก่าที่อาจถูกส่งมาตอนเพิ่ง subscribe
 
-    // เช็ค favorites สดทุกครั้งที่มีแจ้งเตือนใหม่เข้ามา (ไม่ cache ไว้ตอน subscribe)
-    // เพราะตอนโหลดหน้าเสร็จใหม่ๆ session ในเครื่องอาจยังเป็นข้อมูลเก่า กว่า syncUserData()
-    // จะดึงข้อมูล kamioshi/oshi ล่าสุดจากเซิร์ฟเวอร์มาทับ ก็อาจจะผ่านไปหลังจากนี้แล้ว
-    const favorites = getFavoriteMemberNames();
-    if (favorites.length === 0) return;
-
-    const writerLower = row.writer.toString().trim().toLowerCase();
-    if (!favorites.includes(writerLower)) return;
+    // เช็ค username สดทุกครั้ง (ไม่ cache ไว้ตอน subscribe) เพราะตอนโหลดหน้าเสร็จใหม่ๆ session
+    // ในเครื่องอาจยังเป็นข้อมูลเก่า กว่า syncUserData() จะดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์มาทับ
+    const currentUsername = getUsername();
+    if (!currentUsername || row.recipient_username !== currentUsername) return;
 
     localStorage.setItem('blm48_has_new_noti', 'true');
     if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
 
+    const targetUrl = row.post_id ? `index?post=${encodeURIComponent(row.post_id)}` : 'notification.html';
     showIosNotification({
       avatar: row.avatar,
-      title: `${row.writer} ลงโพสใหม่แล้ว! 💌`,
+      title: row.writer,
       text: row.action,
-      onClick: () => { window.location.href = 'notification.html'; }
+      onClick: () => { window.location.href = targetUrl; }
     });
   });
 });

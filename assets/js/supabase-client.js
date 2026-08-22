@@ -264,10 +264,11 @@ function blm48GetUserInfo(username) {
   return blm48Rpc('get_user_info', { p_username: username });
 }
 
-// Notifications - global feed, not per-user. Delete/add/clear are role-gated
-// server-side (CEO/ADMIN only) inside the RPCs.
-function blm48GetNotifications() {
-  return blm48Rpc('get_notifications', {});
+// Notifications - personal (recipient_username) rows for this username, plus every broadcast
+// (admin-authored, recipient_username null) row. Delete/add/clear are role-gated server-side
+// (CEO/ADMIN only) inside the RPCs.
+function blm48GetNotifications(username) {
+  return blm48Rpc('get_notifications', { p_username: username || null });
 }
 function blm48AddNotification(username, writer, action, avatar, role) {
   return blm48Rpc('add_notification', { p_username: username, p_writer: writer, p_action: action, p_avatar: avatar, p_role: role });
@@ -287,6 +288,14 @@ function blm48SubscribeNotifications(onInsert) {
     .channel('notifications-feed-changes')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => onInsert(payload.new))
     .subscribe();
+}
+
+// Web Push subscriptions (one row per device/browser) - see subscribeToPush() in common.js.
+function blm48SavePushSubscription(username, endpoint, p256dh, auth) {
+  return blm48Rpc('save_push_subscription', { p_username: username, p_endpoint: endpoint, p_p256dh: p256dh, p_auth: auth });
+}
+function blm48RemovePushSubscription(username, endpoint) {
+  return blm48Rpc('remove_push_subscription', { p_username: username, p_endpoint: endpoint });
 }
 
 // Major Vote - candidates list already reflects open/closed sort + percentages server-side.

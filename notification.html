@@ -276,6 +276,12 @@
     </button>
   </div>
   
+  <div class="manual-input-box" id="push-opt-in-box">
+    <h3><i class="fa-solid fa-bell"></i> การแจ้งเตือนบนมือถือ</h3>
+    <p id="push-status-text" style="margin:0;font-size:0.8rem;color:#888;">เปิดไว้จะได้รับแจ้งเตือนแม้ปิดแอปอยู่ (โพสของ Kami-Oshi/Oshi, คอมเมนต์/รีพาย/แท็กที่เกี่ยวกับคุณ)</p>
+    <button class="btn-submit" id="btn-enable-push" style="flex:none;"><i class="fa-solid fa-bell"></i> เปิดการแจ้งเตือนบนมือถือ</button>
+  </div>
+
   <div class="manual-input-box" id="admin-input-box" style="display: none;">
     <h3><i class="fa-solid fa-pen-to-square"></i> Create New Notification</h3>
     <input type="text" id="input-action" placeholder="Enter notification message">
@@ -284,7 +290,7 @@
       <button class="btn-clear" id="btn-reset"><i class="fa-solid fa-trash"></i> Clear All</button>
     </div>
   </div>
-  
+
   <div id="noti-list" class="noti-list"></div>
 </div>
 
@@ -358,6 +364,50 @@
       if (adminInputBox) adminInputBox.style.display = "flex";
     } else {
       if (adminInputBox) adminInputBox.style.display = "none";
+    }
+
+    // =========================================================
+    // 🔔 2.6 ปุ่มเปิดการแจ้งเตือนแบบ Push (ทำงานแม้ปิดแอป/เบราว์เซอร์อยู่)
+    // =========================================================
+    const btnEnablePush = document.getElementById("btn-enable-push");
+    const pushStatusText = document.getElementById("push-status-text");
+    const isIosDevice = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandaloneApp = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+    function updatePushUi() {
+      if (!btnEnablePush || !pushStatusText) return;
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        pushStatusText.textContent = "เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนแบบ Push ค่ะ";
+        btnEnablePush.disabled = true;
+        return;
+      }
+      if (isIosDevice && !isStandaloneApp) {
+        pushStatusText.textContent = "บน iPhone/iPad ต้องกด \"เพิ่มลงหน้าจอโฮม\" จาก Safari ก่อน ถึงจะเปิดแจ้งเตือนได้ค่ะ";
+        return;
+      }
+      if (Notification.permission === "granted") {
+        pushStatusText.textContent = "เปิดการแจ้งเตือนบนมือถือแล้วค่ะ 🔔";
+        btnEnablePush.innerHTML = '<i class="fa-solid fa-check"></i> เปิดใช้งานแล้ว';
+        btnEnablePush.disabled = true;
+      } else if (Notification.permission === "denied") {
+        pushStatusText.textContent = "คุณเคยปฏิเสธการแจ้งเตือนไว้ กรุณาเปิดสิทธิ์ในตั้งค่าเบราว์เซอร์ค่ะ";
+        btnEnablePush.disabled = true;
+      }
+    }
+    updatePushUi();
+
+    if (btnEnablePush) {
+      btnEnablePush.addEventListener("click", async () => {
+        btnEnablePush.disabled = true;
+        btnEnablePush.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังเปิด...';
+        const res = await subscribeToPush(savedUsername);
+        if (res.status === "success") {
+          cuteToast("เปิดการแจ้งเตือนบนมือถือสำเร็จแล้วค่ะ! 🔔");
+        } else {
+          cuteToast(res.message || "เปิดการแจ้งเตือนไม่สำเร็จ", "fa-triangle-exclamation");
+        }
+        updatePushUi();
+      });
     }
 
     let myNotifications = [];
@@ -451,7 +501,7 @@
       btnRefresh.disabled = true;
 
       try {
-        const result = await blm48GetNotifications();
+        const result = await blm48GetNotifications(savedUsername);
         if (!Array.isArray(result)) {
           throw new Error((result && result.message) || "Failed to load notifications");
         }
@@ -608,6 +658,13 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
 
           const item = document.createElement("div");
           item.className = readIds.has(noti.timestamp) ? "noti-item" : "noti-item unread";
+          if (noti.postId) {
+            item.style.cursor = "pointer";
+            item.addEventListener("click", (e) => {
+              if (e.target.closest(".btn-del-item")) return; // ปุ่มลบไม่ต้องพาไปหน้าโพสต์
+              window.location.href = `index?post=${encodeURIComponent(noti.postId)}`;
+            });
+          }
           item.innerHTML = `
             <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
             <div class="noti-content">
