@@ -927,6 +927,8 @@
                 return '#9775fa'; // ม่วง
             case 'BLM48 Photobook':
                 return '#ff922b'; // ส้ม
+            case 'BLM48 PhotoCard':
+                return '#20c997'; // เขียวมิ้นต์เข้ม
             default:
                 return '#a0a0a0'; // เทา สำหรับหมวดหมู่อื่นๆ
         }
@@ -980,6 +982,15 @@
         btnPhotobook.innerHTML = `<i class="fa-solid fa-book-open"></i> BLM48 Photobook`;
         btnPhotobook.onclick = () => selectPrimaryTab('photobook');
         primaryTabsContainer.appendChild(btnPhotobook);
+    }
+
+    // 3.5 ปุ่มหลัก: BLM48 PhotoCard (มีตัวกรองย่อยตามชื่อคอลเลกชัน)
+    if (hasCategory('BLM48 PhotoCard')) {
+        const btnPhotoCard = document.createElement('button');
+        btnPhotoCard.className = `btn-tab ${currentPrimaryTab === 'photocard' ? 'active' : ''}`;
+        btnPhotoCard.innerHTML = `<i class="fa-solid fa-id-card"></i> BLM48 PhotoCard`;
+        btnPhotoCard.onclick = () => selectPrimaryTab('photocard');
+        primaryTabsContainer.appendChild(btnPhotoCard);
     }
 
     // 4. ปุ่มหลัก: BLM48 PhotoSet (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
@@ -1037,6 +1048,7 @@
     if (currentPrimaryTab === 'thankyou') targetCategory = 'Thank You Card';
     if (currentPrimaryTab === 'photoset') targetCategory = 'BLM48 PhotoSet';
     if (currentPrimaryTab === 'photobook') targetCategory = 'BLM48 Photobook';
+    if (currentPrimaryTab === 'photocard') targetCategory = 'BLM48 PhotoCard';
 
     if (targetCategory !== '' && coasterSubPanel && coasterTabsContainer) {
         const subCollections = getSubCollections(targetCategory);
@@ -1111,6 +1123,7 @@ function renderInventoryData() {
         
         if (currentPrimaryTab === 'photoset' && item.category !== 'BLM48 PhotoSet') return false;
         if (currentPrimaryTab === 'photobook' && item.category !== 'BLM48 Photobook') return false;
+        if (currentPrimaryTab === 'photocard' && item.category !== 'BLM48 PhotoCard') return false;
 
         if (currentPrimaryTab === 'others' && item.category !== 'หมวดหมู่อื่นๆ') return false;
 
