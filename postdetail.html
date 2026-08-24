@@ -67,7 +67,55 @@
     .post-detail-container {
       max-width: 500px;
       margin: 20px auto;
-      padding: 0 16px 40px;
+      padding: 0 16px calc(84px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* 💬 [ที่มา: ตัวอย่างหน้าจอที่ผู้ใช้ส่งมา] กล่องพิมพ์คอมเมนต์ติดขอบล่างสุดของจอเสมอ (เหมือนแอปทั่วไป)
+       แทนที่จะฝังอยู่ในการ์ดโพส - ทำให้พื้นที่แสดงคอมเมนต์เยอะขึ้น เห็นคอมเมนต์ได้มากกว่าเดิมโดยไม่ต้อง
+       เลื่อนกล่องเล็กๆ ซ้อนในโพส ให้ทั้งหน้าเลื่อนแทน */
+    .pd-comment-bar {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 60;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid #ffe4e8;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    .pd-comment-bar.active { display: block; }
+    .pd-comment-bar-inner {
+      max-width: 500px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+    }
+    .pd-comment-input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #ffccd7;
+      border-radius: 22px;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      outline: none;
+      font-family: inherit;
+    }
+    .pd-comment-send {
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--primary-pink);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
     }
 
     /* 🎙️ Voice message bubble (คลิปเสียงในโพส) - เหมือนหน้า index.html/member.html เป๊ะๆ */
@@ -212,6 +260,8 @@
       <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem;"></i>
     </div>
   </div>
+
+  <div class="pd-comment-bar" id="pd-comment-bar"></div>
 
   <div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
     <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">&times;</span>
@@ -561,16 +611,33 @@
         </div>
 
         <div id="comment-section-${postId}" style="display: block; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-          <div id="comment-list-${postId}" style="max-height: 320px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
+          <div id="comment-list-${postId}">
             ${commentsHtml}
-          </div>
-          <div class="comment-input-box" style="display: flex; gap: 8px;">
-            <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-            <button onclick="submitComment('${postId}', this)" style="background: var(--primary-pink); color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
           </div>
         </div>
       </div>
     `;
+  }
+
+  // 💬 กล่องพิมพ์คอมเมนต์ - แยกออกมาจากการ์ดโพส ติดขอบล่างสุดของจอเสมอ (ดู .pd-comment-bar ใน <style>)
+  // ให้พื้นที่แสดงคอมเมนต์ในการ์ดเยอะขึ้น ไม่ต้องเลื่อนกล่องเล็กๆ ซ้อนในโพสอีกต่อไป
+  function renderCommentBar(postId) {
+    const bar = document.getElementById('pd-comment-bar');
+    if (!bar) return;
+    bar.innerHTML = `
+      <div class="pd-comment-bar-inner">
+        <input type="text" id="comment-input-${postId}" class="pd-comment-input" placeholder="Write a comment...">
+        <button type="button" class="pd-comment-send" onclick="submitComment('${postId}', this)"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    `;
+    bar.classList.add('active');
+  }
+
+  function hideCommentBar() {
+    const bar = document.getElementById('pd-comment-bar');
+    if (!bar) return;
+    bar.classList.remove('active');
+    bar.innerHTML = '';
   }
 
   // 🌸 โหลด/รีเฟรชโพสต์เดียวที่กำลังดูอยู่ (ทั้งตอนโหลดครั้งแรก และตอน Realtime แจ้งว่ามีการเปลี่ยนแปลง)
@@ -586,6 +653,7 @@
 
       if (!post) {
         container.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: gray;"><i class="fa-solid fa-circle-exclamation" style="font-size: 1.6rem; margin-bottom: 10px; display: block;"></i>ไม่พบโพสต์นี้ อาจถูกลบไปแล้วค่ะ</div>`;
+        hideCommentBar();
         return;
       }
 
@@ -605,11 +673,13 @@
         if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments, post.id);
       } else {
         container.innerHTML = renderPost(post);
+        renderCommentBar(post.id);
       }
     } catch (error) {
       console.error('โหลดโพสต์ไม่สำเร็จ:', error);
       if (!container.querySelector('.post-card')) {
         container.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: #ff4d4d;">เกิดข้อผิดพลาดในการโหลดโพสต์ ลองรีเฟรชอีกครั้งค่ะ</div>`;
+        hideCommentBar();
       }
     }
   }
