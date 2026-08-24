@@ -54,6 +54,29 @@
   document.head.appendChild(style);
 })();
 
+// 📱 [เปิดโพสต์เต็มจอ] กดที่พื้นที่ว่างของการ์ดโพสต์ (index.html/member.html) เพื่อไปหน้า postdetail
+// แบบเต็มจอโพสต์เดียว กดย้อนกลับได้ - ไม่ทำงานถ้าคลิกโดนปุ่ม/ลิงก์/รูป/ช่องคอมเมนต์ที่มี action ของตัวเองอยู่แล้ว
+// (เช็คจาก tagName ของปุ่ม/ลิงก์/อินพุตมาตรฐาน บวกกับ attribute onclick ที่ผูกไว้ตรงๆ เช่นรูปโปรไฟล์/ชื่อผู้โพส)
+// ข้ามหน้า postdetail เองไปเลย กันกดซ้ำแล้ว reload หน้าเดิมทิ้งเปล่าๆ
+(function initPostCardFullViewNavigation() {
+  const currentPage = window.location.pathname.replace(/\/+$/, '').split('/').pop() || '';
+  if (currentPage === 'postdetail' || currentPage === 'postdetail.html') return;
+
+  document.addEventListener('click', function(e) {
+    const card = e.target.closest('.post-card');
+    if (!card) return;
+
+    const interactiveEl = e.target.closest(
+      'a, button, input, textarea, img, audio, svg, [onclick], .voice-msg-bubble, [id^="comment-section-"]'
+    );
+    if (interactiveEl && card.contains(interactiveEl)) return;
+
+    const postId = card.id ? card.id.replace(/^post-/, '') : '';
+    if (!postId) return;
+    window.location.href = `postdetail?id=${encodeURIComponent(postId)}`;
+  });
+})();
+
 // อัปเดตตัวเลขคุกกี้สะสมของโพสต์บนจอทันที (real-time หลังกดใจ/คอมเมนต์/ตอบกลับ/กดใจคอมเมนต์)
 function updatePostCookiesUI(postId, postCookies) {
   if (!postId || postCookies === undefined || postCookies === null) return;
