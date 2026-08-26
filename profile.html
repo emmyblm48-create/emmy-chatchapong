@@ -890,6 +890,8 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
   // --- ส่งรูปเข้า Supabase Storage & อัปเดตโปรไฟล์ ---
   // (ย้ายออกจาก ImgBB เมื่อ 2026-08-05 เพราะ ImgBB ล่มทั้งโดเมน ทำให้อัปโหลดรูปไม่ได้เลยทั้งแอป)
   async function proceedToUploadProfile(blobFile) {
+    const oldProfileImg = user.profile_img;
+
     Swal.fire({
       title: 'กำลังอัปเดตระบบ...',
       text: 'กำลังนำรูปภาพโปรไฟล์ใหม่ขึ้นระบบฐานข้อมูล',
@@ -905,7 +907,10 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
       const res = await blm48UpdateProfileImage(user.username, finalImageUrl);
       if (res.status !== 'success') throw new Error(res.message || 'อัปเดตรูปไม่สำเร็จ');
 
-      // 3. อัปเดตหน้าจอทันทีจากค่าที่เพิ่งบันทึกไป (ไม่รอ syncUserData เพราะฝั่ง Sheets ยังไม่ทันซิงค์กลับ)
+      // 3. ล้างรูปโปรไฟล์เก่าทิ้งจาก Storage (ไม่มีใครอ้างอิงแล้ว ปล่อยค้างไว้เปลืองโควตาเปล่าๆ)
+      blm48DeleteStorageFiles([oldProfileImg]);
+
+      // 4. อัปเดตหน้าจอทันทีจากค่าที่เพิ่งบันทึกไป (ไม่รอ syncUserData เพราะฝั่ง Sheets ยังไม่ทันซิงค์กลับ)
       user.profile_img = finalImageUrl;
       saveUserSession(user);
       updateProfileUI();

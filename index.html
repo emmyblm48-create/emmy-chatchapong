@@ -4136,7 +4136,14 @@ async function deletePostUi(postId) {
     const data = await blm48DeletePost(currentUser.username, postId);
 
     if (data.status === 'success') {
-      document.getElementById(`post-${postId}`).remove(); 
+      const postEl = document.getElementById(`post-${postId}`);
+      // 🧹 ล้างรูป/เสียงของโพสต์นี้ทิ้งจาก Storage ไปด้วย (ไม่มีโพสต์อ้างอิงแล้ว ปล่อยค้างไว้เปลืองโควตาเปล่าๆ)
+      const orphanedFiles = (postEl ? postEl.dataset.images.split(',') : []);
+      const audioEl = document.getElementById(`voice-audio-${postId}`);
+      if (audioEl && audioEl.src) orphanedFiles.push(audioEl.src);
+      blm48DeleteStorageFiles(orphanedFiles);
+
+      if (postEl) postEl.remove();
       Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อย', 'success');
     } else {
       Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error');
@@ -4215,6 +4222,10 @@ async function editPostUi(postId, encodedContent) {
   const data = await blm48EditPost(currentUser.username, postId, newText, newImageUrl);
 
   if (data.status === 'success') {
+    // 🧹 ล้างเฉพาะรูปที่ถูกลบออกจากโพสต์ตอนแก้ไข (ยังอยู่ในโพสต์ก็ไม่แตะ)
+    const removedImages = oldImageUrl.split(',').map(s => s.trim()).filter(u => u && !__editPostImages.includes(u));
+    blm48DeleteStorageFiles(removedImages);
+
     document.getElementById(`content-${postId}`).innerHTML = formatPostContent(newText); // เปลี่ยนข้อความบนจอทันที (ผ่าน formatPostContent เพื่อให้ #hashtag/ลิงก์/@แท็ก ยังขึ้นหลังแก้ไขโพสต์)
     if (postEl) postEl.dataset.images = newImageUrl;
     const imagesContainer = document.getElementById(`post-images-${postId}`);

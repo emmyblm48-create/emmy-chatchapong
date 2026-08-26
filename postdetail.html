@@ -720,6 +720,13 @@
     }
     const data = await blm48DeletePost(currentUser.username, postId);
     if (data.status === 'success') {
+      // 🧹 ล้างรูป/เสียงของโพสต์นี้ทิ้งจาก Storage ไปด้วย (ไม่มีโพสต์อ้างอิงแล้ว ปล่อยค้างไว้เปลืองโควตาเปล่าๆ)
+      const postEl = document.getElementById(`post-${postId}`);
+      const orphanedFiles = (postEl ? postEl.dataset.images.split(',') : []);
+      const audioEl = document.getElementById(`voice-audio-${postId}`);
+      if (audioEl && audioEl.src) orphanedFiles.push(audioEl.src);
+      blm48DeleteStorageFiles(orphanedFiles);
+
       Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อย', 'success').then(() => {
         window.location.href = 'index';
       });
@@ -789,6 +796,10 @@
     const data = await blm48EditPost(currentUser.username, postId, newText, newImageUrl);
 
     if (data.status === 'success') {
+      // 🧹 ล้างเฉพาะรูปที่ถูกลบออกจากโพสต์ตอนแก้ไข (ยังอยู่ในโพสต์ก็ไม่แตะ)
+      const removedImages = oldImageUrl.split(',').map(s => s.trim()).filter(u => u && !__editPostImages.includes(u));
+      blm48DeleteStorageFiles(removedImages);
+
       document.getElementById(`content-${postId}`).innerHTML = formatPostContent(newText);
       if (postEl) postEl.dataset.images = newImageUrl;
       const imagesContainer = document.getElementById(`post-images-${postId}`);

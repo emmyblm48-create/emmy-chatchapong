@@ -175,7 +175,8 @@ async function blm48UploadPostAudio(username, blob, retries = 2) {
     try {
       const { error } = await blm48Supabase.storage.from('post-audio').upload(filePath, blob, {
         contentType: blob.type || 'audio/webm',
-        upsert: false
+        upsert: false,
+        cacheControl: '31536000'
       });
       if (error) throw error;
 
@@ -202,7 +203,8 @@ async function blm48UploadImageToBucket(bucket, username, file, retries = 2) {
     try {
       const { error } = await blm48Supabase.storage.from(bucket).upload(filePath, file, {
         contentType: type,
-        upsert: false
+        upsert: false,
+        cacheControl: '31536000'
       });
       if (error) throw error;
 
@@ -217,13 +219,43 @@ async function blm48UploadImageToBucket(bucket, username, file, retries = 2) {
 }
 
 // Replaces ImgBB (went down entirely on 2026-08-05, taking every image upload in the app down
-// with it) - post.html's gallery images and profile.html's profile picture now go straight to
+// with it) - post.html's gallery images and profile.html's profile picture go straight to
 // Supabase Storage instead of a third-party host with no reliability guarantee.
 function blm48UploadPostImage(username, file, retries = 2) {
   return blm48UploadImageToBucket('post-images', username, file, retries);
 }
 function blm48UploadProfileImage(username, file, retries = 2) {
   return blm48UploadImageToBucket('profile-images', username, file, retries);
+}
+
+// Best-effort cleanup for orphaned files - old profile photo after a replace, a post's
+// images/audio after it's deleted, or images dropped from a post during edit. Only matches
+// URLs that actually point at one of our own buckets on this project (so it silently no-ops
+// on default avatars, old dead-project audio links, etc. - anything else just isn't ours to
+// delete). Never throws: this tidies up storage quota, it should never block or fail the
+// user-facing action that triggered it.
+const BLM48_STORAGE_BUCKETS = ['post-images', 'profile-images', 'post-audio'];
+async function blm48DeleteStorageFiles(urls) {
+  const pathsByBucket = {};
+  (urls || []).forEach((url) => {
+    if (!url) return;
+    for (const bucket of BLM48_STORAGE_BUCKETS) {
+      const marker = `${BLM48_SUPABASE_URL}/storage/v1/object/public/${bucket}/`;
+      if (url.indexOf(marker) === 0) {
+        const path = decodeURIComponent(url.slice(marker.length).split('?')[0]);
+        (pathsByBucket[bucket] = pathsByBucket[bucket] || []).push(path);
+        break;
+      }
+    }
+  });
+
+  const tasks = Object.keys(pathsByBucket).map((bucket) =>
+    blm48Supabase.storage.from(bucket).remove(pathsByBucket[bucket]).catch((err) => {
+      console.error('blm48DeleteStorageFiles ' + bucket + ' error:', err);
+    })
+  );
+
+  await Promise.all(tasks);
 }
 
 // Profile updates - name (role='user' only, same as before) and photo, written straight to Supabase.
