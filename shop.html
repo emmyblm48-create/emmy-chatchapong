@@ -460,6 +460,38 @@
             box-shadow: none !important;
         }
 
+        /* ⏳ ป้าย "Coming Soon" สำหรับคอลเลกชันที่ยังไม่เปิดขาย */
+        .merch-badge-comingsoon {
+            position: absolute;
+            top: 10px;
+            left: -6px;
+            background: linear-gradient(45deg, #9aa5b1, #c3ccd6);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 4px 10px 4px 12px;
+            border-radius: 0 20px 20px 0;
+            box-shadow: none;
+            z-index: 2;
+        }
+
+        .merch-card-comingsoon .merch-image, .merch-card-comingsoon .merch-image-container {
+            filter: grayscale(45%);
+            opacity: 0.75;
+        }
+
+        .merch-button.merch-button-disabled {
+            background: #f0f1f3 !important;
+            color: #9aa5b1 !important;
+            cursor: not-allowed;
+        }
+
+        .merch-button.merch-button-disabled:hover {
+            background: #f0f1f3 !important;
+            color: #9aa5b1 !important;
+        }
+
         /* 🖼️ ดักกรอบรูปภาพ */
         .merch-image-container, .card-img-wrapper {
             width: 100% !important;
@@ -1624,9 +1656,19 @@ async function loadGachaCollections() {
 
     gachaOnly.forEach(col => {
       const coverImg = col.CoverImage ? col.CoverImage : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
-      
+      const isComingSoon = col.Status === 'Coming Soon';
+
+      const buttonHTML = isComingSoon
+        ? `<button class="merch-button merch-button-disabled" disabled>
+                <i class="fas fa-clock"></i> Coming Soon
+              </button>`
+        : `<button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
+                <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
+              </button>`;
+
       const cardHTML = `
-          <div class="merch-card" data-collection-name="${escapeHtml(col.CollectionName)}">
+          <div class="merch-card${isComingSoon ? ' merch-card-comingsoon' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}">
+            ${isComingSoon ? '<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>' : ''}
             <div class="merch-image-container">
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
@@ -1634,9 +1676,7 @@ async function loadGachaCollections() {
               <span class="merch-category" style="color: #ff6b8b;">[Merchandise]</span>
               <h3 class="merch-title">${col.CollectionName}</h3>
               <p class="merch-subtitle">${col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์'}</p>
-              <button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
-                <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
-              </button>
+              ${buttonHTML}
             </div>
           </div>
         `;
