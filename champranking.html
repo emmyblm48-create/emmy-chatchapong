@@ -482,8 +482,18 @@
 
             const listBody = document.getElementById('ranking-list-body');
 
-            // อันดับ 2 เป็นต้นไปทั้งหมด (ข้ามอันดับ 1 เพราะแสดงในการ์ดผู้ชนะด้านบนแล้ว)
-            const restRanking = rankingList.slice(1);
+            // อันดับ 2 เป็นต้นไปทั้งหมด: ตัดคนที่เป็นแชมป์ (ตามชื่อ) ออกจากลิสต์ แทนการตัด index แรกทิ้งเฉยๆ
+            // เพราะข้อมูล ranking_monthly อาจขยับหลังจากบันทึกแชมป์ไปแล้ว ทำให้แชมป์ไม่ได้อยู่อันดับ 1 ของไลฟ์เดตาเสมอไป
+            const champNameLower = (champData.name || '').toString().trim().toLowerCase();
+            let champRemoved = false;
+            const restRanking = rankingList.filter(m => {
+                const nameLower = (m.name || '').toString().trim().toLowerCase();
+                if (!champRemoved && nameLower === champNameLower) {
+                    champRemoved = true;
+                    return false;
+                }
+                return true;
+            });
 
             if (restRanking.length === 0) {
                 listBody.innerHTML = `<div class="empty-state">ยังไม่มีข้อมูลอันดับอื่นในเดือนนี้ค่ะ</div>`;

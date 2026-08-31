@@ -1876,6 +1876,25 @@ document.addEventListener('click', function() {
       blm48UnlockBodyScroll();
     }
 
+    // 📱 ปัดซ้าย-ขวาเพื่อเปลี่ยนรูปในโหมดดูรูปเต็มจอ (ผูกกับ document เพราะ modal ยังไม่ถูกสร้างตอนสคริปต์นี้รัน)
+    (function() {
+      let touchStartX = 0;
+      let touchStartY = 0;
+      document.addEventListener('touchstart', function(e) {
+        if (!e.target.closest('#image-viewer-modal')) return;
+        touchStartX = e.changedTouches[0].clientX;
+        touchStartY = e.changedTouches[0].clientY;
+      }, { passive: true });
+      document.addEventListener('touchend', function(e) {
+        if (!e.target.closest('#image-viewer-modal')) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          changeImage(dx < 0 ? 1 : -1);
+        }
+      }, { passive: true });
+    })();
+
     window.onload = loadMemberData;
 </script>
 
