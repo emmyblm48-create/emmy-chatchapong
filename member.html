@@ -27,15 +27,49 @@
 <style>
     /* 🌟 ล็อกขนาดรูปโปรไฟล์ไม่ให้ซูมหรือเบี้ยว และรองรับมือถือ */
     .member-profile-img {
-      width: 120px; 
+      width: 120px;
       height: 120px;
-      border-radius: 50%; 
-      object-fit: cover; 
-      object-position: center; 
-      flex-shrink: 0; 
-      border: 3px solid #ffccd7; 
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center;
+      flex-shrink: 0;
+      border: 3px solid #ffccd7;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
+
+    /* 🖼️ รูปโปรไฟล์วงกลมคาบทับขอบล่างของรูปปก (ตามดีไซน์ใหม่) */
+    .avatar-overlap-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin-top: -60px;
+      z-index: 3;
+    }
+    .avatar-overlap-wrap .member-profile-img {
+      background: #fff;
+    }
+    .avatar-overlap-wrap .grad-profile-badge {
+      top: auto;
+      bottom: 2px;
+      right: calc(50% - 60px);
+    }
+
+    /* 👑 ปุ่มแคปซูล + Kami-Oshi ใต้รูปโปรไฟล์ */
+    .kami-pill-btn {
+      display: block;
+      margin: 10px auto 0 auto;
+      background: var(--blmem-pink);
+      color: #fff;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(255, 133, 162, 0.35);
+      transition: transform 0.2s ease;
+    }
+    .kami-pill-btn:hover { transform: translateY(-2px); }
 
     *, *::before, *::after {
       box-sizing: border-box;
@@ -272,7 +306,7 @@
 
     .interaction-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
       margin-bottom: 28px;
     }
@@ -295,7 +329,6 @@
     }
     .btn-interact i { font-size: 16px; }
     
-    .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
     .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
     .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
 
@@ -315,6 +348,32 @@
       gap: 6px;
     }
     .leaderboard-title i { color: var(--gold-kami); }
+
+    /* 🏅 แถวหัวข้อ Top Fans แบบย่อ: ไอคอน + ชื่อ ทางซ้าย, สแตกรูปแฟนคลับ + ลูกศร ทางขวา */
+    .leaderboard-title.with-preview {
+      justify-content: space-between;
+      margin-bottom: 0;
+    }
+    .top-fans-preview {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .top-fans-avatar-stack {
+      display: flex;
+      align-items: center;
+    }
+    .top-fans-avatar-stack img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+      margin-left: -8px;
+    }
+    .top-fans-avatar-stack img:first-child { margin-left: 0; }
+    .top-fans-preview i.fa-chevron-right { color: #ccc; font-size: 12px; margin-left: 6px; }
 
     .fan-list { 
       display: flex; 
@@ -632,12 +691,19 @@
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
-      <div id="avatar-grad-icon" class="grad-profile-badge" style="display: none;"><i class="fas fa-graduation-cap"></i></div>
       <div class="hero-gradient"></div>
     </div>
 
     <div class="profile-body">
-      
+
+    <div class="avatar-overlap-wrap">
+      <img id="mb-avatar-circle" src="assets/images/default-profile.png" class="member-profile-img">
+      <div id="avatar-grad-icon" class="grad-profile-badge" style="display: none;"><i class="fas fa-graduation-cap"></i></div>
+    </div>
+    <button id="btn-kami-trigger" class="kami-pill-btn" onclick="actionKami()">
+      <i class="fas fa-crown"></i> <span>+ Kami-Oshi</span>
+    </button>
+
     <div class="member-header-block">
       <div id="mb-name" class="member-name">กำลังโหลด...</div>
       <!-- 🎓 ป้ายกำกับสีเทา GRADUATED ใต้ชื่อ -->
@@ -648,37 +714,40 @@
 
      <div class="stats-bar">
         <div class="stat-box">
-          <div id="mb-kami" class="stat-num">0</div>
-          <div class="stat-title">Kami-Oshi</div>
-        </div>
-        <div class="stat-box">
           <div id="mb-oshi" class="stat-num">0</div>
           <div class="stat-title">Oshi</div>
         </div>
         <div class="stat-box">
+          <div id="mb-kami" class="stat-num">0</div>
+          <div class="stat-title">Kami-Oshi</div>
+        </div>
+        <div class="stat-box">
           <div id="mb-score" class="stat-num">0</div>
-          <div class="stat-title">Total Cookies</div>
+          <div class="stat-title">Gift</div>
         </div>
         <div class="stat-box">
           <div id="mb-likes" class="stat-num">0</div>
-          <div class="stat-title">Total Likes</div>
+          <div class="stat-title">Like</div>
         </div>
       </div>
 
       <div class="interaction-grid">
-        <button id="btn-kami-trigger" class="btn-interact btn-kami" onclick="actionKami()">
-          <i class="fas fa-crown"></i> <span>+ Kami-Oshi</span>
+        <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
+          <i class="fas fa-gift"></i> <span>Gift</span>
         </button>
         <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
           <i class="fas fa-heart"></i> <span>+ Oshi</span>
         </button>
-        <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
-          <i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>
-        </button>
       </div>
 
       <div class="leaderboard-section">
-        <div class="leaderboard-title"><i class="fas fa-trophy"></i> Top Fans</div>
+        <div class="leaderboard-title with-preview">
+          <span><i class="fas fa-trophy"></i> Top Fans</span>
+          <span id="top-fans-preview" class="top-fans-preview">
+            <span id="top-fans-avatar-stack" class="top-fans-avatar-stack"></span>
+            <i class="fas fa-chevron-right"></i>
+          </span>
+        </div>
         <div id="member-fans-content" class="fan-list"></div>
       </div>
       
@@ -756,6 +825,8 @@ function renderMemberStatsAndFans() {
 
     const avatarEl = document.getElementById('mb-avatar');
     if (avatarEl) avatarEl.src = getImg(m.profile_img);
+    const avatarCircleEl = document.getElementById('mb-avatar-circle');
+    if (avatarCircleEl) avatarCircleEl.src = getImg(m.profile_img);
 
     // 🌟 แสดงผลและลบคลาส Skeleton ออกทันทีที่ดึงค่าจากแคชได้
     const kamiEl = document.getElementById('mb-kami');
@@ -789,11 +860,19 @@ function renderMemberStatsAndFans() {
   // 📦 (โค้ดส่วน fanContainer ด้านล่างคงไว้ตามสไตล์น่ารักๆ ของเอ็มมี่งับ)
   const savedFans = localStorage.getItem('current_member_fans');
   const fanContainer = document.getElementById('member-fans-content');
-  
+  const fanAvatarStack = document.getElementById('top-fans-avatar-stack');
+
   if (savedFans && fanContainer) {
     fanContainer.innerHTML = '';
 
     const fans = JSON.parse(savedFans);
+
+    if (fanAvatarStack) {
+      fanAvatarStack.innerHTML = fans.slice(0, 3).map(f =>
+        `<img src="${getImg(f.img)}" alt="${f.name || f.username}" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'">`
+      ).join('');
+    }
+
     if (fans.length === 0) {
       fanContainer.innerHTML += '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
     } else {
@@ -831,6 +910,8 @@ function renderMemberStatsAndFans() {
     function showSkeleton() {
       const avatarEl = document.getElementById('mb-avatar');
       if (avatarEl) { avatarEl.src = ''; avatarEl.classList.add('skeleton', 'skeleton-avatar'); }
+      const avatarCircleEl = document.getElementById('mb-avatar-circle');
+      if (avatarCircleEl) { avatarCircleEl.src = ''; avatarCircleEl.classList.add('skeleton', 'skeleton-avatar'); }
 
       const nameEl = document.getElementById('mb-name');
       if (nameEl) { nameEl.innerText = 'กำลังโหลด...'; nameEl.classList.add('skeleton', 'skeleton-text'); }
