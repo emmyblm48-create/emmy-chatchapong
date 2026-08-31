@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
     if (!card) return;
 
     const interactiveEl = e.target.closest(
-      'a, button, input, textarea, img, audio, svg, [onclick], .voice-msg-bubble, [id^="comment-section-"]'
+      'a, button, input, textarea, img, svg, [onclick], [id^="comment-section-"]'
     );
     if (interactiveEl && card.contains(interactiveEl)) return;
 
@@ -694,73 +694,6 @@ async function applyGroupTheme() {
   } catch (e) {
     // เน็ตหลุด/เรียกไม่สำเร็จ — ปล่อยให้ใช้สีจากแคชเดิมต่อไป ไม่ต้องล้มทั้งหน้า
     console.error("applyGroupTheme error:", e);
-  }
-}
-
-// =========================================================================
-// 🎙️ Voice message bubble player - ใช้ร่วมกันในทุกหน้าที่แสดงฟีดโพส (index.html, member.html)
-// แต่ละโพสมี <audio class="voice-msg-audio" id="voice-audio-{postId}"> ซ่อนอยู่ พร้อมปุ่มเล่น/แถบ
-// ความคืบหน้า/เวลา ที่ผูก id ตาม postId เดียวกัน เรียกใช้ผ่าน inline event attribute ในโพสนั้นๆ
-// =========================================================================
-
-function formatVoiceMsgTime(seconds) {
-  if (!isFinite(seconds) || seconds < 0) return '0:00';
-  const m = Math.floor(seconds / 60);
-  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-  return `${m}:${s}`;
-}
-
-// เรียกตอน <audio> ยิง onloadedmetadata - ใช้โชว์ความยาวคลิปทั้งหมดก่อนกดเล่น
-function initVoiceDuration(postId) {
-  const audio = document.getElementById(`voice-audio-${postId}`);
-  const timeEl = document.getElementById(`voice-time-${postId}`);
-  if (audio && timeEl && isFinite(audio.duration)) {
-    timeEl.textContent = formatVoiceMsgTime(audio.duration);
-  }
-}
-
-// เรียกตอน <audio> ยิง ontimeupdate ระหว่างเล่น - อัปเดตแถบความคืบหน้า + เวลาปัจจุบัน
-function updateVoiceProgress(postId) {
-  const audio = document.getElementById(`voice-audio-${postId}`);
-  const progress = document.getElementById(`voice-progress-${postId}`);
-  const timeEl = document.getElementById(`voice-time-${postId}`);
-  if (!audio || !audio.duration) return;
-  if (progress) progress.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
-  if (timeEl) timeEl.textContent = formatVoiceMsgTime(audio.currentTime);
-}
-
-// เรียกตอน <audio> ยิง onended - รีเซ็ตปุ่ม/แถบกลับเป็นสถานะพร้อมเล่นใหม่
-function onVoiceEnded(postId) {
-  const audio = document.getElementById(`voice-audio-${postId}`);
-  const progress = document.getElementById(`voice-progress-${postId}`);
-  const timeEl = document.getElementById(`voice-time-${postId}`);
-  const btn = document.getElementById(`voice-play-btn-${postId}`);
-  if (progress) progress.style.width = '0%';
-  if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i>';
-  if (audio && timeEl && isFinite(audio.duration)) timeEl.textContent = formatVoiceMsgTime(audio.duration);
-}
-
-// ปุ่มเล่น/หยุดหลัก - หยุดคลิปเสียงอื่นที่กำลังเล่นอยู่ก่อนเสมอ กันเสียงซ้อนกันหลายคลิปพร้อมกันในฟีด
-function toggleVoiceMessage(postId) {
-  const audio = document.getElementById(`voice-audio-${postId}`);
-  const btn = document.getElementById(`voice-play-btn-${postId}`);
-  if (!audio || !btn) return;
-
-  document.querySelectorAll('audio.voice-msg-audio').forEach(el => {
-    if (el !== audio && !el.paused) {
-      el.pause();
-      const otherId = el.id.replace('voice-audio-', '');
-      const otherBtn = document.getElementById(`voice-play-btn-${otherId}`);
-      if (otherBtn) otherBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
-    }
-  });
-
-  if (audio.paused) {
-    audio.play();
-    btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
-  } else {
-    audio.pause();
-    btn.innerHTML = '<i class="fa-solid fa-play"></i>';
   }
 }
 

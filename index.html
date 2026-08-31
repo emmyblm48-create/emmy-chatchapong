@@ -55,57 +55,6 @@
       --violet-border: #e0c3fc;
     }
 
-    /* 🎙️ Voice message bubble (คลิปเสียงในโพส) - เล่นเนื้อในตัวการ์ดแทนแท็ก <audio> เดิมๆของเบราว์เซอร์ */
-    .voice-msg-bubble {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, #fff0f4, #ffffff);
-      border: 1px solid #ffd6e0;
-      border-radius: 20px;
-      padding: 8px 14px 8px 8px;
-      margin-top: 12px;
-      max-width: 280px;
-    }
-    .voice-msg-play-btn {
-      flex-shrink: 0;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: var(--primary-pink);
-      color: white;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.8rem;
-      box-shadow: 0 2px 6px rgba(255, 133, 162, 0.35);
-      transition: transform 0.15s;
-    }
-    .voice-msg-play-btn:active { transform: scale(0.9); }
-    .voice-msg-waveform {
-      flex: 1;
-      height: 5px;
-      background: #ffe0e8;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .voice-msg-progress {
-      height: 100%;
-      width: 0%;
-      background: var(--primary-pink);
-      border-radius: 3px;
-    }
-    .voice-msg-time {
-      flex-shrink: 0;
-      font-size: 0.72rem;
-      color: #a68a90;
-      font-variant-numeric: tabular-nums;
-      min-width: 30px;
-      text-align: right;
-    }
-
     body {
       font-family: 'Quicksand', 'Kanit', sans-serif;
       background-color: transparent;
@@ -3858,34 +3807,8 @@ function renderPost(post) {
   const postComments = Array.isArray(post.comments) ? post.comments : [];
   const commentsHtml = buildCommentsHtml(postComments, postId);
 
-  // ... (โค้ดส่วน MediaHtml Audio/Video และรูปภาพเหมือนเดิม) ...
+  // ... (โค้ดส่วน MediaHtml Video และรูปภาพเหมือนเดิม) ...
   let mediaHtml = '';
-  if (post.audioURL) {
-    // 🎙️ โพสเก่าก่อน 2026-08-05 ชี้ไปที่โปรเจกต์ Supabase เดิมที่เลิกใช้แล้ว (kmolgfghbviwxqlhnlku) ลิงก์ตายแล้ว
-    // เลยยังต้องโชว์ข้อความแทน ส่วนคลิปเสียงใหม่ที่อัดผ่านฟีเจอร์ใน post.html (bucket post-audio) เล่นได้ปกติ
-    if (post.audioURL.includes('kmolgfghbviwxqlhnlku')) {
-      mediaHtml += `
-        <div style="margin-top: 12px; background: #fff5f7; border: 1px dashed #ffc0cb; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; max-width: 400px;">
-          <i class="fa-solid fa-microphone-slash" style="color: var(--primary-pink); font-size: 1.1rem;"></i>
-          <span style="font-size: 0.8rem; color: #a68a90;">โพสนี้เคยมีข้อความเสียงแนบอยู่ แต่ลิงก์เก่าใช้งานไม่ได้แล้วนะ 🙈</span>
-        </div>
-      `;
-    } else {
-      mediaHtml += `
-        <div class="voice-msg-bubble">
-          <button type="button" class="voice-msg-play-btn" id="voice-play-btn-${postId}" onclick="toggleVoiceMessage('${postId}')">
-            <i class="fa-solid fa-play"></i>
-          </button>
-          <div class="voice-msg-waveform">
-            <div class="voice-msg-progress" id="voice-progress-${postId}"></div>
-          </div>
-          <span class="voice-msg-time" id="voice-time-${postId}">0:00</span>
-          <audio class="voice-msg-audio" id="voice-audio-${postId}" src="${post.audioURL}" preload="metadata" style="display:none;"
-            ontimeupdate="updateVoiceProgress('${postId}')" onloadedmetadata="initVoiceDuration('${postId}')" onended="onVoiceEnded('${postId}')"></audio>
-        </div>
-      `;
-    }
-  }
 
   if (post.videoURL) {
     mediaHtml += `
@@ -4137,10 +4060,8 @@ async function deletePostUi(postId) {
 
     if (data.status === 'success') {
       const postEl = document.getElementById(`post-${postId}`);
-      // 🧹 ล้างรูป/เสียงของโพสต์นี้ทิ้งจาก Storage ไปด้วย (ไม่มีโพสต์อ้างอิงแล้ว ปล่อยค้างไว้เปลืองโควตาเปล่าๆ)
+      // 🧹 ล้างรูปของโพสต์นี้ทิ้งจาก Storage ไปด้วย (ไม่มีโพสต์อ้างอิงแล้ว ปล่อยค้างไว้เปลืองโควตาเปล่าๆ)
       const orphanedFiles = (postEl ? postEl.dataset.images.split(',') : []);
-      const audioEl = document.getElementById(`voice-audio-${postId}`);
-      if (audioEl && audioEl.src) orphanedFiles.push(audioEl.src);
       blm48DeleteStorageFiles(orphanedFiles);
 
       if (postEl) postEl.remove();

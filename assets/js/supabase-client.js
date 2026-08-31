@@ -162,41 +162,10 @@ function blm48EditComment(username, commentId, text) {
   return blm48Rpc('edit_comment', { p_username: username, p_comment_id: commentId, p_text: text });
 }
 
-// Uploads a recorded voice-clip Blob straight to the public "post-audio" Storage bucket
-// (created 2026-08-05, replaces the old audio pipeline that pointed at a since-abandoned
-// Supabase project) and returns its public URL for create_post/edit_post's audio param.
-// Same "anon key, no real auth session" trust model as every RPC above - anyone can upload,
-// but only into this bucket, capped by its own file_size_limit/allowed_mime_types.
-// Retries on transient failures (network blip, rate limit) same as the image upload path in
-// post.html. Generates a fresh random filePath per attempt so a lost success response never
-// collides with the retry (upsert:false would otherwise error out on an already-existing file).
-async function blm48UploadPostAudio(username, blob, retries = 2) {
-  const ext = blob.type.includes('mp4') ? 'm4a' : (blob.type.includes('ogg') ? 'ogg' : (blob.type.includes('wav') ? 'wav' : 'webm'));
-
-  let lastError;
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const filePath = `${username}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    try {
-      const { error } = await blm48Supabase.storage.from('post-audio').upload(filePath, blob, {
-        contentType: blob.type || 'audio/webm',
-        upsert: false,
-        cacheControl: '31536000'
-      });
-      if (error) throw error;
-
-      const { data } = blm48Supabase.storage.from('post-audio').getPublicUrl(filePath);
-      return data.publicUrl;
-    } catch (err) {
-      lastError = err;
-      if (attempt === retries) throw lastError;
-      await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
-    }
-  }
-}
-
-// Shared upload helper for the image buckets below - same retry-with-fresh-filename pattern as
-// blm48UploadPostAudio. `file` can be a File or Blob; extension is guessed from its MIME type
-// (falls back to jpg since both callers compress/crop to JPEG client-side before calling this).
+// Shared upload helper for the image buckets below - retries with a fresh filename per attempt
+// so a lost success response never collides with the retry (upsert:false would otherwise error
+// out on an already-existing file). `file` can be a File or Blob; extension is guessed from its
+// MIME type (falls back to jpg since both callers compress/crop to JPEG client-side before calling this).
 async function blm48UploadImageToBucket(bucket, username, file, retries = 2) {
   const type = file.type || 'image/jpeg';
   const ext = type.includes('png') ? 'png' : (type.includes('webp') ? 'webp' : (type.includes('gif') ? 'gif' : 'jpg'));
@@ -232,13 +201,12 @@ function blm48UploadProfileImage(username, file, retries = 2) {
   return blm48UploadImageToBucket('profile-images', username, file, retries);
 }
 
-// Best-effort cleanup for orphaned files - old profile photo after a replace, a post's
-// images/audio after it's deleted, or images dropped from a post during edit. Only matches
-// URLs that actually point at one of our own buckets on this project (so it silently no-ops
-// on default avatars, old dead-project audio links, etc. - anything else just isn't ours to
-// delete). Never throws: this tidies up storage quota, it should never block or fail the
-// user-facing action that triggered it.
-const BLM48_STORAGE_BUCKETS = ['post-images', 'profile-images', 'post-audio'];
+// Best-effort cleanup for orphaned files - old profile photo after a replace, or images
+// dropped from a post after it's deleted or edited. Only matches URLs that actually point at
+// one of our own buckets on this project (so it silently no-ops on default avatars, etc. -
+// anything else just isn't ours to delete). Never throws: this tidies up storage quota, it
+// should never block or fail the user-facing action that triggered it.
+const BLM48_STORAGE_BUCKETS = ['post-images', 'profile-images'];
 async function blm48DeleteStorageFiles(urls) {
   const pathsByBucket = {};
   (urls || []).forEach((url) => {

@@ -235,101 +235,6 @@
     .img-sort-left { left: 4px; }
     .img-sort-right { right: 4px; }
 
-    /* Voice Clip Recording */
-    .custom-file-upload.recording {
-      border-color: #ff4d4d;
-      border-style: solid;
-      background-color: #fff0f0;
-      color: #ff4d4d;
-      animation: pulse-rec 1.2s infinite;
-    }
-    @keyframes pulse-rec {
-      0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.35); }
-      70% { box-shadow: 0 0 0 8px rgba(255, 77, 77, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
-    }
-    /* แถบไล่เวลาระหว่างอัด แสดงให้เห็นว่าใกล้ครบ MAX_RECORD_SECONDS แค่ไหน */
-    #record-progress-track {
-      display: none;
-      height: 4px;
-      background: #ffe0e8;
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-    #record-progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #ff4d4d;
-      border-radius: 3px;
-      transition: width 0.2s linear;
-    }
-    /* Voice message bubble - ใช้ทั้งพรีวิวตอนอัดในหน้านี้ และตอนแสดงผลในฟีด (index.html/member.html) */
-    .voice-msg-bubble {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      background: var(--glass-bg-strong);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 8px 14px 8px 8px;
-      margin-top: 12px;
-    }
-    .voice-msg-play-btn {
-      flex-shrink: 0;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: var(--blm-pink);
-      color: white;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.8rem;
-      box-shadow: 0 2px 6px rgba(255, 133, 162, 0.35);
-      transition: transform 0.15s;
-    }
-    .voice-msg-play-btn:active { transform: scale(0.9); }
-    .voice-msg-waveform {
-      flex: 1;
-      height: 5px;
-      background: #ffe0e8;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .voice-msg-progress {
-      height: 100%;
-      width: 0%;
-      background: var(--blm-pink);
-      border-radius: 3px;
-    }
-    .voice-msg-time {
-      flex-shrink: 0;
-      font-size: 0.72rem;
-      color: #a68a90;
-      font-variant-numeric: tabular-nums;
-      min-width: 30px;
-      text-align: right;
-    }
-    #audio-delete-btn {
-      flex-shrink: 0;
-      background: var(--blm-pink);
-      color: white;
-      border-radius: 50%;
-      width: 26px;
-      height: 26px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 0.75rem;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    }
-
     /* Action Button */
     .btn-submit-full {
       width: 100%;
@@ -539,29 +444,6 @@
     <div id="image-preview-container"></div>
   </div>
 
-  <div class="media-section">
-    <div class="section-label">
-      <i class="fa-solid fa-microphone"></i> Add Voice Clip
-    </div>
-    <button type="button" id="record-btn" class="custom-file-upload" onclick="toggleRecording()">
-      <i class="fa-solid fa-microphone" id="record-btn-icon"></i> <span id="record-btn-label">Record Voice</span>
-    </button>
-    <div id="record-progress-track">
-      <div id="record-progress-bar"></div>
-    </div>
-    <div class="voice-msg-bubble" id="audio-preview-container">
-      <button type="button" class="voice-msg-play-btn" id="voice-play-btn-preview" onclick="toggleVoiceMessage('preview')">
-        <i class="fa-solid fa-play"></i>
-      </button>
-      <div class="voice-msg-waveform">
-        <div class="voice-msg-progress" id="voice-progress-preview"></div>
-      </div>
-      <span class="voice-msg-time" id="voice-time-preview">0:00</span>
-      <audio class="voice-msg-audio" id="voice-audio-preview" preload="metadata" style="display:none;"
-        ontimeupdate="updateVoiceProgress('preview')" onloadedmetadata="initVoiceDuration('preview')" onended="onVoiceEnded('preview')"></audio>
-      <div id="audio-delete-btn" onclick="deleteRecordedAudio()"><i class="fa-solid fa-xmark"></i></div>
-    </div>
-  </div>
 
   <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
 </div>
@@ -921,108 +803,6 @@
     });
   }
 
-  // 🎙️ [การอัดเสียง] อัดผ่านไมค์ในเครื่องตรงๆ ด้วย MediaRecorder ไม่ต้องอัปโหลดไฟล์
-  let mediaRecorder = null;
-  let recordedChunks = [];
-  let recordedAudioBlob = null;
-  let recordingTimerInterval = null;
-  const MAX_RECORD_SECONDS = 60; // กันไฟล์ใหญ่เกินไป/อัดค้างลืมกดหยุด
-
-  window.toggleRecording = async function() {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
-      return;
-    }
-
-    if (!navigator.mediaDevices || !window.MediaRecorder) {
-      Swal.fire('ไม่รองรับ', 'เบราว์เซอร์นี้ไม่รองรับการอัดเสียงค่ะ', 'error');
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      recordedChunks = [];
-      // จำกัด bitrate ไว้ให้ไฟล์เล็กและขนาดคาดเดาได้ (32kbps พอสำหรับเสียงพูด ~240KB ต่อ 60 วิ)
-      // กันเบราว์เซอร์บางตัวเลือก bitrate สูงเกินจำเป็นจนไฟล์ใหญ่ อัปโหลดช้า/เสี่ยงล้มเหลวบนเน็ตมือถือ
-      try {
-        mediaRecorder = new MediaRecorder(stream, { audioBitsPerSecond: 32000 });
-      } catch (e) {
-        mediaRecorder = new MediaRecorder(stream);
-      }
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        stream.getTracks().forEach(track => track.stop());
-        clearInterval(recordingTimerInterval);
-        document.getElementById('record-progress-track').style.display = 'none';
-        recordedAudioBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-        showAudioPreview(recordedAudioBlob);
-        setRecordButtonState('idle');
-      };
-
-      mediaRecorder.start();
-      setRecordButtonState('recording');
-      document.getElementById('record-progress-track').style.display = 'block';
-      document.getElementById('record-progress-bar').style.width = '0%';
-
-      const startTime = Date.now();
-      recordingTimerInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        document.getElementById('record-btn-label').textContent = `Recording... ${elapsed}s`;
-        document.getElementById('record-progress-bar').style.width = `${Math.min(100, (elapsed / MAX_RECORD_SECONDS) * 100)}%`;
-        if (elapsed >= MAX_RECORD_SECONDS) mediaRecorder.stop();
-      }, 250);
-    } catch (err) {
-      console.error('Mic access error:', err);
-      Swal.fire('ไม่สามารถเข้าถึงไมค์ได้', 'กรุณาอนุญาตการใช้งานไมโครโฟนแล้วลองใหม่อีกครั้งค่ะ', 'warning');
-    }
-  }
-
-  function setRecordButtonState(state) {
-    const btn = document.getElementById('record-btn');
-    const icon = document.getElementById('record-btn-icon');
-    const label = document.getElementById('record-btn-label');
-    if (state === 'recording') {
-      btn.classList.add('recording');
-      icon.className = 'fa-solid fa-stop';
-      label.textContent = 'Recording... 0s';
-    } else {
-      btn.classList.remove('recording');
-      icon.className = 'fa-solid fa-microphone';
-      label.textContent = 'Record Voice';
-    }
-  }
-
-  // ใช้คอมโพเนนต์ voice-msg-bubble ตัวเดียวกับที่แสดงในฟีด (index.html/member.html) เพื่อให้พรีวิวก่อนโพส
-  // หน้าตาตรงกับที่คนอื่นจะเห็นจริงๆ เป๊ะๆ - เล่นผ่าน toggleVoiceMessage('preview') จาก common.js ได้เลย
-  function showAudioPreview(blob) {
-    const audio = document.getElementById('voice-audio-preview');
-    audio.src = URL.createObjectURL(blob);
-    document.getElementById('voice-progress-preview').style.width = '0%';
-    document.getElementById('voice-play-btn-preview').innerHTML = '<i class="fa-solid fa-play"></i>';
-    document.getElementById('audio-preview-container').style.display = 'flex';
-    document.getElementById('record-btn').style.display = 'none';
-  }
-
-  window.deleteRecordedAudio = function() {
-    recordedAudioBlob = null;
-    recordedChunks = [];
-    const audio = document.getElementById('voice-audio-preview');
-    if (!audio.paused) audio.pause();
-    if (audio.src) {
-      URL.revokeObjectURL(audio.src);
-      audio.removeAttribute('src');
-    }
-    document.getElementById('voice-progress-preview').style.width = '0%';
-    document.getElementById('voice-time-preview').textContent = '0:00';
-    document.getElementById('voice-play-btn-preview').innerHTML = '<i class="fa-solid fa-play"></i>';
-    document.getElementById('audio-preview-container').style.display = 'none';
-    document.getElementById('record-btn').style.display = 'flex';
-  }
-
   // Submit Logic
   window.submitPost = async function() {
     const content = document.getElementById('post-content').value.trim();
@@ -1041,7 +821,7 @@
     const activeUsername = currentUser.username;
 
     // แก้ไขเงื่อนไขเช็กข้อมูลว่างโดยอิงจากตัวแปร Array ของเราแทนไฟล์ดิบแล้ว
-    if (!content && selectedImageFiles.length === 0 && !recordedAudioBlob) {
+    if (!content && selectedImageFiles.length === 0) {
       Swal.fire('Empty Content', 'Please write a message or add media before publishing.', 'info');
       return;
     }
@@ -1088,30 +868,8 @@
         }
       }
 
-      // 2. อัปโหลดคลิปเสียง (ถ้ามี) เข้า Supabase Storage bucket 'post-audio'
-      let audioUrlString = "";
-      if (recordedAudioBlob) {
-        try {
-          audioUrlString = await blm48UploadPostAudio(activeUsername, recordedAudioBlob);
-        } catch (err) {
-          console.error('Audio upload failed:', err);
-          const proceedAnyway = await Swal.fire({
-            icon: 'warning',
-            title: 'อัปโหลดเสียงไม่สำเร็จ',
-            text: 'อัปโหลดคลิปเสียงไม่สำเร็จ ต้องการโพสต่อโดยไม่มีคลิปเสียงหรือไม่?',
-            showCancelButton: true,
-            confirmButtonText: 'โพสต่อ',
-            cancelButtonText: 'ยกเลิก ลองใหม่',
-            confirmButtonColor: 'var(--blm-pink)'
-          });
-          if (!proceedAnyway.isConfirmed) {
-            return;
-          }
-        }
-      }
-
-      // 3. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่ Supabase โดยตรง
-      const data = await blm48CreatePost(activeUsername, content, imageUrlString, audioUrlString, '');
+      // 2. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่ Supabase โดยตรง
+      const data = await blm48CreatePost(activeUsername, content, imageUrlString, '', '');
 
       if (data.status === "success") {
         Swal.fire({
