@@ -98,14 +98,25 @@
             padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
             z-index: 1000;
         }
-        /* 🍓 ขอบหยักคล้ายผ้าลูกไม้ใต้ navbar สลับสีฟ้า/ชมพูแบบฟองโซดาให้ดูเป็นชายกันสาดร้านขนม */
+        /* ⛱️ กันสาด/ชายคาคาเฟ่ใต้ navbar: แถบผ้าลายทางฟ้า-ชมพูสลับ (::before) + ชายผ้าหยักโค้งสีเดียวกับแต่ละแถบ (::after)
+           ทำให้ยาวและหนาขึ้นจนดูเป็นแผงกันแดดจริงๆ ของหน้าร้าน ไม่ใช่แค่เส้นประบางๆ */
+        .top-navbar::before {
+            content: "";
+            position: absolute; left: 0; right: 0; bottom: -18px; height: 18px;
+            background: repeating-linear-gradient(90deg,
+                var(--soda-blue) 0 28px,
+                var(--soda-sky-pink) 28px 56px);
+            box-shadow: 0 3px 6px rgba(110,67,38,.08);
+            pointer-events: none;
+        }
         .top-navbar::after {
             content: "";
-            position: absolute; left: 0; right: 0; bottom: -10px; height: 12px;
+            position: absolute; left: 0; right: 0; bottom: -32px; height: 15px;
             background-image:
-                radial-gradient(circle at 8px 0, var(--stripe-pink-soft) 8px, transparent 8.5px),
-                radial-gradient(circle at 24px 0, var(--soda-blue) 6px, transparent 6.5px);
-            background-size: 32px 12px; background-repeat: repeat-x;
+                radial-gradient(circle at 14px 0, var(--soda-blue) 12px, transparent 12.5px),
+                radial-gradient(circle at 42px 0, var(--soda-sky-pink) 12px, transparent 12.5px);
+            background-size: 56px 15px, 56px 15px;
+            background-repeat: repeat-x, repeat-x;
             pointer-events: none;
         }
         /* 🏷️ ป้ายแบรนด์ทรงแคปซูล + ชื่อร้านลายมือ ล้อโครงสร้าง logo tag + headline ของโปสเตอร์ครีมโซดา */
@@ -137,25 +148,6 @@
         .nav-left-actions {
             position: absolute; left: 15px; display: flex; align-items: center; gap: 8px;
             z-index: 1;
-        }
-        /* 🫧 พวงฟองโซดา (ล้อทรงพวงองุ่น/เบอร์รี่ในโปสเตอร์) ลอยตุบๆ เบาๆ มุมขวาบนของ navbar */
-        .nav-bubbles {
-            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-            width: 34px; height: 26px; pointer-events: none;
-        }
-        .nav-bubbles span {
-            position: absolute; border-radius: 50%;
-            animation: bubbleFloat 3.2s ease-in-out infinite;
-        }
-        .nav-bubbles span:nth-child(1) { width: 16px; height: 16px; left: 0; top: 6px; background: var(--soda-blue); animation-delay: 0s; }
-        .nav-bubbles span:nth-child(2) { width: 13px; height: 13px; left: 11px; top: 0; background: var(--soda-sky-pink); animation-delay: .35s; }
-        .nav-bubbles span:nth-child(3) { width: 10px; height: 10px; left: 20px; top: 9px; background: var(--soda-blue-deep); opacity: .8; animation-delay: .7s; }
-        @keyframes bubbleFloat {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-4px) scale(1.05); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .nav-bubbles span { animation: none; }
         }
         .nav-btn {
             color: var(--primary-pink); font-size: 1rem; text-decoration: none;
@@ -432,17 +424,6 @@
             color: var(--primary-pink);
             font-size: 18px;
         }
-        /* 🫧 ฟองโซดาจางๆ ลอยมุมขวาบนของการ์ดกระเป๋าเงิน */
-        .user-profile-bar::after {
-            content: "";
-            position: absolute; top: -14px; right: 18px; width: 46px; height: 46px;
-            background:
-                radial-gradient(circle at 30% 30%, var(--soda-blue) 0 9px, transparent 9.5px),
-                radial-gradient(circle at 68% 55%, var(--soda-sky-pink) 0 7px, transparent 7.5px);
-            opacity: .65;
-            animation: bubbleFloat 4s ease-in-out infinite;
-            pointer-events: none;
-        }
         .wallet { display: grid; grid-template-columns: repeat(3, 1fr); }
         .wallet-item {
             text-align: center;
@@ -587,38 +568,39 @@
             transition: transform 0.35s cubic-bezier(.2,.8,.3,1.2);
         }
 
-        /* 🎀 ป้ายสไตล์สติกเกอร์ป๊อปอัป เอียงเล็กน้อยคล้ายป้าย "Recommend Menu!" ในโปสเตอร์ */
+        /* 🎀 ป้ายสไตล์สติกเกอร์ ล้อป้าย "Recommend Menu!" ในโปสเตอร์ แต่ย้ายมาไว้เหนือชื่อสินค้าใน .merch-info
+           แทนการวางทับมุมรูปภาพแบบเดิม เพื่อไม่ให้บังรูปสินค้าเลย */
         .merch-badge {
-            position: absolute;
-            top: 10px;
-            left: -6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             background: linear-gradient(45deg, var(--primary-pink), #ef8fa1);
             color: white;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 800;
             letter-spacing: 0.5px;
-            padding: 4px 10px 4px 12px;
-            border-radius: 0 20px 20px 0;
+            padding: 4px 11px;
+            border-radius: 999px;
             box-shadow: 0 3px 8px rgba(225,84,111,.35);
-            transform: rotate(-3deg);
-            z-index: 2;
+            transform: rotate(-2deg);
+            margin-bottom: 6px;
         }
 
-        /* 🔥 ป้าย "ขายดี" คำนวณจากยอดซื้อจริงใน wallet_logs แยกป้ายจาก Best Value เพื่อไม่ให้ทับกัน */
+        /* 🔥 ป้าย "ขายดี" คำนวณจากยอดซื้อจริงใน wallet_logs อยู่กลุ่มเดียวกับ Best Value ในตำแหน่งใหม่นี้ได้ตามปกติ */
         .merch-badge-bestseller {
-            position: absolute;
-            top: 10px;
-            right: -6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             background: linear-gradient(45deg, #e1546f, #f3ce6e);
             color: white;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 800;
             letter-spacing: 0.5px;
-            padding: 4px 12px 4px 10px;
-            border-radius: 20px 0 0 20px;
+            padding: 4px 11px;
+            border-radius: 999px;
             box-shadow: 0 3px 8px rgba(243,206,110,.35);
-            transform: rotate(3deg);
-            z-index: 2;
+            transform: rotate(2deg);
+            margin-bottom: 6px;
         }
 
         /* 🍧 ขอบหยักโค้งมนบนกรอบรูปสินค้า ล้อทรงถ้วยพาร์เฟ่ต์/ปากแก้วโซดาในโปสเตอร์ */
@@ -661,21 +643,21 @@
             .merch-card, .merch-card-large { opacity: 1 !important; transform: none !important; }
         }
 
-        /* ⏳ ป้าย "Coming Soon" สำหรับคอลเลกชันที่ยังไม่เปิดขาย */
+        /* ⏳ ป้าย "Coming Soon" สำหรับคอลเลกชันที่ยังไม่เปิดขาย เหนือชื่อสินค้าเหมือนป้ายอื่นๆ ไม่บังรูป */
         .merch-badge-comingsoon {
-            position: absolute;
-            top: 10px;
-            left: -6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             background: linear-gradient(45deg, #a89686, #d9c9ba);
             color: white;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 800;
             letter-spacing: 0.5px;
-            padding: 4px 10px 4px 12px;
-            border-radius: 0 20px 20px 0;
+            padding: 4px 11px;
+            border-radius: 999px;
             box-shadow: 0 3px 8px rgba(168,150,134,.3);
-            transform: rotate(-3deg);
-            z-index: 2;
+            transform: rotate(-2deg);
+            margin-bottom: 6px;
         }
 
         .merch-button.merch-button-disabled {
@@ -1246,7 +1228,6 @@
         <span class="nav-brand-tag">✦ BLM48 MEMBERSHIP ✦</span>
         <span class="nav-brand">BLM48 Shop</span>
     </div>
-    <div class="nav-bubbles" aria-hidden="true"><span></span><span></span><span></span></div>
 </div>
 
 <div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
@@ -1331,12 +1312,12 @@
     </div>
     <!-- 1000Cookie -->
     <div class="merch-card" data-token-price="100">
-        <span class="merch-badge"><i class="fas fa-star"></i> Best Value</span>
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000" alt="1,000 Cookies" class="merch-image">
         </div>
 
         <div class="merch-info">
+            <span class="merch-badge"><i class="fas fa-star"></i> Best Value</span>
             <span class="merch-category" style="color: #c53f5a;">[Value Pack]</span>
             <h3 class="merch-title">1,000 Cookies</h3>
             <p class="merch-subtitle">เติมคุกกี้สำหรับใช้งานทั่วไป</p>
@@ -1883,11 +1864,11 @@ async function loadGachaCollections() {
 
       const cardHTML = `
           <div class="merch-card" data-collection-name="${escapeHtml(col.CollectionName)}">
-            ${isComingSoon ? '<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>' : ''}
             <div class="merch-image-container">
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
             <div class="merch-info">
+              ${isComingSoon ? '<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>' : ''}
               <span class="merch-category" style="color: #c53f5a;">[Merchandise]</span>
               <h3 class="merch-title">${col.CollectionName}</h3>
               <p class="merch-subtitle">${col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์'}</p>
@@ -1914,7 +1895,10 @@ async function loadGachaCollections() {
 // ต้องเรียกหลัง loadGachaCollections() render การ์ดกาชาเสร็จแล้ว การ์ด cookie/cafe เป็น static อยู่ใน DOM แต่แรกอยู่แล้ว
 function addBestSellerBadge(card) {
   if (!card || card.querySelector('.merch-badge-bestseller')) return;
-  card.insertAdjacentHTML('afterbegin', '<span class="merch-badge-bestseller"><i class="fas fa-fire"></i> Best Seller</span>');
+  const info = card.querySelector('.merch-info');
+  if (!info) return;
+  // แปะไว้บนสุดของ .merch-info (เหนือชื่อสินค้า) แทนการทับมุมรูปภาพ เพื่อไม่ให้บังรูป
+  info.insertAdjacentHTML('afterbegin', '<span class="merch-badge-bestseller"><i class="fas fa-fire"></i> Best Seller</span>');
 }
 
 async function loadBestSellerBadges() {
