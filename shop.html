@@ -639,8 +639,11 @@
             opacity: 1;
             transform: translateY(0) scale(1);
         }
+        /* ⚠️ ห้ามใช้ !important กับ opacity ตรงนี้ - จะไปทับความหรี่ของ .merch-item-unavailable (สินค้า Sold Out)
+           จนคนที่เปิด reduced-motion มองไม่เห็นสถานะ Sold Out เลย ใช้ transform !important อย่างเดียวพอ */
         @media (prefers-reduced-motion: reduce) {
-            .merch-card, .merch-card-large { opacity: 1 !important; transform: none !important; }
+            .merch-card, .merch-card-large { opacity: 1; transform: none !important; }
+            .merch-card.merch-item-unavailable, .merch-card-large.merch-item-unavailable { opacity: 0.65; }
         }
 
         /* ⏳ ป้าย "Coming Soon" สำหรับคอลเลกชันที่ยังไม่เปิดขาย เหนือชื่อสินค้าเหมือนป้ายอื่นๆ ไม่บังรูป */
@@ -799,7 +802,35 @@
             }
         }
 
-        .coming-soon { opacity: 0.6; filter: grayscale(0.5); }
+        /* 🗄️ การ์ดสินค้าที่หมด/ยังไม่เปิดขาย: หรี่ + desaturate เล็กน้อยให้แยกจากของที่ซื้อได้ปกติชัดเจน
+           ต้องชนกับ .merch-card.reveal-in (opacity:1 ตอนผุดขึ้นจากสกรอล) ด้วย selector ที่ specificity สูงกว่า
+           ไม่งั้นค่า opacity ตอนผุดขึ้นจะไปทับความหรี่นี้จนมองไม่เห็นผล */
+        .merch-card.reveal-in.merch-item-unavailable,
+        .merch-card-large.reveal-in.merch-item-unavailable {
+            opacity: 0.65;
+            filter: grayscale(0.4);
+        }
+        .merch-card.reveal-in.merch-item-unavailable:hover,
+        .merch-card-large.reveal-in.merch-item-unavailable:hover {
+            opacity: 0.8;
+        }
+
+        /* 📦 ป้าย "Sold Out" โทนเทาอมม่วงให้ดูแยกจาก Coming Soon (สีน้ำตาลอ่อน) ชัดเจนว่าปิดการขายถาวรแล้ว */
+        .merch-badge-soldout {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(45deg, #8b7d99, #b8a9c9);
+            color: white;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            box-shadow: 0 3px 8px rgba(139,125,153,.3);
+            transform: rotate(2deg);
+            margin-bottom: 6px;
+        }
 
         .shop-empty-state {
             grid-column: 1/-1;
@@ -1853,22 +1884,31 @@ async function loadGachaCollections() {
     gachaOnly.forEach(col => {
       const coverImg = col.CoverImage ? col.CoverImage : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
       const isComingSoon = col.Status === 'Coming Soon';
+      const isSoldOut = col.Status === 'Sold Out';
 
-      const buttonHTML = isComingSoon
-        ? `<button class="merch-button merch-button-disabled" disabled>
-                <i class="fas fa-clock"></i> Coming Soon
-              </button>`
-        : `<button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
+      let badgeHTML = '';
+      let buttonHTML = `<button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
                 <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
               </button>`;
+      if (isComingSoon) {
+        badgeHTML = '<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>';
+        buttonHTML = `<button class="merch-button merch-button-disabled" disabled>
+                <i class="fas fa-clock"></i> Coming Soon
+              </button>`;
+      } else if (isSoldOut) {
+        badgeHTML = '<span class="merch-badge-soldout"><i class="fas fa-box-archive"></i> Sold Out</span>';
+        buttonHTML = `<button class="merch-button merch-button-disabled" disabled>
+                <i class="fas fa-box-archive"></i> Sold Out
+              </button>`;
+      }
 
       const cardHTML = `
-          <div class="merch-card" data-collection-name="${escapeHtml(col.CollectionName)}">
+          <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}">
             <div class="merch-image-container">
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
             <div class="merch-info">
-              ${isComingSoon ? '<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>' : ''}
+              ${badgeHTML}
               <span class="merch-category" style="color: #c53f5a;">[Merchandise]</span>
               <h3 class="merch-title">${col.CollectionName}</h3>
               <p class="merch-subtitle">${col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์'}</p>
