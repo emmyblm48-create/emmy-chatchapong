@@ -157,6 +157,28 @@
             border: none; cursor: pointer; transition: transform 0.2s;
         }
         .nav-btn:active { transform: scale(0.9); }
+
+        /* 📱→📟→🖥️ กันสาด/แบรนด์ด้านบน ขยับขนาดตามจอ: มือถือ (ค่าเริ่มต้น) → แท็บเล็ต/ไอแพด (768–1023px) → เดสก์ท็อป (≥1024px)
+           บนจอกว้าง navbar 60px เดิมดูเล็ก/ว่างโล่งเกินไป เลยขยับความสูง navbar + ตัวอักษร + กันสาดขึ้นทีละสเต็ป
+           ต้องปรับ body padding-top ให้ตรงกับความสูง navbar แต่ละสเต็ปด้วย ไม่งั้นเนื้อหาจะซ้อนทับหรือมีช่องว่างเกิน */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .top-navbar { height: 68px; padding: 0 26px; }
+            .top-navbar::before { bottom: -20px; height: 20px; }
+            .top-navbar::after { bottom: -34px; }
+            .nav-left-actions { left: 20px; }
+            .nav-brand-tag { font-size: 9.5px; padding: 3px 11px; }
+            .nav-brand { font-size: 1.65rem; }
+            .nav-btn { width: 40px; height: 40px; font-size: 1.15rem; }
+        }
+        @media (min-width: 1024px) {
+            .top-navbar { height: 76px; padding: 0 32px; }
+            .top-navbar::before { bottom: -24px; height: 24px; }
+            .top-navbar::after { bottom: -38px; }
+            .nav-left-actions { left: 28px; }
+            .nav-brand-tag { font-size: 10.5px; padding: 3px 12px; }
+            .nav-brand { font-size: 1.9rem; }
+            .nav-btn { width: 44px; height: 44px; font-size: 1.3rem; }
+        }
       
         /* บังคับหน้าต่างทั้งหมดและ SweetAlert ให้ใช้ฟอนต์ Nunito และ Kanit เท่านั้น */
         .confirm-box, .blm-overlay, .swal2-popup, .swal2-title, .swal2-html-container, .swal2-confirm, .swal2-cancel {
@@ -1228,6 +1250,14 @@
 
         body {
             padding-top: 60px !important; /* เผื่อพื้นที่ให้ .top-navbar แบบ fixed ไม่บังเนื้อหา (เดิมเผื่อไว้ล่างสำหรับ bottom-tab-bar ที่ย้ายออกไปแล้ว) */
+        }
+        /* ต้องตรงกับความสูง .top-navbar ที่ขยับขึ้นทีละสเต็ปตามขนาดจอ (นิยามไว้คู่กับ .top-navbar ด้านบน)
+           วางไว้หลังกฎ padding-top: 60px !important ฐาน เพื่อให้ชนะด้วยลำดับใน source แม้ specificity/!important เท่ากัน */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            body { padding-top: 68px !important; }
+        }
+        @media (min-width: 1024px) {
+            body { padding-top: 76px !important; }
         }
           
         /* --- อนิเมชันไข่กาชาปองสั่นลุ้นรางวัล --- */
