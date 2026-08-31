@@ -102,6 +102,10 @@ function blm48GetMemberTopFans(memberName) {
 function blm48GetTopFans() {
   return blm48Rpc('get_top_fans', {});
 }
+// top fans across every member combined, pre-sorted server-side - used on topfans.html's global mode (no ?name=)
+function blm48GetGlobalTopFans() {
+  return blm48Rpc('get_global_top_fans', {});
+}
 // Fan Score breakdown per member for one user (reverse of get_member_top_fans) - used on profile.html
 function blm48GetUserFanScores(username) {
   return blm48Rpc('get_user_fan_scores', { p_username: username });
@@ -236,6 +240,15 @@ function blm48UpdateProfileName(username, newName) {
 }
 function blm48UpdateProfileImage(username, imageUrl) {
   return blm48Rpc('update_profile_image', { p_username: username, p_image_url: imageUrl });
+}
+
+// Member cover photo (member.html hero background) - self-serve upload by the role='member'
+// account whose users.name matches the member row (server checks that match, see update_member_cover RPC).
+function blm48UploadMemberCoverImage(username, file, retries = 2) {
+  return blm48UploadImageToBucket('profile-images', username, file, retries);
+}
+function blm48UpdateMemberCoverImage(username, memberName, imageUrl) {
+  return blm48Rpc('update_member_cover', { p_username: username, p_member_name: memberName, p_image_url: imageUrl });
 }
 
 // Live-updates whenever likes/comments change on any post. onChange gets no arguments -

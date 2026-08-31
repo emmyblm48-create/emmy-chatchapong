@@ -53,14 +53,12 @@
 
     .app-layout {
       width: 100%;
-      max-width: 480px;
       /* ✏️ ตามคำขอผู้ใช้: คงพื้นหลังสีขาวทึบไว้เหมือนเดิม ตั้งแต่ชื่อจนถึงล่างสุด ไม่ใส่กระจกฝ้า */
       background: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
     }
 
     .hero-image-container {
@@ -70,7 +68,7 @@
       overflow: hidden;
       background: #f3f3f3;
     }
-    
+
     .hero-image {
       width: 100%;
       height: 100%;
@@ -86,40 +84,40 @@
       z-index: 1;
     }
 
+    /* 📷 ปุ่มเปลี่ยนภาพพื้นหลังโปรไฟล์เมมเบอร์ (โชว์เฉพาะบัญชี role=member) */
+    .cover-edit-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 15px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+      backdrop-filter: blur(4px);
+    }
+    .cover-edit-btn.visible { display: flex; }
+    .cover-edit-btn:active { transform: scale(0.92); }
+
+    /* 🖥️ เต็มจอเสมอทั้งมือถือและไอแพด/คอม (แบบเดียวกับ member.html) - ไม่มีกรอบการ์ดลอยกลางจอ */
     @media (min-width: 768px) {
-      body {
-        padding: 40px 20px;
-        align-items: center;
-      }
-      .app-layout {
-        max-width: 900px;
-        min-height: 600px;
-        border-radius: 30px;
-        flex-direction: row;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-      }
       .hero-image-container {
-        width: 45% !important;
-        height: auto !important;
-        min-height: 100%;
+        height: 320px;
       }
       .hero-gradient {
-        background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, transparent 40%) !important;
-        height: 100% !important;
+        background: linear-gradient(to top, #ffffff 15%, transparent) !important;
       }
       .profile-body {
-        width: 55% !important;
-        margin-top: 0 !important;
-        padding: 40px 40px !important;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        overflow-y: auto;
-      }
-      .profile-avatar-container {
-        margin-top: 0 !important;
-        justify-content: flex-start !important;
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
       }
     }
 
@@ -168,8 +166,7 @@
     }
 
     .member-header-block { text-align: center; margin-bottom: 24px; }
-    @media (min-width: 768px) { .member-header-block { text-align: left; } }
-    
+
     .member-name {
       font-size: 26px;
       font-weight: 600;
@@ -327,6 +324,8 @@ body {
   <div class="app-layout">
     <div class="hero-image-container">
       <img id="pf-cover" src="https://via.placeholder.com/800x400/ffe4e1/ff85a2?text=BLM48+Cover" class="hero-image">
+      <button id="cover-edit-btn" class="cover-edit-btn" onclick="triggerCoverUpload()"><i class="fas fa-camera"></i></button>
+      <input type="file" id="cover-upload" accept="image/*" style="display:none" onchange="handleCoverImageSelect(event)">
       <div class="hero-gradient"></div>
     </div>
 
@@ -478,7 +477,16 @@ body {
       } else {
          avatarEl.src = user.profile_img;
       }
-      document.getElementById('pf-cover').src = avatarEl.src;
+    }
+
+    // 📷 บัญชี role=member มีรูปพื้นหลัง (cover_image) เป็นของตัวเองแยกจากรูปโปรไฟล์ ดึงจากตาราง members และเปิดปุ่มแก้ไขให้
+    const coverEditBtn = document.getElementById('cover-edit-btn');
+    if (isUserMember()) {
+      if (coverEditBtn) coverEditBtn.classList.add('visible');
+      loadMemberCoverForSelf();
+    } else {
+      if (coverEditBtn) coverEditBtn.classList.remove('visible');
+      if (avatarEl.src) document.getElementById('pf-cover').src = avatarEl.src;
     }
 
     let totalOshi = 0;
@@ -700,6 +708,95 @@ body {
   // เช็กว่าเป็น Member หรือไม่
   function isUserMember() {
     return user && user.role && user.role.toUpperCase().trim() === 'MEMBER';
+  }
+
+  // 📷 --- ภาพพื้นหลังโปรไฟล์เมมเบอร์ (cover_image ในตาราง members แยกจากรูปโปรไฟล์วงกลม) ---
+  const DEFAULT_MEMBER_IMG = 'https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png';
+  function getMemberImg(url) {
+    if (!url || url.trim() === "") return DEFAULT_MEMBER_IMG;
+    if (url.includes('googleusercontent.com')) return url + '=s600';
+    return url;
+  }
+
+  let currentMemberCoverUrl = null;
+  let activeCoverCropper = null;
+
+  async function loadMemberCoverForSelf() {
+    if (!user || !user.name) return;
+    try {
+      const stats = await blm48GetMemberStats(user.name);
+      if (stats) {
+        currentMemberCoverUrl = stats.cover_image || null;
+        document.getElementById('pf-cover').src = getMemberImg(stats.cover_image || stats.profile_img);
+      }
+    } catch (e) { console.error('loadMemberCoverForSelf error:', e); }
+  }
+
+  function triggerCoverUpload() {
+    document.getElementById('cover-upload').click();
+  }
+
+  function handleCoverImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      // ครอบตัดภาพพื้นหลังด้วยสัดส่วน 16:9
+      Swal.fire({
+        title: 'ปรับตำแหน่งภาพพื้นหลัง',
+        html: `<div class="cropper-container-box"><img id="cover-cropper-target-img" src="${e.target.result}"></div>`,
+        showCancelButton: true,
+        confirmButtonColor: 'var(--blmem-pink)',
+        confirmButtonText: 'ยืนยันรูปภาพนี้',
+        cancelButtonText: 'ยกเลิก',
+        allowOutsideClick: false,
+        didOpen: () => {
+          const imageElement = document.getElementById('cover-cropper-target-img');
+          activeCoverCropper = new Cropper(imageElement, {
+            aspectRatio: 16 / 9,
+            viewMode: 1,
+            autoCropArea: 1,
+            movable: true,
+            zoomable: true,
+            rotatable: false,
+            scalable: false
+          });
+        },
+        willClose: () => {
+          if (activeCoverCropper) { activeCoverCropper.destroy(); activeCoverCropper = null; }
+        },
+        preConfirm: () => {
+          return new Promise((resolve) => {
+            activeCoverCropper.getCroppedCanvas({ width: 960, height: 540 }).toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+          });
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed && result.value) {
+          await proceedToUploadCover(result.value);
+        }
+        document.getElementById('cover-upload').value = '';
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function proceedToUploadCover(blobFile) {
+    Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const oldCoverUrl = currentMemberCoverUrl;
+      const finalUrl = await blm48UploadMemberCoverImage(user.username, blobFile);
+      const res = await blm48UpdateMemberCoverImage(user.username, user.name, finalUrl);
+      if (res.status !== 'success') throw new Error(res.message || 'อัปเดตรูปพื้นหลังไม่สำเร็จ');
+
+      if (oldCoverUrl) blm48DeleteStorageFiles([oldCoverUrl]);
+      currentMemberCoverUrl = finalUrl;
+      document.getElementById('pf-cover').src = finalUrl;
+
+      Swal.fire('สำเร็จ!', 'เปลี่ยนภาพพื้นหลังโปรไฟล์เรียบร้อยแล้วค่ะ', 'success');
+    } catch (e) {
+      Swal.fire('ผิดพลาด', e.message || 'ไม่สามารถอัปโหลดรูปได้ในขณะนี้', 'error');
+    }
   }
 
   // --- ฟังก์ชันรับคุกกี้ ---

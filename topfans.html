@@ -26,11 +26,11 @@
         :root {
             --blm-pink: #ff85a2;
             --blm-light-pink: #fff0f5;
+            --blm-gradient: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 45%, #ff8fb3 55%, #e0447a 100%);
+            --blm-gradient-border: #ff6b9d;
+            --blm-gradient-deep: #e0447a;
             --text-dark: #4a4a4a;
             --text-muted: #9e9e9e;
-            --rank-gold: #ffb703;
-            --rank-silver: #b0b6bd;
-            --rank-bronze: #e0895e;
         }
 
         * {
@@ -124,27 +124,32 @@
             color: var(--text-dark);
         }
 
-        /* 🏆 การ์ดแฟนคลับอันดับ 1 */
+        /* 🏆 การ์ดแฟนคลับอันดับ 1 - โทนสีชมพูแบบเดียวกับ Top Fans หน้า index.html */
         .winner-card {
             position: relative;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg));
-            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            background: var(--blm-gradient);
+            border: 2px solid var(--blm-gradient-border);
             border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            padding: 28px 20px 24px 20px;
-            box-shadow: var(--glass-shadow-lg);
+            padding: 32px 20px 24px 20px;
+            box-shadow: 0 8px 20px rgba(224, 68, 122, 0.25);
             text-align: center;
-            overflow: hidden;
+            overflow: visible;
             animation: fadeInCard 0.4s ease-out;
         }
 
-        .winner-card::before {
-            content: '';
+        .rank-pill {
             position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% -10%, rgba(255, 183, 3, 0.14), transparent 60%);
-            pointer-events: none;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            color: var(--blm-gradient-deep);
+            padding: 3px 14px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+            white-space: nowrap;
         }
 
         .avatar-wrapper {
@@ -158,9 +163,9 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            background: linear-gradient(45deg, var(--rank-gold), #fff3cd, #ffe066);
-            padding: 4px;
-            box-shadow: 0 4px 12px rgba(255, 183, 3, 0.2);
+            background: #fff;
+            padding: 3px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .fan-avatar-img {
@@ -175,7 +180,7 @@
             position: absolute;
             bottom: -2px;
             right: -2px;
-            color: var(--rank-gold);
+            color: var(--blm-gradient-deep);
             font-size: 1rem;
             background: #fff;
             width: 30px;
@@ -184,35 +189,35 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid var(--rank-gold);
+            border: 2px solid #fff;
             box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
 
         .winner-name {
             margin: 0 0 10px 0;
             font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--text-dark);
+            font-weight: 700;
+            color: #ffffff;
             position: relative;
         }
 
         .winner-gift {
             font-size: 1rem;
-            color: var(--text-dark);
+            color: var(--blm-gradient-deep);
             font-weight: 700;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             position: relative;
-            background: var(--blm-light-pink);
+            background: #ffffff;
             padding: 6px 16px;
             border-radius: 20px;
         }
 
-        .winner-gift i { color: var(--blm-pink); }
+        .winner-gift i { color: var(--blm-gradient-deep); }
 
-        /* 📋 รายการอันดับที่เหลือ */
+        /* 📋 รายการอันดับที่เหลือ - การ์ดสีชมพูแบบเดียวกันทุกอันดับ */
         .ranking-list {
             margin-top: 18px;
             display: flex;
@@ -221,12 +226,10 @@
         }
 
         .rank-row {
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
+            background: var(--blm-gradient);
+            border: 2px solid var(--blm-gradient-border);
             border-radius: 16px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
+            box-shadow: 0 5px 15px rgba(224, 68, 122, 0.15);
             display: flex;
             align-items: center;
             gap: 14px;
@@ -235,19 +238,15 @@
         }
 
         .rank-indicator {
-            width: 30px;
-            height: 30px;
+            width: 26px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             font-size: 0.95rem;
-            color: var(--text-muted);
+            color: #ffffff;
         }
-
-        .rank-indicator.rank-2 { color: var(--rank-silver); font-size: 1.2rem; }
-        .rank-indicator.rank-3 { color: var(--rank-bronze); font-size: 1.2rem; }
 
         .rank-avatar {
             width: 46px;
@@ -256,14 +255,14 @@
             object-fit: cover;
             flex-shrink: 0;
             background-color: #fff;
-            border: 2px solid var(--blm-light-pink);
+            border: 2px solid #ffffff;
         }
 
         .rank-name {
             flex: 1;
             font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-dark);
+            font-weight: 700;
+            color: #ffffff;
             min-width: 0;
             white-space: nowrap;
             overflow: hidden;
@@ -272,16 +271,19 @@
 
         .rank-gift {
             font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-dark);
+            font-weight: 700;
+            color: #ffffff;
             display: flex;
             align-items: center;
             gap: 5px;
             flex-shrink: 0;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
         }
 
         .rank-gift i {
-            color: var(--blm-pink);
+            color: #ffffff;
             font-size: 0.85rem;
         }
 
@@ -363,25 +365,33 @@
             const memberName = urlParams.get('name');
             const backLink = document.getElementById('back-link');
 
-            if (!memberName) {
-                showError("ไม่พบข้อมูลเมมเบอร์ที่ต้องการดู Top Fans ค่ะ");
-                return;
-            }
+            if (memberName) {
+                // โหมดรายเมมเบอร์ - มาจากปุ่ม Top Fan ในหน้า member.html
+                if (backLink) backLink.href = `member?name=${encodeURIComponent(memberName)}`;
 
-            if (backLink) backLink.href = `member?name=${encodeURIComponent(memberName)}`;
+                try {
+                    const [stats, fans] = await Promise.all([
+                        blm48GetMemberStats(memberName),
+                        blm48GetMemberTopFans(memberName)
+                    ]);
 
-            try {
-                const [stats, fans] = await Promise.all([
-                    blm48GetMemberStats(memberName),
-                    blm48GetMemberTopFans(memberName)
-                ]);
+                    renderSubjectChip(stats, memberName);
+                    renderTopFans(Array.isArray(fans) ? fans : [], 'ยังไม่มีแฟนคลับปาคุกกี้ให้เมมเบอร์คนนี้เลยค่ะ');
+                } catch (error) {
+                    console.error("Top fans fetch error:", error);
+                    showError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ");
+                }
+            } else {
+                // โหมดรวมทุกเมมเบอร์ - มาจากส่วน Top Fans หน้า index.html
+                if (backLink) backLink.href = 'index';
 
-                document.querySelector('.nav-title').textContent = `Top Fans`;
-                renderSubjectChip(stats, memberName);
-                renderTopFans(Array.isArray(fans) ? fans : []);
-            } catch (error) {
-                console.error("Top fans fetch error:", error);
-                showError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ");
+                try {
+                    const fans = await blm48GetGlobalTopFans();
+                    renderTopFans(Array.isArray(fans) ? fans : [], 'ยังไม่มีข้อมูลแฟนคลับเลยค่ะ');
+                } catch (error) {
+                    console.error("Global top fans fetch error:", error);
+                    showError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ");
+                }
             }
         });
 
@@ -396,11 +406,11 @@
             container.insertBefore(chip, document.getElementById('ranking-page-wrapper'));
         }
 
-        function renderTopFans(fans) {
+        function renderTopFans(fans, emptyMessage) {
             const wrapper = document.getElementById('ranking-page-wrapper');
 
             if (!fans || fans.length === 0) {
-                wrapper.innerHTML = `<div class="empty-state">ยังไม่มีแฟนคลับปาคุกกี้ให้เมมเบอร์คนนี้เลยค่ะ</div>`;
+                wrapper.innerHTML = `<div class="empty-state">${emptyMessage}</div>`;
                 return;
             }
 
@@ -409,6 +419,7 @@
 
             let html = `
                 <div class="winner-card">
+                    <div class="rank-pill"><i class="fa-solid fa-crown"></i> อันดับ 1</div>
                     <div class="avatar-wrapper">
                         <div class="avatar-frame">
                             <img class="fan-avatar-img" src="${getImg(top.img)}" alt="${escapeHtml(top.name || top.username || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
@@ -432,17 +443,11 @@
                 const avatarImg = getImg(fan.img);
                 const giftCount = Number(fan.total || 0).toLocaleString();
 
-                let rankBadge;
-                if (rank === 2 || rank === 3) rankBadge = `<i class="fa-solid fa-crown"></i>`;
-                else rankBadge = rank;
-
-                const rankClass = rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
-
                 const row = document.createElement('div');
                 row.className = 'rank-row';
                 row.style.animationDelay = `${Math.min(i, 20) * 0.04}s`;
                 row.innerHTML = `
-                    <div class="rank-indicator ${rankClass}">${rankBadge}</div>
+                    <div class="rank-indicator">${rank}</div>
                     <img class="rank-avatar" loading="lazy" src="${avatarImg}" alt="${escapeHtml(fan.name || fan.username || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
                     <div class="rank-name">${escapeHtml(fan.name || fan.username || 'Unknown')}</div>
                     <div class="rank-gift"><i class="fa-solid fa-gift"></i> ${giftCount}</div>

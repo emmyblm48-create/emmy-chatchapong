@@ -693,12 +693,6 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       align-items: flex-end !important; 
     }
 
-    /* 3. จัดระเบียบกล่อง Top Fans ตอนเปิด ให้เนื้อหาพอดีและอยู่กึ่งกลาง */
-    #global-fan-list.horizontal-list {
-      align-items: center !important;
-      padding: 10px 15px !important;
-    }
-
     /* 4. จัดระเบียบกล่อง Campaign และ Trending Video ให้การ์ดชิดขอบบน ไม่ดันเนื้อหาลงไปลึก */
     #campaign-scroller.horizontal-list,
     #mv-scroller.horizontal-list {
@@ -2243,18 +2237,14 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div id="ranking-list" class="horizontal-list" style="position: relative; z-index: 2;"></div>
 </div>
   
-<div class="section-title" onclick="toggleTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
+<div class="section-title" onclick="goToGlobalTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
   <span>Top Fans</span>
   <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
     <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
   </div>
-  <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888; transition: transform 0.3s ease;"></i>
+  <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
 </div>
-<div id="top-fans-wrapper" class="ranking-wrapper" style="max-height: 0px; opacity: 0; padding: 0px 15px; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease, padding 0.3s ease;">
-  <div id="global-fan-list" class="horizontal-list"></div>
-</div>
- 
-  
+
 <div class="shop-banner-slider-wrapper" style="position: relative; margin: 20px 15px; border-radius: 16px; overflow: hidden;">
     
     <div id="autoBannerContainer" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; background-color: #ffeef2; -ms-overflow-style: none; cursor: grab;">
@@ -3255,39 +3245,12 @@ function renderRanking(data) {
   saveRankingTrackingMaps(activeMembers, indicatorsByName);
 }
   
-function toggleTopFans() {
-    const wrapper = document.getElementById("top-fans-wrapper");
-    const arrow = document.getElementById("top-fans-arrow");
-    const list = document.getElementById("global-fan-list");
-    const previewZone = document.getElementById("top-fans-preview-zone"); // ดึงกล่องรูปมินิมาควบคุม
-    
-    if (wrapper.style.maxHeight === "0px" || !wrapper.style.maxHeight) {
-        // ⚡ ตอนเปิด: ยืดแผงกางออกมา
-        const contentHeight = list ? (list.scrollHeight + 40) : 250;
-        wrapper.style.maxHeight = contentHeight + "px";
-        wrapper.style.opacity = "1";
-        wrapper.style.padding = "15px";
-        arrow.style.transform = "rotate(90deg)";
-        
-        // ⚡ สั่งให้รูปวงกลมมินิหายไปตอนกางออก
-        if (previewZone) previewZone.style.opacity = "0";
-    } else {
-        // ⚡ ตอนปิด: พับเก็บแนบสนิท
-        wrapper.style.maxHeight = "0px";
-        wrapper.style.opacity = "0";
-        wrapper.style.padding = "0px 15px";
-        arrow.style.transform = "rotate(0deg)";
-        
-        // ⚡ สั่งให้รูปวงกลมมินิเฟดกลับคืนมาโชว์ใหม่ตอนพับปิด
-        if (previewZone) previewZone.style.opacity = "1";
-    }
+// กด Top Fans แล้วพาไปหน้าอันดับเต็ม (แบบเดียวกับปุ่ม Top Fan ของ member.html แต่ไม่ส่ง ?name= เพื่อขอยอดรวมทุกเมมเบอร์)
+function goToGlobalTopFans() {
+  window.location.href = 'topfans';
 }
 
 function renderGlobalFans(rawData) {
-  const list = document.getElementById('global-fan-list');
-  if (!list) return;
-  list.innerHTML = '';
-
   let fansArray = [];
   if (Array.isArray(rawData)) {
     fansArray = rawData;
@@ -3295,10 +3258,7 @@ function renderGlobalFans(rawData) {
     fansArray = Object.values(rawData).flat();
   }
 
-  if (fansArray.length === 0) {
-    list.innerHTML = '<div style="padding:20px; color:#ccc; font-size:13px; width:100%; text-align:center;">ยังไม่มีข้อมูลแฟนคลับ...</div>';
-    return;
-  }
+  if (fansArray.length === 0) return;
 
   // --- รวมยอด (Group By User) ---
   const groupedFans = fansArray.reduce((acc, current) => {
@@ -3312,20 +3272,20 @@ function renderGlobalFans(rawData) {
 
   const finalFans = Object.values(groupedFans).sort((a, b) => b.total - a.total);
 
-  // --- วาดรูปมินิกรอบทอง-เงิน-ทองแดง ไว้ด้านบนแผง ---
+  // --- รูปมินิ 3 อันดับแรกตรงหัวข้อ (พรีวิวก่อนกดเข้าไปดูหน้าเต็ม) ---
   const previewZone = document.getElementById('top-fans-preview-zone');
   if (previewZone) {
     previewZone.innerHTML = '';
     const top3Preview = finalFans.slice(0, 3).reverse();
-    
+
     top3Preview.forEach((f, index) => {
-      const actualRank = top3Preview.length - 1 - index; 
+      const actualRank = top3Preview.length - 1 - index;
       const miniBorderColor = actualRank === 0 ? '#ffd700' : actualRank === 1 ? '#c0c0c0' : actualRank === 2 ? '#cd7f32' : '#ffeef2';
-      
+
       const miniAvatar = document.createElement('img');
       miniAvatar.src = getImg(f.img);
       miniAvatar.style = `
-        width: 26px; height: 26px; border-radius: 50%; 
+        width: 26px; height: 26px; border-radius: 50%;
         border: 2px solid ${miniBorderColor}; object-fit: cover;
         margin-left: -6px; background: white;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -3333,44 +3293,6 @@ function renderGlobalFans(rawData) {
       miniAvatar.onerror = function() { this.src = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'; };
       previewZone.appendChild(miniAvatar);
     });
-  }
-
-  // --- แสดงผลการ์ดด้านล่าง ---
-  finalFans.forEach((f, i) => {
-    const isTop3 = i < 3;
-    const rankIcon = i === 0 ? '<i class="fas fa-crown"></i>' : (i + 1);
-
-    const card = document.createElement('div');
-    card.className = 'fan-card';
-    card.style = `
-      position: relative; min-width: 120px;
-      background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 45%, #ff8fb3 55%, #e0447a 100%);
-      padding: 20px 15px; border-radius: 25px; text-align: center;
-      border: 2px solid #ff6b9d; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-      margin: 10px 5px; flex-shrink: 0;
-    `;
-
-    card.innerHTML = `
-      <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-        background: #ffffff; color: #e0447a;
-        padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap;">
-        ${isTop3 ? rankIcon + ' ' : ''}อันดับ ${i + 1}
-      </div>
-      <img src="${getImg(f.img)}" style="width:65px; height:65px; border-radius:50%; border:3px solid #ffffff; margin-top:5px; object-fit:cover;" onerror="this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'">
-      <div style="font-weight:700; font-size:14px; color:#ffffff; margin-top:8px; white-space: nowrap; overflow:hidden; text-overflow:ellipsis;">
-        ${f.name || f.username}
-      </div>
-      <div style="font-size:12px; color:#ffffff; font-weight:700; margin-top:4px;">
-        <i class="fas fa-heart-circle-check"></i> ${Number(f.total).toLocaleString()}
-      </div>
-    `;
-    list.appendChild(card);
-  });
-
-  const wrapper = document.getElementById("top-fans-wrapper");
-  if (wrapper && wrapper.style.maxHeight !== "0px" && wrapper.style.maxHeight !== "") {
-      wrapper.style.maxHeight = (list.scrollHeight + 40) + "px";
   }
 }
 

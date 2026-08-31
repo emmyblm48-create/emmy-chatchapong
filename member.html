@@ -16,8 +16,6 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
@@ -56,41 +54,6 @@
       right: calc(50% - 60px);
     }
 
-    /* 📷 ปุ่มเปลี่ยนภาพพื้นหลัง (โชว์เฉพาะบัญชีเมมเบอร์เจ้าของโปรไฟล์นี้เท่านั้น) */
-    .hero-edit-btn {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: none;
-      background: rgba(0,0,0,0.45);
-      color: #fff;
-      font-size: 15px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 5;
-      backdrop-filter: blur(4px);
-    }
-    .hero-edit-btn.visible { display: flex; }
-    .hero-edit-btn:active { transform: scale(0.92); }
-
-    .cropper-container-box {
-      max-width: 100%;
-      max-height: 320px;
-      margin-top: 15px;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #f8f9fa;
-    }
-    .cropper-container-box img {
-      max-width: 100%;
-      display: block;
-    }
-
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -124,14 +87,12 @@
 
     .app-layout {
       width: 100%;
-      max-width: 480px;
       /* ✏️ ตามคำขอผู้ใช้: คงพื้นหลังสีขาวทึบไว้เหมือนเดิม ตั้งแต่ชื่อเมมเบอร์จนถึงล่างสุด ไม่ใส่กระจกฝ้า */
       background: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
     }
 
     .hero-image-container {
@@ -177,39 +138,20 @@
     }
 
     @media (min-width: 768px) {
-      body {
-        padding: 40px 20px;
-        align-items: center;
-      }
-      .app-layout {
-        max-width: 480px;
-        min-height: 800px;
-        border-radius: 30px;
-        flex-direction: column;
-        overflow: hidden;
-        margin: 0 auto;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-      }
-      
       .hero-image-container {
-        width: 100% !important;
         height: 480px !important;
       }
-      
+
       .hero-gradient {
         background: linear-gradient(to top, #ffffff 15%, transparent) !important;
         height: 150px !important;
       }
 
+      /* 🖥️ เต็มจอเสมอ ไม่มีกรอบการ์ดลอยกลางจอแบบเดิม - คุมแค่ความกว้างเนื้อหาด้านในให้อ่านง่าย */
       .profile-body {
-        width: 100% !important;
-        padding: 0 24px 35px 24px !important;
-        margin-top: -50px !important;
-      }
-      .back-circle-btn {
-        position: absolute; 
-        top: 20px;
-        left: 20px;
+        max-width: 720px;
+        margin-left: auto;
+        margin-right: auto;
       }
     }
 
@@ -739,8 +681,6 @@
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
-      <button id="hero-edit-btn" class="hero-edit-btn" onclick="triggerCoverUpload()"><i class="fas fa-camera"></i></button>
-      <input type="file" id="cover-upload" accept="image/*" style="display:none" onchange="handleCoverImageSelect(event)">
       <div class="hero-gradient"></div>
     </div>
 
@@ -890,7 +830,6 @@ function renderMemberStatsAndFans() {
       if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
     }
 
-    currentCoverUrl = m.cover_image || null;
     const avatarEl = document.getElementById('mb-avatar');
     if (avatarEl) avatarEl.src = getImg(m.cover_image || m.profile_img);
     const avatarCircleEl = document.getElementById('mb-avatar-circle');
@@ -1108,19 +1047,6 @@ function renderMemberStatsAndFans() {
 
       const notifLabel = document.getElementById('notif-toggle-label');
       if (notifLabel) notifLabel.textContent = isKami ? 'Turn OFF notification' : 'Turn ON notification';
-
-      updateHeroEditButton();
-    }
-
-    // 📷 ปุ่มเปลี่ยนภาพพื้นหลังโชว์เฉพาะบัญชี role=member ที่เป็นเจ้าของโปรไฟล์นี้เอง (จับคู่ชื่อแบบเดียวกับระบบอื่นในแอป)
-    function isOwnMemberProfile() {
-      return !!(user && user.role && user.role.toUpperCase().trim() === 'MEMBER' &&
-        user.name && memberName && user.name.trim().toLowerCase() === memberName.trim().toLowerCase());
-    }
-    function updateHeroEditButton() {
-      const btn = document.getElementById('hero-edit-btn');
-      if (!btn) return;
-      btn.classList.toggle('visible', isOwnMemberProfile());
     }
   
  async function loadMemberSpecialThanks() {
@@ -1360,86 +1286,6 @@ function renderMemberStatsAndFans() {
       }
     }
 
-    // 🖼️ อัปโหลดภาพพื้นหลังโปรไฟล์เมมเบอร์ (เฉพาะบัญชีเมมเบอร์เจ้าของโปรไฟล์)
-    let currentCoverUrl = null;
-    let activeCropper = null;
-
-    function triggerCoverUpload() {
-      if (!isOwnMemberProfile()) return;
-      document.getElementById('cover-upload').click();
-    }
-
-    function handleCoverImageSelect(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        Swal.fire({
-          title: 'ปรับตำแหน่งภาพพื้นหลัง',
-          html: `<div class="cropper-container-box"><img id="cover-cropper-target-img" src="${e.target.result}"></div>`,
-          showCancelButton: true,
-          confirmButtonColor: 'var(--blmem-pink)',
-          confirmButtonText: 'ยืนยันรูปภาพนี้',
-          cancelButtonText: 'ยกเลิก',
-          allowOutsideClick: false,
-          didOpen: () => {
-            const imageElement = document.getElementById('cover-cropper-target-img');
-            activeCropper = new Cropper(imageElement, {
-              aspectRatio: 16 / 10,
-              viewMode: 1,
-              autoCropArea: 1,
-              movable: true,
-              zoomable: true,
-              rotatable: false,
-              scalable: false
-            });
-          },
-          willClose: () => {
-            if (activeCropper) { activeCropper.destroy(); activeCropper = null; }
-          },
-          preConfirm: () => {
-            return new Promise((resolve) => {
-              activeCropper.getCroppedCanvas({ width: 960, height: 600 }).toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
-            });
-          }
-        }).then(async (result) => {
-          if (result.isConfirmed && result.value) {
-            await proceedToUploadCover(result.value);
-          }
-          document.getElementById('cover-upload').value = '';
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-
-    async function proceedToUploadCover(blobFile) {
-      Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      try {
-        const oldCoverUrl = currentCoverUrl;
-        const finalUrl = await blm48UploadMemberCoverImage(user.username, blobFile);
-        const res = await blm48UpdateMemberCoverImage(user.username, memberName, finalUrl);
-        if (res.status !== 'success') throw new Error(res.message || 'อัปเดตรูปพื้นหลังไม่สำเร็จ');
-
-        if (oldCoverUrl) blm48DeleteStorageFiles([oldCoverUrl]);
-        currentCoverUrl = finalUrl;
-
-        const avatarEl = document.getElementById('mb-avatar');
-        if (avatarEl) avatarEl.src = finalUrl;
-
-        const savedStatsStr = localStorage.getItem('current_member_stats');
-        if (savedStatsStr) {
-          const m = JSON.parse(savedStatsStr);
-          m.cover_image = finalUrl;
-          localStorage.setItem('current_member_stats', JSON.stringify(m));
-        }
-
-        Swal.fire('สำเร็จ!', 'เปลี่ยนภาพพื้นหลังเรียบร้อยแล้วค่ะ', 'success');
-      } catch (e) {
-        Swal.fire('ผิดพลาด', e.message || 'ไม่สามารถอัปโหลดรูปได้ในขณะนี้', 'error');
-      }
-    }
-  
     function formatMemberScore(num) {
       if (!num || isNaN(num)) return '0';
       const number = Number(num);
