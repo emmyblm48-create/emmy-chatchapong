@@ -205,6 +205,11 @@
             word-break: break-word;
         }
 
+        .message-content.placeholder-text {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
         /* 🖼️ โพสต์รูปภาพเฉลิมฉลองประจำตำแหน่ง */
         .artwork-section {
             width: 100%;
@@ -361,7 +366,8 @@
             const container = document.getElementById('thanks-content-box');
             const avatarImg = data.profileImage ? data.profileImage : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
             const formatCookie = Number(data.totalCookie).toLocaleString();
-            const thankYouMessage = data.message ? data.message : "";
+            const hasMessage = !!(data.message && data.message.toString().trim() !== "");
+            const thankYouMessage = hasMessage ? data.message : "Coming soon — she hasn't posted her thank-you message yet!";
 
             container.innerHTML = `
                 <div class="avatar-wrapper">
@@ -386,7 +392,7 @@
                     <div class="message-title">
                         <i class="fa-solid fa-heart"></i> Message from Member
                     </div>
-                    <div class="message-content">${escapeHtml(thankYouMessage)}</div>
+                    <div class="message-content${hasMessage ? '' : ' placeholder-text'}">${escapeHtml(thankYouMessage)}</div>
                 </div>
 
                 <div class="artwork-section" id="artwork-wrapper">

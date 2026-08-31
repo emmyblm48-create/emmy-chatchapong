@@ -380,10 +380,20 @@ body {
         </button>
       </div>
 
-      <div id="pf-fanscore-box" style="display: none; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 45%, #ff8fb3 55%, #e0447a 100%); border-radius: 18px; padding: 14px 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4); border: 1px solid #ff6b9d;">
+      <div id="pf-fanscore-box" style="display: none; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 45%, #ff8fb3 55%, #e0447a 100%); border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4); border: 1px solid #ff6b9d;">
         <i class="fas fa-heart-circle-check" style="color: #ffffff; font-size: 22px;"></i>
         <span id="pf-fanscore" style="color: #ffffff; font-size: 20px; font-weight: 700;">0</span>
         <span style="color: #ffffff; font-size: 12px; opacity: 0.85; font-weight: bold;">Fan Score</span>
+      </div>
+
+      <div id="pf-fanscore-detail-box" style="display: none; background: #fff; border-radius: 18px; padding: 4px 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #f4d4de;">
+        <div onclick="toggleFanScoreDetail()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 0; user-select: none;">
+          <span style="font-weight: 700; color: #555; font-size: 13.5px;"><i class="fas fa-heart-circle-check" style="color: #e0447a; margin-right: 7px;"></i>Fan Score แยกตามเมมเบอร์</span>
+          <i id="pf-fanscore-detail-arrow" class="fas fa-chevron-right" style="font-size: 13px; color: #888; transition: transform 0.3s ease;"></i>
+        </div>
+        <div id="pf-fanscore-detail-wrapper" style="max-height: 0px; opacity: 0; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease;">
+          <div id="pf-fanscore-detail-list" style="padding-bottom: 10px;"></div>
+        </div>
       </div>
 
       <div class="menu-section">
@@ -489,8 +499,11 @@ body {
     if (user.role && user.role.toLowerCase() === 'user') {
       if (fanScoreBox) fanScoreBox.style.display = 'flex';
       document.getElementById('pf-fanscore').innerText = Number(user.fanCookies || 0).toLocaleString();
+      loadFanScoreDetail();
     } else {
       if (fanScoreBox) fanScoreBox.style.display = 'none';
+      const fanScoreDetailBox = document.getElementById('pf-fanscore-detail-box');
+      if (fanScoreDetailBox) fanScoreDetailBox.style.display = 'none';
     }
 
     if (user.role && user.role.toLowerCase() === 'user') {
@@ -518,6 +531,56 @@ body {
     const tabProfileImg = document.getElementById('tab-profile-img');
     if (tabProfileImg) {
       tabProfileImg.src = document.getElementById('pf-avatar').src; // ใช้รูปที่แปลงแล้วจาก pf-avatar ได้เลย
+    }
+  }
+
+  function toggleFanScoreDetail() {
+    const wrapper = document.getElementById('pf-fanscore-detail-wrapper');
+    const arrow = document.getElementById('pf-fanscore-detail-arrow');
+    if (!wrapper) return;
+    if (wrapper.style.maxHeight === '0px' || !wrapper.style.maxHeight) {
+      wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+      wrapper.style.opacity = '1';
+      arrow.style.transform = 'rotate(90deg)';
+    } else {
+      wrapper.style.maxHeight = '0px';
+      wrapper.style.opacity = '0';
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  // ยอด Fan Score แยกตามเมมเบอร์ (ให้เมมเบอร์ไหนไปเท่าไหร่บ้าง) ดึงจาก fan_logs ผ่าน RPC get_user_fan_scores
+  async function loadFanScoreDetail() {
+    if (!user || !user.username) return;
+    const box = document.getElementById('pf-fanscore-detail-box');
+    const list = document.getElementById('pf-fanscore-detail-list');
+    if (!box || !list) return;
+    try {
+      const scores = await blm48GetUserFanScores(user.username);
+      if (!Array.isArray(scores) || scores.length === 0) {
+        box.style.display = 'none';
+        return;
+      }
+      box.style.display = 'block';
+      list.innerHTML = scores.map(s => {
+        let img = s.img || 'https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png';
+        if (img.includes('drive.google.com')) {
+          const driveMatch = img.match(/[-\w]{25,}/);
+          if (driveMatch) img = `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}`;
+        }
+        return `
+          <div style="display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid #f9f9f9;">
+            <img src="${img}" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'" style="width:38px; height:38px; border-radius:50%; object-fit:cover; flex-shrink:0;">
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:13px; font-weight:600; color:#444; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name || s.member_name}</div>
+              <div style="font-size:11.5px; color:#e0447a; font-weight:700;"><i class="fas fa-heart-circle-check"></i> ${Number(s.total || 0).toLocaleString()} Fan Score</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error('loadFanScoreDetail error:', e);
+      box.style.display = 'none';
     }
   }
 
@@ -686,7 +749,7 @@ body {
 
   // --- ฟังก์ชันสร้างการ์ด Membership ---
   // การ์ดพื้นหลังแยกตาม Role/Tier: Member ได้ Member Card เสมอ
-  // ส่วน role=user จะได้ Copper/Silver/Gold ตาม Membership Tier (ค่าเฉลี่ยการถือ Token ย้อนหลัง 1 เดือน)
+  // ส่วน role=user จะได้ Copper/Silver/Gold ตาม Membership Tier (Fan Score สะสม: Copper <5000, Silver 5000-10000, Gold 10000+)
   const MEMBERSHIP_CARD_IMAGES = {
     member: 'https://lh3.googleusercontent.com/d/1z1rqVAMbE6a0-i-A_9W-PfErg0V8RSqy=s1000',
     copper: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',

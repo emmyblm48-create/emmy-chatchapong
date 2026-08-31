@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/glassmorphism.css">
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
-    <meta name="theme-color" content="#ffc0cb">
+    <meta name="theme-color" content="#f4b9c6">
     <!-- สำหรับ iOS Home Screen Icon -->
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
     <!-- สำหรับ Android และ Chrome -->
@@ -21,7 +21,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -30,24 +30,63 @@
 
     <style>
         :root {
-          --primary-pink: #ff69b4;
-          --pastel-pink: #ffc0cb;
-          --dark-pink: #c71585;
+          --primary-pink: #e1546f;
+          --pastel-pink: #f4b9c6;
+          --dark-pink: #c53f5a;
           --glass-bg: rgba(255, 255, 255, 0.75);
-          --gold: #ffd700;
-          --cookie-brown: #d2691e;
-          --cafe-brown: #8b5a2b;
-          --cafe-light: #fff9f5;
-          --cafe-green: #a8e6cf;
-          --soft-pink: #ffe3e8;
+          --gold: #f3ce6e;
+          --cookie-brown: #8b5a3c;
+          --cafe-brown: #6e4326;
+          --cafe-light: #fffbf1;
+          --cafe-green: #afddd2;
+          --soft-pink: #f8d3db;
           --silver: #c0c0c0;
           --bronze: #cd7f32;
+
+          /* 🍮 Petal & Spoon parlor palette: cream ground + berry/mint/butter/caramel accents */
+          --cream: #fbf3de;
+          --cream-soft: #fffbf1;
+          --cream-line: rgba(110, 67, 38, .12);
+          --stripe-pink-soft: #f8d3db;
+          --mint-ink: #5fa896;
+          --caramel: #6e4326;
+          --caramel-soft: #8b5a3c;
+
+          --font-display: 'Caveat', cursive;
+          --font-heading: 'Fredoka', 'Kanit', sans-serif;
+          --font-body: 'Nunito', 'Kanit', sans-serif;
+
+          /* 🥤 Cream Soda poster palette: soft sky wash + bubble-cluster blue/berry over a cream ground.
+             อ้างอิงจากภาพโปสเตอร์ครีมโซดา - ใช้เป็นภาษาดีไซน์ร่วมของหน้า Shop ทั้งหน้า ไม่ใช่การก็อปสีตรงๆ */
+          --soda-sky-pink: #f6b8c9;
+          --soda-blue: #b7e2ee;
+          --soda-blue-deep: #6bb9d6;
+          --soda-cream: #fffaf0;
+          --soda-leaf: #a9d8b8;
+          --soda-cherry: #d63756;
         }
 
         html { scroll-behavior: smooth; }
         body {
-            font-family: 'Quicksand', 'Kanit', sans-serif;
+            font-family: 'Nunito', 'Kanit', sans-serif;
             margin: 0; padding: 0; min-height: 100vh;
+            background-image: radial-gradient(var(--cafe-green) 1px, transparent 1.3px);
+            background-size: 24px 24px;
+            background-attachment: fixed;
+        }
+        /* 🎐 ม่านฟ้าโซดาพาสเทล (blob สีฟ้า/ชมพู/มินต์จางๆ) ซ้อนใต้ลายจุดฟองโซดา
+           เป็น background-image ธรรมดา (ไม่ใช้ pseudo-element) เพื่อลอยอยู่หลังเนื้อหาเสมอโดยไม่ต้องยุ่งกับ z-index */
+        body.glass-mesh-bg.force-white-bg {
+            background-color: var(--soda-cream);
+            background-image:
+                radial-gradient(60% 38% at 10% 0%, rgba(246,184,201,.5), transparent 70%),
+                radial-gradient(55% 34% at 92% 4%, rgba(183,226,238,.55), transparent 70%),
+                radial-gradient(50% 28% at 50% 100%, rgba(169,216,184,.25), transparent 70%),
+                radial-gradient(var(--soda-blue) 1px, transparent 1.3px),
+                radial-gradient(var(--soda-sky-pink) 1px, transparent 1.3px);
+            background-size: auto, auto, auto, 24px 24px, 24px 24px;
+            background-position: 0 0, 0 0, 0 0, 0 0, 12px 12px;
+            background-attachment: fixed, fixed, fixed, fixed, fixed;
         }
 
         /* 📡 Top Navbar - Shop กลายเป็นหน้าย่อยเข้าถึงผ่านไอคอนบน index.html แล้ว (เดิมเป็นหน้าเมนูหลัก
@@ -59,21 +98,77 @@
             padding: 0 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
             z-index: 1000;
         }
+        /* 🍓 ขอบหยักคล้ายผ้าลูกไม้ใต้ navbar สลับสีฟ้า/ชมพูแบบฟองโซดาให้ดูเป็นชายกันสาดร้านขนม */
+        .top-navbar::after {
+            content: "";
+            position: absolute; left: 0; right: 0; bottom: -10px; height: 12px;
+            background-image:
+                radial-gradient(circle at 8px 0, var(--stripe-pink-soft) 8px, transparent 8.5px),
+                radial-gradient(circle at 24px 0, var(--soda-blue) 6px, transparent 6.5px);
+            background-size: 32px 12px; background-repeat: repeat-x;
+            pointer-events: none;
+        }
+        /* 🏷️ ป้ายแบรนด์ทรงแคปซูล + ชื่อร้านลายมือ ล้อโครงสร้าง logo tag + headline ของโปสเตอร์ครีมโซดา */
+        .nav-brand-wrap {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            user-select: none;
+        }
+        .nav-brand-tag {
+            font-family: var(--font-heading);
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: .14em;
+            color: var(--soda-blue-deep);
+            background: #ffffff;
+            border: 1.3px solid var(--soda-blue);
+            border-radius: 999px;
+            padding: 2px 9px;
+            line-height: 1.3;
+        }
+        .nav-brand {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.4rem;
+            line-height: 1;
+            color: var(--primary-pink);
+            letter-spacing: .02em;
+            user-select: none;
+        }
         .nav-left-actions {
             position: absolute; left: 15px; display: flex; align-items: center; gap: 8px;
+            z-index: 1;
+        }
+        /* 🫧 พวงฟองโซดา (ล้อทรงพวงองุ่น/เบอร์รี่ในโปสเตอร์) ลอยตุบๆ เบาๆ มุมขวาบนของ navbar */
+        .nav-bubbles {
+            position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+            width: 34px; height: 26px; pointer-events: none;
+        }
+        .nav-bubbles span {
+            position: absolute; border-radius: 50%;
+            animation: bubbleFloat 3.2s ease-in-out infinite;
+        }
+        .nav-bubbles span:nth-child(1) { width: 16px; height: 16px; left: 0; top: 6px; background: var(--soda-blue); animation-delay: 0s; }
+        .nav-bubbles span:nth-child(2) { width: 13px; height: 13px; left: 11px; top: 0; background: var(--soda-sky-pink); animation-delay: .35s; }
+        .nav-bubbles span:nth-child(3) { width: 10px; height: 10px; left: 20px; top: 9px; background: var(--soda-blue-deep); opacity: .8; animation-delay: .7s; }
+        @keyframes bubbleFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-4px) scale(1.05); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .nav-bubbles span { animation: none; }
         }
         .nav-btn {
             color: var(--primary-pink); font-size: 1rem; text-decoration: none;
             width: 35px; height: 35px; display: flex;
             align-items: center; justify-content: center;
-            border-radius: 50%; background: #fff0f5;
+            border-radius: 50%; background: var(--stripe-pink-soft);
             border: none; cursor: pointer; transition: transform 0.2s;
         }
         .nav-btn:active { transform: scale(0.9); }
       
-        /* บังคับหน้าต่างทั้งหมดและ SweetAlert ให้ใช้ฟอนต์ Quicksand และ Kanit เท่านั้น */
+        /* บังคับหน้าต่างทั้งหมดและ SweetAlert ให้ใช้ฟอนต์ Nunito และ Kanit เท่านั้น */
         .confirm-box, .blm-overlay, .swal2-popup, .swal2-title, .swal2-html-container, .swal2-confirm, .swal2-cancel {
-            font-family: 'Quicksand', 'Kanit', sans-serif !important;
+            font-family: 'Nunito', 'Kanit', sans-serif !important;
         }
 
         /* ✨ SweetAlert2 ใช้ดีไซน์กระจกฝ้ากลางร่วมกับทุกหน้า (assets/css/glassmorphism.css)
@@ -98,7 +193,7 @@
 
         /* ปุ่มกดสไตล์นุ่มฟู น่ารัก */
         .btn-shop-buy, .btn-gacha-spin {
-            background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
+            background: linear-gradient(45deg, var(--primary-pink), #ef8fa1);
             color: white;
             font-weight: bold;
             border: none;
@@ -106,9 +201,12 @@
             padding: 10px 24px;
             box-shadow: none;
             cursor: pointer;
-            transition: transform 0.1s ease;
+            transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
         }
 
+        .btn-shop-buy:hover, .btn-gacha-spin:hover {
+            transform: translateY(-2px) scale(1.03);
+        }
         .btn-shop-buy:active, .btn-gacha-spin:active {
             transform: scale(0.95);
         }
@@ -167,7 +265,7 @@
         .gacha-capsule-main {
             width: 100px;
             height: 100px;
-            background: linear-gradient(to bottom, #ff4081 50%, #ffffff 50%);
+            background: linear-gradient(to bottom, #e1546f 50%, #ffffff 50%);
             border-radius: 50%;
             border: 4px solid #333;
             position: absolute;
@@ -279,14 +377,14 @@
 
         .nav-link {
             text-decoration: none;
-            color: #ff85a2; 
+            color: #e1546f; 
             font-weight: bold;
             font-size: 14px;
             transition: 0.3s; 
         }
 
         .nav-link:hover {
-            color: #ffb5c7; 
+            color: #eda6b8; 
             transform: translateY(-2px); 
         }
 
@@ -306,17 +404,22 @@
         .nav-link { text-decoration: none; color: var(--primary-pink); font-weight: bold; font-size: 14px; transition: 0.3s; }
         .nav-link:hover { opacity: 0.7; }
         .nav-btns { display: flex; gap: 15px; }
-        .nav-icon { background: none; border: none; color: #ffb3c1; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
+        .nav-icon { background: none; border: none; color: #d98fa0; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
         .nav-icon:hover { color: var(--primary-pink); transform: scale(1.1); }
 
         /* Wallet Section - หน้าตาเดียวกับ .stats-bar/.stat-box ของหน้า profile.html:
-           การ์ดขาวล้วน แบ่งคอลัมน์ด้วยเส้นคั่นบางๆ ไม่มี glass blur/เงาลอย/glow ใดๆ */
+           การ์ดขาวล้วน แบ่งคอลัมน์ด้วยเส้นคั่นบางๆ ไม่มี glass blur/เงาลอย/glow ใดๆ
+           เติมขอบบนไล่เฉดฟ้า-ชมพูแบบขอบปากแก้วโซดา + พวงฟองประดับมุมให้เข้าธีมโปสเตอร์ */
         .user-profile-bar {
             max-width: 900px; margin: 15px auto; background: #ffffff; border-radius: 18px;
             padding: 16px 5px; border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            border-top: 3px solid transparent;
+            border-image: linear-gradient(90deg, var(--soda-blue), var(--stripe-pink-soft), var(--soda-blue)) 1;
+            position: relative;
+            overflow: hidden;
         }
         .wallet-card-header {
-            font-family: 'Kanit', sans-serif;
+            font-family: var(--font-heading);
             font-size: 18px;
             font-weight: 700;
             color: var(--dark-pink);
@@ -329,6 +432,17 @@
             color: var(--primary-pink);
             font-size: 18px;
         }
+        /* 🫧 ฟองโซดาจางๆ ลอยมุมขวาบนของการ์ดกระเป๋าเงิน */
+        .user-profile-bar::after {
+            content: "";
+            position: absolute; top: -14px; right: 18px; width: 46px; height: 46px;
+            background:
+                radial-gradient(circle at 30% 30%, var(--soda-blue) 0 9px, transparent 9.5px),
+                radial-gradient(circle at 68% 55%, var(--soda-sky-pink) 0 7px, transparent 7.5px);
+            opacity: .65;
+            animation: bubbleFloat 4s ease-in-out infinite;
+            pointer-events: none;
+        }
         .wallet { display: grid; grid-template-columns: repeat(3, 1fr); }
         .wallet-item {
             text-align: center;
@@ -337,7 +451,7 @@
             justify-content: center;
             min-width: 0;
         }
-        .wallet-item:not(:last-child) { border-right: 1px solid #ffe5ec; }
+        .wallet-item:not(:last-child) { border-right: 1px solid var(--stripe-pink-soft); }
         .wallet-value {
             font-size: 16px; color: #444; font-weight: 600;
             display: flex; align-items: center; justify-content: center; gap: 4px;
@@ -368,34 +482,77 @@
             transition: transform 0.2s ease, background 0.2s ease;
         }
         .quick-tile:active { transform: scale(0.94); }
+        /* 🥤 ทรงคล้ายแก้วเครื่องดื่ม (มุมบนมนกว่ามุมล่าง) + เด้ง/โยกเบาๆ ตอน hover ให้ความรู้สึกเหมือนฟองโซดาผุด */
         .quick-tile-icon {
             width: 46px; height: 46px;
-            border-radius: 16px;
+            border-radius: 20px 20px 12px 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 18px;
+            position: relative;
+            transition: transform .35s cubic-bezier(.34,1.56,.64,1);
         }
+        .quick-tile-icon::before {
+            content: "";
+            position: absolute; top: 3px; left: 8px; right: 8px; height: 3px;
+            background: rgba(255,255,255,.75);
+            border-radius: 999px;
+        }
+        .quick-tile:hover .quick-tile-icon {
+            transform: translateY(-3px) rotate(-4deg) scale(1.06);
+        }
+        .quick-tile:hover .quick-tile-label { color: var(--primary-pink); }
         .quick-tile-label {
             font-size: 11px;
             font-weight: 600;
             color: #666;
-            font-family: 'Kanit', sans-serif;
+            font-family: var(--font-heading);
             text-align: center;
             line-height: 1.2;
         }
 
         /* --- Shop Layout --- */
         .section-title {
-            font-family: 'Kanit';
+            font-family: var(--font-heading);
             font-weight: 600;
-            color: #444;
-            margin: 25px 0 15px 20px;
+            color: var(--caramel);
+            margin: 25px 0 2px 20px;
             font-size: 18px;
             border-left: 5px solid var(--primary-pink);
+            border-radius: 4px;
             padding-left: 12px;
             scroll-margin-top: 16px;
             display: flex;
             align-items: center;
             gap: 8px;
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.3,1.1);
+        }
+        .section-title.reveal-in { opacity: 1; transform: translateY(0); }
+        /* ✨ แคปชั่นเล็กๆ ใต้หัวข้อ ล้อสไตล์ "cream / pudding / strawberry / soda" ใต้ headline ของโปสเตอร์ */
+        .section-caption {
+            font-family: var(--font-display);
+            font-style: italic;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: .03em;
+            color: var(--caramel-soft);
+            margin: 0 0 15px 37px;
+            opacity: .85;
+        }
+        .section-title .sparkle-icon {
+            display: inline-block;
+            font-size: 13px;
+            color: var(--soda-blue-deep);
+            animation: sparkleTwinkle 2.4s ease-in-out infinite;
+        }
+        @keyframes sparkleTwinkle {
+            0%, 100% { transform: rotate(0deg) scale(1); opacity: .8; }
+            50% { transform: rotate(20deg) scale(1.25); opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .section-title { opacity: 1; transform: none; transition: none; }
+            .section-title .sparkle-icon { animation: none; }
         }
 
         /* 🛒 ทั้งกล่องเก่าและกล่องใหม่จากหลังบ้าน: บังคับเป็น 2 คอลัมน์บนมือถือ */
@@ -419,23 +576,31 @@
             display: flex;
             flex-direction: column;
             border: 1px solid #f0f0f0 !important;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, transform 0.25s cubic-bezier(.2,.8,.3,1.2);
             box-sizing: border-box;
             position: relative;
         }
+        .merch-card:hover .merch-image, .merch-card-large:hover .merch-image {
+            transform: scale(1.06) rotate(-1.5deg);
+        }
+        .merch-image {
+            transition: transform 0.35s cubic-bezier(.2,.8,.3,1.2);
+        }
 
+        /* 🎀 ป้ายสไตล์สติกเกอร์ป๊อปอัป เอียงเล็กน้อยคล้ายป้าย "Recommend Menu!" ในโปสเตอร์ */
         .merch-badge {
             position: absolute;
             top: 10px;
             left: -6px;
-            background: linear-gradient(45deg, var(--primary-pink), #ff85c0);
+            background: linear-gradient(45deg, var(--primary-pink), #ef8fa1);
             color: white;
             font-size: 0.65rem;
             font-weight: 800;
             letter-spacing: 0.5px;
             padding: 4px 10px 4px 12px;
             border-radius: 0 20px 20px 0;
-            box-shadow: none;
+            box-shadow: 0 3px 8px rgba(225,84,111,.35);
+            transform: rotate(-3deg);
             z-index: 2;
         }
 
@@ -444,20 +609,56 @@
             position: absolute;
             top: 10px;
             right: -6px;
-            background: linear-gradient(45deg, #ff9d42, #ffc247);
+            background: linear-gradient(45deg, #e1546f, #f3ce6e);
             color: white;
             font-size: 0.65rem;
             font-weight: 800;
             letter-spacing: 0.5px;
             padding: 4px 12px 4px 10px;
             border-radius: 20px 0 0 20px;
-            box-shadow: none;
+            box-shadow: 0 3px 8px rgba(243,206,110,.35);
+            transform: rotate(3deg);
             z-index: 2;
+        }
+
+        /* 🍧 ขอบหยักโค้งมนบนกรอบรูปสินค้า ล้อทรงถ้วยพาร์เฟ่ต์/ปากแก้วโซดาในโปสเตอร์ */
+        .merch-image-container { position: relative !important; }
+        .merch-image-container::after {
+            content: "";
+            position: absolute; left: 0; right: 0; bottom: 0; height: 10px;
+            background-image: radial-gradient(circle at 7px 10px, #ffffff 7px, transparent 7.5px);
+            background-size: 14px 14px; background-repeat: repeat-x;
+            pointer-events: none;
         }
 
         .merch-card:hover, .merch-card-large:hover {
             border-color: var(--primary-pink) !important;
             box-shadow: none !important;
+            animation: cardWobble .5s ease forwards;
+        }
+        /* 🍮 โยกเบาๆ คล้ายวุ้น/พุดดิ้งสั่นตอนโดนแตะ สนุกขึ้นแต่ยังสุภาพ ไม่ทำให้เลย์เอาต์ขยับ */
+        @keyframes cardWobble {
+            0% { transform: translateY(0) rotate(0deg); }
+            30% { transform: translateY(-5px) rotate(-1deg); }
+            60% { transform: translateY(-3px) rotate(1deg); }
+            100% { transform: translateY(-4px) rotate(0deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .merch-card, .merch-card-large, .merch-image { transition: none !important; }
+            .merch-card:hover, .merch-card-large:hover { animation: none; transform: translateY(-4px); }
+        }
+        /* ✨ การ์ดที่ปรากฏบนจอครั้งแรกให้ค่อยๆ ผุดขึ้นคล้ายฟองโซดา (เปิดใช้งานผ่าน IntersectionObserver) */
+        .merch-card, .merch-card-large {
+            opacity: 0;
+            transform: translateY(18px) scale(.96);
+            transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.3,1.15), border-color .2s ease;
+        }
+        .merch-card.reveal-in, .merch-card-large.reveal-in {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .merch-card, .merch-card-large { opacity: 1 !important; transform: none !important; }
         }
 
         /* ⏳ ป้าย "Coming Soon" สำหรับคอลเลกชันที่ยังไม่เปิดขาย */
@@ -465,26 +666,27 @@
             position: absolute;
             top: 10px;
             left: -6px;
-            background: linear-gradient(45deg, #9aa5b1, #c3ccd6);
+            background: linear-gradient(45deg, #a89686, #d9c9ba);
             color: white;
             font-size: 0.65rem;
             font-weight: 800;
             letter-spacing: 0.5px;
             padding: 4px 10px 4px 12px;
             border-radius: 0 20px 20px 0;
-            box-shadow: none;
+            box-shadow: 0 3px 8px rgba(168,150,134,.3);
+            transform: rotate(-3deg);
             z-index: 2;
         }
 
         .merch-button.merch-button-disabled {
             background: #f0f1f3 !important;
-            color: #9aa5b1 !important;
+            color: #a89686 !important;
             cursor: not-allowed;
         }
 
         .merch-button.merch-button-disabled:hover {
             background: #f0f1f3 !important;
-            color: #9aa5b1 !important;
+            color: #a89686 !important;
         }
 
         /* 🖼️ ดักกรอบรูปภาพ */
@@ -522,7 +724,7 @@
         .merch-category, .card-tag {
             font-size: 0.8rem !important;
             font-weight: bold;
-            color: #ff6b8b !important;
+            color: #c53f5a !important;
             margin-bottom: 4px;
         }
 
@@ -559,24 +761,29 @@
 
         .merch-button, .btn-token-buy {
             width: 100% !important;
-            background: #fff0f2 !important;
-            color: #ff527b !important;
+            background: #fbeef1 !important;
+            color: #e1546f !important;
             border: none !important;
-            border-radius: 10px !important; 
-            padding: 10px 0 !important;       
+            border-radius: 999px !important;
+            padding: 10px 0 !important;
             font-size: 0.9rem !important;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: all 0.2s ease;
+            transition: transform .2s cubic-bezier(.34,1.56,.64,1), background .25s ease, color .25s ease;
             box-sizing: border-box;
         }
 
+        /* 🥤 hover เด้งขึ้นเล็กน้อยแล้วไล่เฉดฟ้า-ชมพูแบบน้ำโซดา ให้ความรู้สึกกดสั่งเมนูสนุกๆ */
         .merch-button:hover, .btn-token-buy:hover {
-            background: #ff527b !important;
+            background: linear-gradient(45deg, var(--soda-blue-deep), var(--primary-pink)) !important;
             color: #ffffff !important;
+            transform: translateY(-2px) scale(1.02);
+        }
+        .merch-button:active, .btn-token-buy:active {
+            transform: translateY(0) scale(0.96);
         }
 
         @media (min-width: 768px) {
@@ -624,7 +831,7 @@
         }
         .shop-empty-state i {
             font-size: 26px;
-            color: #ffc2d1;
+            color: #f4b9c6;
             margin-bottom: 10px;
             display: block;
         }
@@ -663,22 +870,22 @@
         }
 
         ::-webkit-scrollbar-track {
-          background: #fff5f7; 
+          background: #fdeef1; 
           border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-          background: #ffb6c1; 
+          background: #f4b9c6; 
           border-radius: 10px;
-          border: 2px solid #fff5f7;
+          border: 2px solid #fdeef1;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-          background: #ff85a2; 
+          background: #e1546f; 
         }
         
         body.dark-mode {
-          --bg-color: #1a1a1a;
+          --bg-color: #241716;
           background-color: var(--bg-color);
           color: #eee;
         }
@@ -688,7 +895,7 @@
         body.dark-mode .member-card, 
         body.dark-mode .modal-box, 
         body.dark-mode #sidebar {
-          background-color: #2d2d2d;
+          background-color: #2f201d;
           border-color: #444;
           color: white;
         }
@@ -821,7 +1028,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, #ffffff 60%, #fff0f2 100%);
+            background: radial-gradient(circle, #ffffff 60%, #fbeef1 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -841,7 +1048,7 @@
             width: 90px;
             height: 90px;
             background: #ffffff;
-            border: 2px solid #ffb6c1; 
+            border: 2px solid #f4b9c6; 
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -852,13 +1059,13 @@
 
         .shop-loading-icon {
             font-size: 2rem; 
-            color: #ff5376;  
+            color: #e1546f;  
             animation: shop-smooth-spin 3s linear infinite; 
         }
 
         .shop-loading-sub {
             font-size: 0.85rem;
-            color: #ffb6c1;
+            color: #f4b9c6;
             font-weight: 500;
             letter-spacing: 1px;
         }
@@ -915,11 +1122,11 @@
             transition: color 0.2s;
         }
         .preview-close-btn:hover {
-            color: #ff8da1;
+            color: #ef8fa1;
         }
 
         .save-image-btn {
-            background: linear-gradient(135deg, #ff8da1 0%, #ff5376 100%);
+            background: linear-gradient(135deg, #ef8fa1 0%, #e1546f 100%);
             color: #ffffff !important;
             text-decoration: none;
             padding: 12px 28px;
@@ -951,7 +1158,7 @@
           right: -2px;
           width: 8px;
           height: 8px;
-          background-color: #ff4d6d; 
+          background-color: #e1546f; 
           border-radius: 50%;
           border: 1px solid white;
           z-index: 10;
@@ -979,7 +1186,7 @@
           width: 100px;
           height: 100px;
           margin: 0 auto;
-          background: linear-gradient(to bottom, #ff69b4 50%, #ffffff 50%);
+          background: linear-gradient(to bottom, #e1546f 50%, #ffffff 50%);
           border-radius: 50%;
           border: 4px solid #333;
           box-shadow: inset -10px -10px 0 rgba(0,0,0,0.1), 0 8px 20px rgba(255,105,180,0.3);
@@ -1035,6 +1242,11 @@
             <i class="fas fa-chevron-left"></i>
         </button>
     </div>
+    <div class="nav-brand-wrap">
+        <span class="nav-brand-tag">✦ BLM48 MEMBERSHIP ✦</span>
+        <span class="nav-brand">BLM48 Shop</span>
+    </div>
+    <div class="nav-bubbles" aria-hidden="true"><span></span><span></span><span></span></div>
 </div>
 
 <div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
@@ -1055,7 +1267,7 @@
             <i class="fas fa-shopping-cart shop-loading-icon"></i> 
         </div>
         <div class="shop-loading-title">
-            <h2 style="color: #ff5376; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <h2 style="color: #e1546f; margin: 0; display: flex; align-items: center; gap: 8px; font-family: var(--font-heading);">
                 <i class="fas fa-shopping-cart"></i> BLM48 SHOP
             </h2>
         </div>
@@ -1071,7 +1283,7 @@
             <div class="wallet-label">Cookies</div>
         </div>
         <div class="wallet-item">
-            <div class="wallet-value" style="color:#f59f00;"><i class="fas fa-coins"></i> -</div>
+            <div class="wallet-value" style="color:#c9932c;"><i class="fas fa-coins"></i> -</div>
             <div class="wallet-label">Tokens</div>
         </div>
         <div class="wallet-item">
@@ -1091,7 +1303,7 @@
         <span class="quick-tile-label">Merchandise</span>
     </a>
     <a href="#section-cafe" class="quick-tile">
-        <div class="quick-tile-icon" style="background:#e8f7ee;color:#4caf82;"><i class="fas fa-mug-hot"></i></div>
+        <div class="quick-tile-icon" style="background:#e8f7ee;color:#5fa896;"><i class="fas fa-mug-hot"></i></div>
         <span class="quick-tile-label">Cafe</span>
     </a>
     <a href="inventory" class="quick-tile">
@@ -1100,7 +1312,8 @@
     </a>
 </div>
 
-<h2 class="section-title" id="section-cookie"><i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> Cookie Shop</h2>
+<h2 class="section-title" id="section-cookie"><i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> Cookie Shop <i class="fas fa-star sparkle-icon"></i></h2>
+<p class="section-caption">sweet · everyday · treats</p>
 <div class="shop-container" id="cookie-shop-container">
     <!-- 100Cookie -->
     <div class="merch-card" data-token-price="10">
@@ -1124,7 +1337,7 @@
         </div>
 
         <div class="merch-info">
-            <span class="merch-category" style="color: #ff6b8b;">[Value Pack]</span>
+            <span class="merch-category" style="color: #c53f5a;">[Value Pack]</span>
             <h3 class="merch-title">1,000 Cookies</h3>
             <p class="merch-subtitle">เติมคุกกี้สำหรับใช้งานทั่วไป</p>
             <button class="merch-button" onclick="buyCookies(100, 1000, 'https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000')">
@@ -1135,16 +1348,18 @@
 </div>
 
 <div class="section-title" id="section-gacha">
-   <i class="fas fa-gifts" style="color: var(--primary-pink);"></i> Official Merchandise
+   <i class="fas fa-gifts" style="color: var(--primary-pink);"></i> Official Merchandise <i class="fas fa-star sparkle-icon"></i>
 </div>
+<p class="section-caption">limited · collector · pulls</p>
 
 <div class="merch-grid" id="merch-container">
     <!-- เพิ่มสินค้าโดยระบบโหลดอัตโนมัติ -->
 </div>
 
 <div class="section-title" id="section-cafe">
-   <i class="fas fa-mug-hot" style="color: #d2b48c;"></i> BLM48 Cafe
+   <i class="fas fa-mug-hot" style="color: #8b5a3c;"></i> BLM48 Cafe <i class="fas fa-star sparkle-icon"></i>
 </div>
+<p class="section-caption">cream · soda · pudding</p>
 <div class="shop-container" id="cafe-shop-container">
     <!-- Suiito Matcha -->
     <div class="merch-card" data-item-name="Suiito Matcha">
@@ -1152,7 +1367,7 @@
             <img src="https://lh3.googleusercontent.com/d/1RlRMVrtrYywqM9hxQ0uhZ8o-CwArgW-L=s1000" alt="Suiito Matcha" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #a8e6cf;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #afddd2;">[BLM48 Cafe]</span>
             <h3 class="merch-title">Suiito Matcha</h3>
             <p class="merch-subtitle">いちごミニパフェ</p>
             <button class="merch-button" onclick="buyCafeItem('cafe_matcha_01', 5, 'Suiito Matcha', 'https://lh3.googleusercontent.com/d/1thW4VJVyFLsgMQNI0wAFaIC7gsqnATeM=s1000')">
@@ -1167,7 +1382,7 @@
             <img src="https://lh3.googleusercontent.com/d/1Z_w_47F4q3wHYBR-9J-DGorB6Mq47iS_=s1000" alt="Pinku Milk" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #d4a5a5;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
             <h3 class="merch-title">Pinku Milk</h3>
             <p class="merch-subtitle">ピンクミルク</p>
             <button class="merch-button" onclick="buyCafeItem('cafe_pinkmilk_01', 5, 'Pinku Milk', 'https://lh3.googleusercontent.com/d/1b_wl3lpi_QPd9-9nXBofw5mBL-jUu0Hn=s1000')">
@@ -1182,7 +1397,7 @@
             <img src="https://lh3.googleusercontent.com/d/1rrdhnBjpUpGxE_f4hYfqdNKednGmdclb=s1000" alt="Koi Cocoa" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #d4a5a5;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
             <h3 class="merch-title">Koi Cocoa</h3>
             <p class="merch-subtitle">濃いココア</p>
             <button class="merch-button" onclick="buyCafeItem('cafe_cocoa_01', 5, 'Koi Cocoa', 'https://lh3.googleusercontent.com/d/1fHP-8N6VcRalynHDEZZWrjWhd7zYyHfF=s1000')">
@@ -1197,7 +1412,7 @@
             <img src="https://lh3.googleusercontent.com/d/1boedtXP9kcBlxWialcEz8KBRg5A2cyz4=s1000" alt="Thai Miruku Tea" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #d4a5a5;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
             <h3 class="merch-title">Thai Miruku Tea</h3>
             <p class="merch-subtitle">タイミルクティー</p>
             <button class="merch-button" onclick="buyCafeItem('cafe_thaimirukutea_01', 5, 'Thai Miruku Tea', 'https://lh3.googleusercontent.com/d/1HBOXvqFCL_-wrxbZlaEf15JvrGDUurhf=s1000')">
@@ -1212,7 +1427,7 @@
             <img src="https://lh3.googleusercontent.com/d/1MLtVYBkoWNrkqWr2AJqYtAfy6q7q2jJO=s1000" alt="BLM48 Cafe BG V.1" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #d4a5a5;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
             <h3 class="merch-title">BLM48 Cafe</h3>
             <p class="merch-subtitle">Background V.1</p>
             <button class="merch-button" onclick="buyCafeItem('cafe_BLM48CafeBackground_01', 0, 'BLM48 Cafe BG V.1', 'https://lh3.googleusercontent.com/d/1MLtVYBkoWNrkqWr2AJqYtAfy6q7q2jJO=s1000')">
@@ -1222,8 +1437,13 @@
     </div>
 </div>
 
-<footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
-  <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
+<footer style="padding: 44px 20px 50px; text-align: center; color: #bbb; font-size: 12px;">
+  <!-- 🧺 แถบลายผ้าปิกนิกตารางเล็กๆ ล้อผ้าปูโต๊ะในโปสเตอร์ -->
+  <div style="width: 64px; height: 8px; margin: 0 auto 16px; border-radius: 999px; opacity: .55;
+              background-image: repeating-conic-gradient(var(--soda-sky-pink) 0% 25%, #fff 0% 50%);
+              background-size: 8px 8px;"></div>
+  <div style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--primary-pink); margin-bottom: 4px;">BLM48 Shop</div>
+  <div style="color: var(--caramel-soft); margin-bottom: 2px;">BLM48 MEMBERSHIP</div>
   <div>© 2026 Virtual Idol Cover Group</div>
 </footer>
 
@@ -1240,12 +1460,12 @@
         <div id="gacha-result-zone" class="gacha-result-card">
             <div class="light-ray"></div>
             
-            <div style="color: #ffd700; font-size: 24px; font-weight: bold; margin-bottom: 12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#ffd700" xmlns="http://www.w3.org/2000/svg">
+            <div style="color: #f3ce6e; font-size: 24px; font-weight: bold; margin-bottom: 12px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#f3ce6e" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/>
                 </svg>
                 <span>CONGRATULATIONS</span>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#ffd700" xmlns="http://www.w3.org/2000/svg">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#f3ce6e" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L14.8 9.2L22 12L14.8 14.8L12 22L9.2 14.8L2 12L9.2 9.2L12 2Z"/>
                 </svg>
             </div>
@@ -1288,7 +1508,7 @@ function initShop() {
 
 // 🎉 เอฟเฟกต์ฉลองตอนซื้อของสำเร็จ ยิงเป็นสะเก็ดสีสันบานออกจากกึ่งกลางจอ ใช้ร่วมกันทุกจุดในหน้า Shop
 function celebratePurchase() {
-    const colors = ['#ff69b4', '#ffd700', '#a8e6cf', '#ff85a2', '#ffffff', '#d2691e'];
+    const colors = ['#e1546f', '#f3ce6e', '#afddd2', '#e1546f', '#ffffff', '#8b5a3c'];
     const count = 24;
     for (let i = 0; i < count; i++) {
         const piece = document.createElement('div');
@@ -1318,7 +1538,7 @@ function updateWalletUI() {
             <div class="wallet-label">Cookies</div>
         </div>
         <div class="wallet-item">
-            <div class="wallet-value" style="color:#f59f00;"><i class="fas fa-coins"></i> ${Number(userData.token).toLocaleString()}</div>
+            <div class="wallet-value" style="color:#c9932c;"><i class="fas fa-coins"></i> ${Number(userData.token).toLocaleString()}</div>
             <div class="wallet-label">Tokens</div>
         </div>
         <div class="wallet-item">
@@ -1366,7 +1586,7 @@ function confirmLogout() {
         text: "คุณต้องการออกจากระบบใช่หรือไม่?",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#ff85a2',
+        confirmButtonColor: '#e1546f',
         confirmButtonText: 'ออกจากระบบ',
         cancelButtonText: 'ยกเลิก'
     }).then((result) => {
@@ -1450,7 +1670,7 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
         text: `ระบบจะใช้ ${tokenPrice} Tokens เพื่อแลกรับคุกกี้จำนวน ${cookieReward.toLocaleString()} Cookies`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#ff85a2',
+        confirmButtonColor: '#e1546f',
         confirmButtonText: 'ยืนยัน',
         cancelButtonText: 'ยกเลิก'
     });
@@ -1481,9 +1701,9 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
                     html: `
                         <style>
                             .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
-                            .blm-cute-name { font-size: 21px; color: #ff1493; font-weight: bold; margin-bottom: 6px; }
+                            .blm-cute-name { font-size: 21px; color: #c53f5a; font-weight: bold; margin-bottom: 6px; }
                             .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; line-height: 1.5; }
-                            .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fff5f7; }
+                            .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fdeef1; }
                             @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
                         </style>
                         <div class="blm-cute-reveal-container">
@@ -1496,7 +1716,7 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
                     imageHeight: 160,
                     imageAlt: 'Cookies',
                     confirmButtonText: `ตกลง`,
-                    confirmButtonColor: '#ff5376',
+                    confirmButtonColor: '#e1546f',
                     background: '#ffffff',
                     borderRadius: '24px',
                     didOpen: () => celebratePurchase()
@@ -1516,8 +1736,8 @@ async function buyGacha(collectionId) {
   if(!userData) return;
   const username = userData.username;
   
-  const iconHeartPink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ff69b4" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-  const iconStar = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#ffd700" style="display: inline-block; vertical-align: middle; margin: 0 2px;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+  const iconHeartPink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#e1546f" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+  const iconStar = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#f3ce6e" style="display: inline-block; vertical-align: middle; margin: 0 2px;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
 
   const confirmResult = await Swal.fire({
     title: `${iconHeartPink} ยืนยันการทำรายการสุ่มไอเทม ${iconHeartPink}`,
@@ -1526,7 +1746,7 @@ async function buyGacha(collectionId) {
     showCancelButton: true,
     confirmButtonText: `ยืนยัน`,
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#ff69b4', 
+    confirmButtonColor: '#e1546f', 
     cancelButtonColor: '#e0e0e0',
     background: '#ffffff',
     borderRadius: '24px'
@@ -1539,7 +1759,7 @@ async function buyGacha(collectionId) {
     html: `
       <style>
         .blm-cute-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
-        .blm-text-bounce { color: #ff69b4; font-weight: bold; font-size: 14px; margin-top: 15px; animation: blmCuteBounce 1s infinite alternate; }
+        .blm-text-bounce { color: #e1546f; font-weight: bold; font-size: 14px; margin-top: 15px; animation: blmCuteBounce 1s infinite alternate; }
         @keyframes blmCuteBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-5px); } }
       </style>
       <div class="blm-cute-loading-box">
@@ -1576,9 +1796,9 @@ async function buyGacha(collectionId) {
         html: `
           <style>
             .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
-            .blm-cute-name { font-size: 21px; color: #ff1493; font-weight: bold; margin-bottom: 6px; }
+            .blm-cute-name { font-size: 21px; color: #c53f5a; font-weight: bold; margin-bottom: 6px; }
             .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; }
-            .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fff5f7; }
+            .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fdeef1; }
             @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
           </style>
 
@@ -1592,7 +1812,7 @@ async function buyGacha(collectionId) {
         imageHeight: 240,
         imageAlt: res.itemName,
         confirmButtonText: `รับไอเทม`,
-        confirmButtonColor: '#ff5376',
+        confirmButtonColor: '#e1546f',
         background: '#ffffff',
         borderRadius: '24px',
         didOpen: () => celebratePurchase()
@@ -1610,7 +1830,7 @@ async function buyGacha(collectionId) {
         title: 'ทำรายการไม่สำเร็จ',
         text: res.message,
         icon: 'warning',
-        confirmButtonColor: '#ff5376',
+        confirmButtonColor: '#e1546f',
         background: '#ffffff',
         borderRadius: '24px'
       });
@@ -1620,7 +1840,7 @@ async function buyGacha(collectionId) {
       title: 'เกิดข้อผิดพลาด',
       text: 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้',
       icon: 'error',
-      confirmButtonColor: '#ff5376',
+      confirmButtonColor: '#e1546f',
       background: '#ffffff',
       borderRadius: '24px'
     });
@@ -1668,7 +1888,7 @@ async function loadGachaCollections() {
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
             <div class="merch-info">
-              <span class="merch-category" style="color: #ff6b8b;">[Merchandise]</span>
+              <span class="merch-category" style="color: #c53f5a;">[Merchandise]</span>
               <h3 class="merch-title">${col.CollectionName}</h3>
               <p class="merch-subtitle">${col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์'}</p>
               ${buttonHTML}
@@ -1682,7 +1902,7 @@ async function loadGachaCollections() {
     console.error("Error loading gacha collections:", error);
     container.innerHTML = `
       <div class="shop-empty-state">
-        <i class="fas fa-triangle-exclamation" style="color:#ff9aad;"></i>
+        <i class="fas fa-triangle-exclamation" style="color:#e1546f;"></i>
         <span>เกิดข้อผิดพลาดในการโหลดข้อมูลตู้สุ่ม กรุณาลองใหม่อีกครั้งค่ะ</span>
       </div>`;
   } finally {
@@ -1729,24 +1949,24 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
             title: 'Token คงเหลือไม่เพียงพอ',
             html: '<div style="font-size: 14px; color: #666; font-family: \'Kanit\';">กรุณาเติม Token ก่อนสั่งซื้อสินค้าในคาเฟ่</div>',
             icon: 'error',
-            confirmButtonColor: '#ff5376',
+            confirmButtonColor: '#e1546f',
             background: '#ffffff',
             borderRadius: '24px'
         });
         return;
     }
 
-    const iconHeartPink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#ff69b4" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+    const iconHeartPink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#e1546f" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
 
     // 2. ถามยืนยันการซื้อด้วยป๊อปอัปสไตล์น่ารัก
     const confirmResult = await Swal.fire({
         title: `${iconHeartPink} ยืนยันการสั่งซื้อ "${itemName}" ${iconHeartPink}`,
-        html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">ระบบจะใช้ <b style="color: #ff69b4;">${price} Tokens</b> ในการสั่งซื้อเมนูนี้<br><span style="color: #999; font-size: 12px;">(สินค้าจะเข้า Inventory ทันทีหลังยืนยัน)</span></div>`,
+        html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">ระบบจะใช้ <b style="color: #e1546f;">${price} Tokens</b> ในการสั่งซื้อเมนูนี้<br><span style="color: #999; font-size: 12px;">(สินค้าจะเข้า Inventory ทันทีหลังยืนยัน)</span></div>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: `ยืนยัน`,
         cancelButtonText: 'ยกเลิก',
-        confirmButtonColor: '#ff69b4', 
+        confirmButtonColor: '#e1546f', 
         cancelButtonColor: '#e0e0e0',
         background: '#ffffff',
         borderRadius: '24px'
@@ -1760,13 +1980,13 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
         html: `
             <style>
                 .blm-cafe-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
-                .cafe-spinner-wrapper-border { border: 3px dashed #ff69b4; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: spinDashed 4s linear infinite; background: #fff5f7; margin: 0 auto; }
+                .cafe-spinner-wrapper-border { border: 3px dashed #e1546f; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: spinDashed 4s linear infinite; background: #fdeef1; margin: 0 auto; }
                 .cafe-spinner-inner { animation: spinDashedReverse 4s linear infinite; display: flex; align-items: center; justify-content: center; }
-                .cafe-spinner-inner i { color: #ff69b4; font-size: 26px; animation: coffeeBounce 0.8s ease-in-out infinite alternate; }
+                .cafe-spinner-inner i { color: #e1546f; font-size: 26px; animation: coffeeBounce 0.8s ease-in-out infinite alternate; }
                 @keyframes spinDashed { 100% { transform: rotate(360deg); } }
                 @keyframes spinDashedReverse { 100% { transform: rotate(-360deg); } }
                 @keyframes coffeeBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-4px); } }
-                .blm-text-bounce { color: #ff69b4; font-weight: bold; font-size: 14px; margin-top: 15px; animation: blmCuteBounce 1s infinite alternate; }
+                .blm-text-bounce { color: #e1546f; font-weight: bold; font-size: 14px; margin-top: 15px; animation: blmCuteBounce 1s infinite alternate; }
             </style>
             <div class="blm-cafe-loading-box">
                 <div class="cafe-spinner-wrapper-border">
@@ -1817,9 +2037,9 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
                 html: `
                     <style>
                         .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
-                        .blm-cute-name { font-size: 21px; color: #ff1493; font-weight: bold; margin-bottom: 6px; }
+                        .blm-cute-name { font-size: 21px; color: #c53f5a; font-weight: bold; margin-bottom: 6px; }
                         .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; line-height: 1.5; }
-                        .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fff5f7; }
+                        .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fdeef1; }
                         @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
                     </style>
                     <div class="blm-cute-reveal-container">
@@ -1832,7 +2052,7 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
                 imageHeight: 200,
                 imageAlt: itemName,
                 confirmButtonText: `ตกลง`,
-                confirmButtonColor: '#ff5376',
+                confirmButtonColor: '#e1546f',
                 background: '#ffffff',
                 borderRadius: '24px',
                 didOpen: () => celebratePurchase()
@@ -1842,7 +2062,7 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
                 title: 'เกิดข้อผิดพลาด',
                 text: res.message,
                 icon: 'error',
-                confirmButtonColor: '#ff5376',
+                confirmButtonColor: '#e1546f',
                 background: '#ffffff',
                 borderRadius: '24px'
             });
@@ -1853,7 +2073,7 @@ async function buyCafeItem(itemId, price, itemName, itemImg) {
             title: 'เกิดข้อผิดพลาด',
             text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง',
             icon: 'error',
-            confirmButtonColor: '#ff5376',
+            confirmButtonColor: '#e1546f',
             background: '#ffffff',
             borderRadius: '24px'
         });
@@ -1995,6 +2215,40 @@ function playGachaAnimation(itemName, itemImg, onCloseCallback) {
         if (e.target === gachaModal) closeGachaModal();
     };
 }
+
+// ✨ 11. Scroll reveal: หัวข้อ/การ์ดค่อยๆ ผุดขึ้นทีละใบเมื่อเลื่อนจอมาเห็น (ล้อฟองโซดาที่ลอยตัวขึ้นในโปสเตอร์)
+// เขียนแยกเป็น IIFE อิสระ ไม่ยุ่งกับฟังก์ชันเดิม และดักการ์ดกาชาที่ render เพิ่มทีหลังด้วย MutationObserver
+(function initShopScrollReveal() {
+    if (!('IntersectionObserver' in window)) return;
+
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target;
+            setTimeout(() => el.classList.add('reveal-in'), (i % 6) * 60);
+            revealObserver.unobserve(el);
+        });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    function observeAll(root) {
+        root.querySelectorAll('.section-title, .merch-card, .merch-card-large').forEach(el => {
+            revealObserver.observe(el);
+        });
+    }
+
+    observeAll(document);
+
+    const mutationObserver = new MutationObserver((mutations) => {
+        mutations.forEach((m) => {
+            m.addedNodes.forEach((node) => {
+                if (node.nodeType !== 1) return;
+                if (node.matches && node.matches('.merch-card, .merch-card-large')) revealObserver.observe(node);
+                observeAll(node);
+            });
+        });
+    });
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+})();
 
 </script>
 </body>

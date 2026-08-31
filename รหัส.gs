@@ -2798,9 +2798,10 @@ function getDashboardDataProcess(username) {
 //      ranking เดือนปัจจุบัน, และ log ใหม่ๆ กลับมาโชว์ในชีตให้แอดมินดู
 //      (ชีตไม่ใช่เจ้าของค่าจริงอีกต่อไปแล้วสำหรับ 3 คอลัมน์นี้)
 //   3) ทุกวันตอนตี 1 (เวลาไทย): snapshot ยอด Token ของทุกคนลง Supabase
-//      (token_daily_snapshots) ใช้คำนวณ Membership Tier (Copper/Silver/Gold)
-//      จากค่าเฉลี่ยการถือครองย้อนหลัง 1 เดือน — ดู get_membership_tier /
-//      claim_monthly_cookie ฝั่ง Supabase
+//      (token_daily_snapshots) — เดิมใช้คำนวณ Membership Tier จากค่าเฉลี่ย
+//      การถือครองย้อนหลัง 1 เดือน แต่ตอนนี้ get_membership_tier /
+//      claim_monthly_cookie เปลี่ยนไปใช้ Fan Score สะสม (users.fan_cookies)
+//      แทนแล้ว ทริกเกอร์นี้จึงไม่จำเป็นอีกต่อไป (เหลือไว้เผื่อใช้งานอื่น)
 //
 // วิธีติดตั้ง (ทำครั้งเดียว):
 //   1. เปิด Project Settings (รูปเฟือง) ในตัวแก้ไข Apps Script
@@ -2899,9 +2900,10 @@ function bumpMemberLikesInSupabase_(memberName, delta) {
   }
 }
 
-// Snapshot ยอด Token ของทุกคนลง token_daily_snapshots วันละครั้ง ใช้คำนวณ
-// ค่าเฉลี่ยการถือครองย้อนหลัง 1 เดือนสำหรับระบบ Membership Tier (Copper/
-// Silver/Gold) ฟังก์ชัน snapshot_all_token_balances ฝั่ง Supabase ไม่ได้
+// Snapshot ยอด Token ของทุกคนลง token_daily_snapshots วันละครั้ง — เดิมใช้
+// คำนวณค่าเฉลี่ยย้อนหลัง 1 เดือนสำหรับ Membership Tier แต่ตอนนี้ระบบ Tier
+// เปลี่ยนไปใช้ Fan Score สะสม (users.fan_cookies) แล้ว ไม่ได้ใช้ผลจาก
+// snapshot นี้อีก ฟังก์ชัน snapshot_all_token_balances ฝั่ง Supabase ไม่ได้
 // grant ให้ anon เรียก — เรียกได้เฉพาะผ่าน service_role นี้เท่านั้น
 function snapshotTokenBalancesInSupabase_() {
   try {
