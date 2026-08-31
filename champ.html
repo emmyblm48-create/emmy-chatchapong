@@ -229,13 +229,19 @@
             font-size: 0.85rem;
         }
 
-        /* 👑 ปุ่มแบบ Bottom Bar ด้านล่างสุด แทนที่ View Ranking เดิม */
-        .view-thanks-bottom-btn {
+        /* 👑 แถบปุ่มด้านล่างสุด แบ่งครึ่ง: View special thanks | View Ranking */
+        .box-bottom-bar {
+            display: flex;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .view-thanks-bottom-btn,
+        .view-ranking-bottom-btn {
+            flex: 1;
             background: transparent;
             color: var(--text-dark);
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 12px;
-            font-size: 0.9rem;
+            padding: 12px 8px;
+            font-size: 0.82rem;
             font-weight: 600;
             text-decoration: none;
             display: flex;
@@ -243,14 +249,21 @@
             justify-content: center;
             gap: 6px;
             transition: all 0.2s ease;
+            text-align: center;
         }
 
-        .view-thanks-bottom-btn:hover {
+        .view-ranking-bottom-btn {
+            border-left: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .view-thanks-bottom-btn:hover,
+        .view-ranking-bottom-btn:hover {
             background: var(--blm-light-pink);
             color: var(--blm-pink);
         }
 
-        .view-thanks-bottom-btn i {
+        .view-thanks-bottom-btn i,
+        .view-ranking-bottom-btn i {
             font-size: 0.95rem;
             color: var(--blm-pink);
         }
@@ -473,13 +486,18 @@
                             <span class="cookie-amount"><i class="fa-solid fa-cookie"></i> ${formatCookieCount} Cookies</span>
                         </div>
                     </div>
-                    ${champ.postId ? `
-                    <a href="index?post=${encodeURIComponent(champ.postId)}" class="view-thanks-bottom-btn">
-                        <i class="fa-solid fa-comments"></i> View & react to special thanks
-                    </a>` : `
-                    <a href="specialthanks?index=${index}" class="view-thanks-bottom-btn">
-                        <i class="fa-solid fa-heart"></i> View special thanks
-                    </a>`}
+                    <div class="box-bottom-bar">
+                        ${champ.postId ? `
+                        <a href="index?post=${encodeURIComponent(champ.postId)}" class="view-thanks-bottom-btn">
+                            <i class="fa-solid fa-comments"></i> View & react to special thanks
+                        </a>` : `
+                        <a href="specialthanks?index=${index}" class="view-thanks-bottom-btn">
+                            <i class="fa-solid fa-heart"></i> View special thanks
+                        </a>`}
+                        <a href="champranking?index=${index}" class="view-ranking-bottom-btn">
+                            <i class="fa-solid fa-ranking-star"></i> View Ranking
+                        </a>
+                    </div>
                 `;
                 fragment.appendChild(row);
             });
