@@ -54,23 +54,6 @@
       right: calc(50% - 60px);
     }
 
-    /* 👑 ปุ่มแคปซูล + Kami-Oshi ใต้รูปโปรไฟล์ */
-    .kami-pill-btn {
-      display: block;
-      margin: 10px auto 0 auto;
-      background: var(--blmem-pink);
-      color: #fff;
-      border: none;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 7px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(255, 133, 162, 0.35);
-      transition: transform 0.2s ease;
-    }
-    .kami-pill-btn:hover { transform: translateY(-2px); }
-
     *, *::before, *::after {
       box-sizing: border-box;
     }
@@ -306,7 +289,7 @@
 
     .interaction-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       margin-bottom: 28px;
     }
@@ -329,6 +312,7 @@
     }
     .btn-interact i { font-size: 16px; }
     
+    .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
     .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
     .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
 
@@ -349,10 +333,12 @@
     }
     .leaderboard-title i { color: var(--gold-kami); }
 
-    /* 🏅 แถวหัวข้อ Top Fans แบบย่อ: ไอคอน + ชื่อ ทางซ้าย, สแตกรูปแฟนคลับ + ลูกศร ทางขวา */
+    /* 🏅 แถวหัวข้อ Top Fans: ไอคอน + ชื่อ ทางซ้าย, สแตกรูปแฟนคลับ + ลูกศรทางขวา (กดเพื่อเปิด-ปิดรายการเต็ม) */
     .leaderboard-title.with-preview {
       justify-content: space-between;
       margin-bottom: 0;
+      cursor: pointer;
+      user-select: none;
     }
     .top-fans-preview {
       display: flex;
@@ -373,15 +359,23 @@
       margin-left: -8px;
     }
     .top-fans-avatar-stack img:first-child { margin-left: 0; }
-    .top-fans-preview i.fa-chevron-right { color: #ccc; font-size: 12px; margin-left: 6px; }
-
-    .fan-list { 
-      display: flex; 
-      flex-direction: column; 
-      max-height: 220px; 
-      overflow-y: auto; 
-      padding-right: 8px; 
+    .top-fans-preview i.fa-chevron-right {
+      color: #ccc;
+      font-size: 12px;
+      margin-left: 6px;
+      transition: transform 0.25s ease;
     }
+    .leaderboard-title.with-preview.expanded i.fa-chevron-right { transform: rotate(90deg); }
+
+    .fan-list {
+      display: none;
+      flex-direction: column;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 8px;
+      margin-top: 16px;
+    }
+    .fan-list.expanded { display: flex; }
     
     .fan-list::-webkit-scrollbar { width: 5px; }
     .fan-list::-webkit-scrollbar-track { background: #fdf6f7; border-radius: 10px; }
@@ -700,9 +694,6 @@
       <img id="mb-avatar-circle" src="assets/images/default-profile.png" class="member-profile-img">
       <div id="avatar-grad-icon" class="grad-profile-badge" style="display: none;"><i class="fas fa-graduation-cap"></i></div>
     </div>
-    <button id="btn-kami-trigger" class="kami-pill-btn" onclick="actionKami()">
-      <i class="fas fa-crown"></i> <span>+ Kami-Oshi</span>
-    </button>
 
     <div class="member-header-block">
       <div id="mb-name" class="member-name">กำลังโหลด...</div>
@@ -714,34 +705,37 @@
 
      <div class="stats-bar">
         <div class="stat-box">
-          <div id="mb-oshi" class="stat-num">0</div>
-          <div class="stat-title">Oshi</div>
-        </div>
-        <div class="stat-box">
           <div id="mb-kami" class="stat-num">0</div>
           <div class="stat-title">Kami-Oshi</div>
         </div>
         <div class="stat-box">
+          <div id="mb-oshi" class="stat-num">0</div>
+          <div class="stat-title">Oshi</div>
+        </div>
+        <div class="stat-box">
           <div id="mb-score" class="stat-num">0</div>
-          <div class="stat-title">Gift</div>
+          <div class="stat-title">Total Cookies</div>
         </div>
         <div class="stat-box">
           <div id="mb-likes" class="stat-num">0</div>
-          <div class="stat-title">Like</div>
+          <div class="stat-title">Total Likes</div>
         </div>
       </div>
 
       <div class="interaction-grid">
-        <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
-          <i class="fas fa-gift"></i> <span>Gift</span>
+        <button id="btn-kami-trigger" class="btn-interact btn-kami" onclick="actionKami()">
+          <i class="fas fa-crown"></i> <span>+ Kami-Oshi</span>
         </button>
         <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
           <i class="fas fa-heart"></i> <span>+ Oshi</span>
         </button>
+        <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
+          <i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>
+        </button>
       </div>
 
       <div class="leaderboard-section">
-        <div class="leaderboard-title with-preview">
+        <div class="leaderboard-title with-preview" id="top-fans-toggle" onclick="toggleTopFans()">
           <span><i class="fas fa-trophy"></i> Top Fans</span>
           <span id="top-fans-preview" class="top-fans-preview">
             <span id="top-fans-avatar-stack" class="top-fans-avatar-stack"></span>
@@ -1252,6 +1246,14 @@ function renderMemberStatsAndFans() {
 
     function actionKami() { setOshi('kami'); }
     function actionOshi() { setOshi('oshi'); }
+
+    function toggleTopFans() {
+      const toggle = document.getElementById('top-fans-toggle');
+      const list = document.getElementById('member-fans-content');
+      if (!toggle || !list) return;
+      const isExpanded = list.classList.toggle('expanded');
+      toggle.classList.toggle('expanded', isExpanded);
+    }
   
     function formatMemberScore(num) {
       if (!num || isNaN(num)) return '0';
