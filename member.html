@@ -16,6 +16,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
@@ -52,6 +54,41 @@
       top: auto;
       bottom: 2px;
       right: calc(50% - 60px);
+    }
+
+    /* 📷 ปุ่มเปลี่ยนภาพพื้นหลัง (โชว์เฉพาะบัญชีเมมเบอร์เจ้าของโปรไฟล์นี้เท่านั้น) */
+    .hero-edit-btn {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 15px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+      backdrop-filter: blur(4px);
+    }
+    .hero-edit-btn.visible { display: flex; }
+    .hero-edit-btn:active { transform: scale(0.92); }
+
+    .cropper-container-box {
+      max-width: 100%;
+      max-height: 320px;
+      margin-top: 15px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f8f9fa;
+    }
+    .cropper-container-box img {
+      max-width: 100%;
+      display: block;
     }
 
     *, *::before, *::after {
@@ -289,8 +326,8 @@
 
     .interaction-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
       margin-bottom: 28px;
     }
     .btn-interact {
@@ -306,15 +343,94 @@
       gap: 6px;
       transition: all 0.2s ease;
     }
-    .btn-interact:hover { 
-      transform: translateY(-3px); 
-      box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    .btn-interact:hover {
+      transform: translateY(-3px);
     }
-    .btn-interact i { font-size: 16px; }
-    
-    .btn-kami { background: #fff9db; color: #f59f00; border: 1px solid #ffe066; }
-    .btn-oshi { background: #e3faf2; color: #0ca678; border: 1px solid #96f2d7; }
-    .btn-cookie { background: var(--blmem-pink-light); color: var(--blmem-pink); border: 1px solid #fcc2d7; }
+
+    /* ⭕ ปุ่มปฏิสัมพันธ์ทรงวงกลม (Kami/Oshi/Cookie/More) */
+    .btn-interact {
+      background: none;
+      border: none;
+      padding: 0;
+      box-shadow: none;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--dark-text);
+    }
+    .btn-interact .icon-circle {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      transition: all 0.2s ease;
+    }
+    .btn-kami .icon-circle { background: #fff9db; color: #f59f00; }
+    .btn-oshi .icon-circle { background: #e3faf2; color: #0ca678; }
+    .btn-cookie .icon-circle { background: var(--blmem-pink-light); color: var(--blmem-pink); }
+    .btn-more .icon-circle { background: #f1eff5; color: #8a8698; }
+
+    /* 📋 Action sheet ของปุ่ม More */
+    .action-sheet-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .action-sheet-backdrop.open { display: flex; }
+    .action-sheet-wrap {
+      width: 100%;
+      max-width: 480px;
+      padding: 0 12px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: sheetSlideUp 0.25s ease;
+    }
+    @keyframes sheetSlideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .action-sheet {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    }
+    .action-sheet-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      border: none;
+      background: none;
+      padding: 16px 18px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--dark-text);
+      cursor: pointer;
+      border-bottom: 1px solid #f2f2f2;
+    }
+    .action-sheet-item:last-child { border-bottom: none; }
+    .action-sheet-item:active { background: #faf9fb; }
+    .action-sheet-item i { width: 20px; text-align: center; color: var(--blmem-pink); font-size: 16px; }
+    .action-sheet-cancel {
+      background: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--dark-text);
+      cursor: pointer;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
+    }
 
     .leaderboard-section {
       background: #ffffff;
@@ -333,7 +449,7 @@
     }
     .leaderboard-title i { color: var(--gold-kami); }
 
-    /* 🏅 แถวหัวข้อ Top Fans: ไอคอน + ชื่อ ทางซ้าย, สแตกรูปแฟนคลับ + ลูกศรทางขวา (กดเพื่อเปิด-ปิดรายการเต็ม) */
+    /* 🏅 แถว Top Fans: ไอคอน + ชื่อ ทางซ้าย, สแตกรูปแฟนคลับ + ลูกศรทางขวา (กดพาไปหน้า Top Fans เต็ม) */
     .leaderboard-title.with-preview {
       justify-content: space-between;
       margin-bottom: 0;
@@ -359,66 +475,7 @@
       margin-left: -8px;
     }
     .top-fans-avatar-stack img:first-child { margin-left: 0; }
-    .top-fans-preview i.fa-chevron-right {
-      color: #ccc;
-      font-size: 12px;
-      margin-left: 6px;
-      transition: transform 0.25s ease;
-    }
-    .leaderboard-title.with-preview.expanded i.fa-chevron-right { transform: rotate(90deg); }
-
-    .fan-list {
-      display: none;
-      flex-direction: column;
-      max-height: 220px;
-      overflow-y: auto;
-      padding-right: 8px;
-      margin-top: 16px;
-    }
-    .fan-list.expanded { display: flex; }
-    
-    .fan-list::-webkit-scrollbar { width: 5px; }
-    .fan-list::-webkit-scrollbar-track { background: #fdf6f7; border-radius: 10px; }
-    .fan-list::-webkit-scrollbar-thumb { background: #ffc2cc; border-radius: 10px; }
-
-    .fan-row {
-      display: flex;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px dashed #faf0f2; 
-    }
-    .fan-row:last-child { border-bottom: none; }
-    
-    .fan-rank {
-      width: 24px;
-      font-size: 13px;
-      font-weight: bold;
-      color: #aaa;
-      text-align: center;
-    }
-    .fan-row:nth-child(1) .fan-rank { color: #f59f00; font-size: 16px; }
-    .fan-row:nth-child(2) .fan-rank { color: #94a3b8; font-size: 15px; }
-    .fan-row:nth-child(3) .fan-rank { color: #b45309; font-size: 14px; }
-
-    .fan-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 12px;
-      border: 2px solid #fff;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.06);
-    }
-    .fan-meta { flex: 1; text-align: left; }
-    .fan-name { font-size: 13px; color: var(--dark-text); font-weight: 500; }
-    .fan-amount {
-      font-size: 11px;
-      color: #ff6b9d;
-      display: flex;
-      align-items: center;
-      gap: 3px;
-      margin-top: 2px;
-    }
+    .top-fans-preview i.fa-chevron-right { color: #ccc; font-size: 12px; margin-left: 6px; }
 
     .post-gallery {
       display: grid;
@@ -467,9 +524,6 @@
     .skeleton-text { width: 60%; height: 28px; border-radius: 8px; margin-bottom: 8px; }
     .skeleton-avatar { width: 100%; height: 100%; border-radius: 0; }
     .skeleton-stat { width: 40px; height: 24px; border-radius: 6px; margin: 0 auto; }
-    .skeleton-fan { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #faf0f2; }
-    .skeleton-fan-img { width: 40px; height: 40px; border-radius: 50%; margin: 0 12px; }
-    .skeleton-fan-text { width: 120px; height: 14px; border-radius: 4px; margin-bottom: 6px; }
 
 .champ-special-post {
     background: linear-gradient(to bottom, #fffdf0, #ffffff) !important;
@@ -685,6 +739,8 @@
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
+      <button id="hero-edit-btn" class="hero-edit-btn" onclick="triggerCoverUpload()"><i class="fas fa-camera"></i></button>
+      <input type="file" id="cover-upload" accept="image/*" style="display:none" onchange="handleCoverImageSelect(event)">
       <div class="hero-gradient"></div>
     </div>
 
@@ -724,25 +780,31 @@
 
       <div class="interaction-grid">
         <button id="btn-kami-trigger" class="btn-interact btn-kami" onclick="actionKami()">
-          <i class="fas fa-crown"></i> <span>+ Kami-Oshi</span>
+          <span class="icon-circle"><i class="fas fa-crown"></i></span>
+          <span class="btn-label">+ Kami-Oshi</span>
         </button>
         <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
-          <i class="fas fa-heart"></i> <span>+ Oshi</span>
+          <span class="icon-circle"><i class="fas fa-heart"></i></span>
+          <span class="btn-label">+ Oshi</span>
         </button>
         <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
-          <i class="fas fa-cookie-bite"></i> <span>+ Cookie</span>
+          <span class="icon-circle"><i class="fas fa-cookie-bite"></i></span>
+          <span class="btn-label">+ Cookie</span>
+        </button>
+        <button class="btn-interact btn-more" onclick="openMoreMenu()">
+          <span class="icon-circle"><i class="fas fa-ellipsis"></i></span>
+          <span class="btn-label">More</span>
         </button>
       </div>
 
       <div class="leaderboard-section">
-        <div class="leaderboard-title with-preview" id="top-fans-toggle" onclick="toggleTopFans()">
+        <div class="leaderboard-title with-preview" id="top-fans-toggle" onclick="goToTopFans()">
           <span><i class="fas fa-trophy"></i> Top Fans</span>
           <span id="top-fans-preview" class="top-fans-preview">
             <span id="top-fans-avatar-stack" class="top-fans-avatar-stack"></span>
             <i class="fas fa-chevron-right"></i>
           </span>
         </div>
-        <div id="member-fans-content" class="fan-list"></div>
       </div>
       
       <div id="champ-thanks-container" style="display: none; margin-top: 25px;">
@@ -759,6 +821,17 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <div id="more-menu-backdrop" class="action-sheet-backdrop" onclick="if(event.target===this) closeMoreMenu()">
+    <div class="action-sheet-wrap">
+      <div class="action-sheet">
+        <button class="action-sheet-item" onclick="goToTopFans()"><i class="fas fa-medal"></i> Top Fan</button>
+        <button id="notif-toggle-item" class="action-sheet-item" onclick="toggleMemberNotification()"><i class="fas fa-bell"></i> <span id="notif-toggle-label">Turn ON notification</span></button>
+        <button class="action-sheet-item" onclick="shareMemberProfile()"><i class="fas fa-share"></i> Share Profile</button>
+      </div>
+      <button class="action-sheet-cancel" onclick="closeMoreMenu()">Cancel</button>
     </div>
   </div>
 
@@ -817,8 +890,9 @@ function renderMemberStatsAndFans() {
       if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
     }
 
+    currentCoverUrl = m.cover_image || null;
     const avatarEl = document.getElementById('mb-avatar');
-    if (avatarEl) avatarEl.src = getImg(m.profile_img);
+    if (avatarEl) avatarEl.src = getImg(m.cover_image || m.profile_img);
     const avatarCircleEl = document.getElementById('mb-avatar-circle');
     if (avatarCircleEl) avatarCircleEl.src = getImg(m.profile_img);
 
@@ -851,39 +925,15 @@ function renderMemberStatsAndFans() {
     }
   }
 
-  // 📦 (โค้ดส่วน fanContainer ด้านล่างคงไว้ตามสไตล์น่ารักๆ ของเอ็มมี่งับ)
+  // 🏅 สแตกรูปแฟนคลับ 3 อันดับแรกที่แถว Top Fans (รายการเต็มไปโชว์ที่หน้า topfans.html แทน)
   const savedFans = localStorage.getItem('current_member_fans');
-  const fanContainer = document.getElementById('member-fans-content');
   const fanAvatarStack = document.getElementById('top-fans-avatar-stack');
 
-  if (savedFans && fanContainer) {
-    fanContainer.innerHTML = '';
-
+  if (savedFans && fanAvatarStack) {
     const fans = JSON.parse(savedFans);
-
-    if (fanAvatarStack) {
-      fanAvatarStack.innerHTML = fans.slice(0, 3).map(f =>
-        `<img src="${getImg(f.img)}" alt="${f.name || f.username}" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'">`
-      ).join('');
-    }
-
-    if (fans.length === 0) {
-      fanContainer.innerHTML += '<div style="padding:20px 0; color:#bbb; font-size:12px; text-align:center;">ยังไม่มีแฟนคลับปาคุกกี้ให้ในเดือนนี้</div>';
-    } else {
-      fans.forEach((f, idx) => {
-        const row = document.createElement('div');
-        row.className = 'fan-row';
-        row.innerHTML = `
-          <div class="fan-rank">${idx + 1}</div>
-          <img src="${getImg(f.img)}" class="fan-avatar" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'"> 
-          <div class="fan-meta">
-            <div class="fan-name">${f.name || f.username}</div>
-            <div class="fan-amount"><i class="fas fa-heart-circle-check"></i> ${Number(f.total || 0).toLocaleString()} Fan Score</div>
-          </div>
-        `;
-        fanContainer.appendChild(row);
-      });
-    }
+    fanAvatarStack.innerHTML = fans.slice(0, 3).map(f =>
+      `<img src="${getImg(f.img)}" alt="${f.name || f.username}" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'">`
+    ).join('');
   }
 }
 
@@ -922,28 +972,12 @@ function renderMemberStatsAndFans() {
       
       const likesEl = document.getElementById('mb-likes');
       if (likesEl) { likesEl.innerText = '...'; likesEl.classList.add('skeleton', 'skeleton-stat'); }
-
-      const fanContainer = document.getElementById('member-fans-content');
-      if (fanContainer) {
-        fanContainer.innerHTML = '';
-        for(let i=0; i<3; i++) {
-          fanContainer.innerHTML += `
-            <div class="skeleton-fan">
-              <div style="width:24px;"></div>
-              <div class="skeleton skeleton-fan-img"></div>
-              <div style="flex:1;">
-                <div class="skeleton skeleton-fan-text"></div>
-                <div class="skeleton skeleton-fan-text" style="width: 80px;"></div>
-              </div>
-            </div>`;
-        }
-      }
     }
 
     function removeSkeleton() {
       const els = document.querySelectorAll('.skeleton');
       els.forEach(el => {
-        el.classList.remove('skeleton', 'skeleton-avatar', 'skeleton-text', 'skeleton-stat', 'skeleton-fan-img', 'skeleton-fan-text');
+        el.classList.remove('skeleton', 'skeleton-avatar', 'skeleton-text', 'skeleton-stat');
       });
       
       const nameEl = document.getElementById('mb-name');
@@ -1035,37 +1069,58 @@ function renderMemberStatsAndFans() {
     function updateButtonStyles() {
       const btnKami = document.getElementById('btn-kami-trigger');
       const btnOshi = document.getElementById('btn-oshi-trigger');
-      
-      if (!btnKami || !btnOshi) return; 
+
+      if (!btnKami || !btnOshi) return;
       if (!user) return;
 
       const searchName = memberName.toLowerCase();
       const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
       const oshiArray = Array.isArray(user.oshi) ? user.oshi.filter(Boolean).map(s => s.toString().toLowerCase()) : [];
+      const isKami = currentKamioshi === searchName;
 
       const kamiDaysBadge = document.getElementById('mb-kami-days-badge');
       const kamiDaysNum = document.getElementById('mb-kami-days-num');
+      const kamiCircle = btnKami.querySelector('.icon-circle');
+      const kamiLabel = btnKami.querySelector('.btn-label');
 
-      if (currentKamioshi === searchName) {
-        btnKami.innerHTML = '<i class="fas fa-heart-broken"></i> <span>REMOVE KAMI</span>';
-        btnKami.style.backgroundColor = "#ffe3e3"; btnKami.style.color = "#e03131"; btnKami.style.borderColor = "#ffa8a8";
+      if (isKami) {
+        if (kamiCircle) { kamiCircle.innerHTML = '<i class="fas fa-heart-broken"></i>'; kamiCircle.style.background = '#ffe3e3'; kamiCircle.style.color = '#e03131'; }
+        if (kamiLabel) kamiLabel.textContent = 'REMOVE KAMI';
         if (kamiDaysBadge && kamiDaysNum) {
           kamiDaysNum.textContent = user.kamioshiDays || 1;
           kamiDaysBadge.style.display = "flex";
         }
       } else {
-        btnKami.innerHTML = '<i class="fas fa-crown"></i> <span>+ KAMI</span>';
-        btnKami.style.backgroundColor = ""; btnKami.style.color = ""; btnKami.style.borderColor = "";
+        if (kamiCircle) { kamiCircle.innerHTML = '<i class="fas fa-crown"></i>'; kamiCircle.style.background = ''; kamiCircle.style.color = ''; }
+        if (kamiLabel) kamiLabel.textContent = '+ KAMI';
         if (kamiDaysBadge) kamiDaysBadge.style.display = "none";
       }
 
+      const oshiCircle = btnOshi.querySelector('.icon-circle');
+      const oshiLabel = btnOshi.querySelector('.btn-label');
       if (oshiArray.includes(searchName)) {
-        btnOshi.innerHTML = '<i class="fas fa-heart-broken"></i> <span>UN-OSHI</span>';
-        btnOshi.style.backgroundColor = "#fff4e6"; btnOshi.style.color = "#d9480f"; btnOshi.style.borderColor = "#ffd8a8";
+        if (oshiCircle) { oshiCircle.innerHTML = '<i class="fas fa-heart-broken"></i>'; oshiCircle.style.background = '#fff4e6'; oshiCircle.style.color = '#d9480f'; }
+        if (oshiLabel) oshiLabel.textContent = 'UN-OSHI';
       } else {
-        btnOshi.innerHTML = '<i class="fas fa-heart"></i> <span>+ OSHI</span>';
-        btnOshi.style.backgroundColor = ""; btnOshi.style.color = ""; btnOshi.style.borderColor = "";
+        if (oshiCircle) { oshiCircle.innerHTML = '<i class="fas fa-heart"></i>'; oshiCircle.style.background = ''; oshiCircle.style.color = ''; }
+        if (oshiLabel) oshiLabel.textContent = '+ OSHI';
       }
+
+      const notifLabel = document.getElementById('notif-toggle-label');
+      if (notifLabel) notifLabel.textContent = isKami ? 'Turn OFF notification' : 'Turn ON notification';
+
+      updateHeroEditButton();
+    }
+
+    // 📷 ปุ่มเปลี่ยนภาพพื้นหลังโชว์เฉพาะบัญชี role=member ที่เป็นเจ้าของโปรไฟล์นี้เอง (จับคู่ชื่อแบบเดียวกับระบบอื่นในแอป)
+    function isOwnMemberProfile() {
+      return !!(user && user.role && user.role.toUpperCase().trim() === 'MEMBER' &&
+        user.name && memberName && user.name.trim().toLowerCase() === memberName.trim().toLowerCase());
+    }
+    function updateHeroEditButton() {
+      const btn = document.getElementById('hero-edit-btn');
+      if (!btn) return;
+      btn.classList.toggle('visible', isOwnMemberProfile());
     }
   
  async function loadMemberSpecialThanks() {
@@ -1247,12 +1302,142 @@ function renderMemberStatsAndFans() {
     function actionKami() { setOshi('kami'); }
     function actionOshi() { setOshi('oshi'); }
 
-    function toggleTopFans() {
-      const toggle = document.getElementById('top-fans-toggle');
-      const list = document.getElementById('member-fans-content');
-      if (!toggle || !list) return;
-      const isExpanded = list.classList.toggle('expanded');
-      toggle.classList.toggle('expanded', isExpanded);
+    function goToTopFans() {
+      if (!memberName) return;
+      window.location.href = `topfans?name=${encodeURIComponent(memberName)}`;
+    }
+
+    function openMoreMenu() {
+      const backdrop = document.getElementById('more-menu-backdrop');
+      if (backdrop) backdrop.classList.add('open');
+    }
+    function closeMoreMenu() {
+      const backdrop = document.getElementById('more-menu-backdrop');
+      if (backdrop) backdrop.classList.remove('open');
+    }
+
+    // 🔔 "Turn ON/OFF notification" ผูกกับระบบ Kami-Oshi เดิม (การแจ้งเตือนโพสต์ใหม่ยิงให้ Kami-Oshi/Oshi อยู่แล้วที่ฝั่งเซิร์ฟเวอร์)
+    async function toggleMemberNotification() {
+      closeMoreMenu();
+      if (!checkLoginStatus()) return;
+
+      const searchName = memberName.toLowerCase();
+      const currentKamioshi = (user.kamioshi || "").toString().toLowerCase();
+      const turningOn = currentKamioshi !== searchName;
+
+      if (turningOn && typeof getPushSubscriptionStatus === 'function') {
+        try {
+          const pushStatus = await getPushSubscriptionStatus();
+          if (pushStatus !== 'on') await subscribeToPush(user.username);
+        } catch (e) { /* ไม่บล็อกการตั้ง Kami-Oshi แม้ผู้ใช้ปฏิเสธสิทธิ์แจ้งเตือน */ }
+      }
+
+      actionKami();
+    }
+
+    // 🔗 แชร์ลิงก์โปรไฟล์เมมเบอร์ (รูปแบบเดียวกับ actionSharePost ใน common.js)
+    async function shareMemberProfile() {
+      closeMoreMenu();
+      if (!memberName) return;
+      const shareUrl = `${window.location.origin}/member?name=${encodeURIComponent(memberName)}`;
+      const shareData = { title: 'BLM48', text: `มาดูโปรไฟล์ของ ${memberName} ในแอป BLM48 กันเถอะ! 🌸`, url: shareUrl };
+
+      if (navigator.share) {
+        try { await navigator.share(shareData); return; }
+        catch (e) { if (e && e.name === 'AbortError') return; }
+      }
+
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        Swal.fire({ icon: 'success', title: 'คัดลอกลิงก์แล้ว!', text: 'วางลิงก์เพื่อแชร์โปรไฟล์นี้ได้เลยน้า', timer: 1800, showConfirmButton: false });
+      } catch (e) {
+        Swal.fire({
+          icon: 'info',
+          title: 'ลิงก์โปรไฟล์นี้',
+          html: `<input type="text" readonly value="${shareUrl}" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;box-sizing:border-box;" onclick="this.select()">`,
+          confirmButtonText: 'ปิด'
+        });
+      }
+    }
+
+    // 🖼️ อัปโหลดภาพพื้นหลังโปรไฟล์เมมเบอร์ (เฉพาะบัญชีเมมเบอร์เจ้าของโปรไฟล์)
+    let currentCoverUrl = null;
+    let activeCropper = null;
+
+    function triggerCoverUpload() {
+      if (!isOwnMemberProfile()) return;
+      document.getElementById('cover-upload').click();
+    }
+
+    function handleCoverImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        Swal.fire({
+          title: 'ปรับตำแหน่งภาพพื้นหลัง',
+          html: `<div class="cropper-container-box"><img id="cover-cropper-target-img" src="${e.target.result}"></div>`,
+          showCancelButton: true,
+          confirmButtonColor: 'var(--blmem-pink)',
+          confirmButtonText: 'ยืนยันรูปภาพนี้',
+          cancelButtonText: 'ยกเลิก',
+          allowOutsideClick: false,
+          didOpen: () => {
+            const imageElement = document.getElementById('cover-cropper-target-img');
+            activeCropper = new Cropper(imageElement, {
+              aspectRatio: 16 / 10,
+              viewMode: 1,
+              autoCropArea: 1,
+              movable: true,
+              zoomable: true,
+              rotatable: false,
+              scalable: false
+            });
+          },
+          willClose: () => {
+            if (activeCropper) { activeCropper.destroy(); activeCropper = null; }
+          },
+          preConfirm: () => {
+            return new Promise((resolve) => {
+              activeCropper.getCroppedCanvas({ width: 960, height: 600 }).toBlob((blob) => resolve(blob), 'image/jpeg', 0.85);
+            });
+          }
+        }).then(async (result) => {
+          if (result.isConfirmed && result.value) {
+            await proceedToUploadCover(result.value);
+          }
+          document.getElementById('cover-upload').value = '';
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function proceedToUploadCover(blobFile) {
+      Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        const oldCoverUrl = currentCoverUrl;
+        const finalUrl = await blm48UploadMemberCoverImage(user.username, blobFile);
+        const res = await blm48UpdateMemberCoverImage(user.username, memberName, finalUrl);
+        if (res.status !== 'success') throw new Error(res.message || 'อัปเดตรูปพื้นหลังไม่สำเร็จ');
+
+        if (oldCoverUrl) blm48DeleteStorageFiles([oldCoverUrl]);
+        currentCoverUrl = finalUrl;
+
+        const avatarEl = document.getElementById('mb-avatar');
+        if (avatarEl) avatarEl.src = finalUrl;
+
+        const savedStatsStr = localStorage.getItem('current_member_stats');
+        if (savedStatsStr) {
+          const m = JSON.parse(savedStatsStr);
+          m.cover_image = finalUrl;
+          localStorage.setItem('current_member_stats', JSON.stringify(m));
+        }
+
+        Swal.fire('สำเร็จ!', 'เปลี่ยนภาพพื้นหลังเรียบร้อยแล้วค่ะ', 'success');
+      } catch (e) {
+        Swal.fire('ผิดพลาด', e.message || 'ไม่สามารถอัปโหลดรูปได้ในขณะนี้', 'error');
+      }
     }
   
     function formatMemberScore(num) {
