@@ -339,6 +339,10 @@
                 <i class="fas fa-user-shield"></i>
                 <span>จัดการ/ระงับบัญชี</span>
             </div>
+            <div class="tool-card" onclick="showAdminManageCodesModal()">
+                <i class="fas fa-ticket"></i>
+                <span>จัดการโค้ด Redeem</span>
+            </div>
             <div class="tool-card" onclick="window.location.href='admin_sales'">
                 <i class="fas fa-chart-line"></i>
                 <span>สรุปยอดขาย</span>
@@ -1024,6 +1028,195 @@
       refNo: log.ref_no,
       createdAt: log.created_at
     });
+  }
+
+  // =========================================================================
+  // 🎫 จัดการโค้ด Redeem — สร้าง/ลบโค้ด (1 โค้ดผูกรางวัลได้หลายชนิดพร้อมกัน
+  // เช่น Token + Cookie ในโค้ดเดียว) แทนที่ workflow เดิมที่เคยจัดการผ่าน
+  // Google Sheet + Apps Script sync (เลิกใช้แล้ว)
+  // =========================================================================
+  let adminCodeCache = [];
+  const ADMIN_CODE_REWARD_LABELS = { token: 'Token', cookie: 'Cookie', getoken: 'GE Token', legacy: 'Legacy (ที่ระลึก)' };
+
+  async function showAdminManageCodesModal() {
+    await Swal.fire({
+      title: 'จัดการโค้ด Redeem',
+      html: `
+        <div style="text-align:left;">
+          <button type="button" class="btn-pill" style="background:#fff0f3; color:var(--primary-pink); border:none; cursor:pointer; margin-bottom:10px;" onclick="Swal.close(); showAdminCreateCodeModal();">
+            <i class="fas fa-plus"></i> สร้างโค้ดใหม่
+          </button>
+          <div id="admin-code-list" style="max-height:50vh; overflow-y:auto;">
+            <div style="text-align:center; color:#999; padding:20px 0;"><i class="fa-solid fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+      `,
+      width: 480,
+      showConfirmButton: false,
+      showCloseButton: true,
+      didOpen: () => loadAdminCodeList()
+    });
+  }
+
+  async function loadAdminCodeList() {
+    const list = document.getElementById('admin-code-list');
+    if (!list) return;
+    try {
+      const res = await blm48AdminListCodes(user.username);
+      if (res.status !== 'success') { list.innerHTML = `<div style="text-align:center; color:#999; padding:20px 0;">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      adminCodeCache = res.data || [];
+      renderAdminCodeList();
+    } catch (e) {
+      list.innerHTML = `<div style="text-align:center; color:#999; padding:20px 0;">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderAdminCodeList() {
+    const list = document.getElementById('admin-code-list');
+    if (!list) return;
+    if (adminCodeCache.length === 0) {
+      list.innerHTML = `<div style="text-align:center; color:#999; padding:20px 0;">ยังไม่มีโค้ดในระบบ</div>`;
+      return;
+    }
+    list.innerHTML = adminCodeCache.map((c, i) => {
+      const expiryText = c.expiryTime ? new Date(c.expiryTime).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'ไม่มีวันหมดอายุ';
+      const rewardsText = (c.rewards || []).map(r => `${Number(r.amount).toLocaleString()} ${ADMIN_CODE_REWARD_LABELS[r.type] || r.type}`).join(' + ') || '-';
+      const used = c.usedCount || 0;
+      const canDelete = used === 0;
+      return `
+        <div style="padding:10px 4px; border-bottom:1px dashed #eee;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+            <div style="min-width:0;">
+              <div style="font-weight:700; font-size:14px; color:#333;">${escapeHtml(c.code)}</div>
+              <div style="font-size:12px; color:#666; margin-top:2px;">${escapeHtml(rewardsText)}</div>
+              <div style="font-size:11px; color:#999; margin-top:4px;">ใช้ไปแล้ว ${used}/${escapeHtml(c.maxLimit)} · ${escapeHtml(expiryText)}</div>
+            </div>
+            ${canDelete ? `
+            <button class="btn-pill" style="background:#ffeef0; color:#ff5c7a; flex:0 0 auto;" onclick="deleteAdminCode(${i})">
+              <i class="fas fa-trash"></i>
+            </button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function deleteAdminCode(index) {
+    const target = adminCodeCache[index];
+    if (!target) return;
+    const confirmResult = await Swal.fire({
+      title: 'ลบโค้ดนี้?',
+      html: `<b>${escapeHtml(target.code)}</b> จะถูกลบออกจากระบบถาวรค่ะ`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff5c7a',
+      confirmButtonText: 'ลบโค้ด',
+      cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirmResult.isConfirmed) { showAdminManageCodesModal(); return; }
+
+    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminDeleteCode(user.username, target.code);
+      if (res.status === 'success') {
+        await Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย', timer: 1200, showConfirmButton: false });
+      } else {
+        await Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบได้', 'error');
+      }
+    } catch (e) {
+      await Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+    }
+    showAdminManageCodesModal();
+  }
+
+  function addAdminCodeRewardRow(type, amount) {
+    const container = document.getElementById('admin-code-rewards');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'admin-code-reward-row';
+    row.style.cssText = 'display:flex; gap:8px; align-items:center;';
+    row.innerHTML = `
+      <select class="admin-code-reward-type swal2-select" style="margin:0; flex:1;">
+        <option value="token">Token</option>
+        <option value="cookie">Cookie</option>
+        <option value="getoken">GE Token</option>
+        <option value="legacy">Legacy (ที่ระลึก ไม่แจกกระเป๋าเงิน)</option>
+      </select>
+      <input type="number" class="admin-code-reward-amount swal2-input" style="margin:0; width:110px;" min="0" value="0">
+      <button type="button" onclick="this.closest('.admin-code-reward-row').remove()" style="background:none; border:none; color:#ff5c7a; font-size:18px; cursor:pointer;"><i class="fas fa-trash"></i></button>
+    `;
+    container.appendChild(row);
+    if (type) row.querySelector('.admin-code-reward-type').value = type;
+    if (amount !== undefined) row.querySelector('.admin-code-reward-amount').value = amount;
+  }
+
+  async function showAdminCreateCodeModal() {
+    const { value: formValues } = await Swal.fire({
+      title: 'สร้างโค้ด Redeem ใหม่',
+      html: `
+        <div style="text-align:left; display:flex; flex-direction:column; gap:10px;">
+          <label style="font-size:13px; color:#666;">รหัสโค้ด (Code)</label>
+          <input id="admin-code-code" class="swal2-input" style="margin:0; text-transform:uppercase;" placeholder="เช่น WELCOME2026">
+          <label style="font-size:13px; color:#666;">วันหมดอายุ (เว้นว่าง = ไม่มีวันหมดอายุ)</label>
+          <input id="admin-code-expiry" type="datetime-local" class="swal2-input" style="margin:0;">
+          <label style="font-size:13px; color:#666;">จำนวนสิทธิ์ใช้ได้สูงสุด (เว้นว่าง = ไม่จำกัด)</label>
+          <input id="admin-code-maxlimit" type="number" min="1" class="swal2-input" style="margin:0;" placeholder="999999">
+          <label style="font-size:13px; color:#666;">รางวัลที่จะได้รับ (เพิ่มได้หลายชนิด)</label>
+          <div id="admin-code-rewards" style="display:flex; flex-direction:column; gap:8px;"></div>
+          <button type="button" style="align-self:flex-start; background:#fff0f3; color:var(--primary-pink); border:none; border-radius:20px; padding:8px 16px; cursor:pointer; font-size:13px;" onclick="addAdminCodeRewardRow()">
+            <i class="fas fa-plus"></i> เพิ่มรางวัล
+          </button>
+        </div>
+      `,
+      width: 480,
+      showCancelButton: true,
+      confirmButtonColor: 'var(--primary-pink)',
+      confirmButtonText: 'สร้างโค้ด',
+      cancelButtonText: 'ยกเลิก',
+      focusConfirm: false,
+      didOpen: () => addAdminCodeRewardRow('token', 0),
+      preConfirm: () => {
+        const code = document.getElementById('admin-code-code').value.trim().toUpperCase();
+        const expiryRaw = document.getElementById('admin-code-expiry').value;
+        const maxLimitRaw = document.getElementById('admin-code-maxlimit').value;
+        if (!code) { Swal.showValidationMessage('กรุณากรอกรหัสโค้ด'); return false; }
+
+        const rows = document.querySelectorAll('#admin-code-rewards .admin-code-reward-row');
+        if (rows.length === 0) { Swal.showValidationMessage('กรุณาเพิ่มรางวัลอย่างน้อย 1 รายการ'); return false; }
+        const rewards = [];
+        const seenTypes = new Set();
+        for (const row of rows) {
+          const type = row.querySelector('.admin-code-reward-type').value;
+          const amount = parseFloat(row.querySelector('.admin-code-reward-amount').value) || 0;
+          if (seenTypes.has(type)) { Swal.showValidationMessage('เลือกรางวัลชนิดเดียวกันซ้ำกันไม่ได้ค่ะ'); return false; }
+          seenTypes.add(type);
+          if (type !== 'legacy' && amount <= 0) { Swal.showValidationMessage('กรุณากรอกจำนวนรางวัลให้มากกว่า 0'); return false; }
+          rewards.push({ type, amount });
+        }
+
+        return {
+          code,
+          expiryTime: expiryRaw ? new Date(expiryRaw).toISOString() : null,
+          maxLimit: maxLimitRaw ? parseInt(maxLimitRaw, 10) : null,
+          rewards
+        };
+      }
+    });
+
+    if (!formValues) { showAdminManageCodesModal(); return; }
+
+    Swal.fire({ title: 'กำลังสร้างโค้ด...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminCreateCode(user.username, formValues.code, formValues.expiryTime, formValues.maxLimit, formValues.rewards);
+      if (res.status === 'success') {
+        await Swal.fire({ icon: 'success', title: 'สร้างโค้ดสำเร็จ!', text: res.message, timer: 1500, showConfirmButton: false });
+      } else {
+        await Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถสร้างโค้ดได้', 'error');
+      }
+    } catch (e) {
+      await Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+    }
+    showAdminManageCodesModal();
   }
 
   // =========================================================================

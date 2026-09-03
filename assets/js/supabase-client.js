@@ -494,6 +494,18 @@ function blm48AdminGetSalesSummary(adminUsername) {
   return blm48Rpc('admin_get_sales_summary', { p_admin_username: adminUsername });
 }
 
+// Redeem Code management (admin.html "จัดการโค้ด Redeem") - one code can now carry several
+// reward rows at once (e.g. Token + Cookie together), stored in the code_rewards table.
+function blm48AdminListCodes(adminUsername) {
+  return blm48Rpc('admin_list_codes', { p_admin_username: adminUsername });
+}
+function blm48AdminCreateCode(adminUsername, code, expiryTime, maxLimit, rewards) {
+  return blm48Rpc('admin_create_code', { p_admin_username: adminUsername, p_code: code, p_expiry_time: expiryTime, p_max_limit: maxLimit, p_rewards: rewards });
+}
+function blm48AdminDeleteCode(adminUsername, code) {
+  return blm48Rpc('admin_delete_code', { p_admin_username: adminUsername, p_code: code });
+}
+
 // Live-updates a Major Vote campaign's candidate rows. Replaces the old Firebase
 // majorVotes/{collectionId} subscription for the same reason as blm48SubscribeWallet.
 function blm48SubscribeMajorVoteCandidates(collectionId, onChange) {
