@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | คำสั่งซื้อพรีออเดอร์</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: var(--text-dark);
+            background: #ffffff;
+        }
+
+        .top-navigation-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
+        @media (min-width: 1024px) { .page-wrapper { max-width: 900px; padding: 32px 32px 70px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-family: 'Kanit', sans-serif;
+            font-size: 24px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
+            border-radius: 16px; padding: 14px 16px; box-shadow: var(--glass-shadow-sm);
+        }
+        .stat-card .s-label { font-size: 11.5px; color: rgba(255,255,255,0.85); font-weight: 600; }
+        .stat-card .s-value { font-family: 'Kanit', sans-serif; font-size: 22px; font-weight: 700; color: #fff; margin-top: 2px; }
+
+        .status-filter-row { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+        .status-filter-btn {
+            flex: 0 0 auto;
+            font-family: 'Kanit', sans-serif;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg-strong);
+            color: #888;
+            cursor: pointer;
+        }
+        .status-filter-btn.active { background: var(--primary-pink); color: #fff; border-color: var(--primary-pink); }
+
+        .order-card {
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .order-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .order-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
+        .order-user-info { flex: 1; min-width: 0; }
+        .order-user-name { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .order-user-sub { font-size: 11px; color: #999; }
+        .status-pill { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+        .status-pending { background: #fff3e0; color: #e08e2e; }
+        .status-shipped { background: #e6f7ee; color: #2e9e5b; }
+
+        .order-body { font-size: 13px; color: #555; margin-bottom: 10px; }
+        .order-product { font-family: 'Kanit', sans-serif; font-weight: 700; color: #c53f5a; margin-bottom: 3px; }
+        .order-items { font-size: 12px; color: #888; line-height: 1.6; }
+        .order-meta { font-size: 11.5px; color: #aaa; margin-top: 6px; }
+
+        .order-actions { display: flex; gap: 8px; }
+        .order-action-btn {
+            flex: 1;
+            font-family: 'Kanit', sans-serif;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 9px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-mark-shipped { background: var(--primary-pink); color: #fff; }
+        .btn-mark-pending { background: #f0f1f3; color: #888; }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 30px 20px; }
+        .empty-state i { font-size: 26px; color: #ffd7e1; display: block; margin-bottom: 8px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #preorder-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">คำสั่งซื้อพรีออเดอร์</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="preorder-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-box"></i> คำสั่งซื้อพรีออเดอร์</h1>
+            <p>ดูรายการสั่งซื้อและอัปเดตสถานะการจัดส่ง</p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="s-label"><i class="fa-solid fa-hourglass-half"></i> รอจัดส่ง</div>
+                <div class="s-value" id="stat-pending-count">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="s-label"><i class="fa-solid fa-truck"></i> จัดส่งแล้ว</div>
+                <div class="s-value" id="stat-shipped-count">-</div>
+            </div>
+        </div>
+
+        <div class="status-filter-row">
+            <button type="button" class="status-filter-btn active" data-filter="" onclick="setOrderFilter('')">ทั้งหมด</button>
+            <button type="button" class="status-filter-btn" data-filter="pending" onclick="setOrderFilter('pending')">รอจัดส่ง</button>
+            <button type="button" class="status-filter-btn" data-filter="shipped" onclick="setOrderFilter('shipped')">จัดส่งแล้ว</button>
+        </div>
+
+        <div id="orders-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let allOrders = [];
+  let currentFilter = '';
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'admin';
+    }
+  }
+
+  function fallbackAvatar(url) {
+    return url && url.trim() !== '' ? url : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+  }
+
+  function renderOrders() {
+    const list = document.getElementById('orders-list');
+    const orders = currentFilter ? allOrders.filter(o => o.status === currentFilter) : allOrders;
+
+    if (orders.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i>ยังไม่มีคำสั่งซื้อในหมวดนี้ค่ะ</div>`;
+      return;
+    }
+
+    list.innerHTML = orders.map(o => {
+      const isShipped = o.status === 'shipped';
+      const statusHTML = isShipped
+        ? '<span class="status-pill status-shipped"><i class="fa-solid fa-truck"></i> จัดส่งแล้ว</span>'
+        : '<span class="status-pill status-pending"><i class="fa-solid fa-hourglass-half"></i> รอจัดส่ง</span>';
+      const dt = o.createdAt ? new Date(o.createdAt).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+      const itemsText = (o.items || []).map(it => {
+        if (it.kind === 'ge_token') return `${escapeHtml(it.label)} +${Number(it.amount).toLocaleString()}`;
+        return it.isRandom ? `${escapeHtml(it.label)} (สุ่มลาย)` : escapeHtml(it.label);
+      }).join(' · ');
+
+      const actionHTML = isShipped
+        ? `<button type="button" class="order-action-btn btn-mark-pending" onclick="updateOrderStatus(${o.orderId}, 'pending')"><i class="fa-solid fa-rotate-left"></i> ย้อนเป็นรอจัดส่ง</button>`
+        : `<button type="button" class="order-action-btn btn-mark-shipped" onclick="updateOrderStatus(${o.orderId}, 'shipped')"><i class="fa-solid fa-truck"></i> ทำเครื่องหมายว่าจัดส่งแล้ว</button>`;
+
+      return `
+        <div class="order-card" data-order-id="${o.orderId}">
+          <div class="order-head">
+            <img class="order-avatar" src="${fallbackAvatar(o.userAvatar)}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';">
+            <div class="order-user-info">
+              <div class="order-user-name">${escapeHtml(o.userName || o.username)}</div>
+              <div class="order-user-sub">@${escapeHtml(o.username)}</div>
+            </div>
+            ${statusHTML}
+          </div>
+          <div class="order-body">
+            <div class="order-product">${escapeHtml(o.productName)} x${o.quantity}</div>
+            <div class="order-items">${itemsText}</div>
+            <div class="order-meta">${dt} · ${Number(o.totalCostTokens).toLocaleString()} Tokens${o.geTokenGranted ? ' · +' + Number(o.geTokenGranted).toLocaleString() + ' GE Token' : ''}</div>
+          </div>
+          <div class="order-actions">${actionHTML}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateStats() {
+    document.getElementById('stat-pending-count').textContent = allOrders.filter(o => o.status === 'pending').length.toLocaleString();
+    document.getElementById('stat-shipped-count').textContent = allOrders.filter(o => o.status === 'shipped').length.toLocaleString();
+  }
+
+  function setOrderFilter(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.status-filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+    renderOrders();
+  }
+
+  async function loadOrders() {
+    const list = document.getElementById('orders-list');
+    try {
+      const res = await blm48AdminListPreorderOrders(user.username, null);
+      if (res.status !== 'success') {
+        list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ: ${escapeHtml(res.message || '')}</div>`;
+        return;
+      }
+      allOrders = res.data || [];
+      updateStats();
+      renderOrders();
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  async function updateOrderStatus(orderId, newStatus) {
+    const confirmResult = await Swal.fire({
+      title: newStatus === 'shipped' ? 'ยืนยันว่าจัดส่งแล้ว?' : 'ย้อนกลับเป็นรอจัดส่ง?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'ยืนยัน',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: '#ff85a2'
+    });
+    if (!confirmResult.isConfirmed) return;
+
+    try {
+      const res = await blm48AdminSetPreorderOrderStatus(user.username, orderId, newStatus);
+      if (res.status === 'success') {
+        const order = allOrders.find(o => o.orderId === orderId);
+        if (order) order.status = newStatus;
+        updateStats();
+        renderOrders();
+      } else {
+        Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
+      }
+    } catch (e) {
+      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login';
+      return;
+    }
+    if (!user.role || user.role.toLowerCase() !== 'admin') {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('preorder-content').style.display = 'block';
+    loadOrders();
+  });
+</script>
+</body>
+</html>

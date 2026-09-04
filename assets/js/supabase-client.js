@@ -43,6 +43,21 @@ function blm48BuyDirectItem(username, itemId) {
 function blm48RedeemCode(username, code) {
   return blm48Rpc('redeem_code', { p_username: username, p_code: code });
 }
+function blm48GetPreorderProducts() {
+  return blm48Rpc('get_preorder_products', {});
+}
+function blm48BuyPreorder(username, productId, quantity) {
+  return blm48Rpc('buy_preorder', { p_username: username, p_product_id: productId, p_quantity: quantity });
+}
+function blm48GetMyPreorderOrders(username) {
+  return blm48Rpc('get_my_preorder_orders', { p_username: username });
+}
+function blm48AdminListPreorderOrders(adminUsername, statusFilter) {
+  return blm48Rpc('admin_list_preorder_orders', { p_admin_username: adminUsername, p_status_filter: statusFilter || null });
+}
+function blm48AdminSetPreorderOrderStatus(adminUsername, orderId, status) {
+  return blm48Rpc('admin_set_preorder_order_status', { p_admin_username: adminUsername, p_order_id: orderId, p_status: status });
+}
 function blm48GetInventory(username) {
   return blm48Rpc('get_inventory', { p_username: username });
 }

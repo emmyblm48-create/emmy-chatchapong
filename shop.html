@@ -1311,6 +1311,127 @@
           50% { opacity: 1; }
           100% { opacity: 0.6; }
         }
+
+        /* 📦 พรีออเดอร์ - สั่งซื้อก่อน จัดส่งทีหลัง การ์ดแบบเต็มความกว้าง แสดงรายการของในเซ็ต + ตัวเลือกจำนวน */
+        .preorder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .preorder-card {
+            background: #ffffff;
+            border-radius: 18px;
+            border: 1px solid #f0f0f0;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+        .preorder-card:hover { border-color: var(--primary-pink); }
+        .preorder-card-cover {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(135deg, var(--pastel-pink), #ffe3ee);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .preorder-card-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .preorder-card-cover .preorder-cover-fallback {
+            color: var(--dark-pink);
+            font-family: var(--font-display);
+            font-size: 30px;
+            font-weight: 700;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .preorder-card-body { padding: 16px; }
+        .preorder-card-title {
+            font-family: var(--font-heading);
+            font-size: 17px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 4px;
+        }
+        .preorder-card-desc { font-size: 12.5px; color: #999; margin: 0 0 12px; line-height: 1.5; }
+        .preorder-items {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+        .preorder-item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #555;
+            background: #fdf7f8;
+            border-radius: 10px;
+            padding: 7px 10px;
+        }
+        .preorder-item-row i { color: var(--primary-pink); width: 16px; text-align: center; flex-shrink: 0; }
+        .preorder-item-row .preorder-random-tag {
+            margin-left: auto;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #c9932c;
+            background: #fff6e0;
+            padding: 2px 8px;
+            border-radius: 999px;
+            flex-shrink: 0;
+        }
+        .preorder-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .preorder-qty-stepper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f7f7f7;
+            border-radius: 999px;
+            padding: 4px;
+        }
+        .preorder-qty-btn {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: #ffffff;
+            color: var(--primary-pink);
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .preorder-qty-btn:active { transform: scale(0.92); }
+        .preorder-qty-value { min-width: 22px; text-align: center; font-weight: 700; color: #333; font-size: 14px; }
+        .preorder-buy-btn {
+            flex: 1;
+            min-width: 150px;
+            background: linear-gradient(45deg, var(--primary-pink), var(--dark-pink));
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 11px 18px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .preorder-buy-btn:active { transform: scale(0.97); }
+        .preorder-buy-btn.preorder-buy-btn-disabled {
+            background: #f0f1f3;
+            color: #a89686;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -1372,6 +1493,10 @@
 </div>
 
 <div class="shop-quick-tiles">
+    <a href="#section-preorder" class="quick-tile">
+        <div class="quick-tile-icon" style="background:#fff6e0;color:#c9932c;"><i class="fas fa-box"></i></div>
+        <span class="quick-tile-label">Pre-order</span>
+    </a>
     <a href="#section-cookie" class="quick-tile">
         <div class="quick-tile-icon" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
         <span class="quick-tile-label">Cookie Shop</span>
@@ -1388,6 +1513,14 @@
         <div class="quick-tile-icon" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-box-open"></i></div>
         <span class="quick-tile-label">My Items</span>
     </a>
+</div>
+
+<div class="section-title" id="section-preorder">
+   <i class="fas fa-box" style="color: #c9932c;"></i> พรีออเดอร์ <i class="fas fa-star sparkle-icon"></i>
+</div>
+<p class="section-caption">สั่งซื้อวันนี้ · จัดส่งภายหลัง</p>
+<div class="preorder-list" id="preorder-container">
+    <!-- เพิ่มสินค้าพรีออเดอร์โดยระบบโหลดอัตโนมัติ -->
 </div>
 
 <h2 class="section-title" id="section-cookie"><i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> Cookie Shop <i class="fas fa-star sparkle-icon"></i></h2>
@@ -1997,6 +2130,202 @@ async function loadGachaCollections() {
   }
 }
 
+// 📦 พรีออเดอร์ - โหลดรายการสินค้าพรีออเดอร์มาแสดงผล (สั่งซื้อวันนี้ จัดส่งภายหลัง)
+function escapePreorderText(str) {
+  return typeof escapeHtml === 'function' ? escapeHtml(str) : String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function loadPreorderProducts() {
+  const container = document.getElementById("preorder-container");
+  if (!container) return;
+
+  try {
+    const response = await blm48GetPreorderProducts();
+    const products = response.data || [];
+
+    container.innerHTML = "";
+
+    if (products.length === 0) {
+      container.innerHTML = `
+        <div class="shop-empty-state">
+          <i class="fas fa-box"></i>
+          <span>ยังไม่มีสินค้าพรีออเดอร์ในตอนนี้ค่ะ</span>
+        </div>`;
+      return;
+    }
+
+    products.forEach(p => {
+      const isSoldOut = p.status === 'sold_out';
+      const itemsHTML = (p.items || []).map(item => {
+        if (item.kind === 'ge_token') {
+          return `<div class="preorder-item-row"><i class="fas fa-gem"></i> ${escapePreorderText(item.label)} +${Number(item.amount).toLocaleString()}</div>`;
+        }
+        const randomTag = item.isRandom ? '<span class="preorder-random-tag"><i class="fas fa-dice"></i> สุ่มลาย</span>' : '';
+        return `<div class="preorder-item-row"><i class="fas fa-image"></i> ${escapePreorderText(item.label)} ${randomTag}</div>`;
+      }).join('');
+
+      const coverHTML = p.coverImage
+        ? `<img src="${p.coverImage}" alt="${escapePreorderText(p.name)}" onerror="this.parentElement.innerHTML='<div class=\\'preorder-cover-fallback\\'>${escapePreorderText(p.name)}</div>'">`
+        : `<div class="preorder-cover-fallback">${escapePreorderText(p.name)}</div>`;
+
+      const buyBtnHTML = isSoldOut
+        ? `<button class="preorder-buy-btn preorder-buy-btn-disabled" disabled><i class="fas fa-box-archive"></i> พรีออเดอร์เต็มแล้ว</button>`
+        : `<button class="preorder-buy-btn" onclick="buyPreorder(this)"><i class="fas fa-coins"></i> สั่งซื้อ · ${Number(p.costTokens).toLocaleString()} Tokens</button>`;
+
+      const stepperHTML = isSoldOut ? '' : `
+        <div class="preorder-qty-stepper">
+          <button type="button" class="preorder-qty-btn" onclick="changePreorderQty(this, -1)">−</button>
+          <span class="preorder-qty-value">1</span>
+          <button type="button" class="preorder-qty-btn" onclick="changePreorderQty(this, 1)">+</button>
+        </div>`;
+
+      const cardHTML = `
+          <div class="preorder-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-product-id="${p.productId}" data-cost="${p.costTokens}" data-name="${escapePreorderText(p.name)}">
+            <div class="preorder-card-cover">${coverHTML}</div>
+            <div class="preorder-card-body">
+              <h3 class="preorder-card-title">${escapePreorderText(p.name)}</h3>
+              <p class="preorder-card-desc">${escapePreorderText(p.description || '')}</p>
+              <div class="preorder-items">${itemsHTML}</div>
+              <div class="preorder-card-footer">
+                ${stepperHTML}
+                ${buyBtnHTML}
+              </div>
+            </div>
+          </div>
+        `;
+      container.insertAdjacentHTML("beforeend", cardHTML);
+    });
+
+  } catch (error) {
+    console.error("Error loading preorder products:", error);
+    container.innerHTML = `
+      <div class="shop-empty-state">
+        <i class="fas fa-triangle-exclamation" style="color:#e1546f;"></i>
+        <span>เกิดข้อผิดพลาดในการโหลดข้อมูลพรีออเดอร์ กรุณาลองใหม่อีกครั้งค่ะ</span>
+      </div>`;
+  }
+}
+
+function changePreorderQty(btn, delta) {
+  const card = btn.closest('.preorder-card');
+  if (!card) return;
+  const valueEl = card.querySelector('.preorder-qty-value');
+  let qty = parseInt(valueEl.textContent, 10) || 1;
+  qty = Math.min(99, Math.max(1, qty + delta));
+  valueEl.textContent = qty;
+
+  const buyBtn = card.querySelector('.preorder-buy-btn');
+  if (buyBtn && !buyBtn.classList.contains('preorder-buy-btn-disabled')) {
+    const total = parseFloat(card.dataset.cost) * qty;
+    buyBtn.innerHTML = `<i class="fas fa-coins"></i> สั่งซื้อ · ${total.toLocaleString()} Tokens`;
+  }
+}
+
+async function buyPreorder(btn) {
+  if (!userData) return;
+  const card = btn.closest('.preorder-card');
+  if (!card) return;
+
+  const productId = card.dataset.productId;
+  const productName = card.dataset.name;
+  const unitCost = parseFloat(card.dataset.cost);
+  const qty = parseInt(card.querySelector('.preorder-qty-value').textContent, 10) || 1;
+  const totalCost = unitCost * qty;
+
+  if (Number(userData.token) < totalCost) {
+    Swal.fire({
+      title: 'Token คงเหลือไม่เพียงพอ',
+      html: '<div style="font-size: 14px; color: #666; font-family: \'Kanit\';">กรุณาเติม Token ก่อนสั่งซื้อพรีออเดอร์นี้</div>',
+      icon: 'error',
+      confirmButtonColor: '#e1546f',
+      background: '#ffffff',
+      borderRadius: '24px'
+    });
+    return;
+  }
+
+  const itemsListHTML = Array.from(card.querySelectorAll('.preorder-item-row')).map(el => `<div style="text-align:left;">${el.innerHTML}</div>`).join('');
+
+  const confirmResult = await Swal.fire({
+    title: `ยืนยันการพรีออเดอร์ "${productName}"`,
+    html: `
+      <div style="font-size: 14px; color: #555; line-height: 1.6; font-family: 'Kanit'; text-align:left;">
+        <div style="margin-bottom:10px;">จำนวน <b>${qty}</b> เซ็ต ใช้ <b style="color:#e1546f;">${totalCost.toLocaleString()} Tokens</b></div>
+        ${itemsListHTML}
+        <div style="color:#999; font-size:12px; margin-top:10px;">* สินค้าจะจัดส่งภายหลัง ติดตามสถานะได้ที่หน้า Inventory</div>
+      </div>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'ยืนยันสั่งซื้อ',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#e1546f',
+    cancelButtonColor: '#e0e0e0',
+    background: '#ffffff',
+    borderRadius: '24px'
+  });
+
+  if (!confirmResult.isConfirmed) return;
+
+  Swal.fire({
+    title: 'กำลังทำรายการ...',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    background: '#ffffff',
+    borderRadius: '24px',
+    didOpen: () => Swal.showLoading()
+  });
+
+  try {
+    const res = await blm48BuyPreorder(userData.username, productId, qty);
+
+    if (res.status === 'success') {
+      userData.token = res.newToken !== undefined ? res.newToken : (userData.token - totalCost);
+      if (res.geTokenGranted) {
+        userData.geToken = Number(userData.geToken || 0) + Number(res.geTokenGranted);
+      }
+      const newSession = JSON.parse(localStorage.getItem('bnl_session'));
+      newSession.data = userData;
+      localStorage.setItem('bnl_session', JSON.stringify(newSession));
+
+      updateWalletUI();
+
+      Swal.fire({
+        title: 'สั่งซื้อสำเร็จ!',
+        html: `
+          <div style="text-align:center; padding: 5px 0;">
+            <div style="font-size: 19px; color: #c53f5a; font-weight: bold; margin-bottom: 8px;">${escapePreorderText(productName)} x${qty}</div>
+            <div style="color: #777; font-size: 13px; line-height: 1.6;">ระบบบันทึกคำสั่งซื้อของท่านเรียบร้อยแล้ว<br>สินค้าจะจัดส่งให้ภายหลัง สามารถติดตามสถานะได้ที่หน้า Inventory ค่ะ</div>
+          </div>`,
+        icon: 'success',
+        confirmButtonText: 'ตกลง',
+        confirmButtonColor: '#e1546f',
+        background: '#ffffff',
+        borderRadius: '24px',
+        didOpen: () => { if (typeof celebratePurchase === 'function') celebratePurchase(); }
+      });
+    } else {
+      Swal.fire({
+        title: 'เกิดข้อผิดพลาด',
+        text: res.message,
+        icon: 'error',
+        confirmButtonColor: '#e1546f',
+        background: '#ffffff',
+        borderRadius: '24px'
+      });
+    }
+  } catch (error) {
+    console.error("Error buying preorder:", error);
+    Swal.fire({
+      title: 'เกิดข้อผิดพลาด',
+      text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง',
+      icon: 'error',
+      confirmButtonColor: '#e1546f',
+      background: '#ffffff',
+      borderRadius: '24px'
+    });
+  }
+}
+
 // 🔥 ป้าย "Best Seller" ต่อหมวดหมู่ (Cookie/Merchandise/Cafe) คำนวณจากยอดซื้อจริงใน wallet_logs
 // ต้องเรียกหลัง loadGachaCollections() render การ์ดกาชาเสร็จแล้ว การ์ด cookie/cafe เป็น static อยู่ใน DOM แต่แรกอยู่แล้ว
 function addBestSellerBadge(card) {
@@ -2253,6 +2582,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         await Promise.all([
             typeof loadGachaCollections === 'function' ? loadGachaCollections() : Promise.resolve(),
+            typeof loadPreorderProducts === 'function' ? loadPreorderProducts() : Promise.resolve(),
             typeof initShop === 'function' ? initShop() : Promise.resolve()
         ]);
         // ต้องรันหลัง loadGachaCollections เสร็จ เพราะการ์ดกาชาถูก render แบบไดนามิก ต้องมีอยู่ใน DOM ก่อนถึงจะแปะป้ายได้

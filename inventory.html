@@ -222,6 +222,38 @@
             font-weight: 600;
         }
 
+        #preorder-orders-section { margin-bottom: 25px; }
+        .preorder-orders-list { display: flex; flex-direction: column; gap: 10px; }
+        .preorder-order-card {
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: var(--glass-shadow);
+        }
+        .preorder-order-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .preorder-order-title { font-weight: 700; color: #333; font-size: 14.5px; }
+        .preorder-order-meta { font-size: 12px; color: #999; margin-bottom: 8px; }
+        .preorder-order-items { font-size: 12.5px; color: #666; line-height: 1.7; }
+        .preorder-status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .preorder-status-pending { background: #fff3e0; color: #e08e2e; }
+        .preorder-status-shipped { background: #e6f7ee; color: #2e9e5b; }
+
         .filter-section-container {
             display: flex;
             flex-direction: column;
@@ -779,6 +811,11 @@
             </div>
         </div>
 
+        <div id="preorder-orders-section" hidden>
+            <div class="filter-label" style="margin-bottom:10px;"><i class="fa-solid fa-box text-pink-400"></i> พรีออเดอร์ของฉัน</div>
+            <div id="preorder-orders-list" class="preorder-orders-list"></div>
+        </div>
+
         <div class="filter-section-container">
     <div>
         <span class="filter-label"><i class="fa-solid fa-filter text-pink-400"></i> Fliter</span>
@@ -861,7 +898,48 @@
         document.getElementById('user-role').textContent = userRole;
         
         await loadMyInventory();
+        await loadMyPreorderOrders();
     };
+
+    // 📦 คำสั่งซื้อพรีออเดอร์ (สั่งซื้อวันนี้ จัดส่งภายหลัง) - แสดงแยกจากไอเทมปกติเพราะต้องโชว์สถานะจัดส่ง
+    async function loadMyPreorderOrders() {
+        const section = document.getElementById('preorder-orders-section');
+        const list = document.getElementById('preorder-orders-list');
+        if (!section || !list || typeof blm48GetMyPreorderOrders !== 'function') return;
+
+        try {
+            const res = await blm48GetMyPreorderOrders(currentUsername);
+            const orders = (res && res.data) || [];
+            if (orders.length === 0) {
+                section.hidden = true;
+                return;
+            }
+
+            list.innerHTML = orders.map(o => {
+                const isShipped = o.status === 'shipped';
+                const statusHTML = isShipped
+                    ? '<span class="preorder-status-pill preorder-status-shipped"><i class="fa-solid fa-truck"></i> จัดส่งแล้ว</span>'
+                    : '<span class="preorder-status-pill preorder-status-pending"><i class="fa-solid fa-hourglass-half"></i> รอจัดส่ง</span>';
+                const dt = o.createdAt ? new Date(o.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                const itemsText = (o.items || []).map(it => {
+                    if (it.kind === 'ge_token') return `${it.label} +${Number(it.amount).toLocaleString()}`;
+                    return it.isRandom ? `${it.label} (สุ่มลาย)` : it.label;
+                }).join(' · ');
+                return `
+                    <div class="preorder-order-card">
+                        <div class="preorder-order-head">
+                            <span class="preorder-order-title">${escapeHtml ? escapeHtml(o.productName) : o.productName} x${o.quantity}</span>
+                            ${statusHTML}
+                        </div>
+                        <div class="preorder-order-meta">${dt} · ${Number(o.totalCostTokens).toLocaleString()} Tokens</div>
+                        <div class="preorder-order-items">${itemsText}</div>
+                    </div>`;
+            }).join('');
+            section.hidden = false;
+        } catch (err) {
+            console.error('loadMyPreorderOrders error:', err);
+        }
+    }
 
     // โหลดข้อมูลแบบ Anti-Cache เพื่อให้ได้ของในกระเป๋าล่าสุดแบบเรียลไทม์
     async function loadMyInventory() {
@@ -987,7 +1065,7 @@
     // 3.5 ปุ่มหลัก: BLM48 PhotoCard (มีตัวกรองย่อยตามชื่อคอลเลกชัน)
     if (hasCategory('BLM48 PhotoCard')) {
         const btnPhotoCard = document.createElement('button');
-        btnPhotoCard.className = `btn-tab ${currentPrimaryTab === 'photocard' ? 'active' : ''}`;
+        btnPhotoCard.className = `btn-tab ${currentPrimaryTab === 'photo_card' ? 'active' : ''}`;
         btnPhotoCard.innerHTML = `<i class="fa-solid fa-id-card"></i> BLM48 PhotoCard`;
         btnPhotoCard.onclick = () => selectPrimaryTab('photocard');
         primaryTabsContainer.appendChild(btnPhotoCard);
