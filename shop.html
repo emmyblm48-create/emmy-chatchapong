@@ -890,23 +890,6 @@
             margin-bottom: 6px;
         }
 
-        /* 🔒 ป้าย "Closed" โทนเทาอมฟ้าเข้ม ใช้เมื่อปิดการขายตามกำหนดเวลา (sale_end_at) แยกจาก Sold Out ที่หมายถึงของหมด */
-        .merch-badge-closed {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: linear-gradient(45deg, #5c6b7a, #8797a6);
-            color: white;
-            font-size: 0.62rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            padding: 4px 11px;
-            border-radius: 999px;
-            box-shadow: 0 3px 8px rgba(92,107,122,.3);
-            transform: rotate(2deg);
-            margin-bottom: 6px;
-        }
-
         .shop-empty-state {
             grid-column: 1/-1;
             text-align: center;
@@ -1970,8 +1953,8 @@ async function loadGachaCollections() {
 
     container.innerHTML = "";
 
-    const gachaOnly = collections.filter(col => col.CollectionID && col.CollectionID.startsWith('gacha_'));
-    
+    const gachaOnly = collections.filter(col => col.CollectionID && col.CollectionID.startsWith('gacha_') && col.Status !== 'Closed');
+
     if (gachaOnly.length === 0) {
       container.innerHTML = `
         <div class="shop-empty-state">
@@ -1985,8 +1968,6 @@ async function loadGachaCollections() {
       const coverImg = col.CoverImage ? col.CoverImage : "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500";
       const isComingSoon = col.Status === 'Coming Soon';
       const isSoldOut = col.Status === 'Sold Out';
-      const isClosed = col.Status === 'Closed';
-      const isUnavailable = isSoldOut || isClosed;
 
       let badgeHTML = '';
       let buttonHTML = `<button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
@@ -2002,11 +1983,6 @@ async function loadGachaCollections() {
         buttonHTML = `<button class="merch-button merch-button-disabled" disabled>
                 <i class="fas fa-box-archive"></i> Sold Out
               </button>`;
-      } else if (isClosed) {
-        badgeHTML = '<span class="merch-badge-closed"><i class="fas fa-lock"></i> Closed</span>';
-        buttonHTML = `<button class="merch-button merch-button-disabled" disabled>
-                <i class="fas fa-lock"></i> Closed
-              </button>`;
       }
 
       const subtitle = (isComingSoon && col.SaleStartAt)
@@ -2014,7 +1990,7 @@ async function loadGachaCollections() {
         : (col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์');
 
       const cardHTML = `
-          <div class="merch-card${isUnavailable ? ' merch-item-unavailable' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}">
+          <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}">
             <div class="merch-image-container">
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
@@ -2068,15 +2044,22 @@ async function loadPreorderProducts() {
 
     products.forEach(p => {
       const isSoldOut = p.status === 'sold_out';
+      const isComingSoon = p.status === 'coming_soon';
       const goToDetail = `location.href='preorder_detail?id=' + encodeURIComponent('${p.productId}')`;
 
-      const badgeHTML = isSoldOut
-        ? `<span class="merch-badge-soldout"><i class="fas fa-box-archive"></i> Sold Out</span>`
-        : '';
+      let badgeHTML = '';
+      let buttonHTML = `<button class="merch-button" onclick="${goToDetail}"><i class="fas fa-coins"></i> ${Number(p.costTokens).toLocaleString()} Tokens</button>`;
+      if (isSoldOut) {
+        badgeHTML = `<span class="merch-badge-soldout"><i class="fas fa-box-archive"></i> Sold Out</span>`;
+        buttonHTML = `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-box-archive"></i> เต็มแล้ว</button>`;
+      } else if (isComingSoon) {
+        badgeHTML = `<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>`;
+        buttonHTML = `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-clock"></i> Coming Soon</button>`;
+      }
 
-      const buttonHTML = isSoldOut
-        ? `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-box-archive"></i> เต็มแล้ว</button>`
-        : `<button class="merch-button" onclick="${goToDetail}"><i class="fas fa-coins"></i> ${Number(p.costTokens).toLocaleString()} Tokens</button>`;
+      const subtitle = (isComingSoon && p.saleStartAt)
+        ? `เปิดขาย ${new Date(p.saleStartAt).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} น.`
+        : 'order today · ship later';
 
       const cardHTML = `
           <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-product-id="${p.productId}" style="cursor:pointer;" onclick="${goToDetail}">
@@ -2087,7 +2070,7 @@ async function loadPreorderProducts() {
               ${badgeHTML}
               <span class="merch-category" style="color: #c9932c;">[Pre-order]</span>
               <h3 class="merch-title">${escapePreorderText(p.name)}</h3>
-              <p class="merch-subtitle">order today · ship later</p>
+              <p class="merch-subtitle">${subtitle}</p>
               ${buttonHTML}
             </div>
           </div>

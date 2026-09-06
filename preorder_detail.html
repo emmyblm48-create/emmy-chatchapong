@@ -205,6 +205,7 @@ async function loadProductDetail() {
 
 function renderProduct(p) {
     const isSoldOut = p.status === 'sold_out';
+    const isComingSoon = p.status === 'coming_soon';
 
     document.getElementById('pd-nav-title').textContent = p.name;
     document.getElementById('pd-title').textContent = p.name;
@@ -216,10 +217,17 @@ function renderProduct(p) {
         : `<div class="pd-cover-fallback">${escapePdText(p.name)}</div>`;
     const badgeHTML = isSoldOut
         ? `<span class="pd-status-badge sold-out"><i class="fas fa-box-archive"></i> พรีออเดอร์เต็มแล้ว</span>`
+        : isComingSoon
+        ? `<span class="pd-status-badge" style="background:#a98a4d;"><i class="fas fa-clock"></i> Coming Soon</span>`
         : `<span class="pd-status-badge"><i class="fas fa-box"></i> Pre-order</span>`;
     coverWrapper.innerHTML = coverInner + badgeHTML;
 
-    if (p.preorderPeriod || p.deliveryInfo) {
+    if (isComingSoon && p.saleStartAt) {
+        const scheduleEl = document.getElementById('pd-schedule');
+        const openDate = new Date(p.saleStartAt).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        scheduleEl.innerHTML = `<div><i class="fas fa-clock"></i> <span>เปิดขาย : ${openDate} น.</span></div>`;
+        scheduleEl.style.display = 'block';
+    } else if (p.preorderPeriod || p.deliveryInfo) {
         const scheduleEl = document.getElementById('pd-schedule');
         let html = '';
         if (p.preorderPeriod) html += `<div><i class="fas fa-calendar-days"></i> <span>พรีออเดอร์ : ${escapePdText(p.preorderPeriod)}</span></div>`;
@@ -228,12 +236,12 @@ function renderProduct(p) {
         scheduleEl.style.display = 'block';
     }
 
-    if (p.description) {
+    if (!isComingSoon && p.description) {
         document.getElementById('pd-desc').textContent = p.description;
         document.getElementById('pd-desc-block').style.display = 'block';
     }
 
-    if (!isSoldOut) {
+    if (!isSoldOut && !isComingSoon) {
         document.getElementById('pd-bottom-bar').style.display = 'flex';
         updateBuyButton();
     }
