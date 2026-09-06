@@ -63,13 +63,14 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
   }, { passive: true });
 });
 
-// 🛡️ กันกดรูปค้าง (long-press) แล้วเซฟรูป / คลิกขวา Save Image As ทุกหน้า ยกเว้นหน้า inventory
-// (หน้า inventory ต้องการให้ผู้ใช้เซฟรูปไอเทมที่ซื้อไว้ได้ตามปกติ)
+// 🛡️ กันกดรูปค้าง (long-press) แล้วเซฟรูป / คลิกขวา Save Image As ทุกหน้า ยกเว้นหน้า inventory และ admin
+// (หน้า inventory ต้องการให้ผู้ใช้เซฟรูปไอเทมที่ซื้อไว้ได้ตามปกติ, หน้า admin ต้องการให้แอดมินเซฟรูปสลิปโอนเงินได้)
 // ใช้ delegated event ที่ document แทนการเซ็ต attribute ทีละรูป เพื่อให้ครอบคลุมรูปที่ยังไม่ถูกสร้าง
 // ตอนนี้ด้วย (โพสต์/แกลเลอรีที่โหลดทีหลังผ่าน JS) โดยไม่ต้องใช้ MutationObserver
 (function preventImageSaving() {
   const currentPage = window.location.pathname.replace(/\/+$/, '').split('/').pop() || '';
-  if (currentPage === 'inventory' || currentPage === 'inventory.html') return;
+  const excludedPages = ['inventory', 'inventory.html', 'admin', 'admin.html'];
+  if (excludedPages.includes(currentPage)) return;
 
   // คลิกขวา (เดสก์ท็อป) / long-press ที่ยิง contextmenu (บางเบราว์เซอร์บนมือถือ) บนรูปภาพ
   document.addEventListener('contextmenu', function(e) {
