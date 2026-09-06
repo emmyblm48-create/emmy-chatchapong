@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Pre-order</title>
+    <script type="module" src="assets/js/firebase-realtime.js"></script>
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#f4b9c6">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link class="main-icon" rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+          --primary-pink: #e1546f;
+          --pastel-pink: #f4b9c6;
+          --dark-pink: #c53f5a;
+          --font-heading: 'Fredoka', 'Kanit', sans-serif;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Nunito', 'Kanit', sans-serif;
+            margin: 0; padding: 0;
+            padding-top: 60px;
+            padding-bottom: 100px;
+            background-color: #ffffff;
+        }
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur-lg)); -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 20px; box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
+            z-index: 1000;
+        }
+        .nav-left-actions { position: absolute; left: 15px; }
+        .nav-btn {
+            color: var(--primary-pink); font-size: 1rem;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; background: #ffeef2; border: none; cursor: pointer;
+        }
+        .nav-title { font-weight: 600; font-size: 1rem; color: #333; max-width: 65%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .pd-cover-wrapper {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: linear-gradient(135deg, var(--pastel-pink), #ffe3ee);
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .pd-cover-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .pd-cover-fallback { color: var(--dark-pink); font-family: var(--font-heading); font-size: 26px; font-weight: 700; text-align: center; padding: 0 30px; }
+        .pd-status-badge {
+            position: absolute; top: 14px; left: 14px;
+            background: rgba(255,255,255,0.95); color: #c9932c;
+            font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .pd-status-badge.sold-out { color: #a89686; }
+
+        .pd-body { padding: 18px 20px 0; }
+        .pd-title { font-family: var(--font-heading); font-size: 19px; font-weight: 600; color: #333; margin: 0 0 8px; line-height: 1.4; }
+        .pd-price-row { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 700; color: var(--dark-pink); margin-bottom: 12px; }
+        .pd-price-row i { color: #c9932c; }
+
+        .pd-schedule {
+            background: #fff8ec; border: 1px solid #ffe6ae; border-radius: 14px;
+            padding: 10px 14px; margin-bottom: 16px; font-size: 12.5px; color: #a85d00; line-height: 1.7;
+        }
+        .pd-schedule div { display: flex; align-items: flex-start; gap: 8px; }
+        .pd-schedule i { margin-top: 2px; flex-shrink: 0; }
+
+        .pd-section-title { font-family: 'Kanit', sans-serif; font-weight: 600; color: #444; margin: 22px 0 12px; font-size: 15px; border-left: 5px solid var(--primary-pink); padding-left: 10px; }
+        .pd-desc { font-size: 13.5px; color: #666; line-height: 1.7; white-space: pre-line; }
+
+        .pd-items { display: flex; flex-direction: column; gap: 8px; }
+        .pd-item-row {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13.5px; color: #555; background: #fdf7f8;
+            border-radius: 12px; padding: 10px 12px;
+        }
+        .pd-item-row i { color: var(--primary-pink); width: 16px; text-align: center; flex-shrink: 0; }
+        .pd-item-row .pd-random-tag {
+            margin-left: auto; font-size: 10.5px; font-weight: 700; color: #c9932c;
+            background: #fff6e0; padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
+        }
+
+        .pd-empty, .pd-error { text-align: center; color: #999; padding: 60px 20px; font-size: 14px; }
+
+        .pd-bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: #ffffff; border-top: 1px solid #f0f0f0;
+            padding: 12px 16px; display: none; align-items: center; gap: 12px;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.06); z-index: 900;
+            max-width: 600px; margin: 0 auto; right: 0;
+        }
+        .pd-qty-stepper { display: flex; align-items: center; gap: 12px; background: #f7f7f7; border-radius: 999px; padding: 6px 8px; flex-shrink: 0; }
+        .pd-qty-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: #ffffff; color: var(--primary-pink); font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+        .pd-qty-btn:active { transform: scale(0.92); }
+        .pd-qty-value { min-width: 22px; text-align: center; font-weight: 700; color: #333; font-size: 15px; }
+        .pd-buy-btn {
+            flex: 1; background: linear-gradient(45deg, var(--primary-pink), var(--dark-pink));
+            color: #fff; border: none; border-radius: 999px; padding: 13px 18px;
+            font-weight: 700; font-size: 14.5px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .pd-buy-btn:active { transform: scale(0.97); }
+        .pd-buy-btn.pd-buy-btn-disabled { background: #f0f1f3; color: #a89686; cursor: not-allowed; }
+    </style>
+</head>
+<body class="glass-mesh-bg force-white-bg">
+
+<div class="top-navbar">
+    <div class="nav-left-actions">
+        <button class="nav-btn" title="กลับ" onclick="history.back()" style="background: none; border: none; padding: 0; cursor: pointer;">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    </div>
+    <div class="nav-title" id="pd-nav-title">รายละเอียดสินค้า</div>
+</div>
+
+<div id="pd-loading" class="pd-empty"><i class="fas fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+
+<div id="pd-content" style="display:none;">
+    <div class="pd-cover-wrapper" id="pd-cover-wrapper"></div>
+
+    <div class="pd-body">
+        <h1 class="pd-title" id="pd-title"></h1>
+        <div class="pd-price-row"><i class="fas fa-coins"></i> <span id="pd-price"></span> Tokens</div>
+
+        <div class="pd-schedule" id="pd-schedule" style="display:none;"></div>
+
+        <div id="pd-desc-block" style="display:none;">
+            <div class="pd-section-title"><i class="fas fa-align-left"></i> รายละเอียด</div>
+            <p class="pd-desc" id="pd-desc"></p>
+        </div>
+
+        <div id="pd-items-block" style="display:none;">
+            <div class="pd-section-title"><i class="fas fa-gift"></i> รายการที่จะได้รับ</div>
+            <div class="pd-items" id="pd-items"></div>
+        </div>
+    </div>
+</div>
+
+<div id="pd-error" class="pd-error" style="display:none;">ไม่พบสินค้าพรีออเดอร์นี้ค่ะ</div>
+
+<div class="pd-bottom-bar" id="pd-bottom-bar">
+    <div class="pd-qty-stepper">
+        <button type="button" class="pd-qty-btn" onclick="changeQty(-1)">−</button>
+        <span class="pd-qty-value" id="pd-qty-value">1</span>
+        <button type="button" class="pd-qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+    <button type="button" class="pd-buy-btn" id="pd-buy-btn" onclick="buyThisPreorder()"><i class="fas fa-coins"></i> สั่งซื้อ · 0 Tokens</button>
+</div>
+
+<script>
+let userData = null;
+let currentProduct = null;
+let currentQty = 1;
+
+function escapePdText(str) {
+    return typeof escapeHtml === 'function' ? escapeHtml(str) : String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function initSession() {
+    const session = localStorage.getItem('bnl_session');
+    if (!session) {
+        Swal.fire('เข้าสู่ระบบก่อนนะงับ', 'กรุณากลับไปหน้าแรกเพื่อ Login', 'warning').then(() => {
+            window.location.href = 'index';
+        });
+        return false;
+    }
+    userData = JSON.parse(session).data;
+    return true;
+}
+
+async function loadProductDetail() {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('id');
+    if (!productId) {
+        document.getElementById('pd-loading').style.display = 'none';
+        document.getElementById('pd-error').style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await blm48GetPreorderProducts();
+        const products = response.data || [];
+        const product = products.find(p => String(p.productId) === String(productId));
+
+        document.getElementById('pd-loading').style.display = 'none';
+
+        if (!product) {
+            document.getElementById('pd-error').style.display = 'block';
+            return;
+        }
+
+        currentProduct = product;
+        renderProduct(product);
+        document.getElementById('pd-content').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading preorder product:', error);
+        document.getElementById('pd-loading').style.display = 'none';
+        document.getElementById('pd-error').textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาลองใหม่อีกครั้งค่ะ';
+        document.getElementById('pd-error').style.display = 'block';
+    }
+}
+
+function renderProduct(p) {
+    const isSoldOut = p.status === 'sold_out';
+
+    document.getElementById('pd-nav-title').textContent = p.name;
+    document.getElementById('pd-title').textContent = p.name;
+    document.getElementById('pd-price').textContent = Number(p.costTokens).toLocaleString();
+
+    const coverWrapper = document.getElementById('pd-cover-wrapper');
+    const coverInner = p.coverImage
+        ? `<img src="${p.coverImage}" alt="${escapePdText(p.name)}" onerror="this.parentElement.innerHTML='<div class=\\'pd-cover-fallback\\'>${escapePdText(p.name)}</div>'">`
+        : `<div class="pd-cover-fallback">${escapePdText(p.name)}</div>`;
+    const badgeHTML = isSoldOut
+        ? `<span class="pd-status-badge sold-out"><i class="fas fa-box-archive"></i> พรีออเดอร์เต็มแล้ว</span>`
+        : `<span class="pd-status-badge"><i class="fas fa-box"></i> Pre-order</span>`;
+    coverWrapper.innerHTML = coverInner + badgeHTML;
+
+    if (p.preorderPeriod || p.deliveryInfo) {
+        const scheduleEl = document.getElementById('pd-schedule');
+        let html = '';
+        if (p.preorderPeriod) html += `<div><i class="fas fa-calendar-days"></i> <span>พรีออเดอร์ : ${escapePdText(p.preorderPeriod)}</span></div>`;
+        if (p.deliveryInfo) html += `<div style="margin-top:6px;"><i class="fas fa-truck-fast"></i> <span>จัดส่ง : ${escapePdText(p.deliveryInfo)}</span></div>`;
+        scheduleEl.innerHTML = html;
+        scheduleEl.style.display = 'block';
+    }
+
+    if (p.description) {
+        document.getElementById('pd-desc').textContent = p.description;
+        document.getElementById('pd-desc-block').style.display = 'block';
+    }
+
+    const items = p.items || [];
+    if (items.length > 0) {
+        const itemsHTML = items.map(item => {
+            if (item.kind === 'ge_token') {
+                return `<div class="pd-item-row"><i class="fas fa-gem"></i> ${escapePdText(item.label)} +${Number(item.amount).toLocaleString()}</div>`;
+            }
+            const randomTag = item.isRandom ? '<span class="pd-random-tag"><i class="fas fa-dice"></i> สุ่มลาย</span>' : '';
+            return `<div class="pd-item-row"><i class="fas fa-image"></i> ${escapePdText(item.label)} ${randomTag}</div>`;
+        }).join('');
+        document.getElementById('pd-items').innerHTML = itemsHTML;
+        document.getElementById('pd-items-block').style.display = 'block';
+    }
+
+    if (!isSoldOut) {
+        document.getElementById('pd-bottom-bar').style.display = 'flex';
+        updateBuyButton();
+    }
+}
+
+function changeQty(delta) {
+    currentQty = Math.min(99, Math.max(1, currentQty + delta));
+    document.getElementById('pd-qty-value').textContent = currentQty;
+    updateBuyButton();
+}
+
+function updateBuyButton() {
+    if (!currentProduct) return;
+    const total = Number(currentProduct.costTokens) * currentQty;
+    document.getElementById('pd-buy-btn').innerHTML = `<i class="fas fa-coins"></i> สั่งซื้อ · ${total.toLocaleString()} Tokens`;
+}
+
+async function buyThisPreorder() {
+    if (!userData || !currentProduct) return;
+
+    const productId = currentProduct.productId;
+    const productName = currentProduct.name;
+    const totalCost = Number(currentProduct.costTokens) * currentQty;
+
+    if (Number(userData.token) < totalCost) {
+        Swal.fire({
+            title: 'Token คงเหลือไม่เพียงพอ',
+            html: '<div style="font-size: 14px; color: #666; font-family: \'Kanit\';">กรุณาเติม Token ก่อนสั่งซื้อพรีออเดอร์นี้</div>',
+            icon: 'error',
+            confirmButtonColor: '#e1546f',
+            background: '#ffffff',
+            borderRadius: '24px'
+        });
+        return;
+    }
+
+    const itemsListHTML = (currentProduct.items || []).map(item => {
+        if (item.kind === 'ge_token') {
+            return `<div style="text-align:left;"><i class="fas fa-gem"></i> ${escapePdText(item.label)} +${Number(item.amount).toLocaleString()}</div>`;
+        }
+        const randomTag = item.isRandom ? ' <span style="color:#c9932c;font-weight:700;">(สุ่มลาย)</span>' : '';
+        return `<div style="text-align:left;"><i class="fas fa-image"></i> ${escapePdText(item.label)}${randomTag}</div>`;
+    }).join('');
+
+    const confirmResult = await Swal.fire({
+        title: `ยืนยันการพรีออเดอร์ "${productName}"`,
+        html: `
+          <div style="font-size: 14px; color: #555; line-height: 1.6; font-family: 'Kanit'; text-align:left;">
+            <div style="margin-bottom:10px;">จำนวน <b>${currentQty}</b> เซ็ต ใช้ <b style="color:#e1546f;">${totalCost.toLocaleString()} Tokens</b></div>
+            ${itemsListHTML}
+            <div style="color:#999; font-size:12px; margin-top:10px;">* สินค้าจะจัดส่งภายหลัง ติดตามสถานะได้ที่หน้า Inventory</div>
+          </div>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'ยืนยันสั่งซื้อ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#e1546f',
+        cancelButtonColor: '#e0e0e0',
+        background: '#ffffff',
+        borderRadius: '24px'
+    });
+
+    if (!confirmResult.isConfirmed) return;
+
+    Swal.fire({
+        title: 'กำลังทำรายการ...',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        background: '#ffffff',
+        borderRadius: '24px',
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        const res = await blm48BuyPreorder(userData.username, productId, currentQty);
+
+        if (res.status === 'success') {
+            userData.token = res.newToken !== undefined ? res.newToken : (userData.token - totalCost);
+            if (res.geTokenGranted) {
+                userData.geToken = Number(userData.geToken || 0) + Number(res.geTokenGranted);
+            }
+            const newSession = JSON.parse(localStorage.getItem('bnl_session'));
+            newSession.data = userData;
+            localStorage.setItem('bnl_session', JSON.stringify(newSession));
+
+            Swal.fire({
+                title: 'สั่งซื้อสำเร็จ!',
+                html: `
+                  <div style="text-align:center; padding: 5px 0;">
+                    <div style="font-size: 19px; color: #c53f5a; font-weight: bold; margin-bottom: 8px;">${escapePdText(productName)} x${currentQty}</div>
+                    <div style="color: #777; font-size: 13px; line-height: 1.6;">ระบบบันทึกคำสั่งซื้อของท่านเรียบร้อยแล้ว<br>สินค้าจะจัดส่งให้ภายหลัง สามารถติดตามสถานะได้ที่หน้า Inventory ค่ะ</div>
+                  </div>`,
+                icon: 'success',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#e1546f',
+                background: '#ffffff',
+                borderRadius: '24px'
+            });
+        } else {
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด',
+                text: res.message,
+                icon: 'error',
+                confirmButtonColor: '#e1546f',
+                background: '#ffffff',
+                borderRadius: '24px'
+            });
+        }
+    } catch (error) {
+        console.error('Error buying preorder:', error);
+        Swal.fire({
+            title: 'เกิดข้อผิดพลาด',
+            text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง',
+            icon: 'error',
+            confirmButtonColor: '#e1546f',
+            background: '#ffffff',
+            borderRadius: '24px'
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!initSession()) return;
+    await loadProductDetail();
+});
+</script>
+
+</body>
+</html>
