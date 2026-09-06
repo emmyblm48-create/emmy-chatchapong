@@ -84,12 +84,18 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
 
   // -webkit-touch-callout ปิดเมนู "บันทึกรูปภาพ" ตอนกดค้างบน iOS Safari โดยเฉพาะ (เบราว์เซอร์อื่นไม่รองรับ
   // property นี้ก็ไม่เป็นไร ยังมี contextmenu preventDefault ด้านบนช่วยกันซ้ำอีกชั้น)
+  // pointer-events: none คือตัวที่กันเมนู "ดาวน์โหลดรูปภาพ" ของ Android Chrome ตอนกดค้างได้จริง (Android ไม่สนใจ
+  // -webkit-touch-callout และบางรุ่นก็ไม่ยิง contextmenu event ให้ preventDefault ทัน) - ทำให้รูปไม่รับอีเวนต์การกด
+  // เลยแทน ยกเว้นรูปที่มี onclick ของตัวเอง (เช่น รูปโพสต์ที่กดเพื่อเปิดดูเต็มจอ) ที่ยังต้องคลิกได้ปกติ
   const style = document.createElement('style');
   style.textContent = `
     img {
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
+    }
+    img:not([onclick]) {
+      pointer-events: none;
     }
   `;
   document.head.appendChild(style);
