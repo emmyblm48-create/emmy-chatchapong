@@ -312,9 +312,6 @@ async function buyThisPreorder() {
 
         if (res.status === 'success') {
             userData.token = res.newToken !== undefined ? res.newToken : (userData.token - totalCost);
-            if (res.geTokenGranted) {
-                userData.geToken = Number(userData.geToken || 0) + Number(res.geTokenGranted);
-            }
             const newSession = JSON.parse(localStorage.getItem('bnl_session'));
             newSession.data = userData;
             localStorage.setItem('bnl_session', JSON.stringify(newSession));
@@ -324,7 +321,7 @@ async function buyThisPreorder() {
                 html: `
                   <div style="text-align:center; padding: 5px 0;">
                     <div style="font-size: 19px; color: #c53f5a; font-weight: bold; margin-bottom: 8px;">${escapePdText(productName)} x${currentQty}</div>
-                    <div style="color: #777; font-size: 13px; line-height: 1.6;">ระบบบันทึกคำสั่งซื้อของท่านเรียบร้อยแล้ว<br>สินค้าจะจัดส่งให้ภายหลัง สามารถติดตามสถานะได้ที่หน้า Inventory ค่ะ</div>
+                    <div style="color: #777; font-size: 13px; line-height: 1.6;">ระบบบันทึกคำสั่งซื้อของท่านเรียบร้อยแล้ว<br>ลายการ์ดที่สุ่มได้ และ Token/Cookie/GE Token ที่ได้รับ จะเข้ากระเป๋าของท่านเมื่อสินค้าจัดส่งแล้ว<br>ติดตามสถานะได้ที่หน้า "พรีออเดอร์ของฉัน" ค่ะ</div>
                   </div>`,
                 icon: 'success',
                 confirmButtonText: 'ตกลง',

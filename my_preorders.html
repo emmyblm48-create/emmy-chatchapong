@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | พรีออเดอร์ของฉัน</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: var(--text-dark);
+            background: #ffffff;
+        }
+        .top-navigation-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
+        @media (min-width: 1024px) { .page-wrapper { max-width: 900px; padding: 32px 32px 70px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 {
+            color: var(--primary-pink);
+            font-family: 'Kanit', sans-serif;
+            font-size: 22px;
+            margin: 0 0 6px 0;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .preorder-orders-list { display: flex; flex-direction: column; gap: 12px; }
+        .preorder-order-card {
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .preorder-order-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .preorder-order-title { font-weight: 700; color: #333; font-size: 14.5px; font-family: 'Kanit', sans-serif; }
+        .preorder-order-meta { font-size: 12px; color: #999; margin-bottom: 10px; }
+        .preorder-status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .preorder-status-pending { background: #fff3e0; color: #e08e2e; }
+        .preorder-status-shipped { background: #e6f7ee; color: #2e9e5b; }
+
+        .preorder-item-row {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 12.5px; color: #555; background: #fdf7f8;
+            border-radius: 12px; padding: 8px 10px; margin-bottom: 6px;
+        }
+        .preorder-item-row:last-child { margin-bottom: 0; }
+        .preorder-item-thumb {
+            width: 30px; height: 30px; border-radius: 8px; object-fit: cover;
+            background: #f3f3f3; flex-shrink: 0;
+        }
+        .preorder-item-icon {
+            width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: #ffe4e1; color: var(--primary-pink);
+        }
+        .preorder-random-tag {
+            margin-left: auto; font-size: 10px; font-weight: 700; color: #c9932c;
+            background: #fff6e0; padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
+        }
+        .preorder-pending-note { font-size: 11.5px; color: #bbb; margin-top: 8px; font-style: italic; }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 60px 20px; }
+        .empty-state i { font-size: 30px; color: #ffd7e1; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 40px 20px; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">พรีออเดอร์ของฉัน</div>
+</div>
+
+<div class="page-wrapper">
+    <div class="header-title-zone">
+        <h1><i class="fa-solid fa-box"></i> พรีออเดอร์ของฉัน</h1>
+        <p>รวมทุกคำสั่งซื้อพรีออเดอร์ และสถานะการจัดส่ง</p>
+    </div>
+
+    <div id="orders-list">
+        <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'shop';
+    }
+  }
+
+  function renderOrders(orders) {
+    const list = document.getElementById('orders-list');
+
+    if (!orders || orders.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i>ยังไม่มีคำสั่งซื้อพรีออเดอร์ค่ะ</div>`;
+      return;
+    }
+
+    list.innerHTML = orders.map(o => {
+      const isShipped = o.status === 'shipped';
+      const statusHTML = isShipped
+        ? '<span class="preorder-status-pill preorder-status-shipped"><i class="fa-solid fa-truck"></i> จัดส่งแล้ว</span>'
+        : '<span class="preorder-status-pill preorder-status-pending"><i class="fa-solid fa-hourglass-half"></i> รอจัดส่ง</span>';
+      const dt = o.createdAt ? new Date(o.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+
+      const itemsHTML = (o.items || []).map(it => {
+        if (it.kind === 'ge_token') {
+          return `<div class="preorder-item-row"><div class="preorder-item-icon"><i class="fas fa-gem"></i></div> ${escapeHtml(it.label)} +${Number(it.amount).toLocaleString()}</div>`;
+        }
+        const thumb = it.imageUrl
+          ? `<img class="preorder-item-thumb" src="${it.imageUrl}" onerror="this.style.visibility='hidden'">`
+          : `<div class="preorder-item-icon"><i class="fas fa-image"></i></div>`;
+        const randomTag = it.isRandom && !isShipped ? '<span class="preorder-random-tag"><i class="fas fa-dice"></i> สุ่มลาย</span>' : '';
+        return `<div class="preorder-item-row">${thumb} ${escapeHtml(it.label)} ${randomTag}</div>`;
+      }).join('');
+
+      const pendingNote = !isShipped
+        ? `<div class="preorder-pending-note"><i class="fa-solid fa-circle-info"></i> ลายการ์ดที่สุ่มได้ และ Token/Cookie/GE Token ที่ได้รับ จะเปิดเผยและเข้ากระเป๋าของคุณเมื่อสินค้าจัดส่งแล้วเท่านั้นค่ะ</div>`
+        : '';
+
+      return `
+        <div class="preorder-order-card">
+            <div class="preorder-order-head">
+                <span class="preorder-order-title">${escapeHtml(o.productName)} x${o.quantity}</span>
+                ${statusHTML}
+            </div>
+            <div class="preorder-order-meta">${dt} · ${Number(o.totalCostTokens).toLocaleString()} Tokens</div>
+            ${itemsHTML}
+            ${pendingNote}
+        </div>`;
+    }).join('');
+  }
+
+  async function loadOrders() {
+    const list = document.getElementById('orders-list');
+    try {
+      const res = await blm48GetMyPreorderOrders(user.username);
+      if (res.status !== 'success') {
+        list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จค่ะ</div>`;
+        return;
+      }
+      renderOrders(res.data || []);
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login';
+      return;
+    }
+    loadOrders();
+  });
+</script>
+</body>
+</html>
