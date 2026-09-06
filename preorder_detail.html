@@ -87,18 +87,6 @@
         .pd-section-title { font-family: 'Kanit', sans-serif; font-weight: 600; color: #444; margin: 22px 0 12px; font-size: 15px; border-left: 5px solid var(--primary-pink); padding-left: 10px; }
         .pd-desc { font-size: 13.5px; color: #666; line-height: 1.7; white-space: pre-line; }
 
-        .pd-items { display: flex; flex-direction: column; gap: 8px; }
-        .pd-item-row {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 13.5px; color: #555; background: #fdf7f8;
-            border-radius: 12px; padding: 10px 12px;
-        }
-        .pd-item-row i { color: var(--primary-pink); width: 16px; text-align: center; flex-shrink: 0; }
-        .pd-item-row .pd-random-tag {
-            margin-left: auto; font-size: 10.5px; font-weight: 700; color: #c9932c;
-            background: #fff6e0; padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
-        }
-
         .pd-empty, .pd-error { text-align: center; color: #999; padding: 60px 20px; font-size: 14px; }
 
         .pd-bottom-bar {
@@ -147,11 +135,6 @@
         <div id="pd-desc-block" style="display:none;">
             <div class="pd-section-title"><i class="fas fa-align-left"></i> รายละเอียด</div>
             <p class="pd-desc" id="pd-desc"></p>
-        </div>
-
-        <div id="pd-items-block" style="display:none;">
-            <div class="pd-section-title"><i class="fas fa-gift"></i> รายการที่จะได้รับ</div>
-            <div class="pd-items" id="pd-items"></div>
         </div>
     </div>
 </div>
@@ -248,19 +231,6 @@ function renderProduct(p) {
     if (p.description) {
         document.getElementById('pd-desc').textContent = p.description;
         document.getElementById('pd-desc-block').style.display = 'block';
-    }
-
-    const items = p.items || [];
-    if (items.length > 0) {
-        const itemsHTML = items.map(item => {
-            if (item.kind === 'ge_token') {
-                return `<div class="pd-item-row"><i class="fas fa-gem"></i> ${escapePdText(item.label)} +${Number(item.amount).toLocaleString()}</div>`;
-            }
-            const randomTag = item.isRandom ? '<span class="pd-random-tag"><i class="fas fa-dice"></i> สุ่มลาย</span>' : '';
-            return `<div class="pd-item-row"><i class="fas fa-image"></i> ${escapePdText(item.label)} ${randomTag}</div>`;
-        }).join('');
-        document.getElementById('pd-items').innerHTML = itemsHTML;
-        document.getElementById('pd-items-block').style.display = 'block';
     }
 
     if (!isSoldOut) {
