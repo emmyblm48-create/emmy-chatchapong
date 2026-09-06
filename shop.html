@@ -890,6 +890,23 @@
             margin-bottom: 6px;
         }
 
+        /* 📦 ป้าย "Pre-order" โทนทองอำพัน ใช้กับการ์ดในหมวดพรีออเดอร์ */
+        .merch-badge-preorder {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(45deg, #d9a441, #f3ce6e);
+            color: white;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            box-shadow: 0 3px 8px rgba(217,164,65,.3);
+            transform: rotate(-2deg);
+            margin-bottom: 6px;
+        }
+
         .shop-empty-state {
             grid-column: 1/-1;
             text-align: center;
@@ -1312,87 +1329,6 @@
           100% { opacity: 0.6; }
         }
 
-        /* 📦 พรีออเดอร์ - สั่งซื้อก่อน จัดส่งทีหลัง การ์ดแบบย่อ กดแล้วไปหน้ารายละเอียดสินค้า (ไม่โชว์รายการของในเซ็ตตรงนี้) */
-        .preorder-list {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            padding: 15px;
-            box-sizing: border-box;
-        }
-        .preorder-card {
-            background: #ffffff;
-            border-radius: 18px;
-            border: 1px solid #f0f0f0;
-            overflow: hidden;
-            transition: border-color 0.2s ease, transform 0.1s ease;
-            cursor: pointer;
-        }
-        .preorder-card:hover { border-color: var(--primary-pink); }
-        .preorder-card:active { transform: scale(0.97); }
-        .preorder-card-cover {
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            background: linear-gradient(135deg, var(--pastel-pink), #ffe3ee);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .preorder-card-cover img { width: 100%; height: 100%; object-fit: cover; }
-        .preorder-card-cover .preorder-cover-fallback {
-            color: var(--dark-pink);
-            font-family: var(--font-display);
-            font-size: 24px;
-            font-weight: 700;
-            text-align: center;
-            padding: 0 14px;
-        }
-        .preorder-badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: rgba(255,255,255,0.92);
-            color: #c9932c;
-            font-size: 10.5px;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .preorder-card-body { padding: 12px 14px; }
-        .preorder-card-title {
-            font-family: var(--font-heading);
-            font-size: 14.5px;
-            font-weight: 600;
-            color: #333;
-            margin: 0 0 6px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            min-height: 2.6em;
-        }
-        .preorder-card-period { font-size: 11px; color: #999; margin: 0 0 8px; line-height: 1.4; }
-        .preorder-card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
-        }
-        .preorder-price {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--dark-pink);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .preorder-price i { color: #c9932c; }
-        .preorder-arrow { color: #ccc; font-size: 13px; }
-        .preorder-card.merch-item-unavailable .preorder-price { color: #a89686; }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -1477,10 +1413,10 @@
 </div>
 
 <div class="section-title" id="section-preorder">
-   <i class="fas fa-box" style="color: #c9932c;"></i> พรีออเดอร์ <i class="fas fa-star sparkle-icon"></i>
+   <i class="fas fa-box" style="color: #c9932c;"></i> Pre-order <i class="fas fa-star sparkle-icon"></i>
 </div>
 <p class="section-caption">สั่งซื้อวันนี้ · จัดส่งภายหลัง</p>
-<div class="preorder-list" id="preorder-container">
+<div class="shop-container" id="preorder-container">
     <!-- เพิ่มสินค้าพรีออเดอร์โดยระบบโหลดอัตโนมัติ -->
 </div>
 
@@ -2117,27 +2053,29 @@ async function loadPreorderProducts() {
 
     products.forEach(p => {
       const isSoldOut = p.status === 'sold_out';
-
-      const coverHTML = p.coverImage
-        ? `<img src="${p.coverImage}" alt="${escapePreorderText(p.name)}" onerror="this.parentElement.innerHTML='<div class=\\'preorder-cover-fallback\\'>${escapePreorderText(p.name)}</div>'">`
-        : `<div class="preorder-cover-fallback">${escapePreorderText(p.name)}</div>`;
+      const goToDetail = `location.href='preorder_detail?id=' + encodeURIComponent('${p.productId}')`;
 
       const badgeHTML = isSoldOut
-        ? `<span class="preorder-badge"><i class="fas fa-box-archive"></i> เต็มแล้ว</span>`
-        : `<span class="preorder-badge"><i class="fas fa-box"></i> Pre-order</span>`;
+        ? `<span class="merch-badge-soldout"><i class="fas fa-box-archive"></i> Sold Out</span>`
+        : `<span class="merch-badge-preorder"><i class="fas fa-box"></i> Pre-order</span>`;
 
-      const periodHTML = p.preorderPeriod ? `<p class="preorder-card-period">${escapePreorderText(p.preorderPeriod)}</p>` : '';
+      const buttonHTML = isSoldOut
+        ? `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-box-archive"></i> เต็มแล้ว</button>`
+        : `<button class="merch-button" onclick="${goToDetail}"><i class="fas fa-coins"></i> ${Number(p.costTokens).toLocaleString()} Tokens</button>`;
+
+      const subtitle = p.preorderPeriod || p.description || 'สั่งซื้อวันนี้ จัดส่งภายหลัง';
 
       const cardHTML = `
-          <div class="preorder-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-product-id="${p.productId}" onclick="location.href='preorder_detail?id=' + encodeURIComponent('${p.productId}')">
-            <div class="preorder-card-cover">${coverHTML}${badgeHTML}</div>
-            <div class="preorder-card-body">
-              <h3 class="preorder-card-title">${escapePreorderText(p.name)}</h3>
-              ${periodHTML}
-              <div class="preorder-card-footer">
-                <span class="preorder-price"><i class="fas fa-coins"></i> ${Number(p.costTokens).toLocaleString()}</span>
-                <span class="preorder-arrow"><i class="fas fa-chevron-right"></i></span>
-              </div>
+          <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-product-id="${p.productId}" style="cursor:pointer;" onclick="${goToDetail}">
+            <div class="merch-image-container">
+              <img src="${p.coverImage || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500'}" alt="${escapePreorderText(p.name)}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff6e0/c9932c?text=Pre-order'">
+            </div>
+            <div class="merch-info">
+              ${badgeHTML}
+              <span class="merch-category" style="color: #c9932c;">[Pre-order]</span>
+              <h3 class="merch-title">${escapePreorderText(p.name)}</h3>
+              <p class="merch-subtitle">${escapePreorderText(subtitle)}</p>
+              ${buttonHTML}
             </div>
           </div>
         `;
