@@ -488,6 +488,16 @@
             box-shadow: 0 10px 20px rgba(255, 133, 162, 0.12);
         }
 
+        /* ⭐ ไอเทมที่ชื่อมีคำว่า SSR ให้มีกรอบทองเด่นตลอดเวลา ไม่ต้องรอ hover */
+        .item-card-ssr {
+            border-color: #e0b953;
+            box-shadow: 0 0 0 1px rgba(224, 185, 83, 0.45), 0 6px 16px rgba(224, 185, 83, 0.25);
+        }
+
+        .item-card-ssr:hover {
+            box-shadow: 0 10px 20px rgba(224, 185, 83, 0.35);
+        }
+
         .item-qty {
             position: absolute;
             top: 13px;
@@ -1092,6 +1102,12 @@
         if (totalCollectionsEl) totalCollectionsEl.textContent = totalCollections.toLocaleString();
     }
 
+    // ⭐ เช็กจากชื่อไอเทมตรงๆ ว่ามีคำว่า "SSR" อยู่ไหม (ไม่ใช่แค่เช็กจาก category)
+    // เพื่อให้ของหายากที่ได้จากกาชาคอลเลกชันอื่นๆ (ไม่ใช่แค่หมวด SSR Photo โดยตรง) ก็ได้กรอบทองด้วย
+    function isSsrByName(name) {
+        return /ssr/i.test(name || '');
+    }
+
     // 🎨 กำหนดสีประจำหมวดหมู่ ให้แต่ละไอเทมมีโทนสีต่างกันตามระดับ/ประเภท เหมือนการ์ดสะสม
     function getTierColor(category) {
         switch (category) {
@@ -1342,7 +1358,13 @@ function renderInventoryData() {
     const sortedGroupKeys = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'th'));
 
     sortedGroupKeys.forEach(subName => {
-        const items = grouped[subName].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+        // ของที่ชื่อมีคำว่า SSR ให้ขึ้นก่อนเสมอในคอลเลกชันนั้นๆ ที่เหลือเรียง ก-ฮ ตามเดิม
+        const items = grouped[subName].sort((a, b) => {
+            const aSsr = isSsrByName(a.name);
+            const bSsr = isSsrByName(b.name);
+            if (aSsr !== bSsr) return aSsr ? -1 : 1;
+            return a.name.localeCompare(b.name, 'th');
+        });
 
         const section = document.createElement('div');
         section.className = 'collection-section';
@@ -1359,9 +1381,10 @@ function renderInventoryData() {
         grid.className = 'item-grid';
         
         items.forEach(item => {
+            const isSSR = isSsrByName(item.name);
             const card = document.createElement('div');
-            card.className = 'item-card';
-            card.style.setProperty('--tier-color', getTierColor(item.category));
+            card.className = 'item-card' + (isSSR ? ' item-card-ssr' : '');
+            card.style.setProperty('--tier-color', isSSR ? '#e0b953' : getTierColor(item.category));
             card.onclick = () => openPreview(item);
 
             card.innerHTML = `
@@ -1396,7 +1419,7 @@ function renderInventoryData() {
         viewPhotoBookBtn.style.display = item.fileUrl ? 'inline-flex' : 'none';
 
         const meta = document.getElementById('previewMeta');
-        meta.style.setProperty('--tier-color', getTierColor(item.category));
+        meta.style.setProperty('--tier-color', isSsrByName(item.name) ? '#e0b953' : getTierColor(item.category));
         meta.innerHTML = `
             <span class="modal-meta-tag">${item.category}</span>
             ${item.subCollection && item.subCollection !== item.category ? `<span class="modal-meta-tag is-sub">${item.subCollection}</span>` : ''}
