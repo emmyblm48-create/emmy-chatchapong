@@ -796,6 +796,22 @@
             transform: translateY(0) scale(0.96);
         }
 
+        /* 🎰 ปุ่มสุ่ม x1/x5 คู่กัน ใต้การ์ดตู้กาชา */
+        .merch-gacha-actions {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin-top: auto;
+        }
+        .merch-gacha-actions .merch-button {
+            width: auto !important;
+            flex: 1 1 0;
+            margin-top: 0 !important;
+            font-size: 0.78rem !important;
+            padding: 10px 2px !important;
+            white-space: nowrap;
+        }
+
         /* 📱→📟 แท็บเล็ต/ไอแพด (768–1023px): การ์ดกว้างขึ้น ตัวอักษรขยับขึ้นทีละสเต็ปจากมือถือ */
         @media (min-width: 768px) and (max-width: 1023px) {
             .merch-grid, .shop-container {
@@ -1030,6 +1046,11 @@
         @keyframes purchaseConfettiBurst {
             0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
             100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; }
+        }
+        .ssr-confetti-piece {
+            width: 10px;
+            height: 10px;
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.8);
         }
           
         .inventory-grid {
@@ -1574,6 +1595,7 @@
 
 <script>
 let userData = null;
+const gachaCollectionsCache = {}; // CollectionID -> collection object, filled by loadGachaCollections(); buyGacha() reads prices from here
 
 // 1. โหลดข้อมูลผู้ใช้จากหน้าแรก (LocalStorage)
 function initShop() {
@@ -1619,6 +1641,28 @@ function celebratePurchase() {
         piece.style.animationDelay = (Math.random() * 0.15) + 's';
         document.body.appendChild(piece);
         setTimeout(() => piece.remove(), 1300);
+    }
+}
+
+// 🌟 เอฟเฟกต์พิเศษตอนสุ่มกาชาได้ SSR - สะเก็ดสีทองเยอะกว่าและลอยไกลกว่าปกติ ให้ความรู้สึกแจ็คพอต
+function celebrateSSR() {
+    const colors = ['#f3ce6e', '#ffd700', '#fff6da', '#ffffff'];
+    const count = 60;
+    for (let i = 0; i < count; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'purchase-confetti-piece ssr-confetti-piece';
+        const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
+        const distance = 110 + Math.random() * 200;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance - 60;
+        piece.style.setProperty('--tx', tx + 'px');
+        piece.style.setProperty('--ty', ty + 'px');
+        piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * 0.2) + 's';
+        piece.style.animationDuration = '1.5s';
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1800);
     }
 }
 
@@ -1826,46 +1870,47 @@ async function buyCookies(tokenPrice, cookieReward, itemImg) {
     }
 }
   
-// 🎰 6. ระบบสุ่มกาชาลิมิเต็ด
-async function buyGacha(collectionId) {
+// 6. Limited gacha draw system (supports a single draw or a 5x draw)
+async function buyGacha(collectionId, pullCount) {
   if(!userData) return;
+  pullCount = (pullCount === 5) ? 5 : 1;
   const username = userData.username;
-  
-  const iconHeartPink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#e1546f" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-  const iconStar = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#f3ce6e" style="display: inline-block; vertical-align: middle; margin: 0 2px;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`;
+
+  const col = gachaCollectionsCache[collectionId];
+  const cost = col ? (pullCount === 5 ? (col.CostTokensX5 || col.CostTokens * 5) : col.CostTokens) : null;
+  const costText = cost !== null ? `${Number(cost).toLocaleString()} Token${cost === 1 ? '' : 's'}` : '';
 
   const confirmResult = await Swal.fire({
-    title: `${iconHeartPink} ยืนยันการทำรายการสุ่มไอเทม ${iconHeartPink}`,
-    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">ระบบจะทำการหัก Token เพื่อสุ่มไอเทมจากตู้นี้ ยืนยันการทำรายการหรือไม่<br><span style="color: #999; font-size: 12px;">(ระบบจะหัก Token ทันทีเมื่อกดยืนยัน)</span></div>`,
+    title: `Confirm Draw ×${pullCount}`,
+    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">This will deduct ${costText} to draw ${pullCount === 5 ? '5 items' : '1 item'} from this collection. Confirm this transaction?<br><span style="color: #999; font-size: 12px;">Tokens are deducted immediately on confirmation.</span></div>`,
     icon: 'question',
     showCancelButton: true,
-    confirmButtonText: `ยืนยัน`,
-    cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#e1546f', 
+    confirmButtonText: `Confirm`,
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#e1546f',
     cancelButtonColor: '#e0e0e0',
     background: '#ffffff',
-    borderRadius: '24px'
+    borderRadius: '16px'
   });
 
   if (!confirmResult.isConfirmed) return;
 
   Swal.fire({
-    title: `กำลังหมุนกาชาปอง...`,
+    title: `Drawing...`,
     html: `
       <style>
-        .blm-cute-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
-        .blm-text-bounce { color: #e1546f; font-weight: bold; font-size: 14px; margin-top: 15px; animation: blmCuteBounce 1s infinite alternate; }
-        @keyframes blmCuteBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-5px); } }
+        .gacha-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
+        .gacha-loading-text { color: #e1546f; font-weight: 600; font-size: 14px; margin-top: 15px; }
       </style>
-      <div class="blm-cute-loading-box">
+      <div class="gacha-loading-box">
         <div class="blm-gacha-capsule"></div>
-        <div class="blm-text-bounce">กำลังสุ่มสินค้า BLM48 Official</div>
+        <div class="gacha-loading-text">Processing your draw</div>
       </div>
     `,
     allowOutsideClick: false,
     showConfirmButton: false,
     background: '#ffffff',
-    borderRadius: '24px',
+    borderRadius: '16px',
     didOpen: () => {
       Swal.showLoading();
     }
@@ -1874,45 +1919,69 @@ async function buyGacha(collectionId) {
   const startTime = Date.now();
 
   try {
-    const res = await blm48BuyGachaItem(username, collectionId);
+    const res = await blm48BuyGachaItem(username, collectionId, pullCount);
 
     const elapsedTime = Date.now() - startTime;
-    const minimumAnimationTime = 2500; 
+    const minimumAnimationTime = 2500;
     if (elapsedTime < minimumAnimationTime) {
       await new Promise(resolve => setTimeout(resolve, minimumAnimationTime - elapsedTime));
     }
-    
+
     if (res.status === "success") {
       localStorage.removeItem(`blm48_inventory_cache_${username}`);
       localStorage.removeItem(`blm48_inventory_time_${username}`);
-      
+
+      const items = Array.isArray(res.items) && res.items.length > 0
+        ? res.items
+        : [{ itemName: res.itemName, itemImg: res.itemImg, isSSR: false }];
+      const hasSSR = !!res.hasSSR;
+
+      const cardsHTML = items.map(it => `
+        <div class="gacha-reveal-card${it.isSSR ? ' gacha-reveal-ssr' : ''}">
+          ${it.isSSR ? '<div class="gacha-ssr-badge">SSR</div>' : ''}
+          <img src="${it.itemImg}" alt="${escapeHtml(it.itemName)}">
+          <div class="gacha-reveal-name">${escapeHtml(it.itemName)}</div>
+        </div>
+      `).join('');
+
       Swal.fire({
-        title: `ทำรายการสำเร็จ`,
+        title: hasSSR ? `SSR Obtained` : `Draw Complete`,
         html: `
           <style>
-            .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
-            .blm-cute-name { font-size: 21px; color: #c53f5a; font-weight: bold; margin-bottom: 6px; }
-            .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; }
-            .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fdeef1; }
-            @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+            .gacha-reveal-container { padding: 5px 0; text-align: center; }
+            .gacha-reveal-sub { color: #777; font-size: 13px; margin-bottom: 10px; letter-spacing: 0.3px; }
+            .gacha-reveal-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: ${pullCount === 5 ? '10px' : '12px'}; padding: 4px 0; }
+            .gacha-reveal-card { width: ${pullCount === 5 ? '90px' : '200px'}; animation: gachaRevealFadeIn 0.4s ease forwards; }
+            .gacha-reveal-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; border: 2px solid #f2f2f2; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+            .gacha-reveal-name { font-size: ${pullCount === 5 ? '10px' : '15px'}; color: #333; font-weight: 600; margin-top: 6px; }
+            .gacha-reveal-card.gacha-reveal-ssr img { border-color: #d4af37; box-shadow: 0 0 0 3px rgba(212,175,55,0.3), 0 0 16px rgba(212,175,55,0.5); }
+            .gacha-ssr-badge { font-size: ${pullCount === 5 ? '9px' : '12px'}; font-weight: 700; color: #a8790a; margin-bottom: 3px; letter-spacing: 1px; }
+            @keyframes gachaRevealFadeIn { 0% { opacity: 0; transform: translateY(4px); } 100% { opacity: 1; transform: translateY(0); } }
+            ${pullCount === 5 ? `
+            /* Mobile: cap the popup so only 3 cards fit per row (3 top, 2 centered below). Tablet/desktop: widen it so all 5 sit in a single row. */
+            .gacha-reveal-popup-x5 { width: 92vw !important; max-width: 330px !important; padding: 20px 16px 24px !important; }
+            .gacha-reveal-popup-x5 .swal2-html-container { margin: 0 !important; padding: 0 !important; }
+            @media (min-width: 768px) {
+              .gacha-reveal-popup-x5 { max-width: 580px !important; }
+              .gacha-reveal-popup-x5 .gacha-reveal-card { width: 96px; }
+              .gacha-reveal-popup-x5 .gacha-reveal-grid { gap: 12px; }
+            }
+            ` : ''}
           </style>
 
-          <div class="blm-cute-reveal-container">
-            <div class="blm-cute-name">${res.itemName}</div>
-            <div class="blm-cute-sub">${iconStar} [${res.itemType}] จากตู้ ${res.collectionName}</div>
+          <div class="gacha-reveal-container">
+            <div class="gacha-reveal-sub">[Coaster] from ${res.collectionName}</div>
+            <div class="gacha-reveal-grid">${cardsHTML}</div>
           </div>
         `,
-        imageUrl: res.itemImg,
-        imageWidth: 240,
-        imageHeight: 240,
-        imageAlt: res.itemName,
-        confirmButtonText: `รับไอเทม`,
+        customClass: { popup: pullCount === 5 ? 'gacha-reveal-popup-x5' : '' },
+        confirmButtonText: `Collect`,
         confirmButtonColor: '#e1546f',
         background: '#ffffff',
-        borderRadius: '24px',
-        didOpen: () => celebratePurchase()
+        borderRadius: '16px',
+        didOpen: () => hasSSR ? celebrateSSR() : celebratePurchase()
       });
-      
+
       if(res.newToken !== undefined) {
           userData.token = res.newToken;
           const session = JSON.parse(localStorage.getItem('bnl_session'));
@@ -1920,24 +1989,27 @@ async function buyGacha(collectionId) {
           localStorage.setItem('bnl_session', JSON.stringify(session));
           updateWalletUI();
       }
+
+      // Refresh the gacha listing in case stock ran out and the collection flipped to Sold Out
+      loadGachaCollections();
     } else {
       Swal.fire({
-        title: 'ทำรายการไม่สำเร็จ',
+        title: 'Transaction Failed',
         text: res.message,
         icon: 'warning',
         confirmButtonColor: '#e1546f',
         background: '#ffffff',
-        borderRadius: '24px'
+        borderRadius: '16px'
       });
     }
   } catch (error) {
     Swal.fire({
-      title: 'เกิดข้อผิดพลาด',
-      text: 'ไม่สามารถเชื่อมต่อระบบตู้สุ่มได้ในขณะนี้',
+      title: 'Error',
+      text: 'Unable to connect to the draw system right now. Please try again later.',
       icon: 'error',
       confirmButtonColor: '#e1546f',
       background: '#ffffff',
-      borderRadius: '24px'
+      borderRadius: '16px'
     });
   }
 }
@@ -1969,10 +2041,18 @@ async function loadGachaCollections() {
       const isComingSoon = col.Status === 'Coming Soon';
       const isSoldOut = col.Status === 'Sold Out';
 
+      gachaCollectionsCache[col.CollectionID] = col;
+
       let badgeHTML = '';
-      let buttonHTML = `<button class="merch-button" onclick="buyGacha('${col.CollectionID}')">
-                <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
-              </button>`;
+      const costX5 = col.CostTokensX5 || (col.CostTokens * 5);
+      let buttonHTML = `<div class="merch-gacha-actions">
+                <button class="merch-button" onclick="buyGacha('${col.CollectionID}', 1)">
+                  <i class="fas fa-coins"></i> ${col.CostTokens} Tokens (x1)
+                </button>
+                <button class="merch-button" onclick="buyGacha('${col.CollectionID}', 5)">
+                  <i class="fas fa-coins"></i> ${costX5} Tokens (x5)
+                </button>
+              </div>`;
       if (isComingSoon) {
         badgeHTML = '<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>';
         buttonHTML = `<button class="merch-button merch-button-disabled" disabled>
@@ -1986,8 +2066,8 @@ async function loadGachaCollections() {
       }
 
       const subtitle = (isComingSoon && col.SaleStartAt)
-        ? `เปิดขาย ${new Date(col.SaleStartAt).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} น.`
-        : (col.Description || 'คอลเลกชันลิมิเต็ดสุ่มลุ้นเมมเบอร์');
+        ? `Opens ${new Date(col.SaleStartAt).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+        : (col.Description || 'Limited collection - draw for a chance at rare members');
 
       const cardHTML = `
           <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}">
