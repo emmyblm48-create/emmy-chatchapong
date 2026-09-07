@@ -961,9 +961,9 @@
             <div class="modal-item-meta" id="previewMeta"></div>
             <div class="inv-delete-zone hidden" id="deleteZone">
                 <div class="inv-qty-stepper">
-                    <button type="button" class="inv-qty-btn" id="deleteQtyMinus" onclick="changeDeleteQty(-1)">−</button>
+                    <button type="button" class="inv-qty-btn" id="deleteQtyMinus">−</button>
                     <span class="inv-qty-value" id="deleteQtyValue">1</span>
-                    <button type="button" class="inv-qty-btn" id="deleteQtyPlus" onclick="changeDeleteQty(1)">+</button>
+                    <button type="button" class="inv-qty-btn" id="deleteQtyPlus">+</button>
                 </div>
                 <button type="button" class="btn-delete-item" onclick="confirmDeleteInventoryItem()">
                     <i class="fa-solid fa-trash-can"></i> ลบไอเทม
@@ -1430,6 +1430,43 @@ function renderInventoryData() {
         document.getElementById('deleteQtyMinus').disabled = deleteQty <= 1;
         document.getElementById('deleteQtyPlus').disabled = deleteQty >= maxQty;
     }
+
+    // กดค้างปุ่ม +/- ให้เพิ่ม/ลดจำนวนรัวๆ โดยไม่ต้องกดซ้ำหลายรอบ (กดครั้งเดียวขยับ 1 ก่อน
+    // แล้วค่อยเริ่มรัวหลังจากค้างไว้สักครู่ กันการเผลอกดครั้งเดียวแล้วขยับเกิน)
+    function bindHoldToRepeat(button, onStep) {
+        const HOLD_DELAY_MS = 400;
+        const REPEAT_INTERVAL_MS = 90;
+        let holdTimeout = null;
+        let repeatInterval = null;
+
+        function stepIfEnabled() {
+            if (button.disabled) { stopHolding(); return; }
+            onStep();
+        }
+
+        function stopHolding() {
+            clearTimeout(holdTimeout);
+            clearInterval(repeatInterval);
+            holdTimeout = null;
+            repeatInterval = null;
+        }
+
+        button.addEventListener('pointerdown', (e) => {
+            if (button.disabled) return;
+            e.preventDefault();
+            stepIfEnabled();
+            holdTimeout = setTimeout(() => {
+                repeatInterval = setInterval(stepIfEnabled, REPEAT_INTERVAL_MS);
+            }, HOLD_DELAY_MS);
+        });
+
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt => {
+            button.addEventListener(evt, stopHolding);
+        });
+    }
+
+    bindHoldToRepeat(document.getElementById('deleteQtyMinus'), () => changeDeleteQty(-1));
+    bindHoldToRepeat(document.getElementById('deleteQtyPlus'), () => changeDeleteQty(1));
 
     async function confirmDeleteInventoryItem() {
         if (!currentPreviewItem) return;
