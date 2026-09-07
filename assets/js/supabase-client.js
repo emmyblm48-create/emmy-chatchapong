@@ -34,8 +34,8 @@ async function blm48Rpc(fnName, params) {
 function blm48GiveCookie(username, memberName, amount) {
   return blm48Rpc('give_cookie', { p_username: username, p_member_name: memberName, p_amount: amount });
 }
-function blm48BuyGachaItem(username, collectionId) {
-  return blm48Rpc('buy_gacha_item', { p_username: username, p_collection_id: collectionId });
+function blm48BuyGachaItem(username, collectionId, pullCount) {
+  return blm48Rpc('buy_gacha_item', { p_username: username, p_collection_id: collectionId, p_pull_count: pullCount || 1 });
 }
 function blm48BuyDirectItem(username, itemId) {
   return blm48Rpc('buy_direct_item', { p_username: username, p_item_id: itemId });
