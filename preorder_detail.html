@@ -128,7 +128,7 @@
 
     <div class="pd-body">
         <h1 class="pd-title" id="pd-title"></h1>
-        <div class="pd-price-row"><i class="fas fa-coins"></i> <span id="pd-price"></span> Tokens</div>
+        <div class="pd-price-row" id="pd-price-row"><i class="fas fa-coins"></i> <span id="pd-price"></span> Tokens</div>
 
         <div class="pd-schedule" id="pd-schedule" style="display:none;"></div>
 
@@ -209,7 +209,10 @@ function renderProduct(p) {
 
     document.getElementById('pd-nav-title').textContent = p.name;
     document.getElementById('pd-title').textContent = p.name;
-    document.getElementById('pd-price').textContent = Number(p.costTokens).toLocaleString();
+    document.getElementById('pd-price-row').style.display = isComingSoon ? 'none' : 'flex';
+    if (!isComingSoon) {
+        document.getElementById('pd-price').textContent = Number(p.costTokens).toLocaleString();
+    }
 
     const coverWrapper = document.getElementById('pd-cover-wrapper');
     const coverInner = p.coverImage

@@ -605,20 +605,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const subscribedAt = Date.now();
   blm48SubscribeNotifications((row) => {
-    if (!row || !row.writer || !row.recipient_username) return; // broadcast/admin rows ไม่โชว์ toast (เหมือนเดิม)
+    if (!row || !row.writer) return;
+    const isBroadcast = !row.recipient_username;
+    // broadcast/admin rows ปกติไม่โชว์ toast เหมือนเดิม ยกเว้น notif_type='shop' (แจ้งเตือนสินค้าเปิดขาย
+    // ต้องเห็นทุกคน ดู check_shop_open_notifications() ฝั่ง Supabase ที่ยิง broadcast แบบนี้)
+    if (isBroadcast && row.notifType !== 'shop' && row.notif_type !== 'shop') return;
+
     const rowTs = row.created_at ? new Date(row.created_at).getTime() : Date.now();
     if (rowTs < subscribedAt) return; // ข้ามของเก่าที่อาจถูกส่งมาตอนเพิ่ง subscribe
 
-    // เช็ค username สดทุกครั้ง (ไม่ cache ไว้ตอน subscribe) เพราะตอนโหลดหน้าเสร็จใหม่ๆ session
-    // ในเครื่องอาจยังเป็นข้อมูลเก่า กว่า syncUserData() จะดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์มาทับ
-    const currentUsername = getUsername();
-    if (!currentUsername || row.recipient_username !== currentUsername) return;
+    if (!isBroadcast) {
+      // เช็ค username สดทุกครั้ง (ไม่ cache ไว้ตอน subscribe) เพราะตอนโหลดหน้าเสร็จใหม่ๆ session
+      // ในเครื่องอาจยังเป็นข้อมูลเก่า กว่า syncUserData() จะดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์มาทับ
+      const currentUsername = getUsername();
+      if (!currentUsername || row.recipient_username !== currentUsername) return;
+    }
     if (!blm48MarkNotiShown(row.id)) return;
 
     localStorage.setItem('blm48_has_new_noti', 'true');
     if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
 
-    const targetUrl = row.post_id ? `postdetail?id=${encodeURIComponent(row.post_id)}` : 'notification.html';
+    const targetUrl = row.post_id
+      ? `postdetail?id=${encodeURIComponent(row.post_id)}`
+      : ((row.notifType || row.notif_type) === 'shop' ? 'shop.html' : 'notification.html');
     showIosNotification({
       avatar: row.avatar,
       title: row.writer,
