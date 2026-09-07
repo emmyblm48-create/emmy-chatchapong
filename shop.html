@@ -796,20 +796,27 @@
             transform: translateY(0) scale(0.96);
         }
 
-        /* 🎰 ปุ่มสุ่ม x1/x5 คู่กัน ใต้การ์ดตู้กาชา */
+        /* 🎰 ปุ่มสุ่ม x1/x5 ใต้การ์ดตู้กาชา เรียงซ้อนกันเต็มความกว้าง เหมือนปุ่ม Coming Soon/Sold Out ปกติ
+           (การ์ดในกริดมือถือกว้างแค่ครึ่งจอ ถ้าวางปุ่มเคียงข้างกันข้อความจะไม่พอ) */
         .merch-gacha-actions {
             display: flex;
-            gap: 8px;
+            flex-direction: column;
+            gap: 6px;
             width: 100%;
             margin-top: auto;
         }
         .merch-gacha-actions .merch-button {
-            width: auto !important;
-            flex: 1 1 0;
+            width: 100% !important;
             margin-top: 0 !important;
-            font-size: 0.78rem !important;
-            padding: 10px 2px !important;
-            white-space: nowrap;
+            flex-wrap: wrap !important;
+            row-gap: 0 !important;
+        }
+        .merch-gacha-actions .merch-button .pull-tier {
+            flex-basis: 100%;
+            font-size: 0.72rem;
+            font-weight: 500;
+            opacity: 0.8;
+            margin-top: 1px;
         }
 
         /* 📱→📟 แท็บเล็ต/ไอแพด (768–1023px): การ์ดกว้างขึ้น ตัวอักษรขยับขึ้นทีละสเต็ปจากมือถือ */
@@ -1881,8 +1888,8 @@ async function buyGacha(collectionId, pullCount) {
   const costText = cost !== null ? `${Number(cost).toLocaleString()} Token${cost === 1 ? '' : 's'}` : '';
 
   const confirmResult = await Swal.fire({
-    title: `Confirm Draw ×${pullCount}`,
-    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">This will deduct ${costText} to draw ${pullCount === 5 ? '5 items' : '1 item'} from this collection. Confirm this transaction?<br><span style="color: #999; font-size: 12px;">Tokens are deducted immediately on confirmation.</span></div>`,
+    title: `ยืนยันการสุ่ม Draw ×${pullCount}`,
+    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Kanit';">ระบบจะหัก ${costText} เพื่อสุ่ม ${pullCount === 5 ? '5 ไอเทม' : '1 ไอเทม'} จากคอลเลกชันนี้ ยืนยันการทำรายการหรือไม่?<br><span style="color: #999; font-size: 12px;">Token จะถูกหักทันทีเมื่อกดยืนยันค่ะ</span></div>`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: `Confirm`,
@@ -2047,10 +2054,12 @@ async function loadGachaCollections() {
       const costX5 = col.CostTokensX5 || (col.CostTokens * 5);
       let buttonHTML = `<div class="merch-gacha-actions">
                 <button class="merch-button" onclick="buyGacha('${col.CollectionID}', 1)">
-                  <i class="fas fa-coins"></i> ${col.CostTokens} Tokens (x1)
+                  <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
+                  <span class="pull-tier">Draw ×1</span>
                 </button>
                 <button class="merch-button" onclick="buyGacha('${col.CollectionID}', 5)">
-                  <i class="fas fa-coins"></i> ${costX5} Tokens (x5)
+                  <i class="fas fa-coins"></i> ${costX5} Tokens
+                  <span class="pull-tier">Draw ×5</span>
                 </button>
               </div>`;
       if (isComingSoon) {
