@@ -259,6 +259,59 @@
             box-shadow: var(--glass-shadow);
         }
 
+        .inv-search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .inv-search-icon {
+            position: absolute;
+            left: 14px;
+            color: #ccc;
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .inv-search-input {
+            width: 100%;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 10px 36px;
+            font-family: 'Kanit', sans-serif;
+            font-size: 13px;
+            color: #444;
+            box-shadow: var(--glass-shadow-sm);
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .inv-search-input::placeholder {
+            color: #bbb;
+        }
+
+        .inv-search-input:focus {
+            border-color: var(--primary-pink);
+        }
+
+        .inv-search-clear {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px;
+        }
+
+        .inv-search-clear:hover {
+            color: var(--primary-pink);
+        }
+
         .filter-label {
             font-size: 13px;
             font-weight: 600;
@@ -589,6 +642,73 @@
             color: var(--primary-pink);
         }
 
+        .inv-delete-zone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .inv-qty-stepper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f7f7f7;
+            border-radius: 999px;
+            padding: 5px 6px;
+        }
+
+        .inv-qty-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: none;
+            background: #ffffff;
+            color: var(--primary-pink);
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+
+        .inv-qty-btn:active {
+            transform: scale(0.92);
+        }
+
+        .inv-qty-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .inv-qty-value {
+            min-width: 20px;
+            text-align: center;
+            font-weight: 700;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .btn-delete-item {
+            background: #fff0f0;
+            color: #e0435c;
+            border: 1px solid #ffd6dc;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Kanit';
+            font-size: 12.5px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-delete-item:hover {
+            background: #ffe1e5;
+        }
+
         .modal-action-buttons {
             display: flex;
             gap: 10px;
@@ -812,6 +932,11 @@
         </a>
 
         <div class="filter-section-container">
+    <div class="inv-search-wrap">
+        <i class="fa-solid fa-magnifying-glass inv-search-icon"></i>
+        <input type="text" id="inventory-search-input" class="inv-search-input" placeholder="ค้นหาไอเทมด้วยชื่อ..." oninput="onInventorySearchInput(this.value)">
+        <button type="button" id="inventory-search-clear" class="inv-search-clear hidden" onclick="clearInventorySearch()" aria-label="ล้างคำค้นหา"><i class="fa-solid fa-xmark"></i></button>
+    </div>
     <div>
         <span class="filter-label"><i class="fa-solid fa-filter text-pink-400"></i> Fliter</span>
         <div id="primary-tabs" class="tabs-row">
@@ -834,6 +959,16 @@
             <img id="previewImg" src="" alt="Item Preview">
             <div class="modal-item-name" id="previewName"></div>
             <div class="modal-item-meta" id="previewMeta"></div>
+            <div class="inv-delete-zone hidden" id="deleteZone">
+                <div class="inv-qty-stepper">
+                    <button type="button" class="inv-qty-btn" id="deleteQtyMinus" onclick="changeDeleteQty(-1)">−</button>
+                    <span class="inv-qty-value" id="deleteQtyValue">1</span>
+                    <button type="button" class="inv-qty-btn" id="deleteQtyPlus" onclick="changeDeleteQty(1)">+</button>
+                </div>
+                <button type="button" class="btn-delete-item" onclick="confirmDeleteInventoryItem()">
+                    <i class="fa-solid fa-trash-can"></i> ลบไอเทม
+                </button>
+            </div>
             <div class="modal-action-buttons">
                 <button type="button" class="btn-close-modal" onclick="closePreview()">Close</button>
                 <button type="button" id="viewPhotoBookBtn" class="btn-save-image" style="display:none;" onclick="openEpubReaderFromPreview()">
@@ -872,6 +1007,20 @@
     let globalInventoryData = null; 
     let currentPrimaryTab = 'all';  // 'all', 'cafe', 'coaster', 'thankyou', 'photoset', 'photobook', 'others'
     let currentSubTab = 'all';      // 'all' หรือชื่องานย่อยเฉพาะ เช่น 'BLM48 Tanabata 2026'
+    let currentSearchQuery = '';    // คำค้นหาชื่อไอเทม (lowercase แล้ว)
+
+    function onInventorySearchInput(value) {
+        currentSearchQuery = (value || '').trim().toLowerCase();
+        document.getElementById('inventory-search-clear').classList.toggle('hidden', currentSearchQuery === '');
+        renderInventoryData();
+    }
+
+    function clearInventorySearch() {
+        currentSearchQuery = '';
+        document.getElementById('inventory-search-input').value = '';
+        document.getElementById('inventory-search-clear').classList.add('hidden');
+        renderInventoryData();
+    }
 
     window.onload = async () => {
         if (!user || !currentUsername) {
@@ -1162,11 +1311,23 @@ function renderInventoryData() {
         // ตัวกรองย่อย
         if (currentSubTab !== 'all' && item.subCollection !== currentSubTab) return false;
 
+        // ค้นหาด้วยชื่อไอเทม
+        if (currentSearchQuery && !item.name.toLowerCase().includes(currentSearchQuery)) return false;
+
         return true;
     });
 
     if (filteredItems.length === 0) {
-        container.innerHTML = `<div class="inv-state-box"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบไอเทมในหมวดหมู่นี้งับ</div>`;
+        const stateBox = document.createElement('div');
+        stateBox.className = 'inv-state-box';
+        if (currentSearchQuery) {
+            stateBox.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i>ไม่พบไอเทมที่ตรงกับ "`;
+            stateBox.appendChild(document.createTextNode(currentSearchQuery));
+            stateBox.appendChild(document.createTextNode('"'));
+        } else {
+            stateBox.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i>ไม่พบไอเทมในหมวดหมู่นี้งับ`;
+        }
+        container.appendChild(stateBox);
         return;
     }
 
@@ -1221,6 +1382,10 @@ function renderInventoryData() {
 
     let currentPreviewItem = null;
 
+    // หมวดหมู่ที่ห้ามลบ เพราะหายาก/มีค่า ป้องกันผู้ใช้กดลบพลาดของสำคัญ
+    const PROTECTED_DELETE_CATEGORIES = ['BLM48 SSR Photo', 'SSR_card', 'BLM48 Photobook'];
+    let deleteQty = 1;
+
     function openPreview(item) {
         currentPreviewItem = item;
         document.getElementById('previewImg').src = item.img;
@@ -1238,6 +1403,16 @@ function renderInventoryData() {
             <span class="modal-meta-tag is-qty">มีอยู่ x${item.qty}</span>
         `;
 
+        deleteQty = 1;
+        document.getElementById('deleteQtyValue').textContent = deleteQty;
+        const deleteZone = document.getElementById('deleteZone');
+        const canDelete = !PROTECTED_DELETE_CATEGORIES.includes(item.category);
+        deleteZone.classList.toggle('hidden', !canDelete);
+        if (canDelete) {
+            document.getElementById('deleteQtyMinus').disabled = deleteQty <= 1;
+            document.getElementById('deleteQtyPlus').disabled = deleteQty >= (Number(item.qty) || 1);
+        }
+
         document.getElementById('previewModal').style.display = 'flex';
         blm48LockBodyScroll();
     }
@@ -1245,6 +1420,41 @@ function renderInventoryData() {
     function closePreview() {
         document.getElementById('previewModal').style.display = 'none';
         blm48UnlockBodyScroll();
+    }
+
+    function changeDeleteQty(delta) {
+        if (!currentPreviewItem) return;
+        const maxQty = Number(currentPreviewItem.qty) || 1;
+        deleteQty = Math.min(maxQty, Math.max(1, deleteQty + delta));
+        document.getElementById('deleteQtyValue').textContent = deleteQty;
+        document.getElementById('deleteQtyMinus').disabled = deleteQty <= 1;
+        document.getElementById('deleteQtyPlus').disabled = deleteQty >= maxQty;
+    }
+
+    async function confirmDeleteInventoryItem() {
+        if (!currentPreviewItem) return;
+        const item = currentPreviewItem;
+        const qtyToDelete = deleteQty;
+
+        const result = await Swal.fire({
+            title: 'ลบไอเทมนี้?',
+            html: `ต้องการลบ <b>${escapeHtml(item.name)}</b> จำนวน <b>${qtyToDelete}</b> ชิ้น ออกจากกระเป๋าใช่ไหม?<br><span style="color:#999;font-size:12px;">การลบไม่สามารถย้อนกลับได้นะงับ</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ลบเลย',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#e0435c'
+        });
+        if (!result.isConfirmed) return;
+
+        const res = await blm48DeleteInventoryItems(currentUsername, item.category, item.subCollection, item.name, qtyToDelete);
+        if (res && res.status === 'success') {
+            closePreview();
+            await Swal.fire({ icon: 'success', title: 'ลบไอเทมเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
+            await loadMyInventory();
+        } else {
+            Swal.fire('ลบไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งนะงับ', 'error');
+        }
     }
 
     // =========================================================================

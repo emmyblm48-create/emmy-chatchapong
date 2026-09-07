@@ -61,6 +61,15 @@ function blm48AdminSetPreorderOrderStatus(adminUsername, orderId, status) {
 function blm48GetInventory(username) {
   return blm48Rpc('get_inventory', { p_username: username });
 }
+function blm48DeleteInventoryItems(username, category, subCollection, itemName, qty) {
+  return blm48Rpc('delete_inventory_items', {
+    p_username: username,
+    p_category: category,
+    p_sub_collection: subCollection,
+    p_item_name: itemName,
+    p_qty: qty
+  });
+}
 function blm48GetWallet(username) {
   return blm48Rpc('get_wallet', { p_username: username });
 }
