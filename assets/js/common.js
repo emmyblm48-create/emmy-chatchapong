@@ -213,6 +213,138 @@ function escapeAttr(text) {
     .replace(/>/g, "&gt;");
 }
 
+// =========================================================================
+// 👑 สลิปโอน Token/Cookie/GEToken (ใช้ร่วมกันโดย admin_transfer.html ตอนโอนใหม่
+// และ admin_transfer_history.html ตอนเปิดดูสลิปย้อนหลัง) - เดิมอยู่ใน admin.html
+// เพียงไฟล์เดียวตอนที่ทั้งสองฟีเจอร์ยังเป็น modal ในหน้าเดียวกัน
+// ต้องมีฟังก์ชัน resolveDriveImage() ประกาศไว้ในหน้าที่เรียกใช้ด้วย
+// =========================================================================
+
+// โหลดรูปแบบปลอดภัย - คืนค่า null แทนที่จะ throw ถ้าโหลดไม่สำเร็จ (เผื่อโดเมนรูปไม่รองรับ CORS)
+function loadImageSafe(src, useCors) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    if (useCors) img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+// วาดรูปโปรไฟล์แบบ cover-fit ครอบตัดเป็นวงกลม ทับลงบนวงกลมขาวในพื้นหลังสลิป
+function drawCircleAvatar(ctx, img, cx, cy, r) {
+  if (!img) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  const scale = Math.max((r * 2) / img.width, (r * 2) / img.height);
+  const w = img.width * scale, h = img.height * scale;
+  ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+  ctx.restore();
+}
+
+// สร้างสลิปยืนยันการโอนโดยเอาข้อมูลไปวางทับบนรูปพื้นหลังสลิปจริง (assets/images/transfer-slip-bg.png)
+// ตำแหน่งพิกัดถูก calibrate ให้ตรงกับจุดวงเล็บในรูปตัวอย่างของแอดมิน
+// ใช้ได้ทั้งตอนโอนเสร็จใหม่ๆ (มี refNo/createdAt จาก server) และตอนเปิดดูย้อนหลังจากประวัติ
+async function generateTransferSlip({ admin, adminName, adminAvatar, target, token, cookie, getoken, refNo, createdAt }) {
+  const now = createdAt ? new Date(createdAt) : new Date();
+  const dateStr = now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+  const ref = refNo || ('TXN' + now.getTime());
+
+  const bg = new Image();
+  const loaded = new Promise((resolve, reject) => {
+    bg.onload = resolve;
+    bg.onerror = reject;
+  });
+  bg.src = 'assets/images/transfer-slip-bg.png?v=20260810';
+
+  const drawSlip = async (includeAvatars) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = bg.naturalWidth;
+    canvas.height = bg.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bg, 0, 0);
+
+    if (includeAvatars) {
+      const [adminImg, targetImg] = await Promise.all([
+        loadImageSafe(resolveDriveImage(adminAvatar), true),
+        loadImageSafe(resolveDriveImage(target.profile_img), true)
+      ]);
+      // พิกัดวงกลมนี้วัดจากพิกเซลจริงของรูปพื้นหลัง (สแกนหาขอบวงกลมขาว) ไม่ใช่กะด้วยตา
+      drawCircleAvatar(ctx, adminImg, 156, 306, 82);
+      drawCircleAvatar(ctx, targetImg, 156, 640, 82);
+    }
+
+    ctx.fillStyle = '#ffffff';
+
+    ctx.textAlign = 'left';
+    ctx.font = '600 38px "Kanit", sans-serif';
+    ctx.fillText(dateStr, 64, 1250);
+
+    ctx.font = '600 42px "Kanit", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('@' + admin, 280, 352);
+    ctx.fillText(adminName || admin, 280, 414);
+
+    ctx.fillText('@' + target.username, 280, 680);
+    ctx.fillText(target.name || target.username, 280, 742);
+
+    ctx.textAlign = 'right';
+    ctx.font = '600 46px "Kanit", sans-serif';
+    ctx.fillText(ref, 1170, 944);
+
+    const items = [];
+    if (token > 0) items.push({ label: 'Token', amount: token });
+    if (cookie > 0) items.push({ label: 'Cookie', amount: cookie });
+    if (getoken > 0) items.push({ label: 'GEToken', amount: getoken });
+    let y = 1074;
+    ctx.font = '700 52px "Kanit", sans-serif';
+    items.forEach(item => {
+      ctx.fillText(Number(item.amount).toLocaleString() + ' ' + item.label, 1170, y);
+      y += 62;
+    });
+
+    return canvas;
+  };
+
+  let canvas, dataUrl;
+  try {
+    await loaded;
+  } catch (e) {
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถโหลดรูปพื้นหลังสลิปได้ (assets/images/transfer-slip-bg.png)', 'error');
+    return;
+  }
+
+  try {
+    canvas = await drawSlip(true);
+    dataUrl = canvas.toDataURL('image/png');
+  } catch (e) {
+    // canvas ถูก taint เพราะโดเมนรูปโปรไฟล์ไม่รองรับ CORS - สร้างใหม่แบบไม่มีรูปโปรไฟล์แทน
+    canvas = await drawSlip(false);
+    dataUrl = canvas.toDataURL('image/png');
+  }
+
+  Swal.fire({
+    title: refNo ? 'สลิปการโอน' : 'ทำรายการโอนสำเร็จ',
+    html: `
+      <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+        <img src="${dataUrl}" style="width:100%; max-width:340px; border-radius:14px; box-shadow:0 8px 26px rgba(255,133,162,0.25);">
+        <a href="${dataUrl}" download="BLM48_Transfer_${target.username}_${ref}.png" style="
+          display:inline-flex; align-items:center; gap:8px; padding:12px 32px;
+          background: var(--primary-pink); color:#fff; text-decoration:none; border-radius:25px;
+          font-weight:bold; font-size:15px; box-shadow:0 4px 12px rgba(255,133,162,0.3);
+        ">
+          <i class="fas fa-download"></i> บันทึกสลิป
+        </a>
+      </div>
+    `,
+    showConfirmButton: false,
+    showCloseButton: true
+  });
+}
+
 // 🛡️ [กันแท็กผี] แคชรายชื่อเมมเบอร์จริง (lowercase -> ชื่อจริงตามระบบ) ไว้เช็คก่อนแปลง @ชื่อ เป็นลิงก์
 // index.html มักมี window.memberData อยู่แล้ว (จาก renderRanking) ใช้อันนั้นก่อนถ้ามี ไม่งั้นค่อยไปดึงเอง (member.html)
 // แคชคำนวณ Map ใหม่เฉพาะตอน window.memberData เปลี่ยน reference เท่านั้น ไม่ต้องวนลูปทุกครั้งที่ render โพสต์

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | จัดการโค้ด Redeem</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 { color: var(--primary-pink); font-family: 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .btn-toggle-create {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; border: none; border-radius: 20px; padding: 12px;
+            background: var(--soft-pink); color: var(--primary-pink); font-weight: 700; font-size: 13.5px;
+            font-family: 'Kanit', sans-serif; cursor: pointer; margin-bottom: 16px;
+        }
+
+        .form-card {
+            display: none;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 18px 16px; box-shadow: var(--glass-shadow-sm);
+            margin-bottom: 18px;
+        }
+        .form-card.show { display: block; }
+        .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .form-field label { font-size: 13px; color: #666; font-weight: 600; }
+        .form-field input, .form-field select {
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 11px 14px; font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: var(--text-dark); background: rgba(255, 255, 255, 0.7);
+        }
+        .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--primary-pink); }
+        .form-msg { border-radius: 12px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 14px; display: none; }
+        .form-msg.error { background: #ffeef0; color: #ff5c7a; display: block; }
+
+        .reward-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .reward-row select { flex: 1; margin: 0; }
+        .reward-row input { width: 100px; flex: 0 0 auto; margin: 0; }
+        .reward-row button { background: none; border: none; color: #ff5c7a; font-size: 17px; cursor: pointer; flex: 0 0 auto; }
+        .btn-add-reward {
+            background: none; border: 1px dashed var(--primary-pink); color: var(--primary-pink);
+            border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 13px; font-family: 'Kanit', sans-serif;
+            margin-bottom: 4px;
+        }
+
+        .btn-primary {
+            width: 100%; border: none; border-radius: 20px; padding: 13px; margin-top: 6px;
+            background: var(--primary-pink); color: #fff; font-weight: 700; font-size: 14px;
+            font-family: 'Kanit', sans-serif; cursor: pointer;
+        }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .code-list { display: flex; flex-direction: column; gap: 10px; }
+        .code-row {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 12px 14px;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .code-row .c-name { font-weight: 700; font-size: 14px; color: #333; }
+        .code-row .c-rewards { font-size: 12px; color: #666; margin-top: 2px; }
+        .code-row .c-meta { font-size: 11px; color: #999; margin-top: 4px; }
+        .btn-pill { flex: 0 0 auto; border: none; border-radius: 20px; font-size: 12px; font-weight: 600; padding: 8px 14px; cursor: pointer; background: #ffeef0; color: #ff5c7a; }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">จัดการโค้ด Redeem</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-ticket"></i> จัดการโค้ด Redeem</h1>
+            <p>สร้างและจัดการโค้ดสำหรับแลกรางวัลในระบบ</p>
+        </div>
+
+        <button class="btn-toggle-create" id="toggle-create-btn" onclick="toggleCreateForm()">
+            <i class="fas fa-plus"></i> สร้างโค้ดใหม่
+        </button>
+
+        <div class="form-card" id="create-form">
+            <div id="form-msg" class="form-msg"></div>
+
+            <div class="form-field">
+                <label>รหัสโค้ด (Code)</label>
+                <input id="code-code" type="text" style="text-transform:uppercase;" placeholder="เช่น WELCOME2026">
+            </div>
+            <div class="form-field">
+                <label>วันหมดอายุ (เว้นว่าง = ไม่มีวันหมดอายุ)</label>
+                <input id="code-expiry" type="datetime-local">
+            </div>
+            <div class="form-field">
+                <label>จำนวนสิทธิ์ใช้ได้สูงสุด (เว้นว่าง = ไม่จำกัด)</label>
+                <input id="code-maxlimit" type="number" min="1" placeholder="999999">
+            </div>
+            <div class="form-field">
+                <label>รางวัลที่จะได้รับ (เพิ่มได้หลายชนิด)</label>
+                <div id="code-rewards"></div>
+                <button type="button" class="btn-add-reward" onclick="addRewardRow()"><i class="fas fa-plus"></i> เพิ่มรางวัล</button>
+            </div>
+
+            <button class="btn-primary" id="create-code-btn" onclick="submitCreateCode()">
+                <i class="fas fa-check"></i> สร้างโค้ด
+            </button>
+        </div>
+
+        <div class="code-list" id="code-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let codeCache = [];
+  const REWARD_LABELS = { token: 'Token', cookie: 'Cookie', getoken: 'GE Token', legacy: 'Legacy (ที่ระลึก)' };
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'admin';
+    }
+  }
+
+  function showFormError(msg) {
+    const el = document.getElementById('form-msg');
+    el.textContent = msg;
+    el.classList.add('error');
+  }
+  function clearFormError() {
+    const el = document.getElementById('form-msg');
+    el.textContent = '';
+    el.classList.remove('error');
+  }
+
+  function toggleCreateForm(forceOpen) {
+    const form = document.getElementById('create-form');
+    const shouldShow = forceOpen !== undefined ? forceOpen : !form.classList.contains('show');
+    form.classList.toggle('show', shouldShow);
+    if (shouldShow && document.getElementById('code-rewards').children.length === 0) {
+      addRewardRow('token', 0);
+    }
+  }
+
+  function addRewardRow(type, amount) {
+    const container = document.getElementById('code-rewards');
+    const row = document.createElement('div');
+    row.className = 'reward-row';
+    row.innerHTML = `
+      <select class="reward-type">
+        <option value="token">Token</option>
+        <option value="cookie">Cookie</option>
+        <option value="getoken">GE Token</option>
+        <option value="legacy">Legacy (ที่ระลึก ไม่แจกกระเป๋าเงิน)</option>
+      </select>
+      <input type="number" class="reward-amount" min="0" value="0">
+      <button type="button" onclick="this.closest('.reward-row').remove()"><i class="fas fa-trash"></i></button>
+    `;
+    container.appendChild(row);
+    if (type) row.querySelector('.reward-type').value = type;
+    if (amount !== undefined) row.querySelector('.reward-amount').value = amount;
+  }
+
+  async function submitCreateCode() {
+    clearFormError();
+    const code = document.getElementById('code-code').value.trim().toUpperCase();
+    const expiryRaw = document.getElementById('code-expiry').value;
+    const maxLimitRaw = document.getElementById('code-maxlimit').value;
+
+    if (!code) { showFormError('กรุณากรอกรหัสโค้ด'); return; }
+
+    const rows = document.querySelectorAll('#code-rewards .reward-row');
+    if (rows.length === 0) { showFormError('กรุณาเพิ่มรางวัลอย่างน้อย 1 รายการ'); return; }
+    const rewards = [];
+    const seenTypes = new Set();
+    for (const row of rows) {
+      const type = row.querySelector('.reward-type').value;
+      const amount = parseFloat(row.querySelector('.reward-amount').value) || 0;
+      if (seenTypes.has(type)) { showFormError('เลือกรางวัลชนิดเดียวกันซ้ำกันไม่ได้ค่ะ'); return; }
+      seenTypes.add(type);
+      if (type !== 'legacy' && amount <= 0) { showFormError('กรุณากรอกจำนวนรางวัลให้มากกว่า 0'); return; }
+      rewards.push({ type, amount });
+    }
+
+    const expiryTime = expiryRaw ? new Date(expiryRaw).toISOString() : null;
+    const maxLimit = maxLimitRaw ? parseInt(maxLimitRaw, 10) : null;
+
+    const btn = document.getElementById('create-code-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้างโค้ด...';
+    try {
+      const res = await blm48AdminCreateCode(user.username, code, expiryTime, maxLimit, rewards);
+      if (res.status === 'success') {
+        await Swal.fire({ icon: 'success', title: 'สร้างโค้ดสำเร็จ!', text: res.message, timer: 1500, showConfirmButton: false });
+        document.getElementById('code-code').value = '';
+        document.getElementById('code-expiry').value = '';
+        document.getElementById('code-maxlimit').value = '';
+        document.getElementById('code-rewards').innerHTML = '';
+        addRewardRow('token', 0);
+        toggleCreateForm(false);
+        loadCodeList();
+      } else {
+        showFormError(res.message || 'ไม่สามารถสร้างโค้ดได้');
+      }
+    } catch (e) {
+      showFormError('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้งในภายหลัง');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> สร้างโค้ด';
+  }
+
+  async function loadCodeList() {
+    const list = document.getElementById('code-list');
+    try {
+      const res = await blm48AdminListCodes(user.username);
+      if (res.status !== 'success') { list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      codeCache = res.data || [];
+      renderCodeList();
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderCodeList() {
+    const list = document.getElementById('code-list');
+    if (codeCache.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-ticket"></i>ยังไม่มีโค้ดในระบบ</div>`;
+      return;
+    }
+    list.innerHTML = codeCache.map((c, i) => {
+      const expiryText = c.expiryTime ? new Date(c.expiryTime).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'ไม่มีวันหมดอายุ';
+      const rewardsText = (c.rewards || []).map(r => `${Number(r.amount).toLocaleString()} ${REWARD_LABELS[r.type] || r.type}`).join(' + ') || '-';
+      const used = c.usedCount || 0;
+      const canDelete = used === 0;
+      return `
+        <div class="code-row">
+          <div style="min-width:0;">
+            <div class="c-name">${escapeHtml(c.code)}</div>
+            <div class="c-rewards">${escapeHtml(rewardsText)}</div>
+            <div class="c-meta">ใช้ไปแล้ว ${used}/${escapeHtml(c.maxLimit)} · ${escapeHtml(expiryText)}</div>
+          </div>
+          ${canDelete ? `<button class="btn-pill" onclick="deleteCode(${i})"><i class="fas fa-trash"></i></button>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function deleteCode(index) {
+    const target = codeCache[index];
+    if (!target) return;
+    const confirmResult = await Swal.fire({
+      title: 'ลบโค้ดนี้?',
+      html: `<b>${escapeHtml(target.code)}</b> จะถูกลบออกจากระบบถาวรค่ะ`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ff5c7a',
+      confirmButtonText: 'ลบโค้ด',
+      cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirmResult.isConfirmed) return;
+
+    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminDeleteCode(user.username, target.code);
+      if (res.status === 'success') {
+        await Swal.fire({ icon: 'success', title: 'ลบเรียบร้อย', timer: 1200, showConfirmButton: false });
+      } else {
+        await Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบได้', 'error');
+      }
+    } catch (e) {
+      await Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+    }
+    loadCodeList();
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login';
+      return;
+    }
+    if (!user.role || user.role.toLowerCase() !== 'admin') {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    loadCodeList();
+  });
+</script>
+</body>
+</html>

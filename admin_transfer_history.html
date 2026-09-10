@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | ประวัติการโอน</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 { color: var(--primary-pink); font-family: 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .entry-list { display: flex; flex-direction: column; gap: 10px; }
+        .entry-row {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 12px 14px;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .entry-body { flex: 1; min-width: 0; }
+        .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-amounts { font-size: 13px; margin-top: 4px; display: flex; gap: 10px; }
+        .entry-amounts i { margin-right: 3px; }
+        .btn-pill {
+            flex: 0 0 auto; border: none; border-radius: 20px; font-size: 12px; font-weight: 600;
+            padding: 8px 14px; cursor: pointer; white-space: nowrap;
+            background: var(--soft-pink); color: var(--primary-pink);
+        }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">ประวัติการโอน</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-receipt"></i> ประวัติการโอน</h1>
+            <p>ประวัติการโอน Token / Cookie / GEToken ทั้งหมดโดยแอดมิน</p>
+        </div>
+
+        <div class="entry-list" id="history-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let historyCache = [];
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'admin';
+    }
+  }
+
+  function resolveDriveImage(url) {
+    const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+    if (!url) return fallback;
+    if (url.includes('drive.google.com')) {
+      const driveMatch = url.match(/[-\w]{25,}/);
+      return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+    }
+    return url;
+  }
+
+  async function loadHistory() {
+    const list = document.getElementById('history-list');
+    try {
+      const res = await blm48AdminGetTransferHistory(user.username);
+      if (res.status !== 'success') {
+        list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`;
+        return;
+      }
+      historyCache = res.data || [];
+      renderHistory();
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    if (historyCache.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-receipt"></i>ยังไม่มีประวัติการโอน</div>`;
+      return;
+    }
+    list.innerHTML = historyCache.map((log, i) => {
+      const parts = [];
+      if (log.token > 0) parts.push(`<span><i class="fas fa-coins" style="color:#f59f00;"></i>${Number(log.token).toLocaleString()}</span>`);
+      if (log.cookie > 0) parts.push(`<span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i>${Number(log.cookie).toLocaleString()}</span>`);
+      if (log.ge_token > 0) parts.push(`<span><i class="fas fa-gem" style="color:#4dabf7;"></i>${Number(log.ge_token).toLocaleString()}</span>`);
+      const dt = new Date(log.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+      return `
+        <div class="entry-row">
+          <img class="entry-avatar" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#f3f3f3;flex:0 0 auto;" src="${escapeAttr(resolveDriveImage(log.target_profile_img))}">
+          <div class="entry-body">
+            <div class="entry-title">${escapeHtml(log.target_name || log.target_username)} <span style="color:#999; font-weight:400;">@${escapeHtml(log.target_username)}</span></div>
+            <div class="entry-subtitle">โดย ${escapeHtml(log.admin_username)} · ${dt}</div>
+            <div class="entry-amounts">${parts.join(' ')}</div>
+          </div>
+          <button class="btn-pill" onclick="reopenSlip(${i})"><i class="fas fa-receipt"></i> ดูสลิป</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function reopenSlip(index) {
+    const log = historyCache[index];
+    if (!log) return;
+    generateTransferSlip({
+      admin: log.admin_username,
+      adminName: log.admin_username,
+      adminAvatar: log.admin_profile_img,
+      target: { username: log.target_username, name: log.target_name, role: log.target_role, profile_img: log.target_profile_img },
+      token: Number(log.token) || 0,
+      cookie: Number(log.cookie) || 0,
+      getoken: Number(log.ge_token) || 0,
+      refNo: log.ref_no,
+      createdAt: log.created_at
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login';
+      return;
+    }
+    if (!user.role || user.role.toLowerCase() !== 'admin') {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    loadHistory();
+  });
+</script>
+</body>
+</html>

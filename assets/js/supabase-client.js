@@ -518,6 +518,11 @@ function blm48AdminGetSalesSummary(adminUsername) {
   return blm48Rpc('admin_get_sales_summary', { p_admin_username: adminUsername });
 }
 
+// Official Merchandise (gacha) stock levels, per collection/item - powers admin_stock.html.
+function blm48AdminGetStockSummary(adminUsername) {
+  return blm48Rpc('admin_get_stock_summary', { p_admin_username: adminUsername });
+}
+
 // Redeem Code management (admin.html "จัดการโค้ด Redeem") - one code can now carry several
 // reward rows at once (e.g. Token + Cookie together), stored in the code_rewards table.
 function blm48AdminListCodes(adminUsername) {

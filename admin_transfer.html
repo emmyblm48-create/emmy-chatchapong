@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | โอน Token / Cookie / GEToken</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 520px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { padding: 24px 24px 60px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 { color: var(--primary-pink); font-family: 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .form-card {
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            padding: 18px 16px; box-shadow: var(--glass-shadow-sm);
+        }
+        .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .form-field label { font-size: 13px; color: #666; font-weight: 600; }
+        .form-field input {
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 11px 14px; font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: var(--text-dark); background: rgba(255, 255, 255, 0.7);
+        }
+        .form-field input:focus { outline: none; border-color: var(--primary-pink); }
+
+        .btn-primary {
+            width: 100%; border: none; border-radius: 20px; padding: 13px;
+            background: var(--primary-pink); color: #fff; font-weight: 700; font-size: 14px;
+            font-family: 'Kanit', sans-serif; cursor: pointer; transition: 0.2s;
+        }
+        .btn-primary:hover { background: #ff6b8b; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-secondary {
+            width: 100%; border: 1px solid var(--glass-border); border-radius: 20px; padding: 12px; margin-top: 8px;
+            background: transparent; color: #999; font-weight: 600; font-size: 13px;
+            font-family: 'Kanit', sans-serif; cursor: pointer;
+        }
+
+        .form-msg { border-radius: 12px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 14px; display: none; }
+        .form-msg.error { background: #ffeef0; color: #ff5c7a; display: block; }
+
+        .confirm-card { display: none; margin-top: 18px; }
+        .confirm-card.show { display: block; }
+        .target-preview { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff0f3; border-radius: 14px; margin-bottom: 12px; }
+        .target-preview img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #fff; flex: 0 0 auto; }
+        .target-preview .t-name { font-weight: 700; font-size: 14px; color: #333; }
+        .target-preview .t-sub { font-size: 12px; color: #999; }
+        .balance-line { font-size: 12.5px; color: #666; margin-bottom: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
+        .balance-line i { margin-right: 3px; }
+        .transfer-list { border-top: 1px dashed #ffd7e1; padding-top: 10px; font-size: 14px; }
+        .transfer-list .t-label { color: #999; margin-bottom: 4px; font-size: 12.5px; }
+        .transfer-list div.item { padding: 2px 0; color: #333; font-weight: 600; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">โอน Token / Cookie / GEToken</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-money-bill-transfer"></i> โอนเงินในระบบ</h1>
+            <p>โอน Token / Cookie / GEToken ให้ User หรือ Member</p>
+        </div>
+
+        <div class="form-card" id="form-step">
+            <div id="form-msg" class="form-msg"></div>
+
+            <div class="form-field">
+                <label>Username ผู้รับ (User หรือ Member เท่านั้น)</label>
+                <input id="tr-username" type="text" placeholder="เช่น 00-191">
+            </div>
+            <div class="form-field">
+                <label>Token</label>
+                <input id="tr-token" type="number" min="0" value="0">
+            </div>
+            <div class="form-field">
+                <label>Cookie</label>
+                <input id="tr-cookie" type="number" min="0" value="0">
+            </div>
+            <div class="form-field">
+                <label>GEToken</label>
+                <input id="tr-getoken" type="number" min="0" value="0">
+            </div>
+
+            <button class="btn-primary" id="lookup-btn" onclick="lookupTransferTarget()">
+                <i class="fas fa-magnifying-glass"></i> ตรวจสอบข้อมูล
+            </button>
+        </div>
+
+        <div class="form-card confirm-card" id="confirm-step">
+            <div class="target-preview">
+                <img id="cf-avatar" src="">
+                <div>
+                    <div class="t-name" id="cf-name"></div>
+                    <div class="t-sub" id="cf-sub"></div>
+                </div>
+            </div>
+            <div class="balance-line">
+                ยอดคงเหลือปัจจุบัน:
+                <span><i class="fas fa-coins" style="color:#f59f00;"></i> <span id="cf-cur-token"></span></span>
+                <span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> <span id="cf-cur-cookie"></span></span>
+                <span><i class="fas fa-gem" style="color:#4dabf7;"></i> <span id="cf-cur-getoken"></span></span>
+            </div>
+            <div class="transfer-list">
+                <div class="t-label">จะโอนให้เพิ่ม:</div>
+                <div id="cf-transfer-items"></div>
+            </div>
+            <button class="btn-primary" id="confirm-btn" onclick="confirmTransfer()" style="margin-top:14px;">
+                <i class="fas fa-check"></i> ยืนยันการโอน
+            </button>
+            <button class="btn-secondary" onclick="resetTransferForm()">
+                <i class="fas fa-arrow-left"></i> แก้ไขข้อมูล
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let pendingTransfer = null;
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'admin';
+    }
+  }
+
+  function resolveDriveImage(url) {
+    const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+    if (!url) return fallback;
+    if (url.includes('drive.google.com')) {
+      const driveMatch = url.match(/[-\w]{25,}/);
+      return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+    }
+    return url;
+  }
+
+  function showFormError(msg) {
+    const el = document.getElementById('form-msg');
+    el.textContent = msg;
+    el.classList.add('error');
+  }
+  function clearFormError() {
+    const el = document.getElementById('form-msg');
+    el.textContent = '';
+    el.classList.remove('error');
+  }
+
+  function resetTransferForm() {
+    pendingTransfer = null;
+    document.getElementById('confirm-step').classList.remove('show');
+    document.getElementById('form-step').style.display = 'block';
+  }
+
+  async function lookupTransferTarget() {
+    clearFormError();
+    const uname = document.getElementById('tr-username').value.trim();
+    const token = parseFloat(document.getElementById('tr-token').value) || 0;
+    const cookie = parseFloat(document.getElementById('tr-cookie').value) || 0;
+    const getoken = parseFloat(document.getElementById('tr-getoken').value) || 0;
+
+    if (!uname) { showFormError('กรุณากรอก Username ผู้รับ'); return; }
+    if (token < 0 || cookie < 0 || getoken < 0) { showFormError('จำนวนต้องไม่ติดลบ'); return; }
+    if (token === 0 && cookie === 0 && getoken === 0) { showFormError('กรุณากรอกจำนวนที่ต้องการโอนอย่างน้อย 1 ช่อง'); return; }
+
+    const btn = document.getElementById('lookup-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ...';
+    try {
+      const lookup = await blm48AdminLookupUser(user.username, uname);
+      if (lookup.status !== 'success') {
+        showFormError(lookup.message || 'ไม่พบผู้ใช้งานนี้');
+      } else {
+        pendingTransfer = { target: lookup.data, token, cookie, getoken };
+        showConfirmStep();
+      }
+    } catch (e) {
+      showFormError('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-magnifying-glass"></i> ตรวจสอบข้อมูล';
+  }
+
+  function showConfirmStep() {
+    const { target, token, cookie, getoken } = pendingTransfer;
+    document.getElementById('cf-avatar').src = resolveDriveImage(target.profile_img);
+    document.getElementById('cf-name').textContent = target.name || target.username;
+    document.getElementById('cf-sub').textContent = `@${target.username} · ${(target.role || '').toUpperCase()}`;
+    document.getElementById('cf-cur-token').textContent = Number(target.token || 0).toLocaleString();
+    document.getElementById('cf-cur-cookie').textContent = Number(target.cookie || 0).toLocaleString();
+    document.getElementById('cf-cur-getoken').textContent = Number(target.geToken || 0).toLocaleString();
+
+    const items = [];
+    if (token > 0) items.push(`<div class="item">+ ${Number(token).toLocaleString()} Token</div>`);
+    if (cookie > 0) items.push(`<div class="item">+ ${Number(cookie).toLocaleString()} Cookie</div>`);
+    if (getoken > 0) items.push(`<div class="item">+ ${Number(getoken).toLocaleString()} GEToken</div>`);
+    document.getElementById('cf-transfer-items').innerHTML = items.join('');
+
+    document.getElementById('form-step').style.display = 'none';
+    document.getElementById('confirm-step').classList.add('show');
+  }
+
+  async function confirmTransfer() {
+    if (!pendingTransfer) return;
+    const { target, token, cookie, getoken } = pendingTransfer;
+
+    const confirmResult = await Swal.fire({
+      title: 'ยืนยันการโอน',
+      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะได้รับตามรายการที่ระบุค่ะ`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: 'var(--primary-pink)',
+      confirmButtonText: 'ยืนยันการโอน',
+      cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirmResult.isConfirmed) return;
+
+    Swal.fire({ title: 'กำลังโอน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+      const res = await blm48AdminTransferWallet(user.username, target.username, token, cookie, getoken);
+      if (res.status === 'success') {
+        await generateTransferSlip({ admin: user.username, adminName: user.name || user.username, adminAvatar: user.profile_img, target: res.data, token, cookie, getoken, refNo: res.refNo, createdAt: res.createdAt });
+        document.getElementById('tr-username').value = '';
+        document.getElementById('tr-token').value = 0;
+        document.getElementById('tr-cookie').value = 0;
+        document.getElementById('tr-getoken').value = 0;
+        resetTransferForm();
+      } else {
+        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
+      }
+    } catch (e) {
+      Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login';
+      return;
+    }
+    if (!user.role || user.role.toLowerCase() !== 'admin') {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+  });
+</script>
+</body>
+</html>
