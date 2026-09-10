@@ -58,6 +58,10 @@ function blm48AdminListPreorderOrders(adminUsername, statusFilter) {
 function blm48AdminSetPreorderOrderStatus(adminUsername, orderId, status) {
   return blm48Rpc('admin_set_preorder_order_status', { p_admin_username: adminUsername, p_order_id: orderId, p_status: status });
 }
+// สุ่มลายการ์ด preorder ล่วงหน้าให้แอดมินดูผลก่อนกดจัดส่งจริง (ไม่เปลี่ยนสถานะออเดอร์)
+function blm48AdminRevealPreorderRandom(adminUsername, orderId) {
+  return blm48Rpc('admin_reveal_preorder_random', { p_admin_username: adminUsername, p_order_id: orderId });
+}
 function blm48GetInventory(username) {
   return blm48Rpc('get_inventory', { p_username: username });
 }
