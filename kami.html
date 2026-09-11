@@ -471,157 +471,20 @@
             50% { opacity: 1; transform: scale(0.99); }
         }
 
-        .icon-wrapper {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .noti-badge {
-          position: absolute;
-          top: -2px;
-          right: -2px;
-          width: 8px;
-          height: 8px;
-          background-color: #ff4d6d;
-          border-radius: 50%;
-          border: 1px solid white;
-          z-index: 10;
-        }
-    
-
         @keyframes fadeInText {
             from { opacity: 0; transform: translateX(-4px); }
             to { opacity: 1; transform: translateX(0); }
         }
-
-        body {
-            padding-bottom: 110px !important;
-        }
-
-.bottom-tab-bar {
-  /* 👑 Layer 1: ชั้นโปร่งใสล่างสุด ขยายความสูงรวมเพิ่มขึ้นเป็น 110px ให้ Nav ดูสูงเด่น */
-  height: calc(110px + env(safe-area-inset-bottom, 0px));
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-  background: transparent;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-end; /* ยึดฐานปุ่มจากขอบล่างสุด */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-sizing: border-box;
-  /* 🐛 แก้บัค iOS Safari: fixed element เลื่อนตามจอระหว่าง momentum scroll เพราะ WebKit
-     วาด layer ใหม่ทุกครั้งที่ scroll — บังคับให้ขึ้น GPU layer ของตัวเองค้างไว้เลย */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-.bottom-tab-bar::before {
-  content: "";
-  position: absolute;
-  /* 👑 Layer 2: ขยับท็อปลงมาที่ 60px เพื่อให้เหลือเนื้อผ้าสีขาวหนา 50px (เกือบครึ่งหนึ่งของความสูงรวม 110px) */
-  top: 60px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(var(--glass-blur-lg));
-  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: 28px 28px 0 0; /* เพิ่มความโค้งมนให้ดูละมุนรับกับบาร์ที่สูงขึ้น */
-  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08); /* เพิ่มมิติเงาให้ดูลอยแยกชั้นชัดเจน */
-  z-index: 1;
-}
-
-.tab-item {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 20%;
-  height: 50px; /* ปรับความสูงบล็อกกดให้บาลานซ์กับ Layer สีขาว */
-  position: relative;
-  z-index: 2; 
-  text-decoration: none;
-  color: #8e8e93; 
-  
-  /* 🚀 ดันไอคอนให้เลื่อนสูงขึ้นไปข้างบน 30px ทะลุเลเยอร์สีขาวขึ้นไปลอยเด่นอยู่บนชั้นโปร่งใสครึ่งตัวพอดี */
-  transform: translateY(-30px); 
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* ปรับสปริงให้เด้งนุ่มนวลขึ้น */
-}
-
-/* 🌟 เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มปกติ */
-.tab-item:active {
-  transform: translateY(-30px) scale(0.85);
-  opacity: 0.8;
-}
-
-/* 👑 ปุ่มสถานะ Active (หน้าปัจจุบัน): ดีดตัวลอยสูงเด่นขึ้นไปอีกที่ 45px กลายเป็นปุ่มฮีโร่ลอยเด่นสะดุดตา */
-.tab-item.active {
-  color: #ffb3c1; 
-  transform: translateY(-45px); 
-}
-/* เอฟเฟกต์ตอนเอานิ้วจิ้มปุ่มที่ Active อยู่ */
-.tab-item.active:active {
-  transform: translateY(-45px) scale(0.85);
-}
-
-/* ------------------------------------------------------------- */
-/* 🔥 จุดที่เพิ่มเข้ามา: ตั้งค่าให้ไอคอนและรูปภาพขยายใหญ่ขึ้นตอน Active เท่านั้น */
-/* ------------------------------------------------------------- */
-
-.tab-item.active i {
-  font-size: 45px; /* 🚀 ขยายขนาดฟอนต์ไอคอนจากเดิม 34px เป็น 45px ให้ใหญ่เด่นสะใจ */
-}
-
-.tab-item.active img {
-  width: 58px;    /* 🚀 ขยายขนาดรูปจากเดิม 44px เป็น 58px */
-  height: 58px;
-}
-
-.tab-item.active #tab-profile-img {
-  width: 50px !important;  /* 🚀 ขยายขนาดรูปโปรไฟล์จากเดิม 38px เป็น 50px */
-  height: 50px !important;
-}
-/* ------------------------------------------------------------- */
-
-
-/* ขยายขนาดไอคอน FontAwesome (34px เท่าเดิม แต่ใส่เงาให้ลอยตามบาร์) */
-.tab-item i {
-  font-size: 34px;
-  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.08)); 
-  transition: font-size 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
-}
-
-/* ขยายขนาดรูปไอคอนแชมป์สั่งทำ (44px เท่าเดิม พร้อมเพิ่มเงาตกกระทบลงบนเลเยอร์สีขาว) */
-.tab-item img {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.12)); 
-  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
-}
-
-/* ปรับแต่งวงกลมรูปโปรไฟล์ให้ลอยขึ้นมาอย่างสมดุล */
-#tab-profile-img {
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 50%;
-  border: 2px solid #ffb3c1;
-  box-sizing: border-box;
-  transition: width 0.2s ease, height 0.2s ease; /* ใส่เพื่อให้ตอนขยายใหญ่มันสมูทขึ้นครับ */
-}
     </style>
 </head>
 <body class="glass-mesh-bg">
 
     <div class="app-wrapper">
         <div class="top-navigation-bar">
-            <div class="top-bar-page-title"><i class="fa-solid fa-star"></i> My Kami</div>
+            <button type="button" onclick="goBackFromKami()" aria-label="ย้อนกลับ" style="flex: 0 0 auto; background: none; border: none; color: var(--primary-pink); font-size: 18px; cursor: pointer; padding: 4px 6px 4px 0;">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div class="top-bar-page-title" style="flex: 1;"><i class="fa-solid fa-star"></i> My Kami</div>
             <div class="user-profile-box">
                 <img id="user-avatar" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" alt="Profile" class="user-avatar-img">
                 <div class="user-profile-info">
@@ -651,37 +514,6 @@
         <div>© 2026 Virtual Idol Cover Group</div>
     </footer>
     
-    <div class="bottom-tab-bar">
-  
-  <a href="index" class="tab-item">
-    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
-    <img id="nav-home" src="" alt="Home" style="display: none;">
-  </a>
-
-  <a href="fanpost" class="tab-item">
-    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
-    <img id="nav-kami" src="" alt="Fan Post" style="display: none;">
-  </a>
-
-  <a href="majorvote" class="tab-item">
-    <i id="nav-cart-fallback" class="fa-solid fa-crown"></i>
-    <img id="nav-cart" src="" alt="Major Vote" style="display: none;">
-  </a>
-
-  <a href="notification" class="tab-item">
-    <div class="icon-wrapper" style="position: relative; display: flex; justify-content: center; align-items: center;">
-      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
-      <img id="nav-noti" src="" alt="Notification" style="display: none;">
-      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
-    </div>
-  </a>
-
-  <a href="profile" class="tab-item">
-    <img id="tab-profile-img" src="https://via.placeholder.com/30" style="border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
-  </a>
-
-</div>
-
 <script>
         function getImg(url) {
             if (!url || url === "") return 'https://via.placeholder.com/150';
@@ -690,6 +522,14 @@
                 return id ? `https://lh3.googleusercontent.com/d/${id[0]}=w300` : url;
             }
             return url; 
+        }
+
+        function goBackFromKami() {
+            if (document.referrer && window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'profile';
+            }
         }
 
         let user = getUserSession();
@@ -802,73 +642,6 @@
                 console.error("เรียกฐานข้อมูลรูปภาพไม่สำเร็จ", err);
             }
         }
-
-// ==========================================
-// 🎨 ฟังก์ชันโหลดและซิงค์ธีมผู้ชนะ (เวอร์ชันหน้าย่อย)
-// ==========================================
-function loadChampThemeSubPage() {
-  const CACHE_KEY = "bnl_winner_theme_cache";
-  
-  // 1. ดึงจากแคชเก่าในเครื่องมาแสดงรอก่อนทันที (แอปเปิดเร็ว ไอคอนไม่กระพริบโล่ง)
-  const cachedDataStr = localStorage.getItem(CACHE_KEY);
-  if (cachedDataStr) {
-    try { 
-        const cachedObj = JSON.parse(cachedDataStr);
-        // 🌟 ดึงมาเฉพาะข้อมูลแชมป์ (ถ้าหลังบ้านส่งเป็น .champ มา ก็ดึงแค่ champ)
-        const champOnly = cachedObj.champ ? cachedObj.champ : cachedObj;
-        applySubPageTheme(champOnly); 
-    } catch (e) {}
-  }
-
-  // 2. แอบไปเช็กกับหลังบ้านเงียบๆ ว่าข้อมูลเปลี่ยนคนชนะหรือยัง
-  blm48GetWinnerTheme()
-    .then(newData => {
-      // 🌟 สกัดเอามาเฉพาะข้อมูลไอคอนของแชมป์ (ทิ้งข้อมูล Splash วันเกิดไปเลยสำหรับหน้านี้)
-      const newChampData = newData.champ ? newData.champ : newData;
-
-      if (newChampData && newChampData.name) {
-        
-        // แปลงข้อมูลแคชปัจจุบันเพื่อเอามาเทียบว่ามีอะไรอัปเดตไหม
-        let cacheChampStr = "";
-        if (cachedDataStr) {
-            try {
-                const parsed = JSON.parse(cachedDataStr);
-                cacheChampStr = JSON.stringify(parsed.champ ? parsed.champ : parsed);
-            } catch(e) {}
-        }
-
-        // ถ้าพบว่าไอคอนแชมป์มีการเปลี่ยนแปลง ค่อยเรนเดอร์ใหม่
-        if (cacheChampStr !== JSON.stringify(newChampData)) {
-          localStorage.setItem(CACHE_KEY, JSON.stringify(newData)); // เซฟแพ็กเกจเต็มลงแคชเผื่อหน้า index มาใช้
-          applySubPageTheme(newChampData); // อัปเดตไอคอนบนจอให้เป็นปัจจุบันทันที
-        }
-      }
-    }).catch(e => console.error(e));
-}
-
-function applySubPageTheme(champData) {
-  if (!champData) return;
-  // อัปเดตแค่ Navbar โลด ไม่ต้องยุ่งกับ Splash Screen ใดๆ
-  updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
-  updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
-  updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
-  updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
-}
-
-function updateSubPageIcon(imgId, fallbackId, iconUrl) {
-  const imgElement = document.getElementById(imgId);
-  const fallbackElement = document.getElementById(fallbackId);
-  if (imgElement && fallbackElement) {
-    if (iconUrl && iconUrl.trim() !== "") {
-      imgElement.src = iconUrl;
-      imgElement.style.display = 'block';
-      fallbackElement.style.display = 'none';
-    } else {
-      imgElement.style.display = 'none';
-      fallbackElement.style.display = 'block';
-    }
-  }
-}
 
 /**
  * ฟังก์ชันปิดหน้าจอโหลดวงกลมคุกกี้หมุนๆ แบบปลอดภัย
@@ -1063,31 +836,6 @@ function hideThemeLoadingScreen() {
             }
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof checkNotificationBadge === 'function') {
-                checkNotificationBadge();
-            }
-            loadChampThemeSubPage(); // 🚀 เรียกใช้งานฟังก์ชันที่แก้ใหม่
-
-            const tabProfileImg = document.getElementById('tab-profile-img');
-            if (tabProfileImg) {
-                let currentUser = null;
-                if (typeof user !== 'undefined' && user) {
-                    currentUser = user;
-                } else {
-                    const sessionStr = localStorage.getItem("bnl_session"); 
-                    if (sessionStr) {
-                        try {
-                            const session = JSON.parse(sessionStr);
-                            currentUser = session.data || session.user || session; 
-                        } catch (e) {}
-                    }
-                }
-                if (currentUser && currentUser.profile_img) {
-                    tabProfileImg.src = typeof getImg === 'function' ? getImg(currentUser.profile_img) : currentUser.profile_img;
-                }
-            }
-        });
 </script>
 </body>
 </html>

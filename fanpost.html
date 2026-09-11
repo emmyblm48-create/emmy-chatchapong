@@ -34,7 +34,7 @@
         .app-wrapper { width: 100%; min-height: 100vh; padding: 16px; max-width: 560px; margin: 0 auto; }
 
         .top-navigation-bar {
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
             background: var(--glass-bg-strong);
             backdrop-filter: blur(var(--glass-blur-lg));
             -webkit-backdrop-filter: blur(var(--glass-blur-lg));
@@ -42,6 +42,18 @@
             border: 1px solid var(--glass-border);
         }
         .top-bar-page-title { display: flex; align-items: center; gap: 8px; font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: var(--primary-pink); }
+        .fanpost-add-btn {
+            display: none;
+            background: none; border: none; color: var(--primary-pink); font-size: 1.6rem; cursor: pointer;
+            line-height: 1; padding: 0;
+        }
+        .fanpost-add-btn.open { transform: rotate(45deg); }
+
+        .fanpost-composer-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+        }
+        .fanpost-composer-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 14px; color: var(--primary-pink); }
+        .fanpost-composer-close { background: none; border: none; color: #999; font-size: 1.1rem; cursor: pointer; padding: 0; }
 
         .fanpost-composer {
             display: none;
@@ -137,9 +149,16 @@
 <div class="app-wrapper">
     <div class="top-navigation-bar">
         <div class="top-bar-page-title"><i class="fa-solid fa-star"></i> Fan Post</div>
+        <button type="button" class="fanpost-add-btn" id="fanpost-add-btn" onclick="toggleFanPostComposer()" title="สร้างโพสต์แฟนคลับ" aria-label="สร้างโพสต์แฟนคลับ">
+            <i class="fa-solid fa-circle-plus"></i>
+        </button>
     </div>
 
     <div class="fanpost-composer" id="fanpost-composer">
+        <div class="fanpost-composer-header">
+            <span class="fanpost-composer-title"><i class="fa-solid fa-pen-to-square"></i> สร้างโพสต์แฟนคลับ</span>
+            <button type="button" class="fanpost-composer-close" onclick="toggleFanPostComposer(false)" aria-label="ปิด"><i class="fa-solid fa-xmark"></i></button>
+        </div>
         <textarea id="fanpost-content" placeholder="แชร์เรื่องราวของคุณกับแฟนคลับคนอื่น ๆ..."></textarea>
         <label for="fanpost-image" class="custom-file-upload">
             <i class="fa-solid fa-cloud-arrow-up"></i> เพิ่มรูปภาพ
@@ -939,6 +958,19 @@
     });
   }
 
+  window.toggleFanPostComposer = function(forceOpen) {
+    const composer = document.getElementById('fanpost-composer');
+    const addBtn = document.getElementById('fanpost-add-btn');
+    if (!composer) return;
+    const shouldOpen = forceOpen !== undefined ? forceOpen : composer.style.display !== 'block';
+    composer.style.display = shouldOpen ? 'block' : 'none';
+    if (addBtn) addBtn.classList.toggle('open', shouldOpen);
+    if (shouldOpen) {
+      const contentEl = document.getElementById('fanpost-content');
+      if (contentEl) contentEl.focus();
+    }
+  };
+
   window.submitFanPost = async function() {
     const contentEl = document.getElementById('fanpost-content');
     const content = contentEl.value.trim();
@@ -981,6 +1013,7 @@
         contentEl.value = '';
         selectedFanPostImages = [];
         renderFanPostImagePreviews();
+        toggleFanPostComposer(false);
         Swal.close();
         document.getElementById('fanpost-feed').querySelectorAll('.post-card').forEach(el => el.remove());
         loadFanPostFeed();
@@ -1054,7 +1087,7 @@
     const role = (user.role || '').toLowerCase();
     isMemberRole = role === 'member';
     if (role === 'user') {
-      document.getElementById('fanpost-composer').style.display = 'block';
+      document.getElementById('fanpost-add-btn').style.display = 'block';
       initFanPostComposer();
     } else if (isMemberRole) {
       document.getElementById('fanpost-member-note').style.display = 'block';
