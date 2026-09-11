@@ -1694,6 +1694,65 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     cursor: not-allowed;
   }
   /* =========================================
+     📅 MONTHLY LOGIN STREAK MODAL
+     ========================================= */
+  #login-streak-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(74, 44, 54, 0.35);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .streak-rescue-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff5f7; border-radius: 14px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: 0.82rem; color: #666;
+  }
+  .streak-rescue-row b { color: var(--primary-pink, #ff85a2); }
+  .streak-calendar-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 8px;
+  }
+  .streak-day {
+    aspect-ratio: 1 / 1; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; position: relative; background: #f5f5f5; color: #bbb;
+  }
+  .streak-day.present { background: linear-gradient(135deg, #ffb6c1, var(--primary-pink, #ff85a2)); color: #fff; }
+  .streak-day.rescued { background: linear-gradient(135deg, #ffe08a, #ffc247); color: #fff; }
+  .streak-day.missed { background: #fff0f0; color: #ff8a8a; cursor: pointer; }
+  .streak-day.missed.can-rescue:active { transform: scale(0.92); }
+  .streak-day.future { background: #f8f8f8; color: #ccc; }
+  .streak-day i { font-size: 0.7rem; }
+  #streak-claim-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 13px;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #eee;
+    color: #aaa;
+    box-shadow: none;
+  }
+  #streak-claim-btn.claimable {
+    background: linear-gradient(135deg, #7ee08c, #3cb371);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(60,179,113,0.35);
+    cursor: pointer;
+  }
+  #streak-claim-btn:disabled { cursor: not-allowed; }
+  /* =========================================
      🍪 CUTE MONTHLY COOKIE COUNTDOWN (COMPACT & MINIMAL)
      ========================================= */
   .cookie-countdown-container {
@@ -2190,6 +2249,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <a href="javascript:void(0)" class="nav-icon icon-wrapper" title="ภารกิจประจำวัน" onclick="openDailyMissionModal()">
         <i class="fas fa-list-check"></i>
         <span class="noti-badge" id="mission-badge" style="display: none;"></span>
+    </a>
+    <a href="javascript:void(0)" class="nav-icon icon-wrapper" title="Log in รายเดือน" onclick="openLoginStreakModal()">
+        <i class="fas fa-calendar-check"></i>
+        <span class="noti-badge" id="streak-badge" style="display: none;"></span>
     </a>
     <a href="shop" class="nav-icon" title="Shop">
         <i class="fas fa-store"></i>
@@ -3864,7 +3927,7 @@ async function loadTimelinePosts() {
 
   if (cachedPosts && isContainerEmpty) {
     try {
-      let posts = JSON.parse(cachedPosts);
+      let posts = JSON.parse(cachedPosts).filter(p => p.postType !== 'fan');
       // ใช้กลไกการกลับด้านข้อมูลเพื่อให้ของใหม่กว่าอยู่ด้านบนเหมือนเดิม
       let tempPosts = [...posts];
       tempPosts.reverse();
@@ -3897,6 +3960,7 @@ async function loadTimelinePosts() {
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
     let posts = await blm48GetPosts(username);
+    posts = Array.isArray(posts) ? posts.filter(p => p.postType !== 'fan') : posts;
 
     // หากดึงข้อมูลจากเซอร์เวอร์มาแล้วไม่มีโพสต์เลย
     if (!posts || posts.length === 0) {
@@ -4467,6 +4531,140 @@ async function claimDailyMissionReward() {
   }
 }
 
+// ==========================================
+// 📅 MONTHLY LOGIN STREAK - บันทึกวันที่ล็อกอินอัตโนมัติทุกครั้งที่เปิดแอป (blm48RecordDailyLogin,
+// เรียกตอน boot) ถ้าพลาดวันไหนไปใช้ "ตัวช่วย" กู้คืนได้ 2 ครั้ง/เดือน (วันละ 1 ครั้ง) พอครบทุกวัน
+// ในเดือนปฏิทินแล้วกดรับ 100 Token ได้ - ถ้าลืมกด พอข้ามเดือนไปแล้วเปิดแอปอีกที ระบบจะโอนให้อัตโนมัติ
+// (ดู record_daily_login ฝั่ง SQL)
+// ==========================================
+let loginStreakData = null;
+
+async function loadLoginStreakStatus() {
+  if (!user || !user.username) return null;
+  try {
+    const res = await blm48GetLoginStreakStatus(user.username);
+    if (res && res.status !== 'error') {
+      loginStreakData = res;
+      const badge = document.getElementById('streak-badge');
+      if (badge) badge.style.display = (res.canClaim && !res.alreadyClaimed) ? 'block' : 'none';
+    }
+    return loginStreakData;
+  } catch (e) {
+    console.error('loadLoginStreakStatus error:', e);
+    return null;
+  }
+}
+
+function renderLoginStreakModal() {
+  const grid = document.getElementById('streak-calendar-grid');
+  const btn = document.getElementById('streak-claim-btn');
+  const rescueCountEl = document.getElementById('streak-rescue-count');
+  const subtitleEl = document.getElementById('streak-subtitle');
+  if (!grid || !btn || !loginStreakData) return;
+
+  const days = Array.isArray(loginStreakData.days) ? loginStreakData.days : [];
+  grid.innerHTML = days.map(d => {
+    const canRescue = d.status === 'missed' && loginStreakData.rescuesRemaining > 0 && !loginStreakData.rescueUsedToday;
+    let icon = d.day;
+    if (d.status === 'present') icon = '<i class="fas fa-check"></i>';
+    else if (d.status === 'rescued') icon = '<i class="fas fa-heart-circle-bolt"></i>';
+    else if (d.status === 'missed') icon = canRescue ? '<i class="fas fa-rotate-left"></i>' : '<i class="fas fa-xmark"></i>';
+    const clickAttr = canRescue ? `onclick="useLoginRescue('${d.date}')"` : '';
+    return `<div class="streak-day ${d.status} ${canRescue ? 'can-rescue' : ''}" ${clickAttr} title="${d.date}">${icon}</div>`;
+  }).join('');
+
+  rescueCountEl.textContent = `${loginStreakData.rescuesRemaining}/2`;
+
+  if (loginStreakData.alreadyClaimed) {
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.innerHTML = '<i class="fas fa-circle-check"></i> รับของรางวัลเดือนนี้แล้ว';
+    subtitleEl.textContent = `Log in ครบเดือนนี้แล้ว รับ 100 Tokens ไปเรียบร้อย!`;
+  } else if (loginStreakData.canClaim) {
+    btn.disabled = false;
+    btn.classList.add('claimable');
+    btn.innerHTML = `<i class="fas fa-gift"></i> รับ 100 Tokens`;
+    subtitleEl.textContent = `Log in ครบทุกวันแล้ว! กดรับของรางวัลได้เลย`;
+  } else {
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.textContent = 'Log in ให้ครบเดือนก่อนนะ';
+    subtitleEl.textContent = `Log in แล้ว ${loginStreakData.presentCount}/${loginStreakData.daysInMonth} วัน - ครบทุกวัน รับ 100 Tokens!`;
+  }
+}
+
+async function openLoginStreakModal() {
+  if (!user) {
+    Swal.fire('กรุณาเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนดูสถิติ Log in รายเดือน', 'info');
+    return;
+  }
+  const modal = document.getElementById('login-streak-modal');
+  if (modal) modal.style.display = 'flex';
+  blm48LockBodyScroll();
+  const grid = document.getElementById('streak-calendar-grid');
+  if (grid) grid.innerHTML = '<div style="grid-column: 1 / -1; text-align:center;color:#aaa;padding:20px 0;">กำลังโหลด...</div>';
+
+  await loadLoginStreakStatus();
+  renderLoginStreakModal();
+}
+
+function closeLoginStreakModal() {
+  const modal = document.getElementById('login-streak-modal');
+  if (modal) modal.style.display = 'none';
+  blm48UnlockBodyScroll();
+}
+
+async function useLoginRescue(dateStr) {
+  if (!user || !user.username) return;
+  const result = await Swal.fire({
+    title: 'กู้วันที่พลาดล็อกอิน?',
+    html: `ใช้ตัวช่วย 1 ครั้ง เพื่อกู้วันที่ <b>${dateStr}</b> คืนมา`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: 'var(--primary-pink)',
+    confirmButtonText: 'ใช้ตัวช่วย',
+    cancelButtonText: 'ยกเลิก'
+  });
+  if (!result.isConfirmed) return;
+
+  Swal.fire({ title: 'กำลังกู้วันที่...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  try {
+    const res = await blm48UseLoginRescue(user.username, dateStr);
+    if (res && res.status === 'success') {
+      await loadLoginStreakStatus();
+      renderLoginStreakModal();
+      Swal.fire('สำเร็จ!', res.message, 'success');
+    } else {
+      Swal.fire('ทำรายการไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
+    }
+  } catch (e) {
+    console.error('useLoginRescue error:', e);
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+  }
+}
+
+async function claimLoginStreakReward() {
+  if (!user || !user.username) return;
+  const btn = document.getElementById('streak-claim-btn');
+  if (btn) btn.disabled = true;
+  Swal.fire({ title: 'กำลังรับของรางวัล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  try {
+    const res = await blm48ClaimLoginMonthlyReward(user.username);
+    if (res && res.status === 'success') {
+      await syncUserData();
+      await loadLoginStreakStatus();
+      renderLoginStreakModal();
+      Swal.fire('ทำรายการสำเร็จ', res.message, 'success');
+    } else {
+      Swal.fire('ทำรายการไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
+      renderLoginStreakModal();
+    }
+  } catch (e) {
+    console.error('claimLoginStreakReward error:', e);
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+  }
+}
+
 // ⚡ ดักจับตอนหน้าเว็บโหลดโครงสร้างเสร็จสมบูรณ์
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -4481,10 +4679,17 @@ document.addEventListener("DOMContentLoaded", () => {
   if (user) {
     syncUserData();
     loadDailyMissions();
+    blm48RecordDailyLogin(user.username).then(async (res) => {
+      if (res && Array.isArray(res.autoCreditedMonths) && res.autoCreditedMonths.length > 0) {
+        await syncUserData(); // เดือนก่อนครบแต่ลืมกดรับ ระบบโอน 100 Token ให้อัตโนมัติแล้ว
+      }
+      loadLoginStreakStatus();
+    }).catch(e => console.error('blm48RecordDailyLogin error:', e));
     setInterval(async () => {
       if (localStorage.getItem('bnl_session')) {
         await syncUserData();
         await loadDailyMissions();
+        await loadLoginStreakStatus();
       }
     }, 45000);
 
@@ -4955,9 +5160,9 @@ document.addEventListener("DOMContentLoaded", () => {
     <img id="nav-home" src="" alt="Home" style="display: none;">
   </a>
 
-  <a href="kami" class="tab-item">
+  <a href="fanpost" class="tab-item">
     <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
-    <img id="nav-kami" src="" alt="My Oshi" style="display: none;">
+    <img id="nav-kami" src="" alt="Fan Post" style="display: none;">
   </a>
 
   <a href="majorvote" class="tab-item">
@@ -4986,6 +5191,20 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="mission-card-subtitle">ทำภารกิจครบ รับ 5 Tokens ฟรี! รีเซ็ตในอีก <span id="mission-countdown">--:--:--</span></div>
     <div id="mission-item-list"></div>
     <button id="mission-claim-btn" disabled onclick="claimDailyMissionReward()">ทำภารกิจให้ครบก่อนนะ</button>
+  </div>
+</div>
+
+<div id="login-streak-modal" onclick="closeLoginStreakModal()">
+  <div class="mission-card" onclick="event.stopPropagation()">
+    <span class="mission-card-close" onclick="closeLoginStreakModal()">&times;</span>
+    <div class="mission-card-title"><i class="fas fa-calendar-check"></i> Log in รายเดือน</div>
+    <div class="mission-card-subtitle" id="streak-subtitle">Log in ให้ครบทุกวันในเดือนนี้ รับ 100 Tokens!</div>
+    <div class="streak-rescue-row">
+      <span><i class="fas fa-heart-circle-bolt"></i> ตัวช่วยกู้วันที่พลาด</span>
+      <b id="streak-rescue-count">2/2</b>
+    </div>
+    <div class="streak-calendar-grid" id="streak-calendar-grid"></div>
+    <button id="streak-claim-btn" disabled onclick="claimLoginStreakReward()">Log in ให้ครบเดือนก่อนนะ</button>
   </div>
 </div>
 

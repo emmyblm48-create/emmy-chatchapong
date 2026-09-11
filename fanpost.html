@@ -1,249 +1,207 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Post | BLM48</title>
-  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
-  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
-  <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
-  <meta name="theme-color" content="#ffc0cb">
-  <meta name="apple-mobile-web-app-title" content="BLM48">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Fan Post</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/js/supabase-client.js"></script>
-  <script src="assets/js/common.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding-bottom: 110px !important; min-height: 100vh; color: var(--text-dark); }
+        body.glass-mesh-bg { background-color: #ffffff; background-image: none; }
 
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/glassmorphism.css">
+        .app-wrapper { width: 100%; min-height: 100vh; padding: 16px; max-width: 560px; margin: 0 auto; }
 
-  <style>
-    :root {
-      --primary-pink: #ff85a2;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body {
-      max-width: 100vw;
-      overflow-x: hidden;
-      margin: 0;
-      font-family: 'Quicksand', 'Kanit', sans-serif;
-    }
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur-lg));
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            border-radius: 20px; padding: 12px 18px; margin-bottom: 18px;
+            border: 1px solid var(--glass-border);
+        }
+        .top-bar-page-title { display: flex; align-items: center; gap: 8px; font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: var(--primary-pink); }
 
-    .pd-header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 14px 16px;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-bottom: 1px solid #ffe4e8;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--primary-pink);
-    }
-    .pd-back-icon {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.2rem;
-      color: var(--primary-pink);
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    .pd-back-icon:hover { opacity: 0.6; }
+        .fanpost-composer {
+            display: none;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur-lg));
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            border: 1px solid var(--glass-border);
+            border-radius: 18px; padding: 16px; margin-bottom: 18px;
+        }
+        .fanpost-composer textarea {
+            width: 100%; height: 90px; border: 1px solid #ffccd5; border-radius: 14px; padding: 12px;
+            font-family: inherit; font-size: 0.92rem; resize: none; box-sizing: border-box;
+            background-color: rgba(255,255,255,0.6);
+        }
+        .fanpost-composer textarea:focus { outline: none; border-color: var(--primary-pink); }
+        .custom-file-upload {
+            border: 2px dashed #ffccd5; color: var(--primary-pink); background-color: rgba(255,255,255,0.55);
+            padding: 10px; border-radius: 14px; width: 100%; font-weight: 600; font-size: 0.85rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+        }
+        .custom-file-upload:hover { border-color: var(--primary-pink); background-color: #fff5f7; }
+        .hidden-input { display: none; }
+        #fanpost-image-preview { display: flex; gap: 10px; overflow-x: auto; margin-top: 10px; padding: 4px 2px; }
+        .preview-image-wrapper { position: relative; flex-shrink: 0; width: 76px; height: 76px; border-radius: 12px; border: 1px solid #ffccd5; }
+        .preview-image-wrapper img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; }
+        .img-action-overlay {
+            position: absolute; top: -6px; right: -6px; background: var(--primary-pink); color: white; border-radius: 50%;
+            width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-size: 0.7rem; cursor: pointer;
+        }
+        .btn-submit-full {
+            width: 100%; height: 44px; background-color: var(--primary-pink); color: white; border: none; border-radius: 22px;
+            font-weight: 700; font-size: 0.95rem; margin-top: 12px; cursor: pointer;
+        }
+        .fanpost-member-note {
+            display: none; text-align: center; color: #999; font-size: 0.82rem; background: #fff5f7; border-radius: 14px;
+            padding: 12px; margin-bottom: 18px;
+        }
 
-    .post-detail-container {
-      max-width: 500px;
-      margin: 20px auto;
-      padding: 0 16px calc(98px + env(safe-area-inset-bottom, 0px));
-    }
+        .icon-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+        .noti-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ff4d6d; border-radius: 50%; border: 1px solid white; z-index: 10; }
 
-    /* 💬 [ที่มา: ตัวอย่างหน้าจอที่ผู้ใช้ส่งมา] กล่องพิมพ์คอมเมนต์ติดขอบล่างสุดของจอเสมอ (เหมือนแอปทั่วไป)
-       แทนที่จะฝังอยู่ในการ์ดโพส - ทำให้พื้นที่แสดงคอมเมนต์เยอะขึ้น เห็นคอมเมนต์ได้มากกว่าเดิมโดยไม่ต้อง
-       เลื่อนกล่องเล็กๆ ซ้อนในโพส ให้ทั้งหน้าเลื่อนแทน */
-    .pd-comment-bar {
-      display: none;
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 60;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-top: 1px solid #ffe4e8;
-      padding: 12px 16px calc(22px + env(safe-area-inset-bottom, 0px));
-    }
-    .pd-comment-bar.active { display: block; }
-    .pd-comment-bar-inner {
-      max-width: 500px;
-      margin: 0 auto;
-      display: flex;
-      gap: 8px;
-    }
-    .pd-comment-input {
-      flex: 1;
-      min-width: 0;
-      border: 1px solid #ffccd7;
-      border-radius: 22px;
-      padding: 10px 16px;
-      font-size: 0.9rem;
-      outline: none;
-      font-family: inherit;
-    }
-    .pd-comment-send {
-      flex-shrink: 0;
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--primary-pink);
-      color: #fff;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      cursor: pointer;
-    }
+        .comment-block-note { text-align: center; color: #bbb; font-size: 0.75rem; padding: 8px 0 2px; }
 
-    .champ-special-post {
-      background: linear-gradient(to bottom, #fffdf0, #ffffff) !important;
-      border: 2px solid #d4af37 !important;
-      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15) !important;
-      position: relative;
-      overflow: hidden;
-    }
-    .champ-post-badge {
-      background: linear-gradient(135deg, #d4af37, #ffd700);
-      color: #fff;
-      font-size: 11px;
-      font-weight: bold;
-      padding: 4px 12px;
-      border-radius: 0 0 10px 0;
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-      z-index: 10;
-    }
+        .bottom-tab-bar {
+            height: calc(110px + env(safe-area-inset-bottom, 0px));
+            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 999; background: transparent;
+            display: flex; justify-content: space-around; align-items: flex-end;
+            padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box;
+            -webkit-transform: translateZ(0); transform: translateZ(0);
+            -webkit-backface-visibility: hidden; backface-visibility: hidden;
+        }
+        .bottom-tab-bar::before {
+            content: ""; position: absolute; top: 60px; left: 0; right: 0; bottom: 0;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur-lg));
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            border-top: 1px solid var(--glass-border);
+            border-radius: 28px 28px 0 0;
+            box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08);
+            z-index: 1;
+        }
+        .tab-item {
+            display: flex; justify-content: center; align-items: center; width: 20%; height: 50px;
+            position: relative; z-index: 2; text-decoration: none; color: #8e8e93;
+            transform: translateY(-30px);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .tab-item:active { transform: translateY(-30px) scale(0.85); opacity: 0.8; }
+        .tab-item.active { color: #ffb3c1; transform: translateY(-45px); }
+        .tab-item.active:active { transform: translateY(-45px) scale(0.85); }
+        .tab-item.active i { font-size: 45px; }
+        .tab-item.active img { width: 58px; height: 58px; }
+        .tab-item.active #tab-profile-img { width: 50px !important; height: 50px !important; }
+        .tab-item i { font-size: 34px; transition: font-size 0.2s ease; }
+        .tab-item img { width: 44px; height: 44px; object-fit: contain; transition: width 0.2s ease, height 0.2s ease; }
+        #tab-profile-img { width: 38px !important; height: 38px !important; border-radius: 50%; border: 2px solid #ffb3c1; box-sizing: border-box; transition: width 0.2s ease, height 0.2s ease; }
 
-    .post-menu-container {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      z-index: 100;
-    }
-    .champ-special-post .post-menu-container { top: 35px; }
-    .post-menu-btn {
-      background: none;
-      border: none;
-      color: #bbb;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 50%;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .post-menu-btn:hover { background: #fff0f3; color: var(--primary-pink); }
-    .post-dropdown-menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 32px;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      min-width: 120px;
-      overflow: hidden;
-      animation: fadeInMenu 0.15s ease-out;
-    }
-    @keyframes fadeInMenu {
-      from { opacity: 0; transform: translateY(-5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .post-dropdown-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      padding: 10px 14px;
-      border: none;
-      background: none;
-      font-size: 13px;
-      color: #666;
-      cursor: pointer;
-      text-align: left;
-      transition: background 0.2s;
-    }
-    .post-dropdown-item:hover { background: #fff0f3; color: var(--primary-pink); }
-    .post-dropdown-item.delete-item { color: #ff5c7c; }
-    .post-dropdown-item.delete-item:hover { background: #fff0f2; color: #ff335c; }
-  </style>
+        .post-menu-container { position: absolute; top: 15px; right: 15px; z-index: 100; }
+        .post-menu-btn { background: none; border: none; color: #bbb; font-size: 18px; cursor: pointer; padding: 6px 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .post-menu-btn:hover { background: #fff0f3; color: var(--primary-pink); }
+        .post-dropdown-menu { display: none; position: absolute; right: 0; top: 32px; background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); min-width: 120px; overflow: hidden; }
+        .post-dropdown-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border: none; background: none; font-size: 13px; color: #666; cursor: pointer; text-align: left; }
+        .post-dropdown-item:hover { background: #fff0f3; color: var(--primary-pink); }
+        .post-dropdown-item.delete-item { color: #ff5c7c; }
+        .post-dropdown-item.delete-item:hover { background: #fff0f2; color: #ff335c; }
+
+        .empty-feed-state { text-align: center; color: #bbb; font-size: 0.9rem; padding: 60px 20px; }
+        .empty-feed-state i { font-size: 32px; color: #ffd7e1; display: block; margin-bottom: 12px; }
+    </style>
 </head>
-<body class="glass-mesh-bg force-white-bg">
+<body class="glass-mesh-bg">
 
-  <div class="pd-header">
-    <i class="fa-solid fa-chevron-left pd-back-icon" onclick="goBackFromPostDetail()"></i>
-    <span>Post</span>
-  </div>
-
-  <div class="post-detail-container" id="post-detail-content">
-    <div style="text-align: center; padding: 60px 20px; color: var(--primary-pink);">
-      <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem;"></i>
+<div class="app-wrapper">
+    <div class="top-navigation-bar">
+        <div class="top-bar-page-title"><i class="fa-solid fa-star"></i> Fan Post</div>
     </div>
-  </div>
 
-  <div class="pd-comment-bar" id="pd-comment-bar"></div>
-
-  <div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
-    <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">&times;</span>
-    <div onclick="event.stopPropagation()" style="display: contents;">
-      <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
-      <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
-      <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
+    <div class="fanpost-composer" id="fanpost-composer">
+        <textarea id="fanpost-content" placeholder="แชร์เรื่องราวของคุณกับแฟนคลับคนอื่น ๆ..."></textarea>
+        <label for="fanpost-image" class="custom-file-upload">
+            <i class="fa-solid fa-cloud-arrow-up"></i> เพิ่มรูปภาพ
+        </label>
+        <input type="file" id="fanpost-image" class="hidden-input" accept="image/*" multiple>
+        <div id="fanpost-image-preview"></div>
+        <button class="btn-submit-full" onclick="submitFanPost()">โพสต์</button>
     </div>
+    <div class="fanpost-member-note" id="fanpost-member-note">
+        สมาชิกไม่สามารถสร้างโพสต์แฟนคลับได้ค่ะ แต่กดใจและดูโพสต์ได้ตามปกติน้า
+    </div>
+
+    <div id="fanpost-feed">
+        <div style="text-align:center; padding:40px 20px; color:var(--primary-pink);"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    </div>
+</div>
+
+<div class="bottom-tab-bar">
+  <a href="index" class="tab-item">
+    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
+    <img id="nav-home" src="" alt="Home" style="display: none;">
+  </a>
+  <a href="fanpost" class="tab-item active">
+    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
+    <img id="nav-kami" src="" alt="Fan Post" style="display: none;">
+  </a>
+  <a href="majorvote" class="tab-item">
+    <i id="nav-cart-fallback" class="fa-solid fa-crown"></i>
+    <img id="nav-cart" src="" alt="Major Vote" style="display: none;">
+  </a>
+  <a href="notification" class="tab-item">
+    <div class="icon-wrapper">
+      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
+      <img id="nav-noti" src="" alt="Notification" style="display: none;">
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
+    </div>
+  </a>
+  <a href="profile" class="tab-item">
+    <img id="tab-profile-img" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" style="border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
+  </a>
+</div>
+
+<div id="image-viewer-modal" onclick="closeImageViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 9999; justify-content: center; align-items: center;">
+  <span onclick="closeImageViewer()" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 30px; cursor: pointer;">&times;</span>
+  <div onclick="event.stopPropagation()" style="display: contents;">
+    <button id="prev-btn" onclick="changeImage(-1)" style="position: absolute; left: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❮</button>
+    <img id="full-size-image" src="" style="max-width: 90%; max-height: 80%; border-radius: 8px;">
+    <button id="next-btn" onclick="changeImage(1)" style="position: absolute; right: 20px; background: none; border: none; color: white; font-size: 40px; cursor: pointer;">❯</button>
   </div>
+</div>
 
 <script>
   let user = null;
-  let currentPostId = null;
-  let currentPostType = 'member';
   let isMemberRole = false; // role='member' - can like fan posts but not comment/reply on them
 
-  // ⬅️ ปุ่มย้อนกลับ: ใช้ history เดิมถ้ามี (กันแตกกรณีเปิดลิงก์ตรงๆ ไม่มีประวัติหน้าให้ย้อน)
-  function goBackFromPostDetail() {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = 'index';
-    }
+  function hasManagementPermission(postAuthorUsername) {
+    if (!user) return false;
+    const role = (user.role || '').toLowerCase();
+    if (role === 'ceo' || role === 'admin') return true;
+    return user.username === postAuthorUsername;
   }
 
-  function openMemberProfile(name) {
-    localStorage.removeItem('current_member_stats');
-    localStorage.removeItem('current_member_fans');
-    window.location.href = `member?name=${encodeURIComponent(name)}`;
-  }
-
-  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
   function formatThaiDate(dateStr) {
     if (!dateStr) return '';
     const parts = dateStr.trim().split(/[- :]/);
@@ -258,13 +216,6 @@
     return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
   }
 
-  function hasManagementPermission(postAuthorUsername) {
-    if (!user) return false;
-    if (user.role === 'CEO' || user.role === 'Admin') return true;
-    return user.username === postAuthorUsername;
-  }
-
-  // 🖼️ สร้าง HTML แกลเลอรี่รูปภาพของโพสต์
   function buildImagesHtml(displayImage) {
     if (!displayImage) return '';
     const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
@@ -275,13 +226,13 @@
 
     if (imageUrls.length === 1) {
       imagesHtml += `
-        <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
+        <div style="margin-top: 10px; width: 100%;">
           <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
         </div>
       `;
     } else if (imageUrls.length === 3) {
       const allUrlsJs = imageUrls.map(u => `'${u}'`).join(',');
-      imagesHtml += `<div class="post-gallery post-gallery-3" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+      imagesHtml += `<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
       imagesHtml += `<div style="grid-column: 1 / span 2; position: relative; aspect-ratio: 16 / 10;">
         <img src="${imageUrls[0]}" onclick="openImageViewer(0, [${allUrlsJs}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">
       </div>`;
@@ -292,7 +243,7 @@
       });
       imagesHtml += `</div>`;
     } else {
-      imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
+      imagesHtml += `<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
       visibleImages.forEach((url, index) => {
         imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
         imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
@@ -306,17 +257,10 @@
     return imagesHtml;
   }
 
-  // 💬 สร้าง HTML รายการคอมเมนต์
-  const commentAllowedRoles = ['member', 'admin', 'ceo'];
-  const commentVerifiedBadgeIcon = `
-      <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-        <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-      </svg>
-    `;
-
+  /* ==========================================
+     💬 Comments / replies (member role can't comment/reply on fan posts - server-enforced too)
+     ========================================== */
   function buildSingleCommentHtml(cmt, postId, isReply, replies) {
-    const currentRole = cmt.role ? cmt.role.toString().toLowerCase() : '';
-    const isCmtVerified = commentAllowedRoles.includes(currentRole) ? commentVerifiedBadgeIcon : '';
     const cmtImg = cmt.profile_img || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
     const commentId = cmt.commentId || '';
     const likes = cmt.likes || 0;
@@ -335,16 +279,13 @@
         <div class="comment-item" data-comment-id="${escapeAttr(commentId)}" style="display: flex; align-items: flex-start; margin-bottom: 10px; ${isReply ? 'margin-left: 34px;' : ''} background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
           <img src="${escapeAttr(cmtImg)}" style="width: ${avatarSize}px; height: ${avatarSize}px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
           <div style="font-size: 0.88rem; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 4px;">
-              <b style="color: var(--primary-pink);">${escapeHtml(cmt.name)}</b>
-              ${isCmtVerified}
-            </div>
+            <b style="color: var(--primary-pink);">${escapeHtml(cmt.name)}</b>
             <div id="cmt-text-${commentId}" style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
             <div style="display: flex; align-items: center; gap: 14px; margin-top: 4px;">
               <button onclick="toggleCommentLike('${commentId}')" style="background: none; border: none; color: var(--primary-pink); cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; padding: 0;">
                 <i class="${heartClass} fa-heart" id="cmt-heart-${commentId}"></i> <span id="cmt-like-count-${commentId}">${likes}</span>
               </button>
-              ${(!isReply && !(currentPostType === 'fan' && isMemberRole)) ? `<button onclick="toggleReplyBox('${commentId}')" style="background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; padding: 0;">Reply</button>` : ''}
+              ${(!isReply && !isMemberRole) ? `<button onclick="toggleReplyBox('${commentId}')" style="background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; padding: 0;">Reply</button>` : ''}
               ${isOwnComment ? `<button onclick="startEditComment('${commentId}')" style="background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem; padding: 0;">Edit</button>` : ''}
             </div>
             ${!isReply ? `
@@ -352,7 +293,7 @@
                 <i class="fa-solid fa-chevron-down" id="replies-chevron-${commentId}"></i> <span id="replies-count-${commentId}">${replyCount}</span> การตอบกลับ
               </button>
               <div id="replies-${commentId}" style="display: none; margin-top: 4px;">${repliesHtml}</div>
-              ${!(currentPostType === 'fan' && isMemberRole) ? `
+              ${!isMemberRole ? `
               <div class="reply-input-box" id="reply-box-${commentId}" style="display: none; gap: 8px; margin-top: 8px;">
                 <input type="text" id="reply-input-${commentId}" placeholder="Write a reply..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; outline: none;">
                 <button onclick="submitReply('${postId}', '${commentId}', this)" style="background: var(--primary-pink); color: white; border: none; border-radius: 20px; padding: 0 12px; font-size: 0.8rem; cursor: pointer; font-weight: bold;">SEND</button>
@@ -394,97 +335,19 @@
 
     const canManage = hasManagementPermission(post.authorUsername);
     const authorProfileImg = post.profile_img || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
-    const authorName = escapeHtml(post.authorName || 'Anonymous Member');
+    const authorName = escapeHtml(post.authorName || 'Anonymous');
 
     const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
     const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
 
     const postContent = formatPostContent(post.content || '');
     const postLikes = post.likes || 0;
-    const postCookies = post.cookies || 0;
     const postId = post.id || '';
     const displayImage = post.imageUrl || post.imageURL || '';
     const heartClass = post.isLiked ? 'fa-solid' : 'fa-regular';
 
-    const isChampPost = post.isSpecialThanks === true || post.type === 'special_thanks';
-
-    let isGraduated = false;
-    if (window.memberData && Array.isArray(window.memberData)) {
-      const memberInfo = window.memberData.find(m =>
-        m.name && m.name.toString().trim().toLowerCase() === authorName.trim().toLowerCase()
-      );
-      if (memberInfo && memberInfo.status && memberInfo.status.toString().trim().toLowerCase() === 'graduated') {
-        isGraduated = true;
-      }
-    }
-    if (!isGraduated && post.authorStatus && post.authorStatus.toLowerCase() === 'graduated') isGraduated = true;
-    if (!isGraduated && post.status && post.status.toLowerCase() === 'graduated') isGraduated = true;
-
-    let postContainerClass = 'post-card';
-    if (isChampPost) {
-      postContainerClass += ' champ-special-post';
-    } else if (isGraduated) {
-      postContainerClass += ' graduated-member-post';
-    }
-
-    let champCardStyle = '';
-    if (isChampPost) {
-      champCardStyle = `background: linear-gradient(to bottom, #fffdf0, #ffffff); border: 2px solid #d4af37; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15); margin-top: 25px; overflow: hidden;`;
-    } else if (isGraduated) {
-      champCardStyle = `background: #fafafa; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);`;
-    } else {
-      champCardStyle = `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
-    }
-
-    const specialBadge = isChampPost ? `
-      <div class="champ-post-badge">
-        <i class="fas fa-crown"></i> Champ of the Month Special Thanks
-      </div>
-    ` : '';
-
-    const verifiedBadgeIcon = `
-      <svg style="width: 14px; height: 14px; fill: #0095f6; vertical-align: middle; margin-left: 4px; display: inline-block;" viewBox="0 0 24 24" title="Verified Member">
-        <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17 L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
-      </svg>
-    `;
-    const postAuthorRole = post.authorRole ? post.authorRole.toString().toLowerCase() : '';
-    const isPostVerified = commentAllowedRoles.includes(postAuthorRole) ? verifiedBadgeIcon : '';
-
-    const gradBadgeHtml = isGraduated ? `
-      <span class="grad-text-badge" style="background: #b1becd; color: white; font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; margin-left: 5px; font-weight: 500; display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; letter-spacing: 0.3px;">
-        <i class="fas fa-graduation-cap" style="font-size: 0.7rem;"></i> Graduated
-      </span>
-    ` : '';
-
-    const authorClickHandler = post.postType === 'fan' ? '' : `onclick="openMemberProfile('${authorName}')"`;
-    const profileImgHtml = isGraduated ? `
-      <div ${authorClickHandler} style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; ${post.postType === 'fan' ? '' : 'cursor: pointer;'}">
-        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1;">
-        <div style="position: absolute; bottom: -2px; right: -2px; background: #718096; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">
-          <i class="fas fa-graduation-cap" style="color: white; font-size: 8px;"></i>
-        </div>
-      </div>
-    ` : `
-      <div ${authorClickHandler} style="margin-right: 10px; flex-shrink: 0; ${post.postType === 'fan' ? '' : 'cursor: pointer;'}">
-        <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-      </div>
-    `;
-
-    const graduatedSubtext = isGraduated ? ' <span style="color: #718096; font-weight: bold;"></span>' : '';
-
     const postComments = Array.isArray(post.comments) ? post.comments : [];
     const commentsHtml = buildCommentsHtml(postComments, postId);
-
-    let mediaHtml = '';
-
-    if (post.videoURL) {
-      mediaHtml += `
-        <div style="margin-top: 10px; border-radius: 12px; overflow: hidden; background: black;">
-          <video controls src="${post.videoURL}" style="width: 100%; max-height: 350px; display: block; margin: 0 auto;"></video>
-        </div>
-      `;
-    }
-
     const imagesHtml = buildImagesHtml(displayImage);
 
     const actionMenu = canManage ? `
@@ -503,27 +366,32 @@
       </div>
     ` : '';
 
+    const commentInputHtml = isMemberRole ? `
+        <div class="comment-block-note"><i class="fa-solid fa-lock"></i> สมาชิกไม่สามารถคอมเมนต์โพสต์แฟนคลับได้ค่ะ</div>
+      ` : `
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
+          <button onclick="submitComment('${postId}', this)" style="background: var(--primary-pink); color: white; border: none; border-radius: 20px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; font-weight: bold;">SEND</button>
+        </div>
+      `;
+
     return `
-      <div class="${postContainerClass}" id="post-${postId}" data-images="${escapeAttr(displayImage)}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
-        ${specialBadge}
+      <div class="post-card" id="post-${postId}" data-images="${escapeAttr(displayImage)}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
         ${actionMenu}
 
-        <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: ${isChampPost ? '12px' : '0px'};">
-          ${profileImgHtml}
+        <div class="post-header" style="display: flex; align-items: center; margin-bottom: 10px;">
+          <div style="margin-right: 10px; flex-shrink: 0;">
+            <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+          </div>
           <div>
-            <span ${authorClickHandler} style="${post.postType === 'fan' ? '' : 'cursor: pointer;'}">
-              <b style="color: var(--primary-pink);">${authorName} ${isPostVerified} ${gradBadgeHtml}</b>
-            </span>
-            <div style="font-size: 0.8rem; color: gray;">
-              ${postTimestamp}${graduatedSubtext}
-            </div>
+            <b style="color: var(--primary-pink);">${authorName}</b>
+            <div style="font-size: 0.8rem; color: gray;">${postTimestamp}</div>
           </div>
         </div>
 
         <div class="post-body" style="margin-bottom: 15px;">
           <p id="content-${postId}" style="margin: 0; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${postContent}</p>
           <div id="post-images-${postId}">${imagesHtml}</div>
-          ${mediaHtml}
         </div>
 
         <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px;">
@@ -533,95 +401,71 @@
           <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${postComments.length}</span>
           </button>
-          <button onclick="actionSharePost('${postId}', '${post.postType === 'fan' ? 'fanpost' : 'index'}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="แชร์โพสต์เป็นลิงก์">
+          <button onclick="actionSharePost('${postId}', 'fanpost')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="แชร์โพสต์เป็นลิงก์">
             <i class="fa-solid fa-paper-plane"></i>
           </button>
-          <div id="post-cookies-${postId}" style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #d2691e; font-weight: 600;" title="โพสต์นี้ทำคุกกี้สะสมได้">
-            <i class="fa-solid fa-cookie-bite"></i> <span id="post-cookies-count-${postId}">${postCookies}</span>
-          </div>
         </div>
 
-        <div id="comment-section-${postId}" style="display: block; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-          <div id="comment-list-${postId}">
+        <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
+          <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
             ${commentsHtml}
           </div>
+          ${commentInputHtml}
         </div>
       </div>
     `;
   }
 
-  // 💬 กล่องพิมพ์คอมเมนต์ - แยกออกมาจากการ์ดโพส ติดขอบล่างสุดของจอเสมอ (ดู .pd-comment-bar ใน <style>)
-  // ให้พื้นที่แสดงคอมเมนต์ในการ์ดเยอะขึ้น ไม่ต้องเลื่อนกล่องเล็กๆ ซ้อนในโพสอีกต่อไป
-  function renderCommentBar(postId) {
-    const bar = document.getElementById('pd-comment-bar');
-    if (!bar) return;
-    if (currentPostType === 'fan' && isMemberRole) {
-      bar.innerHTML = `
-        <div class="pd-comment-bar-inner" style="justify-content: center; color: #999; font-size: 0.82rem;">
-          <i class="fa-solid fa-lock"></i>&nbsp;สมาชิกไม่สามารถคอมเมนต์โพสต์แฟนคลับได้ค่ะ
-        </div>
-      `;
-    } else {
-      bar.innerHTML = `
-        <div class="pd-comment-bar-inner">
-          <input type="text" id="comment-input-${postId}" class="pd-comment-input" placeholder="Write a comment...">
-          <button type="button" class="pd-comment-send" onclick="submitComment('${postId}', this)"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-      `;
-    }
-    bar.classList.add('active');
-  }
-
-  function hideCommentBar() {
-    const bar = document.getElementById('pd-comment-bar');
-    if (!bar) return;
-    bar.classList.remove('active');
-    bar.innerHTML = '';
-  }
-
-  // 🌸 โหลด/รีเฟรชโพสต์เดียวที่กำลังดูอยู่ (ทั้งตอนโหลดครั้งแรก และตอน Realtime แจ้งว่ามีการเปลี่ยนแปลง)
-  async function loadSinglePost(showSpinner) {
-    const container = document.getElementById('post-detail-content');
+  /* ==========================================
+     🌸 Feed loading
+     ========================================== */
+  window.isFeedLoading = false;
+  async function loadFanPostFeed() {
+    if (window.isFeedLoading) return;
+    const container = document.getElementById('fanpost-feed');
     if (!container) return;
-    if (showSpinner && !container.querySelector('.post-card')) {
-      container.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: var(--primary-pink);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem;"></i></div>`;
-    }
-    try {
-      const posts = await blm48GetPosts(user ? user.username : '');
-      const post = Array.isArray(posts) ? posts.find(p => p.id === currentPostId) : null;
 
-      if (!post) {
-        container.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: gray;"><i class="fa-solid fa-circle-exclamation" style="font-size: 1.6rem; margin-bottom: 10px; display: block;"></i>ไม่พบโพสต์นี้ อาจถูกลบไปแล้วค่ะ</div>`;
-        hideCommentBar();
+    window.isFeedLoading = true;
+    try {
+      const currentUser = getUserSession();
+      const username = currentUser ? currentUser.username : "";
+      const allPosts = await blm48GetPosts(username);
+      const posts = (Array.isArray(allPosts) ? allPosts : []).filter(p => p.postType === 'fan');
+
+      if (posts.length === 0) {
+        container.innerHTML = `<div class="empty-feed-state"><i class="fa-solid fa-star"></i>ยังไม่มีโพสต์แฟนคลับ มาเป็นคนแรกกันเลย!</div>`;
         return;
       }
 
-      currentPostType = post.postType || 'member';
+      // get_posts already orders newest-first (created_at desc) - no reordering needed here.
 
-      const existingCard = document.getElementById(`post-${post.id}`);
-      if (existingCard) {
-        // อัปเดตค่าที่เปลี่ยนแบบเงียบๆ แทนการรีเรนเดอร์ทั้งการ์ด (กันคอมเมนต์ที่กำลังพิมพ์อยู่หาย)
-        const likeCountEl = document.getElementById(`like-count-${post.id}`);
-        if (likeCountEl) likeCountEl.innerText = post.likes;
-        const cookieCountEl = document.getElementById(`post-cookies-count-${post.id}`);
-        if (cookieCountEl) cookieCountEl.innerText = post.cookies || 0;
-        const heartIcon = document.getElementById(`heart-${post.id}`);
-        if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        const postComments = Array.isArray(post.comments) ? post.comments : [];
-        const commentCountEl = document.getElementById(`comment-count-${post.id}`);
-        if (commentCountEl) commentCountEl.innerText = postComments.length;
-        const commentListEl = document.getElementById(`comment-list-${post.id}`);
-        if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments, post.id);
-      } else {
-        container.innerHTML = renderPost(post);
-        renderCommentBar(post.id);
+      const existingCount = container.querySelectorAll('.post-card').length;
+      posts.forEach(post => {
+        const existingPost = document.getElementById(`post-${post.id}`);
+        if (existingPost) {
+          const likeCountEl = document.getElementById(`like-count-${post.id}`);
+          if (likeCountEl) likeCountEl.innerText = post.likes;
+          const heartIcon = document.getElementById(`heart-${post.id}`);
+          if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+          const postComments = Array.isArray(post.comments) ? post.comments : [];
+          const commentCountEl = document.getElementById(`comment-count-${post.id}`);
+          if (commentCountEl) commentCountEl.innerText = postComments.length;
+          const commentListEl = document.getElementById(`comment-list-${post.id}`);
+          if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments, post.id);
+        }
+      });
+
+      if (existingCount === 0) {
+        container.innerHTML = posts.map(renderPost).join('');
+        scrollToSharedPostFromUrl();
       }
     } catch (error) {
-      console.error('โหลดโพสต์ไม่สำเร็จ:', error);
+      console.error('โหลดฟีดแฟนคลับไม่สำเร็จ:', error);
       if (!container.querySelector('.post-card')) {
-        container.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: #ff4d4d;">เกิดข้อผิดพลาดในการโหลดโพสต์ ลองรีเฟรชอีกครั้งค่ะ</div>`;
-        hideCommentBar();
+        container.innerHTML = `<div class="empty-feed-state">เกิดข้อผิดพลาดในการโหลดฟีด ลองรีเฟรชอีกครั้งค่ะ</div>`;
       }
+    } finally {
+      window.isFeedLoading = false;
     }
   }
 
@@ -634,9 +478,7 @@
     document.querySelectorAll('.post-dropdown-menu').forEach(menu => {
       if (menu !== targetMenu) menu.style.display = 'none';
     });
-    if (targetMenu) {
-      targetMenu.style.display = (targetMenu.style.display === 'block') ? 'none' : 'block';
-    }
+    if (targetMenu) targetMenu.style.display = (targetMenu.style.display === 'block') ? 'none' : 'block';
   }
   document.addEventListener('click', function() {
     document.querySelectorAll('.post-dropdown-menu').forEach(menu => { menu.style.display = 'none'; });
@@ -644,13 +486,8 @@
 
   async function deletePostUi(postId) {
     const result = await Swal.fire({
-      title: 'ลบโพสต์นี้หรือไม่?',
-      text: "ลบแล้วไม่สามารถกู้คืนได้!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: 'var(--primary-pink)',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Delete!'
+      title: 'ลบโพสต์นี้หรือไม่?', text: "ลบแล้วไม่สามารถกู้คืนได้!", icon: 'warning',
+      showCancelButton: true, confirmButtonColor: 'var(--primary-pink)', cancelButtonColor: '#d33', confirmButtonText: 'Delete!'
     });
     if (!result.isConfirmed) return;
 
@@ -661,14 +498,11 @@
     }
     const data = await blm48DeletePost(currentUser.username, postId);
     if (data.status === 'success') {
-      // 🧹 ล้างรูปของโพสต์นี้ทิ้งจาก Storage ไปด้วย (ไม่มีโพสต์อ้างอิงแล้ว ปล่อยค้างไว้เปลืองโควตาเปล่าๆ)
       const postEl = document.getElementById(`post-${postId}`);
       const orphanedFiles = (postEl ? postEl.dataset.images.split(',') : []);
       blm48DeleteStorageFiles(orphanedFiles);
-
-      Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อย', 'success').then(() => {
-        window.location.href = 'index';
-      });
+      if (postEl) postEl.remove();
+      Swal.fire('ลบแล้ว!', 'ลบโพสต์เรียบร้อย', 'success');
     } else {
       Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการลบโพสต์นี้', 'error');
     }
@@ -686,22 +520,11 @@
       <div style="position:relative; width:72px; height:72px; flex-shrink:0; margin-bottom:12px;">
         <img src="${url}" style="width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid #eee;">
         <button type="button" onclick="__editPostRemoveImg(${i})" title="ลบรูปนี้" style="position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:#ff4757; color:#fff; border:none; font-size:11px; line-height:1; cursor:pointer;">✕</button>
-        <div style="position:absolute; bottom:-10px; left:0; right:0; display:flex; justify-content:center; gap:3px;">
-          <button type="button" onclick="__editPostMoveImg(${i},-1)" ${i === 0 ? 'disabled' : ''} style="width:18px; height:18px; border-radius:50%; border:1px solid #ddd; background:#fff; font-size:9px; cursor:pointer; ${i === 0 ? 'opacity:0.3;' : ''}">◀</button>
-          <button type="button" onclick="__editPostMoveImg(${i},1)" ${i === __editPostImages.length - 1 ? 'disabled' : ''} style="width:18px; height:18px; border-radius:50%; border:1px solid #ddd; background:#fff; font-size:9px; cursor:pointer; ${i === __editPostImages.length - 1 ? 'opacity:0.3;' : ''}">▶</button>
-        </div>
       </div>
     `).join('');
   }
   window.__editPostRemoveImg = function(index) {
     __editPostImages.splice(index, 1);
-    __renderEditPostImages();
-  };
-  window.__editPostMoveImg = function(index, direction) {
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= __editPostImages.length) return;
-    const [moved] = __editPostImages.splice(index, 1);
-    __editPostImages.splice(newIndex, 0, moved);
     __renderEditPostImages();
   };
 
@@ -718,11 +541,8 @@
         <div id="edit-post-img-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; text-align:left;"></div>
       `,
       didOpen: () => { __renderEditPostImages(); },
-      showCancelButton: true,
-      confirmButtonColor: 'var(--primary-pink)',
-      cancelButtonColor: 'gray',
-      focusConfirm: false,
-      preConfirm: () => document.getElementById('swal-edit-content').value
+      showCancelButton: true, confirmButtonColor: 'var(--primary-pink)', cancelButtonColor: 'gray',
+      focusConfirm: false, preConfirm: () => document.getElementById('swal-edit-content').value
     });
 
     if (typeof formValues === 'undefined') return;
@@ -735,7 +555,6 @@
     const data = await blm48EditPost(currentUser.username, postId, newText, newImageUrl);
 
     if (data.status === 'success') {
-      // 🧹 ล้างเฉพาะรูปที่ถูกลบออกจากโพสต์ตอนแก้ไข (ยังอยู่ในโพสต์ก็ไม่แตะ)
       const removedImages = oldImageUrl.split(',').map(s => s.trim()).filter(u => u && !__editPostImages.includes(u));
       blm48DeleteStorageFiles(removedImages);
 
@@ -759,7 +578,7 @@
     currentIndex = index;
     updateViewer();
     document.getElementById('image-viewer-modal').style.display = 'flex';
-    blm48LockBodyScroll();
+    if (typeof blm48LockBodyScroll === 'function') blm48LockBodyScroll();
   }
   function updateViewer() {
     const img = document.getElementById('full-size-image');
@@ -775,30 +594,11 @@
   }
   function closeImageViewer() {
     document.getElementById('image-viewer-modal').style.display = 'none';
-    blm48UnlockBodyScroll();
+    if (typeof blm48UnlockBodyScroll === 'function') blm48UnlockBodyScroll();
   }
 
-  // 📱 ปัดซ้าย-ขวาเพื่อเปลี่ยนรูปในโหมดดูรูปเต็มจอ (ผูกกับ document เพราะ modal ยังไม่ถูกสร้างตอนสคริปต์นี้รัน)
-  (function() {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    document.addEventListener('touchstart', function(e) {
-      if (!e.target.closest('#image-viewer-modal')) return;
-      touchStartX = e.changedTouches[0].clientX;
-      touchStartY = e.changedTouches[0].clientY;
-    }, { passive: true });
-    document.addEventListener('touchend', function(e) {
-      if (!e.target.closest('#image-viewer-modal')) return;
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-        changeImage(dx < 0 ? 1 : -1);
-      }
-    }, { passive: true });
-  })();
-
   /* ==========================================
-     💬 Comments / likes / replies
+     💬 Likes / comments / replies
      ========================================== */
   window.toggleCommentSection = function(postId) {
     const section = document.getElementById(`comment-section-${postId}`);
@@ -830,7 +630,6 @@
         likeSpan.innerText = result.likes;
         heartIcon.classList.toggle('fa-solid', result.isLiked);
         heartIcon.classList.toggle('fa-regular', !result.isLiked);
-        updatePostCookiesUI(postId, result.postCookies);
       } else {
         throw new Error(result.message);
       }
@@ -860,11 +659,7 @@
     }
 
     let originalText = "";
-    if (btnElement) {
-      originalText = btnElement.innerText;
-      btnElement.innerText = "กำลังส่ง...";
-      btnElement.disabled = true;
-    }
+    if (btnElement) { originalText = btnElement.innerText; btnElement.innerText = "กำลังส่ง..."; btnElement.disabled = true; }
     inputEl.disabled = true;
 
     try {
@@ -877,28 +672,21 @@
         const placeholder = commentListEl.querySelector('.no-comment-placeholder');
         if (placeholder) placeholder.remove();
         commentListEl.insertAdjacentHTML('beforeend', buildSingleCommentHtml({
-          commentId: result.commentId,
-          username: currentUser.username,
+          commentId: result.commentId, username: currentUser.username,
           name: currentUser.name || currentUser.username || 'Anonymous',
           role: currentUser.role || 'user',
           profile_img: currentUser.profile_img || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000',
-          text: commentText,
-          likes: 0,
-          isLiked: false
+          text: commentText, likes: 0, isLiked: false
         }, postId, false));
         commentListEl.scrollTop = commentListEl.scrollHeight;
       }
       if (commentCountEl) commentCountEl.innerText = (parseInt(commentCountEl.innerText) || 0) + 1;
-      updatePostCookiesUI(postId, result.postCookies);
       inputEl.value = "";
     } catch (error) {
       console.error("Add Comment Error:", error);
-      Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error');
+      Swal.fire('เกิดข้อผิดพลาด', (error && error.message) || 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error');
     } finally {
-      if (btnElement) {
-        btnElement.innerText = originalText;
-        btnElement.disabled = false;
-      }
+      if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
       inputEl.disabled = false;
     }
   };
@@ -927,7 +715,6 @@
         likeSpan.innerText = result.likes;
         heartIcon.classList.toggle('fa-solid', result.isLiked);
         heartIcon.classList.toggle('fa-regular', !result.isLiked);
-        updatePostCookiesUI(findPostIdFromElement(heartIcon), result.postCookies);
       } else {
         throw new Error(result.message);
       }
@@ -1046,11 +833,7 @@
     }
 
     let originalText = "";
-    if (btnElement) {
-      originalText = btnElement.innerText;
-      btnElement.innerText = "...";
-      btnElement.disabled = true;
-    }
+    if (btnElement) { originalText = btnElement.innerText; btnElement.innerText = "..."; btnElement.disabled = true; }
     inputEl.disabled = true;
 
     try {
@@ -1060,14 +843,11 @@
       const repliesEl = document.getElementById(`replies-${parentCommentId}`);
       if (repliesEl) {
         repliesEl.insertAdjacentHTML('beforeend', buildSingleCommentHtml({
-          commentId: result.commentId,
-          username: currentUser.username,
+          commentId: result.commentId, username: currentUser.username,
           name: currentUser.name || currentUser.username || 'Anonymous',
           role: currentUser.role || 'user',
           profile_img: currentUser.profile_img || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000',
-          text: replyText,
-          likes: 0,
-          isLiked: false
+          text: replyText, likes: 0, isLiked: false
         }, postId, true));
       }
       const commentCountEl = document.getElementById(`comment-count-${postId}`);
@@ -1075,7 +855,6 @@
 
       const repliesCountEl = document.getElementById(`replies-count-${parentCommentId}`);
       if (repliesCountEl) repliesCountEl.innerText = (parseInt(repliesCountEl.innerText) || 0) + 1;
-      updatePostCookiesUI(postId, result.postCookies);
       const repliesToggleBtn = document.getElementById(`replies-toggle-btn-${parentCommentId}`);
       if (repliesToggleBtn) repliesToggleBtn.style.display = 'flex';
       if (repliesEl) repliesEl.style.display = 'block';
@@ -1086,15 +865,181 @@
       toggleReplyBox(parentCommentId);
     } catch (error) {
       console.error("Submit Reply Error:", error);
-      Swal.fire('เกิดข้อผิดพลาด', 'ส่งการตอบกลับไม่สำเร็จงับ', 'error');
+      Swal.fire('เกิดข้อผิดพลาด', (error && error.message) || 'ส่งการตอบกลับไม่สำเร็จงับ', 'error');
     } finally {
-      if (btnElement) {
-        btnElement.innerText = originalText;
-        btnElement.disabled = false;
-      }
+      if (btnElement) { btnElement.innerText = originalText; btnElement.disabled = false; }
       inputEl.disabled = false;
     }
   };
+
+  /* ==========================================
+     ✏️ Composer (role='user' only - server-enforced too)
+     ========================================== */
+  let selectedFanPostImages = [];
+
+  function compressImageFile(file, maxDimension = 1280, quality = 0.75) {
+    return new Promise((resolve) => {
+      if (file.type === 'image/gif') { resolve(file); return; }
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        let { width, height } = img;
+        if (width <= maxDimension && height <= maxDimension) { resolve(file); return; }
+        const scale = Math.min(maxDimension / width, maxDimension / height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => { resolve(blob ? new File([blob], file.name, { type: 'image/jpeg' }) : file); }, 'image/jpeg', quality);
+      };
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+      img.src = objectUrl;
+    });
+  }
+
+  function renderFanPostImagePreviews() {
+    const container = document.getElementById('fanpost-image-preview');
+    container.innerHTML = '';
+    selectedFanPostImages.forEach((imgObj, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'preview-image-wrapper';
+      wrapper.innerHTML = `
+        <img src="${imgObj.preview}">
+        <div class="img-action-overlay" data-index="${index}"><i class="fa-solid fa-xmark"></i></div>
+      `;
+      wrapper.querySelector('.img-action-overlay').addEventListener('click', function() {
+        selectedFanPostImages.splice(parseInt(this.getAttribute('data-index')), 1);
+        renderFanPostImagePreviews();
+      });
+      container.appendChild(wrapper);
+    });
+  }
+
+  function initFanPostComposer() {
+    const imageInput = document.getElementById('fanpost-image');
+    imageInput.addEventListener('change', function() {
+      if (this.files && this.files.length > 0) {
+        const startIndex = selectedFanPostImages.length;
+        const files = Array.from(this.files);
+        files.forEach((file, i) => { selectedFanPostImages[startIndex + i] = { file: file, preview: null }; });
+        files.forEach(async (file, i) => {
+          const compressedFile = await compressImageFile(file);
+          selectedFanPostImages[startIndex + i].file = compressedFile;
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            selectedFanPostImages[startIndex + i].preview = e.target.result;
+            renderFanPostImagePreviews();
+          };
+          reader.readAsDataURL(compressedFile);
+        });
+        this.value = '';
+      }
+    });
+  }
+
+  window.submitFanPost = async function() {
+    const contentEl = document.getElementById('fanpost-content');
+    const content = contentEl.value.trim();
+    const currentUser = getUserSession();
+    if (!currentUser || !currentUser.username) {
+      Swal.fire({ title: 'Session Expired', text: 'กรุณาล็อกอินใหม่อีกครั้งค่ะ', icon: 'warning', confirmButtonColor: 'var(--primary-pink)' });
+      return;
+    }
+    if (!content && selectedFanPostImages.length === 0) {
+      Swal.fire('ยังไม่มีเนื้อหา', 'พิมพ์ข้อความหรือแนบรูปก่อนโพสต์น้า', 'info');
+      return;
+    }
+
+    Swal.fire({ title: 'กำลังโพสต์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    try {
+      let imageUrlString = "";
+      if (selectedFanPostImages.length > 0) {
+        let uploadedUrls = [];
+        let failedCount = 0;
+        for (let i = 0; i < selectedFanPostImages.length; i++) {
+          try {
+            const url = await blm48UploadPostImage(currentUser.username, selectedFanPostImages[i].file);
+            if (url) uploadedUrls.push(url);
+          } catch (err) { failedCount++; console.error(`Upload error on image ${i+1}:`, err); }
+        }
+        imageUrlString = uploadedUrls.join(',');
+        if (failedCount > 0) {
+          const proceedAnyway = await Swal.fire({
+            icon: 'warning', title: 'อัปโหลดรูปไม่ครบ',
+            text: `อัปโหลดสำเร็จ ${uploadedUrls.length} จาก ${selectedFanPostImages.length} รูป ต้องการโพสต่อไหมคะ?`,
+            showCancelButton: true, confirmButtonText: 'โพสต่อ', cancelButtonText: 'ยกเลิก', confirmButtonColor: 'var(--primary-pink)'
+          });
+          if (!proceedAnyway.isConfirmed) return;
+        }
+      }
+
+      const data = await blm48CreatePost(currentUser.username, content, imageUrlString, '', '', 'fan');
+      if (data.status === 'success') {
+        contentEl.value = '';
+        selectedFanPostImages = [];
+        renderFanPostImagePreviews();
+        Swal.close();
+        document.getElementById('fanpost-feed').querySelectorAll('.post-card').forEach(el => el.remove());
+        loadFanPostFeed();
+      } else {
+        Swal.fire('เกิดข้อผิดพลาด', data.message || 'โพสต์ไม่สำเร็จค่ะ', 'error');
+      }
+    } catch (error) {
+      console.error('Fan post submission failure:', error);
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: error.message || 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้ง' });
+    }
+  };
+
+  /* ==========================================
+     🎨 Sub-page nav icon theming (custom uploaded icons, no splash)
+     ========================================== */
+  function loadChampThemeSubPage() {
+    const CACHE_KEY = "bnl_winner_theme_cache";
+    const cachedDataStr = localStorage.getItem(CACHE_KEY);
+    if (cachedDataStr) {
+      try {
+        const cachedObj = JSON.parse(cachedDataStr);
+        applySubPageTheme(cachedObj.champ ? cachedObj.champ : cachedObj);
+      } catch (e) {}
+    }
+    blm48GetWinnerTheme().then(newData => {
+      const newChampData = newData.champ ? newData.champ : newData;
+      if (newChampData && newChampData.name) {
+        let cacheChampStr = "";
+        if (cachedDataStr) {
+          try {
+            const parsed = JSON.parse(cachedDataStr);
+            cacheChampStr = JSON.stringify(parsed.champ ? parsed.champ : parsed);
+          } catch (e) {}
+        }
+        if (cacheChampStr !== JSON.stringify(newChampData)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData));
+          applySubPageTheme(newChampData);
+        }
+      }
+    }).catch(e => console.error(e));
+  }
+  function applySubPageTheme(champData) {
+    if (!champData) return;
+    updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+    updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+    updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+    updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+  }
+  function updateSubPageIcon(imgId, fallbackId, iconUrl) {
+    const imgElement = document.getElementById(imgId);
+    const fallbackElement = document.getElementById(fallbackId);
+    if (imgElement && fallbackElement) {
+      if (iconUrl && iconUrl.trim() !== "") {
+        imgElement.src = iconUrl; imgElement.style.display = 'block'; fallbackElement.style.display = 'none';
+      } else {
+        imgElement.style.display = 'none'; fallbackElement.style.display = 'block';
+      }
+    }
+  }
 
   /* ==========================================
      🚀 Boot
@@ -1105,22 +1050,26 @@
       window.location.replace('login');
       return;
     }
-    isMemberRole = (user.role || '').toLowerCase() === 'member';
 
-    currentPostId = new URLSearchParams(window.location.search).get('id');
-    if (!currentPostId) {
-      document.getElementById('post-detail-content').innerHTML = `<div style="text-align: center; padding: 60px 20px; color: gray;">ไม่พบโพสต์ที่ต้องการแสดงค่ะ</div>`;
-      return;
+    const role = (user.role || '').toLowerCase();
+    isMemberRole = role === 'member';
+    if (role === 'user') {
+      document.getElementById('fanpost-composer').style.display = 'block';
+      initFanPostComposer();
+    } else if (isMemberRole) {
+      document.getElementById('fanpost-member-note').style.display = 'block';
     }
 
-    if (typeof primeMemberNameCache === 'function') {
-      try { await primeMemberNameCache(); } catch (e) {}
-    }
+    const tabProfileImg = document.getElementById('tab-profile-img');
+    if (tabProfileImg && user.profile_img) tabProfileImg.src = user.profile_img;
 
-    await loadSinglePost(true);
+    if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
+    loadChampThemeSubPage();
+
+    await loadFanPostFeed();
 
     if (typeof blm48SubscribePosts === 'function') {
-      blm48SubscribePosts(() => loadSinglePost(false), 500);
+      blm48SubscribePosts(() => loadFanPostFeed(), 500);
     }
   });
 </script>

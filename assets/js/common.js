@@ -138,9 +138,9 @@ function findPostIdFromElement(el) {
 }
 
 // แชร์โพสต์เป็นลิงก์ (เปิด native share sheet ถ้ามี ไม่งั้น copy ลิงก์ไปคลิปบอร์ด)
-async function actionSharePost(postId) {
+async function actionSharePost(postId, targetPage) {
   if (!postId) return;
-  const shareUrl = `${window.location.origin}/index?post=${encodeURIComponent(postId)}`;
+  const shareUrl = `${window.location.origin}/${targetPage || 'index'}?post=${encodeURIComponent(postId)}`;
   const shareData = { title: 'BLM48', text: 'มาดูโพสต์นี้ในแอป BLM48 กันเถอะ! 🌸', url: shareUrl };
 
   if (navigator.share) {

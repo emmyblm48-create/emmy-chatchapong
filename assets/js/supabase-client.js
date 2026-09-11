@@ -165,13 +165,14 @@ function blm48SubscribeRanking(onChange, debounceMs) {
 function blm48GetPosts(username) {
   return blm48Rpc('get_posts', { p_username: username || null });
 }
-function blm48CreatePost(username, content, imageUrl, audioUrl, videoUrl) {
+function blm48CreatePost(username, content, imageUrl, audioUrl, videoUrl, postType) {
   return blm48Rpc('create_post', {
     p_username: username,
     p_content: content || '',
     p_image_url: imageUrl || '',
     p_audio_url: audioUrl || '',
-    p_video_url: videoUrl || ''
+    p_video_url: videoUrl || '',
+    p_post_type: postType || 'member'
   });
 }
 function blm48LikePost(username, postId) {
@@ -299,6 +300,23 @@ function blm48SubscribePosts(onChange, debounceMs) {
 // month, members, oshi, wallet exchange, gacha catalog) - moved off Google
 // Apps Script/Sheets onto Supabase. Same "anon key can only call RPCs" lockdown.
 // ---------------------------------------------------------------------------
+
+// Monthly login streak (index.html modal): 2 rescue tickets/month to backfill a missed day
+// (1 rescue use per real day), 100 Token once the whole calendar month is checked in - either
+// clicked to claim on the last day, or auto-credited next time record_daily_login runs if they
+// never clicked.
+function blm48RecordDailyLogin(username) {
+  return blm48Rpc('record_daily_login', { p_username: username });
+}
+function blm48GetLoginStreakStatus(username) {
+  return blm48Rpc('get_login_streak_status', { p_username: username });
+}
+function blm48UseLoginRescue(username, dateStr) {
+  return blm48Rpc('use_login_rescue', { p_username: username, p_date: dateStr });
+}
+function blm48ClaimLoginMonthlyReward(username) {
+  return blm48Rpc('claim_login_monthly_reward', { p_username: username });
+}
 
 // Auth. login() checks the password; getUserInfo() is the silent session-refresh/
 // kill-switch call (no password check) used on every page load.

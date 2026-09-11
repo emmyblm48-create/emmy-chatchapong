@@ -87,10 +87,19 @@
         .form-msg { border-radius: 12px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 14px; display: none; }
         .form-msg.error { background: #ffeef0; color: #ff5c7a; display: block; }
 
+        .reward-card { border: 1px solid var(--glass-border); border-radius: 14px; padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.5); }
         .reward-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
         .reward-row select { flex: 1; margin: 0; }
         .reward-row input { width: 100px; flex: 0 0 auto; margin: 0; }
         .reward-row button { background: none; border: none; color: #ff5c7a; font-size: 17px; cursor: pointer; flex: 0 0 auto; }
+        .reward-role-toggle-label { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: #888; flex: 0 0 auto; white-space: nowrap; }
+        .reward-amount-both input { width: 100%; }
+        .reward-amount-split { display: none; gap: 8px; }
+        .reward-amount-split.show { display: flex; }
+        .reward-amount-both.hide { display: none; }
+        .reward-amount-split-item { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .reward-amount-split-item span { font-size: 10.5px; color: #999; font-weight: 600; }
+        .reward-amount-split-item input { width: 100%; margin: 0; }
         .btn-add-reward {
             background: none; border: 1px dashed var(--primary-pink); color: var(--primary-pink);
             border-radius: 20px; padding: 8px 16px; cursor: pointer; font-size: 13px; font-family: 'Kanit', sans-serif;
@@ -218,23 +227,53 @@
     }
   }
 
-  function addRewardRow(type, amount) {
+  function addRewardRow(type, amount, roleSplit, userAmount, memberAmount) {
     const container = document.getElementById('code-rewards');
-    const row = document.createElement('div');
-    row.className = 'reward-row';
-    row.innerHTML = `
-      <select class="reward-type">
-        <option value="token">Token</option>
-        <option value="cookie">Cookie</option>
-        <option value="getoken">GE Token</option>
-        <option value="legacy">Legacy (ที่ระลึก ไม่แจกกระเป๋าเงิน)</option>
-      </select>
-      <input type="number" class="reward-amount" min="0" value="0">
-      <button type="button" onclick="this.closest('.reward-row').remove()"><i class="fas fa-trash"></i></button>
+    const card = document.createElement('div');
+    card.className = 'reward-card';
+    card.innerHTML = `
+      <div class="reward-row">
+        <select class="reward-type">
+          <option value="token">Token</option>
+          <option value="cookie">Cookie</option>
+          <option value="getoken">GE Token</option>
+          <option value="legacy">Legacy (ที่ระลึก ไม่แจกกระเป๋าเงิน)</option>
+        </select>
+        <label class="reward-role-toggle-label">
+          <input type="checkbox" class="reward-role-toggle" onchange="toggleRewardRoleMode(this)"> แยกค่าตาม Role
+        </label>
+        <button type="button" onclick="this.closest('.reward-card').remove()"><i class="fas fa-trash"></i></button>
+      </div>
+      <div class="reward-amount-both">
+        <input type="number" class="reward-amount" min="0" value="0" placeholder="จำนวน (User และ Member เท่ากัน)">
+      </div>
+      <div class="reward-amount-split">
+        <div class="reward-amount-split-item">
+          <span>User ได้รับ</span>
+          <input type="number" class="reward-amount-user" min="0" value="0">
+        </div>
+        <div class="reward-amount-split-item">
+          <span>Member ได้รับ</span>
+          <input type="number" class="reward-amount-member" min="0" value="0">
+        </div>
+      </div>
     `;
-    container.appendChild(row);
-    if (type) row.querySelector('.reward-type').value = type;
-    if (amount !== undefined) row.querySelector('.reward-amount').value = amount;
+    container.appendChild(card);
+    if (type) card.querySelector('.reward-type').value = type;
+    if (amount !== undefined) card.querySelector('.reward-amount').value = amount;
+    if (roleSplit) {
+      card.querySelector('.reward-role-toggle').checked = true;
+      if (userAmount !== undefined) card.querySelector('.reward-amount-user').value = userAmount;
+      if (memberAmount !== undefined) card.querySelector('.reward-amount-member').value = memberAmount;
+      toggleRewardRoleMode(card.querySelector('.reward-role-toggle'));
+    }
+  }
+
+  function toggleRewardRoleMode(checkbox) {
+    const card = checkbox.closest('.reward-card');
+    const isSplit = checkbox.checked;
+    card.querySelector('.reward-amount-both').classList.toggle('hide', isSplit);
+    card.querySelector('.reward-amount-split').classList.toggle('show', isSplit);
   }
 
   async function submitCreateCode() {
@@ -245,17 +284,27 @@
 
     if (!code) { showFormError('กรุณากรอกรหัสโค้ด'); return; }
 
-    const rows = document.querySelectorAll('#code-rewards .reward-row');
-    if (rows.length === 0) { showFormError('กรุณาเพิ่มรางวัลอย่างน้อย 1 รายการ'); return; }
+    const cards = document.querySelectorAll('#code-rewards .reward-card');
+    if (cards.length === 0) { showFormError('กรุณาเพิ่มรางวัลอย่างน้อย 1 รายการ'); return; }
     const rewards = [];
     const seenTypes = new Set();
-    for (const row of rows) {
-      const type = row.querySelector('.reward-type').value;
-      const amount = parseFloat(row.querySelector('.reward-amount').value) || 0;
+    for (const card of cards) {
+      const type = card.querySelector('.reward-type').value;
       if (seenTypes.has(type)) { showFormError('เลือกรางวัลชนิดเดียวกันซ้ำกันไม่ได้ค่ะ'); return; }
       seenTypes.add(type);
-      if (type !== 'legacy' && amount <= 0) { showFormError('กรุณากรอกจำนวนรางวัลให้มากกว่า 0'); return; }
-      rewards.push({ type, amount });
+
+      const isSplit = card.querySelector('.reward-role-toggle').checked;
+      if (isSplit) {
+        const userAmount = parseFloat(card.querySelector('.reward-amount-user').value) || 0;
+        const memberAmount = parseFloat(card.querySelector('.reward-amount-member').value) || 0;
+        if (type !== 'legacy' && userAmount <= 0 && memberAmount <= 0) { showFormError('กรุณากรอกจำนวนรางวัลอย่างน้อย 1 Role ให้มากกว่า 0'); return; }
+        rewards.push({ type, amount: userAmount, role: 'user' });
+        rewards.push({ type, amount: memberAmount, role: 'member' });
+      } else {
+        const amount = parseFloat(card.querySelector('.reward-amount').value) || 0;
+        if (type !== 'legacy' && amount <= 0) { showFormError('กรุณากรอกจำนวนรางวัลให้มากกว่า 0'); return; }
+        rewards.push({ type, amount });
+      }
     }
 
     const expiryTime = expiryRaw ? new Date(expiryRaw).toISOString() : null;
@@ -305,7 +354,11 @@
     }
     list.innerHTML = codeCache.map((c, i) => {
       const expiryText = c.expiryTime ? new Date(c.expiryTime).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'ไม่มีวันหมดอายุ';
-      const rewardsText = (c.rewards || []).map(r => `${Number(r.amount).toLocaleString()} ${REWARD_LABELS[r.type] || r.type}`).join(' + ') || '-';
+      const rewardsText = (c.rewards || []).map(r => {
+        const label = `${Number(r.amount).toLocaleString()} ${REWARD_LABELS[r.type] || r.type}`;
+        if (!r.role) return label;
+        return `${label} (${r.role === 'user' ? 'User' : 'Member'})`;
+      }).join(' + ') || '-';
       const used = c.usedCount || 0;
       const canDelete = used === 0;
       return `
