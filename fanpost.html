@@ -456,10 +456,13 @@
         return;
       }
 
-      // get_posts already orders newest-first (created_at desc) - no reordering needed here.
+      // get_posts already orders newest-first (created_at desc). Only touch posts that changed:
+      // existing cards get their live counters patched in place (no re-render, images never
+      // reload); a post with no card yet gets inserted fresh - the rest of the feed is left alone.
+      const wasEmpty = container.querySelectorAll('.post-card').length === 0;
+      if (wasEmpty) container.innerHTML = '';
 
-      const existingCount = container.querySelectorAll('.post-card').length;
-      posts.forEach(post => {
+      [...posts].reverse().forEach(post => {
         const existingPost = document.getElementById(`post-${post.id}`);
         if (existingPost) {
           const likeCountEl = document.getElementById(`like-count-${post.id}`);
@@ -471,13 +474,12 @@
           if (commentCountEl) commentCountEl.innerText = postComments.length;
           const commentListEl = document.getElementById(`comment-list-${post.id}`);
           if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments, post.id);
+        } else {
+          container.insertAdjacentHTML('afterbegin', renderPost(post));
         }
       });
 
-      if (existingCount === 0) {
-        container.innerHTML = posts.map(renderPost).join('');
-        scrollToSharedPostFromUrl();
-      }
+      if (wasEmpty) scrollToSharedPostFromUrl();
     } catch (error) {
       console.error('โหลดฟีดแฟนคลับไม่สำเร็จ:', error);
       if (!container.querySelector('.post-card')) {
@@ -1015,7 +1017,6 @@
         renderFanPostImagePreviews();
         toggleFanPostComposer(false);
         Swal.close();
-        document.getElementById('fanpost-feed').querySelectorAll('.post-card').forEach(el => el.remove());
         loadFanPostFeed();
       } else {
         Swal.fire('เกิดข้อผิดพลาด', data.message || 'โพสต์ไม่สำเร็จค่ะ', 'error');
