@@ -220,11 +220,17 @@ body.glass-mesh-bg.force-white-bg {
    through the modal's translucent scrim. */
 .swal2-container {
   z-index: 20000 !important;
+}
+/* Toasts (Swal.fire({toast:true,...})) reuse this same container but sized/positioned to just
+   their corner (e.g. top-end), not the full viewport - SweetAlert2 still toggles the show/hide
+   backdrop classes on it regardless, so without this exclusion the toast's own little container
+   picks up the blur+dark tint below and renders as a stray tinted block behind the toast. */
+.swal2-container:not(:has(.swal2-toast)) {
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
-.swal2-container.swal2-backdrop-show,
-.swal2-container.swal2-backdrop-hide {
+.swal2-container.swal2-backdrop-show:not(:has(.swal2-toast)),
+.swal2-container.swal2-backdrop-hide:not(:has(.swal2-toast)) {
   background: rgba(74, 44, 54, 0.32) !important;
 }
 
