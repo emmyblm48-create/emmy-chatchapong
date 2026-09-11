@@ -2250,7 +2250,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         <i class="fas fa-list-check"></i>
         <span class="noti-badge" id="mission-badge" style="display: none;"></span>
     </a>
-    <a href="javascript:void(0)" class="nav-icon icon-wrapper" title="Log in รายเดือน" onclick="openLoginStreakModal()">
+    <a href="javascript:void(0)" class="nav-icon icon-wrapper" title="เช็คอินรายเดือน" onclick="openLoginStreakModal()">
         <i class="fas fa-calendar-check"></i>
         <span class="noti-badge" id="streak-badge" style="display: none;"></span>
     </a>
@@ -4579,23 +4579,23 @@ function renderLoginStreakModal() {
     btn.disabled = true;
     btn.classList.remove('claimable');
     btn.innerHTML = '<i class="fas fa-circle-check"></i> รับของรางวัลเดือนนี้แล้ว';
-    subtitleEl.textContent = `Log in ครบเดือนนี้แล้ว รับ 100 Tokens ไปเรียบร้อย!`;
+    subtitleEl.textContent = `เช็คอินครบเดือนนี้แล้ว รับ 100 Tokens ไปเรียบร้อย!`;
   } else if (loginStreakData.canClaim) {
     btn.disabled = false;
     btn.classList.add('claimable');
     btn.innerHTML = `<i class="fas fa-gift"></i> รับ 100 Tokens`;
-    subtitleEl.textContent = `Log in ครบทุกวันแล้ว! กดรับของรางวัลได้เลย`;
+    subtitleEl.textContent = `เช็คอินครบทุกวันแล้ว! กดรับของรางวัลได้เลย`;
   } else {
     btn.disabled = true;
     btn.classList.remove('claimable');
-    btn.textContent = 'Log in ให้ครบเดือนก่อนนะ';
-    subtitleEl.textContent = `Log in แล้ว ${loginStreakData.presentCount}/${loginStreakData.daysInMonth} วัน - ครบทุกวัน รับ 100 Tokens!`;
+    btn.textContent = 'เช็คอินให้ครบเดือนก่อนนะ';
+    subtitleEl.textContent = `เช็คอินแล้ว ${loginStreakData.presentCount}/${loginStreakData.daysInMonth} วัน • ครบเดือนรับ 100 Tokens เลย!`;
   }
 }
 
 async function openLoginStreakModal() {
   if (!user) {
-    Swal.fire('กรุณาเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนดูสถิติ Log in รายเดือน', 'info');
+    Swal.fire('กรุณาเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนดูสถิติเช็คอินรายเดือน', 'info');
     return;
   }
   const modal = document.getElementById('login-streak-modal');
@@ -4617,12 +4617,12 @@ function closeLoginStreakModal() {
 async function useLoginRescue(dateStr) {
   if (!user || !user.username) return;
   const result = await Swal.fire({
-    title: 'กู้วันที่พลาดล็อกอิน?',
-    html: `ใช้ตัวช่วย 1 ครั้ง เพื่อกู้วันที่ <b>${dateStr}</b> คืนมา`,
+    title: 'กู้วันที่พลาดเช็คอิน?',
+    html: `ใช้สิทธิ์กู้ 1 ครั้ง เพื่อกู้วันที่ <b>${dateStr}</b> คืนมา`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: 'var(--primary-pink)',
-    confirmButtonText: 'ใช้ตัวช่วย',
+    confirmButtonText: 'ใช้สิทธิ์กู้',
     cancelButtonText: 'ยกเลิก'
   });
   if (!result.isConfirmed) return;
@@ -5197,14 +5197,14 @@ document.addEventListener("DOMContentLoaded", () => {
 <div id="login-streak-modal" onclick="closeLoginStreakModal()">
   <div class="mission-card" onclick="event.stopPropagation()">
     <span class="mission-card-close" onclick="closeLoginStreakModal()">&times;</span>
-    <div class="mission-card-title"><i class="fas fa-calendar-check"></i> Log in รายเดือน</div>
-    <div class="mission-card-subtitle" id="streak-subtitle">Log in ให้ครบทุกวันในเดือนนี้ รับ 100 Tokens!</div>
+    <div class="mission-card-title"><i class="fas fa-calendar-check"></i> เช็คอินรายเดือน</div>
+    <div class="mission-card-subtitle" id="streak-subtitle">เช็คอินให้ครบทุกวันในเดือนนี้ รับ 100 Tokens เลย!</div>
     <div class="streak-rescue-row">
-      <span><i class="fas fa-heart-circle-bolt"></i> ตัวช่วยกู้วันที่พลาด</span>
+      <span><i class="fas fa-heart-circle-bolt"></i> สิทธิ์กู้วันที่พลาด</span>
       <b id="streak-rescue-count">2/2</b>
     </div>
     <div class="streak-calendar-grid" id="streak-calendar-grid"></div>
-    <button id="streak-claim-btn" disabled onclick="claimLoginStreakReward()">Log in ให้ครบเดือนก่อนนะ</button>
+    <button id="streak-claim-btn" disabled onclick="claimLoginStreakReward()">เช็คอินให้ครบเดือนก่อนนะ</button>
   </div>
 </div>
 
