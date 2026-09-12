@@ -447,8 +447,8 @@ function blm48ExchangeCookies(username, tokenPrice) {
 }
 
 // Gacha machine catalog (shop.html) - reads the already-synced collections/items tables.
-function blm48GetGachaCollections() {
-  return blm48Rpc('get_gacha_collections', {});
+function blm48GetGachaCollections(username) {
+  return blm48Rpc('get_gacha_collections', { p_username: username || null });
 }
 
 // Best-selling item per shop category (Cookie/Cafe/Gacha), by purchase count in wallet_logs.

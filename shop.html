@@ -2027,7 +2027,15 @@ async function loadGachaCollections() {
   if(!container) return;
   
   try {
-    const response = await blm48GetGachaCollections();
+    let sessionUsername = userData ? userData.username : null;
+    if (!sessionUsername) {
+      try {
+        const sessionStr = localStorage.getItem('bnl_session');
+        if (sessionStr) sessionUsername = (JSON.parse(sessionStr).data || {}).username || null;
+      } catch (e) { /* ignore malformed session */ }
+    }
+
+    const response = await blm48GetGachaCollections(sessionUsername);
     const collections = response.data || [];
 
     container.innerHTML = "";
@@ -2052,16 +2060,32 @@ async function loadGachaCollections() {
 
       let badgeHTML = '';
       const costX5 = col.CostTokensX5 || (col.CostTokens * 5);
-      let buttonHTML = `<div class="merch-gacha-actions">
+      const allowX5 = col.AllowX5 !== false;
+      // DrawsRemaining is only computed by the RPC when a logged-in username was passed;
+      // without it we don't know usage yet, so skip the cap UI rather than assume 0 remaining.
+      const hasDrawCap = col.MaxDrawsPerAccount !== null && col.MaxDrawsPerAccount !== undefined
+        && col.DrawsRemaining !== null && col.DrawsRemaining !== undefined;
+      const drawsRemaining = hasDrawCap ? Number(col.DrawsRemaining) : null;
+      const limitReached = hasDrawCap && drawsRemaining <= 0;
+
+      let buttonHTML;
+      if (limitReached) {
+        buttonHTML = `<button class="merch-button merch-button-disabled" disabled>
+                <i class="fas fa-ban"></i> Draw Limit Reached
+              </button>`;
+      } else {
+        const x5Disabled = hasDrawCap && drawsRemaining < 5;
+        buttonHTML = `<div class="merch-gacha-actions">
                 <button class="merch-button" onclick="buyGacha('${col.CollectionID}', 1)">
                   <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
                   <span class="pull-tier">Draw ×1</span>
                 </button>
-                <button class="merch-button" onclick="buyGacha('${col.CollectionID}', 5)">
+                ${allowX5 ? `<button class="merch-button${x5Disabled ? ' merch-button-disabled' : ''}" ${x5Disabled ? 'disabled' : `onclick="buyGacha('${col.CollectionID}', 5)"`}>
                   <i class="fas fa-coins"></i> ${costX5} Tokens
                   <span class="pull-tier">Draw ×5</span>
-                </button>
+                </button>` : ''}
               </div>`;
+      }
       if (isComingSoon) {
         badgeHTML = '<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>';
         buttonHTML = `<button class="merch-button merch-button-disabled" disabled>
@@ -2078,6 +2102,10 @@ async function loadGachaCollections() {
         ? `Opens ${new Date(col.SaleStartAt).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
         : (col.Description || 'Limited collection - draw for a chance at rare members');
 
+      const drawsInfoHTML = (!isComingSoon && !isSoldOut && hasDrawCap)
+        ? `<p class="merch-subtitle" style="color:#c53f5a;">${limitReached ? 'You have used all your draws for this collection.' : `Draws remaining: ${drawsRemaining} / ${col.MaxDrawsPerAccount}`}</p>`
+        : '';
+
       const cardHTML = `
           <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}">
             <div class="merch-image-container">
@@ -2088,6 +2116,7 @@ async function loadGachaCollections() {
               <span class="merch-category" style="color: #c53f5a;">[Merchandise]</span>
               <h3 class="merch-title">${col.CollectionName}</h3>
               <p class="merch-subtitle">${subtitle}</p>
+              ${drawsInfoHTML}
               ${buttonHTML}
             </div>
           </div>
