@@ -3598,8 +3598,8 @@ document.addEventListener('DOMContentLoaded', renderTracker);
     function hasManagementPermission(postAuthorUsername) {
         if (!user) return false;
         
-        // CEO และ Admin จัดการได้ทุกคน
-        if (user.role === 'CEO' || user.role === 'Admin') return true;
+        // CEO และ Admin จัดการได้ทุกคน (รวมบัญชีที่ได้รับสิทธิ์ Admin ควบผ่าน is_admin)
+        if (user.role === 'CEO' || user.role === 'Admin' || user.is_admin === true) return true;
         
         // สมาชิกทั่วไปจัดการได้แค่ของตัวเอง
         return user.username === postAuthorUsername;

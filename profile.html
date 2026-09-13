@@ -532,8 +532,8 @@ body {
       document.getElementById('edit-name-btn').style.display = 'inline-flex';
     }
 
-    // เมนูเฉพาะ Role Admin เท่านั้น (ลิงก์ไปหน้า Admin Dashboard แยกต่างหาก)
-    const isAdmin = user.role && user.role.toLowerCase() === 'admin';
+    // เมนูเฉพาะ Role Admin หรือบัญชีที่ได้รับสิทธิ์ Admin ควบ (is_admin) เท่านั้น (ลิงก์ไปหน้า Admin Dashboard แยกต่างหาก)
+    const isAdmin = (user.role && user.role.toLowerCase() === 'admin') || user.is_admin === true;
     const menuAdminDashboard = document.getElementById('menu-admin-dashboard');
     if (menuAdminDashboard) menuAdminDashboard.style.display = isAdmin ? 'flex' : 'none';
     if (isAdmin) loadAdminPendingBadge();

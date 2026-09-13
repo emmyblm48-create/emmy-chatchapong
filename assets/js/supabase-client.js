@@ -527,6 +527,12 @@ function blm48AdminSearchUsers(adminUsername, query) {
   return blm48Rpc('admin_search_users', { p_admin_username: adminUsername, p_query: query || '' });
 }
 
+// Every account's wallet (Token/Cookie/GEToken), Oshi/Kami-Oshi counts, and lifetime Fan Score
+// in one shot - powers the Excel-style table in admin_users.html.
+function blm48AdminGetUsersOverview(adminUsername) {
+  return blm48Rpc('admin_get_users_overview', { p_admin_username: adminUsername });
+}
+
 // Suspend (p_suspend=true) or reinstate (p_suspend=false) a user/member account. A suspended
 // account is blocked from logging in and gets signed out on its next session refresh, same as
 // the existing "account deleted / password cleared" kick-out flow already wired app-wide.
