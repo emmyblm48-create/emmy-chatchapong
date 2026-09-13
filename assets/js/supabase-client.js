@@ -154,6 +154,25 @@ function blm48SubscribeRanking(onChange, debounceMs) {
     .subscribe();
 }
 
+// Live-updates admin_users.html the instant any wallet (token/cookie/geToken) or Oshi/Kami-Oshi
+// row changes anywhere in the app. Listens on public.realtime_ping instead of public.users
+// directly - users holds password/wallet data, so it can never get a public RLS SELECT policy
+// (required for Realtime to deliver events to anon), while realtime_ping is just a topic+
+// timestamp a trigger touches on every users/user_oshi write (see migration
+// add_realtime_ping_for_admin_users_overview). onChange is called with no arguments - caller
+// re-fetches via admin_get_users_overview() same as the initial load.
+function blm48SubscribeAdminUsersOverview(onChange, debounceMs) {
+  let timer = null;
+  const trigger = () => {
+    clearTimeout(timer);
+    timer = setTimeout(onChange, debounceMs || 400);
+  };
+  return blm48Supabase
+    .channel('admin-users-overview-ping')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'realtime_ping', filter: 'topic=eq.admin_users_overview' }, trigger)
+    .subscribe();
+}
+
 // ---------------------------------------------------------------------------
 // Post system (feed, likes, comments) - moved off Google Apps Script/Sheets
 // and Firebase onto Supabase so posting/liking/commenting doesn't queue up
