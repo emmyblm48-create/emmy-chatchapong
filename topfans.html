@@ -380,7 +380,8 @@
                     ]);
 
                     renderSubjectChip(stats, memberName);
-                    renderTopFans(Array.isArray(fans) ? fans : [], 'ยังไม่มีแฟนคลับปาคุกกี้ให้เมมเบอร์คนนี้เลยค่ะ');
+                    const rankedFans = Array.isArray(fans) ? fans.filter(f => Number(f.total || 0) > 0) : [];
+                    renderTopFans(rankedFans, 'ยังไม่มีแฟนคลับปาคุกกี้ให้เมมเบอร์คนนี้เลยค่ะ');
                 } catch (error) {
                     console.error("Top fans fetch error:", error);
                     showError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ");
@@ -391,7 +392,8 @@
 
                 try {
                     const fans = await blm48GetGlobalTopFans();
-                    renderTopFans(Array.isArray(fans) ? fans : [], 'ยังไม่มีข้อมูลแฟนคลับเลยค่ะ');
+                    const rankedFans = Array.isArray(fans) ? fans.filter(f => Number(f.total || 0) > 0) : [];
+                    renderTopFans(rankedFans, 'ยังไม่มีข้อมูลแฟนคลับเลยค่ะ');
                 } catch (error) {
                     console.error("Global top fans fetch error:", error);
                     showError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ");
