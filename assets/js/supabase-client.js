@@ -512,6 +512,18 @@ function blm48AdminTransferWallet(adminUsername, targetUsername, token, cookie, 
 function blm48AdminGetTransferHistory(adminUsername, limit) {
   return blm48Rpc('admin_get_transfer_history', { p_admin_username: adminUsername, p_limit: limit || 100 });
 }
+// Every account's Token/Cookie/GEToken movement (purchases, admin transfers, redeem codes,
+// daily missions, Major Vote spends, gift sends), newest first, searchable + paginated -
+// powers admin_wallet_history.html. p_type: null/'wallet'/'vote'/'gift'.
+function blm48AdminGetWalletHistory(adminUsername, search, type, limit, offset) {
+  return blm48Rpc('admin_get_wallet_history', {
+    p_admin_username: adminUsername,
+    p_search: search || null,
+    p_type: type || null,
+    p_limit: limit || 50,
+    p_offset: offset || 0
+  });
+}
 
 // Pending-account approval queue (admin.html Dashboard) - accounts admin_create_user makes
 // start life as status='pending' and are blocked from logging in until an admin approves them

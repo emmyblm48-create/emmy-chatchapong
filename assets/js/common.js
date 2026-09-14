@@ -739,9 +739,11 @@ document.addEventListener('DOMContentLoaded', () => {
   blm48SubscribeNotifications((row) => {
     if (!row || !row.writer) return;
     const isBroadcast = !row.recipient_username;
-    // broadcast/admin rows ปกติไม่โชว์ toast เหมือนเดิม ยกเว้น notif_type='shop' (แจ้งเตือนสินค้าเปิดขาย
-    // ต้องเห็นทุกคน ดู check_shop_open_notifications() ฝั่ง Supabase ที่ยิง broadcast แบบนี้)
-    if (isBroadcast && row.notifType !== 'shop' && row.notif_type !== 'shop') return;
+    const broadcastTypeVal = row.notifType || row.notif_type;
+    // broadcast rows ปกติไม่โชว์ toast เหมือนเดิม ยกเว้น notif_type='shop' (แจ้งเตือนสินค้าเปิดขาย
+    // ต้องเห็นทุกคน ดู check_shop_open_notifications() ฝั่ง Supabase ที่ยิง broadcast แบบนี้) หรือ
+    // 'admin' (ประกาศที่แอดมินพิมพ์เองในหน้า notification.html - add_notification RPC)
+    if (isBroadcast && broadcastTypeVal !== 'shop' && broadcastTypeVal !== 'admin') return;
 
     const rowTs = row.created_at ? new Date(row.created_at).getTime() : Date.now();
     if (rowTs < subscribedAt) return; // ข้ามของเก่าที่อาจถูกส่งมาตอนเพิ่ง subscribe
@@ -757,9 +759,10 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('blm48_has_new_noti', 'true');
     if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
 
+    const notifTypeVal = row.notifType || row.notif_type;
     const targetUrl = row.post_id
       ? `postdetail?id=${encodeURIComponent(row.post_id)}`
-      : ((row.notifType || row.notif_type) === 'shop' ? 'shop.html' : 'notification.html');
+      : (notifTypeVal === 'shop' ? 'shop.html' : (notifTypeVal === 'wallet' ? 'history.html' : 'notification.html'));
     showIosNotification({
       avatar: row.avatar,
       title: row.writer,

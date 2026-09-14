@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | ประวัติการใช้เหรียญ</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 18px; }
+        .header-title-zone h1 { color: var(--primary-pink); font-family: 'Kanit', sans-serif; font-size: 22px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .search-box {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            border-radius: 14px; padding: 10px 14px; margin-bottom: 12px;
+        }
+        .search-box i { color: #bbb; }
+        .search-box input {
+            flex: 1; border: none; outline: none; background: transparent;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13.5px; color: #333;
+        }
+
+        .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; scrollbar-width: none; }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            color: #888; border: 1px solid var(--glass-border);
+            padding: 8px 16px; border-radius: 14px;
+            font-family: 'Kanit', sans-serif; font-size: 12.5px; font-weight: 500;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+            transition: all 0.2s ease; box-shadow: var(--glass-shadow-sm);
+        }
+        .filter-tab:hover { border-color: var(--primary-pink); color: var(--primary-pink); }
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
+            color: white; border-color: transparent; font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255,133,162,0.3);
+        }
+
+        .entry-list { display: flex; flex-direction: column; gap: 10px; }
+        .entry-row {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 12px 14px;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        .entry-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
+        .entry-icon {
+            flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 10px;
+            position: relative; margin-left: -18px; margin-top: 20px; border: 2px solid #fff;
+        }
+        .entry-body { flex: 1; min-width: 0; }
+        .entry-user { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-timestamp { font-size: 10px; color: #ccc; margin-top: 2px; }
+        .entry-amount { flex: 0 0 auto; text-align: right; }
+        .entry-amount-main { font-weight: 800; font-size: 14px; white-space: nowrap; }
+
+        .btn-load-more {
+            display: block; width: 100%; margin-top: 14px; padding: 12px;
+            border: 1px dashed var(--card-border); border-radius: 14px; background: transparent;
+            color: var(--primary-pink); font-family: 'Kanit', sans-serif; font-weight: 600;
+            font-size: 13px; cursor: pointer;
+        }
+        .btn-load-more:hover { background: #fff0f3; }
+        .btn-load-more:disabled { color: #ccc; cursor: not-allowed; }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">ประวัติการใช้เหรียญ</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-clock-rotate-left"></i> ประวัติการใช้เหรียญ</h1>
+            <p>รวมความเคลื่อนไหว Token / GE Token / Cookie ของทุกบัญชี</p>
+        </div>
+
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" placeholder="ค้นหาด้วย Username หรือชื่อ...">
+        </div>
+
+        <div class="filter-tabs" id="filter-tabs">
+            <button type="button" class="filter-tab active" data-type=""><i class="fa-solid fa-layer-group"></i> All</button>
+            <button type="button" class="filter-tab" data-type="wallet"><i class="fa-solid fa-wallet"></i> Wallet</button>
+            <button type="button" class="filter-tab" data-type="vote"><i class="fa-solid fa-crown"></i> Vote</button>
+            <button type="button" class="filter-tab" data-type="gift"><i class="fa-solid fa-gift"></i> Gift</button>
+        </div>
+
+        <div id="history-content">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let user = null;
+    let currentType = '';
+    let currentSearch = '';
+    let currentOffset = 0;
+    let currentTotal = 0;
+    let entries = [];
+    const PAGE_SIZE = 30;
+    let loadSeq = 0;
+    let searchDebounceTimer = null;
+
+    function goBack() {
+        if (document.referrer && window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = 'admin';
+        }
+    }
+
+    function resolveDriveImage(url) {
+        const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+        if (!url) return fallback;
+        if (url.includes('drive.google.com')) {
+            const driveMatch = url.match(/[-\w]{25,}/);
+            return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+        }
+        return url;
+    }
+
+    function safeDate(ts) {
+        const d = new Date(ts);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function formatTime(ts) {
+        const d = safeDate(ts);
+        return d ? d.toLocaleString('en-GB', { timeZone: 'Asia/Bangkok' }) : '-';
+    }
+
+    // เดาสกุลเงินจากชื่อ action/target เพื่อเลือกไอคอน/สี/เครื่องหมายหน้าตัวเลขให้เหมาะสม
+    function guessCurrency(row) {
+        const t = (row.title || '') + ' ' + (row.subtitle || '') + ' ' + (row.tokenType || '');
+        const lower = t.toLowerCase();
+        if (row.type === 'gift') return { label: 'Cookie', icon: 'fa-cookie-bite', color: '#d2691e', sign: '-' };
+        if (row.type === 'vote') {
+            const isGe = lower.includes('ge token') || lower.includes('getoken');
+            return isGe ? { label: 'GE Token', icon: 'fa-gem', color: '#4dabf7', sign: '-' } : { label: 'Token', icon: 'fa-coins', color: '#f59f00', sign: '-' };
+        }
+        // type === 'wallet'
+        if (lower.includes('ge token') || lower.includes('getoken')) return { label: 'GE Token', icon: 'fa-gem', color: '#4dabf7', sign: null };
+        if (lower.includes('cookie') || lower.includes('คุกกี้')) return { label: 'Cookie', icon: 'fa-cookie-bite', color: '#d2691e', sign: null };
+        return { label: 'Token', icon: 'fa-coins', color: '#f59f00', sign: null };
+    }
+
+    // เดาว่าเป็นรายการรับเข้า (+) หรือจ่ายออก (-) จากชื่อ action ที่รู้จัก ถ้าไม่แน่ใจไม่ใส่เครื่องหมาย
+    function guessSign(row, currency) {
+        if (currency.sign) return currency.sign;
+        const title = row.title || '';
+        // หมายเหตุ: 'แลกซื้อคุกกี้'/'Exchange Cookies' ไม่ใส่ไว้ในนี้ - amount ที่บันทึกไว้คือ
+        // "คุกกี้ที่ได้รับ" (เครดิต) ส่วน Token ที่หักไปจริงถูกเก็บแยกไว้ใน target (เช่น '-10')
+        const debitActions = ['Buy Direct', 'Gacha', 'Buy Gift', 'Buy Preorder', 'Give Cookie'];
+        if (debitActions.includes(title)) return '-';
+        return '+';
+    }
+
+    async function loadHistory(reset) {
+        if (reset) {
+            currentOffset = 0;
+            entries = [];
+        }
+        const mySeq = ++loadSeq;
+        const content = document.getElementById('history-content');
+        if (reset) {
+            content.innerHTML = `<div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>`;
+        }
+        try {
+            const res = await blm48AdminGetWalletHistory(user.username, currentSearch, currentType, PAGE_SIZE, currentOffset);
+            if (mySeq !== loadSeq) return; // ผลลัพธ์เก่าจากการค้นหา/กรองรอบก่อน ไม่ต้องเอามาแสดงทับ
+            if (!res || res.status !== 'success') {
+                content.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>โหลดข้อมูลไม่สำเร็จ</div>`;
+                return;
+            }
+            currentTotal = res.total || 0;
+            entries = entries.concat(res.data || []);
+            currentOffset = entries.length;
+            renderEntries();
+        } catch (e) {
+            if (mySeq !== loadSeq) return;
+            console.error(e);
+            content.innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i>เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+        }
+    }
+
+    function renderEntries() {
+        const content = document.getElementById('history-content');
+        if (entries.length === 0) {
+            content.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox"></i>ไม่พบประวัติในหมวดนี้เลยค่ะ</div>`;
+            return;
+        }
+
+        const rows = entries.map(row => {
+            const currency = guessCurrency(row);
+            const sign = guessSign(row, currency);
+            const amountText = `${sign}${Number(row.amount || 0).toLocaleString()} ${currency.label}`;
+
+            // 'แลกซื้อคุกกี้'/'Exchange Cookies' เก็บฝั่ง Token ที่หักไปไว้ใน subtitle เป็นเลขติดลบดิบๆ
+            // (เช่น '-10') แปลงให้อ่านง่ายขึ้นแทนการโชว์ตัวเลขดิบ
+            let subtitleText = row.subtitle || '';
+            if (row.title === 'แลกซื้อคุกกี้' || row.title === 'Exchange Cookies') {
+                const tokenSpent = Math.abs(parseFloat(subtitleText)) || 0;
+                subtitleText = `ใช้ ${tokenSpent.toLocaleString()} Token แลก`;
+            }
+
+            return `
+                <div class="entry-row">
+                    <div style="position:relative;">
+                        <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(row.avatar))}" alt="">
+                        <div class="entry-icon" style="background:${currency.color};color:#fff;"><i class="fa-solid ${currency.icon}"></i></div>
+                    </div>
+                    <div class="entry-body">
+                        <div class="entry-user">${escapeHtml(row.name || row.username)} <span style="color:#ccc;">@${escapeHtml(row.username)}</span></div>
+                        <div class="entry-title">${escapeHtml(row.title || '')}</div>
+                        <div class="entry-subtitle">${escapeHtml(subtitleText)}</div>
+                        <div class="entry-timestamp">${formatTime(row.timestamp)}</div>
+                    </div>
+                    <div class="entry-amount">
+                        <div class="entry-amount-main" style="color:${currency.color};">${amountText}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const hasMore = entries.length < currentTotal;
+        content.innerHTML = `
+            <div class="entry-list">${rows}</div>
+            ${hasMore ? `<button type="button" class="btn-load-more" id="btn-load-more"><i class="fa-solid fa-chevron-down"></i> โหลดเพิ่มเติม (${entries.length.toLocaleString()} / ${currentTotal.toLocaleString()})</button>` : ''}
+        `;
+
+        const btnMore = document.getElementById('btn-load-more');
+        if (btnMore) {
+            btnMore.addEventListener('click', async () => {
+                btnMore.disabled = true;
+                btnMore.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
+                await loadHistory(false);
+            });
+        }
+    }
+
+    document.getElementById('filter-tabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('.filter-tab');
+        if (!btn) return;
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        currentType = btn.dataset.type;
+        loadHistory(true);
+    });
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+        clearTimeout(searchDebounceTimer);
+        const value = e.target.value.trim();
+        searchDebounceTimer = setTimeout(() => {
+            currentSearch = value;
+            loadHistory(true);
+        }, 350);
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        user = getUserSession();
+        if (!user) {
+            window.location.href = 'login';
+            return;
+        }
+        if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+            document.getElementById('access-denied').style.display = 'block';
+            return;
+        }
+        document.getElementById('page-content').style.display = 'block';
+        loadHistory(true);
+    });
+</script>
+</body>
+</html>
