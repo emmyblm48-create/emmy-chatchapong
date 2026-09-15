@@ -213,7 +213,7 @@ body.glass-mesh-bg.force-white-bg {
   color: #6b6b6b !important;
 }
 
-/* Dim/blur the page behind the popup instead of a flat dark scrim.
+/* Dim the page behind the popup with a plain dark scrim (no blur - see note below).
    z-index forced above every custom modal/overlay in the app (gift modal,
    gacha modal, sidebar, etc. all sit at 1999-9999) so Swal always renders
    on top instead of behind them, which otherwise tints its white background
@@ -224,11 +224,14 @@ body.glass-mesh-bg.force-white-bg {
 /* Toasts (Swal.fire({toast:true,...})) reuse this same container but sized/positioned to just
    their corner (e.g. top-end), not the full viewport - SweetAlert2 still toggles the show/hide
    backdrop classes on it regardless, so without this exclusion the toast's own little container
-   picks up the blur+dark tint below and renders as a stray tinted block behind the toast. */
-.swal2-container:not(:has(.swal2-toast)) {
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
+   picks up the dark tint below and renders as a stray tinted block behind the toast.
+
+   ⚡ No backdrop-filter here on purpose: this is a full-viewport layer that toggles on/off with
+   every single Swal.fire() across the whole app (buy/vote/gift/confirm/delete...), animating in
+   with a scale+fade. Blurring the whole screen behind it every time - especially stacked on top
+   of pages that already have their own large-radius glass blur (nav bars use 42px) - was the
+   main cause of the alert/confirm lag reported 2026-09-16; a plain dark scrim costs the compositor
+   almost nothing by comparison, and the popup card itself keeps its glass look regardless. */
 .swal2-container.swal2-backdrop-show:not(:has(.swal2-toast)),
 .swal2-container.swal2-backdrop-hide:not(:has(.swal2-toast)) {
   background: rgba(74, 44, 54, 0.32) !important;
