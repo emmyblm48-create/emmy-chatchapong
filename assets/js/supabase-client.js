@@ -191,12 +191,16 @@ function blm48GetPosts(username) {
 // scrolling (same reasoning Facebook/Instagram-style feeds use cursors instead of page numbers).
 // includePostId optionally pins one specific post into the result even if it falls outside the
 // current page (for shared post links that need to be found/scrolled-to without loading everything).
-function blm48GetPostsPage(username, limit, beforeEpochMs, includePostId) {
+// authorFilter optionally limits to one author's posts server-side (matches authorName or
+// authorUsername case-insensitively) - used by member.html's per-member feed section instead of
+// fetching every post and filtering client-side.
+function blm48GetPostsPage(username, limit, beforeEpochMs, includePostId, authorFilter) {
   return blm48Rpc('get_posts_page', {
     p_username: username || null,
     p_limit: limit || 20,
     p_before_epoch_ms: beforeEpochMs || null,
-    p_include_post_id: includePostId || null
+    p_include_post_id: includePostId || null,
+    p_author_filter: authorFilter || null
   });
 }
 function blm48CreatePost(username, content, imageUrl, audioUrl, videoUrl, postType) {

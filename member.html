@@ -754,7 +754,7 @@
         <div id="champ-thanks-content"></div>
       </div>
       
-      <div class="member-feed-section" style="margin-top: 25px;">
+      <div class="member-feed-section" id="member-feed" style="margin-top: 25px;">
         <div class="leaderboard-title"><i class="fas fa-stream"></i> Latest Top Posts</div>
         <div id="posts-container">
            <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
@@ -1693,6 +1693,16 @@ function renderPost(post) {
   `;
 }
 
+ // 🌸 เหมือนกับที่ทำใน index.html (Facebook/Instagram-style cursor-based infinite scroll) -
+ // เดิมหน้านี้ดึง blm48GetPosts() ทั้งหมดแล้วค่อยกรองเอาเฉพาะโพสต์ของเมมเบอร์คนนี้ทิ้งของคนอื่นไปเกือบหมด
+ // ตอนนี้กรองที่ฝั่งเซิร์ฟเวอร์ผ่าน get_posts_page(p_author_filter) แทน พร้อม cursor pagination
+ const MEMBER_FEED_PAGE_SIZE = 20;
+ let memberFeedCursor = null;
+ let memberFeedHasMore = true;
+ let memberFeedPaginated = false;
+ let memberFeedLoadingMore = false;
+ let memberFeedObserver = null;
+
  async function loadMemberTimelinePosts() {
   if (window.isTimelineLoading) return;
   const container = document.getElementById('posts-container');
@@ -1752,36 +1762,28 @@ function renderPost(post) {
     window.isTimelineLoading = true;
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
-    let posts = await blm48GetPosts(username);
+    const res = await blm48GetPostsPage(username, MEMBER_FEED_PAGE_SIZE, null, null, memberName);
 
-    // 🛡️ blm48GetPosts คืน object { status:'error', ... } แทน array เวลาเน็ตเวิร์คมีปัญหา
-    // ต้องเช็คทิ้งตรงนี้ ไม่งั้น posts.filter/.reverse() ข้างล่างจะพัง
-    if (!Array.isArray(posts)) {
-      throw new Error((posts && posts.message) || 'ไม่สามารถดึงข้อมูลโพสต์ได้');
+    // 🛡️ blm48Rpc คืน object { status:'error', ... } แทน array เวลาเน็ตเวิร์คมีปัญหา ต้องเช็คทิ้งตรงนี้
+    if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
+      throw new Error((res && res.message) || 'ไม่สามารถดึงข้อมูลโพสต์ได้');
     }
 
-    if (posts && posts.length > 0) {
-      const oldPostsCache = localStorage.getItem('blm48_posts_cache');
-      if (oldPostsCache !== JSON.stringify(posts)) {
-        localStorage.removeItem('blm48_posts_cache');
-      }
-      localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+    let memberPosts = res.data;
+
+    // 🛡️ ถ้าผู้ใช้เลื่อนโหลดเกินหน้าแรกไปแล้ว การรีเฟรชรอบนี้จาก Realtime แค่ไล่จับโพสต์/ไลก์/คอมเมนต์
+    // ใหม่สุดที่หัวฟีด ไม่ควรไปรีเซ็ต cursor/hasMore ที่ใช้ต่อโพสต์เก่าอยู่ทับ
+    if (!memberFeedPaginated && memberPosts.length > 0) {
+      memberFeedCursor = memberPosts[memberPosts.length - 1].createdAtEpochMs;
+      memberFeedHasMore = !!res.hasMore;
     }
-    
+
+    if (memberPosts.length > 0) {
+      localStorage.setItem('blm48_posts_cache', JSON.stringify(memberPosts));
+    }
+
     const loadingMsg = document.getElementById('loading-msg');
     if (loadingMsg) loadingMsg.remove();
-
-    if (!posts || posts.length === 0) {
-        if (!hasExistingPosts) {
-           container.innerHTML = '<div style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">ยังไม่มีโพสต์ในระบบงับ</div>';
-        }
-        return;
-    }
-
-    let memberPosts = posts.filter(post => 
-        (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
-        (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
-    );
 
     if (memberPosts.length === 0) {
         if (!hasExistingPosts) {
@@ -1790,7 +1792,7 @@ function renderPost(post) {
         return;
     }
 
-    memberPosts.reverse(); 
+    memberPosts.reverse();
 
     memberPosts.forEach(post => {
       const existingPost = document.getElementById(`post-${post.id}`);
@@ -1814,6 +1816,8 @@ function renderPost(post) {
       }
     });
 
+    setupMemberFeedInfiniteScroll();
+
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
     if (!hasExistingPosts) {
@@ -1821,6 +1825,77 @@ function renderPost(post) {
     }
   } finally {
     window.isTimelineLoading = false;
+  }
+}
+
+// 🌸 sentinel ท้ายฟีด - เลื่อนใกล้ถึงโหลดโพสต์เก่าเพิ่มเองอัตโนมัติ เหมือน index.html
+function setupMemberFeedInfiniteScroll() {
+  const feedSection = document.getElementById('member-feed');
+  if (!feedSection) return;
+
+  let sentinel = document.getElementById('member-feed-scroll-sentinel');
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.id = 'member-feed-scroll-sentinel';
+    sentinel.style.cssText = 'text-align:center; padding:16px 0; color:#bbb; font-size:0.85rem; min-height:20px;';
+    feedSection.appendChild(sentinel);
+  }
+
+  if (!memberFeedHasMore) {
+    if (memberFeedObserver) { memberFeedObserver.disconnect(); memberFeedObserver = null; }
+    sentinel.innerHTML = document.querySelectorAll('#posts-container .post-card').length > 0
+      ? '<i class="fa-solid fa-check"></i> คุณดูครบทุกโพสต์แล้วค่ะ'
+      : '';
+    return;
+  }
+
+  sentinel.innerHTML = '';
+  if (memberFeedObserver) return;
+
+  memberFeedObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) loadMoreMemberFeedPosts();
+  }, { rootMargin: '400px' });
+  memberFeedObserver.observe(sentinel);
+}
+
+async function loadMoreMemberFeedPosts() {
+  if (memberFeedLoadingMore || window.isTimelineLoading || !memberFeedHasMore) return;
+  const container = document.getElementById('posts-container');
+  const sentinel = document.getElementById('member-feed-scroll-sentinel');
+  if (!container) return;
+
+  memberFeedLoadingMore = true;
+  memberFeedPaginated = true;
+  if (sentinel) sentinel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
+
+  try {
+    const currentUser = getUserSession();
+    const username = currentUser ? currentUser.username : "";
+    const res = await blm48GetPostsPage(username, MEMBER_FEED_PAGE_SIZE, memberFeedCursor, null, memberName);
+
+    if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
+      throw new Error((res && res.message) || 'โหลดโพสต์เพิ่มเติมไม่สำเร็จ');
+    }
+
+    res.data.forEach(post => {
+      if (!document.getElementById(`post-${post.id}`)) {
+        container.insertAdjacentHTML('beforeend', renderPost(post));
+      }
+    });
+
+    if (res.data.length > 0) {
+      memberFeedCursor = res.data[res.data.length - 1].createdAtEpochMs;
+    }
+    memberFeedHasMore = !!res.hasMore;
+
+    setupMemberFeedInfiniteScroll();
+  } catch (error) {
+    console.error("โหลดโพสต์เพิ่มเติมล้มเหลว:", error);
+    if (sentinel) {
+      sentinel.innerHTML = '<span style="color:#ff4d4d; cursor:pointer;" onclick="loadMoreMemberFeedPosts()"><i class="fa-solid fa-rotate-right"></i> โหลดไม่สำเร็จ แตะเพื่อลองใหม่</span>';
+    }
+  } finally {
+    memberFeedLoadingMore = false;
   }
 }
 
