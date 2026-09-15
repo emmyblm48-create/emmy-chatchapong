@@ -3917,11 +3917,17 @@ function renderPost(post) {
 // 🌸 ฟีดหน้าแรกเคยดึง get_posts() ทั้งหมดทีเดียว (~1,200 โพสต์ + ~6,500 คอมเมนต์ ~3MB ต่อครั้ง)
 // ทุกครั้งที่โหลดหน้า "และ" ทุกครั้งที่มีการไลก์/คอมเมนต์/โพสต์ใหม่ทั่วทั้งแอป (Realtime) ทำให้ฟีด
 // โหลดช้า/ error บ่อยขึ้นเรื่อยๆ ตามจำนวนโพสต์ที่เพิ่มขึ้น (ยิ่งเยอะขึ้นหลังมีฟีเจอร์ Fan Club)
-// เปลี่ยนมาใช้ get_posts_page() แบบแบ่งหน้าแทน - โหลดครั้งแรกแค่ 20 โพสต์ล่าสุด กดปุ่ม "โหลดเพิ่มเติม"
-// เพื่อดึงโพสต์เก่าถัดไป
+// เปลี่ยนมาใช้ get_posts_page() แบบ cursor-based infinite scroll แทน (แบบ Facebook/Instagram):
+// เลื่อนใกล้ล่างสุดค่อยโหลดโพสต์เก่าถัดไปเองอัตโนมัติ โดยใช้ "เวลาของโพสต์เก่าสุดที่โหลดไปแล้ว" เป็น
+// cursor แทนการนับ offset ตัวเลข กันโพสต์ตกหล่น/ซ้ำเวลามีโพสต์ใหม่แทรกเข้ามาระหว่างที่เลื่อนอยู่
+// และเวลาโหลดพลาด จะไม่ล้างโพสต์ที่มีอยู่แล้วทิ้งเป็นข้อความ error เต็มจอ - แค่โชว์ปุ่มลองใหม่เล็กๆ
+// ตรงจุดที่ค้างแทน เหมือนแอปใหญ่ๆ ทำกัน
 const FEED_PAGE_SIZE = 20;
-let feedOffset = 0;
-let feedTotal = 0;
+let feedCursor = null; // createdAtEpochMs ของโพสต์เก่าสุดที่โหลดไปแล้ว, null = ยังไม่เคยโหลด/อยู่หน้าแรก
+let feedHasMore = true;
+let feedPaginated = false; // true ทันทีที่ผู้ใช้เลื่อนโหลดเกินหน้าแรกไปแล้ว - กัน realtime refresh มารีเซ็ต cursor ทับ
+let feedLoadingMore = false;
+let feedObserver = null;
 let feedIncludedSharedPost = false;
 
 async function loadTimelinePosts() {
@@ -3972,7 +3978,7 @@ async function loadTimelinePosts() {
     // ดึงเฉพาะหน้าแรกเสมอ (ไล่จับโพสต์/ไลก์/คอมเมนต์ใหม่สุด) - ถ้ามีลิงก์แชร์โพสต์เก่าที่ตกหน้าแรกไป
     // ให้แนบ post id นั้นไปด้วยครั้งเดียวตอนเปิดหน้า เพื่อให้ RPC แถมโพสต์นั้นมาด้วยแม้จะอยู่นอกหน้าแรก
     const sharedPostId = !feedIncludedSharedPost ? new URLSearchParams(window.location.search).get('post') : null;
-    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, 0, sharedPostId);
+    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, null, sharedPostId);
     feedIncludedSharedPost = true;
 
     // 🛡️ blm48Rpc คืน object { status:'error', ... } เวลาเน็ตเวิร์คมีปัญหา ต้องเช็คทิ้งตรงนี้
@@ -3981,8 +3987,13 @@ async function loadTimelinePosts() {
     }
 
     let posts = res.data;
-    feedTotal = res.total || 0;
-    feedOffset = Math.min(FEED_PAGE_SIZE, posts.length);
+
+    // 🛡️ ถ้าผู้ใช้เลื่อนโหลดเกินหน้าแรกไปแล้ว (feedPaginated) การรีเฟรชรอบนี้มาจาก Realtime แค่ไล่จับ
+    // โพสต์/ไลก์/คอมเมนต์ใหม่สุดที่หัวฟีด ไม่ควรไปรีเซ็ต cursor/hasMore ที่ใช้ต่อโพสต์เก่าอยู่ทับ
+    if (!feedPaginated && posts.length > 0) {
+      feedCursor = posts[posts.length - 1].createdAtEpochMs; // เรียงใหม่->เก่า ตัวท้ายสุดคือเก่าสุดในหน้านี้
+      feedHasMore = !!res.hasMore;
+    }
 
     // หากดึงข้อมูลจากเซอร์เวอร์มาแล้วไม่มีโพสต์เลย
     if (!posts || posts.length === 0) {
@@ -4027,7 +4038,7 @@ async function loadTimelinePosts() {
       }
     });
 
-    renderFeedLoadMoreButton();
+    setupFeedInfiniteScroll();
 
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
@@ -4040,51 +4051,55 @@ async function loadTimelinePosts() {
   }
 }
 
-// 🌸 ปุ่ม "โหลดเพิ่มเติม" ท้ายฟีด - แสดงเฉพาะตอนยังมีโพสต์เก่ากว่าที่ยังไม่ได้โหลด
-function renderFeedLoadMoreButton() {
+// 🌸 ตั้ง sentinel ท้ายฟีดไว้ให้ IntersectionObserver คอยจับ - เลื่อนใกล้ถึงจะโหลดโพสต์เก่าเพิ่มเองอัตโนมัติ
+// (ไม่มีปุ่มให้กด เหมือน Facebook/Instagram) ถ้าไม่มีโพสต์เก่ากว่าแล้วโชว์ข้อความจบฟีดแทน
+function setupFeedInfiniteScroll() {
   const feedSection = document.getElementById('blm48-feed');
   if (!feedSection) return;
-  let btn = document.getElementById('feed-load-more-btn');
 
-  if (feedOffset >= feedTotal) {
-    if (btn) btn.remove();
+  let sentinel = document.getElementById('feed-scroll-sentinel');
+  if (!sentinel) {
+    sentinel = document.createElement('div');
+    sentinel.id = 'feed-scroll-sentinel';
+    sentinel.style.cssText = 'text-align:center; padding:16px 0; color:#bbb; font-size:0.85rem; min-height:20px;';
+    feedSection.appendChild(sentinel);
+  }
+
+  if (!feedHasMore) {
+    if (feedObserver) { feedObserver.disconnect(); feedObserver = null; }
+    sentinel.innerHTML = document.querySelectorAll('#posts-container .post-card').length > 0
+      ? '<i class="fa-solid fa-check"></i> คุณดูครบทุกโพสต์แล้วค่ะ'
+      : '';
     return;
   }
 
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'feed-load-more-btn';
-    btn.type = 'button';
-    btn.style.cssText = 'display:block; width:100%; margin-top:14px; padding:12px; border:1px dashed var(--primary-pink); border-radius:14px; background:transparent; color:var(--primary-pink); font-weight:600; font-size:0.9rem; cursor:pointer;';
-    btn.onclick = loadMoreFeedPosts;
-    feedSection.appendChild(btn);
-  }
-  btn.disabled = false;
-  btn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> See more (${feedOffset.toLocaleString()} / ${feedTotal.toLocaleString()})`;
+  sentinel.innerHTML = '';
+  if (feedObserver) return; // observer เดิมยัง observe sentinel ตัวเดิมอยู่แล้ว ไม่ต้องสร้างซ้ำ
+
+  feedObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) loadMoreFeedPosts();
+  }, { rootMargin: '400px' }); // เริ่มโหลดล่วงหน้าก่อนเลื่อนไปถึงจริงๆ กันจอกระตุกรอโหลด
+  feedObserver.observe(sentinel);
 }
 
 async function loadMoreFeedPosts() {
-  const btn = document.getElementById('feed-load-more-btn');
+  if (feedLoadingMore || window.isTimelineLoading || !feedHasMore) return;
   const container = document.getElementById('posts-container');
-  if (!container || window.isTimelineLoading) return;
+  const sentinel = document.getElementById('feed-scroll-sentinel');
+  if (!container) return;
+
+  feedLoadingMore = true;
+  feedPaginated = true; // ตั้งแต่นี้ไป realtime refresh ที่หัวฟีดจะไม่มายุ่งกับ cursor/hasMore ตัวนี้อีก
+  if (sentinel) sentinel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
 
   try {
-    window.isTimelineLoading = true;
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
-    }
-
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
-    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, feedOffset);
+    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, feedCursor);
 
     if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
       throw new Error((res && res.message) || 'โหลดโพสต์เพิ่มเติมไม่สำเร็จ');
     }
-
-    feedTotal = res.total || feedTotal;
-    feedOffset += res.data.length;
 
     // โพสต์เก่ากว่าเรียงจากใหม่ไปเก่าเหมือนเดิม - ต่อท้าย container ตามลำดับปกติ (ไม่ต้อง reverse)
     res.data.forEach(post => {
@@ -4093,15 +4108,21 @@ async function loadMoreFeedPosts() {
       }
     });
 
-    renderFeedLoadMoreButton();
+    if (res.data.length > 0) {
+      feedCursor = res.data[res.data.length - 1].createdAtEpochMs;
+    }
+    feedHasMore = !!res.hasMore;
+
+    setupFeedInfiniteScroll();
   } catch (error) {
     console.error("โหลดโพสต์เพิ่มเติมล้มเหลว:", error);
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> โหลดไม่สำเร็จ ลองใหม่อีกครั้ง';
+    // 🌟 สไตล์ Facebook/Instagram: โพสต์ที่โหลดไว้แล้วยังอยู่ครบ ไม่ล้างทิ้งเป็นข้อความ error เต็มจอ
+    // แค่โชว์ปุ่มลองใหม่เล็กๆ ตรงจุดที่ค้างแทน
+    if (sentinel) {
+      sentinel.innerHTML = '<span style="color:#ff4d4d; cursor:pointer;" onclick="loadMoreFeedPosts()"><i class="fa-solid fa-rotate-right"></i> โหลดไม่สำเร็จ แตะเพื่อลองใหม่</span>';
     }
   } finally {
-    window.isTimelineLoading = false;
+    feedLoadingMore = false;
   }
 }
 

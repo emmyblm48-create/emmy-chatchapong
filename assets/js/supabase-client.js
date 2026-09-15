@@ -185,14 +185,17 @@ function blm48GetPosts(username) {
   return blm48Rpc('get_posts', { p_username: username || null });
 }
 // Paginated feed fetch - use this instead of blm48GetPosts() for the main scrolling feed (index.html)
-// so it doesn't pull every post + every comment in one multi-MB response. includePostId optionally
-// pins one specific post into the result even if it falls outside the current page (for shared post
-// links that need to be found/scrolled-to without loading the whole feed).
-function blm48GetPostsPage(username, limit, offset, includePostId) {
+// so it doesn't pull every post + every comment in one multi-MB response. Cursor-based (beforeEpochMs
+// = createdAtEpochMs of the oldest post already loaded, or null/omitted for the first page) rather
+// than offset-based, so posts never get skipped or duplicated if new ones are inserted above while
+// scrolling (same reasoning Facebook/Instagram-style feeds use cursors instead of page numbers).
+// includePostId optionally pins one specific post into the result even if it falls outside the
+// current page (for shared post links that need to be found/scrolled-to without loading everything).
+function blm48GetPostsPage(username, limit, beforeEpochMs, includePostId) {
   return blm48Rpc('get_posts_page', {
     p_username: username || null,
     p_limit: limit || 20,
-    p_offset: offset || 0,
+    p_before_epoch_ms: beforeEpochMs || null,
     p_include_post_id: includePostId || null
   });
 }
