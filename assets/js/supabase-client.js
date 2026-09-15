@@ -184,6 +184,18 @@ function blm48SubscribeAdminUsersOverview(onChange, debounceMs) {
 function blm48GetPosts(username) {
   return blm48Rpc('get_posts', { p_username: username || null });
 }
+// Paginated feed fetch - use this instead of blm48GetPosts() for the main scrolling feed (index.html)
+// so it doesn't pull every post + every comment in one multi-MB response. includePostId optionally
+// pins one specific post into the result even if it falls outside the current page (for shared post
+// links that need to be found/scrolled-to without loading the whole feed).
+function blm48GetPostsPage(username, limit, offset, includePostId) {
+  return blm48Rpc('get_posts_page', {
+    p_username: username || null,
+    p_limit: limit || 20,
+    p_offset: offset || 0,
+    p_include_post_id: includePostId || null
+  });
+}
 function blm48CreatePost(username, content, imageUrl, audioUrl, videoUrl, postType) {
   return blm48Rpc('create_post', {
     p_username: username,

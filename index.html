@@ -3914,6 +3914,16 @@ function renderPost(post) {
   `;
 }
   
+// 🌸 ฟีดหน้าแรกเคยดึง get_posts() ทั้งหมดทีเดียว (~1,200 โพสต์ + ~6,500 คอมเมนต์ ~3MB ต่อครั้ง)
+// ทุกครั้งที่โหลดหน้า "และ" ทุกครั้งที่มีการไลก์/คอมเมนต์/โพสต์ใหม่ทั่วทั้งแอป (Realtime) ทำให้ฟีด
+// โหลดช้า/ error บ่อยขึ้นเรื่อยๆ ตามจำนวนโพสต์ที่เพิ่มขึ้น (ยิ่งเยอะขึ้นหลังมีฟีเจอร์ Fan Club)
+// เปลี่ยนมาใช้ get_posts_page() แบบแบ่งหน้าแทน - โหลดครั้งแรกแค่ 20 โพสต์ล่าสุด กดปุ่ม "โหลดเพิ่มเติม"
+// เพื่อดึงโพสต์เก่าถัดไป
+const FEED_PAGE_SIZE = 20;
+let feedOffset = 0;
+let feedTotal = 0;
+let feedIncludedSharedPost = false;
+
 async function loadTimelinePosts() {
   // 🛡️ ป้องกันการโหลดซ้อน (ถ้ากดสลับแท็บรัวๆ แล้วตัวเก่ากำลัง Fetch อยู่ ให้ข้ามฟังก์ชันนี้ไปเลย)
   if (window.isTimelineLoading) return;
@@ -3921,7 +3931,7 @@ async function loadTimelinePosts() {
   const container = document.getElementById('posts-container');
   if (!container) return;
 
-  // 🌸 ขั้นตอนที่ A: ลองดึงโพสต์เก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (ถ้าหน้าจอยังว่างอยู่)
+  // 🌸 ขั้นตอนที่ A: ลองดึงหน้าแรกจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (ถ้าหน้าจอยังว่างอยู่)
   const cachedPosts = localStorage.getItem('blm48_posts_cache');
   const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
 
@@ -3959,15 +3969,20 @@ async function loadTimelinePosts() {
 
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
-    let posts = await blm48GetPosts(username);
+    // ดึงเฉพาะหน้าแรกเสมอ (ไล่จับโพสต์/ไลก์/คอมเมนต์ใหม่สุด) - ถ้ามีลิงก์แชร์โพสต์เก่าที่ตกหน้าแรกไป
+    // ให้แนบ post id นั้นไปด้วยครั้งเดียวตอนเปิดหน้า เพื่อให้ RPC แถมโพสต์นั้นมาด้วยแม้จะอยู่นอกหน้าแรก
+    const sharedPostId = !feedIncludedSharedPost ? new URLSearchParams(window.location.search).get('post') : null;
+    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, 0, sharedPostId);
+    feedIncludedSharedPost = true;
 
-    // 🛡️ blm48GetPosts คืน object { status:'error', ... } แทน array เวลาเน็ตเวิร์คมีปัญหา
-    // (ดู blm48Rpc) ต้องเช็คทิ้งตรงนี้ ไม่งั้นโค้ดข้างล่างจะพัง เพราะ object ไม่มี .reverse()
-    if (!Array.isArray(posts)) {
-      throw new Error((posts && posts.message) || 'ไม่สามารถดึงข้อมูลโพสต์ได้');
+    // 🛡️ blm48Rpc คืน object { status:'error', ... } เวลาเน็ตเวิร์คมีปัญหา ต้องเช็คทิ้งตรงนี้
+    if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
+      throw new Error((res && res.message) || 'ไม่สามารถดึงข้อมูลโพสต์ได้');
     }
 
-    posts = posts.filter(p => p.postType !== 'fan');
+    let posts = res.data;
+    feedTotal = res.total || 0;
+    feedOffset = Math.min(FEED_PAGE_SIZE, posts.length);
 
     // หากดึงข้อมูลจากเซอร์เวอร์มาแล้วไม่มีโพสต์เลย
     if (!posts || posts.length === 0) {
@@ -3977,7 +3992,7 @@ async function loadTimelinePosts() {
       return;
     }
 
-    // 🌸 ขั้นตอนที่ B: ข้อมูลอัปเดตล่าสุดส่งมาถึงแล้ว บันทึกทับลงแคชเพื่อไว้ใช้ในรอบหน้า
+    // 🌸 ขั้นตอนที่ B: ข้อมูลหน้าแรกอัปเดตล่าสุดส่งมาถึงแล้ว บันทึกทับลงแคชเพื่อไว้ใช้ในรอบหน้า
     localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
 
     // ลบข้อความ "กำลังโหลด" ออกไป (ถ้ามีอยู่บนจอ)
@@ -3985,7 +4000,7 @@ async function loadTimelinePosts() {
     if (loadingMsg) loadingMsg.remove();
 
     // 🌟 ทริคเดิมของคุณเอ็มมี่: กลับด้านข้อมูลเพื่อนำของใหม่ไปหยอดแทรกไว้ "บนสุด"
-    posts.reverse(); 
+    posts.reverse();
 
     posts.forEach(post => {
       const existingPost = document.getElementById(`post-${post.id}`);
@@ -4012,6 +4027,8 @@ async function loadTimelinePosts() {
       }
     });
 
+    renderFeedLoadMoreButton();
+
   } catch (error) {
     console.error("โหลดฟีดล้มเหลว:", error);
     // ถ้าเกิดข้อผิดพลาดทาง Network และหน้าจอว่างเปล่าจริงๆ (ไม่มีทั้งแคชและข้อมูลเก่า) ค่อยแสดงข้อความเตือน
@@ -4020,6 +4037,71 @@ async function loadTimelinePosts() {
     }
   } finally {
     window.isTimelineLoading = false; // ปลดล็อกสถานะเสมอ ไม่ว่าจะดึงข้อมูลสำเร็จหรือพัง เพื่อให้กดโหลดรอบถัดไปได้ปกติ
+  }
+}
+
+// 🌸 ปุ่ม "โหลดเพิ่มเติม" ท้ายฟีด - แสดงเฉพาะตอนยังมีโพสต์เก่ากว่าที่ยังไม่ได้โหลด
+function renderFeedLoadMoreButton() {
+  const feedSection = document.getElementById('blm48-feed');
+  if (!feedSection) return;
+  let btn = document.getElementById('feed-load-more-btn');
+
+  if (feedOffset >= feedTotal) {
+    if (btn) btn.remove();
+    return;
+  }
+
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'feed-load-more-btn';
+    btn.type = 'button';
+    btn.style.cssText = 'display:block; width:100%; margin-top:14px; padding:12px; border:1px dashed var(--primary-pink); border-radius:14px; background:transparent; color:var(--primary-pink); font-weight:600; font-size:0.9rem; cursor:pointer;';
+    btn.onclick = loadMoreFeedPosts;
+    feedSection.appendChild(btn);
+  }
+  btn.disabled = false;
+  btn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> See more (${feedOffset.toLocaleString()} / ${feedTotal.toLocaleString()})`;
+}
+
+async function loadMoreFeedPosts() {
+  const btn = document.getElementById('feed-load-more-btn');
+  const container = document.getElementById('posts-container');
+  if (!container || window.isTimelineLoading) return;
+
+  try {
+    window.isTimelineLoading = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
+    }
+
+    const currentUser = getUserSession();
+    const username = currentUser ? currentUser.username : "";
+    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, feedOffset);
+
+    if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
+      throw new Error((res && res.message) || 'โหลดโพสต์เพิ่มเติมไม่สำเร็จ');
+    }
+
+    feedTotal = res.total || feedTotal;
+    feedOffset += res.data.length;
+
+    // โพสต์เก่ากว่าเรียงจากใหม่ไปเก่าเหมือนเดิม - ต่อท้าย container ตามลำดับปกติ (ไม่ต้อง reverse)
+    res.data.forEach(post => {
+      if (!document.getElementById(`post-${post.id}`)) {
+        container.insertAdjacentHTML('beforeend', renderPost(post));
+      }
+    });
+
+    renderFeedLoadMoreButton();
+  } catch (error) {
+    console.error("โหลดโพสต์เพิ่มเติมล้มเหลว:", error);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> โหลดไม่สำเร็จ ลองใหม่อีกครั้ง';
+    }
+  } finally {
+    window.isTimelineLoading = false;
   }
 }
 

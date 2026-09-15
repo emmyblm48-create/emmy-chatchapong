@@ -68,11 +68,10 @@
         .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
         .top-bar-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
 
-        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 16px 50px; }
-        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
-        @media (min-width: 1024px) { .page-wrapper { max-width: 1080px; padding: 32px 32px 70px; } }
+        .page-wrapper { max-width: 1100px; margin: 0 auto; padding: 18px 16px 50px; }
+        @media (min-width: 768px) { .page-wrapper { padding: 24px 24px 60px; } }
 
-        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone { text-align: center; margin-bottom: 18px; }
         .header-title-zone h1 {
             color: var(--primary-pink);
             font-family: 'Kanit', sans-serif;
@@ -82,77 +81,113 @@
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
-        @media (min-width: 1024px) {
-            .header-title-zone h1 { font-size: 30px; }
-            .header-title-zone p { font-size: 14px; }
-        }
 
-        .section-title {
-            font-family: 'Kanit', sans-serif;
-            font-weight: 600;
-            font-size: 15px;
-            color: #333;
-            margin: 26px 0 12px;
-            display: flex; align-items: center; gap: 8px;
-        }
-
-        /* --- Grand total cards --- */
-        .grand-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .grand-card {
-            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
-            border-radius: 16px; padding: 16px; box-shadow: var(--glass-shadow-sm);
-        }
-        .grand-card.warn { background: linear-gradient(135deg, #ffb347 0%, #ff8c42 100%); }
-        .grand-card .g-label { font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 600; }
-        .grand-card .g-value { font-family: 'Kanit', sans-serif; font-size: 26px; font-weight: 700; color: #fff; margin-top: 2px; }
-
-        /* --- Collection cards, stacked single column --- */
-        .sales-grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
-
-        .sales-card {
+        /* --- Compact KPI strip --- */
+        .kpi-strip { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+        @media (min-width: 600px) { .kpi-strip { grid-template-columns: repeat(4, 1fr); } }
+        .kpi-chip {
             background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border); border-radius: 16px;
-            padding: 14px 16px; box-shadow: var(--glass-shadow-sm);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border); border-radius: 14px;
+            padding: 12px 14px; box-shadow: var(--glass-shadow-sm);
         }
-        .sales-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px; }
-        .sales-card-head .s-title { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 14px; color: var(--primary-pink); display: flex; align-items: center; gap: 8px; }
-        .sales-card-head .s-title img { width: 26px; height: 26px; border-radius: 8px; object-fit: cover; flex: 0 0 auto; }
+        .kpi-chip .k-label { font-size: 11px; color: #999; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .kpi-chip .k-value { font-family: 'Kanit', sans-serif; font-size: 22px; font-weight: 700; color: #333; margin-top: 2px; }
+        .kpi-chip.warn .k-value { color: #d98c00; }
+        .kpi-chip.danger .k-value { color: #e8395f; }
+        .kpi-chip.pink .k-value { color: var(--primary-pink); }
 
-        .status-pill { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 10.5px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+        /* --- Toolbar --- */
+        .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+        .search-input {
+            flex: 1 1 200px; min-width: 160px; border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 11px 14px; font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: var(--text-dark); background: rgba(255, 255, 255, 0.7);
+        }
+        .search-input:focus { outline: none; border-color: var(--primary-pink); }
+        .collection-select {
+            flex: 0 0 auto; border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 11px 12px; font-size: 13px; font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: var(--text-dark); background: rgba(255, 255, 255, 0.7); max-width: 220px;
+        }
+        .collection-select:focus { outline: none; border-color: var(--primary-pink); }
+        .result-count { font-size: 12px; color: #999; white-space: nowrap; }
+
+        .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            color: #888; border: 1px solid var(--glass-border);
+            padding: 8px 16px; border-radius: 14px;
+            font-family: 'Kanit', sans-serif; font-size: 12.5px; font-weight: 500;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+            transition: all 0.2s ease; box-shadow: var(--glass-shadow-sm);
+        }
+        .filter-tab:hover { border-color: var(--primary-pink); color: var(--primary-pink); }
+        .filter-tab.active {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
+            color: white; border-color: transparent; font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255,133,162,0.3);
+        }
+
+        /* --- Excel-style table --- */
+        .sheet-wrap {
+            border: 1px solid #d7dbe0; border-radius: 8px; overflow: auto;
+            max-height: 68vh; background: #fff;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        table.sheet { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 12.5px; }
+        table.sheet thead th {
+            position: sticky; top: 0; z-index: 2;
+            background: #f1f3f5; color: #333; text-align: left;
+            font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 12px;
+            padding: 9px 10px; border: 1px solid #d7dbe0; white-space: nowrap;
+            cursor: pointer; user-select: none;
+        }
+        table.sheet thead th:hover { background: #e7ebee; }
+        table.sheet thead th .sort-icon { margin-left: 4px; color: #bbb; font-size: 10px; }
+        table.sheet thead th.sorted .sort-icon { color: var(--primary-pink); }
+        table.sheet tbody td {
+            padding: 7px 10px; border: 1px solid #eceff1; white-space: nowrap;
+            color: #333;
+        }
+        table.sheet tbody tr:nth-child(even) { background: #fafbfc; }
+        table.sheet tbody tr:hover { background: #fff2f5; }
+        table.sheet tbody tr.row-out { background: #fff0f2; }
+        table.sheet tbody tr.row-out:nth-child(even) { background: #ffe9ec; }
+        table.sheet tbody tr.row-low { background: #fff8ec; }
+        table.sheet tbody tr.row-low:nth-child(even) { background: #fff3e0; }
+        td.num { text-align: right; font-family: 'Kanit', sans-serif; font-variant-numeric: tabular-nums; }
+
+        .name-cell { display: flex; align-items: center; gap: 8px; }
+        .name-cell img { width: 28px; height: 28px; border-radius: 8px; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
+        .name-cell .n-text { white-space: normal; }
+
+        .collection-cell { display: flex; align-items: center; gap: 8px; }
+        .collection-cell img { width: 20px; height: 20px; border-radius: 6px; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
+        .collection-cell .c-name { white-space: normal; max-width: 220px; }
+
+        .status-pill { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 10px; padding: 2px 9px; border-radius: 20px; white-space: nowrap; display: inline-block; margin-top: 2px; }
         .status-pill.st-open { background: #e5f9ee; color: #1fa864; }
         .status-pill.st-closed { background: #f2f2f2; color: #999; }
         .status-pill.st-soon { background: #fff4e0; color: #d98c00; }
         .status-pill.st-soldout { background: #ffe6ea; color: #e8395f; }
+        .status-pill.st-preorder { background: #eee5ff; color: #7c4dff; }
 
-        .sales-item-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px dashed #f0e6e9; }
-        .sales-item-row:first-of-type { border-top: none; }
-        .sales-item-thumb { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
-        .sales-item-info { flex: 1; min-width: 0; }
-        .sales-item-name { font-weight: 700; font-size: 12.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
-        .sales-item-sub { font-size: 10.5px; color: #999; }
-        .sales-item-numbers { flex: 0 0 auto; text-align: right; }
-        .sales-item-count { font-size: 10.5px; color: #999; }
-        .sales-item-revenue { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 13.5px; color: #333; }
-        .sales-item-revenue.low { color: #e8395f; }
+        .remaining-cell { text-align: right; }
+        .remaining-value { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 14px; }
+        .remaining-value.low { color: #d98c00; }
+        .remaining-value.out { color: #e8395f; }
+        .mini-bar-track { height: 4px; border-radius: 4px; background: #f0e6e9; margin-top: 4px; overflow: hidden; width: 60px; margin-left: auto; }
+        .mini-bar-fill { height: 100%; background: var(--primary-pink); border-radius: 4px; }
+        .mini-bar-fill.low { background: #d98c00; }
+        .mini-bar-fill.out { background: #e8395f; }
 
-        .low-tag { font-size: 9px; font-weight: 700; color: #fff; background: #e8395f; padding: 1px 6px; border-radius: 8px; flex: 0 0 auto; }
-        .out-tag { font-size: 9px; font-weight: 700; color: #999; background: #eee; padding: 1px 6px; border-radius: 8px; flex: 0 0 auto; }
-
-        .stock-bar-track { height: 4px; border-radius: 4px; background: #f0e6e9; margin-top: 4px; overflow: hidden; }
-        .stock-bar-fill { height: 100%; background: var(--primary-pink); border-radius: 4px; }
-        .stock-bar-fill.low { background: #e8395f; }
-
-        .sales-card-totals {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 8px; padding-top: 10px; border-top: 2px solid var(--card-border);
-            font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 13px; color: #333;
-        }
-        .sales-card-totals span.t-value { color: var(--primary-pink); }
-
-        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 30px 20px; }
-        .empty-state i { font-size: 26px; color: #ffd7e1; display: block; margin-bottom: 8px; }
+        .empty-state { text-align: center; color: #bbb; font-family: 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
         .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
 
         #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
@@ -178,16 +213,41 @@
     <div id="stock-content">
         <div class="header-title-zone">
             <h1><i class="fa-solid fa-boxes-stacked"></i> คลังสินค้า</h1>
-            <p>สต็อกคงเหลือของ Official Merchandise (กาชา) ในระบบ BLM48 Membership</p>
+            <p>สต็อกคงเหลือของ Official Merchandise (กาชา) และการ์ดสุ่ม Pre-Order ในระบบ BLM48 Membership</p>
         </div>
 
-        <div class="grand-grid" id="grand-grid">
+        <div class="kpi-strip" id="kpi-strip">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
 
-        <div class="section-title"><i class="fa-solid fa-gift"></i>Official Merchandise</div>
-        <div class="sales-grid" id="stock-grid">
-            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        <div class="toolbar">
+            <input id="stock-search" class="search-input" type="text" placeholder="ค้นหาชื่อสินค้าหรือคอลเลกชัน...">
+            <select id="collection-filter" class="collection-select">
+                <option value="">ทุกคอลเลกชัน</option>
+            </select>
+            <div class="result-count" id="result-count"></div>
+        </div>
+
+        <div class="filter-tabs" id="filter-tabs">
+            <button type="button" class="filter-tab active" data-status=""><i class="fa-solid fa-layer-group"></i> All</button>
+            <button type="button" class="filter-tab" data-status="low"><i class="fa-solid fa-triangle-exclamation"></i> ใกล้หมด</button>
+            <button type="button" class="filter-tab" data-status="out"><i class="fa-solid fa-ban"></i> หมดแล้ว</button>
+        </div>
+
+        <div class="sheet-wrap">
+            <table class="sheet">
+                <thead>
+                    <tr>
+                        <th data-key="name">สินค้า <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="collectionName">คอลเลกชัน <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="sold">ขายแล้ว <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="remaining" class="sorted">คงเหลือ <i class="fa-solid fa-sort-up sort-icon"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="stock-tbody">
+                    <tr><td colspan="4"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div></td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -195,6 +255,11 @@
 <script>
   let user = null;
   const LOW_STOCK_THRESHOLD = 5;
+  let itemsCache = []; // flattened: one row per item across all collections
+  let collectionsMeta = []; // [{id, name, status}]
+  let sortKey = 'remaining';
+  let sortDir = 1; // 1 = asc, -1 = desc
+  let currentStatusFilter = '';
 
   function goBack() {
     if (document.referrer && window.history.length > 1) {
@@ -220,95 +285,180 @@
       'Closed': ['st-closed', 'ปิดขาย'],
       'Coming Soon': ['st-soon', 'เร็วๆ นี้'],
       'Sold Out': ['st-soldout', 'หมดแล้ว'],
+      'Pre-Order': ['st-preorder', 'Pre-Order'],
     };
     const [cls, label] = map[status] || ['st-closed', status || '-'];
     return `<span class="status-pill ${cls}">${escapeHtml(label)}</span>`;
   }
 
-  function renderStockItemRow(it) {
-    const remaining = Number(it.remaining || 0);
-    const initial = Number(it.initial || 0);
-    const pct = initial > 0 ? Math.max(0, Math.min(100, (remaining / initial) * 100)) : 0;
-    const isLow = remaining > 0 && remaining <= LOW_STOCK_THRESHOLD;
-    const isOut = remaining <= 0;
-    let tag = '';
-    if (isOut) tag = '<span class="out-tag">หมด</span>';
-    else if (isLow) tag = '<span class="low-tag">ใกล้หมด</span>';
-
-    return `
-      <div class="sales-item-row">
-        <img class="sales-item-thumb" src="${escapeAttr(resolveDriveImage(it.imageUrl))}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';">
-        <div class="sales-item-info">
-          <div class="sales-item-name">${escapeHtml(it.name || '-')} ${tag}</div>
-          <div class="sales-item-sub">ขายแล้ว ${Number(it.sold || 0).toLocaleString()} / ${initial.toLocaleString()}</div>
-          <div class="stock-bar-track"><div class="stock-bar-fill ${isOut || isLow ? 'low' : ''}" style="width:${pct}%;"></div></div>
-        </div>
-        <div class="sales-item-numbers">
-          <div class="sales-item-count">คงเหลือ</div>
-          <div class="sales-item-revenue ${isOut || isLow ? 'low' : ''}">${remaining.toLocaleString()}</div>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderStockCard(col) {
-    const itemsHtml = (col.items || []).map(renderStockItemRow).join('');
-    const totals = col.totals || {};
-    return `
-      <div class="sales-card">
-        <div class="sales-card-head">
-          <div class="s-title"><img src="${escapeAttr(resolveDriveImage(col.coverImage))}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';"> ${escapeHtml(col.collectionName || '-')}</div>
-          ${statusPillHtml(col.status)}
-        </div>
-        ${itemsHtml || `<div class="empty-state" style="padding:16px 0;"><i class="fa-solid fa-box-open"></i>ยังไม่มีรายการสินค้า</div>`}
-        <div class="sales-card-totals">
-          <span>คงเหลือทั้งหมด</span>
-          <span class="t-value">${Number(totals.remaining || 0).toLocaleString()} / ${Number(totals.initial || 0).toLocaleString()}</span>
-        </div>
-      </div>
-    `;
-  }
-
   async function loadStockSummary() {
-    const grandGrid = document.getElementById('grand-grid');
-    const stockGrid = document.getElementById('stock-grid');
+    const kpiStrip = document.getElementById('kpi-strip');
+    const tbody = document.getElementById('stock-tbody');
     try {
       const res = await blm48AdminGetStockSummary(user.username);
       if (res.status !== 'success') {
-        grandGrid.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`;
-        stockGrid.innerHTML = '';
+        kpiStrip.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`;
+        tbody.innerHTML = '';
         return;
       }
       const collections = res.data || [];
 
+      // แปลงข้อมูลแบบ collection > items ซ้อนกัน ให้เป็น array แบนราบ 1 แถวต่อ 1 สินค้า
+      // เพื่อให้ค้นหา/จัดเรียง/กรองได้ง่ายในตารางเดียว แทนการ์ดซ้อนการ์ดแบบเดิมที่ดูรกตา
+      itemsCache = [];
+      collectionsMeta = [];
       let totalRemaining = 0;
-      let lowStockCount = 0;
+      let lowCount = 0;
+      let outCount = 0;
+
       collections.forEach(col => {
+        collectionsMeta.push({ id: col.collectionId, name: col.collectionName, status: col.status, poolType: col.poolType });
         totalRemaining += Number(col.totals?.remaining || 0);
         (col.items || []).forEach(it => {
           const remaining = Number(it.remaining || 0);
-          if (remaining <= LOW_STOCK_THRESHOLD) lowStockCount++;
+          const sold = Number(it.sold || 0);
+          if (remaining <= 0) outCount++;
+          else if (remaining <= LOW_STOCK_THRESHOLD) lowCount++;
+          itemsCache.push({
+            name: it.name || '-',
+            imageUrl: it.imageUrl,
+            collectionId: col.collectionId,
+            collectionName: col.collectionName || '-',
+            collectionStatus: col.status,
+            poolType: col.poolType,
+            remaining,
+            sold,
+            initial: Number(it.initial || 0),
+          });
         });
       });
 
-      grandGrid.innerHTML = `
-        <div class="grand-card">
-          <div class="g-label"><i class="fas fa-boxes-stacked"></i> สต็อกคงเหลือทั้งหมด</div>
-          <div class="g-value">${totalRemaining.toLocaleString()}</div>
+      kpiStrip.innerHTML = `
+        <div class="kpi-chip pink">
+          <div class="k-label"><i class="fas fa-boxes-stacked"></i> คงเหลือทั้งหมด</div>
+          <div class="k-value">${totalRemaining.toLocaleString()}</div>
         </div>
-        <div class="grand-card warn">
-          <div class="g-label"><i class="fas fa-triangle-exclamation"></i> รายการใกล้หมด/หมดแล้ว</div>
-          <div class="g-value">${lowStockCount.toLocaleString()}</div>
+        <div class="kpi-chip">
+          <div class="k-label"><i class="fas fa-layer-group"></i> คอลเลกชันทั้งหมด</div>
+          <div class="k-value">${collections.length.toLocaleString()}</div>
+        </div>
+        <div class="kpi-chip warn">
+          <div class="k-label"><i class="fas fa-triangle-exclamation"></i> ใกล้หมด</div>
+          <div class="k-value">${lowCount.toLocaleString()}</div>
+        </div>
+        <div class="kpi-chip danger">
+          <div class="k-label"><i class="fas fa-ban"></i> หมดแล้ว</div>
+          <div class="k-value">${outCount.toLocaleString()}</div>
         </div>
       `;
 
-      stockGrid.innerHTML = collections.length
-        ? collections.map(renderStockCard).join('')
-        : `<div class="empty-state"><i class="fa-solid fa-box-open"></i>ยังไม่มีคอลเลกชันสินค้า</div>`;
+      // เติม dropdown เลือกคอลเลกชัน (คงค่าที่แอดมินเลือกไว้ ถ้ายังมีอยู่หลังโหลดใหม่)
+      const select = document.getElementById('collection-filter');
+      const prevValue = select.value;
+      select.innerHTML = `<option value="">ทุกคอลเลกชัน</option>` + collectionsMeta.map(c =>
+        `<option value="${escapeAttr(c.id)}">${escapeHtml(c.name)}${c.poolType === 'preorder' ? ' (Pre-Order)' : ''}</option>`
+      ).join('');
+      if (prevValue && collectionsMeta.some(c => c.id === prevValue)) select.value = prevValue;
+
+      renderTable();
     } catch (e) {
-      grandGrid.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
-      stockGrid.innerHTML = '';
+      kpiStrip.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+      tbody.innerHTML = '';
     }
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('stock-tbody');
+    const resultCount = document.getElementById('result-count');
+    const q = (document.getElementById('stock-search').value || '').trim().toLowerCase();
+    const collectionId = document.getElementById('collection-filter').value;
+
+    let rows = itemsCache;
+    if (q) {
+      rows = rows.filter(it =>
+        (it.name || '').toLowerCase().includes(q) ||
+        (it.collectionName || '').toLowerCase().includes(q)
+      );
+    }
+    if (collectionId) {
+      rows = rows.filter(it => it.collectionId === collectionId);
+    }
+    if (currentStatusFilter === 'low') {
+      rows = rows.filter(it => it.remaining > 0 && it.remaining <= LOW_STOCK_THRESHOLD);
+    } else if (currentStatusFilter === 'out') {
+      rows = rows.filter(it => it.remaining <= 0);
+    }
+
+    rows = [...rows].sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'name' || sortKey === 'collectionName') {
+        av = (av || '').toLowerCase();
+        bv = (bv || '').toLowerCase();
+        return av.localeCompare(bv, 'th') * sortDir;
+      }
+      return ((av || 0) - (bv || 0)) * sortDir;
+    });
+
+    resultCount.textContent = `${rows.length.toLocaleString()} / ${itemsCache.length.toLocaleString()} สินค้า`;
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบสินค้าที่ตรงเงื่อนไข</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(it => {
+      const isOut = it.remaining <= 0;
+      const isLow = !isOut && it.remaining <= LOW_STOCK_THRESHOLD;
+      const rowClass = isOut ? 'row-out' : isLow ? 'row-low' : '';
+      const valueClass = isOut ? 'out' : isLow ? 'low' : '';
+      const pct = it.initial > 0 ? Math.max(0, Math.min(100, (it.remaining / it.initial) * 100)) : 0;
+
+      return `
+        <tr class="${rowClass}">
+          <td>
+            <div class="name-cell">
+              <img src="${escapeAttr(resolveDriveImage(it.imageUrl))}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';">
+              <span class="n-text">${escapeHtml(it.name)}</span>
+            </div>
+          </td>
+          <td>
+            <div class="collection-cell">
+              <div class="c-name">
+                ${escapeHtml(it.collectionName)}<br>${statusPillHtml(it.collectionStatus)}
+              </div>
+            </div>
+          </td>
+          <td class="num">${it.sold.toLocaleString()}</td>
+          <td class="remaining-cell">
+            <div class="remaining-value ${valueClass}">${it.remaining.toLocaleString()}</div>
+            <div class="mini-bar-track"><div class="mini-bar-fill ${valueClass}" style="width:${pct}%;"></div></div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function setupSortHeaders() {
+    document.querySelectorAll('table.sheet thead th').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.key;
+        if (sortKey === key) {
+          sortDir *= -1;
+        } else {
+          sortKey = key;
+          sortDir = 1;
+        }
+        document.querySelectorAll('table.sheet thead th').forEach(h => {
+          h.classList.remove('sorted');
+          const icon = h.querySelector('.sort-icon');
+          if (icon) icon.className = 'fa-solid fa-sort sort-icon';
+        });
+        th.classList.add('sorted');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.className = `fa-solid ${sortDir === 1 ? 'fa-sort-up' : 'fa-sort-down'} sort-icon`;
+        renderTable();
+      });
+    });
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -322,6 +472,27 @@
       return;
     }
     document.getElementById('stock-content').style.display = 'block';
+
+    setupSortHeaders();
+
+    const searchInput = document.getElementById('stock-search');
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(renderTable, 200);
+    });
+
+    document.getElementById('collection-filter').addEventListener('change', renderTable);
+
+    document.getElementById('filter-tabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      currentStatusFilter = btn.dataset.status;
+      renderTable();
+    });
+
     loadStockSummary();
   });
 </script>
