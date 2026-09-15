@@ -3960,7 +3960,14 @@ async function loadTimelinePosts() {
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
     let posts = await blm48GetPosts(username);
-    posts = Array.isArray(posts) ? posts.filter(p => p.postType !== 'fan') : posts;
+
+    // 🛡️ blm48GetPosts คืน object { status:'error', ... } แทน array เวลาเน็ตเวิร์คมีปัญหา
+    // (ดู blm48Rpc) ต้องเช็คทิ้งตรงนี้ ไม่งั้นโค้ดข้างล่างจะพัง เพราะ object ไม่มี .reverse()
+    if (!Array.isArray(posts)) {
+      throw new Error((posts && posts.message) || 'ไม่สามารถดึงข้อมูลโพสต์ได้');
+    }
+
+    posts = posts.filter(p => p.postType !== 'fan');
 
     // หากดึงข้อมูลจากเซอร์เวอร์มาแล้วไม่มีโพสต์เลย
     if (!posts || posts.length === 0) {

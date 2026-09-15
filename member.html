@@ -1754,6 +1754,12 @@ function renderPost(post) {
     const username = currentUser ? currentUser.username : "";
     let posts = await blm48GetPosts(username);
 
+    // 🛡️ blm48GetPosts คืน object { status:'error', ... } แทน array เวลาเน็ตเวิร์คมีปัญหา
+    // ต้องเช็คทิ้งตรงนี้ ไม่งั้น posts.filter/.reverse() ข้างล่างจะพัง
+    if (!Array.isArray(posts)) {
+      throw new Error((posts && posts.message) || 'ไม่สามารถดึงข้อมูลโพสต์ได้');
+    }
+
     if (posts && posts.length > 0) {
       const oldPostsCache = localStorage.getItem('blm48_posts_cache');
       if (oldPostsCache !== JSON.stringify(posts)) {
