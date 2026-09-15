@@ -543,6 +543,22 @@
             margin: 0 0 15px 37px;
             opacity: .85;
         }
+        /* 🎤 หัวข้อกลุ่มย่อยภายใน #preorder-container (grid) - ต้องกินเต็มแถวไม่งั้นจะไปแทรกในช่อง 2 คอลัมน์ */
+        .preorder-category-title {
+            grid-column: 1 / -1;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--caramel);
+            padding: 8px 12px;
+            margin: 4px 0 -2px;
+            background: #fff6e0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .preorder-category-title:first-child { margin-top: 0; }
         .section-title .sparkle-icon {
             display: inline-block;
             font-size: 13px;
@@ -2160,40 +2176,60 @@ async function loadPreorderProducts() {
       return;
     }
 
+    // 🎤 จัดกลุ่มสินค้าตามหมวดหมู่ (ชื่อคอนเสิร์ต/อีเวนต์) แทนที่จะแสดงรวมกันเป็นก้อนเดียวตลอดไป
+    // สินค้าที่ยังไม่มีหมวดหมู่ (category เป็น null เช่นตอน Coming Soon) จะรวมอยู่ใต้ป้ายกลางๆ
+    const NO_CATEGORY_LABEL = 'Pre-order';
+    const grouped = {};
     products.forEach(p => {
-      const isSoldOut = p.status === 'sold_out';
-      const isComingSoon = p.status === 'coming_soon';
-      const goToDetail = `location.href='preorder_detail?id=' + encodeURIComponent('${p.productId}')`;
+      const key = p.category || NO_CATEGORY_LABEL;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(p);
+    });
 
-      let badgeHTML = '';
-      let buttonHTML = `<button class="merch-button" onclick="${goToDetail}"><i class="fas fa-coins"></i> ${Number(p.costTokens).toLocaleString()} Tokens</button>`;
-      if (isSoldOut) {
-        badgeHTML = `<span class="merch-badge-soldout"><i class="fas fa-box-archive"></i> Sold Out</span>`;
-        buttonHTML = `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-box-archive"></i> เต็มแล้ว</button>`;
-      } else if (isComingSoon) {
-        badgeHTML = `<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>`;
-        buttonHTML = `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-clock"></i> Coming Soon</button>`;
+    Object.keys(grouped).forEach(category => {
+      if (category !== NO_CATEGORY_LABEL) {
+        container.insertAdjacentHTML("beforeend", `
+          <div class="preorder-category-title">
+            <i class="fas fa-microphone" style="color: #c9932c;"></i> ${escapePreorderText(category)}
+          </div>
+        `);
       }
 
-      const subtitle = (isComingSoon && p.saleStartAt)
-        ? `เปิดขาย ${new Date(p.saleStartAt).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} น.`
-        : 'order today · ship later';
+      grouped[category].forEach(p => {
+        const isSoldOut = p.status === 'sold_out';
+        const isComingSoon = p.status === 'coming_soon';
+        const goToDetail = `location.href='preorder_detail?id=' + encodeURIComponent('${p.productId}')`;
 
-      const cardHTML = `
-          <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-product-id="${p.productId}" style="cursor:pointer;" onclick="${goToDetail}">
-            <div class="merch-image-container">
-              <img src="${p.coverImage || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500'}" alt="${escapePreorderText(p.name)}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff6e0/c9932c?text=Pre-order'">
+        let badgeHTML = '';
+        let buttonHTML = `<button class="merch-button" onclick="${goToDetail}"><i class="fas fa-coins"></i> ${Number(p.costTokens).toLocaleString()} Tokens</button>`;
+        if (isSoldOut) {
+          badgeHTML = `<span class="merch-badge-soldout"><i class="fas fa-box-archive"></i> Sold Out</span>`;
+          buttonHTML = `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-box-archive"></i> เต็มแล้ว</button>`;
+        } else if (isComingSoon) {
+          badgeHTML = `<span class="merch-badge-comingsoon"><i class="fas fa-clock"></i> Coming Soon</span>`;
+          buttonHTML = `<button class="merch-button merch-button-disabled" disabled><i class="fas fa-clock"></i> Coming Soon</button>`;
+        }
+
+        const subtitle = (isComingSoon && p.saleStartAt)
+          ? `เปิดขาย ${new Date(p.saleStartAt).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} น.`
+          : 'order today · ship later';
+
+        const cardHTML = `
+            <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-product-id="${p.productId}" style="cursor:pointer;" onclick="${goToDetail}">
+              <div class="merch-image-container">
+                <img src="${p.coverImage || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500'}" alt="${escapePreorderText(p.name)}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff6e0/c9932c?text=Pre-order'">
+              </div>
+              <div class="merch-info">
+                ${badgeHTML}
+                <span class="merch-category" style="color: #c9932c;">[Pre-order]</span>
+                <h3 class="merch-title">${escapePreorderText(p.name)}</h3>
+                <p class="merch-subtitle">${subtitle}</p>
+                ${buttonHTML}
+              </div>
             </div>
-            <div class="merch-info">
-              ${badgeHTML}
-              <span class="merch-category" style="color: #c9932c;">[Pre-order]</span>
-              <h3 class="merch-title">${escapePreorderText(p.name)}</h3>
-              <p class="merch-subtitle">${subtitle}</p>
-              ${buttonHTML}
-            </div>
-          </div>
-        `;
-      container.insertAdjacentHTML("beforeend", cardHTML);
+          `;
+        container.insertAdjacentHTML("beforeend", cardHTML);
+      });
     });
 
   } catch (error) {

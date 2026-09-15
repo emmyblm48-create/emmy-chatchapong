@@ -1114,6 +1114,8 @@
             case 'BLM48 SSR Photo':
             case 'SSR_card':
                 return '#e0b953'; // ทอง
+            case 'Pre-order':
+                return '#c9932c'; // ทองเข้ม เหมือนป้าย [Pre-order] ในหน้า shop
             case 'BLM48 Cafe':
                 return '#4caf82'; // เขียวมิ้นต์
             case 'Coaster':
@@ -1170,6 +1172,16 @@
         btnSSR.innerHTML = `<i class="fa-solid fa-star text-yellow-400"></i> SSR`;
         btnSSR.onclick = () => selectPrimaryTab('ssr');
         primaryTabsContainer.appendChild(btnSSR);
+    }
+
+    // 🎤 ปุ่มหลัก: Pre-order - รวมของทุกอย่างที่ได้จากการสั่งพรีออเดอร์ (PVC Card/Poster/การ์ดสุ่ม SSR)
+    // ไว้ในที่เดียว แยกส่วนย่อยตามชื่อคอนเสิร์ต/อีเวนต์ (มาจาก subCollection)
+    if (hasCategory('Pre-order')) {
+        const btnPreorder = document.createElement('button');
+        btnPreorder.className = `btn-tab ${currentPrimaryTab === 'preorder' ? 'active' : ''}`;
+        btnPreorder.innerHTML = `<i class="fa-solid fa-box"></i> Pre-order`;
+        btnPreorder.onclick = () => selectPrimaryTab('preorder');
+        primaryTabsContainer.appendChild(btnPreorder);
     }
 
     // 3. ปุ่มหลัก: BLM48 Photobook (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
@@ -1317,7 +1329,9 @@ function renderInventoryData() {
         
         // ⭐ เพิ่มเงื่อนไขเช็กสำหรับแท็บ SSR (เช็กเผื่อไว้ให้ทั้ง Name และ ID)
         if (currentPrimaryTab === 'ssr' && item.category !== 'BLM48 SSR Photo' && item.category !== 'SSR_card') return false;
-        
+
+        if (currentPrimaryTab === 'preorder' && item.category !== 'Pre-order') return false;
+
         if (currentPrimaryTab === 'photoset' && item.category !== 'BLM48 PhotoSet') return false;
         if (currentPrimaryTab === 'photobook' && item.category !== 'BLM48 Photobook') return false;
         if (currentPrimaryTab === 'photocard' && item.category !== 'BLM48 PhotoCard') return false;
@@ -1406,7 +1420,7 @@ function renderInventoryData() {
     let currentPreviewItem = null;
 
     // หมวดหมู่ที่ห้ามลบ เพราะหายาก/มีค่า ป้องกันผู้ใช้กดลบพลาดของสำคัญ
-    const PROTECTED_DELETE_CATEGORIES = ['BLM48 SSR Photo', 'SSR_card', 'BLM48 Photobook'];
+    const PROTECTED_DELETE_CATEGORIES = ['BLM48 SSR Photo', 'SSR_card', 'BLM48 Photobook', 'Pre-order'];
     let deleteQty = 1;
 
     function openPreview(item) {
