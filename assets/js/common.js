@@ -762,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const notifTypeVal = row.notifType || row.notif_type;
     const targetUrl = row.post_id
       ? `postdetail?id=${encodeURIComponent(row.post_id)}`
-      : (notifTypeVal === 'shop' ? 'shop.html' : (notifTypeVal === 'wallet' ? 'history.html' : 'notification.html'));
+      : (notifTypeVal === 'shop' ? 'shop.html' : (notifTypeVal === 'wallet' ? 'history.html' : (notifTypeVal === 'preorder' ? 'my_preorders.html' : 'notification.html')));
     showIosNotification({
       avatar: row.avatar,
       title: row.writer,
