@@ -1721,17 +1721,21 @@ function renderPost(post) {
     window.currentMemberStatus = '';
   }
 
-  const cachedPostsStr = localStorage.getItem('blm48_posts_cache');
+  // 🛡️ ใช้ cache key แยกเฉพาะของเมมเบอร์นี้ (ไม่ใช้ 'blm48_posts_cache' ร่วมกับ index.html) -
+  // เดิมสองหน้าแชร์คีย์เดียวกันแต่เก็บข้อมูลคนละชุด (index.html = ฟีดรวมทุกคน, member.html = เฉพาะเมมเบอร์นี้)
+  // ทำให้ไปเที่ยวเปิดหน้าเมมเบอร์คนอื่นแล้วย้อนมาหน้านี้ cache จะเป็นของคนละคน หรือ cache ของ index.html โดนทับ
+  const memberFeedCacheKey = 'blm48_posts_cache_member_' + memberName.toLowerCase();
+  const cachedPostsStr = localStorage.getItem(memberFeedCacheKey);
   const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
 
   if (cachedPostsStr && isContainerEmpty) {
     try {
       let allCachedPosts = JSON.parse(cachedPostsStr);
-      let memberCachedPosts = allCachedPosts.filter(post => 
-          (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) || 
+      let memberCachedPosts = allCachedPosts.filter(post =>
+          (post.authorName && post.authorName.toLowerCase() === memberName.toLowerCase()) ||
           (post.authorUsername && post.authorUsername.toLowerCase() === memberName.toLowerCase())
       );
-      
+
       if (memberCachedPosts.length > 0) {
         let tempPosts = [...memberCachedPosts];
         tempPosts.reverse();
@@ -1779,7 +1783,7 @@ function renderPost(post) {
     }
 
     if (memberPosts.length > 0) {
-      localStorage.setItem('blm48_posts_cache', JSON.stringify(memberPosts));
+      localStorage.setItem(memberFeedCacheKey, JSON.stringify(memberPosts));
     }
 
     const loadingMsg = document.getElementById('loading-msg');
