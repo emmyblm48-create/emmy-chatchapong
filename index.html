@@ -4017,21 +4017,9 @@ async function loadTimelinePosts() {
       const existingPost = document.getElementById(`post-${post.id}`);
 
       if (existingPost) {
-        // 🎯 สถานการณ์ A (โพสต์เดิมมีอยู่แล้วบนจอ): อัปเดตยอดไลก์, ไอคอนหัวใจ และคอมเมนต์เงียบๆ
-        const likeCountEl = document.getElementById(`like-count-${post.id}`);
-        if (likeCountEl) likeCountEl.innerText = post.likes;
-
-        const cookieCountEl = document.getElementById(`post-cookies-count-${post.id}`);
-        if (cookieCountEl) cookieCountEl.innerText = post.cookies || 0;
-
-        const heartIcon = document.getElementById(`heart-${post.id}`);
-        if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-
-        const postComments = Array.isArray(post.comments) ? post.comments : [];
-        const commentCountEl = document.getElementById(`comment-count-${post.id}`);
-        if (commentCountEl) commentCountEl.innerText = postComments.length;
-        const commentListEl = document.getElementById(`comment-list-${post.id}`);
-        if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments, post.id);
+        // 🎯 สถานการณ์ A (โพสต์เดิมมีอยู่แล้วบนจอ): อัปเดตยอดไลก์, ไอคอนหัวใจ และคอมเมนต์เงียบๆ เฉพาะจุดที่เปลี่ยน
+        // (ไม่เขียนทับทั้งลิสต์คอมเมนต์ - ดู patchPostLive ใน common.js)
+        patchPostLive(post);
       } else {
         // 🎯 สถานการณ์ B (มีโพสต์ใหม่เพิ่งลง หรือเพิ่งโหลดมา): เรนเดอร์ HTML แล้วแทรกดันไป "บนสุด" ทันที!
         container.insertAdjacentHTML('afterbegin', renderPost(post));

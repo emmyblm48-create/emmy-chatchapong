@@ -137,6 +137,125 @@ function findPostIdFromElement(el) {
   return postCard && postCard.id ? postCard.id.replace(/^post-/, '') : null;
 }
 
+// 🌸 อัปเดตโพสต์ที่อยู่บนจออยู่แล้วแบบ "เงียบ" (ใช้ตอน Realtime/refresh ดึงข้อมูลใหม่มา) - แก้เฉพาะจุดที่เปลี่ยนจริง
+// เดิมเขียน commentList.innerHTML ทับทั้งลิสต์ทุกครั้งที่มีใครไลก์/คอมเมนต์ที่ไหนก็ตามในแอป ทำให้คอมเมนต์ที่กำลังดูอยู่
+// กระพริบรีเซ็ต: ลูกศร reply ที่เปิดไว้ปิดเอง, กล่อง reply/ข้อความที่พิมพ์ค้างหาย, ช่องแก้ไขคอมเมนต์หาย, เลื่อนลิสต์กลับ,
+// และหัวใจที่เพิ่งกด (optimistic) โดนทับกลับก่อน server ตอบ ตอนนี้แทรก/ลบ/อัปเดตเฉพาะคอมเมนต์ที่ต่างจากเดิมเท่านั้น
+function patchPostLive(post) {
+  if (!post || !post.id) return;
+  const id = post.id;
+
+  const likeCountEl = document.getElementById(`like-count-${id}`);
+  const heartIcon = document.getElementById(`heart-${id}`);
+  const heartBusy = !!(heartIcon && heartIcon.dataset.loading === 'true'); // กำลังรอ server ตอบหลังกดใจ - อย่าทับค่า optimistic
+  if (!heartBusy) {
+    if (likeCountEl) likeCountEl.innerText = post.likes || 0;
+    if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+  }
+
+  const cookieCountEl = document.getElementById(`post-cookies-count-${id}`);
+  if (cookieCountEl) cookieCountEl.innerText = post.cookies || 0;
+
+  const comments = Array.isArray(post.comments) ? post.comments : [];
+  const commentCountEl = document.getElementById(`comment-count-${id}`);
+  if (commentCountEl) commentCountEl.innerText = comments.length;
+
+  reconcileComments(id, comments);
+}
+
+function reconcileComments(postId, comments) {
+  const listEl = document.getElementById(`comment-list-${postId}`);
+  if (!listEl) return;
+
+  // จัดกลุ่มเหมือน buildCommentsHtml: reply ทุกอันผูกกับคอมเมนต์แม่บนสุดเสมอ
+  const byId = {};
+  comments.forEach(c => { if (c.commentId) byId[c.commentId] = c; });
+  const topLevel = [];
+  const repliesByParent = {};
+  comments.forEach(c => {
+    if (!c.parentCommentId || !byId[c.parentCommentId]) {
+      topLevel.push(c);
+    } else {
+      let topId = c.parentCommentId;
+      let hops = 0;
+      while (byId[topId] && byId[topId].parentCommentId && byId[byId[topId].parentCommentId] && hops < 5) {
+        topId = byId[topId].parentCommentId;
+        hops++;
+      }
+      (repliesByParent[topId] = repliesByParent[topId] || []).push(c);
+    }
+  });
+
+  const findItem = (root, cid) => root.querySelector(`.comment-item[data-comment-id="${CSS.escape(cid)}"]`);
+
+  // อัปเดตคอมเมนต์/reply ที่มีอยู่แล้วบนจอ: ยอดไลก์ + หัวใจ + ข้อความ (ถ้าไม่ได้กำลังแก้ไขอยู่)
+  const patchItem = (cmt) => {
+    const cid = cmt.commentId;
+    const heart = document.getElementById(`cmt-heart-${cid}`);
+    const likeSpan = document.getElementById(`cmt-like-count-${cid}`);
+    if (heart && likeSpan && heart.dataset.loading !== 'true') {
+      likeSpan.innerText = cmt.likes || 0;
+      heart.classList.toggle('fa-solid', !!cmt.isLiked);
+      heart.classList.toggle('fa-regular', !cmt.isLiked);
+    }
+    const textEl = document.getElementById(`cmt-text-${cid}`);
+    if (textEl && textEl.dataset.editing !== 'true' && textEl.textContent !== (cmt.text || '')) {
+      textEl.textContent = cmt.text || '';
+    }
+    window.__commentTextCache = window.__commentTextCache || {};
+    if (!(textEl && textEl.dataset.editing === 'true')) window.__commentTextCache[cid] = cmt.text || '';
+  };
+
+  if (topLevel.length === 0) {
+    if (!listEl.querySelector('.no-comment-placeholder')) listEl.innerHTML = buildCommentsHtml([], postId);
+    return;
+  }
+  const placeholder = listEl.querySelector('.no-comment-placeholder');
+  if (placeholder) placeholder.remove();
+
+  // คอมเมนต์ที่หายไปจาก server แล้ว (โดนลบ) ค่อยเอาออกจากจอ
+  const liveIds = new Set(comments.map(c => c.commentId).filter(Boolean));
+  listEl.querySelectorAll('.comment-item[data-comment-id]').forEach(el => {
+    if (!liveIds.has(el.dataset.commentId)) el.remove();
+  });
+
+  let prevEl = null;
+  topLevel.forEach(cmt => {
+    const replies = repliesByParent[cmt.commentId] || [];
+    let el = cmt.commentId ? findItem(listEl, cmt.commentId) : null;
+
+    if (el) {
+      patchItem(cmt);
+      const repliesEl = document.getElementById(`replies-${cmt.commentId}`);
+      if (repliesEl) {
+        let prevReply = null;
+        replies.forEach(r => {
+          let rEl = r.commentId ? findItem(repliesEl, r.commentId) : null;
+          if (rEl) {
+            patchItem(r);
+          } else {
+            const html = buildSingleCommentHtml(r, postId, true);
+            if (prevReply) prevReply.insertAdjacentHTML('afterend', html);
+            else repliesEl.insertAdjacentHTML('afterbegin', html);
+            rEl = r.commentId ? findItem(repliesEl, r.commentId) : null;
+          }
+          if (rEl) prevReply = rEl;
+        });
+        const repliesCountEl = document.getElementById(`replies-count-${cmt.commentId}`);
+        if (repliesCountEl) repliesCountEl.innerText = replies.length;
+        const toggleBtn = document.getElementById(`replies-toggle-btn-${cmt.commentId}`);
+        if (toggleBtn) toggleBtn.style.display = replies.length > 0 ? 'flex' : 'none';
+      }
+    } else {
+      const html = buildSingleCommentHtml(cmt, postId, false, replies);
+      if (prevEl) prevEl.insertAdjacentHTML('afterend', html);
+      else listEl.insertAdjacentHTML('afterbegin', html);
+      el = cmt.commentId ? findItem(listEl, cmt.commentId) : null;
+    }
+    if (el) prevEl = el;
+  });
+}
+
 // แชร์โพสต์เป็นลิงก์ (เปิด native share sheet ถ้ามี ไม่งั้น copy ลิงก์ไปคลิปบอร์ด)
 async function actionSharePost(postId, targetPage) {
   if (!postId) return;

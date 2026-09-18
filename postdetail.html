@@ -601,17 +601,7 @@
       const existingCard = document.getElementById(`post-${post.id}`);
       if (existingCard) {
         // อัปเดตค่าที่เปลี่ยนแบบเงียบๆ แทนการรีเรนเดอร์ทั้งการ์ด (กันคอมเมนต์ที่กำลังพิมพ์อยู่หาย)
-        const likeCountEl = document.getElementById(`like-count-${post.id}`);
-        if (likeCountEl) likeCountEl.innerText = post.likes;
-        const cookieCountEl = document.getElementById(`post-cookies-count-${post.id}`);
-        if (cookieCountEl) cookieCountEl.innerText = post.cookies || 0;
-        const heartIcon = document.getElementById(`heart-${post.id}`);
-        if (heartIcon) heartIcon.className = post.isLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        const postComments = Array.isArray(post.comments) ? post.comments : [];
-        const commentCountEl = document.getElementById(`comment-count-${post.id}`);
-        if (commentCountEl) commentCountEl.innerText = postComments.length;
-        const commentListEl = document.getElementById(`comment-list-${post.id}`);
-        if (commentListEl) commentListEl.innerHTML = buildCommentsHtml(postComments, post.id);
+        patchPostLive(post);
       } else {
         container.innerHTML = renderPost(post);
         renderCommentBar(post.id);
