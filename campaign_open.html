@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | เปิด Campaign</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/campaign.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Kanit', 'Quicksand', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: #222; background: #ffffff; }
+        .top-navigation-bar { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; background: #fff; padding: 14px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        .back-circle-btn { background: none; border: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #222; font-size: 20px; cursor: pointer; }
+        .top-bar-title { text-align: center; font-weight: 600; font-size: 18px; color: #222; }
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 0 16px 130px; }
+
+        .hero { text-align: center; padding: 26px 0 18px; margin: 0 -16px; background: linear-gradient(180deg, #ffe3ec 0%, #fff6e0 60%, #ffffff 100%); }
+        .hero img { width: 108px; height: 108px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 6px 18px rgba(255,107,139,.22); background: #fff; pointer-events: none; }
+        .hero .eyebrow { font-size: 12px; letter-spacing: 2px; color: #ff6b8b; font-weight: 600; margin-top: 12px; }
+        .hero h1 { font-size: 22px; font-weight: 600; margin: 4px 0 4px; }
+        .hero p { margin: 0; font-size: 13px; color: #777; }
+
+        .period { display: flex; align-items: center; gap: 12px; border: 1.5px solid #222; border-radius: 8px; padding: 12px 14px; margin: 14px 0 22px; }
+        .period i { font-size: 24px; }
+        .period .lbl { font-size: 13px; color: #666; }
+        .period .val { font-size: 15px; font-weight: 500; }
+
+        .section-h { font-size: 17px; font-weight: 600; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+        .section-h i { color: #fcc419; }
+        .rule { padding: 12px 14px; border-radius: 12px; background: #fff0f4; border: 1px dashed #ff85a2; font-size: 14px; line-height: 1.7; margin: 6px 0 22px; }
+        .notes { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.9; color: #444; }
+
+        .open-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%); z-index: 50; }
+        .open-btn { display: block; width: 100%; max-width: 608px; margin: 0 auto; border: none; border-radius: 30px; background: #ffd43b; color: #222; font-family: inherit; font-size: 18px; font-weight: 600; padding: 15px; cursor: pointer; }
+        .open-btn:disabled { background: #e9e9e9; color: #999; cursor: wait; }
+        .loading-state { text-align: center; color: #999; padding: 80px 20px; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">เปิด Campaign</div>
+    <span></span>
+</div>
+
+<div class="page-wrapper" id="page">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+</div>
+
+<div class="open-bar" id="open-bar" style="display:none;">
+    <button type="button" class="open-btn" id="open-btn" onclick="confirmOpenCampaign()">เปิด Campaign</button>
+</div>
+
+<script>
+  let user = null;
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'profile';
+  }
+
+  function render(profileImg) {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const fmt = d => d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('page').innerHTML = `
+      <div class="hero">
+        <img src="${escapeAttr(profileImg || 'https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png')}" alt="" draggable="false">
+        <div class="eyebrow">CHAMP OF THE MONTH CAMPAIGN</div>
+        <h1>${escapeHtml(user.name)}</h1>
+        <p>เปิด Campaign เพื่อให้แฟนๆ ซัพพอร์ตคุกกี้ ดันขึ้น Champ of the Month เดือนนี้</p>
+      </div>
+
+      <div class="period">
+        <i class="fa-regular fa-calendar-days"></i>
+        <div>
+          <div class="lbl">ระยะเวลา Campaign</div>
+          <div class="val">${fmt(now)} – ${fmt(lastDay)}</div>
+          <div class="lbl">ปิดเวลา 00:00 น. ของวันถัดไป</div>
+        </div>
+      </div>
+
+      <div class="section-h"><i class="fa-solid fa-trophy"></i> รายละเอียด Tier</div>
+      ${renderCampaignTierList(0)}
+
+      <div class="rule">🏆 <b>พิเศษเดือนเกิด</b> : ถ้าเป็นเดือนเกิดของเมมเบอร์ และเมมเบอร์ได้รับ Champ of the Month เดือนนั้น Top Supporter อันดับ 1 ของ Campaign จะได้รับ<b style="color:#e8590c;">คุกกี้คืน 100%</b></div>
+
+      <div class="section-h"><i class="fa-solid fa-circle-info"></i> เงื่อนไข</div>
+      <ul class="notes">
+        <li>เปิดได้เดือนละ 1 ครั้ง และปิดก่อนกำหนดไม่ได้</li>
+        <li>คุกกี้ที่แฟนๆ ซัพพอร์ตนับเป็นยอดปาคุกกี้ปกติ (Ranking / Top Fans / Fan Score)</li>
+        <li>ระบบคืนคุกกี้ให้แฟนๆ อัตโนมัติเมื่อจบ Campaign ตาม Tier ที่ทำได้</li>
+      </ul>`;
+    document.getElementById('open-bar').style.display = 'block';
+  }
+
+  async function confirmOpenCampaign() {
+    const btn = document.getElementById('open-btn');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = 'กำลังเปิด Campaign...';
+    const res = await blm48OpenMemberCampaign(user.username);
+    if (!res || res.status !== 'success') {
+      btn.disabled = false;
+      btn.textContent = 'เปิด Campaign';
+      Swal.fire({ title: 'ไม่สำเร็จ', text: (res && res.message) || 'เกิดข้อผิดพลาด', icon: 'error', confirmButtonColor: '#fcc419' });
+      return;
+    }
+    await Swal.fire({ title: 'เปิด Campaign แล้ว! 🎉', text: 'Campaign ของคุณขึ้นที่หน้า Home เรียบร้อย', icon: 'success', confirmButtonColor: '#fcc419' });
+    window.location.replace(`campaign_detail?id=${encodeURIComponent(res.campaign.id)}`);
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    // เฉพาะบัญชีเมมเบอร์เท่านั้น
+    if ((user.role || '').toLowerCase() !== 'member') { window.location.replace('profile'); return; }
+
+    try {
+      // เปิดไปแล้วเดือนนี้ -> ไปหน้า Campaign ของตัวเองเลย
+      const existing = await blm48GetMemberCampaign(user.name);
+      if (existing && existing.status === 'success' && existing.campaign) {
+        window.location.replace(`campaign_detail?id=${encodeURIComponent(existing.campaign.id)}`);
+        return;
+      }
+      let profileImg = null;
+      const members = await blm48GetAllMembers();
+      if (members && Array.isArray(members.data)) {
+        const me = members.data.find(m => (m.name || '').toLowerCase() === (user.name || '').toLowerCase());
+        if (me) profileImg = me.profile;
+      }
+      render(profileImg);
+    } catch (e) {
+      document.getElementById('page').innerHTML = `<div class="loading-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  });
+</script>
+</body>
+</html>
