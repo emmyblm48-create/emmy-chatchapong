@@ -20,9 +20,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/common.js"></script>
-  <script src="assets/js/campaign.js"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/glassmorphism.css">
 
 <style>
@@ -740,9 +739,6 @@
         </button>
       </div>
 
-      <!-- 🏆 Member Campaign: การ์ด Campaign เดือนนี้ เห็นทุกคน (ปุ่มเปิด Campaign อยู่หน้า profile ของเมมเบอร์) -->
-      <div id="member-campaign-zone" style="display: none; margin: 4px 0 18px;"></div>
-
       <div class="leaderboard-section">
         <div class="leaderboard-title with-preview" id="top-fans-toggle" onclick="goToTopFans()">
           <span><i class="fas fa-trophy"></i> Top Fans</span>
@@ -929,26 +925,6 @@ function renderMemberStatsAndFans() {
       if (nameEl) nameEl.innerText = memberName;
     }
 
-    // 🏆 Member Campaign ---------------------------------------------------------
-    async function loadMemberCampaignZone() {
-      const zone = document.getElementById('member-campaign-zone');
-      if (!zone) return;
-      let campaign = null;
-      try {
-        const res = await blm48GetMemberCampaign(memberName);
-        if (res && res.status === 'success') campaign = res.campaign;
-      } catch (e) {}
-
-      if (campaign) {
-        zone.innerHTML = `
-          <div style="font-weight:600; font-size:15px; margin: 0 2px 8px; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-trophy" style="color:#fcc419;"></i> Campaign เดือนนี้</div>
-          ${renderMemberCampaignCard(campaign, { full: true })}`;
-        zone.style.display = 'block';
-      } else {
-        zone.style.display = 'none';
-      }
-    }
-
     function loadMemberData() {
       if (!memberName) { window.location.href = 'index'; return; }
       user = getUserSession();
@@ -956,7 +932,6 @@ function renderMemberStatsAndFans() {
       // 🛡️ ยิงโหลดรายชื่อเมมเบอร์จริงไว้ล่วงหน้าแบบไม่รอ (หน้านี้ไม่มี window.memberData จากที่อื่นเหมือน index.html)
       // ใช้เช็คก่อนแปลง @แท็กในโพสเป็นลิงก์ กันแท็กชื่อไม่มีตัวตนจริง (ดู getMemberNameLookup ใน common.js)
       primeMemberNameCache();
-      loadMemberCampaignZone();
 
       // 🔴 Realtime: ยอด Token/Cookie เปลี่ยนจากที่ไหนก็ตาม -> อัปเดตปุ่มให้คุกกี้ทันที
       if (user && window.BLM48Realtime) {

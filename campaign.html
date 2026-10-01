@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-title" content="BLM48">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/glassmorphism.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -23,7 +23,7 @@
     <style>
         :root { --primary-pink: #ff85a2; --text-dark: #444; }
         * { box-sizing: border-box; }
-        body { font-family: 'Kanit', 'Quicksand', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
         .top-navigation-bar { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; background: #fff; padding: 14px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
         .back-circle-btn { background: none; border: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #222; font-size: 20px; cursor: pointer; }
         .top-bar-title { text-align: center; font-weight: 600; font-size: 18px; color: #222; }
@@ -96,7 +96,11 @@
     }
   }
 
-  window.addEventListener('DOMContentLoaded', loadCampaigns);
+  window.addEventListener('DOMContentLoaded', () => {
+    loadCampaigns();
+    // 🔴 Realtime: ยอด Campaign = ยอด Ranking เดือนนี้ -> Ranking ขยับเมื่อไหร่ รีเฟรชรายการทันที
+    if (typeof blm48SubscribeRanking === 'function') blm48SubscribeRanking(loadCampaigns);
+  });
 </script>
 </body>
 </html>

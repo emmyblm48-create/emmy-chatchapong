@@ -399,10 +399,10 @@ async function generateTransferSlip({ admin, adminName, adminAvatar, target, tok
     ctx.fillStyle = '#ffffff';
 
     ctx.textAlign = 'left';
-    ctx.font = '600 38px "Kanit", sans-serif';
+    ctx.font = '600 38px "Quicksand", "Kanit", sans-serif';
     ctx.fillText(dateStr, 64, 1250);
 
-    ctx.font = '600 42px "Kanit", sans-serif';
+    ctx.font = '600 42px "Quicksand", "Kanit", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('@' + admin, 280, 352);
     ctx.fillText(adminName || admin, 280, 414);
@@ -411,7 +411,7 @@ async function generateTransferSlip({ admin, adminName, adminAvatar, target, tok
     ctx.fillText(target.name || target.username, 280, 742);
 
     ctx.textAlign = 'right';
-    ctx.font = '600 46px "Kanit", sans-serif';
+    ctx.font = '600 46px "Quicksand", "Kanit", sans-serif';
     ctx.fillText(ref, 1170, 944);
 
     const items = [];
@@ -419,7 +419,7 @@ async function generateTransferSlip({ admin, adminName, adminAvatar, target, tok
     if (cookie > 0) items.push({ label: 'Cookie', amount: cookie });
     if (getoken > 0) items.push({ label: 'GEToken', amount: getoken });
     let y = 1074;
-    ctx.font = '700 52px "Kanit", sans-serif';
+    ctx.font = '700 52px "Quicksand", "Kanit", sans-serif';
     items.forEach(item => {
       ctx.fillText(Number(item.amount).toLocaleString() + ' ' + item.label, 1170, y);
       y += 62;
@@ -794,7 +794,7 @@ function injectIosNotificationStyles() {
       transform: translateX(-50%) translateY(-140%);
       opacity: 0;
       transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
-      font-family: 'Quicksand', 'Kanit', -apple-system, sans-serif;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
     }
     .blm48-ios-noti.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .blm48-ios-noti-avatar { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; flex: 0 0 auto; background: #eee; }

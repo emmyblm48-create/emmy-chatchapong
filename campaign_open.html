@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-title" content="BLM48">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/glassmorphism.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -22,14 +22,14 @@
 
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Kanit', 'Quicksand', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: #222; background: #ffffff; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: #222; background: #ffffff; }
         .top-navigation-bar { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; background: #fff; padding: 14px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
         .back-circle-btn { background: none; border: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #222; font-size: 20px; cursor: pointer; }
         .top-bar-title { text-align: center; font-weight: 600; font-size: 18px; color: #222; }
         .page-wrapper { max-width: 640px; margin: 0 auto; padding: 0 16px 130px; }
 
         .hero { text-align: center; padding: 26px 0 18px; margin: 0 -16px; background: linear-gradient(180deg, #ffe3ec 0%, #fff6e0 60%, #ffffff 100%); }
-        .hero img { width: 108px; height: 108px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 6px 18px rgba(255,107,139,.22); background: #fff; pointer-events: none; }
+        .hero img { width: 108px; height: 108px; border-radius: 50%; object-fit: cover; border: 4px solid #ffc107; box-shadow: 0 6px 18px rgba(255,193,7,.25); background: #fff; pointer-events: none; }
         .hero .eyebrow { font-size: 12px; letter-spacing: 2px; color: #ff6b8b; font-weight: 600; margin-top: 12px; }
         .hero h1 { font-size: 22px; font-weight: 600; margin: 4px 0 4px; }
         .hero p { margin: 0; font-size: 13px; color: #777; }
@@ -98,12 +98,13 @@
       <div class="section-h"><i class="fa-solid fa-trophy"></i> รายละเอียด Tier</div>
       ${renderCampaignTierList(0)}
 
-      <div class="rule">🏆 <b>พิเศษเดือนเกิด</b> : ถ้าเป็นเดือนเกิดของเมมเบอร์ และเมมเบอร์ได้รับ Champ of the Month เดือนนั้น Top Supporter อันดับ 1 ของ Campaign จะได้รับ<b style="color:#e8590c;">คุกกี้คืน 100%</b></div>
+      <div class="rule"><i class="fa-solid fa-trophy" style="color:#fcc419;"></i> <b>พิเศษเดือนเกิด</b> : ถ้าเป็นเดือนเกิดของเมมเบอร์ และเมมเบอร์ได้รับ Champ of the Month เดือนนั้น Top Supporter อันดับ 1 ของ Campaign จะได้รับ<b style="color:#e8590c;">คุกกี้คืน 100%</b></div>
 
       <div class="section-h"><i class="fa-solid fa-circle-info"></i> เงื่อนไข</div>
       <ul class="notes">
         <li>เปิดได้เดือนละ 1 ครั้ง และปิดก่อนกำหนดไม่ได้</li>
-        <li>คุกกี้ที่แฟนๆ ซัพพอร์ตนับเป็นยอดปาคุกกี้ปกติ (Ranking / Top Fans / Fan Score)</li>
+        <li>ยอด Campaign = ยอด Ranking ของเมมเบอร์ในเดือนนั้น (รวมการปาคุกกี้ และคุกกี้จากการกดใจ/คอมเมนต์โพส)</li>
+        <li>การคืนคุกกี้คิดจากยอดที่แฟนๆ ปาคุกกี้จริงตั้งแต่วันที่เปิด Campaign เท่านั้น ไม่รวมคุกกี้จากการกดใจ/คอมเมนต์</li>
         <li>ระบบคืนคุกกี้ให้แฟนๆ อัตโนมัติเมื่อจบ Campaign ตาม Tier ที่ทำได้</li>
       </ul>`;
     document.getElementById('open-bar').style.display = 'block';
@@ -121,7 +122,7 @@
       Swal.fire({ title: 'ไม่สำเร็จ', text: (res && res.message) || 'เกิดข้อผิดพลาด', icon: 'error', confirmButtonColor: '#fcc419' });
       return;
     }
-    await Swal.fire({ title: 'เปิด Campaign แล้ว! 🎉', text: 'Campaign ของคุณขึ้นที่หน้า Home เรียบร้อย', icon: 'success', confirmButtonColor: '#fcc419' });
+    await Swal.fire({ title: 'เปิด Campaign แล้ว!', text: 'Campaign ของคุณขึ้นที่หน้า Home เรียบร้อย', icon: 'success', confirmButtonColor: '#fcc419' });
     window.location.replace(`campaign_detail?id=${encodeURIComponent(res.campaign.id)}`);
   }
 

@@ -2,12 +2,27 @@
 // ต้องโหลดหลัง common.js (ใช้ escapeHtml / escapeAttr)
 
 const CAMPAIGN_GOAL = 100000;
+// desc = ข้อความรายละเอียด Tier ตามที่ออฟฟิเชียลกำหนด (ใช้ทั้งหน้าเปิด Campaign และหน้า Campaign Detail)
 const CAMPAIGN_TIERS = [
-  { tier: 1, name: 'Junior Cookie',  amount: 10000,  refund: 5,  rewards: 'Splash Screen in BLM48 Web Application' },
-  { tier: 2, name: 'Deluxe Cookie',  amount: 30000,  refund: 10, rewards: 'Splash Screen in BLM48 Web Application, Banner in BLM48 Web Application' },
-  { tier: 3, name: 'Premium Cookie', amount: 50000,  refund: 15, rewards: 'Splash Screen in BLM48 Web Application, Banner in BLM48 Web Application' },
-  { tier: 4, name: 'Luxury Cookie',  amount: 100000, refund: 20, rewards: 'Splash Screen in BLM48 Web Application, Banner in BLM48 Web Application' }
+  { tier: 1, name: 'Junior Cookie',  amount: 10000,  refund: 5,
+    desc: 'Tier 1 : Get Junior Cookie เมื่อซัพพอร์ทคุกกี้ครบ 10,000 เมมเบอร์จะได้ขึ้น Splash Screen in BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 5%' },
+  { tier: 2, name: 'Deluxe Cookie',  amount: 30000,  refund: 10,
+    desc: 'Tier 2 : Get Deluxe Cookie เมื่อซัพพอร์ทคุกกี้ครบ 30,000 เมมเบอร์จะได้ Splash Screen in BLM48 Web Application, Theme of BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 10%' },
+  { tier: 3, name: 'Premium Cookie', amount: 50000,  refund: 15,
+    desc: 'Tier 3 : Get Premium Cookie เมื่อซัพพอร์ทคุกกี้ครบ 50,000 เมมเบอร์จะได้ Splash Screen in BLM48 Web Application, Theme of BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 15%' },
+  { tier: 4, name: 'Luxury Cookie',  amount: 100000, refund: 20,
+    desc: 'Tier 4 : Get Luxury Cookie เมื่อซัพพอร์ทคุกกี้ครบ 100,000 เมมเบอร์จะได้ Splash Screen in BLM48 Web Application, Theme of BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 20%' }
 ];
+
+// 🎨 รายการ Tier แบบการ์ด (ติ๊กถูกเมื่อยอดถึง) ใช้ร่วมกันหน้าเปิด Campaign / Campaign Detail
+function renderCampaignTierList(total) {
+  total = Number(total || 0);
+  return CAMPAIGN_TIERS.map(t => {
+    const reached = total >= t.amount;
+    return `<div style="padding: 12px 14px; border-radius: 12px; margin-bottom: 10px; border: 1px solid ${reached ? '#fcc419' : '#f0f0f0'}; background: ${reached ? '#fffbea' : '#fff'}; font-size: 14.5px; line-height: 1.7; color: #333;">
+      ${reached ? '<i class="fa-solid fa-circle-check" style="color:#fcc419;"></i> ' : ''}${escapeHtml(t.desc)}</div>`;
+  }).join('');
+}
 
 (function injectCampaignStyles() {
   if (document.getElementById('mc-campaign-styles')) return;
@@ -118,7 +133,7 @@ function renderMemberCampaignCard(c, opts) {
       <div class="mc-cover">
         <img src="${escapeAttr(c.coverImage || 'assets/images/default-profile.png')}" alt="" loading="lazy" draggable="false" oncontextmenu="return false">
         <span class="mc-cover-tag"><i class="fa-solid fa-trophy"></i> Champ Campaign</span>
-        ${c.isBirthMonth ? '<span class="mc-cover-bday">🎂 Birthday Month</span>' : ''}
+        ${c.isBirthMonth ? '<span class="mc-cover-bday"><i class="fa-solid fa-cake-candles"></i> Birthday Month</span>' : ''}
         ${renderCampaignStamp(c)}
       </div>
       <div class="mc-body">
@@ -131,30 +146,4 @@ function renderMemberCampaignCard(c, opts) {
         ${renderCampaignProgress(c)}
       </div>
     </a>`;
-}
-
-// 🏆 เมมเบอร์กดเปิด Campaign ของตัวเอง (ปุ่มวงกลมในหน้า profile) - คืนค่า campaign ที่เปิดสำเร็จ หรือ null
-async function openMemberCampaignFlow(currentUser) {
-  if (!currentUser || (currentUser.role || '').toLowerCase() !== 'member') return null;
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const monthLabel = now.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
-  const tiers = CAMPAIGN_TIERS.map(t => `<li>Tier ${t.tier}: ${t.amount.toLocaleString()} คุกกี้ → ${t.tier >= 2 ? 'Splash + Banner' : 'Splash Screen'}, แฟนๆ ได้คืน ${t.refund}%</li>`).join('');
-  const confirm = await Swal.fire({
-    title: 'เปิด Campaign เดือนนี้?',
-    html: `<div style="text-align:left; font-size:14px; line-height:1.7;">
-        Campaign จะเปิดตั้งแต่วันนี้ ถึงวันที่ ${lastDay} ${escapeHtml(monthLabel)} (ปิดเวลา 00:00 น. ของวันถัดไป)
-        <ul style="padding-left:18px; margin:8px 0;">${tiers}</ul>
-        เปิดได้เดือนละ 1 ครั้ง และปิดก่อนกำหนดไม่ได้นะ</div>`,
-    icon: 'question', showCancelButton: true, confirmButtonText: 'เปิด Campaign', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#fcc419'
-  });
-  if (!confirm.isConfirmed) return null;
-  Swal.fire({ title: 'กำลังเปิด Campaign...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-  const res = await blm48OpenMemberCampaign(currentUser.username);
-  if (!res || res.status !== 'success') {
-    Swal.fire({ title: 'ไม่สำเร็จ', text: (res && res.message) || 'เกิดข้อผิดพลาด', icon: 'error', confirmButtonColor: '#ff85a2' });
-    return null;
-  }
-  await Swal.fire({ title: 'เปิด Campaign แล้ว! 🎉', text: 'Campaign ของคุณขึ้นที่หน้า Home เรียบร้อย', icon: 'success', confirmButtonColor: '#fcc419' });
-  return res.campaign;
 }
