@@ -28,6 +28,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/common.js"></script>
+  <script src="assets/js/campaign.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
@@ -310,11 +311,17 @@ body {
   z-index: 10;
 }
     
-    .bonus-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
-    .btn-bonus { height: 48px; border: none; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; color: white; }
-    .btn-monthly { background: var(--blmem-pink); box-shadow: 0 4px 12px rgba(255,133,162,0.3); }
-    .btn-redeem { background: #4dabf7; box-shadow: 0 4px 12px rgba(77,171,247,0.3); }
-    .btn-locked { background: #ccc !important; cursor: not-allowed; opacity: 0.7; }
+    /* 🔘 ปุ่มวงกลม Monthly Cookie / Redeem / Membership Card / Campaign - สไตล์เดียวกับปุ่ม Kami/Oshi/Cookie/More ในหน้า member */
+    .pf-circle-row { display: flex; justify-content: space-evenly; align-items: flex-start; gap: 8px; margin: 4px 0 22px; }
+    .pf-circle-btn { flex: 1 1 0; max-width: 90px; background: none; border: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: #444; text-align: center; line-height: 1.25; transition: transform 0.2s ease; }
+    .pf-circle-btn:hover { transform: translateY(-3px); }
+    .pf-circle-btn:disabled { opacity: 0.5; cursor: wait; }
+    .pf-circle-btn .icon-circle { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+    .btn-pf-monthly .icon-circle { background: var(--blmem-pink-light, #ffeef2); color: var(--blmem-pink, #ff85a2); }
+    .btn-pf-redeem .icon-circle { background: #e7f5ff; color: #4dabf7; }
+    .btn-pf-card .icon-circle { background: linear-gradient(135deg, #e0b953 0%, #fff5c3 50%, #cba034 100%); color: #5e470c; }
+    .btn-pf-campaign .icon-circle { background: #fff9db; color: #f59f00; }
+    .btn-pf-campaign.is-open .icon-circle { background: #fcc419; color: #fff; }
   </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -372,12 +379,24 @@ body {
         </div>
       </div>
 
-      <div class="bonus-container">
-        <button id="btn-claim-monthly" class="btn-bonus btn-monthly"><i class="fas fa-gift"></i> รับคุกกี้รายเดือน</button>
-        <button onclick="redeemCode()" class="btn-bonus btn-redeem"><i class="fas fa-ticket-alt"></i> Redeem</button>
-
-        <button onclick="showMembershipCardModal()" class="btn-bonus btn-membership" style="grid-column: span 2; background: linear-gradient(135deg, #e0b953 0%, #fff5c3 45%, #fff5c3 55%, #cba034 100%); box-shadow: 0 4px 12px rgba(224, 185, 83, 0.4); color: #5e470c; border: 1px solid #fce899; font-weight: bold;">
-          <i class="fas fa-id-card"></i> Membership Card
+      <!-- 🔘 ปุ่มวงกลม (สไตล์เดียวกับปุ่ม Kami/Oshi/Cookie/More ในหน้า member)
+           รับคุกกี้รายเดือน: ซ่อนสำหรับ role member/admin | Campaign: เฉพาะ role member -->
+      <div id="pf-circle-row" class="pf-circle-row">
+        <button type="button" id="btn-claim-monthly" class="pf-circle-btn btn-pf-monthly" style="display: none;">
+          <span class="icon-circle"><i class="fas fa-gift"></i></span>
+          <span class="btn-label">Monthly Cookie</span>
+        </button>
+        <button type="button" class="pf-circle-btn btn-pf-redeem" onclick="redeemCode()">
+          <span class="icon-circle"><i class="fas fa-ticket-alt"></i></span>
+          <span class="btn-label">Redeem</span>
+        </button>
+        <button type="button" class="pf-circle-btn btn-pf-card" onclick="showMembershipCardModal()">
+          <span class="icon-circle"><i class="fas fa-id-card"></i></span>
+          <span class="btn-label">Membership Card</span>
+        </button>
+        <button type="button" id="btn-pf-campaign" class="pf-circle-btn btn-pf-campaign" onclick="onProfileCampaignClick()" style="display: none;">
+          <span class="icon-circle"><i class="fas fa-trophy"></i></span>
+          <span class="btn-label">Campaign</span>
         </button>
       </div>
 
@@ -498,8 +517,11 @@ body {
     if (isUserMember()) {
       if (coverEditBtn) coverEditBtn.classList.add('visible');
       loadMemberCoverForSelf();
+      loadProfileCampaignButton();
     } else {
       if (coverEditBtn) coverEditBtn.classList.remove('visible');
+      const campaignBtn = document.getElementById('btn-pf-campaign');
+      if (campaignBtn) campaignBtn.style.display = 'none';
       if (avatarEl.src) document.getElementById('pf-cover').src = avatarEl.src;
     }
 
@@ -538,15 +560,13 @@ body {
     if (menuAdminDashboard) menuAdminDashboard.style.display = isAdmin ? 'flex' : 'none';
     if (isAdmin) loadAdminPendingBadge();
     // เพิ่มการจัดการปุ่มรับคุกกี้ตามสถานะ Member
+    // ปุ่มรับคุกกี้รายเดือน: role member และ role admin มองไม่เห็น
     const btnClaim = document.getElementById('btn-claim-monthly');
     if (btnClaim) {
-      if (isUserMember()) {
-        btnClaim.onclick = () => Swal.fire('ขออภัย','สิทธิ์รับคุกกี้ฟรีไม่ครอบคลุมสถานะเมมเบอร์','info');
-        btnClaim.classList.add('btn-locked');
-      } else {
-        btnClaim.onclick = claimMonthly;
-        btnClaim.classList.remove('btn-locked');
-      }
+      const roleLower = (user.role || '').toLowerCase().trim();
+      const hideMonthly = isUserMember() || roleLower === 'admin';
+      btnClaim.style.display = hideMonthly ? 'none' : '';
+      btnClaim.onclick = hideMonthly ? null : claimMonthly;
     }
 
     // อัปเดตรูปโปรไฟล์ตรง Tab Bar ด้านล่าง
@@ -734,6 +754,29 @@ body {
 
   let currentMemberCoverUrl = null;
   let activeCoverCropper = null;
+
+  // 🏆 ปุ่มวงกลม Campaign: ยังไม่เปิดเดือนนี้ = กดเพื่อเปิด / เปิดแล้ว = กดไปหน้า Campaign ของตัวเอง
+  let profileCampaign = null;
+  async function loadProfileCampaignButton() {
+    const btn = document.getElementById('btn-pf-campaign');
+    if (!btn || !user || !user.name) return;
+    try {
+      const res = await blm48GetMemberCampaign(user.name);
+      profileCampaign = (res && res.status === 'success') ? res.campaign : null;
+    } catch (e) { profileCampaign = null; }
+    btn.classList.toggle('is-open', !!profileCampaign);
+    btn.querySelector('.btn-label').textContent = profileCampaign ? 'My Campaign' : 'Campaign';
+    btn.style.display = '';
+  }
+
+  async function onProfileCampaignClick() {
+    if (profileCampaign) {
+      window.location.href = `campaign_detail?id=${encodeURIComponent(profileCampaign.id)}`;
+      return;
+    }
+    const opened = await openMemberCampaignFlow(user);
+    if (opened) await loadProfileCampaignButton();
+  }
 
   async function loadMemberCoverForSelf() {
     if (!user || !user.name) return;

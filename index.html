@@ -23,6 +23,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/common.js"></script>
+  <script src="assets/js/campaign.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
@@ -2379,7 +2380,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         </div>
     </div>
   
-<div class="section-title"> Campaign</div>
+<div class="section-title" onclick="window.location.href='campaign'" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
+  <span>Campaign</span>
+  <span style="font-size: 13px; font-weight: 500; color: #555;">View All <i class="fas fa-chevron-right" style="font-size: 12px; margin-left: 4px;"></i></span>
+</div>
 <div class="ranking-wrapper">
   <div id="campaign-scroller" class="horizontal-list" style="align-items: flex-start;">
     <div style="text-align: center; width: 100%; color: #888; padding: 20px;">
@@ -2669,23 +2673,35 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
   const mainSplash = document.getElementById('main-splash');
   const splashScreen = document.getElementById('splash-screen');
   
-  let splashToShow = champ.splash; 
+  // 🔁 วนโชว์ Splash ทีละอันต่อการเปิดแอป: Champ -> วันเกิด -> Campaign ที่ถึง Tier 1 ขึ้นไป
+  const splashCandidates = [];
+  if (champ.splash) splashCandidates.push({ type: 'champ', src: champ.splash });
+  if (birthdaySplash) splashCandidates.push({ type: 'birthday', src: birthdaySplash });
+  getCachedCampaignRewards().filter(c => c.tier >= 1).forEach(c => splashCandidates.push({ type: 'campaign', src: c.splashImage, campaign: c }));
 
-  if (birthdaySplash) {
-    const lastShown = localStorage.getItem(toggleKey);
-    
-    if (lastShown === "birthday") {
-      splashToShow = champ.splash;
-      localStorage.setItem(toggleKey, "champ");
-    } else {
-      splashToShow = birthdaySplash;
-      localStorage.setItem(toggleKey, "birthday");
-    }
+  let chosen = null;
+  if (splashCandidates.length > 0) {
+    let idx = parseInt(localStorage.getItem(toggleKey + '_idx'), 10);
+    idx = isNaN(idx) ? 0 : (idx + 1) % splashCandidates.length;
+    localStorage.setItem(toggleKey + '_idx', String(idx));
+    chosen = splashCandidates[idx];
+  }
+
+  const oldCampaignSplash = document.getElementById('campaign-splash-art');
+  if (oldCampaignSplash) oldCampaignSplash.remove();
+  let splashToShow = chosen ? chosen.src : null;
+  if (chosen && chosen.type === 'campaign' && !chosen.src && splashScreen) {
+    // ยังไม่มีรูป Splash จากออฟฟิเชียล -> ใช้ดีไซน์จากรูปโปรไฟล์เมมเบอร์แทน
+    if (mainSplash) mainSplash.style.display = 'none';
+    splashScreen.insertAdjacentHTML('beforeend', renderCampaignSplashArt(chosen.campaign));
+    splashToShow = 'campaign-art';
+  } else if (mainSplash) {
+    mainSplash.style.display = '';
   }
 
   if (mainSplash && splashToShow) {
-    mainSplash.src = splashToShow;
-    
+    if (splashToShow !== 'campaign-art') mainSplash.src = splashToShow;
+
     if(splashScreen) {
        splashScreen.style.display = "flex";
        setTimeout(() => splashScreen.style.opacity = "1", 10);
@@ -2744,16 +2760,21 @@ function initBannerFeatures() {
     const width = container.clientWidth;
     if (width === 0) return;
     
+    // นับสดทุกครั้ง เพราะแบนเนอร์ (วันเกิด / Campaign) อาจถูกแทรกเพิ่มทีหลัง
+    const liveTotal = container.querySelectorAll(".auto-banner-item").length;
     let currentIndex = Math.round(container.scrollLeft / width) + 1;
-    if (currentIndex > totalItems) currentIndex = totalItems; 
-    
+    if (currentIndex > liveTotal) currentIndex = liveTotal;
+
     const currentStr = String(currentIndex).padStart(2, '0');
-    const totalStr = String(totalItems).padStart(2, '0');
+    const totalStr = String(liveTotal).padStart(2, '0');
     counter.innerText = `${currentStr}/${totalStr}`;
   }
 
-  container.removeEventListener("scroll", updateCounterText);
-  container.addEventListener("scroll", updateCounterText);
+  // ฟังก์ชันนี้ถูกเรียกซ้ำได้หลายครั้ง (DOMContentLoaded / ธีมวันเกิด / แบนเนอร์ Campaign)
+  // ผูก listener แค่ครั้งแรกครั้งเดียว กันลากเมาส์แล้วเลื่อนเบิ้ลหลายเท่า
+  const firstInit = container.dataset.bannerInit !== '1';
+  container.dataset.bannerInit = '1';
+  if (firstInit) container.addEventListener("scroll", updateCounterText);
   updateCounterText();
 
   // ระบบเลื่อนอัตโนมัติ (Auto-play)
@@ -2781,7 +2802,9 @@ function initBannerFeatures() {
     clearInterval(window.bannerAutoPlayInterval);
   }
   
-  startAutoPlay(); 
+  startAutoPlay();
+
+  if (!firstInit) return;
 
   // ระบบคลิกแล้วลากด้วยเมาส์
   let isDown = false;
@@ -2905,10 +2928,12 @@ function initBannerCounter() {
     
     // คำนวณว่าตอนนี้สไลด์อยู่ที่หน้ารูปที่เท่าไหร่
     const currentIndex = Math.round(container.scrollLeft / width) + 1;
-    
+    // นับสด เพราะแบนเนอร์วันเกิด / Campaign ถูกแทรกเข้ามาทีหลังตอนโหลดหน้า
+    const liveTotal = container.querySelectorAll(".auto-banner-item").length;
+
     // แปลงเลขให้เป็นสไตล์ 01, 02 (ใส่ padStart เผื่อเลขหลักเดียว)
     const currentStr = String(currentIndex).padStart(2, '0');
-    const totalStr = String(totalItems).padStart(2, '0');
+    const totalStr = String(liveTotal).padStart(2, '0');
     
     counter.innerText = `${currentStr}/${totalStr}`;
   }
@@ -3108,13 +3133,75 @@ function renderCampaignCards(campaigns) {
   });
 }
 
+// 🏆 รางวัลของ Member Campaign: Tier 1+ = Splash Screen, Tier 2+ = Banner หน้า Home
+// เก็บรายชื่อไว้ในเครื่อง เพราะ Splash ต้องโชว์ทันทีตอนเปิดแอป ก่อนที่ข้อมูลจากหลังบ้านจะตอบกลับ
+const CAMPAIGN_REWARDS_KEY = 'bnl_campaign_rewards';
+function getCachedCampaignRewards() {
+  try {
+    const list = JSON.parse(localStorage.getItem(CAMPAIGN_REWARDS_KEY)) || [];
+    return list.filter(c => new Date(c.endAt).getTime() > Date.now());
+  } catch (e) { return []; }
+}
+
+function renderCampaignSplashArt(c) {
+  const tierName = (CAMPAIGN_TIERS.find(t => t.tier === c.tier) || {}).name || '';
+  return `
+    <div id="campaign-splash-art" style="position:absolute; inset:0; background: linear-gradient(160deg, #fff0f4 0%, #ffe3ec 45%, #e8f1ff 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; font-family:'Kanit',sans-serif; padding: 24px;">
+      <div style="font-size:13px; letter-spacing:3px; color:#ff6b8b; font-weight:600;">CHAMP OF THE MONTH CAMPAIGN</div>
+      <img src="${escapeAttr(c.profileImage || 'assets/images/default-profile.png')}" style="width:62vw; max-width:300px; aspect-ratio:1; object-fit:cover; border-radius:50%; border:6px solid #fff; box-shadow:0 10px 30px rgba(255,107,139,.25); pointer-events:none;">
+      <div style="font-size:34px; font-weight:600; color:#333; line-height:1.1;">${escapeHtml(c.memberName)}</div>
+      <div style="background:#fcc419; color:#fff; font-weight:600; font-size:14px; padding:5px 16px; border-radius:20px;">Tier ${c.tier} · ${escapeHtml(tierName)}</div>
+      <div style="font-size:13px; color:#888;">ซัพพอร์ตแล้ว ${Number(c.totalCookies || 0).toLocaleString()} คุกกี้ 🍪</div>
+    </div>`;
+}
+
+function renderCampaignBannerItem(c) {
+  const href = `campaign_detail?id=${encodeURIComponent(c.id)}`;
+  if (c.bannerImage) {
+    return `<a href="${href}" class="auto-banner-item campaign-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: block;">
+      <img src="${escapeAttr(c.bannerImage)}" alt="${escapeAttr(c.memberName)} Campaign" draggable="false" style="width: 100%; height: auto; display: block; object-fit: cover;"></a>`;
+  }
+  // ยังไม่มีแบนเนอร์จากออฟฟิเชียล -> ดีไซน์จากรูปโปรไฟล์ สัดส่วนเท่ากับแบนเนอร์รูปแรกในสไลด์
+  const firstImg = document.querySelector('#autoBannerContainer .auto-banner-item img');
+  const ratio = (firstImg && firstImg.naturalWidth) ? `${firstImg.naturalWidth} / ${firstImg.naturalHeight}` : '16 / 7';
+  return `<a href="${href}" class="auto-banner-item campaign-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: flex; align-items: center; gap: 4%; aspect-ratio: ${ratio}; box-sizing: border-box; padding: 0 6%; background: linear-gradient(120deg, #ffe3ec 0%, #fff6e0 100%); font-family: 'Kanit', sans-serif;">
+      <img src="${escapeAttr(c.profileImage || 'assets/images/default-profile.png')}" draggable="false" style="height: 72%; aspect-ratio: 1; object-fit: cover; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 4px 14px rgba(255,107,139,.25); pointer-events: none;">
+      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0; text-align: left;">
+        <span style="font-size: 11px; letter-spacing: 1.5px; color: #ff6b8b; font-weight: 600;">CHAMP CAMPAIGN · TIER ${c.tier}</span>
+        <span style="font-size: 22px; font-weight: 600; color: #333; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(c.memberName)}</span>
+        <span style="font-size: 12px; color: #777;">ร่วมซัพพอร์ตคุกกี้ ${Number(c.totalCookies || 0).toLocaleString()} 🍪</span>
+      </div>
+    </a>`;
+}
+
+function applyCampaignRewards(campaigns) {
+  // รายการนี้มี Campaign ที่จบไปแล้ว (โชว์ตรา SUCCESS) ปนมาด้วย - Splash/Banner ให้เฉพาะที่ยังเปิดอยู่
+  const rewarded = (campaigns || []).filter(c => c.tier >= 1 && !isCampaignEnded(c));
+  try { localStorage.setItem(CAMPAIGN_REWARDS_KEY, JSON.stringify(rewarded)); } catch (e) {}
+
+  const container = document.getElementById('autoBannerContainer');
+  if (!container) return;
+  container.querySelectorAll('.campaign-banner-item').forEach(el => el.remove());
+  const bannerCampaigns = rewarded.filter(c => c.tier >= 2);
+  if (bannerCampaigns.length === 0) { initBannerFeatures(); return; }
+  container.insertAdjacentHTML('afterbegin', bannerCampaigns.map(renderCampaignBannerItem).join(''));
+  container.scrollLeft = 0;
+  initBannerFeatures();
+}
+
 async function fetchActiveCampaigns() {
   const scrollerContainer = document.getElementById('campaign-scroller');
   if (!scrollerContainer) return;
 
   try {
     // ตาราง campaign ตอนนี้ sync เข้า Supabase แบบเรียลไทม์แล้ว อ่านจากตรงนั้นแทน Apps Script
-    const data = await blm48GetCampaigns();
+    // 🏆 + Member Cookie Campaign (เมมเบอร์กดเปิดเองจากหน้า member) แสดงก่อนแคมเปญโหวต
+    const [data, memberCampaigns] = await Promise.all([
+      blm48GetCampaigns(),
+      blm48GetActiveMemberCampaigns().catch(() => [])
+    ]);
+    const activeMemberCampaigns = Array.isArray(memberCampaigns) ? memberCampaigns : [];
+    applyCampaignRewards(activeMemberCampaigns);
     if (Array.isArray(data)) {
       const mapped = data.map(c => ({
         CampaignID: c.campaignId,
@@ -3123,7 +3210,14 @@ async function fetchActiveCampaigns() {
         TotalAmount: c.totalAmount,
         CurrencyType: c.currencyType
       }));
-      renderCampaignCards(mapped);
+      if (mapped.length === 0 && activeMemberCampaigns.length > 0) {
+        scrollerContainer.innerHTML = '';
+      } else {
+        renderCampaignCards(mapped);
+      }
+      if (activeMemberCampaigns.length > 0) {
+        scrollerContainer.insertAdjacentHTML('afterbegin', activeMemberCampaigns.map(c => renderMemberCampaignCard(c)).join(''));
+      }
     } else {
       scrollerContainer.innerHTML = `<div style="color:red; padding:10px; font-size:12px;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
     }

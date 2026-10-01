@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Campaign</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/campaign.js"></script>
+
+    <style>
+        :root { --primary-pink: #ff85a2; --text-dark: #444; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Kanit', 'Quicksand', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+        .top-navigation-bar { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; background: #fff; padding: 14px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        .back-circle-btn { background: none; border: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #222; font-size: 20px; cursor: pointer; }
+        .top-bar-title { text-align: center; font-weight: 600; font-size: 18px; color: #222; }
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 14px 16px 50px; }
+        .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .sort-select { border: none; background: none; font-family: inherit; font-size: 17px; font-weight: 600; color: #222; padding: 4px 0; cursor: pointer; }
+        .toolbar-note { font-size: 12px; color: #999; }
+        #campaign-list { display: flex; flex-direction: column; gap: 6px; }
+        .empty-state { text-align: center; color: #999; padding: 50px 20px; font-size: 14px; }
+        .empty-state i { display: block; font-size: 34px; margin-bottom: 10px; color: #ffc9d6; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">Campaign</div>
+    <span></span>
+</div>
+
+<div class="page-wrapper">
+    <div class="toolbar">
+        <select id="sort-select" class="sort-select" onchange="renderList()">
+            <option value="newest">Newest</option>
+            <option value="funded">Most Funded</option>
+            <option value="ending">Ending Soon</option>
+        </select>
+        <span class="toolbar-note"><i class="fa-solid fa-trophy" style="color:#fcc419;"></i> Champ of the Month</span>
+    </div>
+    <div id="campaign-list">
+        <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>
+    </div>
+</div>
+
+<script>
+  let campaigns = [];
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'index';
+  }
+
+  function renderList() {
+    const list = document.getElementById('campaign-list');
+    if (campaigns.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-trophy"></i>ยังไม่มี Campaign ที่เปิดอยู่ในขณะนี้</div>`;
+      return;
+    }
+    const sort = document.getElementById('sort-select').value;
+    const sorted = campaigns.slice().sort((a, b) => {
+      if (sort === 'funded') return Number(b.totalCookies) - Number(a.totalCookies);
+      if (sort === 'ending') return new Date(a.endAt) - new Date(b.endAt);
+      return new Date(b.startedAt) - new Date(a.startedAt);
+    });
+    list.innerHTML = sorted.map(c => renderMemberCampaignCard(c, { full: true })).join('');
+  }
+
+  async function loadCampaigns() {
+    const list = document.getElementById('campaign-list');
+    try {
+      const res = await blm48GetActiveMemberCampaigns();
+      if (!Array.isArray(res)) {
+        list.innerHTML = `<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+        return;
+      }
+      campaigns = res;
+      renderList();
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', loadCampaigns);
+</script>
+</body>
+</html>

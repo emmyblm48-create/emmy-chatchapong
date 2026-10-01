@@ -435,6 +435,24 @@ function blm48GetWinnerTheme() {
   return blm48Rpc('get_winner_theme', {});
 }
 
+// 🏆 Member Cookie Campaign - เมมเบอร์กดเปิดเพื่อบอกว่า "อยากได้ Champ of the Month เดือนนี้"
+// แฟนๆ ซัพพอร์ตคุกกี้ (นับเหมือนปาคุกกี้ปกติ) จบสิ้นเดือน แล้วระบบคืนคุกกี้ 5/10/15/20% ตาม Tier อัตโนมัติ (pg_cron)
+function blm48OpenMemberCampaign(username) {
+  return blm48Rpc('open_member_campaign', { p_username: username });
+}
+function blm48GetMemberCampaign(memberName) {
+  return blm48Rpc('get_member_campaign', { p_member_name: memberName });
+}
+function blm48GetActiveMemberCampaigns() {
+  return blm48Rpc('get_active_member_campaigns', {});
+}
+function blm48GetMemberCampaignDetail(campaignId, username) {
+  return blm48Rpc('get_member_campaign_detail', { p_campaign_id: campaignId, p_username: username || null });
+}
+function blm48SupportMemberCampaign(username, campaignId, amount) {
+  return blm48Rpc('support_member_campaign', { p_username: username, p_campaign_id: campaignId, p_amount: amount });
+}
+
 // Members directory / headline count
 function blm48GetAllMembers() {
   return blm48Rpc('get_all_members', {});

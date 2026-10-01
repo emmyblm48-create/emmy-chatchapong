@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Campaign Detail</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/campaign.js"></script>
+
+    <style>
+        :root { --primary-pink: #ff85a2; --text-dark: #444; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Kanit', 'Quicksand', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: #222; background: #ffffff; }
+        .top-navigation-bar { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; background: #fff; padding: 14px 16px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        .back-circle-btn, .share-btn { background: none; border: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #222; font-size: 20px; cursor: pointer; }
+        .top-bar-title { text-align: center; font-weight: 600; font-size: 18px; color: #222; }
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding-bottom: 120px; }
+
+        .cover-wrap { position: relative; width: 100%; aspect-ratio: 2048 / 1427; background: linear-gradient(135deg, #ffeef2, #e7f1ff); overflow: hidden; }
+        .cover-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; pointer-events: none; -webkit-touch-callout: none; user-select: none; }
+        .head-zone { position: relative; padding: 14px 16px 12px; }
+        .member-avatar { position: absolute; right: 16px; top: -70px; width: 120px; height: 120px; border-radius: 50%; border: 4px solid #e8b8d8; object-fit: cover; background: #fff; pointer-events: none; }
+        .detail-title { font-size: 20px; font-weight: 600; line-height: 1.35; margin: 0 135px 10px 0; }
+        .by-row { display: flex; align-items: center; justify-content: space-between; font-size: 15px; color: #333; }
+        .by-row .by { display: flex; align-items: center; gap: 8px; }
+        .by-row .by img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #eee; }
+
+        .ribbon { margin: 6px 0 0; padding: 14px 16px 10px; text-align: center; background: linear-gradient(180deg, #ffe3ec 0%, #fff6e0 45%, #ffffff 100%); }
+        .ribbon h3 { margin: 0 0 4px; font-size: 17px; font-weight: 600; }
+        .ribbon p { margin: 0; font-size: 13px; color: #666; }
+        .progress-zone { padding: 8px 16px 6px; }
+
+        .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px 16px; }
+        .info-box { border: 1.5px solid #222; border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: #fff; font-family: inherit; color: #222; text-align: left; }
+        .info-box i { font-size: 26px; }
+        .info-box .lbl { font-size: 14px; }
+        .info-box .val { font-size: 14px; font-weight: 500; }
+        button.info-box { cursor: pointer; justify-content: center; font-size: 15px; }
+
+        .my-support { margin: 6px 16px 0; padding: 12px 14px; border-radius: 12px; background: #fff9db; font-size: 13px; color: #6b5300; display: none; line-height: 1.6; }
+        .desc { padding: 14px 18px; font-size: 15px; line-height: 1.75; color: #333; }
+        .desc p { margin: 0 0 16px; }
+        .tier-item { padding: 10px 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #f0f0f0; }
+        .tier-item.reached { border-color: #fcc419; background: #fffbea; }
+        .tier-item b { color: #222; }
+        .tier-item .refund { color: #e8590c; font-weight: 600; }
+        .champ-rule { padding: 12px 14px; border-radius: 10px; background: #fff0f4; border: 1px dashed #ff85a2; font-size: 14px; }
+
+        .send-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 30%); z-index: 50; }
+        .send-btn { display: block; width: 100%; max-width: 608px; margin: 0 auto; border: none; border-radius: 30px; background: #ffd43b; color: #222; font-family: inherit; font-size: 18px; font-weight: 600; padding: 15px; cursor: pointer; }
+        .send-btn:disabled { background: #e9e9e9; color: #999; cursor: not-allowed; }
+        .loading-state { text-align: center; color: #999; padding: 80px 20px; }
+
+        .sup-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border-bottom: 1px solid #f3f3f3; text-align: left; }
+        .sup-rank { width: 26px; font-weight: 700; color: #999; text-align: center; }
+        .sup-row img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .sup-name { flex: 1; font-size: 14px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sup-amt { font-size: 13px; color: #d2691e; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">Campaign Detail</div>
+    <button type="button" class="share-btn" onclick="shareCampaign()" aria-label="แชร์"><i class="fa-solid fa-ellipsis"></i></button>
+</div>
+
+<div class="page-wrapper" id="page">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+</div>
+
+<div class="send-bar" id="send-bar" style="display:none;">
+    <button type="button" class="send-btn" id="send-btn" onclick="sendCookie()">Send Cookie</button>
+</div>
+
+<script>
+  const campaignId = parseInt(new URLSearchParams(window.location.search).get('id'), 10);
+  let user = null;
+  let detail = null;
+  let countdownTimer = null;
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'campaign';
+  }
+
+  function render() {
+    const c = detail.campaign;
+    const page = document.getElementById('page');
+    const ended = c.status !== 'active' || new Date(c.endAt).getTime() <= Date.now();
+    const total = Number(c.totalCookies || 0);
+    const tiersHtml = CAMPAIGN_TIERS.map(t => `
+      <div class="tier-item ${total >= t.amount ? 'reached' : ''}">
+        ${total >= t.amount ? '<i class="fa-solid fa-circle-check" style="color:#fcc419;"></i> ' : ''}<b>Tier ${t.tier} : Get ${t.name}</b> เมื่อซัพพอร์ทคุกกี้ครบ ${t.amount.toLocaleString()} คุกกี้
+        เมมเบอร์จะได้ขึ้น ${t.rewards} และแฟนคลับที่ซัพพอร์ตจะได้รับ<span class="refund">คุกกี้คืน ${t.refund}%</span>
+      </div>`).join('');
+
+    page.innerHTML = `
+      <div class="cover-wrap"><img src="${escapeAttr(c.coverImage || 'assets/images/default-profile.png')}" alt="" draggable="false" oncontextmenu="return false">${renderCampaignStamp(c)}</div>
+      <div class="head-zone">
+        <img class="member-avatar" src="${escapeAttr(c.profileImage || 'assets/images/default-profile.png')}" alt="" draggable="false">
+        <h1 class="detail-title">${escapeHtml(campaignTitle(c))}</h1>
+        <div class="by-row">
+          <span class="by"><img src="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s64" alt=""> by BLM48</span>
+          <span>${Number(c.supporters || 0).toLocaleString()} supporters</span>
+        </div>
+      </div>
+      <div class="ribbon">
+        <h3>${c.isBirthMonth ? '🎂 Happy Birthday Month ' : ''}${escapeHtml(c.memberName)} · Champ Campaign</h3>
+        <p>ซัพพอร์ตด้วยคุกกี้เพื่อส่ง ${escapeHtml(c.memberName)} ขึ้น Champ of the Month</p>
+      </div>
+      <div class="progress-zone">${renderCampaignProgress(c)}</div>
+      <div class="info-row">
+        <div class="info-box"><i class="fa-regular fa-calendar-days"></i><div><div class="lbl">${ended ? 'Campaign' : 'Days to go'}</div><div class="val" id="countdown"></div></div></div>
+        <button type="button" class="info-box" onclick="showTopSupporters()"><i class="fa-solid fa-award"></i> Top Supporters</button>
+      </div>
+      <div class="my-support" id="my-support"></div>
+      <div class="desc">
+        <p>Campaign ที่ ${escapeHtml(c.memberName)} เปิดเพื่อบอกแฟนๆ ว่าอยากได้ Champ of the Month ประจำเดือนนี้ โดยการซัพพอร์ตคุกกี้ครบตามจำนวนที่กำหนดไว้ คุกกี้ที่ซัพพอร์ตจะนับเป็นยอดปาคุกกี้ให้ ${escapeHtml(c.memberName)} ตามปกติ (Ranking / Top Fans / Fan Score) และจะได้รับคุกกี้คืนตาม Tier ที่ทำได้เมื่อ Campaign จบ (สิ้นเดือน 00:00 น.)</p>
+        ${tiersHtml}
+        <div class="champ-rule">🏆 <b>พิเศษเดือนเกิด</b> : ถ้าเป็นเดือนเกิดของเมมเบอร์ และเมมเบอร์ได้รับ Champ of the Month เดือนนั้น Top Supporter อันดับ 1 ของ Campaign จะได้รับ<b style="color:#e8590c;">คุกกี้คืน 100%</b>
+          ${c.isBirthMonth ? '<br><span style="color:#d6336c;">✨ Campaign นี้อยู่ในเดือนเกิดของ ' + escapeHtml(c.memberName) + '</span>' : ''}</div>
+      </div>`;
+
+    renderMySupport(ended);
+    startCountdown(ended);
+
+    const sendBar = document.getElementById('send-bar');
+    const sendBtn = document.getElementById('send-btn');
+    sendBar.style.display = 'block';
+    sendBtn.disabled = ended;
+    sendBtn.textContent = ended ? 'Campaign Ended' : 'Send Cookie';
+  }
+
+  function renderMySupport(ended) {
+    const box = document.getElementById('my-support');
+    if (!box || !user) return;
+    const mine = Number(detail.mySupport || 0);
+    if (mine <= 0) { box.style.display = 'none'; return; }
+    const c = detail.campaign;
+    let html = `🍪 คุณซัพพอร์ตแล้ว <b>${mine.toLocaleString()}</b> คุกกี้`;
+    if (detail.myRefund) {
+      html += `<br>✅ ได้รับคุกกี้คืนแล้ว <b>${Number(detail.myRefund.refund).toLocaleString()}</b> คุกกี้ (${detail.myRefund.refund_pct}%)${detail.myRefund.is_champ_bonus ? ' 🏆 Top Supporter เดือนเกิด' : ''}`;
+    } else if (!ended) {
+      const pct = Number(c.refundPct || 0);
+      html += pct > 0
+        ? `<br>ตอนนี้ถึง Tier ${c.tier} แล้ว จะได้รับคุกกี้คืนอย่างน้อย <b>${Math.floor(mine * pct / 100).toLocaleString()}</b> คุกกี้ (${pct}%) เมื่อจบ Campaign`
+        : `<br>ยังไม่ถึง Tier 1 (10,000 คุกกี้) ชวนเพื่อนๆ มาซัพพอร์ตเพิ่มกันนะ`;
+    } else {
+      html += `<br>⏳ กำลังสรุปผลและคืนคุกกี้...`;
+    }
+    box.innerHTML = html;
+    box.style.display = 'block';
+  }
+
+  function startCountdown(ended) {
+    if (countdownTimer) clearInterval(countdownTimer);
+    const el = document.getElementById('countdown');
+    const tick = () => {
+      if (!el) return;
+      el.textContent = ended ? 'Ended' : campaignTimeLeft(detail.campaign.endAt).text;
+    };
+    tick();
+    if (!ended) countdownTimer = setInterval(tick, 30000);
+  }
+
+  function showTopSupporters() {
+    const list = detail.topSupporters || [];
+    const html = list.length === 0
+      ? '<div style="color:#999; padding:20px;">ยังไม่มีผู้ซัพพอร์ต เป็นคนแรกเลย!</div>'
+      : list.map((s, i) => `
+          <div class="sup-row">
+            <span class="sup-rank">${i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}</span>
+            <img src="${escapeAttr(s.profileImage || 'assets/images/default-profile.png')}" alt="">
+            <span class="sup-name">${escapeHtml(s.name || s.username)}</span>
+            <span class="sup-amt">${Number(s.amount).toLocaleString()} 🍪</span>
+          </div>`).join('');
+    Swal.fire({ title: 'Top Supporters', html: `<div style="max-height:60vh; overflow-y:auto;">${html}</div>`, confirmButtonText: 'ปิด', confirmButtonColor: '#ff85a2' });
+  }
+
+  async function sendCookie() {
+    const c = detail && detail.campaign;
+    if (!c) return;
+    if (!user) { window.location.href = 'login'; return; }
+    if (!user.role || user.role.toLowerCase() !== 'user') {
+      Swal.fire({ title: 'คำเตือน', text: 'เฉพาะบัญชีแฟนคลับเท่านั้นที่ซัพพอร์ต Campaign ได้', icon: 'error', confirmButtonColor: '#ff85a2' });
+      return;
+    }
+    let myCookies = Number(user.cookie || 0);
+    try {
+      const wallet = await blm48GetWallet(user.username);
+      if (wallet && wallet.cookie !== undefined) { myCookies = Number(wallet.cookie); user.cookie = wallet.cookie; saveUserSession(user); }
+    } catch (e) {}
+
+    const result = await Swal.fire({
+      title: `ซัพพอร์ตคุกกี้ให้ ${escapeHtml(c.memberName)}`,
+      html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${myCookies.toLocaleString()}</b> ชิ้น</p>`,
+      input: 'number', inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการซัพพอร์ต',
+      inputAttributes: { min: 1, step: 1 },
+      showCancelButton: true, confirmButtonText: 'Send Cookie', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#fcc419',
+      inputValidator: (value) => {
+        const v = Number(value);
+        if (!value || !Number.isInteger(v) || v <= 0) return 'กรุณาระบุจำนวนคุกกี้ให้ถูกต้อง';
+        if (v > myCookies) return `คุกกี้คงเหลือไม่เพียงพอ ท่านมีคุกกี้คงเหลือ ${myCookies.toLocaleString()} ชิ้น`;
+      }
+    });
+    if (!result.isConfirmed) return;
+    const amount = Number(result.value);
+
+    Swal.fire({ title: 'กำลังส่งคุกกี้...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    const res = await blm48SupportMemberCampaign(user.username, c.id, amount);
+    if (!res || res.status !== 'success') {
+      Swal.fire({ title: 'ไม่สำเร็จ', text: (res && res.message) || 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง', icon: 'error', confirmButtonColor: '#ff85a2' });
+      return;
+    }
+    user.cookie = res.remainingCookie;
+    if (res.currentToken !== undefined) user.token = res.currentToken;
+    saveUserSession(user);
+    await loadDetail();
+    const newTier = res.campaign ? res.campaign.tier : 0;
+    if (res.tierUp && newTier > 0) {
+      const t = CAMPAIGN_TIERS.find(x => x.tier === newTier);
+      Swal.fire({ title: `🎉 ปลดล็อก Tier ${newTier}!`, html: `${escapeHtml(c.memberName)} ได้ <b>${t ? t.name : ''}</b> แล้ว<br>ผู้ซัพพอร์ตทุกคนจะได้รับคุกกี้คืน ${t ? t.refund : 0}% เมื่อจบ Campaign`, icon: 'success', confirmButtonColor: '#fcc419' });
+    } else {
+      Swal.fire({ title: 'ซัพพอร์ตสำเร็จ', text: res.message || 'ส่งคุกกี้เรียบร้อย', icon: 'success', timer: 1800, showConfirmButton: false });
+    }
+  }
+
+  function shareCampaign() {
+    const url = window.location.href;
+    if (navigator.share) { navigator.share({ title: document.title, url }).catch(() => {}); return; }
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'คัดลอกลิงก์แล้ว', timer: 1500, showConfirmButton: false }));
+  }
+
+  async function loadDetail() {
+    const page = document.getElementById('page');
+    try {
+      const res = await blm48GetMemberCampaignDetail(campaignId, user ? user.username : null);
+      if (!res || res.status !== 'success') {
+        page.innerHTML = `<div class="loading-state">${escapeHtml((res && res.message) || 'ไม่พบ Campaign')}</div>`;
+        document.getElementById('send-bar').style.display = 'none';
+        return;
+      }
+      detail = res;
+      render();
+    } catch (e) {
+      page.innerHTML = `<div class="loading-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!campaignId) { window.location.href = 'campaign'; return; }
+    loadDetail();
+  });
+</script>
+</body>
+</html>
