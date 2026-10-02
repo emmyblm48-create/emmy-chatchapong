@@ -600,6 +600,11 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   border-left: 5px solid var(--primary-pink); padding-left: 12px; 
 }
     
+/* 🏅👑 ช่อง Top Fans / Top Today VIP สลับกันแบบเลื่อนขึ้น (แถบชมพูด้านซ้ายอยู่กับที่ เลื่อนแค่เนื้อหา) */
+.fan-ticker { height: 32px; overflow: hidden; padding-right: 15px; user-select: none; }
+.fan-ticker-track { will-change: transform; }
+.fan-ticker-item { height: 32px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+
     /* =========================================
        🌟 RANKING WRAPPER (เวอร์ชัน: พื้นหลังใสเคลียร์)
        ========================================= */
@@ -2337,21 +2342,24 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <div id="ranking-list" class="horizontal-list" style="position: relative; z-index: 2;"></div>
 </div>
   
-<div class="section-title" onclick="goToGlobalTopFans()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
-  <span>Top Fans</span>
-  <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
-    <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
+<!-- 🏅 Top Fans / 👑 Top Today VIP ใช้ช่องเดียวกัน สลับกันเลื่อนขึ้นทีละอัน (กดแล้วไปหน้าของอันที่โชว์อยู่) -->
+<div class="section-title fan-ticker">
+  <div class="fan-ticker-track" id="fan-ticker-track">
+    <div class="fan-ticker-item" onclick="goToGlobalTopFans()">
+      <span>Top Fans</span>
+      <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
+        <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
+      </div>
+      <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
+    </div>
+    <div class="fan-ticker-item" onclick="goToTodayVip()">
+      <span>Top Today VIP</span>
+      <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
+        <div id="today-vip-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
+      </div>
+      <i class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
+    </div>
   </div>
-  <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
-</div>
-
-<!-- 👑 Top Today VIP: แฟนที่ซัพพอร์ตเมมเบอร์มากที่สุดของวันนี้ (รีเซ็ตทุกเที่ยงคืนเวลาไทย) -->
-<div class="section-title" onclick="goToTodayVip()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
-  <span>Top Today VIP</span>
-  <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
-    <div id="today-vip-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
-  </div>
-  <i class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
 </div>
 
 <div class="shop-banner-slider-wrapper" style="position: relative; margin: 20px 15px; border-radius: 16px; overflow: hidden;">
@@ -3349,6 +3357,25 @@ function goToGlobalTopFans() {
 function goToTodayVip() {
   window.location.href = 'topfans?mode=vip';
 }
+
+// 🔄 สลับ Top Fans / Top Today VIP: เลื่อนอันบนขึ้นไป แล้วย้ายไปต่อท้าย วนไปเรื่อยๆ (เลื่อนขึ้นทางเดียวเสมอ)
+(function startFanTicker() {
+  const INTERVAL_MS = 4000, SLIDE_MS = 500;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setInterval(() => {
+    const track = document.getElementById('fan-ticker-track');
+    if (!track || !track.firstElementChild || document.hidden) return;
+    const h = track.firstElementChild.offsetHeight;
+    if (reduceMotion) { track.appendChild(track.firstElementChild); return; }
+    track.style.transition = `transform ${SLIDE_MS}ms ease`;
+    track.style.transform = `translateY(-${h}px)`;
+    setTimeout(() => {
+      track.style.transition = 'none';
+      track.appendChild(track.firstElementChild);
+      track.style.transform = 'translateY(0)';
+    }, SLIDE_MS + 20);
+  }, INTERVAL_MS);
+})();
 
 // สแตกรูปมินิ 3 อันดับแรกที่หัวข้อ (ใช้ร่วมกันทั้ง Top Fans และ Top Today VIP)
 function renderFanPreview(zoneId, rankedFans) {
