@@ -892,6 +892,19 @@
             min-width: 60px;
             text-align: center;
         }
+        /* 🍎 Filter แบบ iOS action sheet (เหมือนหน้า Campaign) */
+        .sort-btn { border: none; background: none; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 17px; font-weight: 600; color: #222; padding: 4px 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .sort-btn .chev { font-size: 12px; }
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 3000; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+        .sheet { width: 100%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .25s ease; }
+        .sheet-overlay.open .sheet { transform: translateY(0); }
+        .sheet-group { background: rgba(245,245,247,.92); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-radius: 14px; overflow-y: auto; }
+        .sheet-option { display: block; width: 100%; border: none; background: none; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 20px; color: #111; padding: 17px 12px; cursor: pointer; text-align: center; }
+        .sheet-option + .sheet-option { border-top: 0.5px solid rgba(60,60,67,.29); }
+        .sheet-option:active { background: rgba(0,0,0,.06); }
+        .sheet-cancel { display: block; width: 100%; flex-shrink: 0; margin-top: 8px; border: none; background: #fff; border-radius: 14px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 20px; font-weight: 700; color: #111; padding: 17px 12px; cursor: pointer; }
+        .sheet-cancel:active { background: #f0f0f0; }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -949,8 +962,7 @@
     </div>
     <div>
         <span class="filter-label"><i class="fa-solid fa-filter text-pink-400"></i> Fliter</span>
-        <div id="primary-tabs" class="tabs-row">
-            </div>
+        <button type="button" class="sort-btn" onclick="openFilterSheet()"><span id="filter-current">All</span><i class="fa-solid fa-chevron-down chev"></i></button>
     </div>
     
     <div id="coaster-sub-panel" class="sub-filter-panel hidden">
@@ -961,6 +973,13 @@
     
         <div id="inventory-container">
             <div class="inv-state-box"><i class="fa-solid fa-spinner fa-spin"></i>กำลังหาคอลเลกชันของคุณ...</div>
+        </div>
+    </div>
+
+    <div id="filter-sheet" class="sheet-overlay" onclick="if (event.target === this) closeFilterSheet()">
+        <div class="sheet">
+            <div class="sheet-group" id="filter-options"></div>
+            <button type="button" class="sheet-cancel" onclick="closeFilterSheet()">Cancel</button>
         </div>
     </div>
 
@@ -1017,6 +1036,20 @@
     let globalInventoryData = null; 
     let currentPrimaryTab = 'all';  // 'all', 'cafe', 'coaster', 'thankyou', 'photoset', 'photobook', 'others'
     let currentSubTab = 'all';      // 'all' หรือชื่องานย่อยเฉพาะ เช่น 'BLM48 Tanabata 2026'
+    // หมวดหลักทั้งหมด (แสดงเฉพาะหมวดที่ผู้ใช้มีไอเทมจริง ยกเว้น All)
+    const PRIMARY_FILTERS = [
+        { value: 'all',       label: 'All',             cats: null },
+        { value: 'ssr',       label: 'SSR',             cats: ['BLM48 SSR Photo', 'SSR_card'] },
+        { value: 'preorder',  label: 'Pre-order',       cats: ['Pre-order'] },
+        { value: 'photobook', label: 'BLM48 Photobook', cats: ['BLM48 Photobook'] },
+        { value: 'photocard', label: 'BLM48 PhotoCard', cats: ['BLM48 PhotoCard'] },
+        { value: 'photoset',  label: 'BLM48 PhotoSet',  cats: ['BLM48 PhotoSet'] },
+        { value: 'thankyou',  label: 'Thank You Card',  cats: ['Thank You Card'] },
+        { value: 'cafe',      label: 'BLM48 Cafe',      cats: ['BLM48 Cafe'] },
+        { value: 'coaster',   label: 'Coaster',         cats: ['Coaster'] },
+        { value: 'others',    label: 'Other',           cats: ['หมวดหมู่อื่นๆ'] },
+    ];
+
     let currentSearchQuery = '';    // คำค้นหาชื่อไอเทม (lowercase แล้ว)
 
     function onInventorySearchInput(value) {
@@ -1152,100 +1185,25 @@
         return Array.from(subs).sort((a, b) => a.localeCompare(b, 'th'));
     }
 
+    function availablePrimaryFilters() {
+        return PRIMARY_FILTERS.filter(f => !f.cats || f.cats.some(c => hasCategory(c)));
+    }
+
+    function openFilterSheet() {
+        document.getElementById('filter-options').innerHTML = availablePrimaryFilters().map(f =>
+            `<button type="button" class="sheet-option" onclick="closeFilterSheet(); selectPrimaryTab('${f.value}')">${f.value === currentPrimaryTab ? '✔ ' : ''}${f.label}</button>`
+        ).join('');
+        document.getElementById('filter-sheet').classList.add('open');
+    }
+
+    function closeFilterSheet() {
+        document.getElementById('filter-sheet').classList.remove('open');
+    }
+
    function renderFilters() {
-    const primaryTabsContainer = document.getElementById('primary-tabs');
-    if (!primaryTabsContainer) return;
-    
-    primaryTabsContainer.innerHTML = '';
-
-    // 1. ปุ่มหลัก: ทั้งหมด
-    const btnAll = document.createElement('button');
-    btnAll.className = `btn-tab ${currentPrimaryTab === 'all' ? 'active' : ''}`;
-    btnAll.innerHTML = `<i class="fa-solid fa-border-all"></i> All`;
-    btnAll.onclick = () => selectPrimaryTab('all');
-    primaryTabsContainer.appendChild(btnAll);
-     
-    // ⭐ 2. ปุ่มหลักที่เพิ่มใหม่: BLM48 SSR Photo (รองรับทั้งเช็กจาก ID หรือ Name)
-    if (hasCategory('BLM48 SSR Photo') || hasCategory('SSR_card')) {
-        const btnSSR = document.createElement('button');
-        btnSSR.className = `btn-tab ${currentPrimaryTab === 'ssr' ? 'active' : ''}`;
-        btnSSR.innerHTML = `<i class="fa-solid fa-star text-yellow-400"></i> SSR`;
-        btnSSR.onclick = () => selectPrimaryTab('ssr');
-        primaryTabsContainer.appendChild(btnSSR);
-    }
-
-    // 🎤 ปุ่มหลัก: Pre-order - รวมของทุกอย่างที่ได้จากการสั่งพรีออเดอร์ (PVC Card/Poster/การ์ดสุ่ม SSR)
-    // ไว้ในที่เดียว แยกส่วนย่อยตามชื่อคอนเสิร์ต/อีเวนต์ (มาจาก subCollection)
-    if (hasCategory('Pre-order')) {
-        const btnPreorder = document.createElement('button');
-        btnPreorder.className = `btn-tab ${currentPrimaryTab === 'preorder' ? 'active' : ''}`;
-        btnPreorder.innerHTML = `<i class="fa-solid fa-box"></i> Pre-order`;
-        btnPreorder.onclick = () => selectPrimaryTab('preorder');
-        primaryTabsContainer.appendChild(btnPreorder);
-    }
-
-    // 3. ปุ่มหลัก: BLM48 Photobook (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
-    if (hasCategory('BLM48 Photobook')) {
-        const btnPhotobook = document.createElement('button');
-        btnPhotobook.className = `btn-tab ${currentPrimaryTab === 'photobook' ? 'active' : ''}`;
-        btnPhotobook.innerHTML = `<i class="fa-solid fa-book-open"></i> BLM48 Photobook`;
-        btnPhotobook.onclick = () => selectPrimaryTab('photobook');
-        primaryTabsContainer.appendChild(btnPhotobook);
-    }
-
-    // 3.5 ปุ่มหลัก: BLM48 PhotoCard (มีตัวกรองย่อยตามชื่อคอลเลกชัน)
-    if (hasCategory('BLM48 PhotoCard')) {
-        const btnPhotoCard = document.createElement('button');
-        btnPhotoCard.className = `btn-tab ${currentPrimaryTab === 'photo_card' ? 'active' : ''}`;
-        btnPhotoCard.innerHTML = `<i class="fa-solid fa-id-card"></i> BLM48 PhotoCard`;
-        btnPhotoCard.onclick = () => selectPrimaryTab('photocard');
-        primaryTabsContainer.appendChild(btnPhotoCard);
-    }
-
-    // 4. ปุ่มหลัก: BLM48 PhotoSet (มีตัวกรองย่อยตามชื่อคอลเลกชัน เช่น BLM48 Kami 7 in Bloom)
-    if (hasCategory('BLM48 PhotoSet')) {
-        const btnPhotoSet = document.createElement('button');
-        btnPhotoSet.className = `btn-tab ${currentPrimaryTab === 'photoset' ? 'active' : ''}`;
-        btnPhotoSet.innerHTML = `<i class="fa-solid fa-images"></i> BLM48 PhotoSet`;
-        btnPhotoSet.onclick = () => selectPrimaryTab('photoset');
-        primaryTabsContainer.appendChild(btnPhotoSet);
-    }
-
-    // 5. ปุ่มหลัก: Thank You Card
-    if (hasCategory('Thank You Card')) {
-        const btnThankYou = document.createElement('button');
-        btnThankYou.className = `btn-tab ${currentPrimaryTab === 'thankyou' ? 'active' : ''}`;
-        btnThankYou.innerHTML = `<i class="fa-solid fa-heart"></i> Thank You Card`;
-        btnThankYou.onclick = () => selectPrimaryTab('thankyou');
-        primaryTabsContainer.appendChild(btnThankYou);
-    }
-
-    // 6. ปุ่มหลัก: BLM48 Cafe
-    if (hasCategory('BLM48 Cafe')) {
-        const btnCafe = document.createElement('button');
-        btnCafe.className = `btn-tab ${currentPrimaryTab === 'cafe' ? 'active' : ''}`;
-        btnCafe.innerHTML = `<i class="fa-solid fa-mug-hot"></i> BLM48 Cafe`;
-        btnCafe.onclick = () => selectPrimaryTab('cafe');
-        primaryTabsContainer.appendChild(btnCafe);
-    }
-
-    // 7. ปุ่มหลัก: Coaster
-    if (hasCategory('Coaster')) {
-        const btnCoaster = document.createElement('button');
-        btnCoaster.className = `btn-tab ${currentPrimaryTab === 'coaster' ? 'active' : ''}`;
-        btnCoaster.innerHTML = `<i class="fa-solid fa-compact-disc"></i> Coaster`;
-        btnCoaster.onclick = () => selectPrimaryTab('coaster');
-        primaryTabsContainer.appendChild(btnCoaster);
-    }
-
-    // 8. ปุ่มหลัก: หมวดหมู่อื่นๆ
-    if (hasCategory('หมวดหมู่อื่นๆ')) {
-        const btnOthers = document.createElement('button');
-        btnOthers.className = `btn-tab ${currentPrimaryTab === 'others' ? 'active' : ''}`;
-        btnOthers.innerHTML = `<i class="fa-solid fa-box-archive"></i> Other`;
-        btnOthers.onclick = () => selectPrimaryTab('others');
-        primaryTabsContainer.appendChild(btnOthers);
-    }
+    const current = PRIMARY_FILTERS.find(f => f.value === currentPrimaryTab) || PRIMARY_FILTERS[0];
+    const label = document.getElementById('filter-current');
+    if (label) label.textContent = current.label;
 
     // --- 🔘 ระบบจัดการพาเนลตัวกรองย่อย (Sub Filters Panel) ---
     const coasterSubPanel = document.getElementById('coaster-sub-panel');
