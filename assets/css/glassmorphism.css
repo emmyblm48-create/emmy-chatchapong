@@ -338,3 +338,26 @@ body.glass-mesh-bg.force-white-bg {
 .post-card.champ-special-post .comment-item {
   background: #fde7cb !important;
 }
+
+/* =========================================================================
+   📱 iPad / แท็บเล็ต (600-1100px): โพสต์เต็มความกว้างจอแบบแอป iAM48
+   คอนเทนเนอร์โพสต์ของแต่ละหน้าเดิมถูกจำกัดกว้าง (index/member 720px, fanpost 560px, postdetail 500px)
+   -> ดึงเฉพาะรายการโพสต์ออกมาเต็มจอ (ส่วนอื่นของหน้ายังกว้างเท่าเดิม) เว้นขอบ 12px เท่ามือถือ
+   คอมพิวเตอร์จอใหญ่กว่า 1100px ไม่โดนผล (คงความกว้างเดิมไว้ อ่านง่ายกว่า)
+   ========================================================================= */
+@media (min-width: 600px) and (max-width: 1100px) {
+  #posts-container,
+  #fanpost-feed,
+  #post-detail-content {
+    width: auto !important;
+    max-width: none !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  /* กันแถบเลื่อนแนวนอนจาก 100vw บนเครื่องที่มี scrollbar */
+  body:has(.post-card) { overflow-x: clip; }
+  /* รูปเดียว: โชว์ใหญ่ตามสัดส่วนจริง ไม่ครอปเหลือ 450px */
+  .post-card .post-gallery-single img { max-height: 85vh !important; }
+}

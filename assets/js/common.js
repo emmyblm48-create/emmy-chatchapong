@@ -349,7 +349,7 @@ function buildPostImagesHtml(displayImage) {
   if (urls.length === 1) {
     return `
       <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
-        <img src="${escapeHtml(urls[0])}" onclick="openImageViewer(0, [${allJs}])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+        <img src="${escapeHtml(urls[0])}" onclick="openImageViewer(0, [${allJs}])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 0; cursor: pointer; display: block; margin: 0 auto;">
       </div>
     `;
   }

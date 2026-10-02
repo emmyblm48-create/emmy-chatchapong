@@ -23,6 +23,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/common.js"></script>
+  <script src="assets/js/orientation-lock.js"></script>
   <script src="assets/js/campaign.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
@@ -3179,7 +3180,9 @@ async function fetchActiveCampaigns() {
         </div>`;
       return;
     }
-    scrollerContainer.innerHTML = memberCampaigns.map(c => renderMemberCampaignCard(c)).join('');
+    // เรียงตามวัน-เวลาที่เปิด Campaign: เปิดล่าสุดอยู่ซ้ายสุด (เฉพาะหน้า Home - หน้า campaign มีตัวเลือกเรียงของตัวเอง)
+    const byNewest = [...memberCampaigns].sort((a, b) => (Date.parse(b.startedAt) || 0) - (Date.parse(a.startedAt) || 0));
+    scrollerContainer.innerHTML = byNewest.map(c => renderMemberCampaignCard(c)).join('');
   } catch (error) {
     console.error("Fetch Campaigns Network Error:", error);
     scrollerContainer.innerHTML = `<div style="color:#999; padding:10px; font-size:13px;">ไม่สามารถเชื่อมต่อระบบแคมเปญได้</div>`;
