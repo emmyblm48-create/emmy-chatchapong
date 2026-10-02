@@ -81,25 +81,20 @@
     list.innerHTML = sorted.map(c => renderMemberCampaignCard(c, { full: true })).join('');
   }
 
+  let loaded = false;
   async function loadCampaigns() {
     const list = document.getElementById('campaign-list');
-    try {
-      const res = await blm48GetActiveMemberCampaigns();
-      if (!Array.isArray(res)) {
-        list.innerHTML = `<div class="empty-state">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
-        return;
-      }
-      campaigns = res;
-      renderList();
-    } catch (e) {
-      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
-    }
+    const res = await campaignFetchWithRetry(() => blm48GetActiveMemberCampaigns());
+    if (Array.isArray(res)) { loaded = true; campaigns = res; renderList(); return; }
+    // รีเฟรชไม่สำเร็จชั่วคราว -> คงรายการเดิมไว้
+    if (loaded) return;
+    list.innerHTML = `<div class="empty-state">${escapeHtml('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง')}<br><button type="button" onclick="location.reload()" style="margin-top:14px; border:none; border-radius:20px; padding:8px 20px; background:#ffd43b; font-family:inherit; font-weight:600; cursor:pointer;">ลองใหม่</button></div>`;
   }
 
   window.addEventListener('DOMContentLoaded', () => {
     loadCampaigns();
     // 🔴 Realtime: ยอด Campaign = ยอด Ranking เดือนนี้ -> Ranking ขยับเมื่อไหร่ รีเฟรชรายการทันที
-    if (typeof blm48SubscribeRanking === 'function') blm48SubscribeRanking(loadCampaigns);
+    subscribeCampaignLive(loadCampaigns);
   });
 </script>
 </body>

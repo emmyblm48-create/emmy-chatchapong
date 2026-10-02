@@ -29,8 +29,8 @@
         .top-bar-title { text-align: center; font-weight: 600; font-size: 18px; color: #222; }
         .page-wrapper { max-width: 640px; margin: 0 auto; padding-bottom: 120px; }
 
-        .cover-wrap { position: relative; width: 100%; aspect-ratio: 2048 / 1427; background: linear-gradient(135deg, #ffeef2, #e7f1ff); overflow: hidden; }
-        .cover-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; pointer-events: none; -webkit-touch-callout: none; user-select: none; }
+        .cover-wrap { position: relative; width: 100%; aspect-ratio: 1320 / 662; background: linear-gradient(135deg, #ffeef2, #e7f1ff); overflow: hidden; }
+        .cover-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; pointer-events: none; -webkit-touch-callout: none; user-select: none; }
         .head-zone { position: relative; padding: 14px 16px 12px; }
         .member-avatar { position: absolute; right: 16px; top: -70px; width: 120px; height: 120px; border-radius: 50%; border: 4px solid #ffc107; object-fit: cover; background: #fff; pointer-events: none; }
         .detail-title { font-size: 20px; font-weight: 600; line-height: 1.35; margin: 0 135px 10px 0; }
@@ -107,8 +107,8 @@
         </div>
       </div>
       <div class="ribbon">
-        <h3>${c.isBirthMonth ? '<i class="fa-solid fa-cake-candles" style="color:#d6336c;"></i> Happy Birthday Month ' : ''}${escapeHtml(c.memberName)} · Champ Campaign</h3>
-        <p>ซัพพอร์ตด้วยคุกกี้เพื่อส่ง ${escapeHtml(c.memberName)} ขึ้น Champ of the Month</p>
+        <h3>${c.isBirthMonth ? '<i class="fa-solid fa-cake-candles" style="color:#d6336c;"></i> Happy Birthday Month ' : ''}${escapeHtml(campaignMemberLabel(c))} · Champ Campaign</h3>
+        <p>ซัพพอร์ตด้วยคุกกี้เพื่อส่ง ${escapeHtml(campaignMemberLabel(c))} ขึ้น Champ of the Month</p>
       </div>
       <div class="progress-zone">${renderCampaignProgress(c)}</div>
       <div class="info-row">
@@ -117,10 +117,10 @@
       </div>
       <div class="my-support" id="my-support"></div>
       <div class="desc">
-        <p>Campaign ที่ ${escapeHtml(c.memberName)} เปิดเพื่อบอกแฟนๆ ว่าอยากได้ Champ of the Month ประจำเดือนนี้ โดยการซัพพอร์ตคุกกี้ครบตามจำนวนที่กำหนดไว้ ยอด Campaign คือยอด Ranking ของ ${escapeHtml(c.memberName)} ในเดือนนี้ และแฟนๆ จะได้รับคุกกี้คืนตาม Tier ที่ทำได้ (คิดจากยอดปาคุกกี้จริง) เมื่อ Campaign จบ (สิ้นเดือน 00:00 น.)</p>
+        <p>Campaign ที่ ${escapeHtml(campaignMemberLabel(c))} เปิดเพื่อบอกแฟนๆ ว่าอยากได้ Champ of the Month ประจำเดือนนี้ โดยการซัพพอร์ตคุกกี้ครบตามจำนวนที่กำหนดไว้ ยอด Campaign คือยอด Ranking ของ ${escapeHtml(campaignMemberLabel(c))} ในเดือนนี้ และแฟนๆ จะได้รับคุกกี้คืนตาม Tier ที่ทำได้ (คิดจากยอดปาคุกกี้จริง) เมื่อ Campaign จบ (สิ้นเดือน 00:00 น.)</p>
         ${tiersHtml}
         <div class="champ-rule"><i class="fa-solid fa-trophy" style="color:#fcc419;"></i> <b>พิเศษเดือนเกิด</b> : ถ้าเป็นเดือนเกิดของเมมเบอร์ และเมมเบอร์ได้รับ Champ of the Month เดือนนั้น Top Supporter อันดับ 1 ของ Campaign จะได้รับ<b style="color:#e8590c;">คุกกี้คืน 100%</b>
-          ${c.isBirthMonth ? '<br><span style="color:#d6336c;"><i class="fa-solid fa-wand-magic-sparkles"></i> Campaign นี้อยู่ในเดือนเกิดของ ' + escapeHtml(c.memberName) + '</span>' : ''}</div>
+          ${c.isBirthMonth ? '<br><span style="color:#d6336c;"><i class="fa-solid fa-wand-magic-sparkles"></i> Campaign นี้อยู่ในเดือนเกิดของ ' + escapeHtml(campaignMemberLabel(c)) + '</span>' : ''}</div>
       </div>`;
 
     renderMySupport(ended);
@@ -186,7 +186,7 @@
     } catch (e) {}
 
     const result = await Swal.fire({
-      title: `ซัพพอร์ตคุกกี้ให้ ${escapeHtml(c.memberName)}`,
+      title: `ซัพพอร์ตคุกกี้ให้ ${escapeHtml(campaignMemberLabel(c))}`,
       html: `<p style="font-size:13px; color:#888; margin-bottom:10px;">คุณมีคุกกี้ทั้งหมด: <b>${myCookies.toLocaleString()}</b> ชิ้น</p>`,
       input: 'number', inputPlaceholder: 'กรอกจำนวนคุกกี้ที่ต้องการซัพพอร์ต',
       inputAttributes: { min: 1, step: 1 },
@@ -213,7 +213,7 @@
     const newTier = res.campaign ? res.campaign.tier : 0;
     if (res.tierUp && newTier > 0) {
       const t = CAMPAIGN_TIERS.find(x => x.tier === newTier);
-      Swal.fire({ title: `ปลดล็อก Tier ${newTier}!`, iconHtml: '<i class="fa-solid fa-trophy"></i>', iconColor: '#fcc419', html: `${escapeHtml(c.memberName)} ได้ <b>${t ? t.name : ''}</b> แล้ว<br>ผู้ซัพพอร์ตทุกคนจะได้รับคุกกี้คืน ${t ? t.refund : 0}% เมื่อจบ Campaign`, icon: 'success', confirmButtonColor: '#fcc419' });
+      Swal.fire({ title: `ปลดล็อก Tier ${newTier}!`, iconHtml: '<i class="fa-solid fa-trophy"></i>', iconColor: '#fcc419', html: `${escapeHtml(campaignMemberLabel(c))} ได้ <b>${t ? t.name : ''}</b> แล้ว<br>ผู้ซัพพอร์ตทุกคนจะได้รับคุกกี้คืน ${t ? t.refund : 0}% เมื่อจบ Campaign`, icon: 'success', confirmButtonColor: '#fcc419' });
     } else {
       Swal.fire({ title: 'ซัพพอร์ตสำเร็จ', text: res.message || 'ส่งคุกกี้เรียบร้อย', icon: 'success', timer: 1800, showConfirmButton: false });
     }
@@ -227,18 +227,16 @@
 
   async function loadDetail() {
     const page = document.getElementById('page');
-    try {
-      const res = await blm48GetMemberCampaignDetail(campaignId, user ? user.username : null);
-      if (!res || res.status !== 'success') {
-        page.innerHTML = `<div class="loading-state">${escapeHtml((res && res.message) || 'ไม่พบ Campaign')}</div>`;
-        document.getElementById('send-bar').style.display = 'none';
-        return;
-      }
+    const res = await campaignFetchWithRetry(() => blm48GetMemberCampaignDetail(campaignId, user ? user.username : null));
+    if (res && res.status === 'success') {
       detail = res;
       render();
-    } catch (e) {
-      page.innerHTML = `<div class="loading-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+      return;
     }
+    // โหลดรอบรีเฟรชไม่สำเร็จ (เช่นเซิร์ฟเวอร์ช้าชั่วคราว) -> คงข้อมูลเดิมที่แสดงอยู่ไว้ ไม่ล้างหน้าเป็น error
+    if (detail && res && res.networkError) return;
+    page.innerHTML = `<div class="loading-state">${escapeHtml((res && !res.networkError && res.message) || 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง')}<br><button type="button" onclick="location.reload()" style="margin-top:14px; border:none; border-radius:20px; padding:8px 20px; background:#ffd43b; font-family:inherit; font-weight:600; cursor:pointer;">ลองใหม่</button></div>`;
+    document.getElementById('send-bar').style.display = 'none';
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -246,7 +244,7 @@
     if (!campaignId) { window.location.href = 'campaign'; return; }
     loadDetail();
     // 🔴 Realtime: ยอด Campaign = ยอด Ranking เดือนนี้ -> Ranking ขยับเมื่อไหร่ อัปเดตยอด/Tier/Top Supporters ทันที
-    if (typeof blm48SubscribeRanking === 'function') blm48SubscribeRanking(loadDetail);
+    subscribeCampaignLive(loadDetail);
   });
 </script>
 </body>

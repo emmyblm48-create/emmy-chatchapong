@@ -3031,8 +3031,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
           console.error('Realtime ranking refresh error:', e);
         }
-        // 🏆 ยอด Campaign = ยอด Ranking เดือนนี้ -> รีเฟรชการ์ด Campaign พร้อมกันให้ตัวเลขตรงกันเสมอ
-        if (typeof fetchActiveCampaigns === 'function') fetchActiveCampaigns();
+        // 🏆 ยอด Campaign = ยอด Ranking เดือนนี้ -> รีเฟรชการ์ด Campaign ตามด้วย
+        // (รวบให้เหลือครั้งเดียวต่อ 2.5 วินาที ตอนคนกดใจรัวๆ จะได้ไม่ยิงฐานข้อมูลถี่เกินไป)
+        clearTimeout(window.__campaignRefreshTimer);
+        window.__campaignRefreshTimer = setTimeout(() => {
+          if (!document.hidden && typeof fetchActiveCampaigns === 'function') fetchActiveCampaigns();
+        }, 2500);
       });
     }
 
@@ -3077,9 +3081,11 @@ async function fetchActiveCampaigns() {
     // 🏆 ส่วน Campaign หน้า Home แสดงเฉพาะ Champ of the Month Campaign (เมมเบอร์เปิดเองจากหน้า profile)
     // Campaign เป็นแค่แรงกระตุ้นบน Champ of the Month เดิม ไม่ยุ่งกับ Splash / Banner / Theme (ระบบ Champ + วันเกิดเดิมจัดการเอง)
     // แคมเปญโหวต (ตาราง campaign / Major Vote) ไม่แสดงที่นี่แล้ว
-    const memberCampaigns = await blm48GetActiveMemberCampaigns();
+    const memberCampaigns = await campaignFetchWithRetry(() => blm48GetActiveMemberCampaigns());
     if (!Array.isArray(memberCampaigns)) {
-      scrollerContainer.innerHTML = `<div style="color:red; padding:10px; font-size:12px;">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+      // รีเฟรชไม่สำเร็จชั่วคราว (เซิร์ฟเวอร์ช้า) -> ถ้ามีการ์ดแสดงอยู่แล้ว คงไว้ ไม่ล้างเป็น error
+      if (scrollerContainer.querySelector('.mc-card')) return;
+      scrollerContainer.innerHTML = `<div style="color:#999; padding:10px; font-size:13px;">โหลด Campaign ไม่สำเร็จ ลองใหม่อีกครั้ง</div>`;
       return;
     }
     if (memberCampaigns.length === 0) {

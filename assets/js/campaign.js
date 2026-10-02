@@ -30,10 +30,8 @@ function renderCampaignTierList(total) {
   .mc-card { flex: 0 0 280px; width: 280px; background: #fff; border: 1px solid #ececec; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: #222; margin-bottom: 10px; transition: transform .2s ease; box-sizing: border-box; }
   .mc-card:active { transform: scale(0.98); }
   .mc-card.mc-full { flex: none; width: 100%; }
-  .mc-cover { position: relative; width: 100%; aspect-ratio: 2048 / 1427; overflow: hidden; background: linear-gradient(135deg, #ffeef2, #e7f1ff); }
-  .mc-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; pointer-events: none; -webkit-touch-callout: none; user-select: none; }
-  .mc-cover-tag { position: absolute; left: 10px; top: 10px; background: rgba(255,255,255,.92); color: #ff6b8b; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-  .mc-cover-bday { position: absolute; right: 10px; top: 10px; background: #fff4d6; color: #d9480f; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .mc-cover { position: relative; width: 100%; aspect-ratio: 1320 / 662; overflow: hidden; background: linear-gradient(135deg, #ffeef2, #e7f1ff); }
+  .mc-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; pointer-events: none; -webkit-touch-callout: none; user-select: none; }
   .mc-body { padding: 12px 14px 14px; display: flex; flex-direction: column; }
   .mc-title { font-size: 15px; font-weight: 600; line-height: 1.4; color: #222; min-height: 42px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .mc-stats { display: flex; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; margin: 10px 0 12px; padding: 8px 0; }
@@ -59,8 +57,13 @@ function renderCampaignTierList(total) {
   document.head.appendChild(style);
 })();
 
+// ชื่อเมมเบอร์ + ชื่อวงต่อท้าย เช่น "Emmy BLM48" (ใช้ทุกจุดที่แสดงชื่อเมมเบอร์ในส่วน Campaign)
+function campaignMemberLabel(c) {
+  return c.groupName ? `${c.memberName} ${c.groupName}` : c.memberName;
+}
+
 function campaignTitle(c) {
-  return `ซัพพอร์ตคุกกี้ให้ ${c.memberName} ขึ้น Champ of the Month`;
+  return `ซัพพอร์ตคุกกี้ให้ ${campaignMemberLabel(c)} ขึ้น Champ of the Month`;
 }
 
 function campaignTimeLeft(endAt) {
@@ -132,8 +135,6 @@ function renderMemberCampaignCard(c, opts) {
     <a class="mc-card ${opts.full ? 'mc-full' : ''}" href="${href}">
       <div class="mc-cover">
         <img src="${escapeAttr(c.coverImage || 'assets/images/default-profile.png')}" alt="" loading="lazy" draggable="false" oncontextmenu="return false">
-        <span class="mc-cover-tag"><i class="fa-solid fa-trophy"></i> Champ Campaign</span>
-        ${c.isBirthMonth ? '<span class="mc-cover-bday"><i class="fa-solid fa-cake-candles"></i> Birthday Month</span>' : ''}
         ${renderCampaignStamp(c)}
       </div>
       <div class="mc-body">
@@ -146,4 +147,33 @@ function renderMemberCampaignCard(c, opts) {
         ${renderCampaignProgress(c)}
       </div>
     </a>`;
+}
+
+// 🛟 โหลดข้อมูล Campaign แบบทนทาน: ช่วงคนใช้งานเยอะ RPC อาจ timeout ชั่วคราว (networkError จาก blm48Rpc)
+// ลองใหม่อัตโนมัติก่อน แทนที่จะโชว์ error ทันที
+async function campaignFetchWithRetry(fetchFn, tries) {
+  tries = tries || 3;
+  const delays = [700, 1800, 3500];
+  let res = null;
+  for (let i = 0; i < tries; i++) {
+    try { res = await fetchFn(); } catch (e) { res = { status: 'error', networkError: true }; }
+    const failed = !res || (res.networkError === true);
+    if (!failed) return res;
+    if (i < tries - 1) await new Promise(r => setTimeout(r, delays[i] || 2000));
+  }
+  return res;
+}
+
+// 🔴 อัปเดตสดตาม Ranking แบบไม่ถล่มฐานข้อมูล: รวบเหตุการณ์ที่เข้ามาติดๆ กัน (กดใจรัวๆ) เป็นรีเฟรชเดียว,
+// ไม่รีเฟรชตอนแท็บถูกซ่อน (ค่อยรีเฟรชตอนกลับมาดู), และรีเฟรชตอนกดย้อนกลับมาหน้านี้ (bfcache)
+function subscribeCampaignLive(onChange) {
+  let pending = false;
+  const run = () => {
+    if (document.hidden) { pending = true; return; }
+    pending = false;
+    onChange();
+  };
+  if (typeof blm48SubscribeRanking === 'function') blm48SubscribeRanking(run, 2500);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && pending) run(); });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) run(); });
 }

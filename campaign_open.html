@@ -74,7 +74,7 @@
     else window.location.href = 'profile';
   }
 
-  function render(profileImg) {
+  function render(profileImg, groupName) {
     const now = new Date();
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const fmt = d => d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -82,7 +82,7 @@
       <div class="hero">
         <img src="${escapeAttr(profileImg || 'https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png')}" alt="" draggable="false">
         <div class="eyebrow">CHAMP OF THE MONTH CAMPAIGN</div>
-        <h1>${escapeHtml(user.name)}</h1>
+        <h1>${escapeHtml(groupName ? user.name + ' ' + groupName : user.name)}</h1>
         <p>เปิด Campaign เพื่อให้แฟนๆ ซัพพอร์ตคุกกี้ ดันขึ้น Champ of the Month เดือนนี้</p>
       </div>
 
@@ -139,13 +139,13 @@
         window.location.replace(`campaign_detail?id=${encodeURIComponent(existing.campaign.id)}`);
         return;
       }
-      let profileImg = null;
+      let profileImg = null, groupName = null;
       const members = await blm48GetAllMembers();
       if (members && Array.isArray(members.data)) {
         const me = members.data.find(m => (m.name || '').toLowerCase() === (user.name || '').toLowerCase());
-        if (me) profileImg = me.profile;
+        if (me) { profileImg = me.profile; groupName = me.group_name; }
       }
-      render(profileImg);
+      render(profileImg, groupName);
     } catch (e) {
       document.getElementById('page').innerHTML = `<div class="loading-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
     }

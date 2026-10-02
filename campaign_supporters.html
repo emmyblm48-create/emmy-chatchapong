@@ -113,24 +113,20 @@
     }).join('');
   }
 
+  let loaded = false;
   async function loadSupporters() {
-    try {
-      const res = await blm48GetMemberCampaignDetail(campaignId, null);
-      if (!res || res.status !== 'success') {
-        document.getElementById('champ-zone').innerHTML = `<div class="state">${escapeHtml((res && res.message) || 'ไม่พบ Campaign')}</div>`;
-        return;
-      }
-      render(res);
-    } catch (e) {
-      document.getElementById('champ-zone').innerHTML = `<div class="state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
-    }
+    const res = await campaignFetchWithRetry(() => blm48GetMemberCampaignDetail(campaignId, null));
+    if (res && res.status === 'success') { loaded = true; render(res); return; }
+    // รีเฟรชไม่สำเร็จชั่วคราว -> คงอันดับเดิมไว้
+    if (loaded && res && res.networkError) return;
+    document.getElementById('champ-zone').innerHTML = `<div class="state">${escapeHtml((res && !res.networkError && res.message) || 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง')}<br><button type="button" onclick="location.reload()" style="margin-top:14px; border:none; border-radius:20px; padding:8px 20px; background:#ffd43b; font-family:inherit; font-weight:600; cursor:pointer;">ลองใหม่</button></div>`;
   }
 
   window.addEventListener('DOMContentLoaded', () => {
     if (!campaignId) { window.location.href = 'campaign'; return; }
     loadSupporters();
     // 🔴 Realtime: มีคนปาคุกกี้/กดใจเมื่อไหร่ (Ranking ขยับ) อัปเดตอันดับทันที
-    if (typeof blm48SubscribeRanking === 'function') blm48SubscribeRanking(loadSupporters);
+    subscribeCampaignLive(loadSupporters);
   });
 </script>
 </body>
