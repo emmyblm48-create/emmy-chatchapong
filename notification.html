@@ -36,7 +36,7 @@
     }
     body {
       font-family: 'Quicksand', 'Kanit', sans-serif;
-      padding: 20px;
+      padding: 20px 12px;
       margin: 0;
       padding-bottom: 110px; /* Space for floating bottom tab-bar */
     }
@@ -700,10 +700,12 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
               window.location.href = "my_preorders_history.html";
             });
           }
+          // แจ้งเตือนจากเมมเบอร์: กดรูป/ชื่อแล้วไปหน้าเมมเบอร์ (แจ้งเตือนเก็บแค่ชื่อที่แสดง ไม่มี username ของแฟนคลับ เลยลิงก์ได้เฉพาะเมมเบอร์)
+          const writerLink = String(noti.role || '').toLowerCase() === 'member' ? memberLinkAttr(noti.writer) : '';
           item.innerHTML = `
-            <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}" class="noti-avatar" alt="avatar">
+            <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}"${writerLink} class="noti-avatar" alt="avatar">
             <div class="noti-content">
-              <p class="noti-text"><strong>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
+              <p class="noti-text"><strong${writerLink}>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
               <div class="noti-time">${dateString} · ${timeString}</div>
             </div>
             ${deleteBtn}

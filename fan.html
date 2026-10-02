@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 Membership | Fan Club</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#fff9db">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            margin: 0;
+            background: #ffffff;
+            color: #222;
+        }
+        .page { max-width: 640px; margin: 0 auto; padding-bottom: 40px; }
+
+        /* 🖼️ ส่วนหัว: ภาพปกของเมมเบอร์ Kami-Oshi + รูป/ชื่อแฟนคลับลอยอยู่มุมล่างซ้าย */
+        .cover {
+            position: relative;
+            height: 340px;
+            background: linear-gradient(160deg, #fff9db 0%, #ffec99 55%, #ffe066 100%);
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+        .cover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.6) 100%);
+        }
+        .cover.no-image::after { background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.25) 100%); }
+        .back-btn {
+            position: absolute;
+            top: 14px;
+            left: 12px;
+            z-index: 3;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.25);
+            color: #fff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .identity {
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 18px;
+            z-index: 2;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.45);
+        }
+        .fan-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ffc107;
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            display: block;
+            margin-bottom: 10px;
+        }
+        .fan-name {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0 0 4px;
+            word-break: break-word;
+        }
+        .oshi-count { font-size: 15px; margin-top: 2px; }
+        .oshi-count b { font-size: 20px; margin-right: 4px; }
+
+        /* 🏆 Champ of the Month ที่แฟนคลับคนนี้ซัพพอร์ต */
+        .section-title {
+            display: inline-block;
+            margin: 22px 12px 16px;
+            font-size: 18px;
+            font-weight: 700;
+            padding-bottom: 4px;
+            border-bottom: 4px solid #ffc107;
+        }
+        .champ-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            padding: 0 12px;
+        }
+        .champ-card {
+            position: relative;
+            aspect-ratio: 3 / 4;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #f1f3f5 center / cover no-repeat;
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        .champ-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 28%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.65) 100%);
+        }
+        .champ-card > * { position: absolute; z-index: 1; }
+        .cc-name { top: 10px; left: 12px; font-weight: 700; font-size: 16px; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+        .cc-month {
+            top: 9px;
+            right: 10px;
+            background: rgba(0,0,0,0.45);
+            border-radius: 12px;
+            padding: 3px 9px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .cc-bottom { left: 12px; right: 12px; bottom: 10px; text-shadow: 0 1px 3px rgba(0,0,0,0.45); }
+        .cc-score { font-size: 15px; font-weight: 700; }
+        .cc-score i { color: #ffc107; margin-right: 4px; }
+        .cc-rank { font-size: 12px; opacity: 0.95; margin-top: 2px; }
+        .cc-crown {
+            right: 10px;
+            bottom: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ffc107;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        .cc-bottom { right: 48px; }
+
+        .state { text-align: center; color: #9e9e9e; padding: 40px 20px; font-size: 14px; line-height: 1.6; }
+        .state i { display: block; font-size: 32px; color: #ffc107; margin-bottom: 10px; }
+
+        .skeleton { background: linear-gradient(90deg, #f3f3f3 25%, #eaeaea 37%, #f3f3f3 63%); background-size: 400% 100%; animation: sk 1.4s ease infinite; }
+        @keyframes sk { 0% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    </style>
+</head>
+<body class="force-white-bg">
+    <div class="page">
+        <div class="cover no-image" id="cover">
+            <button class="back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
+            <div class="identity" id="identity">
+                <div class="fan-avatar skeleton"></div>
+                <div class="skeleton" style="width:140px;height:22px;border-radius:6px;margin-bottom:8px;"></div>
+                <div class="skeleton" style="width:180px;height:14px;border-radius:6px;"></div>
+            </div>
+        </div>
+
+        <div class="section-title">Supported Campaigns</div>
+        <div class="champ-grid" id="champ-grid">
+            <div class="champ-card skeleton"></div>
+            <div class="champ-card skeleton"></div>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_AVATAR = 'https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png';
+        const username = new URLSearchParams(location.search).get('u');
+
+        function getImg(url) {
+            if (!url || !String(url).trim()) return DEFAULT_AVATAR;
+            // ลิงก์ Google ที่มีขนาดต่อท้ายอยู่แล้ว (เช่น =s1000) ห้ามต่อซ้ำ ไม่งั้นรูปเสีย
+            if (url.includes('googleusercontent.com') && !/=s\d+$/.test(url)) return url + '=s400';
+            return url;
+        }
+
+        // ย้อนกลับไปหน้าที่กดมา ถ้าเปิดลิงก์ตรงๆ ไม่มีประวัติให้กลับหน้า Home
+        function goBack() {
+            if (document.referrer && new URL(document.referrer).origin === location.origin) history.back();
+            else location.href = 'index';
+        }
+
+        function memberLink(name) {
+            return `member?name=${encodeURIComponent(name)}`;
+        }
+
+        // การ์ด Supported Campaigns -> โพสต์ขอบคุณของ Champ เดือนนั้น (แบบเดียวกับปุ่ม View special thanks ใน champ.html)
+        function thanksLink(c) {
+            if (c.postId) return `postdetail?id=${encodeURIComponent(c.postId)}`;
+            if (c.champIndex !== undefined && c.champIndex !== null) return `specialthanks?index=${Number(c.champIndex)}`;
+            return memberLink(c.name);
+        }
+
+        // "September 2026" -> "Sep 2026"
+        function shortMonth(monthYear, yearMonth) {
+            const d = yearMonth ? new Date(yearMonth + '-01T00:00:00') : new Date(monthYear);
+            if (isNaN(d)) return escapeHtml(monthYear || '');
+            return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+
+        function showState(icon, text) {
+            document.getElementById('identity').innerHTML = '';
+            document.getElementById('champ-grid').outerHTML = `<div class="state"><i class="fas ${icon}"></i>${text}</div>`;
+        }
+
+        function renderProfile(res) {
+            const p = res.profile;
+            document.title = `BLM48 Membership | ${p.name}`;
+
+            // ภาพปก: รูปโปรไฟล์ของแฟนคลับเอง (ไม่มีรูป -> พื้นเหลือง)
+            const coverUrl = (p.img && String(p.img).trim()) ? p.img : '';
+            const cover = document.getElementById('cover');
+            if (coverUrl) {
+                cover.style.backgroundImage = `url("${getImg(coverUrl).replace(/"/g, '%22')}")`;
+                cover.classList.remove('no-image');
+            }
+
+            // ไม่บอกว่าเป็น Kami-Oshi/Oshi ของใคร (ตามคำขอ) - โชว์แค่จำนวนเมมเบอร์ที่ Oshi
+            const total = Number(res.oshiCount || 0);
+
+            document.getElementById('identity').innerHTML = `
+                <img class="fan-avatar" src="${getImg(p.img)}" alt="${escapeHtml(p.name)}" onerror="this.src='${DEFAULT_AVATAR}'">
+                <h1 class="fan-name">${escapeHtml(p.name)}</h1>
+                <div class="oshi-count"><b>${total}</b>Oshi Members</div>
+            `;
+
+            const grid = document.getElementById('champ-grid');
+            const champs = res.champs || [];
+            if (!champs.length) {
+                grid.outerHTML = `<div class="state"><i class="fas fa-crown"></i>ยังไม่เคยซัพพอร์ตเมมเบอร์ที่ได้ Champ of the Month<br>ในเดือนที่เมมเบอร์คนนั้นได้แชมป์</div>`;
+                return;
+            }
+            grid.innerHTML = champs.map(c => `
+                <a class="champ-card" href="${thanksLink(c)}" style="background-image:url('${getImg(c.postImage || c.img).replace(/'/g, '%27')}')">
+                    <div class="cc-name">${escapeHtml(c.name)}</div>
+                    <div class="cc-month">${shortMonth(c.monthYear, c.yearMonth)}</div>
+                    <div class="cc-bottom">
+                        <div class="cc-score"><i class="fas fa-heart-circle-check"></i>${Number(c.score || 0).toLocaleString()}</div>
+                        <div class="cc-rank">อันดับ ${Number(c.rank)} จาก ${Number(c.fans).toLocaleString()} คน</div>
+                    </div>
+                    <div class="cc-crown"><i class="fas fa-crown"></i></div>
+                </a>
+            `).join('');
+        }
+
+        (async () => {
+            if (!username) { showState('fa-user-slash', 'ไม่พบโปรไฟล์แฟนคลับค่ะ'); return; }
+            try {
+                const res = await blm48GetFanProfile(username);
+                if (res && res.status === 'member' && res.name) { location.replace(memberLink(res.name)); return; }
+                if (!res || res.status !== 'success') { showState('fa-user-slash', 'ไม่พบโปรไฟล์แฟนคลับค่ะ'); return; }
+                renderProfile(res);
+            } catch (e) {
+                console.error('Fan profile error:', e);
+                showState('fa-circle-xmark', 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้งค่ะ');
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -142,6 +142,10 @@ function blm48GetFanBoards(period) {
 function blm48GetMemberFansPeriod(memberName, period) {
   return blm48Rpc('get_member_fans_period', { p_member_name: memberName, p_period: period || 'all' });
 }
+// public fan profile (name/avatar, Kami-Oshi/Oshi, Champs of the Month they supported) - used on fan.html
+function blm48GetFanProfile(username) {
+  return blm48Rpc('get_fan_profile', { p_username: username });
+}
 // Fan Score breakdown per member for one user (reverse of get_member_top_fans) - used on profile.html
 function blm48GetUserFanScores(username) {
   return blm48Rpc('get_user_fan_scores', { p_username: username });

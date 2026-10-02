@@ -26,7 +26,7 @@
         .page-wrapper { max-width: 640px; margin: 0 auto; }
 
         /* โซนบนพื้นหลังสีเหลือง BLM48 */
-        .hero { background: linear-gradient(160deg, #fff9db 0%, #ffec99 55%, #ffe066 100%); padding: 0 16px 26px; text-align: center; }
+        .hero { background: linear-gradient(160deg, #fff9db 0%, #ffec99 55%, #ffe066 100%); padding: 0 12px 26px; text-align: center; }
         .top-bar { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; padding: 14px 0 6px; }
         .back-btn { background: none; border: none; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #222; font-size: 20px; cursor: pointer; }
         .top-title { font-weight: 700; font-size: 18px; color: #222; }
@@ -39,7 +39,7 @@
         .champ-amount { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; background: #fff; border-radius: 20px; padding: 6px 18px; font-size: 18px; font-weight: 700; color: #333; }
         .champ-amount i, .sup-amount i { color: #d2691e; }
 
-        .list { padding: 6px 16px 40px; }
+        .list { padding: 6px 12px 40px; }
         .sup-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid #eee; }
         .rank { width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; border: 1.5px solid #222; color: #222; }
         .rank.silver { border: none; color: #fff; background: radial-gradient(circle at 35% 30%, #f8f9fa 0%, #ced4da 50%, #adb5bd 100%); text-shadow: 0 1px 2px rgba(0,0,0,.25); }
@@ -93,18 +93,18 @@
 
     const top = list[0];
     champZone.innerHTML = `
-      <div class="champ-wrap">
+      <div class="champ-wrap"${profileLinkAttr(top.username)}>
         <img src="${escapeAttr(top.profileImage || DEFAULT_AVATAR)}" alt="" draggable="false">
         <div class="champ-badge">1</div>
       </div>
-      <div class="champ-name">${escapeHtml(top.name || top.username)}</div>
+      <div class="champ-name"><span${profileLinkAttr(top.username)}>${escapeHtml(top.name || top.username)}</span></div>
       <div class="champ-amount">${cookieIcon} ${Number(top.amount).toLocaleString()}</div>`;
 
     listEl.innerHTML = list.slice(1).map((s, i) => {
       const rank = i + 2;
       const cls = rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
       return `
-        <div class="sup-row">
+        <div class="sup-row"${profileLinkAttr(s.username)}>
           <div class="rank ${cls}">${rank}</div>
           <img class="sup-avatar" src="${escapeAttr(s.profileImage || DEFAULT_AVATAR)}" alt="" draggable="false">
           <div class="sup-name">${escapeHtml(s.name || s.username)}</div>

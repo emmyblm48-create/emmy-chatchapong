@@ -89,14 +89,14 @@
         /* 🎀 แถบสีชมพูด้านบน (หลังปุ่มย้อนกลับ/หัวข้อ ไปจนถึงชิปตัวเมมเบอร์) ก่อนเข้าเขตพื้นหลังสีขาว */
         .pink-header-zone {
             background: linear-gradient(180deg, #fff9db 0%, #ffec99 55%, #ffe066 100%);
-            padding: 60px 16px 34px 16px;
+            padding: 60px 12px 34px 12px;
             display: flex;
             justify-content: center;
         }
 
         .main-container {
             width: 100%;
-            padding: 0 16px 40px 16px;
+            padding: 0 12px 40px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -129,19 +129,6 @@
             font-weight: 700;
             font-size: 0.95rem;
             color: var(--text-dark);
-        }
-
-        /* ⏱️ แถบนับถอยหลังรีเซ็ตของ Top Today VIP (ในแถบชมพูโหมดบอร์ด) */
-        .board-subtitle {
-            color: #6b5a1e;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255,255,255,0.7);
-            padding: 6px 14px;
-            border-radius: 20px;
         }
 
         /* 👑 อวาตาร์กรอบมงกุฎ (อันดับ 1-3) */
@@ -458,14 +445,15 @@
 
         let svgUid = 0;
         // rank เป็น 0-based (0 = อันดับ 1)
-        function crownAvatarHtml(img, rank, size, altText) {
+        // username: ใส่แล้วกดรูปไปหน้าโปรไฟล์แฟนคลับ (fan.html)
+        function crownAvatarHtml(img, rank, size, altText, username) {
             const c = RANK_COLORS[rank];
             const uid = ++svgUid;
             const ring = MODE === 'vip'
                 ? badgeSvg(c, uid)
                 : '';
             const ringStyle = MODE === 'vip' ? '' : `background: linear-gradient(135deg, ${c.light}, ${c.main} 60%, ${c.dark});`;
-            return `<div class="crown-avatar ${MODE === 'vip' ? 'vip' : ''}" style="width:${size}px; height:${size}px; margin-top:${Math.round(size * 0.28)}px;">
+            return `<div class="crown-avatar ${MODE === 'vip' ? 'vip' : ''}"${profileLinkAttr(username)} style="width:${size}px; height:${size}px; margin-top:${Math.round(size * 0.28)}px;">
                 ${ring}
                 <div class="ca-ring" style="${ringStyle}">
                     <img src="${getImg(img)}" alt="${escapeHtml(altText || '')}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">
@@ -503,10 +491,7 @@
             } else {
                 // โหมดบอร์ด - มาจากส่วน Top Fans / Top Today VIP หน้า index.html
                 backLink.href = 'index';
-                if (MODE === 'vip') {
-                    addRewardButton();
-                    startResetCountdown();
-                }
+                if (MODE === 'vip') addRewardButton();
 
                 try {
                     const boards = await blm48GetFanBoards(PERIOD);
@@ -523,23 +508,6 @@
             right.outerHTML = `<a href="topvip_reward" class="nav-action-btn" aria-label="Reward for Top Today VIP"><i class="fa-solid fa-crown"></i></a>`;
         }
 
-        // ⏱️ นับถอยหลังถึงเที่ยงคืนเวลาไทย (Asia/Bangkok = UTC+7 ไม่มี DST)
-        function startResetCountdown() {
-            const zone = document.getElementById('pink-header-zone');
-            zone.innerHTML = `<div class="board-subtitle"><i class="fa-regular fa-clock"></i> รีเซ็ตอันดับใน <span id="reset-countdown">--:--:--</span></div>`;
-            const tick = () => {
-                const bkkNow = Date.now() + 7 * 3600 * 1000;
-                const left = 86400000 - (bkkNow % 86400000);
-                const h = Math.floor(left / 3600000), m = Math.floor(left / 60000) % 60, s = Math.floor(left / 1000) % 60;
-                const el = document.getElementById('reset-countdown');
-                if (el) el.textContent = [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
-                // ข้ามวันแล้ว โหลดบอร์ดใหม่ให้เป็นของวันใหม่
-                if (left <= 1000) setTimeout(() => location.reload(), 1500);
-            };
-            tick();
-            setInterval(tick, 1000);
-        }
-
         function renderBoard(boards) {
             const wrapper = document.getElementById('ranking-page-wrapper');
             if (boards.length === 0) {
@@ -550,12 +518,12 @@
             const rows = boards.map((b, i) => {
                 const fans = Array.isArray(b.fans) ? b.fans : [];
                 const fansHtml = fans.length
-                    ? `<div class="board-fans">${fans.map((f, r) => crownAvatarHtml(f.img, r, 46, f.name)).join('')}</div>`
+                    ? `<div class="board-fans">${fans.map((f, r) => crownAvatarHtml(f.img, r, 46, f.name, f.username)).join('')}</div>`
                     : `<div class="board-empty">${MODE === 'vip' ? 'ยังไม่มี VIP วันนี้' : 'ยังไม่มีแฟน'}</div>`;
                 const href = `topfans?name=${encodeURIComponent(b.name)}${MODE === 'vip' ? '&mode=vip' : ''}&from=board`;
                 return `<div class="board-row" style="animation-delay:${Math.min(i, 20) * 0.03}s" onclick="window.location.href='${escapeHtml(href)}'">
-                    <img class="board-member-img" src="${getImg(b.profile_img)}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">
-                    <div class="board-member-name">${escapeHtml(b.name)}</div>
+                    <img class="board-member-img"${memberLinkAttr(b.name)} src="${getImg(b.profile_img)}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">
+                    <div class="board-member-name"><span${memberLinkAttr(b.name)}>${escapeHtml(b.name)}</span></div>
                     ${fansHtml}
                     <i class="fas fa-chevron-right board-chevron"></i>
                 </div>`;
@@ -568,7 +536,7 @@
             const zone = document.getElementById('pink-header-zone');
             if (!zone) return;
             zone.innerHTML = `
-                <div class="subject-chip">
+                <div class="subject-chip"${memberLinkAttr((stats && stats.name) || name)}>
                     <img src="${getImg(stats && stats.profile_img)}" onerror="this.src='${DEFAULT_AVATAR}'">
                     <span>${escapeHtml((stats && stats.name) || name)}</span>
                 </div>
@@ -589,8 +557,8 @@
             wrapper.innerHTML = `
                 <div class="ranking-card">
                     <div class="winner-spotlight">
-                        ${crownAvatarHtml(top.img, 0, 120, top.name)}
-                        <h1 class="winner-name"><div class="rank-indicator medal m1">1</div><span>${escapeHtml(top.name || top.username || 'Unknown')}</span></h1>
+                        ${crownAvatarHtml(top.img, 0, 120, top.name, top.username)}
+                        <h1 class="winner-name"><div class="rank-indicator medal m1">1</div><span${profileLinkAttr(top.username)}>${escapeHtml(top.name || top.username || 'Unknown')}</span></h1>
                         <div class="winner-gift"><i class="fa-solid fa-heart-circle-check"></i> ${Number(top.total || 0).toLocaleString()}</div>
                     </div>
                     <div class="ranking-list" id="ranking-list-body"></div>
@@ -609,12 +577,12 @@
                 row.className = 'rank-row' + (isPodium ? ' podium' : '');
                 row.style.animationDelay = `${Math.min(i, 20) * 0.04}s`;
                 const avatar = isPodium
-                    ? crownAvatarHtml(fan.img, rank - 1, 46, fan.name)
-                    : `<img class="rank-avatar" loading="lazy" src="${getImg(fan.img)}" alt="${escapeHtml(fan.name || fan.username || '')}" onerror="this.src='${DEFAULT_AVATAR}'">`;
+                    ? crownAvatarHtml(fan.img, rank - 1, 46, fan.name, fan.username)
+                    : `<img class="rank-avatar"${profileLinkAttr(fan.username)} loading="lazy" src="${getImg(fan.img)}" alt="${escapeHtml(fan.name || fan.username || '')}" onerror="this.src='${DEFAULT_AVATAR}'">`;
                 row.innerHTML = `
                     <div class="rank-indicator ${isPodium ? 'medal m' + rank : ''}">${rank}</div>
                     ${avatar}
-                    <div class="rank-name">${escapeHtml(fan.name || fan.username || 'Unknown')}</div>
+                    <div class="rank-name"><span${profileLinkAttr(fan.username)}>${escapeHtml(fan.name || fan.username || 'Unknown')}</span></div>
                     <div class="rank-gift"><i class="fa-solid fa-heart-circle-check"></i> ${Number(fan.total || 0).toLocaleString()}</div>
                 `;
                 fragment.appendChild(row);

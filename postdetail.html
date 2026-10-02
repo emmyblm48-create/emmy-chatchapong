@@ -67,7 +67,7 @@
     .post-detail-container {
       max-width: 500px;
       margin: 20px auto;
-      padding: 0 16px calc(98px + env(safe-area-inset-bottom, 0px));
+      padding: 0 12px calc(98px + env(safe-area-inset-bottom, 0px));
     }
 
     /* 💬 [ที่มา: ตัวอย่างหน้าจอที่ผู้ใช้ส่งมา] กล่องพิมพ์คอมเมนต์ติดขอบล่างสุดของจอเสมอ (เหมือนแอปทั่วไป)
@@ -266,44 +266,8 @@
 
   // 🖼️ สร้าง HTML แกลเลอรี่รูปภาพของโพสต์
   function buildImagesHtml(displayImage) {
-    if (!displayImage) return '';
-    const imageUrls = displayImage.split(',').map(url => url.trim()).filter(url => url);
-    if (imageUrls.length === 0) return '';
-
-    const visibleImages = imageUrls.slice(0, 4);
-    let imagesHtml = '';
-
-    if (imageUrls.length === 1) {
-      imagesHtml += `
-        <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
-          <img src="${imageUrls[0]}" onclick="openImageViewer(0, ['${imageUrls[0]}'])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
-        </div>
-      `;
-    } else if (imageUrls.length === 3) {
-      const allUrlsJs = imageUrls.map(u => `'${u}'`).join(',');
-      imagesHtml += `<div class="post-gallery post-gallery-3" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
-      imagesHtml += `<div style="grid-column: 1 / span 2; position: relative; aspect-ratio: 16 / 10;">
-        <img src="${imageUrls[0]}" onclick="openImageViewer(0, [${allUrlsJs}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">
-      </div>`;
-      [1, 2].forEach(index => {
-        imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">
-          <img src="${imageUrls[index]}" onclick="openImageViewer(${index}, [${allUrlsJs}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">
-        </div>`;
-      });
-      imagesHtml += `</div>`;
-    } else {
-      imagesHtml += `<div class="post-gallery" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px;">`;
-      visibleImages.forEach((url, index) => {
-        imagesHtml += `<div style="position: relative; aspect-ratio: 1 / 1;">`;
-        imagesHtml += `<img src="${url}" onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px !important; cursor: pointer;">`;
-        if (index === 3 && imageUrls.length > 4) {
-          imagesHtml += `<div onclick="openImageViewer(${index}, [${imageUrls.map(u => `'${u}'`).join(',')}])" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); border-radius: 12px !important; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 1.5rem; cursor: pointer;">+${imageUrls.length - 4}</div>`;
-        }
-        imagesHtml += `</div>`;
-      });
-      imagesHtml += `</div>`;
-    }
-    return imagesHtml;
+    // เลย์เอาต์รูป 2/3/4/มากกว่า 4 รูป อยู่ที่ buildPostImagesHtml ใน common.js (ใช้ร่วมทุกหน้าที่มีโพสต์)
+    return buildPostImagesHtml(displayImage);
   }
 
   // 💬 สร้าง HTML รายการคอมเมนต์
@@ -333,10 +297,10 @@
 
     return `
         <div class="comment-item" data-comment-id="${escapeAttr(commentId)}" style="display: flex; align-items: flex-start; margin-bottom: 10px; ${isReply ? 'margin-left: 34px;' : ''} background: #fff5f7; padding: 8px 12px; border-radius: 12px; gap: 8px; text-align: left;">
-          <img src="${escapeAttr(cmtImg)}" style="width: ${avatarSize}px; height: ${avatarSize}px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
+          <img src="${escapeAttr(cmtImg)}"${profileLinkAttr(cmt.username)} style="width: ${avatarSize}px; height: ${avatarSize}px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #ffe3e8;">
           <div style="font-size: 0.88rem; width: 100%;">
             <div style="display: flex; align-items: center; gap: 4px;">
-              <b style="color: var(--primary-pink);">${escapeHtml(cmt.name)}</b>
+              <b${profileLinkAttr(cmt.username)} style="color: var(--primary-pink);">${escapeHtml(cmt.name)}</b>
               ${isCmtVerified}
             </div>
             <div id="cmt-text-${commentId}" style="color: #333; word-break: break-word; overflow-wrap: break-word; margin-top: 2px;">${escapeHtml(cmt.text)}</div>
@@ -437,8 +401,9 @@
     }
 
     const specialBadge = isChampPost ? `
-      <div class="champ-post-badge">
-        <i class="fas fa-crown"></i> Champ of the Month Special Thanks
+      <div class="champ-post-badge-row">
+        <div class="champ-post-badge">SPECIAL FANS DAY</div>
+        <div class="champ-post-star"><i class="fas fa-star"></i></div>
       </div>
     ` : '';
 
@@ -456,7 +421,8 @@
       </span>
     ` : '';
 
-    const authorClickHandler = post.postType === 'fan' ? '' : `onclick="openMemberProfile('${authorName}')"`;
+    // โพสต์แฟนคลับ: กดรูป/ชื่อแล้วไปหน้าโปรไฟล์แฟนคลับ (fan.html) ส่วนโพสต์เมมเบอร์ไปหน้า member เหมือนเดิม
+    const authorClickHandler = post.postType === 'fan' ? profileLinkAttr(post.authorUsername) : `onclick="openMemberProfile('${authorName}')"`;
     const profileImgHtml = isGraduated ? `
       <div ${authorClickHandler} style="position: relative; display: inline-block; margin-right: 10px; flex-shrink: 0; ${post.postType === 'fan' ? '' : 'cursor: pointer;'}">
         <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #cbd5e1;">

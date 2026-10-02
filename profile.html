@@ -124,7 +124,7 @@
     }
 
     .profile-body {
-      padding: 0 24px 35px 24px;
+      padding: 0 12px 35px 12px;
       position: relative;
       z-index: 2;
       flex: 1;
@@ -423,6 +423,13 @@ body {
     <i class="fas fa-chevron-right menu-arrow"></i>
   </a>
   
+  <!-- 👤 โปรไฟล์ Fan Club สาธารณะของตัวเอง (fan.html) - ซ่อนไว้สำหรับบัญชีเมมเบอร์ ดูที่ JS ด้านล่าง -->
+  <a href="fan" id="menu-fan-profile" class="menu-item" style="display:none;">
+    <div class="menu-icon icon-gold"><i class="fas fa-id-badge"></i></div>
+    <div class="menu-text">My Fan Club Profile</div>
+    <i class="fas fa-chevron-right menu-arrow"></i>
+  </a>
+
   <a href="shop" class="menu-item">
     <div class="menu-icon icon-green"><i class="fas fa-store"></i></div>
     <div class="menu-text">Shop</div>
@@ -559,6 +566,13 @@ body {
     const menuAdminDashboard = document.getElementById('menu-admin-dashboard');
     if (menuAdminDashboard) menuAdminDashboard.style.display = isAdmin ? 'flex' : 'none';
     if (isAdmin) loadAdminPendingBadge();
+
+    // เมนูโปรไฟล์ Fan Club: เฉพาะบัญชีแฟนคลับ (บัญชีเมมเบอร์มีหน้า member ของตัวเองอยู่แล้ว)
+    const menuFanProfile = document.getElementById('menu-fan-profile');
+    if (menuFanProfile && user.username && !isUserMember()) {
+      menuFanProfile.href = `fan?u=${encodeURIComponent(user.username)}`;
+      menuFanProfile.style.display = 'flex';
+    }
     // เพิ่มการจัดการปุ่มรับคุกกี้ตามสถานะ Member
     // ปุ่มรับคุกกี้รายเดือน: role member และ role admin มองไม่เห็น
     const btnClaim = document.getElementById('btn-claim-monthly');
@@ -611,7 +625,7 @@ body {
           if (driveMatch) img = `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}`;
         }
         return `
-          <div style="display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid #f9f9f9;">
+          <div${memberLinkAttr(s.name || s.member_name)} style="display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid #f9f9f9;">
             <img src="${img}" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'" style="width:38px; height:38px; border-radius:50%; object-fit:cover; flex-shrink:0;">
             <div style="flex:1; min-width:0;">
               <div style="font-size:13px; font-weight:600; color:#444; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.name || s.member_name}</div>

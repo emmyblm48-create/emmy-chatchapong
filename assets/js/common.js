@@ -333,6 +333,82 @@ function escapeAttr(text) {
 }
 
 // =========================================================================
+// 🖼️ แกลเลอรี่รูปในโพสต์ (ใช้ร่วมกัน index / member / fanpost / postdetail ผ่าน buildImagesHtml ของแต่ละหน้า)
+// แบบแอป iAM48: มุมเหลี่ยม ช่องห่าง 4px
+//   2 รูป = คู่สี่เหลี่ยมจัตุรัส | 3 รูป = รูปใหญ่ซ้าย + 2 รูปซ้อนขวา | 4 รูป = 2x2 | มากกว่า 4 = 2x2 + "+N" ที่ช่องสุดท้าย
+// =========================================================================
+function buildPostImagesHtml(displayImage) {
+  if (!displayImage) return '';
+  const urls = String(displayImage).split(',').map(u => u.trim()).filter(Boolean);
+  if (!urls.length) return '';
+
+  const allJs = urls.map(u => `'${escapeAttr(u)}'`).join(',');
+  const imgTag = (i, extra) => `<img src="${escapeHtml(urls[i])}" onclick="openImageViewer(${i}, [${allJs}])" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; border-radius: 0;${extra || ''}">`;
+  const cell = (i, style, inner) => `<div style="position: relative; overflow: hidden; background: #f1f3f5; ${style || ''}">${inner || imgTag(i)}</div>`;
+
+  if (urls.length === 1) {
+    return `
+      <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
+        <img src="${escapeHtml(urls[0])}" onclick="openImageViewer(0, [${allJs}])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 12px; cursor: pointer; display: block; margin: 0 auto;">
+      </div>
+    `;
+  }
+
+  const grid = (cols, cells, extra) =>
+    `<div class="post-photos post-photos-${Math.min(urls.length, 5)}" style="display: grid; grid-template-columns: ${cols}; gap: 4px; margin-top: 10px; ${extra || ''}">${cells}</div>`;
+
+  if (urls.length === 2) {
+    return grid('1fr 1fr', [0, 1].map(i => cell(i, 'aspect-ratio: 1 / 1;')).join(''));
+  }
+
+  if (urls.length === 3) {
+    // รูปแรกใหญ่ทางซ้าย (กินสองแถว) อีก 2 รูปเป็นจัตุรัสซ้อนกันทางขวา
+    return grid('2fr 1fr',
+      cell(0, 'grid-row: 1 / span 2;') +
+      cell(1, 'aspect-ratio: 1 / 1;') +
+      cell(2, 'aspect-ratio: 1 / 1;'),
+      'grid-template-rows: auto auto;');
+  }
+
+  // 4 รูปขึ้นไป: 2x2 ช่องสุดท้ายมีป้าย +N ถ้ามีรูปเกิน
+  const extraCount = urls.length - 4;
+  return grid('1fr 1fr', [0, 1, 2, 3].map(i => {
+    const overlay = (i === 3 && extraCount > 0)
+      ? `<div onclick="openImageViewer(3, [${allJs}])" style="position: absolute; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; font-weight: 500; cursor: pointer;">+${extraCount}</div>`
+      : '';
+    return cell(i, 'aspect-ratio: 1 / 1;', imgTag(i) + overlay);
+  }).join(''));
+}
+
+// =========================================================================
+// 👤 กดรูป/ชื่อแล้วเปิดโปรไฟล์: ใส่ data-fan="username" (แฟนคลับ -> fan.html, บัญชีเมมเบอร์ fan.html จะพาไปหน้า member ให้เอง)
+// หรือ data-member="ชื่อเมมเบอร์" (-> member.html) ไว้ที่ element ไหนก็ได้ ตัวดักคลิกด้านล่างจัดการให้
+// ทำงานช่วง capture + หยุด event ไม่ให้ไปเปิดการ์ด/โพสต์ที่ครอบอยู่ซ้อนกัน
+// =========================================================================
+function profileLinkAttr(username) {
+  return username ? ` data-fan="${escapeHtml(username)}"` : '';
+}
+function memberLinkAttr(memberName) {
+  return memberName ? ` data-member="${escapeHtml(memberName)}"` : '';
+}
+document.addEventListener('click', function (e) {
+  const el = e.target.closest && e.target.closest('[data-fan], [data-member]');
+  if (!el) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (el.dataset.member) {
+    window.location.href = `member?name=${encodeURIComponent(el.dataset.member)}`;
+  } else if (el.dataset.fan) {
+    window.location.href = `fan?u=${encodeURIComponent(el.dataset.fan)}`;
+  }
+}, true);
+(function addProfileLinkCursor() {
+  const style = document.createElement('style');
+  style.textContent = '[data-fan], [data-member] { cursor: pointer; }';
+  (document.head || document.documentElement).appendChild(style);
+})();
+
+// =========================================================================
 // 👑 สลิปโอน Token/Cookie/GEToken (ใช้ร่วมกันโดย admin_transfer.html ตอนโอนใหม่
 // และ admin_transfer_history.html ตอนเปิดดูสลิปย้อนหลัง) - เดิมอยู่ใน admin.html
 // เพียงไฟล์เดียวตอนที่ทั้งสองฟีเจอร์ยังเป็น modal ในหน้าเดียวกัน
