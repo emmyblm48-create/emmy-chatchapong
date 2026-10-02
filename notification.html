@@ -262,6 +262,120 @@
       from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
     }
+
+    /* =====================================================================
+       🔔 หน้าแจ้งเตือนแบบแอป iAM48: แถบหัวขาว, หมวด New / Earlier,
+       รูปใหญ่กรอบสีประจำวง + ไอคอนประเภทมุมขวาล่าง, เวลาแบบ "Yesterday", แถวที่ยังไม่อ่านพื้นครีม
+       ===================================================================== */
+    body { padding: 0 0 110px 0 !important; background: #ffffff !important; }
+    .noti-container {
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #ffffff !important;
+      border: none !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    .noti-container > .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 !important;
+      padding: 14px 12px !important;
+      background: #ffffff !important;
+      border: none !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .noti-container > .header .header-title {
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      color: #222 !important;
+      background: none !important;
+      -webkit-text-fill-color: #222 !important;
+    }
+    .noti-container > .header .header-title i { display: none; }
+    .noti-container > .header .btn-refresh {
+      background: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: #222 !important;
+      font-size: 20px !important;
+      width: 40px !important;
+      height: 40px !important;
+    }
+    .noti-container .manual-input-box { margin: 12px !important; }
+
+    .noti-list { padding: 0 !important; margin: 0 !important; gap: 0 !important; display: block !important; }
+    .noti-section-label {
+      padding: 14px 12px 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #222;
+      background: #ffffff;
+    }
+    .noti-item {
+      display: flex !important;
+      align-items: center !important;
+      gap: 14px !important;
+      margin: 0 !important;
+      padding: 14px 12px !important;
+      background: #ffffff !important;
+      border: none !important;
+      border-bottom: 1px solid #f1ece0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+      transform: none !important;
+    }
+    .noti-item.unread { background: #fdf3dc !important; }
+    .noti-item.unread::before, .noti-item.unread::after { display: none !important; }
+
+    /* รูปโปรไฟล์ + กรอบสีประจำวง (BLM48 = เหลือง) + ป้ายประเภทแจ้งเตือน */
+    .noti-avatar-wrap { position: relative; flex-shrink: 0; width: 56px; height: 56px; }
+    .noti-avatar-wrap .noti-avatar {
+      width: 56px !important;
+      height: 56px !important;
+      border-radius: 50% !important;
+      object-fit: cover;
+      border: 3px solid var(--noti-group-color, #ffc107) !important;
+      box-sizing: border-box !important;
+      padding: 0 !important;
+      background: #fff;
+      box-shadow: none !important;
+      display: block;
+    }
+    .noti-type-badge {
+      position: absolute;
+      right: -4px;
+      bottom: -2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #5ec4b6;
+      border: 2px solid #ffffff;
+      color: #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .noti-content { flex: 1; min-width: 0; }
+    .noti-text {
+      margin: 0 !important;
+      font-size: 15px !important;
+      line-height: 1.45 !important;
+      color: #222 !important;
+      word-break: break-word;
+    }
+    .noti-text strong { font-weight: 500 !important; color: #222 !important; }
+    .noti-time { margin-top: 4px !important; font-size: 13px !important; color: #a0a0a0 !important; }
   </style>
   <script src="assets/js/orientation-lock.js"></script>
 </head>
@@ -277,11 +391,6 @@
     </button>
   </div>
   
-  <div class="manual-input-box" id="push-opt-in-box">
-    <h3><i class="fa-solid fa-bell"></i> การแจ้งเตือนบนมือถือ</h3>
-    <button class="btn-submit" id="btn-enable-push" style="flex:none;"><i class="fa-solid fa-bell"></i> เปิดการแจ้งเตือน</button>
-  </div>
-
   <div class="manual-input-box" id="admin-input-box" style="display: none;">
     <h3><i class="fa-solid fa-pen-to-square"></i> Create New Notification</h3>
     <input type="text" id="input-action" placeholder="Enter notification message">
@@ -652,6 +761,21 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
     // =========================================================
     // 🎨 5. ฟังก์ชันจัดหน้า UI แสดงรายการแจ้งเตือน
     // =========================================================
+    // สีกรอบรูปตามวง: ทุกบัญชีตอนนี้อยู่วง BLM48 (เหลืองประจำวง #ffc107) - เผื่อวงอื่นในอนาคตเพิ่มสีที่นี่
+    const NOTI_GROUP_COLORS = { BLM48: '#ffc107' };
+    function notiGroupColor(noti) {
+      const group = String((noti && noti.groupName) || 'BLM48').toUpperCase();
+      return NOTI_GROUP_COLORS[group] || '#ffc107';
+    }
+    // ไอคอนเล็กมุมรูปบอกประเภทแจ้งเตือน
+    function notiTypeIcon(noti) {
+      if (noti.postId) return 'fa-rectangle-list';
+      if (noti.notifType === 'shop') return 'fa-bag-shopping';
+      if (noti.notifType === 'wallet') return 'fa-wallet';
+      if (noti.notifType === 'preorder') return 'fa-box';
+      return 'fa-bell';
+    }
+
     function renderUI() {
       if (myNotifications && myNotifications.length > 0) {
         notiListContainer.innerHTML = "";
@@ -659,7 +783,17 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
         const sortedList = [...myNotifications].sort((a, b) => b.timestamp - a.timestamp);
         const readIds = getReadNotiIds();
 
+        // หัวข้อหมวด: ยังไม่อ่าน = "New", อ่านแล้ว = "Earlier" (เรียงใหม่ -> เก่าอยู่แล้ว)
+        let lastSection = '';
         sortedList.forEach(noti => {
+          const section = readIds.has(noti.timestamp) ? 'Earlier' : 'New';
+          if (section !== lastSection) {
+            const label = document.createElement('div');
+            label.className = 'noti-section-label';
+            label.textContent = section;
+            notiListContainer.appendChild(label);
+            lastSection = section;
+          }
           const notiDate = new Date(noti.timestamp);
           const dateString = notiDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' });
           const timeString = notiDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
@@ -704,10 +838,13 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
           // แจ้งเตือนจากเมมเบอร์: กดรูป/ชื่อแล้วไปหน้าเมมเบอร์ (แจ้งเตือนเก็บแค่ชื่อที่แสดง ไม่มี username ของแฟนคลับ เลยลิงก์ได้เฉพาะเมมเบอร์)
           const writerLink = String(noti.role || '').toLowerCase() === 'member' ? memberLinkAttr(noti.writer) : '';
           item.innerHTML = `
-            <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}"${writerLink} class="noti-avatar" alt="avatar">
+            <div class="noti-avatar-wrap" style="--noti-group-color: ${notiGroupColor(noti)};">
+              <img src="${noti.avatar || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'}"${writerLink} class="noti-avatar" alt="avatar">
+              <span class="noti-type-badge"><i class="fa-solid ${notiTypeIcon(noti)}"></i></span>
+            </div>
             <div class="noti-content">
               <p class="noti-text"><strong${writerLink}>${noti.writer} ${verifiedBadge}</strong> ${noti.action}</p>
-              <div class="noti-time">${dateString} · ${timeString}</div>
+              <div class="noti-time" title="${dateString} · ${timeString}">${commentTimeAgo(noti.timestamp) || (dateString + ' · ' + timeString)}</div>
             </div>
             ${deleteBtn}
           `;

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BLM48 Membership | Redeem</title>
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+  <meta name="apple-mobile-web-app-title" content="BLM48">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/glassmorphism.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/orientation-lock.js"></script>
+
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      background: #ffffff;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* แถบบนสีขาว: ปุ่มย้อนกลับ + ชื่อหน้า */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      height: 56px;
+      padding: 0 8px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .back-btn {
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: none;
+      color: #222;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .top-title { text-align: center; font-size: 17px; font-weight: 600; }
+
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 28px 12px 32px; /* ขอบซ้าย-ขวา 12px เท่าทุกหน้า */
+    }
+    .page-heading {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 44px;
+    }
+    .field-label {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 14px 4px;
+    }
+    .code-input {
+      width: 100%;
+      height: 60px;
+      border: 1px solid #dcdcdc;
+      border-radius: 12px;
+      padding: 0 16px;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #222;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .code-input:focus { border-color: #ffc107; }
+    .code-input::placeholder { color: #c7c7c7; font-weight: 400; letter-spacing: 0; }
+
+    /* ปุ่มสีเหลืองทรงแคปซูล ชิดล่างของหน้า */
+    .spacer { flex: 1; min-height: 40px; }
+    .redeem-btn {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      height: 54px;
+      border: none;
+      border-radius: 27px;
+      background: #ffd966;
+      color: #222;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .redeem-btn:active { transform: scale(0.98); }
+    .redeem-btn:disabled { opacity: 0.55; cursor: default; }
+  </style>
+</head>
+<body class="force-white-bg">
+  <div class="top-bar">
+    <button type="button" class="back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
+    <div class="top-title">Redeem</div>
+    <div></div>
+  </div>
+
+  <form class="page" id="redeem-form" autocomplete="off">
+    <h1 class="page-heading">Enter your code</h1>
+    <label class="field-label" for="code-input">Enter your code</label>
+    <input type="text" id="code-input" class="code-input" placeholder="กรอกรหัสโค้ดที่นี่" autocapitalize="characters" spellcheck="false" enterkeyhint="done">
+    <div class="spacer"></div>
+    <button type="submit" class="redeem-btn" id="redeem-btn" disabled>Redeem token</button>
+  </form>
+
+  <script>
+    // ผู้ใช้ต้องล็อกอินก่อน (เช็ควันหมดอายุของ session ผ่าน getUserSession ใน common.js)
+    const sessionUser = getUserSession();
+    if (!sessionUser || !sessionUser.username) {
+      window.location.replace('login');
+    }
+
+    // กลับไปหน้าที่กดมา (โหลดหน้าใหม่ ให้ยอดเงินในกระเป๋าเป็นค่าล่าสุดหลังแลกโค้ด)
+    function goBack() {
+      try {
+        if (document.referrer) {
+          const ref = new URL(document.referrer);
+          if (ref.origin === location.origin && !/\/redeem/.test(ref.pathname)) {
+            location.href = ref.pathname + ref.search;
+            return;
+          }
+        }
+      } catch (e) {}
+      location.href = 'profile';
+    }
+
+    const input = document.getElementById('code-input');
+    const btn = document.getElementById('redeem-btn');
+    input.addEventListener('input', () => { btn.disabled = !input.value.trim(); });
+
+    document.getElementById('redeem-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = input.value.trim();
+      if (!code || btn.disabled) return;
+
+      btn.disabled = true;
+      input.disabled = true;
+      Swal.fire({ title: 'กำลังตรวจสอบโค้ด...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        const res = await blm48RedeemCode(sessionUser.username, code);
+        if (res && res.status === 'success') {
+          await Swal.fire({ icon: 'success', title: 'ทำรายการสำเร็จ', text: res.message, confirmButtonColor: '#ffc107' });
+          input.value = '';
+        } else {
+          Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: (res && res.message) || 'ไม่สามารถแลกโค้ดนี้ได้', confirmButtonColor: '#ffc107' });
+        }
+      } catch (err) {
+        console.error('Redeem error:', err);
+        Swal.fire({ icon: 'error', title: 'การเชื่อมต่อขัดข้อง', text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', confirmButtonColor: '#ffc107' });
+      } finally {
+        input.disabled = false;
+        btn.disabled = !input.value.trim();
+      }
+    });
+  </script>
+</body>
+</html>

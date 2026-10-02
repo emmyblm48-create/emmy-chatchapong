@@ -14,9 +14,17 @@
   let lastTouchEnd = 0;
   document.addEventListener('touchend', function(e) {
     const now = Date.now();
-    if (now - lastTouchEnd <= 300) e.preventDefault();
+    // กันซูมด้วยการแตะสองครั้ง - แต่ไม่ยกเลิกการแตะปุ่ม/ลิงก์/ช่องพิมพ์ (เดิมแตะหัวใจเร็วๆ ติดกันแล้วแตะหลังโดนกลืนหาย)
+    // ปุ่มพวกนี้กันซูมด้วย touch-action: manipulation แทน (ดูสไตล์ด้านล่าง)
+    const onControl = e.target && e.target.closest && e.target.closest('button, a, input, textarea, select, [onclick]');
+    if (now - lastTouchEnd <= 300 && !onControl) e.preventDefault();
     lastTouchEnd = now;
   }, false);
+  (function () {
+    const st = document.createElement('style');
+    st.textContent = 'button, a, input, textarea, select, [onclick] { touch-action: manipulation; }';
+    (document.head || document.documentElement).appendChild(st);
+  })();
   document.addEventListener('wheel', function(e) {
     if (e.ctrlKey) e.preventDefault();
   }, { passive: false });
@@ -163,6 +171,12 @@ function patchPostLive(post) {
   reconcileComments(id, comments);
 }
 
+// คอมเมนต์ id นี้แสดงอยู่บนจอแล้วหรือยัง (ใช้กันแทรกซ้ำตอนส่งคอมเมนต์/ตอบกลับ ที่ Realtime อาจวาดให้ไปก่อน)
+function commentAlreadyOnScreen(commentId) {
+  if (!commentId) return false;
+  return !!document.querySelector(`.comment-item[data-comment-id="${CSS.escape(String(commentId))}"]`);
+}
+
 function reconcileComments(postId, comments) {
   const listEl = document.getElementById(`comment-list-${postId}`);
   if (!listEl) return;
@@ -217,6 +231,15 @@ function reconcileComments(postId, comments) {
   const liveIds = new Set(comments.map(c => c.commentId).filter(Boolean));
   listEl.querySelectorAll('.comment-item[data-comment-id]').forEach(el => {
     if (!liveIds.has(el.dataset.commentId)) el.remove();
+  });
+
+  // ซ่อมคอมเมนต์ซ้ำ (id เดียวกันขึ้นจอ 2 อัน จากจังหวะส่งคอมเมนต์ชนกับ Realtime) - เก็บอันแรกไว้ ลบที่เหลือ
+  // ถ้าปล่อยไว้ กดหัวใจที่อันที่ 2 แล้วระบบไปอัปเดตอันแรกแทน หัวใจที่กดเลยเหมือนไม่ติด
+  const seenIds = new Set();
+  listEl.querySelectorAll('.comment-item[data-comment-id]').forEach(el => {
+    const cid = el.dataset.commentId;
+    if (!cid || !el.isConnected) return;
+    if (seenIds.has(cid)) el.remove(); else seenIds.add(cid);
   });
 
   let prevEl = null;
@@ -378,6 +401,27 @@ function buildPostImagesHtml(displayImage) {
       : '';
     return cell(i, 'aspect-ratio: 1 / 1;', imgTag(i) + overlay);
   }).join(''));
+}
+
+// =========================================================================
+// 🕒 เวลาของคอมเมนต์แบบ "7 minutes ago" / "Last week" / "2 months ago" (ใต้ฟองคอมเมนต์ทุกหน้า)
+// =========================================================================
+function commentTimeAgo(ts) {
+  const t = typeof ts === 'number' ? ts : Date.parse(ts);
+  if (!t || isNaN(t)) return '';
+  const sec = Math.round((Date.now() - t) / 1000);
+  if (sec < 60) return 'Just now';
+  const units = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
+  const rtf = (typeof Intl !== 'undefined' && Intl.RelativeTimeFormat) ? new Intl.RelativeTimeFormat('en', { numeric: 'auto' }) : null;
+  for (const [unit, size] of units) {
+    if (sec >= size) {
+      const n = Math.floor(sec / size);
+      if (!rtf) return `${n} ${unit}${n > 1 ? 's' : ''} ago`;
+      const txt = rtf.format(-n, unit); // "last week", "2 months ago", "yesterday"
+      return txt.charAt(0).toUpperCase() + txt.slice(1);
+    }
+  }
+  return 'Just now';
 }
 
 // =========================================================================
