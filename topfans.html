@@ -29,6 +29,7 @@
             --blm-gradient: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 45%, #ff8fb3 55%, #e0447a 100%);
             --blm-gradient-border: #ff6b9d;
             --blm-gradient-deep: #e0447a;
+            --blm-yellow: #ffc107;
             --text-dark: #4a4a4a;
             --text-muted: #9e9e9e;
         }
@@ -60,7 +61,7 @@
             z-index: 1000;
         }
 
-        .nav-back-btn {
+        .nav-back-btn, .nav-action-btn {
             color: #ffffff;
             font-size: 1.1rem;
             text-decoration: none;
@@ -72,6 +73,8 @@
             border-radius: 50%;
             background: rgba(255,255,255,0.25);
             flex-shrink: 0;
+            border: none;
+            cursor: pointer;
         }
 
         .nav-title {
@@ -128,7 +131,54 @@
             color: var(--text-dark);
         }
 
-        /* 🤍 กล่องจัดอันดับสีขาวกล่องเดียว (สปอตไลต์อันดับ 1 + ลิสต์อันดับที่เหลือ) ลอยทับขอบล่างแถบสีชมพู */
+        /* ⏱️ แถบนับถอยหลังรีเซ็ตของ Top Today VIP (ในแถบชมพูโหมดบอร์ด) */
+        .board-subtitle {
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.22);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        /* 👑 อวาตาร์กรอบมงกุฎ (อันดับ 1-3) */
+        .crown-avatar {
+            position: relative;
+            flex-shrink: 0;
+            display: inline-block;
+        }
+        .crown-avatar .ca-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            padding: 3px;
+        }
+        .crown-avatar .ca-ring img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #fff;
+            border: 2px solid #fff;
+            display: block;
+        }
+        .crown-avatar.vip .ca-ring { inset: 15%; padding: 0; }
+        .crown-avatar.vip .ca-ring img { border-width: 1.5px; }
+        .crown-avatar .ca-badge { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .crown-avatar .ca-crown {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -30%;
+            width: 78%;
+            pointer-events: none;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+        }
+
+        /* 🤍 กล่องจัดอันดับสีขาวกล่องเดียว ลอยทับขอบล่างแถบสีชมพู */
         .ranking-card {
             background: #ffffff;
             border-radius: 24px;
@@ -140,76 +190,73 @@
             animation: fadeInCard 0.4s ease-out;
         }
 
-        .winner-spotlight {
-            position: relative;
-            padding: 34px 20px 26px 20px;
-            text-align: center;
-        }
-
-        .rank-pill {
-            position: absolute;
-            top: 14px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--blm-gradient);
-            color: #ffffff;
-            padding: 3px 14px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(224, 68, 122, 0.3);
-            white-space: nowrap;
-        }
-
-        .avatar-wrapper {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 14px auto 14px auto;
-        }
-
-        .avatar-frame {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: var(--blm-gradient);
-            padding: 3px;
-            box-shadow: 0 4px 12px rgba(224, 68, 122, 0.25);
-        }
-
-        .fan-avatar-img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            background-color: #fff;
-            border: 2px solid #fff;
-        }
-
-        .crown-icon {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            color: var(--blm-gradient-deep);
-            font-size: 1rem;
-            background: #fff;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+        /* 📋 บอร์ดรายชื่อเมมเบอร์ + 3 อันดับแฟนของแต่ละคน */
+        .board-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            gap: 12px;
+            padding: 18px 14px 14px 16px;
+            border-top: 1px solid #f5f0f2;
+            cursor: pointer;
+            animation: fadeInRow 0.35s ease-out backwards;
+        }
+        .board-row:first-child { border-top: none; }
+        .board-row:active { background: #fff8fa; }
+
+        .board-member-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--blm-pink);
+            padding: 1px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .board-member-name {
+            flex: 1;
+            min-width: 0;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .board-fans {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .board-empty {
+            font-size: 0.75rem;
+            color: #c9b8bd;
+            flex-shrink: 0;
+        }
+        .board-chevron { color: #bbb; font-size: 0.85rem; flex-shrink: 0; }
+
+        .winner-spotlight {
+            position: relative;
+            padding: 64px 20px 26px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .winner-name {
-            margin: 0 0 10px 0;
-            font-size: 1.4rem;
+            margin: 16px 0 10px 0;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--text-dark);
-            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 100%;
         }
+        .winner-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .winner-gift {
             font-size: 1rem;
@@ -219,15 +266,12 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            position: relative;
             background: var(--blm-gradient);
             padding: 6px 16px;
             border-radius: 20px;
         }
-
         .winner-gift i { color: #ffffff; }
 
-        /* 📋 รายการอันดับที่เหลือ - แถวสีขาวคั่นด้วยเส้นบางๆ ในกล่องเดียวกับสปอตไลต์อันดับ 1 */
         .ranking-list {
             display: flex;
             flex-direction: column;
@@ -236,26 +280,35 @@
         .rank-row {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             padding: 14px 20px;
             border-top: 1px solid #f5f0f2;
             animation: fadeInRow 0.35s ease-out backwards;
         }
+        .rank-row.podium { padding-top: 26px; }
 
+        /* 🥈🥉 เหรียญอันดับ / วงกลมเลขอันดับ */
         .rank-indicator {
-            width: 26px;
+            width: 28px;
+            height: 28px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-muted);
+            font-size: 0.85rem;
+            color: var(--text-dark);
+            border: 1.5px solid #d8cdd0;
+            border-radius: 50%;
         }
+        .rank-indicator.medal { border: none; color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.45); }
+        .rank-indicator.m1 { background: linear-gradient(135deg, #ffd54a, #f5a300); }
+        .rank-indicator.m2 { background: linear-gradient(135deg, #e3e6ec, #a9aeb8); }
+        .rank-indicator.m3 { background: linear-gradient(135deg, #f0b27a, #c8793a); }
 
         .rank-avatar {
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             object-fit: cover;
             flex-shrink: 0;
@@ -283,11 +336,7 @@
             gap: 5px;
             flex-shrink: 0;
         }
-
-        .rank-gift i {
-            color: var(--blm-gradient-deep);
-            font-size: 0.9rem;
-        }
+        .rank-gift i { color: var(--blm-gradient-deep); font-size: 0.9rem; }
 
         .skeleton-anim {
             background: linear-gradient(90deg, #f3f3f3 25%, #eaeaea 37%, #f3f3f3 63%);
@@ -324,21 +373,20 @@
             display: block;
         }
 
-        @media (min-width: 768px) {
-            .winner-spotlight { padding: 40px 30px 32px 30px; }
-            .avatar-wrapper { width: 130px; height: 130px; }
-            .winner-name { font-size: 1.7rem; }
+        @media (max-width: 360px) {
+            .board-fans { gap: 4px; }
+            .board-member-img { width: 40px; height: 40px; }
         }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
     <div class="top-navbar">
-        <a href="member" id="back-link" class="nav-back-btn">
+        <a href="index" id="back-link" class="nav-back-btn">
             <i class="fas fa-chevron-left"></i>
         </a>
-        <div class="nav-title">Top Fans</div>
-        <div class="nav-spacer"></div>
+        <div class="nav-title" id="nav-title">Top Fans</div>
+        <div class="nav-spacer" id="nav-right"></div>
     </div>
 
     <div class="pink-header-zone" id="pink-header-zone"></div>
@@ -346,7 +394,7 @@
     <div class="main-container">
         <div class="ranking-page-wrapper" id="ranking-page-wrapper">
             <div class="ranking-card">
-                <div class="winner-spotlight" style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+                <div class="winner-spotlight" style="gap:12px;">
                     <div class="skeleton-anim" style="width:100px; height:100px; border-radius:50%;"></div>
                     <div class="skeleton-anim" style="width:120px; height:16px; border-radius:4px;"></div>
                     <div class="skeleton-anim" style="width:160px; height:22px; border-radius:4px;"></div>
@@ -358,56 +406,169 @@
     <script>
         const DEFAULT_AVATAR = 'https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png';
 
+        // 'all' = Top Fans (ยอดสะสมตลอดกาล), 'vip' = Top Today VIP (ยอดของวันนี้ รีเซ็ต 00:00 เวลาไทย)
+        const urlParams = new URLSearchParams(window.location.search);
+        const memberName = urlParams.get('name');
+        const MODE = urlParams.get('mode') === 'vip' ? 'vip' : 'all';
+        const PERIOD = MODE === 'vip' ? 'today' : 'all';
+        const PAGE_TITLE = MODE === 'vip' ? 'Top Today VIP' : 'Top Fans';
+
+        // โทนสีกรอบ/มงกุฎ ทอง-เงิน-ทองแดง ของอันดับ 1-3
+        const RANK_COLORS = [
+            { main: '#f5b400', light: '#ffe17a', dark: '#c98a00' },
+            { main: '#a9aeb8', light: '#eef0f4', dark: '#7d828c' },
+            { main: '#c8793a', light: '#f3bf8f', dark: '#9a5524' }
+        ];
+
         function getImg(url) {
             if (!url || url.trim() === "") return DEFAULT_AVATAR;
             if (url.includes('googleusercontent.com')) return url + '=s200';
             return url;
         }
 
+        function crownSvg(c, uid) {
+            return `<svg class="ca-crown" viewBox="0 0 64 34" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="cg${uid}" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="${c.light}"/><stop offset="1" stop-color="${c.main}"/></linearGradient></defs>
+                <path d="M6 30 L3 11 L17 20 L24 7 L32 17 L40 7 L47 20 L61 11 L58 30 Z" fill="url(#cg${uid})" stroke="${c.dark}" stroke-width="1.2" stroke-linejoin="round"/>
+                <circle cx="3" cy="11" r="2.6" fill="${c.main}" stroke="${c.dark}" stroke-width="0.8"/>
+                <circle cx="24" cy="7" r="2.6" fill="${c.main}" stroke="${c.dark}" stroke-width="0.8"/>
+                <circle cx="40" cy="7" r="2.6" fill="${c.main}" stroke="${c.dark}" stroke-width="0.8"/>
+                <circle cx="61" cy="11" r="2.6" fill="${c.main}" stroke="${c.dark}" stroke-width="0.8"/>
+                <path d="M32 0.5 L34.2 5.3 L39.3 5.8 L35.5 9.2 L36.6 14.2 L32 11.6 L27.4 14.2 L28.5 9.2 L24.7 5.8 L29.8 5.3 Z" fill="${c.light}" stroke="${c.dark}" stroke-width="0.9" stroke-linejoin="round"/>
+            </svg>`;
+        }
+
+        // กรอบหยักแบบเหรียญตรา (ใช้กับ Top Today VIP ให้ต่างจาก Top Fans ที่เป็นวงแหวนเรียบ)
+        function badgeSvg(c, uid) {
+            const n = 14, cx = 50, cy = 50, R = 44, r = 9;
+            let bumps = '';
+            for (let i = 0; i < n; i++) {
+                const a = (Math.PI * 2 * i) / n;
+                bumps += `<circle cx="${(cx + R * Math.cos(a)).toFixed(2)}" cy="${(cy + R * Math.sin(a)).toFixed(2)}" r="${r}"/>`;
+            }
+            return `<svg class="ca-badge" viewBox="-6 -6 112 112" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="bg${uid}" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="${c.light}"/><stop offset="1" stop-color="${c.main}"/></linearGradient></defs>
+                <g fill="url(#bg${uid})" stroke="${c.dark}" stroke-width="1">${bumps}<circle cx="50" cy="50" r="${R}"/></g>
+            </svg>`;
+        }
+
+        let svgUid = 0;
+        // rank เป็น 0-based (0 = อันดับ 1)
+        function crownAvatarHtml(img, rank, size, altText) {
+            const c = RANK_COLORS[rank];
+            const uid = ++svgUid;
+            const ring = MODE === 'vip'
+                ? badgeSvg(c, uid)
+                : '';
+            const ringStyle = MODE === 'vip' ? '' : `background: linear-gradient(135deg, ${c.light}, ${c.main} 60%, ${c.dark});`;
+            return `<div class="crown-avatar ${MODE === 'vip' ? 'vip' : ''}" style="width:${size}px; height:${size}px; margin-top:${Math.round(size * 0.28)}px;">
+                ${ring}
+                <div class="ca-ring" style="${ringStyle}">
+                    <img src="${getImg(img)}" alt="${escapeHtml(altText || '')}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">
+                </div>
+                ${crownSvg(c, uid)}
+            </div>`;
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const memberName = urlParams.get('name');
+            document.title = `BLM48 Membership | ${PAGE_TITLE}`;
+            document.getElementById('nav-title').textContent = PAGE_TITLE;
             const backLink = document.getElementById('back-link');
 
             if (memberName) {
-                // โหมดรายเมมเบอร์ - มาจากปุ่ม Top Fan ในหน้า member.html
-                if (backLink) backLink.href = `member?name=${encodeURIComponent(memberName)}`;
+                // โหมดรายเมมเบอร์ - มาจากบอร์ดในหน้านี้ (from=board) หรือจากปุ่ม Top Fan ในหน้า member.html
+                backLink.href = urlParams.get('from') === 'board'
+                    ? (MODE === 'vip' ? 'topfans?mode=vip' : 'topfans')
+                    : `member?name=${encodeURIComponent(memberName)}`;
+                if (MODE === 'vip') addRewardButton();
 
                 try {
                     const [stats, fans] = await Promise.all([
                         blm48GetMemberStats(memberName),
-                        blm48GetMemberTopFans(memberName)
+                        blm48GetMemberFansPeriod(memberName, PERIOD)
                     ]);
-
                     renderSubjectChip(stats, memberName);
                     const rankedFans = Array.isArray(fans) ? fans.filter(f => Number(f.total || 0) > 0) : [];
-                    renderTopFans(rankedFans, 'ยังไม่มีแฟนคลับปาคุกกี้ให้เมมเบอร์คนนี้เลยค่ะ');
+                    renderTopFans(rankedFans, MODE === 'vip'
+                        ? 'วันนี้ยังไม่มีใครซัพพอร์ตเมมเบอร์คนนี้เลยค่ะ<br>มาเป็น VIP คนแรกของวันกันนะคะ 👑'
+                        : 'ยังไม่มีแฟนคลับปาคุกกี้ให้เมมเบอร์คนนี้เลยค่ะ');
                 } catch (error) {
                     console.error("Top fans fetch error:", error);
                     showError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ");
                 }
             } else {
-                // โหมดรวมทุกเมมเบอร์ - มาจากส่วน Top Fans หน้า index.html
-                if (backLink) backLink.href = 'index';
+                // โหมดบอร์ด - มาจากส่วน Top Fans / Top Today VIP หน้า index.html
+                backLink.href = 'index';
+                if (MODE === 'vip') {
+                    addRewardButton();
+                    startResetCountdown();
+                }
 
                 try {
-                    const fans = await blm48GetGlobalTopFans();
-                    const rankedFans = Array.isArray(fans) ? fans.filter(f => Number(f.total || 0) > 0) : [];
-                    renderTopFans(rankedFans, 'ยังไม่มีข้อมูลแฟนคลับเลยค่ะ');
+                    const boards = await blm48GetFanBoards(PERIOD);
+                    renderBoard(Array.isArray(boards) ? boards : []);
                 } catch (error) {
-                    console.error("Global top fans fetch error:", error);
+                    console.error("Fan board fetch error:", error);
                     showError("ระบบขัดข้อง กรุณาลองใหม่อีกครั้งงับ");
                 }
             }
         });
 
-        function renderSubjectChip(stats, memberName) {
+        function addRewardButton() {
+            const right = document.getElementById('nav-right');
+            right.outerHTML = `<a href="topvip_reward" class="nav-action-btn" aria-label="Reward for Top Today VIP"><i class="fa-solid fa-crown"></i></a>`;
+        }
+
+        // ⏱️ นับถอยหลังถึงเที่ยงคืนเวลาไทย (Asia/Bangkok = UTC+7 ไม่มี DST)
+        function startResetCountdown() {
+            const zone = document.getElementById('pink-header-zone');
+            zone.innerHTML = `<div class="board-subtitle"><i class="fa-regular fa-clock"></i> รีเซ็ตอันดับใน <span id="reset-countdown">--:--:--</span></div>`;
+            const tick = () => {
+                const bkkNow = Date.now() + 7 * 3600 * 1000;
+                const left = 86400000 - (bkkNow % 86400000);
+                const h = Math.floor(left / 3600000), m = Math.floor(left / 60000) % 60, s = Math.floor(left / 1000) % 60;
+                const el = document.getElementById('reset-countdown');
+                if (el) el.textContent = [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+                // ข้ามวันแล้ว โหลดบอร์ดใหม่ให้เป็นของวันใหม่
+                if (left <= 1000) setTimeout(() => location.reload(), 1500);
+            };
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        function renderBoard(boards) {
+            const wrapper = document.getElementById('ranking-page-wrapper');
+            if (boards.length === 0) {
+                wrapper.innerHTML = `<div class="ranking-card"><div class="empty-state">ยังไม่มีข้อมูลค่ะ</div></div>`;
+                return;
+            }
+
+            const rows = boards.map((b, i) => {
+                const fans = Array.isArray(b.fans) ? b.fans : [];
+                const fansHtml = fans.length
+                    ? `<div class="board-fans">${fans.map((f, r) => crownAvatarHtml(f.img, r, 46, f.name)).join('')}</div>`
+                    : `<div class="board-empty">${MODE === 'vip' ? 'ยังไม่มี VIP วันนี้' : 'ยังไม่มีแฟน'}</div>`;
+                const href = `topfans?name=${encodeURIComponent(b.name)}${MODE === 'vip' ? '&mode=vip' : ''}&from=board`;
+                return `<div class="board-row" style="animation-delay:${Math.min(i, 20) * 0.03}s" onclick="window.location.href='${escapeHtml(href)}'">
+                    <img class="board-member-img" src="${getImg(b.profile_img)}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">
+                    <div class="board-member-name">${escapeHtml(b.name)}</div>
+                    ${fansHtml}
+                    <i class="fas fa-chevron-right board-chevron"></i>
+                </div>`;
+            }).join('');
+
+            wrapper.innerHTML = `<div class="ranking-card">${rows}</div>`;
+        }
+
+        function renderSubjectChip(stats, name) {
             const zone = document.getElementById('pink-header-zone');
             if (!zone) return;
             zone.innerHTML = `
                 <div class="subject-chip">
                     <img src="${getImg(stats && stats.profile_img)}" onerror="this.src='${DEFAULT_AVATAR}'">
-                    <span>${escapeHtml((stats && stats.name) || memberName)}</span>
+                    <span>${escapeHtml((stats && stats.name) || name)}</span>
                 </div>
             `;
         }
@@ -423,23 +584,16 @@
             const top = fans[0];
             const rest = fans.slice(1);
 
-            let html = `
+            wrapper.innerHTML = `
                 <div class="ranking-card">
                     <div class="winner-spotlight">
-                        <div class="rank-pill"><i class="fa-solid fa-crown"></i> อันดับ 1</div>
-                        <div class="avatar-wrapper">
-                            <div class="avatar-frame">
-                                <img class="fan-avatar-img" src="${getImg(top.img)}" alt="${escapeHtml(top.name || top.username || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
-                            </div>
-                            <div class="crown-icon"><i class="fa-solid fa-crown"></i></div>
-                        </div>
-                        <h1 class="winner-name">${escapeHtml(top.name || top.username || 'Unknown')}</h1>
+                        ${crownAvatarHtml(top.img, 0, 120, top.name)}
+                        <h1 class="winner-name"><div class="rank-indicator medal m1">1</div><span>${escapeHtml(top.name || top.username || 'Unknown')}</span></h1>
                         <div class="winner-gift"><i class="fa-solid fa-heart-circle-check"></i> ${Number(top.total || 0).toLocaleString()}</div>
                     </div>
                     <div class="ranking-list" id="ranking-list-body"></div>
                 </div>
             `;
-            wrapper.innerHTML = html;
 
             if (rest.length === 0) return;
 
@@ -448,17 +602,18 @@
 
             rest.forEach((fan, i) => {
                 const rank = i + 2;
-                const avatarImg = getImg(fan.img);
-                const giftCount = Number(fan.total || 0).toLocaleString();
-
+                const isPodium = rank <= 3;
                 const row = document.createElement('div');
-                row.className = 'rank-row';
+                row.className = 'rank-row' + (isPodium ? ' podium' : '');
                 row.style.animationDelay = `${Math.min(i, 20) * 0.04}s`;
+                const avatar = isPodium
+                    ? crownAvatarHtml(fan.img, rank - 1, 46, fan.name)
+                    : `<img class="rank-avatar" loading="lazy" src="${getImg(fan.img)}" alt="${escapeHtml(fan.name || fan.username || '')}" onerror="this.src='${DEFAULT_AVATAR}'">`;
                 row.innerHTML = `
-                    <div class="rank-indicator">${rank}</div>
-                    <img class="rank-avatar" loading="lazy" src="${avatarImg}" alt="${escapeHtml(fan.name || fan.username || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
+                    <div class="rank-indicator ${isPodium ? 'medal m' + rank : ''}">${rank}</div>
+                    ${avatar}
                     <div class="rank-name">${escapeHtml(fan.name || fan.username || 'Unknown')}</div>
-                    <div class="rank-gift"><i class="fa-solid fa-heart-circle-check"></i> ${giftCount}</div>
+                    <div class="rank-gift"><i class="fa-solid fa-heart-circle-check"></i> ${Number(fan.total || 0).toLocaleString()}</div>
                 `;
                 fragment.appendChild(row);
             });

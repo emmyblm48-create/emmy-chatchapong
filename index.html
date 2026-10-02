@@ -2345,6 +2345,15 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
 </div>
 
+<!-- 👑 Top Today VIP: แฟนที่ซัพพอร์ตเมมเบอร์มากที่สุดของวันนี้ (รีเซ็ตทุกเที่ยงคืนเวลาไทย) -->
+<div class="section-title" onclick="goToTodayVip()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 15px; user-select: none;">
+  <span>Top Today VIP</span>
+  <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
+    <div id="today-vip-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
+  </div>
+  <i class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
+</div>
+
 <div class="shop-banner-slider-wrapper" style="position: relative; margin: 20px 15px; border-radius: 16px; overflow: hidden;">
     
     <div id="autoBannerContainer" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; background-color: #ffeef2; -ms-overflow-style: none; cursor: grab;">
@@ -2573,6 +2582,7 @@ async function loadData() {
     currentTopFansData = JSON.parse(cachedTopFans);
     if (typeof renderGlobalFans === 'function') renderGlobalFans(currentTopFansData);
   }
+  try { renderTodayVipPreview(JSON.parse(localStorage.getItem('bnl_todayvip_cache'))); } catch(e) {}
   if (cachedChamp) {
     try { renderChampBanner(JSON.parse(cachedChamp)); } catch(e) {}
   }
@@ -2584,6 +2594,13 @@ async function loadData() {
       blm48GetTopFans(), // Top Fans ตอนนี้ดึงสดจาก Supabase แทน Apps Script เช่นกัน
       blm48GetChampOfTheMonth()
     ]);
+
+    // Top Today VIP preview ดึงแยก ไม่ให้ไปถ่วง/ทำพังส่วน Ranking ถ้าดึงไม่สำเร็จ
+    blm48GetFanBoards('today').then(boards => {
+      if (!Array.isArray(boards)) return;
+      localStorage.setItem('bnl_todayvip_cache', JSON.stringify(boards));
+      renderTodayVipPreview(boards);
+    }).catch(err => console.error('Today VIP preview error:', err));
 
     currentRankingData = Array.isArray(rankingData) ? rankingData : [];
     currentTopFansData = topFansData || {};
@@ -3329,6 +3346,42 @@ function renderRanking(data) {
 function goToGlobalTopFans() {
   window.location.href = 'topfans';
 }
+function goToTodayVip() {
+  window.location.href = 'topfans?mode=vip';
+}
+
+// สแตกรูปมินิ 3 อันดับแรกที่หัวข้อ (ใช้ร่วมกันทั้ง Top Fans และ Top Today VIP)
+function renderFanPreview(zoneId, rankedFans) {
+  const previewZone = document.getElementById(zoneId);
+  if (!previewZone) return;
+  previewZone.innerHTML = '';
+  const top3Preview = rankedFans.slice(0, 3).reverse();
+  top3Preview.forEach((f, index) => {
+    const actualRank = top3Preview.length - 1 - index;
+    const miniBorderColor = actualRank === 0 ? '#ffd700' : actualRank === 1 ? '#c0c0c0' : '#cd7f32';
+    const miniAvatar = document.createElement('img');
+    miniAvatar.src = getImg(f.img);
+    miniAvatar.style = `
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid ${miniBorderColor}; object-fit: cover;
+      margin-left: -6px; background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    `;
+    miniAvatar.onerror = function() { this.src = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'; };
+    previewZone.appendChild(miniAvatar);
+  });
+}
+
+// Top Today VIP preview = รวมยอดของวันนี้ข้ามทุกเมมเบอร์ แล้วเอา 3 คนแรก
+function renderTodayVipPreview(boards) {
+  if (!Array.isArray(boards)) return;
+  const byUser = {};
+  boards.forEach(b => (b.fans || []).forEach(f => {
+    if (!byUser[f.username]) byUser[f.username] = { ...f, total: 0 };
+    byUser[f.username].total += Number(f.total || 0);
+  }));
+  renderFanPreview('today-vip-preview-zone', Object.values(byUser).sort((a, b) => b.total - a.total));
+}
 
 function renderGlobalFans(rawData) {
   let fansArray = [];
@@ -3353,27 +3406,7 @@ function renderGlobalFans(rawData) {
   const finalFans = Object.values(groupedFans).sort((a, b) => b.total - a.total);
 
   // --- รูปมินิ 3 อันดับแรกตรงหัวข้อ (พรีวิวก่อนกดเข้าไปดูหน้าเต็ม) ---
-  const previewZone = document.getElementById('top-fans-preview-zone');
-  if (previewZone) {
-    previewZone.innerHTML = '';
-    const top3Preview = finalFans.slice(0, 3).reverse();
-
-    top3Preview.forEach((f, index) => {
-      const actualRank = top3Preview.length - 1 - index;
-      const miniBorderColor = actualRank === 0 ? '#ffd700' : actualRank === 1 ? '#c0c0c0' : actualRank === 2 ? '#cd7f32' : '#ffeef2';
-
-      const miniAvatar = document.createElement('img');
-      miniAvatar.src = getImg(f.img);
-      miniAvatar.style = `
-        width: 26px; height: 26px; border-radius: 50%;
-        border: 2px solid ${miniBorderColor}; object-fit: cover;
-        margin-left: -6px; background: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      `;
-      miniAvatar.onerror = function() { this.src = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'; };
-      previewZone.appendChild(miniAvatar);
-    });
-  }
+  renderFanPreview('top-fans-preview-zone', finalFans);
 }
 
 function openMemberProfile(name) {

@@ -134,6 +134,14 @@ function blm48GetTopFans() {
 function blm48GetGlobalTopFans() {
   return blm48Rpc('get_global_top_fans', {});
 }
+// every active member + their top 3 fans; period 'all' (Top Fans) or 'today' (Top Today VIP, resets 00:00 Bangkok) - used on index.html + topfans.html board
+function blm48GetFanBoards(period) {
+  return blm48Rpc('get_fan_boards', { p_period: period || 'all' });
+}
+// full fan ranking of one member for a period ('all' | 'today') - used on topfans.html?name=
+function blm48GetMemberFansPeriod(memberName, period) {
+  return blm48Rpc('get_member_fans_period', { p_member_name: memberName, p_period: period || 'all' });
+}
 // Fan Score breakdown per member for one user (reverse of get_member_top_fans) - used on profile.html
 function blm48GetUserFanScores(username) {
   return blm48Rpc('get_user_fan_scores', { p_username: username });

@@ -28,11 +28,18 @@
     document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
   </script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --blm-pink: #ff85a2;
+      --blm-yellow: #ffc107;
+      --text-dark: #4a4a4a;
+      --text-muted: #9b9b9b;
+      --line-color: #e6e6e6;
     }
-    @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
 
     * {
       box-sizing: border-box;
@@ -43,27 +50,143 @@
       padding: 0;
       /* 🌟 ใช้ฟอนต์คู่ Quicksand (Eng) + Kanit (ไทย) */
       font-family: 'Quicksand', 'Kanit', sans-serif;
+      background: #ffffff;
+      color: var(--text-dark);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      overflow: hidden;
+      min-height: 100dvh;
+      overflow-x: hidden;
       position: relative;
     }
 
-    /* 📦 กล่องคอนเทนเนอร์หลัก — กระจกฝ้าลอยเหนือพื้นหลังไล่สี */
+    /* 📦 คอนเทนเนอร์หลัก — ไม่มีกล่อง ลอยอยู่บนพื้นขาวโล่งๆ */
     .login-container {
-      width: 90%;
-      max-width: 380px;
-      background: var(--glass-bg-strong);
-      backdrop-filter: blur(var(--glass-blur-lg));
-      -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-      border: 1px solid var(--glass-border);
-      padding: 40px 30px;
-      border-radius: var(--glass-radius-lg);
-      /* เงาฟุ้งแบบละมุน (Soft Dreamy Shadow) ไม่หนาเทอะทะ */
-      box-shadow: var(--glass-shadow-lg);
+      width: 100%;
+      max-width: 360px;
+      padding: 40px 28px;
       text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0 0 6px 0;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 26px 0;
+      font-weight: 400;
+    }
+
+    /* ✏️ ช่องกรอกแบบเส้นใต้ ป้ายชื่ออยู่ด้านบน */
+    .form-group {
+      text-align: left;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .form-group:focus-within label {
+      color: var(--blm-pink);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .cute-input {
+      width: 100%;
+      height: 46px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--line-color);
+      border-radius: 0;
+      padding: 0 40px 0 0;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      font-size: 16px;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .cute-input::placeholder {
+      color: #cfcfcf;
+      font-size: 14px;
+    }
+
+    .cute-input:focus {
+      border-bottom-color: var(--blm-pink);
+    }
+
+    /* 👁️ ปุ่มเปิด/ปิดการมองเห็นรหัสผ่าน */
+    .toggle-password {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      color: var(--text-dark);
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    /* 🖤 ปุ่มเข้าสู่ระบบทรงแคปซูลสีเข้ม */
+    .btn-login {
+      width: 100%;
+      height: 50px;
+      background: #111111;
+      color: #ffffff;
+      border: none;
+      border-radius: 25px;
+      font-family: 'Quicksand', 'Kanit', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: transform 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-login:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    .divider {
+      margin: 26px 0 16px;
+      display: flex;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line-color);
+      margin: 0 10px;
     }
 
     .btn-login-main {
@@ -72,206 +195,48 @@
       justify-content: center;
       gap: 8px;
       width: 100%;
-      height: 45px;
+      height: 50px;
       text-decoration: none;
-      background: var(--blm-pink);
       color: white;
       border: none;
       border-radius: 25px;
       cursor: pointer;
-      font-weight: bold;
-      box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3);
+      font-weight: 700;
       font-size: 16px;
-      box-sizing: border-box;
-      transition: transform 0.2s, opacity 0.2s;
-      margin-top: 10px;
-    }
-
-    .btn-login-main:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
+      transition: transform 0.15s, opacity 0.15s;
     }
 
     .btn-login-main:active {
-      transform: translateY(0);
-    }
-    
-     .divider {
-      margin: 25px 0;
-      display: flex;
-      align-items: center;
-      color: #ccc;
-      font-size: 12px;
+      transform: scale(0.98);
+      opacity: 0.9;
     }
 
-    .divider::before, .divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: #ffe5ec;
-      margin: 0 10px;
+    .note-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 22px;
+      line-height: 1.7;
     }
 
-     .note-text {
-      font-size: 12px;
-      color: #999;
-      margin-top: 20px;
-      line-height: 1.6;
-    }
-
-    /* 🌸 ส่วนหัวของหน้าจอ */
-    .brand-logo {
-      width: 65px;
-      height: 65px;
-      background: linear-gradient(135deg, var(--blm-pink), #ffb3c6);
-      color: white;
-      font-size: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 22px;
-      margin-bottom: 18px;
-      box-shadow: 0 8px 20px rgba(255, 133, 162, 0.3);
-    }
-
-    .title {
-      font-size: 24px;
+    .note-text b {
+      color: var(--blm-yellow);
       font-weight: 700;
-      color: #4a4a4a;
-      margin: 0 0 6px 0;
-      letter-spacing: -0.5px;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: #9b9b9b;
-      margin: 0 0 30px 0;
-      font-weight: 400;
-    }
-
-    /* ✏️ การจัดฟอร์มและองค์ประกอบ Input */
-    .form-group {
-      text-align: left;
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--blm-pink);
-      margin-left: 14px;
-      margin-bottom: 6px;
-    }
-
-    .input-wrapper {
-      position: relative;
-    }
-
-    .input-wrapper i {
-      position: absolute;
-      left: 18px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #ffc2d1;
-      font-size: 16px;
-      transition: color 0.3s;
-    }
-
-    .cute-input {
-      width: 100%;
-      height: 48px;
-      background: rgba(255, 255, 255, 0.55);
-      backdrop-filter: blur(var(--glass-blur-sm));
-      -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-      border: 1.5px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 0 20px 0 46px;
-      font-family: 'Quicksand', 'Kanit', sans-serif;
-      font-size: 14px;
-      color: #555;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-
-    /* เอฟเฟกต์ตอนกดพิมพ์ */
-    .cute-input:focus {
-      border-color: var(--blm-pink);
-      background: rgba(255, 255, 255, 0.8);
-      box-shadow: 0 5px 15px rgba(255, 133, 162, 0.15);
-    }
-
-    .cute-input:focus + i {
-      color: var(--blm-pink);
-    }
-
-    /* 💗 ปุ่มกดแบบ Rounded และมีความวาวกระจายตัว */
-    .btn-login {
-      width: 100%;
-      height: 48px;
-      background: linear-gradient(90deg, var(--blm-pink), #ff9bb5);
-      color: white;
-      border: none;
-      border-radius: 24px;
-      font-family: 'Quicksand', 'Kanit', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 6px 18px rgba(255, 133, 162, 0.35);
-      margin-top: 10px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-login:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(255, 133, 162, 0.45);
-      opacity: 0.95;
-    }
-
-    .btn-login:active {
-      transform: translateY(0);
-    }
-
-    /* 🔙 ปุ่มย้อนกลับลิงก์ด้านล่าง */
-    .back-to-home {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 25px;
-      font-size: 13px;
-      color: #b5b5b5;
-      text-decoration: none;
-      transition: color 0.3s;
-      font-weight: 500;
-    }
-
-    .back-to-home:hover {
-      color: var(--blm-pink);
     }
   </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
+
   <div class="login-container">
-    <div class="brand-logo">
-      <i class="fas fa-heart animate__animated animate__heartBeat animate__infinite"></i>
-    </div>
-    
     <h1 class="title">BLM48 Login</h1>
     <p class="subtitle"></p>
 
     <form id="loginForm">
-      
+
       <div class="form-group">
         <label for="username">Membership ID</label>
         <div class="input-wrapper">
           <input type="text" id="username" class="cute-input" placeholder="กรอกรหัสสมาชิก" required autocomplete="username">
-          <i class="fas fa-id-badge"></i>
         </div>
       </div>
 
@@ -279,7 +244,9 @@
         <label for="password">Password</label>
         <div class="input-wrapper">
           <input type="password" id="password" class="cute-input" placeholder="กรอกรหัสผ่าน" required autocomplete="current-password">
-          <i class="fas fa-lock"></i>
+          <button type="button" class="toggle-password" id="togglePassword" aria-label="แสดงรหัสผ่าน">
+            <i class="fas fa-eye"></i>
+          </button>
         </div>
       </div>
 
@@ -290,19 +257,30 @@
     </form>
     <div class="divider">หรือถ้ายังไม่มีบัญชี</div>
 
-    <a href="https://line.me/R/ti/p/@569rnpsj?from=page&liff.referrer=https%3A%2F%2Flinktr.ee%2F&searchId=569rnpsj" 
-       target="_blank" 
-       class="btn-login-main" 
-       style="background: #06C755; box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);">
+    <a href="https://line.me/R/ti/p/@569rnpsj?from=page&liff.referrer=https%3A%2F%2Flinktr.ee%2F&searchId=569rnpsj"
+       target="_blank"
+       class="btn-login-main"
+       style="background: #06C755;">
       <i class="fab fa-line" style="font-size: 20px;"></i> สมัครสมาชิกผ่าน LINE
     </a>
 
     <p class="note-text">
       หมายเหตุ : ติดต่อสมัคร BLM48 Membership ฟรี<br>
-      ได้ทาง BLM48 Line ID : @569rnpsj
+      ได้ทาง BLM48 Line ID : <b>@569rnpsj</b>
     </p>
 
   </div>
+
+ <script>
+  // 👁️ สลับแสดง/ซ่อนรหัสผ่าน
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    const input = document.getElementById('password');
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    this.querySelector('i').className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+    this.setAttribute('aria-label', show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน');
+  });
+ </script>
 
  <script>
   document.getElementById('loginForm').addEventListener('submit', function(e) {

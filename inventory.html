@@ -965,9 +965,9 @@
         <button type="button" class="sort-btn" onclick="openFilterSheet()"><span id="filter-current">All</span><i class="fa-solid fa-chevron-down chev"></i></button>
     </div>
     
-    <div id="coaster-sub-panel" class="sub-filter-panel hidden">
-        <div id="coaster-tabs" class="tabs-row">
-            </div>
+    <div id="coaster-sub-panel" class="hidden">
+        <span class="filter-label"><i class="fa-solid fa-layer-group text-pink-400"></i> Collection</span>
+        <button type="button" class="sort-btn" onclick="openSubFilterSheet()"><span id="sub-filter-current">All</span><i class="fa-solid fa-chevron-down chev"></i></button>
     </div>
     </div>
     
@@ -1189,15 +1189,48 @@
         return PRIMARY_FILTERS.filter(f => !f.cats || f.cats.some(c => hasCategory(c)));
     }
 
-    function openFilterSheet() {
-        document.getElementById('filter-options').innerHTML = availablePrimaryFilters().map(f =>
-            `<button type="button" class="sheet-option" onclick="closeFilterSheet(); selectPrimaryTab('${f.value}')">${f.value === currentPrimaryTab ? '✔ ' : ''}${f.label}</button>`
+    // หมวดที่มีตัวกรองย่อยตามชื่องาน/คอลเลกชัน
+    const SUB_FILTER_CATEGORY = {
+        coaster: 'Coaster',
+        thankyou: 'Thank You Card',
+        photoset: 'BLM48 PhotoSet',
+        photobook: 'BLM48 Photobook',
+        photocard: 'BLM48 PhotoCard',
+    };
+
+    function subFilterOptions() {
+        const cat = SUB_FILTER_CATEGORY[currentPrimaryTab];
+        if (!cat) return [];
+        const subs = getSubCollections(cat).map(name => {
+            let label = name.replace('votemajor_', '').replace('gacha_', '');
+            return { value: name, label: label.charAt(0).toUpperCase() + label.slice(1) };
+        });
+        return [{ value: 'all', label: 'All' }, ...subs];
+    }
+
+    // 🍎 action sheet ใช้ร่วมกันทั้งตัวกรองหลักและตัวกรองย่อย (เลือกด้วย index กันชื่อที่มี ' หรือ ")
+    let sheetOptions = [];
+    let sheetOnPick = null;
+    function openSheet(options, currentValue, onPick) {
+        sheetOptions = options;
+        sheetOnPick = onPick;
+        document.getElementById('filter-options').innerHTML = options.map((o, i) =>
+            `<button type="button" class="sheet-option" onclick="pickSheetOption(${i})">${o.value === currentValue ? '✔ ' : ''}${escapeHtml(o.label)}</button>`
         ).join('');
         document.getElementById('filter-sheet').classList.add('open');
     }
-
+    function pickSheetOption(i) {
+        closeFilterSheet();
+        if (sheetOnPick && sheetOptions[i]) sheetOnPick(sheetOptions[i].value);
+    }
     function closeFilterSheet() {
         document.getElementById('filter-sheet').classList.remove('open');
+    }
+    function openFilterSheet() {
+        openSheet(availablePrimaryFilters(), currentPrimaryTab, selectPrimaryTab);
+    }
+    function openSubFilterSheet() {
+        openSheet(subFilterOptions(), currentSubTab, selectSubTab);
     }
 
    function renderFilters() {
@@ -1205,54 +1238,17 @@
     const label = document.getElementById('filter-current');
     if (label) label.textContent = current.label;
 
-    // --- 🔘 ระบบจัดการพาเนลตัวกรองย่อย (Sub Filters Panel) ---
-    const coasterSubPanel = document.getElementById('coaster-sub-panel');
-    const coasterTabsContainer = document.getElementById('coaster-tabs');
-    
-    // ตรวจสอบว่าแท็บหลักต้องการตัวกรองย่อยไหม
-    let targetCategory = '';
-    if (currentPrimaryTab === 'coaster') targetCategory = 'Coaster';
-    if (currentPrimaryTab === 'thankyou') targetCategory = 'Thank You Card';
-    if (currentPrimaryTab === 'photoset') targetCategory = 'BLM48 PhotoSet';
-    if (currentPrimaryTab === 'photobook') targetCategory = 'BLM48 Photobook';
-    if (currentPrimaryTab === 'photocard') targetCategory = 'BLM48 PhotoCard';
-
-    if (targetCategory !== '' && coasterSubPanel && coasterTabsContainer) {
-        const subCollections = getSubCollections(targetCategory);
-        coasterSubPanel.classList.remove('hidden');
-        coasterTabsContainer.innerHTML = '';
-
-        // 1. สร้างปุ่มย่อย: แสดงทั้งหมดของหมวดนั้นๆ
-        const btnSubAll = document.createElement('button');
-        btnSubAll.className = `btn-sub-tab ${currentSubTab === 'all' ? 'active' : ''}`;
-        
-        // กำหนดข้อความปุ่มย่อยทั้งหมดตามหมวดหมู่
-        if (targetCategory === 'Coaster') {
-            btnSubAll.textContent = 'All';
-        } else if (targetCategory === 'Thank You Card') {
-            btnSubAll.textContent = 'All';
-        } else {
-            btnSubAll.textContent = 'All';
-        }
-        
-        btnSubAll.onclick = () => selectSubTab('all');
-        coasterTabsContainer.appendChild(btnSubAll);
-
-        // 2. สร้างปุ่มย่อยรายชื่อชื่องานจริง
-        subCollections.forEach(subName => {
-            const btnSub = document.createElement('button');
-            btnSub.className = `btn-sub-tab ${currentSubTab === subName ? 'active' : ''}`;
-            
-            // ตกแต่งชื่อแสดงผลให้สวยงาม
-            let displayName = subName.replace('votemajor_', '').replace('gacha_', '');
-            displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
-            
-            btnSub.textContent = displayName;
-            btnSub.onclick = () => selectSubTab(subName);
-            coasterTabsContainer.appendChild(btnSub);
-        });
-    } else if (coasterSubPanel) {
-        coasterSubPanel.classList.add('hidden');
+    // --- 🔘 ตัวกรองย่อย: แสดงเฉพาะหมวดที่มีชื่องานย่อย ---
+    const subPanel = document.getElementById('coaster-sub-panel');
+    const subLabel = document.getElementById('sub-filter-current');
+    const subOpts = subFilterOptions();
+    if (!subPanel) return;
+    if (subOpts.length > 1) {
+        subPanel.classList.remove('hidden');
+        const sub = subOpts.find(o => o.value === currentSubTab) || subOpts[0];
+        if (subLabel) subLabel.textContent = sub.label;
+    } else {
+        subPanel.classList.add('hidden');
     }
 }
 
