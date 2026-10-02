@@ -29,7 +29,19 @@
         .top-bar-title { text-align: center; font-weight: 600; font-size: 18px; color: #222; }
         .page-wrapper { max-width: 640px; margin: 0 auto; padding: 14px 16px 50px; }
         .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-        .sort-select { border: none; background: none; font-family: inherit; font-size: 17px; font-weight: 600; color: #222; padding: 4px 0; cursor: pointer; }
+        .sort-btn { border: none; background: none; font-family: inherit; font-size: 17px; font-weight: 600; color: #222; padding: 4px 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .sort-btn i { font-size: 12px; }
+        /* iOS-style action sheet */
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 1000; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+        .sheet { width: 100%; max-width: 640px; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .25s ease; }
+        .sheet-overlay.open .sheet { transform: translateY(0); }
+        .sheet-group { background: rgba(245,245,247,.92); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-radius: 14px; overflow: hidden; }
+        .sheet-option { display: block; width: 100%; border: none; background: none; font-family: inherit; font-size: 20px; color: #111; padding: 17px 12px; cursor: pointer; text-align: center; }
+        .sheet-option + .sheet-option { border-top: 0.5px solid rgba(60,60,67,.29); }
+        .sheet-option:active { background: rgba(0,0,0,.06); }
+        .sheet-cancel { display: block; width: 100%; margin-top: 8px; border: none; background: #fff; border-radius: 14px; font-family: inherit; font-size: 20px; font-weight: 700; color: #111; padding: 17px 12px; cursor: pointer; }
+        .sheet-cancel:active { background: #f0f0f0; }
         .toolbar-note { font-size: 12px; color: #999; }
         #campaign-list { display: flex; flex-direction: column; gap: 6px; }
         .empty-state { text-align: center; color: #999; padding: 50px 20px; font-size: 14px; }
@@ -46,11 +58,7 @@
 
 <div class="page-wrapper">
     <div class="toolbar">
-        <select id="sort-select" class="sort-select" onchange="renderList()">
-            <option value="newest">Newest</option>
-            <option value="funded">Most Funded</option>
-            <option value="ending">Ending Soon</option>
-        </select>
+        <button type="button" class="sort-btn" onclick="openSortSheet()"><span id="sort-label">Newest</span><i class="fa-solid fa-chevron-down"></i></button>
         <span class="toolbar-note"><i class="fa-solid fa-trophy" style="color:#fcc419;"></i> Champ of the Month</span>
     </div>
     <div id="campaign-list">
@@ -58,8 +66,39 @@
     </div>
 </div>
 
+<div id="sort-sheet" class="sheet-overlay" onclick="if (event.target === this) closeSortSheet()">
+    <div class="sheet">
+        <div class="sheet-group" id="sort-options"></div>
+        <button type="button" class="sheet-cancel" onclick="closeSortSheet()">Cancel</button>
+    </div>
+</div>
+
 <script>
   let campaigns = [];
+  let currentSort = 'newest';
+  const SORT_OPTIONS = [
+    { value: 'newest',  label: 'Newest' },
+    { value: 'popular', label: 'Popular' },
+    { value: 'success', label: 'Almost Success' },
+    { value: 'expire',  label: 'Almost Expire' },
+    { value: 'ended',   label: 'Already Ended' },
+  ];
+
+  function openSortSheet() {
+    document.getElementById('sort-options').innerHTML = SORT_OPTIONS.map(o =>
+      `<button type="button" class="sheet-option" onclick="selectSort('${o.value}')">${o.value === currentSort ? '✔ ' : ''}${o.label}</button>`
+    ).join('');
+    document.getElementById('sort-sheet').classList.add('open');
+  }
+  function closeSortSheet() {
+    document.getElementById('sort-sheet').classList.remove('open');
+  }
+  function selectSort(value) {
+    currentSort = value;
+    document.getElementById('sort-label').textContent = SORT_OPTIONS.find(o => o.value === value).label;
+    closeSortSheet();
+    renderList();
+  }
 
   function goBack() {
     if (document.referrer && window.history.length > 1) window.history.back();
@@ -68,24 +107,52 @@
 
   function renderList() {
     const list = document.getElementById('campaign-list');
-    if (campaigns.length === 0) {
-      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-trophy"></i>ยังไม่มี Campaign ที่เปิดอยู่ในขณะนี้</div>`;
+    const sort = currentSort;
+    // Already Ended = เฉพาะที่จบแล้ว, ตัวเลือกอื่นแสดงเฉพาะที่ยังเปิดอยู่
+    if (sort === 'ended' && !endedLoaded) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>`;
+      loadEndedCampaigns();
       return;
     }
-    const sort = document.getElementById('sort-select').value;
-    const sorted = campaigns.slice().sort((a, b) => {
-      if (sort === 'funded') return Number(b.totalCookies) - Number(a.totalCookies);
-      if (sort === 'ending') return new Date(a.endAt) - new Date(b.endAt);
+    // ตัวเลือกอื่นใช้รายการ active (ซึ่งมีที่เพิ่งจบ 7 วันติดมาด้วย -> กรองออก)
+    const pool = sort === 'ended' ? endedCampaigns.slice() : campaigns.filter(c => !isCampaignEnded(c));
+    if (pool.length === 0) {
+      list.innerHTML = sort === 'ended'
+        ? `<div class="empty-state"><i class="fa-solid fa-flag-checkered"></i>ยังไม่มี Campaign ที่จบแล้ว</div>`
+        : `<div class="empty-state"><i class="fa-solid fa-trophy"></i>ยังไม่มี Campaign ที่เปิดอยู่ในขณะนี้</div>`;
+      return;
+    }
+    const pct = c => Number(c.totalCookies || 0) / (c.goal || CAMPAIGN_GOAL);
+    const sorted = pool.sort((a, b) => {
+      if (sort === 'popular') return Number(b.supporters || 0) - Number(a.supporters || 0) || pct(b) - pct(a);
+      if (sort === 'success') return pct(b) - pct(a);
+      if (sort === 'expire') return new Date(a.endAt) - new Date(b.endAt);
+      if (sort === 'ended') return new Date(b.endAt) - new Date(a.endAt);
       return new Date(b.startedAt) - new Date(a.startedAt);
     });
     list.innerHTML = sorted.map(c => renderMemberCampaignCard(c, { full: true })).join('');
+  }
+
+  // Already Ended ดึงแยกจาก RPC ที่ไม่มีลิมิต 7 วัน (โหลดครั้งแรกตอนเลือกแท็บ)
+  let endedCampaigns = [];
+  let endedLoaded = false;
+  async function loadEndedCampaigns() {
+    const res = await campaignFetchWithRetry(() => blm48GetEndedMemberCampaigns());
+    if (Array.isArray(res)) { endedLoaded = true; endedCampaigns = res; if (currentSort === 'ended') renderList(); return; }
+    if (endedLoaded || currentSort !== 'ended') return;
+    document.getElementById('campaign-list').innerHTML = `<div class="empty-state">${escapeHtml('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง')}<br><button type="button" onclick="loadEndedCampaigns()" style="margin-top:14px; border:none; border-radius:20px; padding:8px 20px; background:#ffd43b; font-family:inherit; font-weight:600; cursor:pointer;">ลองใหม่</button></div>`;
   }
 
   let loaded = false;
   async function loadCampaigns() {
     const list = document.getElementById('campaign-list');
     const res = await campaignFetchWithRetry(() => blm48GetActiveMemberCampaigns());
-    if (Array.isArray(res)) { loaded = true; campaigns = res; renderList(); return; }
+    if (Array.isArray(res)) {
+      loaded = true; campaigns = res;
+      // realtime refresh -> รายการที่จบแล้วอาจเปลี่ยนด้วย
+      if (currentSort === 'ended') loadEndedCampaigns(); else { endedLoaded = false; renderList(); }
+      return;
+    }
     // รีเฟรชไม่สำเร็จชั่วคราว -> คงรายการเดิมไว้
     if (loaded) return;
     list.innerHTML = `<div class="empty-state">${escapeHtml('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง')}<br><button type="button" onclick="location.reload()" style="margin-top:14px; border:none; border-radius:20px; padding:8px 20px; background:#ffd43b; font-family:inherit; font-weight:600; cursor:pointer;">ลองใหม่</button></div>`;

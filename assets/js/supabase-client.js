@@ -446,6 +446,10 @@ function blm48GetMemberCampaign(memberName) {
 function blm48GetActiveMemberCampaigns() {
   return blm48Rpc('get_active_member_campaigns', {});
 }
+// every campaign that has finished (no 7-day cutoff), newest-ended first
+function blm48GetEndedMemberCampaigns() {
+  return blm48Rpc('get_ended_member_campaigns', {});
+}
 function blm48GetMemberCampaignDetail(campaignId, username) {
   return blm48Rpc('get_member_campaign_detail', { p_campaign_id: campaignId, p_username: username || null });
 }
