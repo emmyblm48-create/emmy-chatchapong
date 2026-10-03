@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Dashboard บริหาร</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --pink-strong: #e8577b;
+            --card-border: #f1f1f1;
+            --text-dark: #333;
+            --text-muted: #8a8a8a;
+            --good: #2e9e5b;      --good-bg: #e9f8ef;
+            --warn: #b7791f;      --warn-bg: #fff6e0;
+            --critical: #d64545;  --critical-bg: #fdeceb;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; }
+        .top-bar-title { font-weight: 600; font-size: 16px; color: #333; flex: 1; }
+        .refresh-btn {
+            border: 1px solid var(--card-border); background: #fff; color: var(--text-muted);
+            border-radius: 20px; padding: 7px 14px; font-family: inherit; font-size: 12.5px; cursor: pointer;
+        }
+
+        .page-wrapper { max-width: 1100px; margin: 0 auto; padding: 18px 12px 50px; }
+        @media (min-width: 768px) { .page-wrapper { padding: 24px 24px 60px; } }
+
+        .updated-at { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+
+        .section-title { font-size: 15px; font-weight: 700; color: #333; margin: 26px 0 12px; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: var(--primary-pink); }
+        .section-note { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-left: auto; }
+
+        .card { background: #fff; border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+
+        /* ✅ สิ่งที่ควรทำต่อ */
+        .reco-list { display: flex; flex-direction: column; gap: 10px; }
+        .reco {
+            display: flex; gap: 12px; align-items: flex-start;
+            border-radius: 14px; padding: 13px 14px; border: 1px solid transparent;
+        }
+        .reco.critical { background: var(--critical-bg); border-color: #f7d4d1; }
+        .reco.warn { background: var(--warn-bg); border-color: #f5e3b5; }
+        .reco.good { background: var(--good-bg); border-color: #cdeedb; }
+        .reco-icon { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #fff; }
+        .reco.critical .reco-icon { color: var(--critical); }
+        .reco.warn .reco-icon { color: var(--warn); }
+        .reco.good .reco-icon { color: var(--good); }
+        .reco-body { flex: 1; min-width: 0; }
+        .reco-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
+        .reco.critical .reco-tag { color: var(--critical); }
+        .reco.warn .reco-tag { color: var(--warn); }
+        .reco.good .reco-tag { color: var(--good); }
+        .reco-title { font-size: 14px; font-weight: 700; margin: 2px 0 3px; }
+        .reco-text { font-size: 13px; color: #555; line-height: 1.5; }
+        .reco-action {
+            display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+            font-size: 12.5px; font-weight: 600; color: var(--pink-strong); text-decoration: none;
+        }
+
+        /* 🔢 ตัวเลขหลัก */
+        .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        @media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1000px) { .kpi-grid { grid-template-columns: repeat(6, 1fr); } }
+        .kpi { background: #fff; border: 1px solid var(--card-border); border-radius: 14px; padding: 13px 14px; }
+        .kpi-label { font-size: 12px; color: var(--text-muted); }
+        .kpi-value { font-size: 24px; font-weight: 700; margin-top: 4px; color: #222; }
+        .kpi-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+        .delta { font-weight: 700; }
+        .delta.up { color: var(--good); }
+        .delta.down { color: var(--critical); }
+        .delta.flat { color: var(--text-muted); }
+
+        /* 📊 กราฟผู้ใช้งานรายวัน */
+        .chart-wrap { position: relative; }
+        .chart-bars { display: flex; align-items: flex-end; gap: 2px; height: 160px; border-bottom: 1px solid #e6e6e6; }
+        .chart-bar { flex: 1; position: relative; height: 100%; display: flex; align-items: flex-end; cursor: default; }
+        .chart-bar span { display: block; width: 100%; background: #ffc2d1; border-radius: 4px 4px 0 0; min-height: 2px; }
+        .chart-bar.today span { background: var(--primary-pink); }
+        .chart-bar:hover span { background: var(--pink-strong); }
+        .chart-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+        .chart-tip {
+            position: absolute; pointer-events: none; display: none; transform: translate(-50%, -100%);
+            background: #222; color: #fff; font-size: 12px; padding: 5px 9px; border-radius: 8px; white-space: nowrap;
+        }
+        .chart-gridline { position: absolute; left: 0; right: 0; border-top: 1px dashed #eee; font-size: 10.5px; color: #aaa; }
+        .chart-gridline b { position: absolute; right: 0; top: -15px; font-weight: 500; }
+
+        /* 📋 ตาราง */
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; font-weight: 600; color: var(--text-muted); font-size: 12px; padding: 8px 10px; border-bottom: 1px solid #eee; white-space: nowrap; }
+        td { padding: 10px; border-bottom: 1px solid #f5f5f5; white-space: nowrap; }
+        td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        td:first-child { white-space: normal; } /* ชื่อกิจกรรมยาวๆ ตัดบรรทัดได้ ไม่ดันคอลัมน์ตัวเลขหลุดจอบนมือถือ */
+        th.num { white-space: normal; }
+        tr:last-child td { border-bottom: none; }
+
+        .two-col { display: grid; grid-template-columns: 1fr; gap: 14px; }
+        @media (min-width: 900px) { .two-col { grid-template-columns: 1fr 1fr; } }
+
+        .person { display: flex; align-items: center; gap: 10px; }
+        .person img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #ffc107; background: #fff; flex: 0 0 auto; }
+        .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+        .pill.critical { background: var(--critical-bg); color: var(--critical); }
+        .pill.warn { background: var(--warn-bg); color: var(--warn); }
+        .pill.good { background: var(--good-bg); color: var(--good); }
+
+        .empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 18px 0; }
+        .loading-state { text-align: center; color: #aaa; padding: 60px 0; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+    </style>
+</head>
+<body class="glass-mesh-bg force-white-bg">
+
+    <div class="top-navigation-bar">
+        <div class="back-circle-btn" onclick="window.location.href='admin'"><i class="fas fa-chevron-left"></i></div>
+        <div class="top-bar-title">Dashboard บริหาร</div>
+        <button class="refresh-btn" onclick="loadDashboard()"><i class="fa-solid fa-rotate-right"></i> รีเฟรช</button>
+    </div>
+
+    <div id="access-denied"><i class="fa-solid fa-lock" style="font-size: 32px;"></i><p>เฉพาะแอดมินเท่านั้น</p></div>
+
+    <div class="page-wrapper" id="page-content" style="display: none;">
+        <div class="updated-at" id="updated-at"></div>
+        <div id="dashboard-root"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div></div>
+    </div>
+
+<script>
+  // =====================================================================
+  // 📊 Dashboard บริหาร - ข้อมูลทั้งหมดมาจาก RPC admin_get_dashboard (ตรวจสิทธิ์แอดมินฝั่งเซิร์ฟเวอร์)
+  // ผู้ใช้งาน = เช็คอินจริง (login_checkins source='login') / กิจกรรม = 7 วันล่าสุดเทียบ 7 วันก่อนหน้า (เวลาไทย)
+  // "สิ่งที่ควรทำต่อ" คำนวณจากตัวเลขเหล่านี้ด้วยกฎตรงไปตรงมาด้านล่าง (buildRecommendations)
+  // =====================================================================
+  let user = null;
+  const DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+  const fmt = n => Number(n || 0).toLocaleString();
+  const img = url => url ? escapeHtml(url) : DEFAULT_AVATAR;
+
+  function pctChange(cur, prev) {
+    cur = Number(cur || 0); prev = Number(prev || 0);
+    if (prev === 0) return cur === 0 ? 0 : null; // null = ใหม่ (ไม่มีฐานเทียบ)
+    return Math.round(((cur - prev) / prev) * 100);
+  }
+  function deltaHtml(cur, prev) {
+    const p = pctChange(cur, prev);
+    if (p === null) return '<span class="delta up">ใหม่</span>';
+    if (p === 0) return '<span class="delta flat">เท่าเดิม</span>';
+    return `<span class="delta ${p > 0 ? 'up' : 'down'}"><i class="fa-solid fa-caret-${p > 0 ? 'up' : 'down'}"></i> ${Math.abs(p)}%</span>`;
+  }
+  function daysAgo(dateStr, today) {
+    if (!dateStr) return null;
+    const a = new Date(String(dateStr).slice(0, 10) + 'T00:00:00');
+    const b = new Date(String(today).slice(0, 10) + 'T00:00:00');
+    return Math.round((b - a) / 86400000);
+  }
+
+  // ✅ กฎแนะนำการบริหาร - เรียงจากเร่งด่วนสุด
+  function buildRecommendations(d) {
+    const k = d.kpi, a = d.activity, out = [];
+    const quietMembers = d.members.filter(m => Number(m.posts7d) === 0);
+    const wauChange = pctChange(k.wau, k.wauPrev);
+
+    if (d.pendingAccounts.length > 0) {
+      out.push({ level: 'critical', icon: 'fa-user-clock', title: `มีบัญชีรออนุมัติ ${d.pendingAccounts.length} บัญชี`,
+        text: `${d.pendingAccounts.slice(0, 5).map(p => escapeHtml(p.name || p.username)).join(', ')}${d.pendingAccounts.length > 5 ? ' และอื่นๆ' : ''} สมัครแล้วแต่ยังเข้าใช้งานไม่ได้ ยิ่งรอนานยิ่งเสี่ยงหายไปก่อนได้เริ่มใช้`,
+        action: { href: 'admin', label: 'ไปอนุมัติบัญชี' } });
+    }
+    if (wauChange !== null && wauChange <= -10) {
+      out.push({ level: 'critical', icon: 'fa-arrow-trend-down', title: `ผู้ใช้งานรายสัปดาห์ลดลง ${Math.abs(wauChange)}%`,
+        text: `7 วันล่าสุดมีคนเข้าแอป ${fmt(k.wau)} คน จาก ${fmt(k.wauPrev)} คนในสัปดาห์ก่อน ควรมีกิจกรรมดึงคนกลับ เช่น โค้ด Redeem, ไลฟ์/โพสต์พิเศษจากเมมเบอร์ หรือเปิดกาชาชุดใหม่`,
+        action: { href: 'admin_codes', label: 'สร้างโค้ด Redeem' } });
+    }
+    if (d.atRiskFans.length > 0) {
+      out.push({ level: 'warn', icon: 'fa-user-slash', title: `แฟน ${fmt(d.atRiskFans.length)} คนไม่ได้เข้าแอปมา 7 วันขึ้นไป`,
+        text: `เคยเข้าในเดือนนี้แต่หายไปแล้วอย่างน้อย 7 วัน (${Math.round(d.atRiskFans.length / Math.max(k.mau, 1) * 100)}% ของผู้ใช้งาน 30 วัน) ดูรายชื่อด้านล่าง เรียงจาก Fan Score สูงสุด คนกลุ่มบนคือคนที่ควรรีบดึงกลับก่อน` });
+    }
+    if (Number(a.codesRedeemed.cur) === 0 && Number(a.codesRedeemed.prev) > 0) {
+      out.push({ level: 'warn', icon: 'fa-ticket', title: 'สัปดาห์นี้ยังไม่มีใครใช้โค้ด Redeem',
+        text: `สัปดาห์ก่อนมีการใช้โค้ด ${fmt(a.codesRedeemed.prev)} ครั้ง โค้ดเป็นเหตุผลให้แฟนกลับมาเปิดแอปได้ดี ลองปล่อยโค้ดใหม่พร้อมประกาศ`,
+        action: { href: 'admin_codes', label: 'สร้างโค้ด Redeem' } });
+    }
+    if (quietMembers.length > 0) {
+      out.push({ level: 'warn', icon: 'fa-microphone-slash', title: `เมมเบอร์ ${quietMembers.length} คนยังไม่โพสต์เลยใน 7 วัน`,
+        text: `${quietMembers.slice(0, 8).map(m => escapeHtml(m.name)).join(', ')}${quietMembers.length > 8 ? ' และอื่นๆ' : ''} โพสต์ของเมมเบอร์คือสิ่งที่ทำให้แฟนเข้ามากดใจ/คอมเมนต์/ส่งคุกกี้ ควรชวนให้โพสต์อย่างน้อยวันละครั้ง (ภารกิจประจำวันของเมมเบอร์ก็คือโพสต์ 1 โพส)` });
+    }
+    if (k.mau > 0 && k.pushSubscribers / k.mau < 0.3) {
+      out.push({ level: 'warn', icon: 'fa-bell-slash', title: `เปิดแจ้งเตือนอยู่แค่ ${fmt(k.pushSubscribers)} คน`,
+        text: `จากผู้ใช้งาน 30 วัน ${fmt(k.mau)} คน (${Math.round(k.pushSubscribers / k.mau * 100)}%) ทำให้แจ้งเตือนโพสต์ใหม่/โค้ด/กาชาไปไม่ถึงแฟนส่วนใหญ่ ควรประกาศชวนเปิดแจ้งเตือนในหน้า Profile` });
+    }
+    if (k.tokensOutstanding > 0 && Number(a.tokenSpent.cur) < k.tokensOutstanding * 0.02) {
+      out.push({ level: 'warn', icon: 'fa-coins', title: `Token ค้างในกระเป๋าแฟน ${fmt(k.tokensOutstanding)} แต่ใช้ไปแค่ ${fmt(a.tokenSpent.cur)} ใน 7 วัน`,
+        text: 'แฟนมี Token เหลือแต่ไม่มีของที่อยากซื้อ ลองเปิดกาชา/สินค้า/พรีออเดอร์ชุดใหม่ หรือของจำนวนจำกัดช่วงสั้นๆ',
+        action: { href: 'admin_stock', label: 'ดูคลังสินค้า' } });
+    }
+    const cookieChange = pctChange(a.cookiesGiven.cur, a.cookiesGiven.prev);
+    if (cookieChange === null || cookieChange >= 20) {
+      out.push({ level: 'good', icon: 'fa-cookie-bite', title: `คุกกี้ที่ส่งให้เมมเบอร์เพิ่มขึ้น${cookieChange === null ? '' : ' ' + cookieChange + '%'}`,
+        text: `7 วันล่าสุดแฟนส่งคุกกี้ ${fmt(a.cookiesGiven.cur)} เทียบ ${fmt(a.cookiesGiven.prev)} ในสัปดาห์ก่อน สิ่งที่ทำอยู่ (เช่น Member Cookie Campaign) ได้ผล ควรทำต่อ` });
+    }
+    const commentChange = pctChange(a.comments.cur, a.comments.prev);
+    if (commentChange !== null && commentChange >= 20) {
+      out.push({ level: 'good', icon: 'fa-comments', title: `คอมเมนต์เพิ่มขึ้น ${commentChange}%`,
+        text: `${fmt(a.comments.cur)} คอมเมนต์ใน 7 วัน เทียบ ${fmt(a.comments.prev)} ในสัปดาห์ก่อน แฟนพูดคุยกันมากขึ้น` });
+    }
+    return out;
+  }
+
+  const LEVEL_LABEL = { critical: 'เร่งด่วน', warn: 'ควรดู', good: 'กำลังไปได้ดี' };
+
+  function renderDashboard(d) {
+    const k = d.kpi, a = d.activity;
+    const recos = buildRecommendations(d);
+    const dauVals = d.dauSeries.map(x => Number(x.n));
+    const avgDau7 = Math.round(dauVals.slice(-7).reduce((s, n) => s + n, 0) / 7);
+    const stickiness = k.mau ? Math.round(avgDau7 / k.mau * 100) : 0;
+
+    const recoHtml = recos.length ? recos.map(r => `
+      <div class="reco ${r.level}">
+        <div class="reco-icon"><i class="fa-solid ${r.icon}"></i></div>
+        <div class="reco-body">
+          <div class="reco-tag">${LEVEL_LABEL[r.level]}</div>
+          <div class="reco-title">${r.title}</div>
+          <div class="reco-text">${r.text}</div>
+          ${r.action ? `<a class="reco-action" href="${r.action.href}">${r.action.label} <i class="fa-solid fa-chevron-right"></i></a>` : ''}
+        </div>
+      </div>`).join('') : '<div class="empty">ตอนนี้ไม่มีเรื่องที่ต้องรีบจัดการ</div>';
+
+    const kpis = [
+      { label: 'ผู้ใช้งานวันนี้', value: fmt(k.dauToday), sub: `เมื่อวาน ${fmt(k.dauYesterday)} ${deltaHtml(k.dauToday, k.dauYesterday)}` },
+      { label: 'ผู้ใช้งาน 7 วัน', value: fmt(k.wau), sub: `สัปดาห์ก่อน ${fmt(k.wauPrev)} ${deltaHtml(k.wau, k.wauPrev)}` },
+      { label: 'ผู้ใช้งาน 30 วัน', value: fmt(k.mau), sub: `แฟน Active ทั้งหมด ${fmt(k.fansActive)} บัญชี` },
+      { label: 'ความถี่การกลับมา', value: `${stickiness}%`, sub: `เฉลี่ย ${fmt(avgDau7)} คน/วัน จาก ${fmt(k.mau)} คน` },
+      { label: 'เปิดแจ้งเตือน', value: fmt(k.pushSubscribers), sub: `จากผู้ใช้งาน 30 วัน ${fmt(k.mau)} คน` },
+      { label: 'Token ค้างในกระเป๋าแฟน', value: fmt(k.tokensOutstanding), sub: `ใช้ไป 7 วัน ${fmt(a.tokenSpent.cur)}` }
+    ];
+
+    const maxDau = Math.max(...dauVals, 1);
+    const niceMax = Math.ceil(maxDau / 20) * 20;
+    const bars = d.dauSeries.map((x, i) => {
+      const h = Math.max(1, Math.round(Number(x.n) / niceMax * 100));
+      const label = new Date(x.d + 'T00:00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+      return `<div class="chart-bar${i === d.dauSeries.length - 1 ? ' today' : ''}" data-tip="${label}: ${fmt(x.n)} คน"><span style="height:${h}%"></span></div>`;
+    }).join('');
+    const firstLabel = new Date(d.dauSeries[0].d + 'T00:00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+
+    const ACTIVITY_ROWS = [
+      ['memberPosts', 'โพสต์จากเมมเบอร์'], ['comments', 'คอมเมนต์'], ['commentLikes', 'กดใจคอมเมนต์'],
+      ['cookiesGiven', 'คุกกี้ที่แฟนส่งให้เมมเบอร์'], ['missionClaims', 'รับรางวัลภารกิจประจำวัน'],
+      ['gachaDraws', 'สุ่มกาชา (ครั้ง)'], ['tokenSpent', 'Token ที่ใช้ซื้อ (กาชา/ร้าน/พรีออเดอร์)'],
+      ['codesRedeemed', 'ใช้โค้ด Redeem'], ['fanPosts', 'โพสต์จากแฟน (Fan Post)']
+    ];
+    const activityHtml = ACTIVITY_ROWS.map(([key, label]) => `
+      <tr><td>${label}</td><td class="num">${fmt(a[key].cur)}</td><td class="num">${fmt(a[key].prev)}</td><td class="num">${deltaHtml(a[key].cur, a[key].prev)}</td></tr>`).join('');
+
+    const membersHtml = d.members.map(m => {
+      const ago = daysAgo(m.lastPostAt, d.today);
+      const status = Number(m.posts7d) === 0 ? '<span class="pill critical"><i class="fa-solid fa-circle-exclamation"></i> ไม่โพสต์ 7 วัน</span>'
+                   : Number(m.posts7d) < 4 ? '<span class="pill warn"><i class="fa-solid fa-triangle-exclamation"></i> โพสต์น้อย</span>'
+                   : '<span class="pill good"><i class="fa-solid fa-circle-check"></i> ปกติ</span>';
+      return `<tr>
+        <td><div class="person"${memberLinkAttr(m.name)}><img src="${img(m.profile_img)}" onerror="this.src='${DEFAULT_AVATAR}'"><span>${escapeHtml(m.name)}</span></div></td>
+        <td>${status}</td>
+        <td class="num">${fmt(m.posts7d)}</td>
+        <td class="num">${ago === null ? '-' : ago === 0 ? 'วันนี้' : ago + ' วันก่อน'}</td>
+        <td class="num">${fmt(m.cookiesMonth)}</td>
+      </tr>`;
+    }).join('');
+
+    const atRiskHtml = d.atRiskFans.length ? d.atRiskFans.slice(0, 20).map(f => `<tr>
+        <td><div class="person"${profileLinkAttr(f.username)}><img src="${img(f.profile_img)}" onerror="this.src='${DEFAULT_AVATAR}'"><span>${escapeHtml(f.name || f.username)}</span></div></td>
+        <td class="num">${daysAgo(f.lastSeen, d.today)} วันก่อน</td>
+        <td class="num">${fmt(f.fanScore)}</td>
+      </tr>`).join('') : '<tr><td colspan="3" class="empty">ไม่มี</td></tr>';
+
+    const topHtml = d.topSupporters7d.length ? d.topSupporters7d.map((f, i) => `<tr>
+        <td>${i + 1}</td>
+        <td><div class="person"${profileLinkAttr(f.username)}><img src="${img(f.profile_img)}" onerror="this.src='${DEFAULT_AVATAR}'"><span>${escapeHtml(f.name || f.username)}</span></div></td>
+        <td class="num">${fmt(f.cookies)}</td>
+      </tr>`).join('') : '<tr><td colspan="3" class="empty">ยังไม่มี</td></tr>';
+
+    document.getElementById('dashboard-root').innerHTML = `
+      <div class="section-title"><i class="fa-solid fa-list-check"></i> สิ่งที่ควรทำต่อ</div>
+      <div class="reco-list">${recoHtml}</div>
+
+      <div class="section-title"><i class="fa-solid fa-gauge-high"></i> ตัวเลขหลัก</div>
+      <div class="kpi-grid">${kpis.map(x => `
+        <div class="kpi"><div class="kpi-label">${x.label}</div><div class="kpi-value">${x.value}</div><div class="kpi-sub">${x.sub}</div></div>`).join('')}
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-chart-column"></i> ผู้ใช้งานรายวัน <span class="section-note">30 วันล่าสุด (คนที่เปิดแอปจริง)</span></div>
+      <div class="card">
+        <div class="chart-wrap" id="dau-chart">
+          <div class="chart-gridline" style="top:0;"><b>${fmt(niceMax)}</b></div>
+          <div class="chart-gridline" style="top:50%;"><b>${fmt(niceMax / 2)}</b></div>
+          <div class="chart-bars">${bars}</div>
+          <div class="chart-tip" id="chart-tip"></div>
+        </div>
+        <div class="chart-axis"><span>${firstLabel}</span><span>วันนี้</span></div>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-arrows-rotate"></i> กิจกรรมในแอป <span class="section-note">7 วันล่าสุด เทียบ 7 วันก่อนหน้า</span></div>
+      <div class="card table-scroll">
+        <table>
+          <thead><tr><th>กิจกรรม</th><th class="num">7 วันนี้</th><th class="num">7 วันก่อน</th><th class="num">เปลี่ยนแปลง</th></tr></thead>
+          <tbody>${activityHtml}</tbody>
+        </table>
+      </div>
+
+      <div class="section-title"><i class="fa-solid fa-microphone"></i> เมมเบอร์ <span class="section-note">เรียงจากโพสต์น้อยสุด</span></div>
+      <div class="card table-scroll">
+        <table>
+          <thead><tr><th>เมมเบอร์</th><th>สถานะ</th><th class="num">โพสต์ 7 วัน</th><th class="num">โพสต์ล่าสุด</th><th class="num">คุกกี้เดือนนี้</th></tr></thead>
+          <tbody>${membersHtml}</tbody>
+        </table>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="section-title"><i class="fa-solid fa-user-slash"></i> แฟนที่กำลังหายไป <span class="section-note">${fmt(d.atRiskFans.length)} คน${d.atRiskFans.length > 20 ? ' (แสดง 20 คนแรก)' : ''}</span></div>
+          <div class="card table-scroll">
+            <table>
+              <thead><tr><th>แฟน</th><th class="num">เข้าแอปล่าสุด</th><th class="num">Fan Score</th></tr></thead>
+              <tbody>${atRiskHtml}</tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="section-title"><i class="fa-solid fa-medal"></i> แฟนที่ส่งคุกกี้มากสุด <span class="section-note">7 วันล่าสุด</span></div>
+          <div class="card table-scroll">
+            <table>
+              <thead><tr><th>#</th><th>แฟน</th><th class="num">คุกกี้</th></tr></thead>
+              <tbody>${topHtml}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+    setupChartTooltip();
+  }
+
+  function setupChartTooltip() {
+    const chart = document.getElementById('dau-chart');
+    const tip = document.getElementById('chart-tip');
+    if (!chart || !tip) return;
+    chart.querySelectorAll('.chart-bar').forEach(bar => {
+      const show = () => {
+        const r = bar.getBoundingClientRect(), c = chart.getBoundingClientRect();
+        const barTop = bar.querySelector('span').getBoundingClientRect().top;
+        tip.textContent = bar.dataset.tip;
+        tip.style.left = `${r.left - c.left + r.width / 2}px`;
+        tip.style.top = `${barTop - c.top - 6}px`;
+        tip.style.display = 'block';
+      };
+      bar.addEventListener('mouseenter', show);
+      bar.addEventListener('touchstart', show, { passive: true });
+      bar.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    });
+  }
+
+  async function loadDashboard() {
+    const res = await blm48AdminGetDashboard(user.username);
+    if (!res || res.status !== 'success') {
+      document.getElementById('dashboard-root').innerHTML = `<div class="empty">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`;
+      return;
+    }
+    renderDashboard(res);
+    document.getElementById('updated-at').textContent =
+      'ข้อมูล ณ ' + new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    loadDashboard();
+  });
+</script>
+</body>
+</html>

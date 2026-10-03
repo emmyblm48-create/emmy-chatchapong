@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 | Token Wallet</title>
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: #222; margin: 0; padding: 0; padding-top: 60px;
+        }
+        body.glass-mesh-bg { background-color: #ffffff; background-image: none; }
+
+        /* แถบบนขาว: ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง (แบบหน้า Token Wallet ของแอปออฟฟิเชียล) */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: #ffffff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .top-navbar .back-btn {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: #333; font-size: 20px; cursor: pointer;
+        }
+        .top-navbar h1 { margin: 0; font-size: 17px; font-weight: 600; color: #222; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 0 12px 40px; }
+        .page-wrapper > h2 { margin: 32px 0 26px; font-size: 20px; font-weight: 700; color: #222; }
+
+        .token-item { padding-bottom: 18px; border-bottom: 1px solid #e6e6e6; margin-bottom: 24px; }
+        .token-row { display: flex; align-items: center; gap: 22px; }
+        .token-logo {
+            width: 62px; height: 62px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 26px;
+        }
+        .token-logo.logo-token { background: #fff1c9; color: #f59f00; }
+        .token-logo.logo-getoken { background: #dcefff; color: #339af0; }
+        .token-logo.logo-cookie { background: #fbe7d6; color: #d2691e; }
+        .token-label { flex: 1; min-width: 0; font-size: 18px; font-weight: 700; color: #222; }
+        .token-amount { font-size: 18px; font-weight: 700; color: #111; white-space: nowrap; }
+        .token-name { margin-top: 14px; font-size: 14px; color: #333; }
+        .token-name b { font-size: 16px; font-weight: 700; color: #222; }
+        .token-desc { margin-top: 8px; font-size: 13px; color: #666; line-height: 1.6; }
+    </style>
+</head>
+<body class="glass-mesh-bg">
+
+<div class="top-navbar">
+    <button class="back-btn" type="button" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
+    <h1>Token Wallet</h1>
+</div>
+
+<div class="page-wrapper">
+    <h2>Available balance</h2>
+
+    <div class="token-item">
+        <div class="token-row">
+            <div class="token-logo logo-token"><i class="fas fa-coins"></i></div>
+            <div class="token-label">Token</div>
+            <div class="token-amount" id="token-balance">-</div>
+        </div>
+        <div class="token-name"><b>Token name:</b> BLM48 Token</div>
+        <div class="token-desc">ใช้ซื้อสินค้าใน Shop, สั่ง Pre-order และโหวตกิจกรรม Major Vote</div>
+    </div>
+
+    <div class="token-item">
+        <div class="token-row">
+            <div class="token-logo logo-getoken"><i class="fas fa-gem"></i></div>
+            <div class="token-label">GE Token</div>
+            <div class="token-amount" id="getoken-balance">-</div>
+        </div>
+        <div class="token-name"><b>Token name:</b> BLM48 GE Token</div>
+        <div class="token-desc">ใช้โหวตกิจกรรม Major Vote ที่รับ GE Token</div>
+    </div>
+
+    <div class="token-item">
+        <div class="token-row">
+            <div class="token-logo logo-cookie"><i class="fas fa-cookie-bite"></i></div>
+            <div class="token-label">Cookie</div>
+            <div class="token-amount" id="cookie-balance">-</div>
+        </div>
+        <div class="token-name"><b>Token name:</b> BLM48 Cookie</div>
+        <div class="token-desc">ใช้มอบให้เมมเบอร์เพื่อสะสม Fan Score และร่วมกิจกรรม Special Fans Day</div>
+    </div>
+</div>
+
+<script>
+    const username = getUsernameFromSession();
+
+    function goBack() {
+        if (document.referrer && history.length > 1) history.back();
+        else window.location.href = 'majorvote';
+    }
+
+    function showBalances(tokenVal, geTokenVal, cookieVal) {
+        document.getElementById('token-balance').textContent = Number(tokenVal || 0).toLocaleString();
+        document.getElementById('getoken-balance').textContent = Number(geTokenVal || 0).toLocaleString();
+        document.getElementById('cookie-balance').textContent = Number(cookieVal || 0).toLocaleString();
+    }
+
+    // แสดงยอดจากแคชเดียวกับหน้า Major Vote ก่อน แล้วค่อยดึงค่าจริงจาก Supabase
+    function loadWalletFromCache() {
+        try {
+            const cached = localStorage.getItem('bnl_vote_wallet_cache') || localStorage.getItem('bnl_user_data_cache');
+            if (!cached) return;
+            const w = JSON.parse(cached);
+            showBalances(w.Token !== undefined ? w.Token : w.token, w.GEToken !== undefined ? w.GEToken : w.geToken, w.Cookie !== undefined ? w.Cookie : w.cookie);
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadWallet() {
+        try {
+            const wallet = await blm48GetWallet(username);
+            if (wallet && wallet.token !== undefined) {
+                showBalances(wallet.token, wallet.geToken, wallet.cookie);
+                localStorage.setItem('bnl_vote_wallet_cache', JSON.stringify(wallet));
+            }
+        } catch (e) {
+            console.error('โหลดยอดคงเหลือไม่สำเร็จ:', e);
+        }
+    }
+
+    if (!username) {
+        alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
+        window.location.href = 'login';
+    } else {
+        loadWalletFromCache();
+        loadWallet();
+    }
+</script>
+</body>
+</html>

@@ -40,7 +40,7 @@
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
             color: var(--text-dark);
-            margin: 0; padding: 0; padding-top: 70px; padding-bottom: 40px;
+            margin: 0; padding: 0; padding-top: 60px; padding-bottom: 40px;
         }
         /* หน้า Major Vote ขอพื้นหลังสีขาวล้วน แทนพื้นหลังไล่เฉดสีทองของ glass-mesh-bg (เฉพาะหน้านี้) */
         body.glass-mesh-bg {
@@ -48,64 +48,62 @@
             background-image: none;
         }
 
-        /* Top Navbar */
+        /* Top Navbar: แถบขาว ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง */
         .top-navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg)); -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-            display: flex; align-items: center; justify-content: center;
-            padding: 0 20px; box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
-            z-index: 1000;
+            background: #ffffff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
-        .nav-left-actions { position: absolute; left: 15px; }
-        .nav-btn {
-            color: var(--blm-pink); font-size: 1rem; text-decoration: none;
-            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; background: var(--blm-light-pink); border: none; cursor: pointer;
+        .nav-back {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: #333; font-size: 20px; cursor: pointer;
         }
-        .nav-title { font-weight: 600; font-size: 1.1rem; color: var(--text-dark); max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nav-title { font-weight: 600; font-size: 17px; color: #222; }
 
-        /* Campaign Header Section */
-        .campaign-header { background: var(--glass-bg-strong); backdrop-filter: blur(var(--glass-blur-lg)); -webkit-backdrop-filter: blur(var(--glass-blur-lg)); margin: 15px 12px; border-radius: 24px; overflow: hidden; box-shadow: var(--glass-shadow-lg); border: 1px solid var(--glass-border); }
-        .campaign-cover-wrapper { position: relative; width: 100%; height: 200px; background: linear-gradient(135deg, #ffeef2 0%, #ffd1dc 100%); display: flex; align-items: center; justify-content: center; }
+        /* แบนเนอร์เต็มความกว้าง */
+        .campaign-cover-wrapper { position: relative; width: 100%; aspect-ratio: 2 / 1; max-height: 420px; background: linear-gradient(135deg, #fff8e1 0%, #ffe9a8 100%); display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .campaign-cover { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 2; }
-        .campaign-fallback-icon { position: absolute; color: var(--primary-pink); font-size: 3rem; opacity: 0.4; z-index: 1; }
-        
-        .campaign-details { padding: 20px; }
-        .campaign-title { font-size: 20px; font-weight: 600; margin: 0 0 10px 0; color: #333; }
-        .campaign-desc { font-size: 14px; color: #666; line-height: 1.6; margin: 0; }
+        .campaign-fallback-icon { position: absolute; color: #ffc107; font-size: 3rem; opacity: 0.4; z-index: 1; }
 
-        /* Wallet Strip (Token / GE Token / Cookie) */
-        .dv-wallet-strip { display: flex; gap: 8px; margin: 0 12px 15px; }
-        .dv-wallet-item { flex: 1; background: var(--glass-bg-strong); backdrop-filter: blur(var(--glass-blur-sm)); -webkit-backdrop-filter: blur(var(--glass-blur-sm)); border: 1px solid var(--glass-border); border-radius: 16px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; box-shadow: var(--glass-shadow-sm); }
-        .dv-wallet-icon { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; flex-shrink: 0; }
-        .dv-wallet-icon-fa { width: 26px; height: 26px; border-radius: 50%; background: #fff5e6; color: #ff9a3c; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
-        .dv-wallet-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-        .dv-wallet-label { font-size: 10px; color: #999; font-weight: 500; }
-        .dv-wallet-value { font-size: 13px; color: #333; font-weight: 700; font-family: 'Quicksand', 'Kanit', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Poll detail */
+        .poll-head { display: flex; align-items: center; gap: 12px; padding: 22px 12px 18px; cursor: pointer; user-select: none; border-bottom: 1px solid #e6e6e6; }
+        .poll-head h2 { margin: 0; font-size: 20px; font-weight: 700; color: #111; }
+        .poll-badge { display: inline-flex; align-items: center; gap: 4px; background: #ffd75e; color: #333; font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 6px; }
+        .poll-badge i { font-size: 11px; }
+        .poll-chevron { margin-left: auto; font-size: 16px; color: #333; transition: transform 0.2s; }
+        .poll-head.open { border-bottom-color: transparent; }
+        .poll-head.open .poll-chevron { transform: rotate(180deg); }
+        .poll-detail { padding: 4px 12px 22px; font-size: 14px; color: #222; line-height: 1.9; border-bottom: 1px solid #e6e6e6; }
+        .poll-detail b { font-weight: 700; color: #111; }
+        .pd-desc-label { margin-top: 18px; }
+        .pd-desc { white-space: pre-line; line-height: 1.7; color: #333; }
 
-        /* Title Section */
-        .section-title { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; color: #444; margin: 25px 0 15px 12px; font-size: 16px; border-left: 5px solid var(--primary-pink); padding-left: 12px; }
+        /* แท็บกลุ่ม (All / BLM48 / ...) */
+        .group-tabs { display: flex; gap: 34px; padding: 16px 12px 0; border-bottom: 1px solid #e6e6e6; overflow-x: auto; scrollbar-width: none; }
+        .group-tabs::-webkit-scrollbar { display: none; }
+        .group-tab { background: none; border: none; padding: 0 2px 14px; font-family: inherit; font-size: 15px; font-weight: 600; color: #b5b5b5; cursor: pointer; position: relative; white-space: nowrap; }
+        .group-tab span { position: relative; z-index: 1; }
+        .group-tab.active { color: #111; }
+        .group-tab.active::after { content: ""; position: absolute; left: 0; right: 0; bottom: 13px; height: 5px; border-radius: 2px; background: #ffc107; }
 
-        /* Voting Grid Mode */
-        .candidates-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 12px; }
-        .candidate-card { background: var(--glass-bg-strong); backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur)); border-radius: 20px; overflow: hidden; box-shadow: var(--glass-shadow-sm); border: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; padding: 15px; position: relative; }
-        .candidate-img-wrapper { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid #ffeef2; margin-bottom: 10px; background: #fafafa; position: relative; display: flex; align-items: center; justify-content: center; }
+        /* รายชื่อผู้สมัคร (โหมดเปิดโหวต) */
+        .candidate-list { display: flex; flex-direction: column; gap: 18px; padding: 24px 12px 10px; }
+        .candidate-row { display: flex; align-items: center; gap: 12px; }
+        .candidate-img-wrapper { width: 82px; height: 82px; border-radius: 10px; overflow: hidden; background: #f4f4f4; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .candidate-img { width: 100%; height: 100%; object-fit: cover; z-index: 2; }
-        .cand-avatar-fallback { position: absolute; color: var(--primary-pink); opacity: 0.3; font-size: 2.2rem; z-index: 1; }
-        .candidate-name { font-weight: 500; font-size: 14px; color: #333; text-align: center; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-        
-        .vote-action-btn { background: var(--blm-pink); color: white; border: none; padding: 8px 6px; border-radius: 25px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,133,162,0.3); width: 100%; transition: transform 0.1s; white-space: nowrap; }
-        .vote-action-btn:active { transform: scale(0.95); }
-
-        .candidate-actions { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
-        .candidate-actions .vote-action-btn,
-        .candidate-actions .getoken-action-btn,
-        .candidate-actions .gift-action-btn { flex: 1 1 calc(50% - 3px); }
-        .getoken-action-btn { background: linear-gradient(135deg, #6dd5fa, #2980b9); color: #fff; border: none; padding: 8px 6px; border-radius: 25px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(41,128,185,0.3); transition: transform 0.1s; white-space: nowrap; }
-        .getoken-action-btn:active { transform: scale(0.95); }
-        .gift-action-btn { background: linear-gradient(135deg, #ffd76e, #ffb347); color: #6b4400; border: none; padding: 8px 6px; border-radius: 25px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; box-shadow: 0 4px 10px rgba(255,179,71,0.35); transition: transform 0.1s; white-space: nowrap; }
-        .gift-action-btn:active { transform: scale(0.95); }
+        .cand-avatar-fallback { position: absolute; color: #ccc; font-size: 2rem; z-index: 1; }
+        .candidate-name { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; color: #111; overflow: hidden; text-overflow: ellipsis; }
+        .candidate-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        .vote-action-btn, .getoken-action-btn, .gift-action-btn {
+            min-width: 84px; border: none; padding: 8px 16px; border-radius: 999px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: transform 0.1s; white-space: nowrap;
+        }
+        .vote-action-btn { background: #ffd75e; color: #222; }
+        .getoken-action-btn { background: #cfe8ff; color: #1c5d99; }
+        .gift-action-btn { background: #ffe1ea; color: #c2335b; }
+        .vote-action-btn:active, .getoken-action-btn:active, .gift-action-btn:active { transform: scale(0.95); }
 
         /* Gift Modal (สไตล์แผงส่งของขวัญแบบไลฟ์สตรีม) */
         .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(74, 44, 54, 0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2000; align-items: flex-end; justify-content: center; }
@@ -162,73 +160,22 @@
             .gift-items-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
-        /* Ranking List Mode (อัปเดตดีไซน์พิเศษตามบรีฟเอ็มมี่) */
-        .ranking-list { display: flex; flex-direction: column; gap: 14px; padding: 0 12px; }
-        .ranking-row {
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border-radius: 20px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            box-shadow: var(--glass-shadow-sm);
-            border: 1px solid var(--glass-border);
-            position: relative;
-        }
-        
-        /* เลขจัดอันดับด้านหน้า */
-        .rank-number { width: 35px; font-weight: 700; font-size: 18px; color: #888; text-align: left; flex-shrink: 0; }
-        .rank-row-1 .rank-number { color: var(--gold); font-size: 24px; }
-        .rank-row-2 .rank-number { color: var(--silver); font-size: 22px; }
-        .rank-row-3 .rank-number { color: var(--bronze); font-size: 20px; }
-        
-        /* คุมโทนสีไล่ระดับอันดับ 1-3 */
-        .rank-row-1 { border: 1.5px solid rgba(255, 215, 0, 0.4); background: linear-gradient(90deg, rgba(255,255,255,0.46), rgba(255,253,240,0.46)); }
-        .rank-row-2 { border: 1.5px solid rgba(192, 192, 192, 0.4); background: linear-gradient(90deg, rgba(255,255,255,0.46), rgba(247,248,250,0.46)); }
-        .rank-row-3 { border: 1.5px solid rgba(205, 127, 50, 0.3); background: linear-gradient(90deg, rgba(255,255,255,0.46), rgba(253,249,245,0.46)); }
-        
-        /* รูปโปรไฟล์ขนาดใหญ่ชัดเจน */
-        .rank-img-wrapper { 
-            width: 70px; 
-            height: 70px; 
-            border-radius: 50%; 
-            overflow: hidden; 
-            margin-right: 18px; 
-            border: 3px solid #ffeef2; 
-            position: relative; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            flex-shrink: 0;
-        }
-        .rank-row-1 .rank-img-wrapper { border-color: rgba(255, 215, 0, 0.6); }
-        .rank-row-2 .rank-img-wrapper { border-color: rgba(192, 192, 192, 0.6); }
-        .rank-row-3 .rank-img-wrapper { border-color: rgba(205, 127, 50, 0.5); }
-        
+        /* ผลอันดับ (โหมดปิดโหวต): การ์ดผู้ชนะด้านบน + อันดับถัดไปเป็นแถวเรียบ */
+        .ranking-list { display: flex; flex-direction: column; padding: 0 12px; }
+        .ranking-heading { font-size: 16px; font-weight: 700; color: #222; margin: 24px 0 18px; line-height: 1.6; }
+        .rank-winner { display: flex; align-items: center; position: relative; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.07); overflow: hidden; margin-bottom: 28px; }
+        .rank-winner .rank-side { align-self: stretch; padding: 22px 0; background: #ffe08a; border-radius: 0 50% 50% 0 / 0 100% 100% 0; box-shadow: 10px 0 0 #fff5d1; }
+        .rank-row { display: flex; align-items: center; margin-bottom: 24px; }
+        .rank-side { flex: 0 0 42%; display: flex; align-items: center; justify-content: center; }
+        .rank-img-wrapper { width: 92px; height: 92px; border-radius: 10px; overflow: hidden; background: #f4f4f4; position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .rank-img { width: 100%; height: 100%; object-fit: cover; z-index: 2; }
-        
-        /* ส่วนแสดงรายละเอียดข้อมูลตรงกลาง */
-        .rank-info { display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
-        
-        /* ข้อความตำแหน่งด้านบนชื่อเมมเบอร์ แบบจางๆ */
-        .rank-status-text { font-size: 11px; color: #aaa; font-weight: 500; margin-bottom: 2px; text-transform: capitalize; }
-        
-        .rank-name { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        /* ยอดโหวตแบบไอคอนเหรียญโทเคน */
-        .rank-score { font-size: 14px; color: var(--primary-pink); margin-top: 4px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-        .rank-score i { color: #ffd700; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
-        
-        /* เปอร์เซ็นต์ด้านล่างสุดและทำให้ออกจางๆ */
-        .rank-percentage { font-size: 11px; color: #a5a5a5; font-weight: 500; margin-top: 1px; }
-        
-        /* เหรียญรางวัลท้ายแถวอันดับ 1-3 */
-        .medal-icon { font-size: 24px; margin-left: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); flex-shrink: 0; }
-        .medal-1 { color: var(--gold); }
-        .medal-2 { color: var(--silver); }
-        .medal-3 { color: var(--bronze); }
+        .rank-info { display: flex; flex-direction: column; min-width: 0; padding: 0 12px 0 14px; }
+        .rank-status-text { font-size: 12px; color: #999; margin-bottom: 4px; }
+        .rank-name { font-weight: 700; font-size: 16px; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rank-score { font-size: 18px; font-weight: 700; color: #111; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+        .rank-score i { font-size: 14px; }
+        .rank-percentage { font-size: 12px; color: #c4c4c4; margin-top: 2px; }
+        .rank-medal { position: absolute; top: 10px; right: 12px; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe27a, #f5b700); color: #fff; font-weight: 800; font-size: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(245,183,0,0.4); }
 
         .loading-view { text-align: center; color: #999; padding: 50px 20px; font-size: 14px; }
     </style>
@@ -236,53 +183,37 @@
 <body class="glass-mesh-bg force-white-bg">
 
     <div class="top-navbar">
-        <div class="nav-left-actions">
-            <button class="nav-btn" title="กลับ" onclick="history.back()" style="background: none; border: none; padding: 0; cursor: pointer;">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-        </div>
-        <div class="nav-title" id="nav-campaign-title">Major Vote</div>
+        <button class="nav-back" type="button" title="กลับ" onclick="goBack()"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="nav-title">Major vote</div>
     </div>
 
-    <div class="campaign-header">
-        <div class="campaign-cover-wrapper">
-            <div class="campaign-fallback-icon"><i class="fa-solid fa-star"></i></div>
-            <img id="campaign-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover" class="campaign-cover" style="display:none;">
-        </div>
-        <div class="campaign-details">
-            <h3 class="campaign-title" id="campaign-title">Major Vote</h3>
-            <p class="campaign-desc" id="campaign-desc">Loading...</p>
-        </div>
+    <!-- แบนเนอร์เต็มความกว้างจอ -->
+    <div class="campaign-cover-wrapper">
+        <div class="campaign-fallback-icon"><i class="fa-solid fa-star"></i></div>
+        <img id="campaign-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cover" class="campaign-cover" style="display:none;">
     </div>
 
-    <div class="dv-wallet-strip" id="dv-wallet-strip" style="display: none;">
-        <div class="dv-wallet-item">
-            <img src="https://lh3.googleusercontent.com/d/1LxHGOclJIl4Xqxi0dI5_Y235t6lfAiCZ=s1000" class="dv-wallet-icon" alt="Token" onerror="this.src='https://placehold.co/40?text=TK'">
-            <div class="dv-wallet-text">
-                <span class="dv-wallet-label">Token</span>
-                <span class="dv-wallet-value" id="dv-token-balance">-</span>
-            </div>
-        </div>
-        <div class="dv-wallet-item">
-            <img src="https://lh3.googleusercontent.com/d/1Fiw60kJvy6QmIhzrkgzEjMj85POwcoiZ=s1000" class="dv-wallet-icon" alt="GE Token" onerror="this.src='https://placehold.co/40?text=GE'">
-            <div class="dv-wallet-text">
-                <span class="dv-wallet-label">GE Token</span>
-                <span class="dv-wallet-value" id="dv-getoken-balance">-</span>
-            </div>
-        </div>
-        <div class="dv-wallet-item">
-            <div class="dv-wallet-icon-fa"><i class="fa-solid fa-cookie-bite"></i></div>
-            <div class="dv-wallet-text">
-                <span class="dv-wallet-label">Cookies</span>
-                <span class="dv-wallet-value" id="dv-cookie-balance">-</span>
-            </div>
-        </div>
+    <!-- Poll detail: กดแถวนี้เพื่อกาง/พับรายละเอียดกิจกรรม -->
+    <div class="poll-head" id="poll-head" onclick="togglePollDetail()">
+        <h2>Poll detail</h2>
+        <span class="poll-badge"><i class="fa-solid fa-circle-exclamation"></i> Burned</span>
+        <i class="fa-solid fa-chevron-down poll-chevron"></i>
+    </div>
+    <div class="poll-detail" id="poll-detail" style="display: none;">
+        <div><b>Poll name:</b> <span id="pd-name">-</span></div>
+        <div><b>Token:</b> <span id="pd-token">-</span></div>
+        <div><b>Token mechanic:</b> Burned (Your token will be permanently deducted)</div>
+        <div><b>End date:</b> <span id="pd-end">-</span></div>
+        <div><b>Minimum token per vote:</b> <span id="pd-min">1 token</span></div>
+        <div class="pd-desc-label"><b>Description:</b></div>
+        <div class="pd-desc" id="campaign-desc">Loading...</div>
     </div>
 
-    <div class="section-title" id="mode-title">BLM48 Members</div>
+    <!-- โหมดเปิดโหวต: แท็บกลุ่ม + รายชื่อผู้สมัคร -->
+    <div class="group-tabs" id="group-tabs" style="display: none;"></div>
+    <div id="voting-view" class="candidate-list" style="display: none;"></div>
 
-    <div id="voting-view" class="candidates-grid" style="display: none;"></div>
-
+    <!-- โหมดปิดโหวต: ผลอันดับ -->
     <div id="ranking-view" class="ranking-list" style="display: none;"></div>
 
     <div id="loading-spinner" class="loading-view">
@@ -438,25 +369,74 @@
         });
     }
 
+    let campaignTitle = '';
+
+    function goBack() {
+        if (document.referrer && history.length > 1) history.back();
+        else window.location.href = 'majorvote';
+    }
+
+    // กาง/พับกล่อง Poll detail
+    function togglePollDetail() {
+        const head = document.getElementById('poll-head');
+        const detail = document.getElementById('poll-detail');
+        const open = detail.style.display === 'none';
+        detail.style.display = open ? 'block' : 'none';
+        head.classList.toggle('open', open);
+    }
+
+    function formatPollEndDate(endTime) {
+        if (!endTime) return '-';
+        const d = new Date(endTime);
+        if (isNaN(d.getTime())) return '-';
+        const pad = n => String(n).padStart(2, '0');
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function getPollTokenLabel(tokenType) {
+        const t = (tokenType || '').toString().trim().toLowerCase();
+        if (t === 'getoken') return 'GE Token';
+        if (t === 'gift') return 'Gift (Cookie)';
+        if (t === 'cookie') return 'Cookie';
+        return 'Token';
+    }
+
+    // เติมแบนเนอร์ + กล่อง Poll detail จากข้อมูลแคมเปญ (VoteCollectionID/Title/Description/CoverImage/EndTime/TokenType)
+    function applyCampaignHeader(camp) {
+        campaignTitle = camp.Title || 'Major Vote';
+        document.getElementById('pd-name').textContent = campaignTitle;
+        document.getElementById('pd-token').textContent = getPollTokenLabel(camp.TokenType);
+        document.getElementById('pd-end').textContent = formatPollEndDate(camp.EndTime);
+        document.getElementById('campaign-desc').textContent = camp.Description || 'ร่วมส่งคะแนนโหวตให้กับผู้สมัครที่คุณชื่นชอบ';
+        if (camp.CoverImage) {
+            const imgEl = document.getElementById('campaign-cover');
+            imgEl.src = fixSecureImageUrl(camp.CoverImage);
+            imgEl.style.display = 'block';
+        }
+        const heading = document.querySelector('.ranking-heading');
+        if (heading) heading.textContent = campaignTitle;
+    }
+
     function setupHeaderFromCache() {
         try {
             const cachedVotes = localStorage.getItem('blm48_major_votes_cache');
             if (cachedVotes) {
                 const list = JSON.parse(cachedVotes);
                 const currentCamp = list.find(item => String(item.VoteCollectionID) === String(campaignId));
-                if (currentCamp) {
-                    const title = currentCamp.Title || "Major Vote";
-                    document.getElementById("nav-campaign-title").textContent = title;
-                    document.getElementById("campaign-title").textContent = title;
-                    document.getElementById("campaign-desc").textContent = currentCamp.Description || "ร่วมส่งคะแนนโหวตให้กับผู้สมัครที่คุณชื่นชอบ";
-                    if (currentCamp.CoverImage) {
-                        const imgEl = document.getElementById("campaign-cover");
-                        imgEl.src = fixSecureImageUrl(currentCamp.CoverImage);
-                        imgEl.style.display = 'block';
-                    }
-                }
+                if (currentCamp) applyCampaignHeader(currentCamp);
             }
         } catch(e) { console.error("Cache Header Error:", e); }
+
+        // ดึงข้อมูลแคมเปญล่าสุดด้วย (กรณีเปิดลิงก์ตรงโดยไม่มีแคช หรือแอดมินแก้รายละเอียด)
+        blm48GetVoteCollections().then(data => {
+            if (!Array.isArray(data)) return;
+            const c = data.find(item => String(item.voteCollectionId) === String(campaignId));
+            if (!c) return;
+            applyCampaignHeader({
+                Title: c.title, Description: c.description, CoverImage: c.coverImage,
+                EndTime: c.endTime, TokenType: c.tokenType
+            });
+        }).catch(e => console.error("Campaign Header Fetch Error:", e));
     }
 
     async function fetchCandidatesFromBackend() {
@@ -484,26 +464,52 @@
         }
     }
 
-    function setupVotingMode(candidates) {
-        document.getElementById("mode-title").textContent = "BLM48 Members";
-        const container = document.getElementById("voting-view");
-        const rankingContainer = document.getElementById("ranking-view");
-        
-        rankingContainer.style.display = "none";
-        container.innerHTML = "";
-        container.style.display = "grid";
+    let votingCandidates = [];
+    let activeGroup = 'All';
 
-        if (candidates.length === 0) {
-            container.innerHTML = `<div style="grid-column: span 2; text-align:center; color:#999; padding:20px;">ไม่มีข้อมูลผู้สมัครในแคมเปญโหวตนี้</div>`;
+    // กลุ่มของผู้สมัครเอามาจากคำท้ายชื่อ เช่น "Emmy BLM48" -> "BLM48" (ตาราง major_vote_candidates ไม่มีคอลัมน์กลุ่ม)
+    function getCandidateGroup(name) {
+        const parts = String(name || '').trim().split(/\s+/);
+        const last = parts.length > 1 ? parts[parts.length - 1] : '';
+        return /^[A-Z]+\d+$/i.test(last) ? last.toUpperCase() : 'Others';
+    }
+
+    function setupVotingMode(candidates) {
+        document.getElementById("ranking-view").style.display = "none";
+        votingCandidates = candidates;
+
+        const groups = [...new Set(candidates.map(m => getCandidateGroup(m.MemberName)))];
+        if (activeGroup !== 'All' && !groups.includes(activeGroup)) activeGroup = 'All';
+        const tabs = document.getElementById("group-tabs");
+        tabs.innerHTML = ['All', ...groups].map(g =>
+            `<button type="button" class="group-tab ${g === activeGroup ? 'active' : ''}" onclick="selectGroupTab('${escapeAttr(g)}')"><span>${escapeHtml(g)}</span></button>`
+        ).join('');
+        tabs.style.display = candidates.length ? 'flex' : 'none';
+
+        renderCandidateList();
+    }
+
+    function selectGroupTab(group) {
+        activeGroup = group;
+        document.querySelectorAll('.group-tab').forEach(btn => btn.classList.toggle('active', btn.textContent === group));
+        renderCandidateList();
+    }
+
+    function renderCandidateList() {
+        const container = document.getElementById("voting-view");
+        container.style.display = "flex";
+
+        const list = activeGroup === 'All' ? votingCandidates : votingCandidates.filter(m => getCandidateGroup(m.MemberName) === activeGroup);
+        if (list.length === 0) {
+            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px;">ไม่มีข้อมูลผู้สมัครในแคมเปญโหวตนี้</div>`;
             return;
         }
 
-        candidates.forEach(member => {
+        container.innerHTML = list.map(member => {
             const mName = member.MemberName || 'Member';
             const mImg = fixSecureImageUrl(member.ProfileMember || member.ImageURL || member.profile);
-
-            const cardHtml = `
-                <div class="candidate-card">
+            return `
+                <div class="candidate-row">
                     <div class="candidate-img-wrapper">
                         <i class="fa-solid fa-user cand-avatar-fallback"></i>
                         <img src="${mImg}" class="candidate-img" alt="${escapeAttr(mName)}" onerror="this.style.display='none';">
@@ -514,8 +520,7 @@
                     </div>
                 </div>
             `;
-            container.insertAdjacentHTML('beforeend', cardHtml);
-        });
+        }).join('');
     }
 
     // สร้างปุ่มร่วมสนุกตามที่มีจริงสำหรับผู้สมัครคนนี้ (Token / GEToken มาจาก TokenTypes ที่ backend ส่งมา, Gift มาจากค่าเปิด/ปิดของทั้งแคมเปญ)
@@ -525,31 +530,35 @@
         if (types.includes('token')) {
             buttons += `
                 <button class="vote-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'Token')">
-                    <i class="fa-solid fa-heart"></i> Vote
+                    Vote
                 </button>`;
         }
         if (types.includes('getoken')) {
             buttons += `
                 <button class="getoken-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'GEToken')">
-                    <i class="fa-solid fa-star"></i> GE Vote
+                    GE Vote
                 </button>`;
         }
         if (campaignEnableGift) {
             buttons += `
                 <button class="gift-action-btn" onclick="openGiftModal('${escapeAttr(mName)}', '${escapeAttr(mImg)}')">
-                    <i class="fa-solid fa-gift"></i> Gift
+                    Gift
                 </button>`;
         }
         return buttons;
     }
 
+    function getOrdinal(n) {
+        const mod100 = n % 100;
+        if (mod100 >= 11 && mod100 <= 13) return n + 'th';
+        return n + ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+    }
+
+    // โหมดปิดโหวต: หัวข้อ = ชื่อแคมเปญ, อันดับ 1 เป็นการ์ดเด่นพร้อมเหรียญ, อันดับถัดไปเป็นแถวเรียบ
     function setupRankingMode(candidates) {
-        document.getElementById("mode-title").textContent = "สรุปอันดับผลคะแนนรวมอย่างเป็นทางการ";
         const container = document.getElementById("ranking-view");
-        const votingContainer = document.getElementById("voting-view");
-        
-        votingContainer.style.display = "none";
-        container.innerHTML = "";
+        document.getElementById("voting-view").style.display = "none";
+        document.getElementById("group-tabs").style.display = "none";
         container.style.display = "flex";
 
         if (candidates.length === 0) {
@@ -557,50 +566,35 @@
             return;
         }
 
-        candidates.forEach((member, index) => {
+        const scoreIcon = getVoteCategoryIcon(campaignTokenType);
+        const rows = candidates.map((member, index) => {
             const rank = index + 1;
-            const mName = member.MemberName || 'Member'; 
+            const mName = member.MemberName || 'Member';
             const mImg = fixSecureImageUrl(member.ProfileMember || member.ImageURL || member.profile);
             const voteCount = Number(member.CurrentVotes || 0).toLocaleString();
-            const percentStr = member.VotePercentage || "0.00%"; 
+            const percentStr = member.VotePercentage || "0%";
+            const placementText = rank === 1 ? 'The winner of this poll is:' : `The ${getOrdinal(rank)} place of this poll is:`;
 
-            // สร้างข้อความบอกลำดับภาษาอังกฤษแบบไดนามิกตามลำดับ
-            let placementText = "";
-            if (rank === 1) {
-                placementText = "The winner of this poll is";
-            } else if (rank === 2) {
-                placementText = "The 2nd place of this poll is";
-            } else if (rank === 3) {
-                placementText = "The 3rd place of this poll is";
-            } else {
-                placementText = `The ${rank}th place of this poll is`;
-            }
-
-            let medalHtml = "";
-            if(rank === 1) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-1"></i>`;
-            else if(rank === 2) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-2"></i>`;
-            else if(rank === 3) medalHtml = `<i class="fa-solid fa-medal medal-icon medal-3"></i>`;
-
-            const scoreIcon = getVoteCategoryIcon(campaignTokenType);
-
-            const rowHtml = `
-                <div class="ranking-row rank-row-${rank}" data-candidate="${escapeAttr(mName)}">
-                    <div class="rank-number">${rank}</div>
-                    <div class="rank-img-wrapper">
-                        <i class="fa-solid fa-user cand-avatar-fallback"></i>
-                        <img src="${mImg}" class="rank-img" alt="Member" onerror="this.style.display='none';">
+            return `
+                <div class="${rank === 1 ? 'rank-winner' : 'rank-row'}" data-candidate="${escapeAttr(mName)}">
+                    <div class="rank-side">
+                        <div class="rank-img-wrapper">
+                            <i class="fa-solid fa-user cand-avatar-fallback"></i>
+                            <img src="${mImg}" class="rank-img" alt="Member" onerror="this.style.display='none';">
+                        </div>
                     </div>
                     <div class="rank-info">
                         <span class="rank-status-text">${placementText}</span>
                         <span class="rank-name">${escapeHtml(mName)}</span>
                         <span class="rank-score"><i class="fa-solid ${scoreIcon.icon}" style="color:${scoreIcon.color};"></i> <span class="rank-score-value">${voteCount}</span></span>
-                        <span class="rank-percentage">(${percentStr})</span>
+                        <span class="rank-percentage">${percentStr}</span>
                     </div>
-                    ${medalHtml}
+                    ${rank === 1 ? '<div class="rank-medal">1</div>' : ''}
                 </div>
             `;
-            container.insertAdjacentHTML('beforeend', rowHtml);
-        });
+        }).join('');
+
+        container.innerHTML = `<div class="ranking-heading">${escapeHtml(campaignTitle || 'Major Vote')}</div>${rows}`;
     }
 
     const TOKEN_TYPE_LABELS = { Token: 'BLM48 Token', GEToken: 'GE Token' };

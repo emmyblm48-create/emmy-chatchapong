@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 | Membership Tier</title>
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: #222; margin: 0; padding: 0; padding-top: 60px;
+        }
+        body.glass-mesh-bg { background-color: #ffffff; background-image: none; }
+
+        /* แถบบนขาว: ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง (แบบเดียวกับ token_wallet.html) */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: #ffffff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .top-navbar .back-btn {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: #333; font-size: 20px; cursor: pointer;
+        }
+        .top-navbar h1 { margin: 0; font-size: 17px; font-weight: 600; color: #222; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 0 12px 40px; }
+        .page-wrapper > h2 { margin: 32px 0 10px; font-size: 20px; font-weight: 700; color: #222; }
+        .intro { font-size: 13px; color: #666; margin: 0 0 22px; line-height: 1.6; }
+
+        .tier-card {
+            display: flex; gap: 14px; align-items: flex-start;
+            border-radius: 16px; padding: 16px; margin-bottom: 14px;
+            border-left: 4px solid var(--accent); background: var(--bg);
+        }
+        .tier-card img {
+            width: 72px; height: 72px; object-fit: cover; object-position: left;
+            border-radius: 10px; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; pointer-events: none;
+        }
+        .tier-body { flex: 1; min-width: 0; }
+        .tier-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; font-size: 16px; color: var(--accent); margin-bottom: 4px; }
+        .tier-current {
+            font-size: 11px; font-weight: 600; color: #fff; background: var(--accent);
+            padding: 2px 9px; border-radius: 999px;
+        }
+        .tier-condition { font-size: 13px; color: #666; margin-bottom: 8px; line-height: 1.5; }
+        .tier-benefits { font-size: 13px; color: #444; line-height: 1.7; }
+        .note { font-size: 12px; color: #999; margin-top: 8px; line-height: 1.6; }
+    </style>
+</head>
+<body class="glass-mesh-bg">
+
+<div class="top-navbar">
+    <button class="back-btn" type="button" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
+    <h1>Membership Tier</h1>
+</div>
+
+<div class="page-wrapper">
+    <h2>BLM48 Membership Tier</h2>
+    <p class="intro">ระดับ Tier ของคุณคำนวณจาก <strong>Fan Score สะสมทั้งหมด</strong> (ยอดคุกกี้ที่มอบให้เมมเบอร์สะสมตลอดกาล) ระบบจะอัปเดตระดับ Tier ให้ทันทีเมื่อ Fan Score เปลี่ยนแปลง</p>
+
+    <div id="tier-list"></div>
+
+    <p class="note">หมายเหตุ: สิทธิพิเศษของแต่ละ Tier ใน BLM48 Membership Tier รวมทั้งเงื่อนไขและอัตราการคำนวณ อาจมีการปรับเปลี่ยนตามความเหมาะสม โดยทีมงาน BLM48 จะประกาศการเปลี่ยนแปลงล่วงหน้าผ่านแอปพลิเคชัน BLM48 Membership ก่อนมีผลบังคับใช้</p>
+</div>
+
+<script>
+    const username = getUsernameFromSession();
+
+    // --- ข้อมูล BLM48 Membership Tier (Copper/Silver/Gold ตาม Fan Score สะสม) ย้ายมาจาก popup ในหน้า majorvote.html ---
+    const TIER_INFO_LIST = [
+        {
+            key: 'copper',
+            name: 'Copper Tier',
+            img: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',
+            accent: '#cba034',
+            bg: '#fdf6e3',
+            condition: 'ทุกบัญชีจะได้รับ Copper Tier ตั้งแต่วันที่เปิดใช้งานบัญชี และคงระดับนี้ไว้เมื่อมี Fan Score สะสมต่ำกว่า 5,000',
+            benefits: [
+                'ได้รับ Copper Membership Card ประจำตัว',
+                'รับคุกกี้รายเดือนที่ระดับ Copper 150 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
+            ]
+        },
+        {
+            key: 'silver',
+            name: 'Silver Tier',
+            img: 'https://lh3.googleusercontent.com/d/1byHhVpGymz84M2MDHE30ewJVNNSFTYcI=s1000',
+            accent: '#8a97a0',
+            bg: '#f4f6f8',
+            condition: 'ได้รับสถานะ Silver Tier เมื่อมี Fan Score สะสมตั้งแต่ 5,000 แต่ไม่ถึง 10,000',
+            benefits: [
+                'ได้รับ Silver Membership Card ประจำตัว',
+                'รับคุกกี้รายเดือนที่ระดับ Silver 300 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
+            ]
+        },
+        {
+            key: 'gold',
+            name: 'Gold Tier',
+            img: 'https://lh3.googleusercontent.com/d/18ag8mAELvjn4IQQvboOxAXfB_PddYO17=s1000',
+            accent: '#cba034',
+            bg: '#fff8e1',
+            condition: 'ได้รับสถานะ Gold Tier เมื่อมี Fan Score สะสมตั้งแต่ 10,000 ขึ้นไป',
+            benefits: [
+                'ได้รับ Gold Membership Card ประจำตัว',
+                'รับคุกกี้รายเดือนที่ระดับ Gold 500 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
+            ]
+        }
+    ];
+
+    function goBack() {
+        if (document.referrer && history.length > 1) history.back();
+        else window.location.href = 'majorvote';
+    }
+
+    function renderTiers(currentKey) {
+        document.getElementById('tier-list').innerHTML = TIER_INFO_LIST.map(t => `
+            <div class="tier-card" style="--accent: ${t.accent}; --bg: ${t.bg};">
+                <img src="${t.img}" alt="${t.name}" draggable="false" oncontextmenu="return false" onerror="this.style.display='none'">
+                <div class="tier-body">
+                    <div class="tier-title">${t.name}${t.key === currentKey ? '<span class="tier-current">Tier ปัจจุบัน</span>' : ''}</div>
+                    <div class="tier-condition">${t.condition}</div>
+                    <div class="tier-benefits">${t.benefits.map(b => `<div>• ${b}</div>`).join('')}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ป้าย "Tier ปัจจุบัน" เฉพาะบัญชี user (Member ไม่มี Copper/Silver/Gold)
+    async function loadCurrentTier() {
+        const sessionUser = getUserSession();
+        if (sessionUser && sessionUser.role && sessionUser.role.toUpperCase().trim() === 'MEMBER') return;
+        try {
+            const res = await blm48GetMembershipTier(username);
+            if (res && res.status === 'success' && res.tier) renderTiers(String(res.tier).toLowerCase());
+        } catch (e) { /* แสดงรายการ Tier โดยไม่มีป้าย */ }
+    }
+
+    if (!username) {
+        alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
+        window.location.href = 'login';
+    } else {
+        renderTiers(null);
+        loadCurrentTier();
+    }
+</script>
+</body>
+</html>

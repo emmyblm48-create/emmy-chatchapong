@@ -616,6 +616,10 @@ function blm48AdminSearchUsers(adminUsername, query) {
 function blm48AdminGetUsersOverview(adminUsername) {
   return blm48Rpc('admin_get_users_overview', { p_admin_username: adminUsername });
 }
+// 📊 admin_dashboard.html - ภาพรวมบริหาร (ผู้ใช้งาน/กิจกรรม 7 วัน/เมมเบอร์/แฟนที่กำลังหายไป)
+function blm48AdminGetDashboard(adminUsername) {
+  return blm48Rpc('admin_get_dashboard', { p_admin_username: adminUsername });
+}
 
 // Suspend (p_suspend=true) or reinstate (p_suspend=false) a user/member account. A suspended
 // account is blocked from logging in and gets signed out on its next session refresh, same as

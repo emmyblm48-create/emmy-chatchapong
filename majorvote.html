@@ -100,6 +100,7 @@
         }
         .balance-logo.logo-token { background: #fff1c9; color: #f59f00; }
         .balance-logo.logo-getoken { background: #dcefff; color: #339af0; }
+        .balance-logo.logo-cookie { background: #fbe7d6; color: #d2691e; }
         .balance-info { min-width: 0; }
         .balance-label { font-size: 18px; font-weight: 700; color: #222; }
         .balance-amount {
@@ -273,14 +274,14 @@
     </button>
 </div>
 
-    <button class="tier-row" type="button" onclick="showTierBenefitsInfo()">
+    <button class="tier-row" type="button" onclick="window.location.href='membership_tier'">
         <i class="fas fa-crown tier-crown"></i>
         <span class="tier-name"><span id="tier-name">Copper tier</span> <i class="fas fa-chevron-right"></i></span>
     </button>
 
     <div class="section-head">
-        <h2>Available balance</h2>
-        <a href="history">View All <i class="fas fa-chevron-right"></i></a>
+        <h2 onclick="window.location.href='token_wallet'" style="cursor: pointer;">Available balance</h2>
+        <a href="token_wallet">View All <i class="fas fa-chevron-right"></i></a>
     </div>
     <div class="balance-scroll">
         <div class="balance-card">
@@ -295,6 +296,13 @@
             <div class="balance-info">
                 <div class="balance-label">GE Token</div>
                 <div class="balance-amount" id="getoken-balance">-</div>
+            </div>
+        </div>
+        <div class="balance-card">
+            <div class="balance-logo logo-cookie"><i class="fas fa-cookie-bite"></i></div>
+            <div class="balance-info">
+                <div class="balance-label">Cookie</div>
+                <div class="balance-amount" id="cookie-balance">-</div>
             </div>
         </div>
     </div>
@@ -483,22 +491,15 @@
 
     function loadWalletFromCache() {
         try {
-            const cachedUserData = localStorage.getItem('bnl_vote_wallet_cache');
-            if (cachedUserData) {
-                const user = JSON.parse(cachedUserData);
+            const cached = localStorage.getItem('bnl_vote_wallet_cache') || localStorage.getItem('bnl_user_data_cache');
+            if (cached) {
+                const user = JSON.parse(cached);
                 const tokenVal = user.Token !== undefined ? user.Token : (user.token || 0);
                 const geTokenVal = user.GEToken !== undefined ? user.GEToken : (user.geToken || 0);
+                const cookieVal = user.Cookie !== undefined ? user.Cookie : (user.cookie || 0);
                 document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
                 document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
-            } else {
-                const primaryCache = localStorage.getItem('bnl_user_data_cache');
-                if (primaryCache) {
-                    const user = JSON.parse(primaryCache);
-                    const tokenVal = user.Token !== undefined ? user.Token : (user.token || 0);
-                    const geTokenVal = user.GEToken !== undefined ? user.GEToken : (user.geToken || 0);
-                    document.getElementById("token-balance").textContent = Number(tokenVal).toLocaleString();
-                    document.getElementById("getoken-balance").textContent = Number(geTokenVal).toLocaleString();
-                }
+                document.getElementById("cookie-balance").textContent = Number(cookieVal).toLocaleString();
             }
         } catch (e) { console.error(e); }
     }
@@ -510,6 +511,7 @@
             if (wallet && wallet.token !== undefined) {
                 document.getElementById("token-balance").textContent = Number(wallet.token).toLocaleString();
                 document.getElementById("getoken-balance").textContent = Number(wallet.geToken).toLocaleString();
+                document.getElementById("cookie-balance").textContent = Number(wallet.cookie || 0).toLocaleString();
 
                 localStorage.setItem('bnl_vote_wallet_cache', JSON.stringify(wallet));
             }
@@ -640,87 +642,6 @@
                 Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
             }
         }
-    }
-
-    // --- ข้อมูล BLM48 Membership Tier (Copper/Silver/Gold ตาม Fan Score สะสม) ---
-    const TIER_INFO_LIST = [
-        {
-            key: 'copper',
-            name: 'Copper Tier',
-            img: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',
-            accent: '#cba034',
-            bg: '#fdf6e3',
-            condition: 'ทุกบัญชีจะได้รับ Copper Tier ตั้งแต่วันที่เปิดใช้งานบัญชี และคงระดับนี้ไว้เมื่อมี Fan Score สะสมต่ำกว่า 5,000',
-            benefits: [
-                'ได้รับ Copper Membership Card ประจำตัว',
-                'รับคุกกี้รายเดือนที่ระดับ Copper 150 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
-            ]
-        },
-        {
-            key: 'silver',
-            name: 'Silver Tier',
-            img: 'https://lh3.googleusercontent.com/d/1byHhVpGymz84M2MDHE30ewJVNNSFTYcI=s1000',
-            accent: '#8a97a0',
-            bg: '#f4f6f8',
-            condition: 'ได้รับสถานะ Silver Tier เมื่อมี Fan Score สะสมตั้งแต่ 5,000 แต่ไม่ถึง 10,000',
-            benefits: [
-                'ได้รับ Silver Membership Card ประจำตัว',
-                'รับคุกกี้รายเดือนที่ระดับ Silver 300 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
-            ]
-        },
-        {
-            key: 'gold',
-            name: 'Gold Tier',
-            img: 'https://lh3.googleusercontent.com/d/18ag8mAELvjn4IQQvboOxAXfB_PddYO17=s1000',
-            accent: '#cba034',
-            bg: '#fff8e1',
-            condition: 'ได้รับสถานะ Gold Tier เมื่อมี Fan Score สะสมตั้งแต่ 10,000 ขึ้นไป',
-            benefits: [
-                'ได้รับ Gold Membership Card ประจำตัว',
-                'รับคุกกี้รายเดือนที่ระดับ Gold 500 Cookies ผ่านปุ่ม "รับคุกกี้รายเดือน" ในหน้าโปรไฟล์'
-            ]
-        }
-    ];
-
-    function buildTierInfoHtml() {
-        const cards = TIER_INFO_LIST.map(t => `
-            <div style="display: flex; gap: 12px; align-items: flex-start; background: ${t.bg}; border-radius: 16px; padding: 14px; margin-bottom: 12px; border-left: 4px solid ${t.accent}; text-align: left;">
-                <img src="${t.img}" alt="${t.name}" draggable="false" oncontextmenu="return false"
-                     style="width: 68px; height: 68px; object-fit: cover; object-position: left; border-radius: 10px; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.12); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; pointer-events: none;"
-                     onerror="this.style.display='none'">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 700; font-size: 15px; color: ${t.accent}; margin-bottom: 4px;">${t.name}</div>
-                    <div style="font-size: 12.5px; color: #666; margin-bottom: 8px; line-height: 1.5;">${t.condition}</div>
-                    <div style="font-size: 12.5px; color: #444; line-height: 1.7;">
-                        ${t.benefits.map(b => `<div>• ${b}</div>`).join('')}
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        return `
-            <div style="text-align: left;">
-                <p style="font-size: 13px; color: #777; margin: 0 0 14px; line-height: 1.6;">
-                    ระดับ Tier ของคุณคำนวณจาก <strong>Fan Score สะสมทั้งหมด</strong> (ยอดคุกกี้ที่มอบให้เมมเบอร์สะสมตลอดกาล) ระบบจะอัปเดตระดับ Tier ให้ทันทีเมื่อ Fan Score เปลี่ยนแปลง
-                </p>
-                ${cards}
-                <p style="font-size: 11.5px; color: #999; margin-top: 4px; line-height: 1.6;">
-                    หมายเหตุ: สิทธิพิเศษของแต่ละ Tier ใน BLM48 Membership Tier รวมทั้งเงื่อนไขและอัตราการคำนวณ อาจมีการปรับเปลี่ยนตามความเหมาะสม โดยทีมงาน BLM48 จะประกาศการเปลี่ยนแปลงล่วงหน้าผ่านแอปพลิเคชัน BLM48 Membership ก่อนมีผลบังคับใช้
-                </p>
-            </div>
-        `;
-    }
-
-    function showTierBenefitsInfo() {
-        Swal.fire({
-            title: 'BLM48 Membership Tier',
-            html: buildTierInfoHtml(),
-            width: 460,
-            showConfirmButton: true,
-            confirmButtonText: 'Close',
-            confirmButtonColor: 'var(--primary-pink)',
-            showCloseButton: true
-        });
     }
 
     async function handleManualRefresh() {
