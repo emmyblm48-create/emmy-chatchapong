@@ -91,7 +91,8 @@
       max-width: 500px;
       margin: 0 auto;
       display: flex;
-      gap: 8px;
+      align-items: center;
+      gap: 10px;
     }
     .pd-comment-input {
       flex: 1;
@@ -103,20 +104,7 @@
       outline: none;
       font-family: inherit;
     }
-    .pd-comment-send {
-      flex-shrink: 0;
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--primary-pink);
-      color: #fff;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      cursor: pointer;
-    }
+    /* ปุ่มส่งใช้ .cmt-send-btn (glassmorphism.css) เหมือนหน้า Home */
 
     .champ-special-post {
       background: linear-gradient(to bottom, #fffdf0, #ffffff) !important;
@@ -197,7 +185,6 @@
     .post-dropdown-item.delete-item { color: #ff5c7c; }
     .post-dropdown-item.delete-item:hover { background: #fff0f2; color: #ff335c; }
   </style>
-  <script src="assets/js/orientation-lock.js"></script>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
@@ -535,7 +522,7 @@
       bar.innerHTML = `
         <div class="pd-comment-bar-inner">
           <input type="text" id="comment-input-${postId}" class="pd-comment-input" placeholder="Write a comment...">
-          <button type="button" class="pd-comment-send" onclick="submitComment('${postId}', this)"><i class="fa-solid fa-paper-plane"></i></button>
+          <button type="button" class="cmt-send-btn" onclick="submitComment('${postId}', this)" aria-label="ส่งคอมเมนต์"><i class="fa-regular fa-paper-plane"></i></button>
         </div>
       `;
     }
@@ -821,7 +808,7 @@
 
     let originalText = "";
     if (btnElement) {
-      originalText = btnElement.innerText;
+      originalText = btnElement.innerHTML;
       btnElement.innerText = "กำลังส่ง...";
       btnElement.disabled = true;
     }
@@ -857,7 +844,7 @@
       Swal.fire('เกิดข้อผิดพลาด', 'ส่งคอมเมนต์ไม่สำเร็จงับ', 'error');
     } finally {
       if (btnElement) {
-        btnElement.innerText = originalText;
+        btnElement.innerHTML = originalText;
         btnElement.disabled = false;
       }
       inputEl.disabled = false;
@@ -1008,7 +995,7 @@
 
     let originalText = "";
     if (btnElement) {
-      originalText = btnElement.innerText;
+      originalText = btnElement.innerHTML;
       btnElement.innerText = "...";
       btnElement.disabled = true;
     }
@@ -1051,7 +1038,7 @@
       Swal.fire('เกิดข้อผิดพลาด', 'ส่งการตอบกลับไม่สำเร็จงับ', 'error');
     } finally {
       if (btnElement) {
-        btnElement.innerText = originalText;
+        btnElement.innerHTML = originalText;
         btnElement.disabled = false;
       }
       inputEl.disabled = false;

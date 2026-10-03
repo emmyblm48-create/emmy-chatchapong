@@ -129,28 +129,7 @@
       position: relative;
     }
 
-    @media (min-width: 900px) {
-      body {
-        padding: 30px;
-      }
-      .app-container {
-        max-width: 950px;
-        height: 750px;
-        min-height: 750px;
-        border-radius: 30px;
-        overflow: hidden;
-        box-shadow: var(--glass-shadow-lg);
-        border: 4px solid #ffffff;
-      }
-      .app-sidebar-promo {
-        display: flex;
-      }
-      .app-layout {
-        width: 420px;
-        min-height: 100%;
-        border-left: 1px solid var(--border-color);
-      }
-    }
+    /* 📱💻 เต็มจอทุกขนาด (มือถือ/iPad/คอม) - เลิกโหมดการ์ด 950px + แถบโปรโมตด้านซ้ายบนจอกว้างแล้ว */
 
     /* --- ส่วนหัวค้นหา (Header Search) --- */
     .header {
@@ -326,8 +305,8 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 230px;
     }
+    .member-info { min-width: 0; }
 
     .chevron-icon {
       color: var(--blmem-pink);
@@ -355,6 +334,54 @@
       color: #94a3b8;
     }
 
+    /* 👑 คามิโอชิของเจ้าของบัญชี (ด้านบนสุดของรายชื่อ) */
+    .my-kami {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 22px 12px 18px;
+      border-bottom: 1px solid var(--border-color);
+      text-decoration: none;
+      color: var(--dark-text);
+      cursor: pointer;
+    }
+    .my-kami-avatar {
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--search-group-color, var(--blmem-pink));
+      background: #fdfdfd;
+    }
+    /* ป้ายสีเดียวกับ .kami-days-badge ในหน้า member.html */
+    .my-kami-days {
+      margin-top: -14px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(135deg, #ffe08a, #ffc107);
+      color: #6b4a00;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+      white-space: nowrap;
+    }
+    .my-kami-name {
+      margin-top: 10px;
+      font-size: 17px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .my-kami-fullname {
+      margin-top: 2px;
+      font-size: 14px;
+      color: var(--gray-text);
+    }
+
     .loading-state, .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -369,7 +396,6 @@
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
-  <script src="assets/js/orientation-lock.js"></script>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
@@ -450,6 +476,9 @@
       const listContainer = document.getElementById('memberList');
       listContainer.innerHTML = ''; 
 
+      const searching = document.getElementById('searchInput').value.trim() !== '';
+      if (!searching) renderMyKami(listContainer);
+
       if (membersData.length === 0) {
         listContainer.innerHTML = '<div class="empty-state">ไม่พบเมมเบอร์ที่คุณค้นหา</div>';
         return;
@@ -522,6 +551,40 @@
       }
     }
 
+    // 👑 คามิโอชิของเจ้าของบัญชี: ใช้ข้อมูลใน session ก่อน (ไว) แล้วอัปเดตจาก blm48GetUserInfo (kamioshi / kamioshiDays)
+    let myKami = null;
+    function loadMyKami() {
+      const me = getUserSession();
+      if (!me || !me.username) return;
+      if (me.kamioshi) myKami = { name: String(me.kamioshi).trim(), days: me.kamioshiDays };
+      blm48GetUserInfo(me.username).then(res => {
+        if (res && res.status === 'success' && res.data) {
+          myKami = res.data.kamioshi ? { name: String(res.data.kamioshi).trim(), days: res.data.kamioshiDays } : null;
+          if (allMembers.length) filterMembers();
+        }
+      }).catch(e => console.error('loadMyKami error:', e));
+    }
+
+    function renderMyKami(listContainer) {
+      if (!myKami || !myKami.name) return;
+      const m = allMembers.find(x => String(x.name).trim().toLowerCase() === myKami.name.toLowerCase());
+      if (!m) return;
+      const groupName = (m.group_name || 'BLM48').toString().trim().toUpperCase();
+      if (groupName !== currentGroupFilter) return;
+      const imgUrl = m.profile || m.profile_img || '';
+      const fullNameText = m['Full Name(EN)'] || m.full_name || '';
+      const card = document.createElement('a');
+      card.className = 'my-kami';
+      card.href = `member?name=${encodeURIComponent(m.name)}`;
+      card.innerHTML = `
+        <img src="${getImg(imgUrl)}" class="my-kami-avatar" onerror="this.onerror=null; this.src='${fallbackAvatarURL}';" alt="${escapeHtml(m.name)}">
+        <span class="my-kami-days"><i class="fas fa-crown"></i> Kami-Oshi ${Number(myKami.days) || 1} Days</span>
+        <div class="my-kami-name">${escapeHtml(m.name)}</div>
+        ${fullNameText ? `<div class="my-kami-fullname">${escapeHtml(fullNameText)}</div>` : ''}
+      `;
+      listContainer.appendChild(card);
+    }
+
     function selectGroupFilter(groupName) {
       currentGroupFilter = groupName;
       document.querySelectorAll('#groupTabs .group-tab').forEach(tab => {
@@ -553,7 +616,7 @@
       renderMembers(filtered);
     }
 
-    window.onload = fetchAllMembers;
+    window.onload = () => { loadMyKami(); fetchAllMembers(); };
 </script>
 </body>
 </html>

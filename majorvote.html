@@ -45,182 +45,130 @@
             background-image: none;
         }
 
-        /* 📡 Top Navbar */
+        /* 📡 Top Navbar - แถบขาวเรียบ ปุ่มรีเฟรชอยู่มุมขวา (เลย์เอาต์แบบหน้า Wallet ของแอปออฟฟิเชียล) */
         .top-navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg)); -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-            display: flex; align-items: center; justify-content: center;
-            padding: 0 20px; box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
+            background: #ffffff;
+            display: flex; align-items: center; justify-content: flex-end;
+            padding: 0 20px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
             z-index: 1000;
         }
-        .nav-left-actions {
-            position: absolute; left: 15px; display: flex; align-items: center; gap: 8px;
-        }
         .nav-btn {
-            color: var(--blm-pink); font-size: 1rem; text-decoration: none;
-            width: 35px; height: 35px; display: flex;
+            color: #9a9a9a; font-size: 1.25rem; text-decoration: none;
+            width: 38px; height: 38px; display: flex;
             align-items: center; justify-content: center;
-            border-radius: 50%; background: var(--blm-light-pink);
+            border-radius: 50%; background: transparent;
             border: none; cursor: pointer; transition: transform 0.2s;
         }
         .nav-btn:active { transform: scale(0.9); }
-        .nav-title { font-weight: 600; font-size: 1.2rem; color: var(--text-dark); }
 
-        /* กระเป๋าเงิน - หน้าตาเดียวกับ My Wallet ในหน้า shop.html (พื้นขาว ไม่มี glass blur/เงาลอย) */
-        .profile-wallet-card {
-            background: #ffffff; border-radius: 18px; padding: 16px 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.04); margin: 15px 12px;
+        /* 👑 แถว Tier: มงกุฎซ้าย + ชื่อ Tier ขวา (กดดูสิทธิประโยชน์) */
+        .tier-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 18px 20px 6px; background: none; border: none; padding: 0;
+            width: calc(100% - 40px); cursor: pointer; font-family: inherit;
         }
-        .wallet-card-header {
-            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 18px; font-weight: 700; color: var(--primary-pink);
-            margin: 0 16px 14px 16px; display: flex; align-items: center; gap: 8px;
-        }
-        .wallet-card-header i { color: var(--primary-pink); font-size: 18px; }
-        .wallet-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
-        .wallet-box { text-align: center; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-        .wallet-box:not(:last-child) { border-right: 1px solid #ffe5ec; }
-        .wallet-value {
-            font-size: 16px; color: #444; font-weight: 600; font-family: 'Quicksand', 'Kanit', sans-serif;
-            display: flex; align-items: center; justify-content: center; gap: 4px;
-        }
-        .wallet-title { font-size: 11px; color: #999999; font-weight: 600; margin-top: 4px; }
+        .tier-row .tier-crown { font-size: 30px; color: #ffd250; filter: drop-shadow(0 2px 3px rgba(203, 160, 52, 0.25)); }
+        .tier-row .tier-name { font-size: 15px; font-weight: 500; color: #333; display: flex; align-items: center; gap: 8px; }
+        .tier-row .tier-name i { font-size: 12px; color: #888; }
 
-        /* แคมเปญโหวต */
-        .section-title { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; color: #444; margin: 30px 0 15px 12px; font-size: 18px; border-left: 5px solid var(--primary-pink); padding-left: 12px; }
-        .ranking-wrapper {
-            position: relative;
-            background-color: var(--glass-bg); /* โทนขาวโปร่งแสง */
-            backdrop-filter: blur(var(--glass-blur));                  /* เอฟเฟกต์กระจกฝ้าละมุนๆ */
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            padding: 15px;
-            border-radius: 20px;
-            border: 1px solid var(--glass-border); /* ขอบขาวบางช่วยตัดเส้นขอบกระจกให้ดูมีมิติ */
-            box-shadow: none !important;                 /* 🙅‍♂️ ลบเงาออกเรียบร้อยแล้วงับ */
-            overflow: hidden;
-            margin: 0 12px;
+        /* หัวข้อ section: ตัวหนาซ้าย + View All ขวา */
+        .section-head {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 26px 20px 14px;
         }
-        .major-vote-scroll { display: flex; gap: 16px; overflow-x: auto; padding: 5px 5px 15px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .section-head h2 { margin: 0; font-size: 20px; font-weight: 700; color: #222; font-family: 'Quicksand', 'Kanit', sans-serif; }
+        .section-head a { font-size: 14px; color: #444; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+        .section-head a i { font-size: 12px; color: #888; }
+
+        /* 💰 การ์ดยอดคงเหลือ: โลโก้วงกลมใหญ่ + ชื่อเหรียญ + ตัวเลขใหญ่ เลื่อนซ้ายขวาได้ (Token / GE Token) */
+        .balance-scroll {
+            display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
+            padding: 4px 20px 16px; scrollbar-width: none;
+        }
+        .balance-scroll::-webkit-scrollbar { display: none; }
+        .balance-card {
+            flex: 0 0 86%; max-width: 420px; scroll-snap-align: center;
+            background: #fafafa radial-gradient(circle at 80% 20%, rgba(255,255,255,0.9) 0, transparent 40%);
+            border-radius: 16px; padding: 28px 22px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            display: flex; align-items: center; gap: 18px; min-width: 0;
+        }
+        .balance-logo {
+            width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 36px;
+        }
+        .balance-logo.logo-token { background: #fff1c9; color: #f59f00; }
+        .balance-logo.logo-getoken { background: #dcefff; color: #339af0; }
+        .balance-info { min-width: 0; }
+        .balance-label { font-size: 18px; font-weight: 700; color: #222; }
+        .balance-amount {
+            font-size: 40px; font-weight: 700; color: #111; line-height: 1.1; margin-top: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* 🧁 ปุ่ม Action วงกลมพาสเทล ไอคอนเส้นสีเข้ม */
+        .wallet-actions-container {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            margin: 22px 12px 4px;
+        }
+        .circle-action-btn {
+            display: flex; flex-direction: column; align-items: center;
+            background: none; border: none; text-decoration: none; cursor: pointer; padding: 0;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-tap-highlight-color: transparent; font-family: inherit;
+        }
+        .circle-action-btn:active { transform: scale(0.92); }
+        .circle-action-btn .circle-icon {
+            width: 62px; height: 62px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 22px; color: #333;
+        }
+        .btn-receive .circle-icon { background-color: #ddf5ec; }
+        .btn-redeem-code .circle-icon { background-color: #e0edfb; }
+        .btn-inventory .circle-icon { background-color: #fde9ec; }
+        .btn-history-log .circle-icon { background-color: #fdf1bf; }
+        .circle-action-btn .circle-label {
+            font-size: 13px; font-weight: 500; color: #333; margin-top: 10px;
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+        }
+
+        /* 🗳️ การ์ด Major Vote: รูปปกเต็มใบ + ป้ายวันสิ้นสุด/สถานะซ้อนบนรูป */
+        .major-vote-scroll {
+            display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory;
+            padding: 0 20px 16px; scroll-padding: 0 20px; scrollbar-width: none;
+        }
         .major-vote-scroll::-webkit-scrollbar { display: none; }
-        
         .major-vote-card {
-            min-width: 280px; max-width: 280px; background: var(--glass-bg-strong); border-radius: 20px;
-            backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
-            box-shadow: var(--glass-shadow); scroll-snap-align: start; overflow: hidden;
-            text-decoration: none; color: inherit; display: block; border: 1px solid var(--glass-border); transition: transform 0.2s, box-shadow 0.2s; position: relative;
+            flex: 0 0 76%; max-width: 380px; aspect-ratio: 16 / 9; scroll-snap-align: start;
+            border-radius: 16px; overflow: hidden; position: relative; display: block;
+            text-decoration: none; color: inherit; background: #ffeef2;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); transition: transform 0.2s;
         }
         .major-vote-card:active { transform: scale(0.97); }
-        
-        .card-image-wrapper {
-            position: relative; width: 100%; height: 155px; overflow: hidden;
-            background-color: #ffeef2; display: flex; align-items: center; justify-content: center;
-        }
-        .major-vote-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; position: relative; z-index: 2; }
-        
-        /* 🎨 สร้าง CSS เปล่าเป็นภาพสำรอง 100% ไม่ยิงลิงก์นอกเว็บเมื่อรูปจริงเสีย */
+        .major-vote-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; }
+
+        /* 🎨 ภาพสำรองด้วย CSS ล้วนเมื่อรูปปกเสีย (ไม่ยิงลิงก์นอกเว็บ) - โชว์ชื่อแคมเปญแทน */
         .image-fallback-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; inset: 0; z-index: 1; padding: 16px; text-align: center;
             background: linear-gradient(135deg, #ffeef2 0%, #ffd1dc 100%);
-            display: flex; align-items: center; justify-content: center; z-index: 1;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            color: #c2185b; font-weight: 600; font-size: 15px;
         }
-        .image-fallback-bg i { color: var(--primary-pink); font-size: 2.5rem; opacity: 0.5; }
-        
-        .status-badge-overlay { position: absolute; top: 12px; right: 12px; z-index: 5; }
-        .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .status-open { background: #e6f9ed; color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.2); }
-        .status-closed { background: #ffebee; color: #c62828; border: 1px solid rgba(198, 40, 40, 0.2); }
+        .image-fallback-bg i { color: var(--primary-pink); font-size: 2rem; opacity: 0.5; }
 
-        .major-vote-info { padding: 16px; background: transparent; position: relative; z-index: 3; }
-        .major-vote-title { font-weight: 600; font-size: 16px; margin: 0 0 6px 0; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .vote-method-badges { display: flex; gap: 5px; flex-wrap: wrap; }
-        .method-badge { font-size: 9.5px; font-weight: 700; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.3px; }
-        .method-badge.mb-token { background: #fff0f5; color: var(--primary-pink); }
-        .method-badge.mb-getoken { background: #e8f6fd; color: #2980b9; }
-        .method-badge.mb-gift { background: #fff8e6; color: #b8860b; }
-        .card-footer-action { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px dashed #f5f5f5; font-size: 12px; color: #888; }
-        .go-vote-btn { color: var(--blm-pink); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .card-overlay-top {
+            position: absolute; top: 10px; left: 10px; right: 10px; z-index: 5;
+            display: flex; justify-content: space-between; align-items: center; gap: 6px;
+        }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+        .status-open { background: #e6f9ed; color: #2e7d32; }
+        .status-closed { background: #ffebee; color: #c62828; }
+        .end-date-pill {
+            margin-left: auto; padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+            background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 11px; font-weight: 500;
+        }
         .loading-text { text-align: center; width: 100%; color: #999; padding: 40px 20px; font-size: 14px; }
-      
-      /* 🧁 โครงสร้างโซนปุ่ม Action วงกลมใต้กระเป๋าเงิน */
-.wallet-actions-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 24px;
-    row-gap: 16px;
-    margin-top: 20px;
-    margin-bottom: 15px;
-}
-
-.circle-action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: none;
-    border: none;
-    text-decoration: none;
-    cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    -webkit-tap-highlight-color: transparent;
-}
-
-.circle-action-btn:active {
-    transform: scale(0.92); /* เอฟเฟกต์ตอนกดแล้วยุบตัวนิด ๆ */
-}
-
-.circle-action-btn .circle-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%; /* บังคับวงกลมแท้ 100% */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
-    color: #ffffff;
-    transition: all 0.2s ease;
-}
-
-/* 🎟️ ปุ่ม Redeem Code (โทนสีชมพูพาสเทลหวาน ๆ เข้ากับธีมหลัก) */
-.btn-redeem-code .circle-icon {
-    background-color: #e6fcf5 !important; /* เขียวมิ้นท์อ่อนโปร่งแสง */
-    color: #20c997 !important;            /* ไอคอนสีมิ้นท์สดใส เข้มพอให้เห็นชัด */
-    box-shadow: 0 4px 12px rgba(32, 201, 151, 0.2);
-}
-
-/* 🎒 ปุ่ม Inventory (โทนสีฟ้าพาสเทลสดชื่น) */
-.btn-inventory .circle-icon {
-    background-color: #e7f5ff !important; /* ฟ้าอ่อนโปร่งแสง */
-    color: #4dabf7 !important;            /* ไอคอนสีฟ้าสด */
-    box-shadow: 0 4px 12px rgba(77, 171, 247, 0.2);
-}
-
-/* 📜 ปุ่ม History (โทนสีม่วงพาสเทลลาเวนเดอร์น่ารัก) */
-.btn-history-log .circle-icon {
-    background-color: #f3f0ff !important; /* ม่วงอ่อนโปร่งแสง */
-    color: #9775fa !important;            /* ไอคอนสีม่วงสด */
-    box-shadow: 0 4px 12px rgba(151, 117, 250, 0.2);
-}
-
-/* 👑 ปุ่ม Tier Info (โทนสีทอง ให้เข้าชุดกับ Membership Card) */
-.btn-tier-info .circle-icon {
-    background-color: #fdf6e3 !important; /* เหลืองทองอ่อนโปร่งแสง */
-    color: #cba034 !important;            /* ไอคอนสีทองเข้ม */
-    box-shadow: 0 4px 12px rgba(203, 160, 52, 0.25);
-}
-
-.circle-action-btn .circle-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #3a3a3a;
-    margin-top: 8px;
-    font-family: 'Quicksand', 'Kanit', sans-serif;
-}
-    /* 📥 ปุ่ม Receive (โทนสีเหลืองพาสเทล) */
-    .btn-receive .circle-icon {
-        background-color: #fff8d6 !important; /* เหลืองอ่อนโปร่งแสง */
-        color: #f5b041 !important;            /* ไอคอนสีเหลืองอมส้ม */
-        box-shadow: 0 4px 12px rgba(245, 176, 65, 0.2);
-    }
 
     /* 🧭 Bottom Tab Bar - Major Vote ได้เลื่อนมาเป็นหน้าเมนูหลัก (เดิมเป็นหน้าย่อยเข้าถึงผ่านไอคอนมงกุฎ ไม่มีแถบนี้)
        ก็อปปี้สไตล์เดียวกับหน้าเมนูหลักอื่นๆ (index/kami/notification/profile/shop) มาเป๊ะๆ เพื่อความสม่ำเสมอ */
@@ -316,64 +264,66 @@
     }
 
     </style>
-  <script src="assets/js/orientation-lock.js"></script>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
 <div class="top-navbar">
-    <div class="nav-left-actions">
-        <button class="nav-btn" id="refresh-btn" onclick="handleManualRefresh()" title="รีเฟรชข้อมูล">
-            <i class="fas fa-arrows-rotate"></i>
-        </button>
-    </div>
+    <button class="nav-btn" id="refresh-btn" onclick="handleManualRefresh()" title="รีเฟรชข้อมูล">
+        <i class="fas fa-arrows-rotate"></i>
+    </button>
 </div>
 
-    <div class="profile-wallet-card">
-        <div class="wallet-card-header"><i class="fas fa-wallet"></i> Available balance</div>
-        <div class="wallet-grid">
-            <div class="wallet-box">
-                <div class="wallet-value" style="color:#f59f00;"><i class="fas fa-coins"></i> <span id="token-balance">-</span></div>
-                <div class="wallet-title">Token</div>
+    <button class="tier-row" type="button" onclick="showTierBenefitsInfo()">
+        <i class="fas fa-crown tier-crown"></i>
+        <span class="tier-name"><span id="tier-name">Copper tier</span> <i class="fas fa-chevron-right"></i></span>
+    </button>
+
+    <div class="section-head">
+        <h2>Available balance</h2>
+        <a href="history">View All <i class="fas fa-chevron-right"></i></a>
+    </div>
+    <div class="balance-scroll">
+        <div class="balance-card">
+            <div class="balance-logo logo-token"><i class="fas fa-coins"></i></div>
+            <div class="balance-info">
+                <div class="balance-label">Token</div>
+                <div class="balance-amount" id="token-balance">-</div>
             </div>
-            <div class="wallet-box">
-                <div class="wallet-value" style="color:#4dabf7;"><i class="fas fa-gem"></i> <span id="getoken-balance">-</span></div>
-                <div class="wallet-title">GE Token</div>
+        </div>
+        <div class="balance-card">
+            <div class="balance-logo logo-getoken"><i class="fas fa-gem"></i></div>
+            <div class="balance-info">
+                <div class="balance-label">GE Token</div>
+                <div class="balance-amount" id="getoken-balance">-</div>
             </div>
         </div>
     </div>
-  
+
 <div class="wallet-actions-container">
     <button onclick="showReceiveCode()" class="circle-action-btn btn-receive" type="button">
         <div class="circle-icon"><i class="fas fa-qrcode"></i></div>
         <span class="circle-label">Receive</span>
     </button>
     <button onclick="window.location.href='redeem'" class="circle-action-btn btn-redeem-code" type="button">
-        <div class="circle-icon"><i class="fas fa-ticket-alt"></i></div>
+        <div class="circle-icon"><i class="fas fa-gift"></i></div>
         <span class="circle-label">Redeem</span>
     </button>
-    
     <a href="inventory" class="circle-action-btn btn-inventory">
         <div class="circle-icon"><i class="fas fa-briefcase"></i></div>
         <span class="circle-label">Inventory</span>
     </a>
-    
     <a href="history" class="circle-action-btn btn-history-log">
-        <div class="circle-icon"><i class="fas fa-history"></i></div>
+        <div class="circle-icon"><i class="far fa-clock"></i></div>
         <span class="circle-label">History</span>
     </a>
-
-    <button onclick="showTierBenefitsInfo()" class="circle-action-btn btn-tier-info" type="button">
-        <div class="circle-icon"><i class="fas fa-crown"></i></div>
-        <span class="circle-label">Tier</span>
-    </button>
 </div>
 
-    <div class="section-title"> Major Vote</div>
-    <div class="ranking-wrapper">
-        <div class="major-vote-scroll" id="vote-container">
-            <div class="loading-text">
-                <i class="fa-solid fa-spinner fa-spin"></i> Loading...
-            </div>
+    <div class="section-head">
+        <h2>Major vote</h2>
+    </div>
+    <div class="major-vote-scroll" id="vote-container">
+        <div class="loading-text">
+            <i class="fa-solid fa-spinner fa-spin"></i> Loading...
         </div>
     </div>
 
@@ -411,29 +361,27 @@
 <script>
     const APP_VERSION = '1.0.5';
 
-    // อ่านจากคอลัมน์ TokenType ของแคมเปญ (H): เว้นว่าง = เปิดรับทั้ง Token และ GE Token, ใส่ "Gift" = แคมเปญนี้ใช้ Gift ล้วนๆ ไม่มีโหวตด้วยเหรียญเลย
-    // และคอลัมน์ EnableGift (I) ที่ backend แปลงเป็น boolean ให้แล้ว
-    function getCampaignMethodBadges(camp) {
-        const tokenType = camp.TokenType ? camp.TokenType.toString().trim().toLowerCase() : '';
-        const badges = [];
-        if (tokenType === 'gift') {
-            // แคมเปญ Gift ล้วนๆ ไม่ต้องโชว์ badge Token/GE Token เลย
-        } else if (tokenType === 'getoken') {
-            badges.push({ label: 'GE Token', cls: 'mb-getoken' });
-        } else if (tokenType === 'token') {
-            badges.push({ label: 'Token', cls: 'mb-token' });
-        } else {
-            badges.push({ label: 'Token', cls: 'mb-token' });
-            badges.push({ label: 'GE Token', cls: 'mb-getoken' });
-        }
-        if (camp.EnableGift === true || camp.EnableGift === 'TRUE') {
-            badges.push({ label: 'Gift', cls: 'mb-gift' });
-        }
-        return badges;
+    // วันสิ้นสุดแคมเปญแบบ dd/mm/yyyy HH:MM สำหรับป้ายบนการ์ด Major Vote
+    function formatEndDate(endTime) {
+        if (!endTime) return '';
+        const d = new Date(endTime);
+        if (isNaN(d.getTime())) return '';
+        const pad = n => String(n).padStart(2, '0');
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
-    function buildMethodBadgesHtml(badges) {
-        return badges.map(b => `<span class="method-badge ${b.cls}">${b.label}</span>`).join('');
+    // 👑 ชื่อ Tier บนแถวมงกุฎ: Member ได้ "Member" เสมอ, user ได้ Copper/Silver/Gold ตาม Fan Score
+    async function loadMembershipTier() {
+        const el = document.getElementById('tier-name');
+        if (!el) return;
+        const sessionUser = getUserSession();
+        if (sessionUser && sessionUser.role && sessionUser.role.toUpperCase().trim() === 'MEMBER') { el.textContent = 'Member'; return; }
+        try {
+            const res = await blm48GetMembershipTier(username);
+            if (res && res.status === 'success' && res.tier) {
+                el.textContent = res.tier.charAt(0).toUpperCase() + res.tier.slice(1) + ' tier';
+            }
+        } catch (e) { /* คงค่าเริ่มต้น Copper tier */ }
     }
 
     function checkAppVersion() {
@@ -460,7 +408,7 @@
         loadChampThemeSubPage(); // 🎨 ไอคอน nav-bar ธีมแชมป์ประจำเดือน (เพิ่มมาพร้อม bottom-tab-bar ของหน้านี้)
         loadTabProfileImg(); // 🖼️ รูปโปรไฟล์ผู้ใช้ในแท็บ Profile
 
-        await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns()]);
+        await Promise.all([loadUserBalancesRealTime(), loadVoteCampaigns(), loadMembershipTier()]);
     }
 
     // ==========================================
@@ -634,30 +582,18 @@
 
             const hasValidImage = coverImgUrl && coverImgUrl.trim() !== "" && !coverImgUrl.includes("placeholder");
             const imageSrc = hasValidImage ? coverImgUrl : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-            const methodBadges = getCampaignMethodBadges(camp);
+            const endDateText = formatEndDate(camp.EndTime);
 
             const cardHtml = `
-                <a href="majorvote_detail?id=${encodeURIComponent(camp.VoteCollectionID)}&status=${encodeURIComponent(status.toLowerCase())}" class="major-vote-card">
-                    <div class="card-image-wrapper">
-                        <div class="image-fallback-bg">
-                            <i class="fa-solid fa-star"></i>
-                        </div>
-                        <div class="status-badge-overlay">
-                            <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}">
-                            ${isOpen ? 'OPEN' : 'CLOSED'}
-                            </span>
-                        </div>
-                        <img src="${imageSrc}" alt="Vote" style="${hasValidImage ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none';">
+                <a href="majorvote_detail?id=${encodeURIComponent(camp.VoteCollectionID)}&status=${encodeURIComponent(status.toLowerCase())}" class="major-vote-card" aria-label="${escapeHtml(camp.Title || 'Major Vote')}">
+                    <div class="image-fallback-bg">
+                        <i class="fa-solid fa-star"></i>
+                        <span>${escapeHtml(camp.Title || 'Coming Soon')}</span>
                     </div>
-                    <div class="major-vote-info">
-                        <h4 class="major-vote-title">${escapeHtml(camp.Title || 'Coming Soon')}</h4>
-                        <div class="vote-method-badges">${buildMethodBadgesHtml(methodBadges)}</div>
-                        <div class="card-footer-action">
-                            <span>${isOpen ? 'Voting Now' : 'สิ้นสุดกิจกรรมโหวตแล้ว'}</span>
-                            <span class="go-vote-btn">
-                                ${isOpen ? 'Vote' : 'Ranking'} <i class="fa-solid fa-chevron-right"></i>
-                            </span>
-                        </div>
+                    <img src="${imageSrc}" alt="${escapeHtml(camp.Title || 'Vote')}" style="${hasValidImage ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none';">
+                    <div class="card-overlay-top">
+                        <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</span>
+                        ${endDateText ? `<span class="end-date-pill">End date: ${endDateText}</span>` : ''}
                     </div>
                 </a>
             `;

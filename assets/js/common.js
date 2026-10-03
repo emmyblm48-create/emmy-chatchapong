@@ -1102,3 +1102,41 @@ function blm48UnlockBodyScroll() {
   if (__blm48ScrollLockCount === 0) document.body.style.overflow = '';
 }
 document.addEventListener("DOMContentLoaded", applyGroupTheme);
+
+// =========================================================================
+// 🌟 Special Fans Day: นับวันของเดือน (Countdown เดือน) - โชว์สัปดาห์ปัจจุบันของเดือน
+// วันที่ผ่านแล้ว = ✓, วันนี้ = 🍪, วันที่ยังไม่ถึง = เลขวันที่ (เวลาไทย)
+// ใช้ร่วมกัน index.html (เหนือ Member Ranking) และ specialfansday.html - สไตล์อยู่ใน glassmorphism.css
+// =========================================================================
+function buildSpecialFansDaysHtml() {
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const today = now.getDate();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const currentWeekNumber = Math.ceil(today / 7);
+  const startDay = ((currentWeekNumber - 1) * 7) + 1;
+  const endDay = Math.min(startDay + 6, daysInMonth);
+
+  let daysHtml = '';
+  for (let day = startDay; day <= endDay; day++) {
+    let statusClass = 'future';
+    let content = day;
+    if (day < today) {
+      statusClass = 'checked';
+      content = '<i class="fas fa-check"></i>';
+    } else if (day === today) {
+      statusClass = 'current';
+      content = '<i class="fas fa-cookie-bite"></i>';
+    }
+    daysHtml += `
+      <div class="day-item">
+        <div class="day-circle ${statusClass}">${content}</div>
+        <span class="day-date">${day} ${MONTHS[month]}</span>
+      </div>
+    `;
+  }
+  return `<div class="week-block"><div class="days-row">${daysHtml}</div></div>`;
+}

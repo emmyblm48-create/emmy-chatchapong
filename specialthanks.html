@@ -294,7 +294,6 @@
             display: block;
         }
     </style>
-  <script src="assets/js/orientation-lock.js"></script>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
@@ -357,6 +356,12 @@
 
             // 3. แสดงผลข้อมูลของเมมเบอร์ตาม Index ที่ส่งมา ล็อคเป้าหมายคนนี้ไว้คนเดียวอย่างปลอดภัย
             if (champData) {
+                // 💌 ถ้า Special Thanks ของแชมป์คนนี้เป็นโพสต์จริง -> เปิดเป็นโพสต์เลย (replace เพื่อให้กดย้อนกลับไปหน้าเดิมได้ตรงๆ)
+                // ถ้าไม่มีโพสต์ ค่อยโชว์หน้า Special Thanks แบบเดิม
+                if (champData.postId) {
+                    window.location.replace(`postdetail?id=${encodeURIComponent(champData.postId)}`);
+                    return;
+                }
                 renderSpecialThanks(champData);
             } else {
                 showError("ไม่พบข้อมูลเกียรติยศของเมมเบอร์คนดังกล่าวในทำเนียบแชมป์ค่ะ");

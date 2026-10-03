@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 Membership | ภารกิจ & เช็คอิน</title>
+    <link class="brand-favicon" rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root { --primary-pink: #ff85a2; --blm-light-pink: #fff0f5; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; color: #4a4a4a; margin: 0; padding: 0; }
+        .swal2-container { z-index: 100000 !important; }
+
+        /* 📡 Top Navbar (เหมือน champ.html / specialfansday.html) */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur-lg));
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .nav-back-btn {
+            color: var(--primary-pink); font-size: 1.1rem; text-decoration: none;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; background: var(--blm-light-pink);
+        }
+        .nav-title { font-weight: 600; font-size: 1.2rem; color: var(--primary-pink); letter-spacing: 0.5px; }
+        .nav-spacer { width: 35px; }
+
+        .main-container {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 76px 12px 40px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* ===== ภารกิจประจำวัน (ย้ายมาจากป๊อปอัปใน index.html) ===== */
+  .mission-card {
+    background: #ffffff;
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    width: 100%;
+    padding: 22px 20px 20px 20px;
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: var(--glass-shadow-lg);
+  }
+  .mission-card-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--primary-pink, #ff85a2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .mission-card-subtitle {
+    font-size: 0.78rem;
+    color: #999;
+    margin-bottom: 16px;
+  }
+  .mission-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f5e6ea;
+  }
+  .mission-item:last-of-type { border-bottom: none; }
+  .mission-item-icon {
+    flex: 0 0 auto;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #fff0f3;
+    color: var(--primary-pink, #ff85a2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .mission-item.done .mission-item-icon {
+    background: #e8fbe8;
+    color: #3cb371;
+  }
+  .mission-item-body { flex: 1 1 auto; min-width: 0; }
+  .mission-item-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+  }
+  .mission-progress-bar {
+    height: 6px;
+    background: #f5e6ea;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .mission-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff9db1, var(--primary-pink, #ff85a2));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .mission-item-count {
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 4px;
+  }
+  .mission-item-check {
+    flex: 0 0 auto;
+    color: #3cb371;
+    font-size: 1.2rem;
+    display: none;
+  }
+  .mission-item.done .mission-item-check { display: block; }
+  #mission-claim-btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 13px;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #ffb6c1, var(--primary-pink, #ff85a2));
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(255,133,162,0.35);
+  }
+  #mission-claim-btn i { font-size: 1.05rem; }
+  #mission-claim-btn.claimable {
+    background: linear-gradient(135deg, #7ee08c, #3cb371);
+    box-shadow: 0 6px 14px rgba(60,179,113,0.35);
+  }
+  #mission-claim-btn:disabled {
+    background: #eee;
+    color: #aaa;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+        /* ===== เช็คอินรายเดือน (ย้ายมาจากป๊อปอัปใน index.html) ===== */
+  .streak-rescue-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #fff5f7; border-radius: 14px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: 0.82rem; color: #666;
+  }
+  .streak-rescue-row b { color: var(--primary-pink, #ff85a2); }
+  .streak-calendar-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 8px;
+  }
+  .streak-day {
+    aspect-ratio: 1 / 1; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; position: relative; background: #f5f5f5; color: #bbb;
+  }
+  .streak-day.present { background: linear-gradient(135deg, #ffb6c1, var(--primary-pink, #ff85a2)); color: #fff; }
+  .streak-day.rescued { background: linear-gradient(135deg, #ffe08a, #ffc247); color: #fff; }
+  .streak-day.missed { background: #fff0f0; color: #ff8a8a; cursor: pointer; }
+  .streak-day.missed.can-rescue:active { transform: scale(0.92); }
+  .streak-day.future { background: #f8f8f8; color: #ccc; }
+  .streak-day i { font-size: 0.7rem; }
+  #streak-claim-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 13px;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #eee;
+    color: #aaa;
+    box-shadow: none;
+  }
+  #streak-claim-btn.claimable {
+    background: linear-gradient(135deg, #7ee08c, #3cb371);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(60,179,113,0.35);
+    cursor: pointer;
+  }
+  #streak-claim-btn:disabled { cursor: not-allowed; }
+
+    </style>
+</head>
+<body class="glass-mesh-bg force-white-bg">
+
+    <div class="top-navbar">
+        <a href="index" class="nav-back-btn"><i class="fas fa-chevron-left"></i></a>
+        <div class="nav-title">ภารกิจ & เช็คอิน</div>
+        <div class="nav-spacer"></div>
+    </div>
+
+    <div class="main-container">
+        <!-- 🎯 ภารกิจประจำวัน -->
+        <div class="mission-card">
+            <div class="mission-card-title"><i class="fas fa-list-check"></i> ภารกิจประจำวัน</div>
+            <div class="mission-card-subtitle">ทำภารกิจครบ รับ 5 Tokens ฟรี! รีเซ็ตในอีก <span id="mission-countdown">--:--:--</span></div>
+            <div id="mission-item-list"><div style="text-align:center;color:#aaa;padding:20px 0;">กำลังโหลด...</div></div>
+            <button id="mission-claim-btn" disabled onclick="claimDailyMissionReward()">ทำภารกิจให้ครบก่อนนะ</button>
+        </div>
+
+        <!-- 📅 เช็คอินรายเดือน -->
+        <div class="mission-card">
+            <div class="mission-card-title"><i class="fas fa-calendar-check"></i> เช็คอินรายเดือน</div>
+            <div class="mission-card-subtitle" id="streak-subtitle">เช็คอินให้ครบทุกวันในเดือนนี้ รับ 100 Tokens เลย!</div>
+            <div class="streak-rescue-row">
+                <span><i class="fas fa-heart-circle-bolt"></i> สิทธิ์กู้วันที่พลาด</span>
+                <b id="streak-rescue-count">2/2</b>
+            </div>
+            <div class="streak-calendar-grid" id="streak-calendar-grid"><div style="grid-column: 1 / -1; text-align:center;color:#aaa;padding:20px 0;">กำลังโหลด...</div></div>
+            <button id="streak-claim-btn" disabled onclick="claimLoginStreakReward()">เช็คอินให้ครบเดือนก่อนนะ</button>
+        </div>
+    </div>
+
+<script>
+// 🎯 ภารกิจประจำวัน + 📅 เช็คอินรายเดือน (ย้ายมาจากป๊อปอัปใน index.html - ฟังก์ชัน render/claim/rescue ชุดเดิม)
+// ภารกิจ: get_daily_missions เลือกชุดตาม role ให้เอง ห้าม hardcode เป้าหมาย / เช็คอิน: record_daily_login + get_login_streak_status
+let user = null;
+let dailyMissionData = null;
+let loginStreakData = null;
+const MISSION_META = {
+  cookie:  { icon: 'fa-cookie-bite',   label: (p, t) => `ให้คุกกี้เมมเบอร์รวม ${t} Cookies` },
+  like:    { icon: 'fa-heart',         label: (p, t) => `กดใจโพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` },
+  comment: { icon: 'fa-comment-dots',  label: (p, t) => `คอมเมนต์โพสของเดือนนี้ ${t} โพส (ต่างโพสกัน)` },
+  post:    { icon: 'fa-pen-to-square', label: (p, t) => `โพสอัปเดตประจำวัน ${t} โพส` }
+};
+
+// หลังรับรางวัล: ดึงยอดกระเป๋าล่าสุดเก็บลง session (หน้า Home จะโชว์ยอดใหม่ทันทีที่กลับไป)
+async function syncUserData() {
+  if (!user || !user.username) return;
+  try {
+    const wallet = await blm48GetWallet(user.username);
+    if (wallet && wallet.token !== undefined) {
+      user.token = wallet.token;
+      user.cookie = wallet.cookie;
+      user.geToken = wallet.geToken;
+      saveUserSession(user);
+    }
+  } catch (e) { console.error('syncUserData error:', e); }
+}
+
+async function loadDailyMissions() {
+  if (!user || !user.username) return null;
+  try {
+    const res = await blm48GetDailyMissions(user.username);
+    if (res && res.status === 'success') {
+      dailyMissionData = res;
+      const badge = document.getElementById('mission-badge');
+      if (badge) badge.style.display = (res.allDone && !res.claimed) ? 'block' : 'none';
+    }
+    return dailyMissionData;
+  } catch (e) {
+    console.error('loadDailyMissions error:', e);
+    return null;
+  }
+}
+
+function renderDailyMissionsModal() {
+  const list = document.getElementById('mission-item-list');
+  const btn = document.getElementById('mission-claim-btn');
+  if (!list || !btn || !dailyMissionData) return;
+
+  if (!dailyMissionData.missions || dailyMissionData.missions.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px 0;">บัญชีนี้ยังไม่มีภารกิจประจำวันค่ะ</div>';
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.textContent = 'ไม่มีภารกิจ';
+    return;
+  }
+
+  list.innerHTML = dailyMissionData.missions.map(m => {
+    const meta = MISSION_META[m.key];
+    const pct = Math.min(100, Math.round((m.progress / m.target) * 100));
+    return `
+      <div class="mission-item ${m.done ? 'done' : ''}">
+        <div class="mission-item-icon"><i class="fas ${meta.icon}"></i></div>
+        <div class="mission-item-body">
+          <div class="mission-item-text">${escapeHtml(meta.label(m.progress, m.target))}</div>
+          <div class="mission-progress-bar"><div class="mission-progress-fill" style="width:${pct}%;"></div></div>
+          <div class="mission-item-count">${m.progress}/${m.target}</div>
+        </div>
+        <div class="mission-item-check"><i class="fas fa-circle-check"></i></div>
+      </div>`;
+  }).join('');
+
+  if (dailyMissionData.claimed) {
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.innerHTML = '<i class="fas fa-circle-check"></i> รับของรางวัลวันนี้แล้ว';
+  } else if (dailyMissionData.allDone) {
+    btn.disabled = false;
+    btn.classList.add('claimable');
+    btn.innerHTML = `<i class="fas fa-gift"></i> ${dailyMissionData.reward} Tokens`;
+  } else {
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.textContent = 'ทำภารกิจให้ครบก่อนนะ';
+  }
+}
+
+function msUntilNextBangkokMidnight() {
+  const bkkNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+  const nextMidnight = new Date(bkkNow);
+  nextMidnight.setHours(24, 0, 0, 0);
+  return nextMidnight - bkkNow;
+}
+
+function tickMissionCountdown() {
+  const el = document.getElementById('mission-countdown');
+  if (!el) return;
+  const totalSec = Math.max(0, Math.floor(msUntilNextBangkokMidnight() / 1000));
+  const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSec % 60).padStart(2, '0');
+  el.textContent = `${h}:${m}:${s}`;
+}
+
+async function claimDailyMissionReward() {
+  if (!user || !user.username) return;
+  const btn = document.getElementById('mission-claim-btn');
+  if (btn) btn.disabled = true;
+  Swal.fire({ title: 'กำลังรับของรางวัล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  try {
+    const res = await blm48ClaimDailyMissionReward(user.username);
+    if (res && res.status === 'success') {
+      await syncUserData();
+      await loadDailyMissions();
+      renderDailyMissionsModal();
+      Swal.fire('ทำรายการสำเร็จ', res.message, 'success');
+    } else {
+      Swal.fire('ทำรายการไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
+      renderDailyMissionsModal();
+    }
+  } catch (e) {
+    console.error('claimDailyMissionReward error:', e);
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+  }
+}
+
+async function loadLoginStreakStatus() {
+  if (!user || !user.username) return null;
+  try {
+    const res = await blm48GetLoginStreakStatus(user.username);
+    if (res && res.status !== 'error') {
+      loginStreakData = res;
+      const badge = document.getElementById('streak-badge');
+      if (badge) badge.style.display = (res.canClaim && !res.alreadyClaimed) ? 'block' : 'none';
+    }
+    return loginStreakData;
+  } catch (e) {
+    console.error('loadLoginStreakStatus error:', e);
+    return null;
+  }
+}
+
+function renderLoginStreakModal() {
+  const grid = document.getElementById('streak-calendar-grid');
+  const btn = document.getElementById('streak-claim-btn');
+  const rescueCountEl = document.getElementById('streak-rescue-count');
+  const subtitleEl = document.getElementById('streak-subtitle');
+  if (!grid || !btn || !loginStreakData) return;
+
+  const days = Array.isArray(loginStreakData.days) ? loginStreakData.days : [];
+  grid.innerHTML = days.map(d => {
+    const canRescue = d.status === 'missed' && loginStreakData.rescuesRemaining > 0 && !loginStreakData.rescueUsedToday;
+    let icon = d.day;
+    if (d.status === 'present') icon = '<i class="fas fa-check"></i>';
+    else if (d.status === 'rescued') icon = '<i class="fas fa-heart-circle-bolt"></i>';
+    else if (d.status === 'missed') icon = canRescue ? '<i class="fas fa-rotate-left"></i>' : '<i class="fas fa-xmark"></i>';
+    const clickAttr = canRescue ? `onclick="useLoginRescue('${d.date}')"` : '';
+    return `<div class="streak-day ${d.status} ${canRescue ? 'can-rescue' : ''}" ${clickAttr} title="${d.date}">${icon}</div>`;
+  }).join('');
+
+  rescueCountEl.textContent = `${loginStreakData.rescuesRemaining}/2`;
+
+  if (loginStreakData.alreadyClaimed) {
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.innerHTML = '<i class="fas fa-circle-check"></i> รับของรางวัลเดือนนี้แล้ว';
+    subtitleEl.textContent = `เช็คอินครบเดือนนี้แล้ว รับ 100 Tokens ไปเรียบร้อย!`;
+  } else if (loginStreakData.canClaim) {
+    btn.disabled = false;
+    btn.classList.add('claimable');
+    btn.innerHTML = `<i class="fas fa-gift"></i> รับ 100 Tokens`;
+    subtitleEl.textContent = `เช็คอินครบทุกวันแล้ว! กดรับของรางวัลได้เลย`;
+  } else {
+    btn.disabled = true;
+    btn.classList.remove('claimable');
+    btn.textContent = 'เช็คอินให้ครบเดือนก่อนนะ';
+    subtitleEl.textContent = `เช็คอินแล้ว ${loginStreakData.presentCount}/${loginStreakData.daysInMonth} วัน • ครบเดือนรับ 100 Tokens เลย!`;
+  }
+}
+
+async function useLoginRescue(dateStr) {
+  if (!user || !user.username) return;
+  const result = await Swal.fire({
+    title: 'กู้วันที่พลาดเช็คอิน?',
+    html: `ใช้สิทธิ์กู้ 1 ครั้ง เพื่อกู้วันที่ <b>${dateStr}</b> คืนมา`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: 'var(--primary-pink)',
+    confirmButtonText: 'ใช้สิทธิ์กู้',
+    cancelButtonText: 'ยกเลิก'
+  });
+  if (!result.isConfirmed) return;
+
+  Swal.fire({ title: 'กำลังกู้วันที่...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  try {
+    const res = await blm48UseLoginRescue(user.username, dateStr);
+    if (res && res.status === 'success') {
+      await loadLoginStreakStatus();
+      renderLoginStreakModal();
+      Swal.fire('สำเร็จ!', res.message, 'success');
+    } else {
+      Swal.fire('ทำรายการไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
+    }
+  } catch (e) {
+    console.error('useLoginRescue error:', e);
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+  }
+}
+
+async function claimLoginStreakReward() {
+  if (!user || !user.username) return;
+  const btn = document.getElementById('streak-claim-btn');
+  if (btn) btn.disabled = true;
+  Swal.fire({ title: 'กำลังรับของรางวัล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  try {
+    const res = await blm48ClaimLoginMonthlyReward(user.username);
+    if (res && res.status === 'success') {
+      await syncUserData();
+      await loadLoginStreakStatus();
+      renderLoginStreakModal();
+      Swal.fire('ทำรายการสำเร็จ', res.message, 'success');
+    } else {
+      Swal.fire('ทำรายการไม่สำเร็จ', (res && res.message) || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', 'error');
+      renderLoginStreakModal();
+    }
+  } catch (e) {
+    console.error('claimLoginStreakReward error:', e);
+    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  user = getUserSession();
+  if (!user || !user.username) { window.location.replace('login'); return; }
+
+  tickMissionCountdown();
+  setInterval(tickMissionCountdown, 1000);
+
+  // บันทึกเช็คอินวันนี้ก่อน (เผื่อเปิดหน้านี้ตรงๆ โดยไม่ผ่าน Home) แล้วค่อยโหลดสถานะทั้งสองส่วนพร้อมกัน
+  try { await blm48RecordDailyLogin(user.username); } catch (e) { console.error('blm48RecordDailyLogin error:', e); }
+  await Promise.all([
+    loadDailyMissions().then(renderDailyMissionsModal),
+    loadLoginStreakStatus().then(renderLoginStreakModal)
+  ]);
+});
+</script>
+</body>
+</html>

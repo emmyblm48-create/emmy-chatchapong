@@ -478,3 +478,91 @@ body.glass-mesh-bg.force-white-bg {
     padding-right: 12px !important;
   }
 }
+
+/* =========================================================================
+   🌟 Special Fans Day / นับวันของเดือน: สัปดาห์ปัจจุบันของเดือน (วันที่ผ่านแล้ว ✓, วันนี้ 🍪)
+   ใช้ร่วมกัน index.html + specialfansday.html (markup จาก buildSpecialFansDaysHtml ใน common.js)
+   ========================================================================= */
+  .week-block {
+    width: 100%;
+  }
+
+  .week-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #ffa8b6;
+    margin-bottom: 15px;
+    text-align: center;
+    width: max-content;
+  }
+
+  .days-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    position: relative;
+  }
+  .days-row::before {
+  content: '';
+  position: absolute;
+  top: 19px; 
+  left: 7.14%;           /* 👈 เส้นจะเริ่มจากกึ่งกลางวงกลมวงแรกเป๊ะๆ ทุกหน้าจอ */
+  right: 7.14%;          /* 👈 เส้นจะไปจบที่กึ่งกลางวงกลมวงสุดท้ายเป๊ะๆ ทุกหน้าจอ */
+  height: 3px;           /* ความหนาของเส้นเชื่อม */
+  background: #ffb3c1; 
+  z-index: 0;         
+  }
+
+  .day-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;               /* 👈 เฉลี่ยให้ทุกวันกว้างเท่ากัน 7 ช่อง */
+  position: relative;
+  z-index: 1;
+  }
+
+  /* 🌟 2. เพิ่มคลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
+  .day-date {
+  font-size: 11px;
+  color: #a0a0a0;
+  margin-top: 6px;
+  font-weight: 600;
+  text-align: center;
+  }
+    
+  .day-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 0.3s ease;
+  }
+
+  .day-circle.checked {
+    background: #ffb3c1;
+    color: white;
+    box-shadow: 0 2px 5px rgba(255, 179, 193, 0.5);
+  }
+
+  .day-circle.current {
+    background: #fff0f3;
+    color: #d2691e;
+    border: 2px solid #ffb3c1;
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(255, 179, 193, 0.4);
+    z-index: 1;
+  }
+
+  .day-circle.future {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+  color: #adb5bd;
+  border: 2px dashed #e0e0e0;
+  box-sizing: border-box;
+  }
