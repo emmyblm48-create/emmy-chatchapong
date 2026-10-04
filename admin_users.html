@@ -99,6 +99,7 @@
         table.sheet tbody tr:nth-child(even) { background: #fafbfc; }
         table.sheet tbody tr:hover { background: #fff2f5; }
         td.num { text-align: right; font-family: 'Quicksand', 'Kanit', sans-serif; font-variant-numeric: tabular-nums; }
+        td.wallet-code { font-variant-numeric: tabular-nums; letter-spacing: 0.5px; white-space: nowrap; color: #555; }
         .name-cell { display: flex; align-items: center; gap: 8px; }
         .name-cell img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
         .role-chip { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 8px; text-transform: uppercase; }
@@ -139,7 +140,7 @@
         </div>
 
         <div class="toolbar">
-            <input id="users-search" class="search-input" type="text" placeholder="ค้นหาชื่อหรือ Username...">
+            <input id="users-search" class="search-input" type="text" placeholder="ค้นหาชื่อ, Username หรือ Wallet Code...">
             <div class="result-count" id="result-count"></div>
             <div class="live-indicator" id="live-indicator"><span class="live-dot"></span> เรียลไทม์</div>
         </div>
@@ -150,6 +151,7 @@
                     <tr>
                         <th data-key="name">ชื่อ / Username <i class="fa-solid fa-sort sort-icon"></i></th>
                         <th data-key="role">Role <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="walletCode">Wallet Code <i class="fa-solid fa-sort sort-icon"></i></th>
                         <th data-key="token">Token <i class="fa-solid fa-sort sort-icon"></i></th>
                         <th data-key="cookie">Cookie <i class="fa-solid fa-sort sort-icon"></i></th>
                         <th data-key="geToken">GE Token <i class="fa-solid fa-sort sort-icon"></i></th>
@@ -159,7 +161,7 @@
                     </tr>
                 </thead>
                 <tbody id="users-tbody">
-                    <tr><td colspan="8"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div></td></tr>
+                    <tr><td colspan="9"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div></td></tr>
                 </tbody>
             </table>
         </div>
@@ -203,18 +205,18 @@
   async function loadUsers(isBackgroundRefresh) {
     const tbody = document.getElementById('users-tbody');
     if (!isBackgroundRefresh) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div></td></tr>`;
     }
     try {
       const res = await blm48AdminGetUsersOverview(user.username);
       if (res.status !== 'success') {
-        if (!isBackgroundRefresh) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div></td></tr>`;
+        if (!isBackgroundRefresh) tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div></td></tr>`;
         return;
       }
       usersCache = res.data || [];
       renderTable();
     } catch (e) {
-      if (!isBackgroundRefresh) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div></td></tr>`;
+      if (!isBackgroundRefresh) tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div></td></tr>`;
     }
   }
 
@@ -227,7 +229,8 @@
     if (q) {
       rows = rows.filter(u =>
         (u.name || '').toLowerCase().includes(q) ||
-        (u.username || '').toLowerCase().includes(q)
+        (u.username || '').toLowerCase().includes(q) ||
+        (u.walletCode ? 'blm-' + u.walletCode : '').includes(q)
       );
     }
 
@@ -237,6 +240,9 @@
         av = (a.name || a.username || '').toLowerCase();
         bv = (b.name || b.username || '').toLowerCase();
         return av.localeCompare(bv, 'th') * sortDir;
+      }
+      if (sortKey === 'walletCode') {
+        return (a.walletCode || '').localeCompare(b.walletCode || '') * sortDir;
       }
       if (sortKey === 'role') {
         av = (a.role || '').toLowerCase();
@@ -249,7 +255,7 @@
     resultCount.textContent = `${rows.length.toLocaleString()} / ${usersCache.length.toLocaleString()} บัญชี`;
 
     if (rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบผู้ใช้งาน</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบผู้ใช้งาน</div></td></tr>`;
       return;
     }
 
@@ -266,6 +272,7 @@
             </div>
           </td>
           <td><span class="role-chip ${roleChipClass(u.role)}">${escapeHtml(u.role || '')}</span></td>
+          <td class="wallet-code">${u.walletCode ? 'BLM-' + escapeHtml(u.walletCode) : '-'}</td>
           <td class="num">${Number(u.token || 0).toLocaleString()}</td>
           <td class="num">${Number(u.cookie || 0).toLocaleString()}</td>
           <td class="num">${Number(u.geToken || 0).toLocaleString()}</td>

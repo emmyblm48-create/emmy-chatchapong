@@ -561,6 +561,11 @@ function blm48AdminLookupUser(adminUsername, targetUsername) {
 function blm48AdminTransferWallet(adminUsername, targetUsername, token, cookie, geToken) {
   return blm48Rpc('admin_transfer_wallet', { p_admin_username: adminUsername, p_target_username: targetUsername, p_token: token, p_cookie: cookie, p_ge_token: geToken });
 }
+// Wallet Code (user_wallets table) - every account's permanent 10-digit code, shown on
+// my_wallet.html (Receive) and the admin pages. Transfers themselves still go by username.
+function blm48GetMyWallet(username) {
+  return blm48Rpc('get_my_wallet', { p_username: username });
+}
 // Global audit log of every admin's wallet transfers (newest first), used by the "ประวัติการโอน" list.
 function blm48AdminGetTransferHistory(adminUsername, limit) {
   return blm48Rpc('admin_get_transfer_history', { p_admin_username: adminUsername, p_limit: limit || 100 });

@@ -103,6 +103,8 @@
         .transfer-list .t-label { color: #999; margin-bottom: 4px; font-size: 12.5px; }
         .transfer-list div.item { padding: 2px 0; color: #333; font-weight: 600; }
 
+        .my-balance { background: #fffbea; border: 1px solid #ffe8a3; border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; }
+        .my-balance .t-label { color: #b8860b; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
         #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
@@ -126,11 +128,20 @@
     <div id="page-content">
         <div class="header-title-zone">
             <h1><i class="fa-solid fa-money-bill-transfer"></i> โอนเงินในระบบ</h1>
-            <p>โอน Token / Cookie / GEToken ให้ User หรือ Member</p>
+            <p>โอน Token / Cookie / GEToken จากบัญชีของคุณให้ User หรือ Member (หักจากยอดของคุณจริง)</p>
         </div>
 
         <div class="form-card" id="form-step">
             <div id="form-msg" class="form-msg"></div>
+
+            <div class="my-balance">
+                <div class="t-label">ยอดของคุณ (ผู้โอน)</div>
+                <div class="balance-line" style="margin-bottom:0;">
+                    <span><i class="fas fa-coins" style="color:#f59f00;"></i> <span class="my-token">-</span></span>
+                    <span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> <span class="my-cookie">-</span></span>
+                    <span><i class="fas fa-gem" style="color:#4dabf7;"></i> <span class="my-getoken">-</span></span>
+                </div>
+            </div>
 
             <div class="form-field">
                 <label>Username ผู้รับ (User หรือ Member เท่านั้น)</label>
@@ -168,8 +179,16 @@
                 <span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> <span id="cf-cur-cookie"></span></span>
                 <span><i class="fas fa-gem" style="color:#4dabf7;"></i> <span id="cf-cur-getoken"></span></span>
             </div>
+            <div class="my-balance">
+                <div class="t-label">ยอดของคุณก่อนโอน (จะถูกหักตามรายการด้านล่าง)</div>
+                <div class="balance-line" style="margin-bottom:0;">
+                    <span><i class="fas fa-coins" style="color:#f59f00;"></i> <span class="my-token">-</span></span>
+                    <span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> <span class="my-cookie">-</span></span>
+                    <span><i class="fas fa-gem" style="color:#4dabf7;"></i> <span class="my-getoken">-</span></span>
+                </div>
+            </div>
             <div class="transfer-list">
-                <div class="t-label">จะโอนให้เพิ่ม:</div>
+                <div class="t-label">จะโอนให้เพิ่ม (หักจากบัญชีคุณ):</div>
                 <div id="cf-transfer-items"></div>
             </div>
             <button class="btn-primary" id="confirm-btn" onclick="confirmTransfer()" style="margin-top:14px;">
@@ -185,6 +204,22 @@
 <script>
   let user = null;
   let pendingTransfer = null;
+  let myBalance = null;
+
+  // ยอดของแอดมินผู้โอน - การโอนหักจากบัญชีนี้จริง
+  function renderMyBalance() {
+    if (!myBalance) return;
+    const fmt = v => Number(v || 0).toLocaleString();
+    document.querySelectorAll('.my-token').forEach(el => el.textContent = fmt(myBalance.token));
+    document.querySelectorAll('.my-cookie').forEach(el => el.textContent = fmt(myBalance.cookie));
+    document.querySelectorAll('.my-getoken').forEach(el => el.textContent = fmt(myBalance.geToken));
+  }
+  async function loadMyBalance() {
+    try {
+      const w = await blm48GetWallet(user.username);
+      if (w && w.token !== undefined) { myBalance = { token: Number(w.token) || 0, cookie: Number(w.cookie) || 0, geToken: Number(w.geToken) || 0 }; renderMyBalance(); }
+    } catch (e) { console.error('โหลดยอดของแอดมินไม่สำเร็จ:', e); }
+  }
 
   function goBack() {
     if (document.referrer && window.history.length > 1) {
@@ -231,6 +266,14 @@
     if (!uname) { showFormError('กรุณากรอก Username ผู้รับ'); return; }
     if (token < 0 || cookie < 0 || getoken < 0) { showFormError('จำนวนต้องไม่ติดลบ'); return; }
     if (token === 0 && cookie === 0 && getoken === 0) { showFormError('กรุณากรอกจำนวนที่ต้องการโอนอย่างน้อย 1 ช่อง'); return; }
+    if (uname === user.username) { showFormError('ไม่สามารถโอนให้บัญชีตัวเองได้'); return; }
+    if (myBalance) {
+      const short = [];
+      if (token > myBalance.token) short.push('Token');
+      if (cookie > myBalance.cookie) short.push('Cookie');
+      if (getoken > myBalance.geToken) short.push('GEToken');
+      if (short.length) { showFormError('ยอดในบัญชีของคุณไม่พอ: ' + short.join(', ')); return; }
+    }
 
     const btn = document.getElementById('lookup-btn');
     btn.disabled = true;
@@ -275,7 +318,7 @@
 
     const confirmResult = await Swal.fire({
       title: 'ยืนยันการโอน',
-      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะได้รับตามรายการที่ระบุค่ะ`,
+      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะได้รับตามรายการที่ระบุ และยอดจะถูกหักจากบัญชีของคุณค่ะ`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: 'var(--primary-pink)',
@@ -288,6 +331,7 @@
     try {
       const res = await blm48AdminTransferWallet(user.username, target.username, token, cookie, getoken);
       if (res.status === 'success') {
+        if (res.adminBalance) { myBalance = { token: Number(res.adminBalance.token) || 0, cookie: Number(res.adminBalance.cookie) || 0, geToken: Number(res.adminBalance.geToken) || 0 }; renderMyBalance(); }
         await generateTransferSlip({ admin: user.username, adminName: user.name || user.username, adminAvatar: user.profile_img, target: res.data, token, cookie, getoken, refNo: res.refNo, createdAt: res.createdAt });
         document.getElementById('tr-username').value = '';
         document.getElementById('tr-token').value = 0;
@@ -313,6 +357,7 @@
       return;
     }
     document.getElementById('page-content').style.display = 'block';
+    loadMyBalance();
   });
 </script>
 </body>

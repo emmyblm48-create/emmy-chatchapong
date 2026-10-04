@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 | My Wallet</title>
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: #222; margin: 0; padding: 0; padding-top: 60px;
+        }
+        body.glass-mesh-bg { background-color: #ffffff; background-image: none; }
+
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: #ffffff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .top-navbar .back-btn {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: #333; font-size: 20px; cursor: pointer;
+        }
+        .top-navbar h1 { margin: 0; font-size: 17px; font-weight: 600; color: #222; }
+
+        .page-wrapper {
+            max-width: 420px; margin: 0 auto; padding: 42px 12px 120px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* การ์ด QR + รูปโปรไฟล์ลอยทับขอบบน (แบบ My Wallet ของแอปออฟฟิเชียล) */
+        .qr-card {
+            position: relative; width: 100%; max-width: 310px;
+            background: #fff; border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            padding: 66px 20px 16px; margin-top: 50px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .qr-avatar {
+            position: absolute; top: -52px; left: 50%; transform: translateX(-50%);
+            width: 104px; height: 104px; border-radius: 50%;
+            border: 3px solid #ffc107; background: #fff; object-fit: cover;
+        }
+        #qr-box { width: 156px; height: 156px; display: flex; align-items: center; justify-content: center; }
+        #qr-box img, #qr-box canvas { width: 156px !important; height: 156px !important; image-rendering: pixelated; }
+        .qr-hint { margin-top: 18px; font-size: 13px; font-weight: 600; color: #666; }
+
+        .code-row {
+            width: 100%; max-width: 310px; margin-top: 18px;
+            display: flex; border: 1px solid #333; border-radius: 4px; overflow: hidden;
+        }
+        .code-row .code-text {
+            flex: 1; min-width: 0; padding: 10px 8px; font-size: 14px; font-weight: 700; color: #222;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+        }
+        .code-row button {
+            flex: 0 0 auto; border: none; border-left: 1px solid #333; background: #ffc107; color: #333;
+            padding: 0 16px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+
+        .share-bar {
+            position: fixed; left: 0; right: 0; bottom: 0;
+            padding: 12px 12px calc(16px + env(safe-area-inset-bottom)); background: #fff;
+            display: flex; justify-content: center;
+        }
+        .share-bar button {
+            width: 100%; max-width: 520px; border: none; border-radius: 30px; padding: 14px;
+            background: #ffc107; color: #222; font-family: inherit; font-size: 16px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+        }
+        .share-bar button:disabled { opacity: 0.6; cursor: default; }
+    </style>
+</head>
+<body class="glass-mesh-bg">
+
+<div class="top-navbar">
+    <button class="back-btn" type="button" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
+    <h1>My Wallet</h1>
+</div>
+
+<div class="page-wrapper">
+    <div class="qr-card">
+        <img class="qr-avatar" id="wallet-avatar" alt="" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000">
+        <div id="qr-box"><i class="fa-solid fa-spinner fa-spin" style="color:#ccc;font-size:22px;"></i></div>
+        <div class="qr-hint">Scan QR code to transfer</div>
+    </div>
+
+    <div class="code-row">
+        <div class="code-text">Wallet Code: <span id="wallet-code">-</span></div>
+        <button type="button" id="copy-btn" onclick="copyWalletCode()">Copy</button>
+    </div>
+</div>
+
+<div class="share-bar">
+    <button type="button" id="share-btn" onclick="shareWalletCode()" disabled>
+        <i class="fas fa-share-nodes"></i> Share My Code
+    </button>
+</div>
+
+<script>
+    const username = getUsernameFromSession();
+    const WALLET_CACHE_KEY = 'bnl_my_wallet_code_' + username;
+    let walletCode = '';
+
+    function goBack() {
+        if (document.referrer && history.length > 1) history.back();
+        else window.location.href = 'majorvote';
+    }
+
+    function showWallet(code, profileImg) {
+        if (!code) return;
+        walletCode = code;
+        document.getElementById('wallet-code').textContent = 'BLM-' + code;
+        document.getElementById('share-btn').disabled = false;
+        if (profileImg) document.getElementById('wallet-avatar').src = typeof getImg === 'function' ? getImg(profileImg) : profileImg;
+
+        // QR เก็บ "BLM-" + เลข 10 หลัก - หน้าโอนของแอดมินตัดทุกอย่างที่ไม่ใช่ตัวเลขออกก่อนค้นหาผู้รับ
+        const box = document.getElementById('qr-box');
+        box.innerHTML = '';
+        new QRCode(box, { text: 'BLM-' + code, width: 312, height: 312, correctLevel: QRCode.CorrectLevel.M });
+        box.removeAttribute('title');
+    }
+
+    async function loadWallet() {
+        const session = getUserSession();
+        try {
+            const cached = JSON.parse(localStorage.getItem(WALLET_CACHE_KEY) || 'null');
+            if (cached) showWallet(cached.walletCode, cached.profile_img || (session && session.profile_img));
+        } catch (e) {}
+
+        try {
+            const res = await blm48GetMyWallet(username);
+            if (res && res.status === 'success' && res.data) {
+                if (res.data.walletCode !== walletCode) showWallet(res.data.walletCode, res.data.profile_img);
+                else if (res.data.profile_img) document.getElementById('wallet-avatar').src = typeof getImg === 'function' ? getImg(res.data.profile_img) : res.data.profile_img;
+                localStorage.setItem(WALLET_CACHE_KEY, JSON.stringify(res.data));
+            } else if (!walletCode) {
+                Swal.fire('เกิดข้อผิดพลาด', (res && res.message) || 'ไม่สามารถโหลด Wallet Code ได้', 'error');
+            }
+        } catch (e) {
+            if (!walletCode) Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+        }
+    }
+
+    async function copyText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch (e) {
+            // สำรองสำหรับเบราว์เซอร์/WebView ที่ไม่อนุญาต clipboard API
+            const ta = document.createElement('textarea');
+            ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch (err) {}
+            ta.remove();
+            return ok;
+        }
+    }
+
+    async function copyWalletCode() {
+        if (!walletCode) return;
+        const btn = document.getElementById('copy-btn');
+        if (await copyText('BLM-' + walletCode)) {
+            btn.textContent = 'Copied';
+            setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+        }
+    }
+
+    async function shareWalletCode() {
+        if (!walletCode) return;
+        const text = `My BLM48 Wallet Code: BLM-${walletCode}`;
+        if (navigator.share) {
+            try { await navigator.share({ title: 'BLM48 My Wallet', text }); } catch (e) { /* ผู้ใช้กดยกเลิก */ }
+            return;
+        }
+        if (await copyText(text)) {
+            Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'Copied Wallet Code', showConfirmButton: false, timer: 1600 });
+        }
+    }
+
+    if (!username) {
+        alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
+        window.location.href = 'login';
+    } else {
+        loadWallet();
+    }
+</script>
+</body>
+</html>
