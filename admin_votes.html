@@ -72,6 +72,19 @@
             padding: 14px; box-shadow: var(--glass-shadow-sm);
         }
         .cc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+
+        /* รูปกิจกรรม (รูปปก 2:1 แบบหน้าโหวตฝั่งผู้ใช้) */
+        .cc-cover { position: relative; width: 100%; aspect-ratio: 2 / 1; border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff8e1 0%, #ffe9a8 100%); }
+        .cc-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .cc-cover-empty { position: absolute; inset: 0; border: 1.5px dashed #ffd36b; border-radius: 12px; background: #fffbf0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+            color: #a07800; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; }
+        .cc-cover-empty i { font-size: 22px; color: #f59f00; }
+        .cc-cover-btn { position: absolute; right: 8px; bottom: 8px; border: none; border-radius: 16px; padding: 6px 12px;
+            background: rgba(0,0,0,0.55); color: #fff; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .cc-cover.uploading::after { content: "กำลังอัปโหลด..."; position: absolute; inset: 0; background: rgba(255,255,255,0.8);
+            display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #666; }
         .cc-title { font-weight: 700; font-size: 15px; color: #333; }
         .cc-id { font-size: 11px; color: #aaa; margin-top: 2px; word-break: break-all; }
         .status-pill { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
@@ -377,6 +390,13 @@
       const modeBtn = (m) => `<button type="button" class="mode-btn ${m} ${d.mechanic === m ? 'active' : ''}" onclick="setMode(${i}, '${m}')">${MODE_LABELS[m]}</button>`;
       return `
         <div class="campaign-card">
+          <div class="cc-cover" id="cc-cover-${i}">
+            ${c.coverImage
+              ? `<img src="${escapeAttr(fixCoverUrl(c.coverImage))}" alt="${escapeAttr(c.title || '')}" onerror="this.style.display='none'">
+                 <button type="button" class="cc-cover-btn" onclick="pickEventCover(${i})"><i class="fa-solid fa-camera"></i> เปลี่ยนรูป</button>`
+              : `<button type="button" class="cc-cover-empty" onclick="pickEventCover(${i})"><i class="fa-solid fa-image"></i> แนบรูปกิจกรรม</button>`}
+            <input type="file" id="cc-cover-file-${i}" accept="image/*" style="display:none;" onchange="uploadEventCover(${i}, this)">
+          </div>
           <div class="cc-head">
             <div style="min-width:0;">
               <div class="cc-title">${escapeHtml(c.title || c.voteCollectionId)}</div>
@@ -411,6 +431,40 @@
         </div>
       `;
     }).join('');
+  }
+
+  // ลิงก์ Google Drive เก่าใช้เป็นรูปตรงๆ ไม่ได้ -> แปลงเป็นลิงก์รูป (แบบเดียวกับ majorvote_detail.html)
+  function fixCoverUrl(url) {
+    let u = String(url || '').trim();
+    if (u.includes('googleusercontent.com')) return u;
+    if (u.startsWith('http://')) u = u.replace('http://', 'https://');
+    const m = u.includes('drive.google.com') && u.match(/\/d\/([^/]+)/);
+    return m ? `https://docs.google.com/uc?export=view&id=${m[1]}` : u;
+  }
+
+  function pickEventCover(i) {
+    document.getElementById('cc-cover-file-' + i).click();
+  }
+
+  // แนบ/เปลี่ยนรูปกิจกรรม: อัปโหลดเข้า Storage แล้วบันทึก URL ลงกิจกรรมทันที
+  async function uploadEventCover(i, input) {
+    const file = input.files && input.files[0];
+    input.value = '';
+    const c = campaignCache[i];
+    if (!c || !validImageFile(file)) return;
+    const box = document.getElementById('cc-cover-' + i);
+    box.classList.add('uploading');
+    try {
+      const url = await blm48UploadPostImage(user.username, file);
+      const res = await blm48AdminUpdateVoteCover(user.username, c.voteCollectionId, url);
+      if (!res || res.status !== 'success') throw new Error((res && res.message) || 'บันทึกรูปไม่สำเร็จ');
+      c.coverImage = url;
+      renderCampaigns();
+    } catch (e) {
+      console.error('Upload event cover error:', e);
+      box.classList.remove('uploading');
+      Swal.fire('เปลี่ยนรูปไม่สำเร็จ', e.message || 'กรุณาลองใหม่อีกครั้ง', 'error');
+    }
   }
 
   function setMode(i, mechanic) {

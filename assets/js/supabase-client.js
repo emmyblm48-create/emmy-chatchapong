@@ -679,6 +679,9 @@ function blm48AdminCreateVoteEvent(adminUsername, ev) {
     p_candidates: ev.candidates, p_checkpoints: ev.checkpoints || null
   });
 }
+function blm48AdminUpdateVoteCover(adminUsername, collectionId, coverImage) {
+  return blm48Rpc('admin_update_vote_cover', { p_admin_username: adminUsername, p_collection_id: collectionId, p_cover_image: coverImage });
+}
 // ผลด่วน: อันดับคะแนน ณ เวลาที่ตั้งไว้ เก็บหลังบ้านเท่านั้น (แอดมินดูย้อนหลังได้ หน้าบ้านไม่แสดง)
 function blm48AdminListVoteCheckpoints(adminUsername, collectionId) {
   return blm48Rpc('admin_list_vote_checkpoints', { p_admin_username: adminUsername, p_collection_id: collectionId });
