@@ -71,6 +71,8 @@
         .poll-head h2 { margin: 0; font-size: 20px; font-weight: 700; color: #111; }
         .poll-badge { display: inline-flex; align-items: center; gap: 4px; background: #ffd75e; color: #333; font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 6px; }
         .poll-badge i { font-size: 11px; }
+        .poll-badge.mech-lock { background: #cfe8ff; color: #1c5d99; }
+        .poll-badge.mech-partial { background: #ffe1c2; color: #8a4b00; }
         .poll-chevron { margin-left: auto; font-size: 16px; color: #333; transition: transform 0.2s; }
         .poll-head.open { border-bottom-color: transparent; }
         .poll-head.open .poll-chevron { transform: rotate(180deg); }
@@ -196,13 +198,13 @@
     <!-- Poll detail: กดแถวนี้เพื่อกาง/พับรายละเอียดกิจกรรม -->
     <div class="poll-head" id="poll-head" onclick="togglePollDetail()">
         <h2>Poll detail</h2>
-        <span class="poll-badge"><i class="fa-solid fa-circle-exclamation"></i> Burned</span>
+        <span class="poll-badge" id="pd-badge"><i class="fa-solid fa-circle-exclamation"></i> <span id="pd-badge-text">Burned</span></span>
         <i class="fa-solid fa-chevron-down poll-chevron"></i>
     </div>
     <div class="poll-detail" id="poll-detail" style="display: none;">
         <div><b>Poll name:</b> <span id="pd-name">-</span></div>
         <div><b>Token:</b> <span id="pd-token">-</span></div>
-        <div><b>Token mechanic:</b> Burned (Your token will be permanently deducted)</div>
+        <div><b>Token mechanic:</b> <span id="pd-mechanic">Burned (Your token will be permanently deducted)</span></div>
         <div><b>End date:</b> <span id="pd-end">-</span></div>
         <div><b>Minimum token per vote:</b> <span id="pd-min">1 token</span></div>
         <div class="pd-desc-label"><b>Description:</b></div>
@@ -335,7 +337,7 @@
 
     async function initDetailPage() {
         if (!campaignId) {
-            Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสกิจกรรมแคมเปญโหวตในระบบ', 'error').then(() => window.history.back());
+            Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสกิจกรรมโหวตในระบบ', 'error').then(() => window.history.back());
             return;
         }
         renderWalletStrip();
@@ -401,11 +403,51 @@
         return 'Token';
     }
 
-    // เติมแบนเนอร์ + กล่อง Poll detail จากข้อมูลแคมเปญ (VoteCollectionID/Title/Description/CoverImage/EndTime/TokenType)
+    // โหมด Token ของแคมเปญ: burn = หักถาวร, lock = ได้คืนครบเมื่อปิดโหวต, partial = ได้คืนบางส่วนตาม refundPercent
+    let campaignMechanic = 'burn';
+    let campaignRefundPercent = 0;
+
+    function normalizeMechanic(m) {
+        const t = String(m || '').trim().toLowerCase();
+        return (t === 'lock' || t === 'partial') ? t : 'burn';
+    }
+
+    function getMechanicInfo(mechanic, refundPercent) {
+        const pct = Number(refundPercent) || 0;
+        if (mechanic === 'lock') return {
+            badge: 'Locked', cls: 'mech-lock',
+            detail: 'Locked (Your token will be fully returned when the poll closes)',
+            confirmNote: 'โหวตแบบ Locked: Token จะถูกล็อกไว้และได้คืนครบ 100% เมื่อปิดโหวต'
+        };
+        if (mechanic === 'partial') return {
+            badge: 'Partially Burned', cls: 'mech-partial',
+            detail: `Partially Burned (${pct}% of your token will be returned when the poll closes)`,
+            confirmNote: `โหวตแบบ Partially Burned: ได้คืน ${pct}% เมื่อปิดโหวต ส่วนที่เหลือจะถูกหักถาวร`
+        };
+        return {
+            badge: 'Burned', cls: '',
+            detail: 'Burned (Your token will be permanently deducted)',
+            confirmNote: 'โหวตแบบ Burned: Token จะถูกหักถาวร ไม่ได้คืน'
+        };
+    }
+
+    function applyMechanicHeader(mechanic, refundPercent) {
+        campaignMechanic = normalizeMechanic(mechanic);
+        campaignRefundPercent = Number(refundPercent) || 0;
+        const info = getMechanicInfo(campaignMechanic, campaignRefundPercent);
+        const badge = document.getElementById('pd-badge');
+        badge.classList.remove('mech-lock', 'mech-partial');
+        if (info.cls) badge.classList.add(info.cls);
+        document.getElementById('pd-badge-text').textContent = info.badge;
+        document.getElementById('pd-mechanic').textContent = info.detail;
+    }
+
+    // เติมแบนเนอร์ + กล่อง Poll detail จากข้อมูลแคมเปญ (VoteCollectionID/Title/Description/CoverImage/EndTime/TokenType/TokenMechanic)
     function applyCampaignHeader(camp) {
         campaignTitle = camp.Title || 'Major Vote';
         document.getElementById('pd-name').textContent = campaignTitle;
         document.getElementById('pd-token').textContent = getPollTokenLabel(camp.TokenType);
+        applyMechanicHeader(camp.TokenMechanic, camp.RefundPercent);
         document.getElementById('pd-end').textContent = formatPollEndDate(camp.EndTime);
         document.getElementById('campaign-desc').textContent = camp.Description || 'ร่วมส่งคะแนนโหวตให้กับผู้สมัครที่คุณชื่นชอบ';
         if (camp.CoverImage) {
@@ -434,7 +476,8 @@
             if (!c) return;
             applyCampaignHeader({
                 Title: c.title, Description: c.description, CoverImage: c.coverImage,
-                EndTime: c.endTime, TokenType: c.tokenType
+                EndTime: c.endTime, TokenType: c.tokenType,
+                TokenMechanic: c.tokenMechanic, RefundPercent: c.refundPercent
             });
         }).catch(e => console.error("Campaign Header Fetch Error:", e));
     }
@@ -501,7 +544,7 @@
 
         const list = activeGroup === 'All' ? votingCandidates : votingCandidates.filter(m => getCandidateGroup(m.MemberName) === activeGroup);
         if (list.length === 0) {
-            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px;">ไม่มีข้อมูลผู้สมัครในแคมเปญโหวตนี้</div>`;
+            container.innerHTML = `<div style="text-align:center; color:#999; padding:20px;">ไม่มีข้อมูลผู้สมัครในกิจกรรมโหวตนี้</div>`;
             return;
         }
 
@@ -619,7 +662,7 @@
 
         Swal.fire({
             title: `ยืนยันการลงคะแนนโหวตให้ ${candidateName}`,
-            text: `ลงคะแนนโดยใช้ ${tokenLabel} (ยอดคงเหลือ ${balance.toLocaleString()})`,
+            text: `ลงคะแนนโดยใช้ ${tokenLabel} (ยอดคงเหลือ ${balance.toLocaleString()}) — ${getMechanicInfo(campaignMechanic, campaignRefundPercent).confirmNote}`,
             input: 'number',
             inputAttributes: { min: 1, step: 1 },
             showCancelButton: true,
@@ -658,6 +701,12 @@
             if (res.status === "success") {
                 // เช็กชนิดของ Token เพื่อแสดงคำให้ถูกต้อง (ถ้าหลังบ้านไม่ส่งมาให้ใช้ชนิดที่เราส่งไปเป็นค่าเริ่มต้น)
                 const usedTokenType = res.tokenType ? res.tokenType : tokenType;
+                const usedMechanic = normalizeMechanic(res.tokenMechanic || campaignMechanic);
+                const refundNote = usedMechanic === 'lock'
+                    ? ' (Locked: จะได้คืนครบเมื่อปิดโหวต)'
+                    : usedMechanic === 'partial'
+                        ? ` (Partially Burned: จะได้คืน ${Number(res.refundPercent ?? campaignRefundPercent) || 0}% เมื่อปิดโหวต)`
+                        : '';
 
                 // อัปเดตยอดคงเหลือใน session ให้ตรงกับหลังบ้านทันที
                 try {
@@ -677,7 +726,7 @@
                 if (res.thankYouCard && res.thankYouCard.trim() !== "") {
                     Swal.fire({
                         title: 'การลงคะแนนโหวตสำเร็จ',
-                        text: `ระบบได้ทำการหัก ${usedTokenType} และลงคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว`,
+                        text: `ระบบได้ทำการหัก ${usedTokenType} และลงคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว${refundNote}`,
                         imageUrl: fixSecureImageUrl(res.thankYouCard),
                         imageWidth: 280,
                         imageAlt: 'Thank You Card',
@@ -688,7 +737,7 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'ดำเนินการลงคะแนนโหวตสำเร็จ',
-                        text: `ระบบได้ทำการหัก ${usedTokenType} และบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว`,
+                        text: `ระบบได้ทำการหัก ${usedTokenType} และบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว${refundNote}`,
                         confirmButtonText: 'ตกลง',
                         confirmButtonColor: 'var(--primary-pink)'
                     });

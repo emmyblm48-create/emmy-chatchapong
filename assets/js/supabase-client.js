@@ -646,6 +646,49 @@ function blm48AdminGetStockSummary(adminUsername) {
 
 // Redeem Code management (admin.html "จัดการโค้ด Redeem") - one code can now carry several
 // reward rows at once (e.g. Token + Cookie together), stored in the code_rewards table.
+// 🔒 PIN 6 หลักของแอดมินแต่ละคน สำหรับหน้าที่ล็อกไว้ (เช่น admin_votes) + ประวัติการเข้าหน้า
+function blm48AdminPinStatus(adminUsername) {
+  return blm48Rpc('admin_pin_status', { p_admin_username: adminUsername });
+}
+function blm48AdminSetPin(adminUsername, pin, page, device) {
+  return blm48Rpc('admin_set_pin', { p_admin_username: adminUsername, p_pin: pin, p_page: page, p_device: device });
+}
+function blm48AdminVerifyPin(adminUsername, pin, page, device) {
+  return blm48Rpc('admin_verify_pin', { p_admin_username: adminUsername, p_pin: pin, p_page: page, p_device: device });
+}
+function blm48AdminListPageAccessLogs(adminUsername, page, limit) {
+  return blm48Rpc('admin_list_page_access_logs', { p_admin_username: adminUsername, p_page: page || null, p_limit: limit || 200 });
+}
+
+// Major Vote: โหมด Token (burn/lock/partial) + % คืน + เปิด/ปิดโหวต (ปิดแล้วระบบคืน Token อัตโนมัติ)
+function blm48AdminListVoteCampaigns(adminUsername) {
+  return blm48Rpc('admin_list_vote_campaigns', { p_admin_username: adminUsername });
+}
+function blm48AdminUpdateVoteCampaign(adminUsername, collectionId, tokenMechanic, refundPercent, status) {
+  return blm48Rpc('admin_update_vote_campaign', { p_admin_username: adminUsername, p_collection_id: collectionId, p_token_mechanic: tokenMechanic, p_refund_percent: refundPercent, p_status: status });
+}
+// สร้างกิจกรรมโหวตใหม่ (แยกจากแคมเปญคุกกี้) - candidates: [{ name, profile, thankYouCard }]
+function blm48AdminListVoteMembers(adminUsername) {
+  return blm48Rpc('admin_list_vote_members', { p_admin_username: adminUsername });
+}
+function blm48AdminCreateVoteEvent(adminUsername, ev) {
+  return blm48Rpc('admin_create_vote_event', {
+    p_admin_username: adminUsername, p_title: ev.title, p_description: ev.description, p_cover_image: ev.coverImage,
+    p_start_time: ev.startTime, p_end_time: ev.endTime, p_status: ev.status,
+    p_token_type: ev.tokenType, p_enable_gift: ev.enableGift, p_token_mechanic: ev.tokenMechanic, p_refund_percent: ev.refundPercent,
+    p_candidates: ev.candidates, p_checkpoints: ev.checkpoints || null
+  });
+}
+// ผลด่วน: อันดับคะแนน ณ เวลาที่ตั้งไว้ เก็บหลังบ้านเท่านั้น (แอดมินดูย้อนหลังได้ หน้าบ้านไม่แสดง)
+function blm48AdminListVoteCheckpoints(adminUsername, collectionId) {
+  return blm48Rpc('admin_list_vote_checkpoints', { p_admin_username: adminUsername, p_collection_id: collectionId });
+}
+function blm48AdminAddVoteCheckpoint(adminUsername, collectionId, scheduledAt, label) {
+  return blm48Rpc('admin_add_vote_checkpoint', { p_admin_username: adminUsername, p_collection_id: collectionId, p_scheduled_at: scheduledAt, p_label: label || null });
+}
+function blm48AdminDeleteVoteCheckpoint(adminUsername, checkpointId) {
+  return blm48Rpc('admin_delete_vote_checkpoint', { p_admin_username: adminUsername, p_checkpoint_id: checkpointId });
+}
 function blm48AdminListCodes(adminUsername) {
   return blm48Rpc('admin_list_codes', { p_admin_username: adminUsername });
 }

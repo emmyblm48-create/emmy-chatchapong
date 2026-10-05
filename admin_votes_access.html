@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | ประวัติการเข้าหน้า</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/admin-pin.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; min-height: 100vh; }
+        .top-navigation-bar { display: flex; align-items: center; }
+        .back-circle-btn { cursor: pointer; }
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding-top: 18px; padding-bottom: 50px; }
+
+        .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .filter-tab { flex: 0 0 auto; padding: 8px 16px; border-radius: 14px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; }
+
+        .day-title { font-size: 13px; font-weight: 600; color: #999; margin: 18px 4px 8px; }
+        .day-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); padding: 2px 14px; }
+        .log-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px dashed #f1f1f1; }
+        .log-row:last-child { border-bottom: none; }
+        .log-avatar { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid #ffc107; }
+        .log-body { flex: 1; min-width: 0; }
+        .log-name { font-size: 14px; font-weight: 600; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .log-name span { font-size: 12px; color: #aaa; font-weight: 500; }
+        .log-meta { font-size: 11.5px; color: #999; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .log-side { flex: 0 0 auto; text-align: right; }
+        .log-time { font-size: 13px; font-weight: 700; color: #333; }
+        .log-badge { display: inline-block; margin-top: 3px; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .b-enter { background: #e6f9ee; color: #1f9d55; }
+        .b-wrong { background: #ffeef0; color: #ff4d6d; }
+        .b-locked { background: #ff4d6d; color: #fff; }
+        .b-set { background: #fff4cc; color: #8a6d00; }
+
+        .empty-state { text-align: center; color: #bbb; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">ประวัติการเข้าหน้า</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="header-title-zone">
+            <p>ใครเข้าหน้าจัดการกิจกรรมโหวตเมื่อไหร่ รวมถึงการใส่ PIN ผิด (แสดง 500 รายการล่าสุด)</p>
+        </div>
+
+        <div class="filter-tabs" id="filter-tabs">
+            <button type="button" class="filter-tab active" data-f="all">ทั้งหมด</button>
+            <button type="button" class="filter-tab" data-f="enter">เข้าหน้าสำเร็จ</button>
+            <button type="button" class="filter-tab" data-f="fail">PIN ผิด / ถูกล็อก</button>
+        </div>
+
+        <div id="log-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let logs = [];
+  let filter = 'all';
+  const PIN_PAGES = ['admin_votes', 'admin_vote_results', 'admin_votes_access'];
+  const PAGE_LABELS = { admin_votes: 'จัดการกิจกรรมโหวต', admin_vote_results: 'ผลด่วน', admin_votes_access: 'ประวัติการเข้าหน้า' };
+  const RESULT_BADGES = {
+    enter: ['b-enter', 'เข้าหน้า'],
+    wrong_pin: ['b-wrong', 'PIN ผิด'],
+    locked: ['b-locked', 'ถูกล็อก 15 นาที'],
+    set_pin: ['b-set', 'ตั้ง PIN']
+  };
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'admin_votes';
+  }
+
+  function bkk(ts, opts) { return new Date(ts).toLocaleString('th-TH', Object.assign({ timeZone: 'Asia/Bangkok' }, opts)); }
+
+  async function loadLogs() {
+    const box = document.getElementById('log-list');
+    try {
+      const res = await blm48AdminListPageAccessLogs(user.username, null, 500);
+      if (!res || res.status !== 'success') { box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
+      logs = (res.data || []).filter(l => PIN_PAGES.includes(l.page));
+      render();
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function render() {
+    const box = document.getElementById('log-list');
+    const list = logs.filter(l => filter === 'all' || (filter === 'enter' ? l.result === 'enter' : (l.result === 'wrong_pin' || l.result === 'locked')));
+    if (list.length === 0) {
+      box.innerHTML = `<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i>ยังไม่มีประวัติ</div>`;
+      return;
+    }
+    // จัดกลุ่มตามวัน (เวลาไทย)
+    const days = [];
+    list.forEach(l => {
+      const day = bkk(l.createdAt, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      if (!days.length || days[days.length - 1].day !== day) days.push({ day, items: [] });
+      days[days.length - 1].items.push(l);
+    });
+    box.innerHTML = days.map(d => `
+      <div class="day-title">${escapeHtml(d.day)}</div>
+      <div class="day-card">
+        ${d.items.map(l => {
+          const badge = RESULT_BADGES[l.result] || ['b-set', l.result];
+          return `
+            <div class="log-row">
+              <img class="log-avatar" src="${escapeAttr(l.avatar || '')}" alt="" onerror="this.style.visibility='hidden'">
+              <div class="log-body">
+                <div class="log-name">${escapeHtml(l.name || l.username)} <span>@${escapeHtml(l.username)}</span></div>
+                <div class="log-meta">${escapeHtml(PAGE_LABELS[l.page] || l.page)}${l.device ? ' · ' + escapeHtml(l.device) : ''}</div>
+              </div>
+              <div class="log-side">
+                <div class="log-time">${escapeHtml(bkk(l.createdAt, { hour: '2-digit', minute: '2-digit', second: '2-digit' }))}</div>
+                <span class="log-badge ${badge[0]}">${escapeHtml(badge[1])}</span>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`).join('');
+  }
+
+  document.getElementById('filter-tabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-tab');
+    if (!btn) return;
+    filter = btn.dataset.f;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t === btn));
+    render();
+  });
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    await blm48RequireAdminPin(user, { page: 'admin_votes_access', cancelUrl: 'admin' });
+    document.getElementById('page-content').style.display = 'block';
+    loadLogs();
+  });
+</script>
+</body>
+</html>

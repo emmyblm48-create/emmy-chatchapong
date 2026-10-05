@@ -1,0 +1,224 @@
+/* =========================================================
+   Admin theme — ให้หน้า Admin ทุกหน้าหน้าตาเหมือนแอปฝั่งผู้ใช้
+   (พื้นขาวเรียบ, การ์ดขาวเงาบาง, แถบบนสีขาวชื่อหน้าตรงกลาง, ปุ่มหลักสีเหลือง BLM48)
+   โหลดไฟล์นี้ "หลัง" <style> ของแต่ละหน้า เพื่อทับสไตล์ glass/ชมพูเดิม
+   ค่าสี/ขนาดอ้างอิงจาก profile.html (การ์ด, เมนู) และ my_wallet.html (แถบบน, ปุ่มเหลือง)
+   ========================================================= */
+
+:root {
+    /* การ์ด glass เดิม -> การ์ดขาวทึบ เงาบางแบบแอปฝั่งผู้ใช้ */
+    --glass-bg: #ffffff;
+    --glass-bg-strong: #ffffff;
+    --glass-bg-soft: #ffffff;
+    --glass-border: #f1f1f1;
+    --glass-border-soft: #f4f4f4;
+    --glass-blur: 0px;
+    --glass-blur-sm: 0px;
+    --glass-blur-lg: 0px;
+    --glass-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    --glass-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.04);
+    --glass-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+    /* สีหลักของแอป: เหลือง BLM48 + ตัวอักษรเข้ม; ชมพูเหลือไว้ใช้เป็นสีเน้นเล็กๆ (badge) เหมือนหน้าโปรไฟล์ */
+    --admin-yellow: #ffc107;
+    --admin-yellow-soft: #fff8e1;
+    --admin-yellow-border: #ffe08a;
+    --admin-amber: #f59f00;
+    --admin-text: #222;
+    --admin-muted: #999;
+    --admin-pink: #ff6b8b;
+
+    /* ตัวแปรเดิมที่หน้า Admin ใช้กันทุกหน้า -> สีโทนแอป */
+    --primary-pink: var(--admin-amber);
+    --soft-pink: var(--admin-yellow-soft);
+    --card-border: #f1f1f1;
+    --text-dark: var(--admin-text);
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+body, body.glass-mesh-bg {
+    font-family: 'Quicksand', 'Kanit', sans-serif;
+    background: #ffffff !important;
+    background-image: none !important;
+    color: var(--admin-text);
+}
+
+/* ---------- แถบบน: เหมือน .top-navbar ของแอป ---------- */
+.top-navigation-bar {
+    position: sticky; top: 0; z-index: 1000;
+    height: 60px; padding: 0 56px;
+    display: flex; align-items: center; justify-content: center;
+    background: #ffffff;
+    border-bottom: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.back-circle-btn {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; box-shadow: none;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    color: #333; font-size: 20px; cursor: pointer;
+}
+.back-circle-btn:hover { background: none; color: #333; transform: translateY(-50%); }
+/* ปุ่มเสริมบนแถบ (เช่น รีเฟรช) -> ไอคอนชิดขวา เหมือนปุ่มย้อนกลับ ชื่อหน้าจะได้อยู่ตรงกลางพอดี */
+.top-navigation-bar .refresh-btn {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    width: 38px; height: 38px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: none !important; border: none !important; box-shadow: none !important;
+    color: #333 !important; font-size: 0 !important; cursor: pointer;
+}
+.top-navigation-bar .refresh-btn i { font-size: 18px; margin: 0; }
+.top-bar-title {
+    font-family: 'Quicksand', 'Kanit', sans-serif;
+    font-size: 17px; font-weight: 600; color: var(--admin-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---------- เนื้อหา: ห่างขอบจอ 12px บนมือถือ ---------- */
+.page-wrapper { padding-left: 12px; padding-right: 12px; }
+
+/* ชื่อหน้าใหญ่สีชมพูซ้ำกับแถบบน -> ซ่อน เหลือคำอธิบายสั้นๆ สีเทา */
+.header-title-zone { text-align: left; margin: 2px 0 16px; }
+.header-title-zone h1 { display: none !important; }
+.header-title-zone p { color: var(--admin-muted); font-size: 13px; margin: 0; line-height: 1.6; }
+
+.section-title, .section-heading {
+    font-size: 16px; font-weight: 700; color: var(--admin-text);
+}
+.section-title i, .section-heading i { color: var(--admin-amber); }
+
+/* badge ตัวเลข: ชมพูแบบ badge "Admin Dashboard" ในหน้าโปรไฟล์ */
+.badge-count { background: var(--admin-pink) !important; color: #fff !important; }
+
+/* ---------- การ์ด ---------- */
+.stat-card, .entry-row, .member-card, .wallet-role-card, .form-card, .code-row,
+.campaign-card, .summary-card, .card, .panel, .table-card {
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+
+/* การ์ดสถิติที่ไฮไลต์ (เดิมไล่สีชมพู) -> เหลืองอ่อนแบบแอป */
+.stat-card.highlight {
+    background: var(--admin-yellow-soft);
+    border: 1px solid var(--admin-yellow-border);
+}
+.stat-card.highlight .stat-label { color: #a07800; }
+.stat-card.highlight .stat-value { color: var(--admin-text); }
+
+/* ข้อความที่เดิมเป็นสีชมพู (หัวการ์ด ฯลฯ) -> ตัวเข้ม เพราะสีเหลือง/ส้มบนพื้นขาวอ่านยาก */
+.wallet-role-head .role-name, .cc-title, .c-name,
+.sales-card-head .s-title, .sales-card-totals span.t-value { color: var(--admin-text) !important; }
+.sales-card-head .s-title i { color: var(--admin-amber); }
+
+/* แท็บกรอง: เหมือน .filter-tab ของ history.html ฝั่งผู้ใช้ (แท็บที่เลือก = ไล่สีชมพู) */
+.filter-tab {
+    background: #ffffff; border: 1px solid #f1f1f1; color: #888;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.filter-tab:hover { border-color: #ff85a2; color: #ff85a2; }
+.filter-tab.active {
+    background: linear-gradient(135deg, #ff85a2 0%, #ff6b8b 100%);
+    color: #fff; border-color: transparent;
+    box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3);
+}
+
+/* การ์ดยอดรวมเด่น: ไล่สีชมพูแบบกล่อง Fan Score ในหน้าโปรไฟล์ */
+.grand-card {
+    background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 50%, #e0447a 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3) !important;
+}
+
+/* ---------- ปุ่ม ---------- */
+.btn-primary {
+    background: var(--admin-yellow) !important;
+    color: var(--admin-text) !important;
+    border: none; border-radius: 30px; font-weight: 700;
+}
+.btn-primary:disabled { opacity: 0.6; }
+
+/* ปุ่มรอง (พื้นเหลืองอ่อน ตัวอักษรน้ำตาลทอง อ่านง่ายกว่าส้มล้วน) */
+.btn-load-more { color: #8a6d00 !important; border-color: #e6e6e6 !important; }
+.btn-load-more:hover { background: var(--admin-yellow-soft) !important; }
+.btn-load-more:disabled { color: #ccc !important; }
+.kpi-chip.pink .k-value { color: var(--admin-pink) !important; }
+
+.btn-toggle-create {
+    background: var(--admin-yellow-soft) !important;
+    color: #8a6d00 !important;
+    border: 1px dashed var(--admin-yellow-border) !important;
+}
+
+/* ---------- ช่องกรอก ---------- */
+.form-field input, .form-field select, .form-field textarea,
+.search-input, .sort-select, .filter-select, .status-select,
+input.form-input, select.form-input, textarea.form-input {
+    background: #ffffff !important;
+    border: 1px solid #e6e6e6 !important;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    color: var(--admin-text);
+}
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus,
+.search-input:focus, .sort-select:focus, .filter-select:focus, .status-select:focus,
+.form-input:focus {
+    outline: none; border-color: var(--admin-yellow) !important;
+}
+
+/* ---------- สถานะว่าง / โหลด ---------- */
+.empty-state { color: #bbb; }
+.empty-state i, #access-denied i { color: #e2e2e2 !important; }
+
+/* ---------- เมนูแบบหน้าโปรไฟล์ (ใช้ในหน้า Admin หลัก) ---------- */
+/* จอกว้าง: หมวดเมนูเรียง 2 คอลัมน์ แถวเมนูจะได้ไม่ยืดยาวเกินไป */
+@media (min-width: 768px) {
+    .menu-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 16px; align-items: start; }
+}
+.menu-group-title { font-size: 13px; font-weight: 600; color: var(--admin-muted); margin: 22px 4px 8px; }
+.menu-section {
+    background: #ffffff; border-radius: 22px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    padding: 6px 0; margin-bottom: 6px;
+}
+.menu-item {
+    display: flex; align-items: center;
+    padding: 14px 18px; cursor: pointer;
+    text-decoration: none; color: #3a3a3a;
+    border-bottom: 1px dashed #faf0f2; transition: background 0.2s;
+}
+.menu-item:last-child { border-bottom: none; }
+.menu-item:hover { background: #fffaf0; }
+.menu-icon {
+    width: 35px; height: 35px; border-radius: 10px; flex: 0 0 auto;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 16px; margin-right: 15px; background: #f7f7f7;
+}
+.menu-text { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; }
+.menu-sub { display: block; font-size: 11.5px; color: var(--admin-muted); font-weight: 400; margin-top: 1px; }
+.menu-arrow { color: #ccc; font-size: 14px; }
+.icon-pink { color: #ff85a2; background: #fff0f3 !important; }
+.icon-blue { color: #4dabf7; background: #e7f5ff !important; }
+.icon-gold { color: #f59f00; background: #fff9db !important; }
+.icon-gray { color: #868e96; background: #f1f3f5 !important; }
+.icon-purple { color: #9775fa; background: #f3f0ff !important; }
+.icon-dark { color: #495057; background: #e9ecef !important; }
+.icon-green { color: #40c057; background: #ebfbee !important; }
+
+/* ---------- แถบสถิติแบบหน้าโปรไฟล์ ---------- */
+.stats-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    background: #ffffff; border-radius: 18px; padding: 14px 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+.stats-bar + .stats-bar { margin-top: 10px; }
+.stat-box { text-align: center; display: flex; flex-direction: column; justify-content: center; padding: 2px 4px; }
+.stat-box:not(:last-child) { border-right: 1px solid #ffe5ec; }
+.stat-num { font-size: 18px; font-weight: 700; color: #3a3a3a; }
+.stat-title { font-size: 11px; color: var(--admin-muted); margin-top: 3px; }
+.stat-box.alert .stat-num { color: var(--admin-pink); }

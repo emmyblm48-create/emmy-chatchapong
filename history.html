@@ -326,6 +326,14 @@
         }
     }
 
+    // โหมด Token ของการโหวต: Locked = คืนครบเมื่อปิดโหวต, Partially Burned = คืนบางส่วนตาม %, Burned = ไม่คืน
+    function voteRefundNote(log) {
+        const mechanic = String(log.mechanic || 'burn').toLowerCase();
+        if (mechanic === 'burn') return '';
+        const label = mechanic === 'lock' ? 'Locked · คืน 100%' : `Partially Burned · คืน ${Number(log.refundPercent) || 0}%`;
+        return `${label} ${log.refunded ? '(คืนแล้ว)' : '(รอปิดโหวต)'}`;
+    }
+
     // 🧩 รวมประวัติทั้ง 4 ประเภทให้อยู่ในรูปแบบเดียวกัน เพื่อแสดงเป็นไทม์ไลน์เดียวกันได้
     function buildUnifiedEntries(res) {
         const entries = [];
@@ -370,7 +378,7 @@
                 subtitle: escapeHtml(log.campaignTitle),
                 amountText: `${escapeHtml(log.amount)} ${escapeHtml(log.tokenType)}`,
                 amountColor: '#ff6b81',
-                subAmountText: '',
+                subAmountText: voteRefundNote(log),
                 timestamp: log.timestamp
             });
         });

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | ผลด่วน</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/admin-pin.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; min-height: 100vh; }
+
+        .top-navigation-bar { display: flex; align-items: center; }
+        .back-circle-btn { cursor: pointer; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding-top: 18px; padding-bottom: 50px; }
+
+        .event-head { margin-bottom: 16px; }
+        .event-title { font-size: 18px; font-weight: 700; color: #222; }
+        .event-meta { font-size: 12px; color: #999; margin-top: 2px; }
+        .hint { display: flex; gap: 8px; align-items: flex-start; background: #f7f7f7; border-radius: 12px; padding: 10px 12px; font-size: 12.5px; color: #777; line-height: 1.6; margin-bottom: 18px; }
+        .hint i { margin-top: 3px; color: #999; }
+
+        .card { border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+        .card-title { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 10px; }
+
+        .add-row { display: flex; flex-direction: column; gap: 8px; }
+        .add-row input {
+            width: 100%; border: 1px solid #e6e6e6; border-radius: 12px; padding: 11px 14px;
+            font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif; color: #222; background: #fff;
+        }
+        .add-row input:focus { outline: none; border-color: #ffc107; }
+        .btn-primary { width: 100%; padding: 12px; font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer; }
+        .form-msg { font-size: 12.5px; color: #ff5c7a; margin-top: 8px; min-height: 0; }
+        .form-msg:empty { display: none; }
+
+        .section-heading { margin: 22px 0 10px; }
+
+        .cp-head { display: flex; align-items: flex-start; gap: 10px; }
+        .cp-time { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; color: #222; }
+        .cp-label { font-size: 12.5px; color: #888; font-weight: 500; margin-top: 2px; }
+        .cp-badge { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+        .cp-badge.done { background: #e6f9ee; color: #1f9d55; }
+        .cp-badge.wait { background: #fff4cc; color: #8a6d00; }
+        .cp-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .cp-actions button {
+            border: none; border-radius: 20px; padding: 8px 14px; cursor: pointer;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12.5px; font-weight: 600;
+        }
+        .btn-view { background: #fff8e1; color: #8a6d00; }
+        .btn-del { background: #ffeef0; color: #ff5c7a; margin-left: auto; }
+        .btn-del.confirming { background: #ff5c7a; color: #fff; }
+
+        .rank-total { font-size: 12px; color: #999; margin: 12px 0 4px; }
+        .rank-list { border-top: 1px solid #f1f1f1; }
+        .rank-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f5f5f5; }
+        .rank-row:last-child { border-bottom: none; }
+        .rank-no { flex: 0 0 26px; text-align: center; font-weight: 700; font-size: 14px; color: #555; }
+        .rank-row.top1 .rank-no { color: #f59f00; }
+        .rank-avatar { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid #ffc107; }
+        .rank-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rank-votes { flex: 0 0 auto; text-align: right; font-weight: 700; font-size: 13.5px; color: #222; }
+        .rank-pct { display: block; font-size: 11px; color: #aaa; font-weight: 500; }
+
+        .empty-state { text-align: center; color: #bbb; font-size: 13px; padding: 36px 20px; }
+        .empty-state i { font-size: 28px; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">ผลด่วน</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="event-head">
+            <div class="event-title" id="event-title">-</div>
+            <div class="event-meta" id="event-meta"></div>
+        </div>
+
+        <div class="hint">
+            <i class="fa-solid fa-lock"></i>
+            <div>ระบบจะเก็บอันดับคะแนน ณ เวลาที่ตั้งไว้ <b>ไว้หลังบ้านเท่านั้น</b> หน้าบ้านจะแสดงแค่ผล Final ตอนปิดโหวต</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">ตั้งเวลาผลด่วน</div>
+            <div class="add-row">
+                <input id="cp-at" type="datetime-local" aria-label="วันเวลาผลด่วน">
+                <input id="cp-label" type="text" maxlength="60" placeholder="ชื่อเรียก (ไม่บังคับ) เช่น ผลด่วน 1">
+                <button type="button" class="btn-primary" id="add-btn" onclick="addCheckpoint()"><i class="fas fa-plus"></i> เพิ่มผลด่วน</button>
+            </div>
+            <div class="form-msg" id="form-msg"></div>
+        </div>
+
+        <div class="section-heading">ผลด่วนทั้งหมด</div>
+        <div id="cp-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  const eventId = new URLSearchParams(window.location.search).get('id');
+  let user = null;
+  let items = [];
+  const openRanking = new Set();   // id ของผลด่วนที่กางอันดับไว้
+  let confirmingDeleteId = null;   // กดลบครั้งแรก = ขอยืนยัน, กดซ้ำ = ลบจริง
+  const TOKEN_LABELS = { token: 'Token', getoken: 'GE Token', gift: 'Gift (Cookie)' };
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'admin_votes';
+  }
+
+  function fmt(n) { return Number(n || 0).toLocaleString(); }
+  function formatTime(ts) {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  async function loadEventHeader() {
+    try {
+      const res = await blm48AdminListVoteCampaigns(user.username);
+      const ev = (res && res.data || []).find(e => e.voteCollectionId === eventId);
+      if (!ev) { document.getElementById('event-title').textContent = 'ไม่พบกิจกรรมนี้'; return; }
+      document.getElementById('event-title').textContent = ev.title || ev.voteCollectionId;
+      const open = String(ev.status || '').toLowerCase() === 'open';
+      document.getElementById('event-meta').textContent =
+        `${TOKEN_LABELS[String(ev.tokenType || '').toLowerCase()] || ev.tokenType || '-'} · ${open ? 'เปิดโหวตอยู่' : 'ปิดโหวตแล้ว'} · ผู้โหวต ${fmt(ev.voterCount)} คน`;
+    } catch (e) { /* หัวข้อไม่ขึ้นไม่เป็นไร รายการผลด่วนยังใช้ได้ */ }
+  }
+
+  async function loadCheckpoints() {
+    const box = document.getElementById('cp-list');
+    try {
+      const res = await blm48AdminListVoteCheckpoints(user.username, eventId);
+      if (!res || res.status !== 'success') { box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
+      items = res.data || [];
+      render();
+    } catch (e) {
+      box.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderRanking(c) {
+    const rows = (c.ranking || []).map(r => `
+      <div class="rank-row ${Number(r.rank) === 1 ? 'top1' : ''}">
+        <div class="rank-no">${escapeHtml(r.rank)}</div>
+        <img class="rank-avatar" src="${escapeAttr(r.profile || '')}" alt="" onerror="this.style.visibility='hidden'">
+        <div class="rank-name">${escapeHtml(r.memberName)}</div>
+        <div class="rank-votes">${fmt(r.votes)}<span class="rank-pct">${escapeHtml(r.percentage)}%</span></div>
+      </div>`).join('');
+    return `
+      <div class="rank-total">คะแนนรวม ${fmt(c.totalVotes)}</div>
+      <div class="rank-list">${rows || '<div class="empty-state" style="padding:16px;">ไม่มีข้อมูล</div>'}</div>`;
+  }
+
+  function render() {
+    const box = document.getElementById('cp-list');
+    if (items.length === 0) {
+      box.innerHTML = `<div class="empty-state"><i class="fa-solid fa-stopwatch"></i>ยังไม่ได้ตั้งเวลาผลด่วน</div>`;
+      return;
+    }
+    box.innerHTML = items.map(c => {
+      const done = !!c.takenAt;
+      const isOpen = openRanking.has(c.id);
+      const confirming = confirmingDeleteId === c.id;
+      return `
+        <div class="card">
+          <div class="cp-head">
+            <div class="cp-time">${escapeHtml(formatTime(c.scheduledAt))}${c.label ? `<div class="cp-label">${escapeHtml(c.label)}</div>` : ''}</div>
+            <span class="cp-badge ${done ? 'done' : 'wait'}">${done ? 'เก็บผลแล้ว' : 'รอถึงเวลา'}</span>
+          </div>
+          ${done && isOpen ? renderRanking(c) : ''}
+          <div class="cp-actions">
+            ${done ? `<button type="button" class="btn-view" onclick="toggleRanking(${c.id})"><i class="fa-solid ${isOpen ? 'fa-chevron-up' : 'fa-ranking-star'}"></i> ${isOpen ? 'ซ่อนอันดับ' : 'ดูอันดับ'}</button>` : ''}
+            <button type="button" class="btn-del ${confirming ? 'confirming' : ''}" onclick="deleteCheckpoint(${c.id})"><i class="fas fa-trash"></i> ${confirming ? 'กดอีกครั้งเพื่อลบ' : 'ลบ'}</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleRanking(id) {
+    if (openRanking.has(id)) openRanking.delete(id); else openRanking.add(id);
+    render();
+  }
+
+  async function addCheckpoint() {
+    const msg = document.getElementById('form-msg');
+    msg.textContent = '';
+    const atRaw = document.getElementById('cp-at').value;
+    const label = document.getElementById('cp-label').value.trim();
+    if (!atRaw) { msg.textContent = 'กรุณาเลือกวันเวลาผลด่วน'; return; }
+
+    const btn = document.getElementById('add-btn');
+    btn.disabled = true;
+    try {
+      const res = await blm48AdminAddVoteCheckpoint(user.username, eventId, new Date(atRaw).toISOString(), label);
+      if (!res || res.status !== 'success') { msg.textContent = (res && res.message) || 'เพิ่มไม่สำเร็จ'; }
+      else {
+        document.getElementById('cp-at').value = '';
+        document.getElementById('cp-label').value = '';
+        await loadCheckpoints();
+      }
+    } catch (e) {
+      msg.textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
+    }
+    btn.disabled = false;
+  }
+
+  async function deleteCheckpoint(id) {
+    if (confirmingDeleteId !== id) {
+      confirmingDeleteId = id;
+      render();
+      // ไม่กดยืนยันภายใน 4 วิ -> กลับเป็นปุ่มลบปกติ
+      setTimeout(() => { if (confirmingDeleteId === id) { confirmingDeleteId = null; render(); } }, 4000);
+      return;
+    }
+    confirmingDeleteId = null;
+    try {
+      const res = await blm48AdminDeleteVoteCheckpoint(user.username, id);
+      if (!res || res.status !== 'success') document.getElementById('form-msg').textContent = (res && res.message) || 'ลบไม่สำเร็จ';
+    } catch (e) {
+      document.getElementById('form-msg').textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
+    }
+    openRanking.delete(id);
+    loadCheckpoints();
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    if (!eventId) { window.location.href = 'admin_votes'; return; }
+    // 🔒 หน้าย่อยของ admin_votes ล็อกด้วย PIN เดียวกัน (ไม่งั้นเข้าทางนี้เลี่ยง PIN ได้)
+    await blm48RequireAdminPin(user, { page: 'admin_vote_results', cancelUrl: 'admin' });
+    document.getElementById('page-content').style.display = 'block';
+    loadEventHeader();
+    loadCheckpoints();
+  });
+</script>
+</body>
+</html>
