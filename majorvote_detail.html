@@ -107,61 +107,82 @@
         .gift-action-btn { background: #ffe1ea; color: #c2335b; }
         .vote-action-btn:active, .getoken-action-btn:active, .gift-action-btn:active { transform: scale(0.95); }
 
-        /* Gift Modal (สไตล์แผงส่งของขวัญแบบไลฟ์สตรีม) */
-        .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(74, 44, 54, 0.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 2000; align-items: flex-end; justify-content: center; }
-        .gift-modal-box { background: #ffffff; border: 1px solid #ffeef2; width: 100%; max-width: 480px; max-height: 85vh; border-radius: 20px 20px 0 0; padding: 8px 16px 12px; display: flex; flex-direction: column; position: relative; animation: gift-modal-slide-up 0.25s ease; box-shadow: 0 -4px 25px rgba(0,0,0,0.15); }
-        @keyframes gift-modal-slide-up { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .gift-modal-drag-handle { width: 40px; height: 4px; border-radius: 3px; background: #e6e6e6; margin: 6px auto 4px; flex-shrink: 0; }
-        .gift-modal-close { position: absolute; top: 10px; right: 14px; background: #f5f5f5; border: none; width: 28px; height: 28px; border-radius: 50%; color: #888; cursor: pointer; flex-shrink: 0; font-size: 13px; z-index: 2; }
+        /* Gift Sheet (แบบแผงส่งของขวัญของแอป: รูปเมมเบอร์ลอยขอบบน > แท็บขีดเส้นใต้ > กริด 4x2 ปัดเปลี่ยนหน้า > ปุ่มจำนวน > แถบ Send) */
+        .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 2000; align-items: flex-end; justify-content: center; }
+        .gift-modal-box { background: #ffffff; width: 100%; max-width: 480px; max-height: calc(100vh - 70px); border-radius: 24px 24px 0 0; display: flex; flex-direction: column; position: relative; animation: gift-modal-slide-up 0.25s ease; }
+        @keyframes gift-modal-slide-up { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .gift-modal-close { position: absolute; top: 12px; right: 14px; background: #f3f3f3; border: none; width: 30px; height: 30px; border-radius: 50%; color: #888; cursor: pointer; font-size: 14px; z-index: 2; }
 
-        .gift-modal-recipient { display: flex; flex-direction: column; align-items: center; padding: 6px 0 12px; flex-shrink: 0; }
-        .gift-modal-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--blm-pink); background: #f5f5f5; margin-bottom: 6px; }
-        .gift-modal-target { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; color: #333; text-transform: uppercase; }
+        .gift-modal-recipient { display: flex; flex-direction: column; align-items: center; margin-top: -56px; padding-bottom: 12px; flex-shrink: 0; }
+        .gift-modal-avatar { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; background: #f5f5f5; border: 4px solid #ffffff; box-shadow: 0 0 0 3px #d4a5dc, 0 4px 14px rgba(0,0,0,0.12); }
+        .gift-modal-target { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; font-size: 21px; color: #111; text-transform: uppercase; margin-top: 10px; max-width: 80%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* สลับโหมด: ร้านค้า (ซื้อของขวัญ) vs กระเป๋าของฉัน (ของที่เก็บไว้แล้ว) */
-        .gift-mode-tabs { display: flex; gap: 8px; padding: 0 2px 10px; flex-shrink: 0; }
-        .gift-mode-tab { flex: 1; background: #f5f5f5; border: 1px solid #ececec; color: #888; padding: 8px 4px; border-radius: 14px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-        .gift-mode-tab.active { background: #fff5e6; color: #a85d00; border-color: #ffcb73; }
-        #gift-shop-panel, #gift-wallet-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        /* แท็บหมวดของขวัญ + Backpack (ของที่ซื้อเก็บไว้) อยู่แถวเดียวกัน */
+        .gift-tabs { display: flex; border-top: 1px solid #eeeeee; border-bottom: 1px solid #eeeeee; flex-shrink: 0; overflow-x: auto; scrollbar-width: none; }
+        .gift-tabs::-webkit-scrollbar { display: none; }
+        .gift-tab { flex: 1 0 auto; min-width: 25%; background: none; border: none; padding: 14px 10px 12px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 16px; font-weight: 600; color: #b8b8b8; cursor: pointer; position: relative; white-space: nowrap; }
+        .gift-tab.active { color: #111; }
+        .gift-tab.active::after { content: ''; position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); width: 60%; height: 4px; border-radius: 2px; background: #ffd75e; }
 
-        .gift-tier-tabs { display: flex; gap: 20px; justify-content: center; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px; flex-shrink: 0; }
-        .gift-tier-tab { background: none; border: none; padding: 8px 2px 10px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13.5px; font-weight: 600; color: #aaa; cursor: pointer; border-bottom: 2px solid transparent; }
-        .gift-tier-tab.active { color: #222; border-bottom-color: #222; }
+        /* หน้าละ 8 ชิ้น (4x2) ปัดซ้ายขวาได้ มีจุดบอกหน้าด้านล่าง */
+        .gift-pager { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; flex-shrink: 1; min-height: 0; }
+        .gift-pager::-webkit-scrollbar { display: none; }
+        .gift-page { flex: 0 0 100%; scroll-snap-align: start; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 8px; padding: 12px 10px 4px; align-content: start; min-height: 290px; }
+        .gift-item-card { background: none; border: 2px solid transparent; border-radius: 12px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 0; transition: transform 0.1s, background 0.15s, border-color 0.15s; }
+        .gift-item-card:active { transform: scale(0.96); }
+        .gift-item-card.selected { border-color: #ffd75e; background: #fffdf4; }
+        .gift-item-img { width: 70px; height: 70px; object-fit: contain; display: block; }
+        .gift-item-name { width: 100%; text-align: center; font-size: 12.5px; font-weight: 500; color: #a9a9a9; margin: 6px 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gift-item-cost { width: 100%; background: #ececec; border-radius: 999px; padding: 5px 4px; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 14px; font-weight: 700; color: #333; }
+        .gift-item-cost i { color: #e2a63b; font-size: 13px; }
+        .gift-loading, .gift-empty { flex: 0 0 100%; min-height: 290px; display: flex; align-items: center; justify-content: center; text-align: center; color: #999; padding: 30px 24px; font-size: 13.5px; line-height: 1.6; }
+        .gift-dots { display: flex; justify-content: center; gap: 10px; padding: 6px 0 12px; flex-shrink: 0; min-height: 26px; }
+        .gift-dot { width: 8px; height: 8px; border-radius: 50%; background: #e3e3e3; transition: background 0.2s; }
+        .gift-dot.active { background: #9a9a9a; }
 
-        .gift-items-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-y: auto; padding: 4px 2px 10px; flex: 1; min-height: 160px; }
-        .gift-item-card { background: none; border: 2px solid transparent; border-radius: 12px; padding: 6px 2px; text-align: center; cursor: pointer; transition: transform 0.1s, background 0.15s, border-color 0.15s; }
-        .gift-item-card:active { transform: scale(0.95); }
-        .gift-item-card.selected { background: #fff5e6; border-color: #ffb84d; }
-        .gift-item-img { width: 48px; height: 48px; object-fit: contain; margin: 0 auto 4px; background: #f7f7f7; border-radius: 10px; display: block; }
-        .gift-item-name { font-size: 11px; font-weight: 500; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .gift-item-cost { font-size: 11px; color: #d98c00; font-weight: 700; margin-top: 2px; display: flex; align-items: center; justify-content: center; gap: 3px; }
-        .gift-item-points { font-size: 9.5px; color: #aaa; margin-top: 1px; }
-        .gift-loading, .gift-empty { grid-column: 1/-1; text-align: center; color: #999; padding: 30px 10px; font-size: 13px; }
+        .gift-qty-row { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-top: 1px solid #eeeeee; flex-shrink: 0; }
+        .gift-qty-btn { flex: 1; min-width: 0; background: #ffffff; color: #222; border: 1.5px solid #ececec; padding: 10px 0; border-radius: 999px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .gift-qty-btn.custom { flex: 2; }
+        .gift-qty-btn.active { border-color: #ffd75e; background: #fffdf4; }
+        .gift-qty-btn:disabled { color: #cfcfcf; cursor: not-allowed; }
 
-        .gift-qty-row { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 8px 2px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
-        .gift-qty-btn { flex-shrink: 0; background: #f5f5f5; color: #555; border: 1px solid #ececec; padding: 6px 14px; border-radius: 18px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-        .gift-qty-btn.active { background: #fff0d9; color: #a85d00; border-color: #ffcb73; }
+        .gift-send-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #f2f2f2; padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); flex-shrink: 0; }
+        .gift-balance-chip { display: flex; align-items: center; gap: 10px; background: #ffffff; border-radius: 999px; padding: 6px 6px 6px 14px; min-width: 0; }
+        .gift-balance-chip > i { color: #e2a63b; font-size: 20px; }
+        .gift-balance-chip span { font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 17px; font-weight: 600; color: #222; min-width: 40px; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+        .gift-topup-btn { width: 34px; height: 34px; border-radius: 50%; background: #ffd36b; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 16px; text-decoration: none; flex-shrink: 0; }
+        .gift-send-btn { background: #ffd75e; color: #222; border: none; border-radius: 999px; padding: 14px 44px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 18px; font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+        .gift-send-btn:active { transform: scale(0.97); }
+        .gift-send-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-        .gift-bottom-bar { display: flex; align-items: center; gap: 10px; padding-top: 8px; flex-shrink: 0; }
-        .gift-balance-chip { display: flex; align-items: center; gap: 6px; background: #fff8ec; color: #b8860b; border: 1px solid #ffe6ae; border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 700; }
-        .gift-send-btn { flex: 1; background: linear-gradient(135deg, #ffd76e, #ffb347); color: #6b4400; border: none; border-radius: 22px; padding: 11px 0; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; }
-        .gift-send-btn:disabled { background: #e0e0e0; color: #999; opacity: 1; cursor: not-allowed; }
-
-        /* แถวปุ่ม 2 ตัวของโหมดร้านค้า: เก็บเข้ากระเป๋า vs โหวตเลย */
-        .gift-action-row { display: flex; gap: 8px; padding-top: 6px; flex-shrink: 0; }
-        .gift-keep-btn { flex: 1; background: #ffffff; color: #a85d00; border: 1.5px solid #ffcb73; border-radius: 22px; padding: 10px 4px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12.5px; font-weight: 700; cursor: pointer; }
-        .gift-keep-btn:disabled { border-color: #e0e0e0; color: #999; cursor: not-allowed; }
-        .gift-action-row .gift-send-btn { flex: 1.3; }
-
-        /* ตัวเลือกจำนวนแบบ +/- สำหรับของในกระเป๋า (จำนวนไม่ตายตัวเหมือนร้านค้า) */
-        .gift-qty-stepper { display: none; align-items: center; gap: 12px; background: #fff8ec; border: 1px solid #ffe6ae; border-radius: 20px; padding: 8px 14px; flex-shrink: 0; }
-        .gift-qty-stepper button { background: #ffffff; border: 1px solid #ffcb73; color: #a85d00; width: 26px; height: 26px; border-radius: 50%; font-weight: 700; cursor: pointer; line-height: 1; }
-        .gift-qty-stepper span { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; color: #444; min-width: 20px; text-align: center; }
+        /* ป๊อปอัปยืนยันก่อนส่ง: ของขวัญ x จำนวน = Cookie ที่ต้องจ่าย */
+        .gift-confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 2100; align-items: center; justify-content: center; padding: 16px; }
+        .gift-confirm-box { background: #ffffff; width: 100%; max-width: 380px; border-radius: 22px; overflow: hidden; animation: gift-confirm-pop 0.18s ease; }
+        @keyframes gift-confirm-pop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .gift-confirm-title { text-align: center; font-size: 18px; font-weight: 700; color: #111; padding: 16px 12px 14px; border-bottom: 1px solid #eeeeee; }
+        .gift-confirm-body { padding: 22px 28px 18px; display: flex; flex-direction: column; align-items: center; }
+        .gift-confirm-item { display: flex; align-items: center; gap: 18px; }
+        .gift-confirm-item-col { display: flex; flex-direction: column; align-items: center; width: 130px; }
+        .gift-confirm-item-col img { width: 96px; height: 96px; object-fit: contain; }
+        .gift-confirm-item-col .gift-item-name { font-size: 13px; margin: 6px 0; }
+        .gift-confirm-qty { font-size: 24px; font-weight: 700; color: #111; white-space: nowrap; }
+        .gift-confirm-divider { display: flex; align-items: center; gap: 14px; width: 100%; margin: 20px 0 8px; font-size: 17px; font-weight: 700; color: #222; }
+        .gift-confirm-divider::before, .gift-confirm-divider::after { content: ''; flex: 1; height: 1px; background: #e6e6e6; }
+        .gift-confirm-total { display: flex; align-items: center; gap: 12px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 34px; font-weight: 700; color: #111; }
+        .gift-confirm-total i { color: #e2a63b; font-size: 30px; }
+        .gift-confirm-note { font-size: 12.5px; color: #999; margin-top: 4px; text-align: center; }
+        .gift-confirm-actions { display: flex; gap: 12px; padding: 16px 20px 18px; border-top: 1px solid #eeeeee; }
+        .gift-confirm-cancel, .gift-confirm-ok { flex: 1; border-radius: 999px; padding: 13px 0; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 17px; cursor: pointer; }
+        .gift-confirm-cancel { background: #ffffff; color: #222; border: 1.5px solid #222; font-weight: 500; }
+        .gift-confirm-ok { flex: 1.5; background: #ffd75e; color: #222; border: none; font-weight: 700; }
+        .gift-confirm-keep { display: block; width: 100%; background: none; border: none; color: #a0a0a0; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 0 0 16px; margin-top: -4px; cursor: pointer; }
+        .gift-confirm-keep i { margin-right: 4px; }
 
         @media (max-width: 360px) {
-            .gift-items-grid { grid-template-columns: repeat(3, 1fr); }
+            .gift-item-img { width: 56px; height: 56px; }
+            .gift-qty-btn { font-size: 14px; }
+            .gift-send-btn { padding: 13px 30px; }
         }
-
         /* ผลอันดับ (โหมดปิดโหวต): การ์ดผู้ชนะด้านบน + อันดับถัดไปเป็นแถวเรียบ */
         .ranking-list { display: flex; flex-direction: column; padding: 0 12px; }
         .ranking-heading { font-size: 16px; font-weight: 700; color: #222; margin: 24px 0 18px; line-height: 1.6; }
@@ -224,7 +245,6 @@
 
     <div id="gift-modal-overlay" class="gift-modal-overlay" onclick="closeGiftModal()">
         <div class="gift-modal-box" onclick="event.stopPropagation()">
-            <div class="gift-modal-drag-handle"></div>
             <button type="button" class="gift-modal-close" onclick="closeGiftModal()"><i class="fa-solid fa-xmark"></i></button>
 
             <div class="gift-modal-recipient">
@@ -232,39 +252,33 @@
                 <div class="gift-modal-target" id="gift-modal-target"></div>
             </div>
 
-            <div class="gift-mode-tabs">
-                <button type="button" class="gift-mode-tab active" id="gift-mode-tab-shop" onclick="selectGiftMode('shop')"><i class="fa-solid fa-shop"></i> ร้านค้า</button>
-                <button type="button" class="gift-mode-tab" id="gift-mode-tab-wallet" onclick="selectGiftMode('wallet')"><i class="fa-solid fa-box-open"></i> กระเป๋าของฉัน</button>
-            </div>
+            <div class="gift-tabs" id="gift-tabs"></div>
 
-            <div id="gift-shop-panel">
-                <div class="gift-tier-tabs" id="gift-tier-tabs"></div>
+            <div class="gift-pager" id="gift-pager"></div>
+            <div class="gift-dots" id="gift-dots"></div>
 
-                <div class="gift-items-grid" id="gift-items-grid"></div>
+            <div class="gift-qty-row" id="gift-qty-row"></div>
 
-                <div class="gift-qty-row" id="gift-qty-row"></div>
-
-                <div class="gift-bottom-bar">
-                    <div class="gift-balance-chip"><i class="fa-solid fa-cookie-bite"></i> <span id="gift-modal-cookie-balance">0</span></div>
+            <div class="gift-send-bar">
+                <div class="gift-balance-chip">
+                    <i class="fa-solid fa-cookie-bite"></i>
+                    <span id="gift-modal-cookie-balance">0</span>
+                    <a class="gift-topup-btn" href="shop.html" title="เติม Cookie"><i class="fa-solid fa-plus"></i></a>
                 </div>
-                <div class="gift-action-row">
-                    <button type="button" class="gift-keep-btn" id="gift-keep-btn" onclick="buySelectedGiftToWallet()" disabled><i class="fa-solid fa-box-archive"></i> เก็บกระเป๋า</button>
-                    <button type="button" class="gift-send-btn" id="gift-send-btn" onclick="sendSelectedGift()" disabled>Vote Now</button>
-                </div>
+                <button type="button" class="gift-send-btn" id="gift-send-btn" onclick="openGiftConfirm()" disabled>Send</button>
             </div>
+        </div>
+    </div>
 
-            <div id="gift-wallet-panel" style="display:none;">
-                <div class="gift-items-grid" id="gift-wallet-items-grid"></div>
-
-                <div class="gift-bottom-bar">
-                    <div class="gift-qty-stepper" id="gift-wallet-qty-stepper">
-                        <button type="button" onclick="stepGiftWalletQty(-1)">−</button>
-                        <span id="gift-wallet-qty-value">1</span>
-                        <button type="button" onclick="stepGiftWalletQty(1)">+</button>
-                    </div>
-                    <button type="button" class="gift-send-btn" id="gift-wallet-send-btn" onclick="giveSelectedWalletGift()" disabled>Vote Now</button>
-                </div>
+    <div id="gift-confirm-overlay" class="gift-confirm-overlay" onclick="closeGiftConfirm()">
+        <div class="gift-confirm-box" onclick="event.stopPropagation()">
+            <div class="gift-confirm-title">Confirmation</div>
+            <div class="gift-confirm-body" id="gift-confirm-body"></div>
+            <div class="gift-confirm-actions">
+                <button type="button" class="gift-confirm-cancel" onclick="closeGiftConfirm()">Cancel</button>
+                <button type="button" class="gift-confirm-ok" onclick="confirmGiftSend()">Confirm</button>
             </div>
+            <button type="button" class="gift-confirm-keep" id="gift-confirm-keep" onclick="confirmGiftKeep()"><i class="fa-solid fa-box-archive"></i> ยังไม่โหวตตอนนี้ ซื้อเก็บเข้า Backpack แทน</button>
         </div>
     </div>
 
@@ -572,13 +586,13 @@
         let buttons = '';
         if (types.includes('token')) {
             buttons += `
-                <button class="vote-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'Token')">
+                <button class="vote-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'Token', '${escapeAttr(mImg)}')">
                     Vote
                 </button>`;
         }
         if (types.includes('getoken')) {
             buttons += `
-                <button class="getoken-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'GEToken')">
+                <button class="getoken-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'GEToken', '${escapeAttr(mImg)}')">
                     GE Vote
                 </button>`;
         }
@@ -640,14 +654,11 @@
         container.innerHTML = `<div class="ranking-heading">${escapeHtml(campaignTitle || 'Major Vote')}</div>${rows}`;
     }
 
-    const TOKEN_TYPE_LABELS = { Token: 'BLM48 Token', GEToken: 'GE Token' };
-
-    function handleVoteClick(candidateName, tokenType) {
+    // กด Vote / GE Vote แล้วไปหน้าโหวตแยก (majorvote_vote): เลือกจำนวน > Confirm transaction > Submission completed > Thank you card
+    function handleVoteClick(candidateName, tokenType, candidateImg) {
         tokenType = tokenType === 'GEToken' ? 'GEToken' : 'Token';
-        const tokenLabel = TOKEN_TYPE_LABELS[tokenType];
 
-        const username = getUsername();
-        if (!username) {
+        if (!getUsername()) {
             Swal.fire({
                 title: 'กรุณาเข้าสู่ระบบ',
                 text: 'คุณต้องเข้าสู่ระบบก่อนทำการลงคะแนนโหวต',
@@ -658,135 +669,31 @@
             return;
         }
 
-        const balance = getUserBalance(tokenType);
-
-        Swal.fire({
-            title: `ยืนยันการลงคะแนนโหวตให้ ${candidateName}`,
-            text: `ลงคะแนนโดยใช้ ${tokenLabel} (ยอดคงเหลือ ${balance.toLocaleString()}) — ${getMechanicInfo(campaignMechanic, campaignRefundPercent).confirmNote}`,
-            input: 'number',
-            inputAttributes: { min: 1, step: 1 },
-            showCancelButton: true,
-            confirmButtonText: 'ยืนยัน',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: 'var(--primary-pink)',
-            inputValidator: (value) => {
-                if (!value || value.trim() === "" || Number(value) <= 0 || value.includes('.')) {
-                    return `ขั้นต่ำในการโหวตคือ 1 ${tokenLabel}`;
-                }
-                if (Number(value) > balance) {
-                    return `${tokenLabel} ไม่พอ (คุณมี ${balance.toLocaleString()})`;
-                }
-            }
-        }).then(async (result) => {
-            if (result.isConfirmed && result.value) {
-                const sanitizedAmount = Math.floor(Number(result.value));
-                executeVoteAPI(candidateName, sanitizedAmount, tokenType);
-            }
-        });
-    }
-
-    async function executeVoteAPI(candidateName, voteAmount, tokenType) {
-        tokenType = tokenType === 'GEToken' ? 'GEToken' : 'Token';
-
-        Swal.fire({
-            title: 'กำลังลงคะแนน...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-
-        try {
-            const username = getUsername();
-            const res = await blm48SubmitMajorVote(username, campaignId, candidateName, voteAmount, tokenType);
-
-            if (res.status === "success") {
-                // เช็กชนิดของ Token เพื่อแสดงคำให้ถูกต้อง (ถ้าหลังบ้านไม่ส่งมาให้ใช้ชนิดที่เราส่งไปเป็นค่าเริ่มต้น)
-                const usedTokenType = res.tokenType ? res.tokenType : tokenType;
-                const usedMechanic = normalizeMechanic(res.tokenMechanic || campaignMechanic);
-                const refundNote = usedMechanic === 'lock'
-                    ? ' (Locked: จะได้คืนครบเมื่อปิดโหวต)'
-                    : usedMechanic === 'partial'
-                        ? ` (Partially Burned: จะได้คืน ${Number(res.refundPercent ?? campaignRefundPercent) || 0}% เมื่อปิดโหวต)`
-                        : '';
-
-                // อัปเดตยอดคงเหลือใน session ให้ตรงกับหลังบ้านทันที
-                try {
-                    const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
-                    const userData = sessionUpdate.data || sessionUpdate.user || sessionUpdate;
-                    if (res.newBalance !== undefined) {
-                        if (usedTokenType === 'GEToken') userData.GEToken = Number(res.newBalance);
-                        else userData.token = Number(res.newBalance);
-                    } else {
-                        if (usedTokenType === 'GEToken') userData.GEToken = Math.max(0, Number(getUserBalance('GEToken')) - voteAmount);
-                        else userData.token = Math.max(0, Number(getUserBalance('Token')) - voteAmount);
-                    }
-                    localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
-                    renderWalletStrip();
-                } catch (e) { console.error("Session Update Error:", e); }
-
-                if (res.thankYouCard && res.thankYouCard.trim() !== "") {
-                    Swal.fire({
-                        title: 'การลงคะแนนโหวตสำเร็จ',
-                        text: `ระบบได้ทำการหัก ${usedTokenType} และลงคะแนนโหวตจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว${refundNote}`,
-                        imageUrl: fixSecureImageUrl(res.thankYouCard),
-                        imageWidth: 280,
-                        imageAlt: 'Thank You Card',
-                        confirmButtonText: 'ตกลง',
-                        confirmButtonColor: 'var(--primary-pink)'
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'ดำเนินการลงคะแนนโหวตสำเร็จ',
-                        text: `ระบบได้ทำการหัก ${usedTokenType} และบันทึกคะแนนสะสมจำนวน ${Number(voteAmount).toLocaleString()} ${usedTokenType}เรียบร้อยแล้ว${refundNote}`,
-                        confirmButtonText: 'ตกลง',
-                        confirmButtonColor: 'var(--primary-pink)'
-                    });
-                }
-                fetchCandidatesFromBackend();
-            } else {
-                Swal.fire({
-                    title: 'การลงคะแนนโหวตไม่สำเร็จ',
-                    text: res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักเหรียญ',
-                    icon: 'error',
-                    confirmButtonText: 'ตกลง',
-                    confirmButtonColor: 'var(--primary-pink)'
-                });
-            }
-        } catch (err) {
-            console.error("Submit Vote Error:", err);
-            Swal.fire({
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
-                icon: 'error',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: 'var(--primary-pink)'
-            });
-        }
+        const params = new URLSearchParams({ id: campaignId, candidate: candidateName, type: tokenType, img: candidateImg || '' });
+        window.location.href = `majorvote_vote?${params.toString()}`;
     }
 
     // =========================================================
     // 🎁 ระบบปาของขวัญ (Gift) ให้ผู้สมัคร — ใช้ Cookies แลกคะแนน
-    // (หน้าตาแบบแผงส่งของขวัญไลฟ์สตรีม: เลือกไอเทม > เลือกจำนวน > กด Send)
+    // (เลือกไอเทม > เลือกจำนวน > กด Send > ป๊อปอัปยืนยัน > Confirm)
+    // แท็บ Backpack = ของที่เคยซื้อเก็บไว้ เอามาโหวตได้เลยโดยไม่เสีย Cookie ซ้ำ
     // =========================================================
     let giftCatalog = [];
     let giftCatalogLoaded = false;
     let activeGiftCandidate = "";
-    let activeGiftTier = "Normal";
+    let activeGiftTab = "Normal";
     let selectedGiftId = null;
     let selectedGiftQty = 1;
-    let isSendingGift = false;
-    let isBuyingGiftToWallet = false;
-
-    // 🎒 กระเป๋าของขวัญ: ของที่เคยกด "เก็บกระเป๋า" ไว้ก่อนหน้านี้ เอามาโหวตให้เมมเบอร์คนนี้ได้เลยโดยไม่เสีย Cookie ซ้ำ
-    let giftModalMode = 'shop'; // 'shop' | 'wallet'
+    let isGiftBusy = false;
     let myGiftWallet = [];
-    let selectedWalletGiftId = null;
-    let selectedWalletGiftQty = 1;
-    let isGivingWalletGift = false;
 
     const GIFT_TIER_LABELS = { Normal: "Normal", MembersDesign: "BLM48" };
     const GIFT_TIER_ORDER = ["Normal", "MembersDesign"];
+    const GIFT_BACKPACK_TAB = "__backpack";
     const GIFT_QTY_PRESETS = [1, 10, 50, 100];
+    const GIFT_PER_PAGE = 8;
+    const GIFT_MAX_CUSTOM_QTY = 9999;
+    const BLANK_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
     async function loadGiftCatalog() {
         if (giftCatalogLoaded) return giftCatalog;
@@ -813,6 +720,49 @@
         return giftCatalog;
     }
 
+    async function loadGiftWallet() {
+        try {
+            const data = await blm48GetGiftWallet(getUsername());
+            myGiftWallet = Array.isArray(data) ? data : [];
+        } catch (e) {
+            console.error("Load Gift Wallet Error:", e);
+            myGiftWallet = [];
+        }
+    }
+
+    function isBackpackTab() {
+        return activeGiftTab === GIFT_BACKPACK_TAB;
+    }
+
+    function getGiftTiers() {
+        let tiers = GIFT_TIER_ORDER.filter(t => giftCatalog.some(g => g.Tier === t));
+        const extra = [...new Set(giftCatalog.map(g => g.Tier))].filter(t => t && !tiers.includes(t));
+        return tiers.concat(extra);
+    }
+
+    // รวมไอเทมของแท็บปัจจุบันให้อยู่รูปแบบเดียวกัน ไม่ว่าจะมาจากร้านค้าหรือ Backpack
+    function getActiveGiftItems() {
+        if (isBackpackTab()) {
+            return myGiftWallet.map(g => ({
+                id: String(g.giftId), rawId: g.giftId, name: g.giftName, img: g.imageUrl,
+                cost: 0, points: Number(g.points || 0), owned: Number(g.qty || 0)
+            }));
+        }
+        return giftCatalog.filter(g => g.Tier === activeGiftTab).map(g => ({
+            id: String(g.GiftID), rawId: g.GiftID, name: g.GiftName, img: g.ImageURL,
+            cost: Number(g.CostCookies || 0), points: Number(g.Points || 0), owned: null
+        }));
+    }
+
+    function getSelectedGiftItem() {
+        return getActiveGiftItems().find(g => g.id === String(selectedGiftId)) || null;
+    }
+
+    function getMaxGiftQty() {
+        const item = getSelectedGiftItem();
+        return (item && item.owned !== null) ? item.owned : GIFT_MAX_CUSTOM_QTY;
+    }
+
     async function openGiftModal(candidateName, candidateImg) {
         const username = getUsername();
         if (!username) {
@@ -829,414 +779,322 @@
         activeGiftCandidate = candidateName;
         selectedGiftId = null;
         selectedGiftQty = 1;
-        selectedWalletGiftId = null;
-        selectedWalletGiftQty = 1;
 
         document.getElementById('gift-modal-target').textContent = candidateName;
         document.getElementById('gift-modal-avatar').src = fixSecureImageUrl(candidateImg);
-        document.getElementById('gift-modal-cookie-balance').textContent = getUserCookieBalance().toLocaleString();
         document.getElementById('gift-modal-overlay').style.display = 'flex';
-        blm48LockBodyScroll();
-        selectGiftMode('shop'); // เปิดโมดัลใหม่ทุกครั้งให้เริ่มที่แท็บร้านค้าเสมอ
-
-        const grid = document.getElementById('gift-items-grid');
-        grid.innerHTML = `<div class="gift-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</div>`;
-        document.getElementById('gift-tier-tabs').innerHTML = '';
-        document.getElementById('gift-qty-row').innerHTML = '';
+        document.getElementById('gift-tabs').innerHTML = '';
+        document.getElementById('gift-dots').innerHTML = '';
+        document.getElementById('gift-pager').innerHTML = `<div class="gift-loading"><i class="fa-solid fa-spinner fa-spin"></i>&nbsp; กำลังโหลด...</div>`;
+        renderQtyRow();
+        updateGiftSendBar();
 
         await loadGiftCatalog();
 
-        if (giftCatalog.length === 0) {
-            grid.innerHTML = `<div class="gift-empty">ยังไม่มีของขวัญให้เลือกในตอนนี้</div>`;
-            return;
-        }
-
-        renderGiftTabs();
-        renderGiftItems(activeGiftTier);
-        renderQtyRow();
-        updateGiftBottomBar();
+        // เปิดโมดัลใหม่ทุกครั้งให้เริ่มที่หมวดแรกของร้านค้าเสมอ (ถ้าร้านว่างก็ไปที่ Backpack)
+        const tiers = getGiftTiers();
+        await selectGiftTab(tiers[0] || GIFT_BACKPACK_TAB);
     }
 
     function closeGiftModal() {
+        closeGiftConfirm();
         document.getElementById('gift-modal-overlay').style.display = 'none';
-        blm48UnlockBodyScroll();
-    }
-
-    // สลับระหว่างแท็บ "ร้านค้า" (ซื้อของขวัญใหม่) กับ "กระเป๋าของฉัน" (ของที่เก็บไว้แล้ว)
-    function selectGiftMode(mode) {
-        giftModalMode = mode;
-        document.getElementById('gift-mode-tab-shop').classList.toggle('active', mode === 'shop');
-        document.getElementById('gift-mode-tab-wallet').classList.toggle('active', mode === 'wallet');
-        document.getElementById('gift-shop-panel').style.display = mode === 'shop' ? 'flex' : 'none';
-        document.getElementById('gift-wallet-panel').style.display = mode === 'wallet' ? 'flex' : 'none';
-
-        if (mode === 'wallet') loadGiftWalletForModal();
-    }
-
-    async function loadGiftWalletForModal() {
-        const grid = document.getElementById('gift-wallet-items-grid');
-        grid.innerHTML = `<div class="gift-loading"><i class="fa-solid fa-spinner fa-spin"></i> กำลังเปิดกระเป๋า...</div>`;
-        selectedWalletGiftId = null;
-        selectedWalletGiftQty = 1;
-
-        const username = getUsername();
-        try {
-            const data = await blm48GetGiftWallet(username);
-            myGiftWallet = Array.isArray(data) ? data : [];
-        } catch (e) {
-            console.error("Load Gift Wallet Error:", e);
-            myGiftWallet = [];
-        }
-
-        renderGiftWalletItems();
-        updateGiftWalletBottomBar();
-    }
-
-    function renderGiftWalletItems() {
-        const grid = document.getElementById('gift-wallet-items-grid');
-        if (!myGiftWallet.length) {
-            grid.innerHTML = `<div class="gift-empty">กระเป๋าของขวัญของคุณยังว่างอยู่ค่ะ ลองไปเลือกซื้อเก็บไว้ที่แท็บ "ร้านค้า" ก่อนนะคะ</div>`;
-            return;
-        }
-
-        grid.innerHTML = myGiftWallet.map(item => `
-            <div class="gift-item-card ${String(item.giftId) === String(selectedWalletGiftId) ? 'selected' : ''}" onclick="selectWalletGiftItem('${escapeAttr(item.giftId)}')">
-                <img src="${fixSecureImageUrl(item.imageUrl)}" class="gift-item-img" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
-                <div class="gift-item-name">${escapeAttr(item.giftName)}</div>
-                <div class="gift-item-cost">มีอยู่ x${Number(item.qty).toLocaleString()}</div>
-                <div class="gift-item-points">+${Number(item.points).toLocaleString()} pts</div>
-            </div>
-        `).join('');
-    }
-
-    function selectWalletGiftItem(giftId) {
-        selectedWalletGiftId = giftId;
-        selectedWalletGiftQty = 1;
-        renderGiftWalletItems();
-        updateGiftWalletBottomBar();
-    }
-
-    function getSelectedWalletGiftItem() {
-        return myGiftWallet.find(g => String(g.giftId) === String(selectedWalletGiftId)) || null;
-    }
-
-    function stepGiftWalletQty(delta) {
-        const item = getSelectedWalletGiftItem();
-        if (!item) return;
-        const maxQty = Number(item.qty) || 0;
-        selectedWalletGiftQty = Math.min(maxQty, Math.max(1, selectedWalletGiftQty + delta));
-        updateGiftWalletBottomBar();
-    }
-
-    function updateGiftWalletBottomBar() {
-        const btn = document.getElementById('gift-wallet-send-btn');
-        const stepper = document.getElementById('gift-wallet-qty-stepper');
-        const item = getSelectedWalletGiftItem();
-
-        if (!item) {
-            btn.innerHTML = 'Vote Now';
-            btn.disabled = true;
-            stepper.style.display = 'none';
-            return;
-        }
-
-        stepper.style.display = 'flex';
-        document.getElementById('gift-wallet-qty-value').textContent = selectedWalletGiftQty;
-        btn.innerHTML = `โหวตเลย x${selectedWalletGiftQty}`;
-        btn.disabled = isGivingWalletGift;
-    }
-
-    async function giveSelectedWalletGift() {
-        const item = getSelectedWalletGiftItem();
-        if (!item || isGivingWalletGift) return;
-
-        isGivingWalletGift = true;
-        const btn = document.getElementById('gift-wallet-send-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
-        try {
-            const username = getUsername();
-            const res = await blm48GiveGiftWallet(username, campaignId, activeGiftCandidate, item.giftId, selectedWalletGiftQty);
-
-            if (res.status === "success") {
-                Swal.fire({
-                    icon: 'success',
-                    title: `โหวตให้ ${activeGiftCandidate} ด้วย "${item.giftName}" x${selectedWalletGiftQty} สำเร็จ`,
-                    timer: 1400,
-                    showConfirmButton: false
-                });
-
-                const remainingQty = Number(item.qty) - selectedWalletGiftQty;
-                if (remainingQty <= 0) {
-                    myGiftWallet = myGiftWallet.filter(g => String(g.giftId) !== String(item.giftId));
-                    selectedWalletGiftId = null;
-                } else {
-                    item.qty = remainingQty;
-                    selectedWalletGiftQty = 1;
-                }
-                renderGiftWalletItems();
-                fetchCandidatesFromBackend();
-            } else {
-                Swal.fire({
-                    title: 'โหวตไม่สำเร็จ',
-                    text: res.message || 'เกิดข้อผิดพลาดในการตรวจสอบของขวัญในกระเป๋า',
-                    icon: 'error',
-                    confirmButtonText: 'ตกลง',
-                    confirmButtonColor: 'var(--primary-pink)'
-                });
-            }
-        } catch (err) {
-            console.error("Give Wallet Gift Error:", err);
-            Swal.fire({
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
-                icon: 'error',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: 'var(--primary-pink)'
-            });
-        } finally {
-            isGivingWalletGift = false;
-            updateGiftWalletBottomBar();
-        }
     }
 
     function renderGiftTabs() {
-        const tabsContainer = document.getElementById('gift-tier-tabs');
-        let tiersPresent = GIFT_TIER_ORDER.filter(t => giftCatalog.some(g => g.Tier === t));
-        if (tiersPresent.length === 0) tiersPresent = [...new Set(giftCatalog.map(g => g.Tier))];
-        if (!tiersPresent.includes(activeGiftTier)) activeGiftTier = tiersPresent[0] || 'Normal';
-
-        tabsContainer.innerHTML = tiersPresent.map(tier => `
-            <button type="button" class="gift-tier-tab ${tier === activeGiftTier ? 'active' : ''}" onclick="selectGiftTier('${escapeAttr(tier)}')">
-                ${escapeAttr(GIFT_TIER_LABELS[tier] || tier)}
-            </button>
+        const tabs = getGiftTiers().map(t => ({ key: t, label: GIFT_TIER_LABELS[t] || t }));
+        tabs.push({ key: GIFT_BACKPACK_TAB, label: 'Backpack' });
+        document.getElementById('gift-tabs').innerHTML = tabs.map(t => `
+            <button type="button" class="gift-tab ${t.key === activeGiftTab ? 'active' : ''}" onclick="selectGiftTab('${escapeAttr(t.key)}')">${escapeAttr(t.label)}</button>
         `).join('');
     }
 
-    function selectGiftTier(tier) {
-        activeGiftTier = tier;
+    async function selectGiftTab(tab) {
+        activeGiftTab = tab;
         selectedGiftId = null; // สลับแท็บแล้วให้เลือกไอเทมใหม่ กันสับสนว่าเลือกอันไหนไว้
+        selectedGiftQty = 1;
         renderGiftTabs();
-        renderGiftItems(tier);
-        updateGiftBottomBar();
+        renderQtyRow();
+        updateGiftSendBar();
+
+        if (tab === GIFT_BACKPACK_TAB) {
+            document.getElementById('gift-dots').innerHTML = '';
+            document.getElementById('gift-pager').innerHTML = `<div class="gift-loading"><i class="fa-solid fa-spinner fa-spin"></i>&nbsp; กำลังเปิด Backpack...</div>`;
+            await loadGiftWallet();
+            if (!isBackpackTab()) return; // ผู้ใช้สลับแท็บไปแล้วระหว่างรอโหลด
+        }
+        renderGiftItems();
     }
 
-    function renderGiftItems(tier) {
-        const grid = document.getElementById('gift-items-grid');
-        const items = giftCatalog.filter(g => g.Tier === tier);
+    function renderGiftItems() {
+        const pager = document.getElementById('gift-pager');
+        const dots = document.getElementById('gift-dots');
+        const items = getActiveGiftItems();
 
-        if (items.length === 0) {
-            grid.innerHTML = `<div class="gift-empty">ยังไม่มีของขวัญในระดับนี้</div>`;
+        if (!items.length) {
+            pager.innerHTML = isBackpackTab()
+                ? `<div class="gift-empty">Backpack ของคุณยังว่างอยู่ค่ะ<br>ซื้อของขวัญเก็บไว้ก่อนได้ ตอนกด Send ในแท็บร้านค้า</div>`
+                : `<div class="gift-empty">ยังไม่มีของขวัญในหมวดนี้</div>`;
+            dots.innerHTML = '';
             return;
         }
 
-        grid.innerHTML = items.map(item => `
-            <div class="gift-item-card ${String(item.GiftID) === String(selectedGiftId) ? 'selected' : ''}" onclick="selectGiftItem('${escapeAttr(item.GiftID)}')">
-                <img src="${fixSecureImageUrl(item.ImageURL)}" class="gift-item-img" onerror="this.src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'">
-                <div class="gift-item-name">${escapeAttr(item.GiftName)}</div>
-                <div class="gift-item-cost"><i class="fa-solid fa-cookie-bite"></i> ${Number(item.CostCookies).toLocaleString()}</div>
-                <div class="gift-item-points">+${Number(item.Points).toLocaleString()} pts</div>
+        const pages = [];
+        for (let i = 0; i < items.length; i += GIFT_PER_PAGE) pages.push(items.slice(i, i + GIFT_PER_PAGE));
+
+        pager.innerHTML = pages.map(page => `
+            <div class="gift-page">
+                ${page.map(item => `
+                    <div class="gift-item-card ${item.id === String(selectedGiftId) ? 'selected' : ''}" data-gift-id="${escapeAttr(item.id)}" onclick="selectGiftItem('${escapeAttr(item.id)}')">
+                        <img src="${fixSecureImageUrl(item.img)}" class="gift-item-img" alt="" onerror="this.src='${BLANK_IMG}'">
+                        <div class="gift-item-name">${escapeAttr(item.name)}</div>
+                        <div class="gift-item-cost">${item.owned !== null
+                            ? `x${item.owned.toLocaleString()}`
+                            : `<i class="fa-solid fa-cookie-bite"></i>${item.cost.toLocaleString()}`}</div>
+                    </div>
+                `).join('')}
             </div>
         `).join('');
+        pager.scrollLeft = 0;
+
+        dots.innerHTML = pages.length > 1
+            ? pages.map((_, i) => `<span class="gift-dot ${i === 0 ? 'active' : ''}"></span>`).join('')
+            : '';
+    }
+
+    function updateGiftPageDots() {
+        const pager = document.getElementById('gift-pager');
+        const page = Math.round(pager.scrollLeft / Math.max(1, pager.clientWidth));
+        document.querySelectorAll('#gift-dots .gift-dot').forEach((d, i) => d.classList.toggle('active', i === page));
     }
 
     function selectGiftItem(giftId) {
         selectedGiftId = giftId;
-        renderGiftItems(activeGiftTier);
-        updateGiftBottomBar();
+        // สลับแค่คลาส ไม่ render ใหม่ทั้งกริด จะได้ไม่เด้งกลับหน้าแรก
+        document.querySelectorAll('#gift-pager .gift-item-card').forEach(card => {
+            card.classList.toggle('selected', card.dataset.giftId === String(giftId));
+        });
+        selectedGiftQty = Math.min(selectedGiftQty, Math.max(1, getMaxGiftQty()));
+        renderQtyRow();
+        updateGiftSendBar();
     }
 
     function renderQtyRow() {
-        const row = document.getElementById('gift-qty-row');
-        row.innerHTML = GIFT_QTY_PRESETS.map(q => `
-            <button type="button" class="gift-qty-btn ${q === selectedGiftQty ? 'active' : ''}" onclick="selectGiftQuantity(${q})">x${q}</button>
-        `).join('');
+        const maxQty = getMaxGiftQty();
+        const isCustom = !GIFT_QTY_PRESETS.includes(selectedGiftQty);
+        document.getElementById('gift-qty-row').innerHTML = GIFT_QTY_PRESETS.map(q => `
+            <button type="button" class="gift-qty-btn ${q === selectedGiftQty ? 'active' : ''}" onclick="selectGiftQuantity(${q})" ${q > maxQty ? 'disabled' : ''}>×${q}</button>
+        `).join('') + `
+            <button type="button" class="gift-qty-btn custom ${isCustom ? 'active' : ''}" onclick="openCustomGiftQty()">${isCustom ? `×${selectedGiftQty.toLocaleString()}` : 'Customize'}</button>
+        `;
     }
 
     function selectGiftQuantity(qty) {
         selectedGiftQty = qty;
         renderQtyRow();
-        updateGiftBottomBar();
+        updateGiftSendBar();
     }
 
-    function getSelectedGiftItem() {
-        return giftCatalog.find(g => String(g.GiftID) === String(selectedGiftId)) || null;
-    }
-
-    function updateGiftBottomBar() {
-        const btn = document.getElementById('gift-send-btn');
-        const keepBtn = document.getElementById('gift-keep-btn');
-        const item = getSelectedGiftItem();
-
-        if (!item) {
-            btn.innerHTML = 'Vote Now';
-            btn.disabled = true;
-            keepBtn.disabled = true;
-            return;
-        }
-
-        const totalCost = Number(item.CostCookies) * selectedGiftQty;
-        const balance = getUserCookieBalance();
-        const insufficientFunds = balance < totalCost;
-        btn.innerHTML = `โหวตเลย &nbsp;<i class="fa-solid fa-cookie-bite"></i> ${totalCost.toLocaleString()}`;
-        btn.disabled = isSendingGift || isBuyingGiftToWallet || insufficientFunds;
-        keepBtn.disabled = isSendingGift || isBuyingGiftToWallet || insufficientFunds;
-    }
-
-    // เก็บของขวัญที่เลือกไว้เข้ากระเป๋า (จ่าย Cookie ทันทีเหมือนกัน แต่ยังไม่โหวตให้ใคร ไปโหวตทีหลังได้ที่แท็บ "กระเป๋าของฉัน")
-    async function buySelectedGiftToWallet() {
-        const item = getSelectedGiftItem();
-        if (!item || isBuyingGiftToWallet || isSendingGift) return;
-
-        const totalCost = Number(item.CostCookies) * selectedGiftQty;
-        const balance = getUserCookieBalance();
-        if (balance < totalCost) {
-            Swal.fire({
-                title: 'คุกกี้ไม่พอ',
-                text: `คุณมี ${balance.toLocaleString()} Cookies แต่ต้องใช้ ${totalCost.toLocaleString()} Cookies`,
-                icon: 'warning',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: 'var(--primary-pink)'
-            });
-            return;
-        }
-
-        isBuyingGiftToWallet = true;
-        const keepBtn = document.getElementById('gift-keep-btn');
-        const sendBtn = document.getElementById('gift-send-btn');
-        sendBtn.disabled = true;
-        keepBtn.disabled = true;
-        const originalKeepHTML = keepBtn.innerHTML;
-        keepBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
-        try {
-            const username = getUsername();
-            const res = await blm48BuyGiftWallet(username, item.GiftID, selectedGiftQty);
-
-            if (res.status === "success") {
-                try {
-                    const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
-                    const userData = sessionUpdate.data || sessionUpdate.user || sessionUpdate;
-                    userData.cookie = (res.newBalance !== undefined) ? Number(res.newBalance) : Math.max(0, Number(userData.cookie || 0) - totalCost);
-                    localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
-                    renderWalletStrip();
-                } catch (e) { console.error("Session Update Error:", e); }
-
-                document.getElementById('gift-modal-cookie-balance').textContent = getUserCookieBalance().toLocaleString();
-
-                Swal.fire({
-                    icon: 'success',
-                    title: `เก็บ "${item.GiftName}" x${selectedGiftQty} เข้ากระเป๋าแล้ว`,
-                    text: 'ไปโหวตให้เมมเบอร์ได้ทีหลังที่แท็บ "กระเป๋าของฉัน"',
-                    timer: 1800,
-                    showConfirmButton: false
-                });
-
-                selectedGiftId = null;
-                selectedGiftQty = 1;
-                renderGiftItems(activeGiftTier);
-                renderQtyRow();
-            } else {
-                Swal.fire({
-                    title: 'เก็บของขวัญไม่สำเร็จ',
-                    text: res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักคุกกี้',
-                    icon: 'error',
-                    confirmButtonText: 'ตกลง',
-                    confirmButtonColor: 'var(--primary-pink)'
-                });
+    async function openCustomGiftQty() {
+        const maxQty = getMaxGiftQty();
+        const { value } = await Swal.fire({
+            title: 'ระบุจำนวน',
+            input: 'number',
+            inputValue: selectedGiftQty,
+            inputAttributes: { min: 1, max: maxQty, step: 1, inputmode: 'numeric' },
+            showCancelButton: true,
+            confirmButtonText: 'ตกลง',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#ffd75e',
+            inputValidator: (v) => {
+                const n = Number(v);
+                if (!Number.isInteger(n) || n < 1) return 'กรุณาใส่จำนวนเต็มตั้งแต่ 1 ขึ้นไป';
+                if (n > maxQty) return `ใส่ได้สูงสุด ${maxQty.toLocaleString()} ชิ้น`;
             }
-        } catch (err) {
-            console.error("Buy Gift To Wallet Error:", err);
-            Swal.fire({
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
-                icon: 'error',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: 'var(--primary-pink)'
-            });
-        } finally {
-            isBuyingGiftToWallet = false;
-            keepBtn.innerHTML = originalKeepHTML;
-            updateGiftBottomBar();
+        });
+        if (value) selectGiftQuantity(Number(value));
+    }
+
+    function updateGiftSendBar() {
+        document.getElementById('gift-modal-cookie-balance').textContent = getUserCookieBalance().toLocaleString();
+        document.getElementById('gift-send-btn').disabled = !getSelectedGiftItem() || isGiftBusy;
+    }
+
+    function applyCookieBalance(res, totalCost) {
+        // อัปเดตยอด Cookie ในเซสชันให้ตรงกับหลังบ้านทันที
+        try {
+            const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
+            const userData = sessionUpdate.data || sessionUpdate.user || sessionUpdate;
+            userData.cookie = (res.newBalance !== undefined) ? Number(res.newBalance) : Math.max(0, Number(userData.cookie || 0) - totalCost);
+            localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
+            renderWalletStrip();
+        } catch (e) { console.error("Session Update Error:", e); }
+    }
+
+    function warnNotEnoughCookies(totalCost) {
+        const balance = getUserCookieBalance();
+        Swal.fire({
+            title: 'คุกกี้ไม่พอ',
+            text: `คุณมี ${balance.toLocaleString()} Cookies แต่ต้องใช้ ${totalCost.toLocaleString()} Cookies`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'เติม Cookie',
+            cancelButtonText: 'ปิด',
+            confirmButtonColor: '#ffd75e'
+        }).then(r => { if (r.isConfirmed) window.location.href = 'shop.html'; });
+    }
+
+    function showGiftError(title, text) {
+        Swal.fire({ title, text, icon: 'error', confirmButtonText: 'ตกลง', confirmButtonColor: 'var(--primary-pink)' });
+    }
+
+    function openGiftConfirm() {
+        const item = getSelectedGiftItem();
+        if (!item || isGiftBusy) return;
+
+        const totalCost = item.cost * selectedGiftQty;
+        const totalPoints = item.points * selectedGiftQty;
+        if (!isBackpackTab() && getUserCookieBalance() < totalCost) {
+            warnNotEnoughCookies(totalCost);
+            return;
         }
+
+        const pill = isBackpackTab()
+            ? `มีอยู่ x${item.owned.toLocaleString()}`
+            : `<i class="fa-solid fa-cookie-bite"></i>${item.cost.toLocaleString()}`;
+        const total = isBackpackTab()
+            ? `<div class="gift-confirm-total"><i class="fa-solid fa-star"></i>${totalPoints.toLocaleString()}</div>
+               <div class="gift-confirm-note">คะแนนโหวต · ใช้ของจาก Backpack ไม่หัก Cookie</div>`
+            : `<div class="gift-confirm-total"><i class="fa-solid fa-cookie-bite"></i>${totalCost.toLocaleString()}</div>
+               ${totalPoints ? `<div class="gift-confirm-note">ได้ +${totalPoints.toLocaleString()} คะแนนโหวตให้ ${escapeAttr(activeGiftCandidate)}</div>` : ''}`;
+
+        document.getElementById('gift-confirm-body').innerHTML = `
+            <div class="gift-confirm-item">
+                <div class="gift-confirm-item-col">
+                    <img src="${fixSecureImageUrl(item.img)}" alt="" onerror="this.src='${BLANK_IMG}'">
+                    <div class="gift-item-name">${escapeAttr(item.name)}</div>
+                    <div class="gift-item-cost">${pill}</div>
+                </div>
+                <div class="gift-confirm-qty">× ${selectedGiftQty.toLocaleString()}</div>
+            </div>
+            <div class="gift-confirm-divider">Equal</div>
+            ${total}
+        `;
+        document.getElementById('gift-confirm-keep').style.display = isBackpackTab() ? 'none' : 'block';
+        document.getElementById('gift-confirm-overlay').style.display = 'flex';
+    }
+
+    function closeGiftConfirm() {
+        document.getElementById('gift-confirm-overlay').style.display = 'none';
+    }
+
+    function confirmGiftSend() {
+        closeGiftConfirm();
+        if (isBackpackTab()) giveSelectedWalletGift();
+        else sendSelectedGift();
+    }
+
+    function confirmGiftKeep() {
+        closeGiftConfirm();
+        buySelectedGiftToWallet();
+    }
+
+    function setGiftBusy(busy) {
+        isGiftBusy = busy;
+        const btn = document.getElementById('gift-send-btn');
+        btn.innerHTML = busy ? '<i class="fa-solid fa-spinner fa-spin"></i>' : 'Send';
+        updateGiftSendBar();
+    }
+
+    function resetGiftSelection() {
+        selectedGiftId = null;
+        selectedGiftQty = 1;
+        renderGiftItems();
+        renderQtyRow();
+        updateGiftSendBar();
     }
 
     async function sendSelectedGift() {
         const item = getSelectedGiftItem();
-        if (!item || isSendingGift || isBuyingGiftToWallet) return;
+        if (!item || isGiftBusy) return;
+        const qty = selectedGiftQty;
+        const totalCost = item.cost * qty;
+        if (getUserCookieBalance() < totalCost) { warnNotEnoughCookies(totalCost); return; }
 
-        const totalCost = Number(item.CostCookies) * selectedGiftQty;
-        const balance = getUserCookieBalance();
-        if (balance < totalCost) {
-            Swal.fire({
-                title: 'คุกกี้ไม่พอ',
-                text: `คุณมี ${balance.toLocaleString()} Cookies แต่ต้องใช้ ${totalCost.toLocaleString()} Cookies`,
-                icon: 'warning',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: 'var(--primary-pink)'
-            });
-            return;
-        }
-
-        isSendingGift = true;
-        const btn = document.getElementById('gift-send-btn');
-        btn.disabled = true;
-        document.getElementById('gift-keep-btn').disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-
+        setGiftBusy(true);
         try {
-            const username = getUsername();
-            const res = await blm48SendGift(username, campaignId, activeGiftCandidate, item.GiftID, selectedGiftQty);
-
+            const res = await blm48SendGift(getUsername(), campaignId, activeGiftCandidate, item.rawId, qty);
             if (res.status === "success") {
-                // อัปเดตยอด Cookie ในเซสชันให้ตรงกับหลังบ้านทันที
-                try {
-                    const sessionUpdate = JSON.parse(localStorage.getItem('bnl_session'));
-                    const userData = sessionUpdate.data || sessionUpdate.user || sessionUpdate;
-                    userData.cookie = (res.newBalance !== undefined) ? Number(res.newBalance) : Math.max(0, Number(userData.cookie || 0) - totalCost);
-                    localStorage.setItem('bnl_session', JSON.stringify(sessionUpdate));
-                    renderWalletStrip();
-                } catch (e) { console.error("Session Update Error:", e); }
-
-                document.getElementById('gift-modal-cookie-balance').textContent = getUserCookieBalance().toLocaleString();
-
-                Swal.fire({
-                    icon: 'success',
-                    title: `ส่งของขวัญ "${item.GiftName}" x${selectedGiftQty} สำเร็จ`,
-                    timer: 1400,
-                    showConfirmButton: false
-                });
-
+                applyCookieBalance(res, totalCost);
+                Swal.fire({ icon: 'success', title: `ส่ง "${item.name}" x${qty} ให้ ${activeGiftCandidate} สำเร็จ`, timer: 1400, showConfirmButton: false });
                 // รีเซ็ตกลับไปเลือกใหม่ได้ทันที (โมดัลยังเปิดอยู่ ไม่ต้องกดปุ่ม Gift ซ้ำ)
-                selectedGiftId = null;
-                selectedGiftQty = 1;
-                renderGiftItems(activeGiftTier);
-                renderQtyRow();
+                resetGiftSelection();
                 fetchCandidatesFromBackend();
             } else {
-                Swal.fire({
-                    title: 'ส่งของขวัญไม่สำเร็จ',
-                    text: res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักคุกกี้',
-                    icon: 'error',
-                    confirmButtonText: 'ตกลง',
-                    confirmButtonColor: 'var(--primary-pink)'
-                });
+                showGiftError('ส่งของขวัญไม่สำเร็จ', res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักคุกกี้');
             }
         } catch (err) {
             console.error("Send Gift Error:", err);
-            Swal.fire({
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
-                icon: 'error',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: 'var(--primary-pink)'
-            });
+            showGiftError('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง');
         } finally {
-            isSendingGift = false;
-            updateGiftBottomBar();
+            setGiftBusy(false);
         }
     }
+
+    // ซื้อของขวัญเก็บเข้า Backpack (จ่าย Cookie ทันทีเหมือนกัน แต่ยังไม่โหวตให้ใคร ไปโหวตทีหลังได้ที่แท็บ Backpack)
+    async function buySelectedGiftToWallet() {
+        const item = getSelectedGiftItem();
+        if (!item || isGiftBusy) return;
+        const qty = selectedGiftQty;
+        const totalCost = item.cost * qty;
+        if (getUserCookieBalance() < totalCost) { warnNotEnoughCookies(totalCost); return; }
+
+        setGiftBusy(true);
+        try {
+            const res = await blm48BuyGiftWallet(getUsername(), item.rawId, qty);
+            if (res.status === "success") {
+                applyCookieBalance(res, totalCost);
+                Swal.fire({ icon: 'success', title: `เก็บ "${item.name}" x${qty} เข้า Backpack แล้ว`, text: 'ไปโหวตให้เมมเบอร์ได้ทีหลังที่แท็บ Backpack', timer: 1800, showConfirmButton: false });
+                resetGiftSelection();
+            } else {
+                showGiftError('เก็บของขวัญไม่สำเร็จ', res.message || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักคุกกี้');
+            }
+        } catch (err) {
+            console.error("Buy Gift To Wallet Error:", err);
+            showGiftError('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง');
+        } finally {
+            setGiftBusy(false);
+        }
+    }
+
+    async function giveSelectedWalletGift() {
+        const item = getSelectedGiftItem();
+        if (!item || isGiftBusy) return;
+        const qty = selectedGiftQty;
+
+        setGiftBusy(true);
+        try {
+            const res = await blm48GiveGiftWallet(getUsername(), campaignId, activeGiftCandidate, item.rawId, qty);
+            if (res.status === "success") {
+                Swal.fire({ icon: 'success', title: `โหวตให้ ${activeGiftCandidate} ด้วย "${item.name}" x${qty} สำเร็จ`, timer: 1400, showConfirmButton: false });
+                // หักจำนวนในกระเป๋าฝั่งหน้าจอทันที ไม่ต้องรอโหลดใหม่
+                myGiftWallet = myGiftWallet
+                    .map(g => String(g.giftId) === item.id ? { ...g, qty: Number(g.qty) - qty } : g)
+                    .filter(g => Number(g.qty) > 0);
+                resetGiftSelection();
+                fetchCandidatesFromBackend();
+            } else {
+                showGiftError('โหวตไม่สำเร็จ', res.message || 'เกิดข้อผิดพลาดในการตรวจสอบของขวัญในกระเป๋า');
+            }
+        } catch (err) {
+            console.error("Give Wallet Gift Error:", err);
+            showGiftError('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง');
+        } finally {
+            setGiftBusy(false);
+        }
+    }
+
+    document.getElementById('gift-pager').addEventListener('scroll', updateGiftPageDots, { passive: true });
 
     document.addEventListener("DOMContentLoaded", initDetailPage);
 </script>

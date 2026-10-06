@@ -233,6 +233,8 @@
         : '<span class="status-pill status-pending"><i class="fa-solid fa-hourglass-half"></i> รอจัดส่ง</span>';
       const resolvedBadgeHTML = (!isShipped && o.resolved)
         ? '<div class="resolved-badge"><i class="fa-solid fa-eye"></i> สุ่มแล้ว รอกดจัดส่งเพื่อส่งของจริงให้ผู้ซื้อ</div>'
+        : (isShipped && !o.fulfilled)
+        ? '<div class="resolved-badge"><i class="fa-solid fa-gift"></i> จัดส่งแล้ว รอผู้ซื้อกด Redeem รับของ</div>'
         : '';
       const dt = o.createdAt ? new Date(o.createdAt).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
       const itemsText = (o.items || []).map(it => {
@@ -308,8 +310,8 @@
     let html;
     if (newStatus === 'shipped') {
       html = (order && order.resolved)
-        ? '<div style="font-size:13px;color:#777;text-align:left;">ออเดอร์นี้เผยผลสุ่มไว้แล้ว คำสั่งนี้จะมอบไอเทม/GE Token ตามผลที่สุ่มไว้ให้ผู้ซื้อจริง และเปลี่ยนป้ายสถานะเป็น "จัดส่งแล้ว" (ทำครั้งเดียวเท่านั้น)</div>'
-        : '<div style="font-size:13px;color:#777;text-align:left;">ระบบจะสุ่มลายการ์ดที่ต้องส่งจริง ตัดสต๊อกการ์ดนั้น เพิ่มไอเทมเข้า My Inventory และเติม GE Token ให้ผู้ซื้อทันที (ทำครั้งเดียวเท่านั้น)</div>';
+        ? '<div style="font-size:13px;color:#777;text-align:left;">ออเดอร์นี้เผยผลสุ่มไว้แล้ว คำสั่งนี้จะเปลี่ยนป้ายสถานะเป็น "จัดส่งแล้ว" และให้ผู้ซื้อกด Redeem ในหน้า My Order เพื่อรับไอเทม/GE Token ตามผลที่สุ่มไว้ (ทำครั้งเดียวเท่านั้น)</div>'
+        : '<div style="font-size:13px;color:#777;text-align:left;">ระบบจะสุ่มลายการ์ดที่ต้องส่งจริงและตัดสต๊อกการ์ดนั้น จากนั้นผู้ซื้อกด Redeem ในหน้า My Order เพื่อรับไอเทมเข้า My Inventory และ GE Token (ทำครั้งเดียวเท่านั้น)</div>';
     } else {
       html = '<div style="font-size:13px;color:#777;text-align:left;">การ์ด/Token ที่มอบให้ไปแล้วจะไม่ถูกเรียกคืน คำสั่งนี้แค่เปลี่ยนป้ายสถานะกลับเป็นรอจัดส่งเท่านั้น</div>';
     }
@@ -332,7 +334,6 @@
           order.status = newStatus;
           if (newStatus === 'shipped') {
             order.resolved = true;
-            order.fulfilled = true;
           }
           if (res.items) order.items = res.items;
         }

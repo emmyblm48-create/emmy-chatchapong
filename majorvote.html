@@ -264,6 +264,21 @@
       transition: width 0.2s ease, height 0.2s ease;
     }
 
+        /* ป๊อปอัปก่อนเข้ากิจกรรมโหวตที่เปิดอยู่: ต้องมี Token ขั้นต่ำ + ยอดคงเหลือ + หมายเหตุโหมด Token */
+        .vote-gate-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+        .vote-gate-overlay.show { display: flex; }
+        .vote-gate-box { background: #ffffff; width: 100%; max-width: 350px; border-radius: 12px; padding: 28px 22px 14px; text-align: center; animation: vote-gate-pop 0.18s ease; }
+        @keyframes vote-gate-pop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .vote-gate-coin { width: 86px; height: 86px; border-radius: 50%; margin: 0 auto 22px; display: flex; align-items: center; justify-content: center; font-size: 36px; color: #fff8dc; background: radial-gradient(circle at 35% 30%, #e9cf7c, #a8843a 70%, #7d5f22); box-shadow: inset 0 0 0 5px rgba(255,255,255,0.25), 0 4px 12px rgba(125,95,34,0.35); }
+        .vote-gate-coin.ge { background: radial-gradient(circle at 35% 30%, #9fd3ff, #3a7fc4 70%, #24578c); color: #eaf6ff; box-shadow: inset 0 0 0 5px rgba(255,255,255,0.25), 0 4px 12px rgba(36,87,140,0.35); }
+        .vote-gate-title { font-size: 17px; font-weight: 600; color: #222; line-height: 1.4; margin: 0 0 28px; }
+        .vote-gate-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #222; padding: 0 10px; margin-bottom: 18px; }
+        .vote-gate-row b { font-weight: 700; }
+        .vote-gate-row b.insufficient { color: #e05a5a; }
+        .vote-gate-remark { font-size: 12.5px; color: #9a9a9a; line-height: 1.5; margin: 30px 6px 20px; }
+        .vote-gate-enter { width: 100%; background: #ffd76e; color: #222; border: none; border-radius: 999px; padding: 14px 0; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer; }
+        .vote-gate-enter:disabled { opacity: 0.45; cursor: not-allowed; }
+        .vote-gate-cancel { width: 100%; background: none; border: none; color: #222; padding: 14px 0 6px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -320,9 +335,9 @@
         <div class="circle-icon"><i class="fas fa-briefcase"></i></div>
         <span class="circle-label">Inventory</span>
     </a>
-    <a href="history" class="circle-action-btn btn-history-log">
+    <a href="history?tab=vote" class="circle-action-btn btn-history-log">
         <div class="circle-icon"><i class="far fa-clock"></i></div>
-        <span class="circle-label">History</span>
+        <span class="circle-label">Transactions</span>
     </a>
 </div>
 
@@ -334,6 +349,18 @@
             <i class="fa-solid fa-spinner fa-spin"></i> Loading...
         </div>
     </div>
+
+<div class="vote-gate-overlay" id="vote-gate-overlay" onclick="closeVoteGate()">
+    <div class="vote-gate-box" onclick="event.stopPropagation()">
+        <div class="vote-gate-coin" id="vote-gate-coin"><i class="fa-solid fa-coins"></i></div>
+        <p class="vote-gate-title" id="vote-gate-title"></p>
+        <div class="vote-gate-row"><span>Amount required</span><b id="vote-gate-required"></b></div>
+        <div class="vote-gate-row"><span>Your balance</span><b id="vote-gate-balance"></b></div>
+        <p class="vote-gate-remark" id="vote-gate-remark"></p>
+        <button type="button" class="vote-gate-enter" id="vote-gate-enter" onclick="enterVoteGate()">Enter</button>
+        <button type="button" class="vote-gate-cancel" onclick="closeVoteGate()">Cancel</button>
+    </div>
+</div>
 
 <div class="bottom-tab-bar">
 
@@ -556,12 +583,78 @@
         }
     }
 
+    // =========================================================
+    // 🚪 ป๊อปอัปก่อนเข้ากิจกรรมโหวตที่เปิดอยู่ (ต้องมี Token อย่างน้อย 1 ถึงจะโหวตได้)
+    // แคมเปญที่ใช้ Gift อย่างเดียว ไม่ต้องผ่านป๊อปอัปนี้ เพราะใช้ Cookie ราคาไม่ตายตัว
+    // =========================================================
+    const VOTE_GATE_MIN = 1;
+    let renderedCampaigns = [];
+    let voteGateHref = '';
+
+    function getGateTokenType(camp) {
+        const t = String(camp.TokenType || '').trim().toLowerCase();
+        if (t === 'gift' || t === 'cookie') return null;
+        return t === 'getoken' ? 'GEToken' : 'Token';
+    }
+
+    function getGateBalance(tokenType) {
+        let wallet = null;
+        try { wallet = JSON.parse(localStorage.getItem('bnl_vote_wallet_cache') || 'null'); } catch (e) {}
+        const src = wallet || getUserSession() || {};
+        if (tokenType === 'GEToken') return Number(src.GEToken !== undefined ? src.GEToken : (src.geToken || 0));
+        return Number(src.Token !== undefined ? src.Token : (src.token || 0));
+    }
+
+    function getGateRemark(camp) {
+        const m = String(camp.TokenMechanic || '').trim().toLowerCase();
+        if (m === 'lock') return 'Remark: Rights token used in major vote will be locked and fully returned when the poll closes';
+        if (m === 'partial') return `Remark: Rights token used in major vote will be partially burned (${Number(camp.RefundPercent) || 0}% returned when the poll closes)`;
+        return 'Remark: Rights token used in major vote will be burned';
+    }
+
+    function onCampaignCardClick(event, campaignId) {
+        const camp = renderedCampaigns.find(c => String(c.VoteCollectionID) === String(campaignId));
+        const tokenType = camp ? getGateTokenType(camp) : null;
+        if (!tokenType) return true; // ปล่อยให้ลิงก์ทำงานตามปกติ
+
+        event.preventDefault();
+        const label = tokenType === 'GEToken' ? 'GE Token' : 'BLM48 Token';
+        const unit = tokenType === 'GEToken' ? 'GE Token' : 'Token';
+        const balance = getGateBalance(tokenType);
+        const enough = balance >= VOTE_GATE_MIN;
+        // แคมเปญที่เปิด Gift ไว้ด้วย ยังเข้าไปส่งของขวัญได้ แม้ Token ไม่พอ
+        const canEnter = enough || camp.EnableGift === true || String(camp.EnableGift).toLowerCase() === 'true';
+
+        voteGateHref = event.currentTarget.getAttribute('href');
+        const coin = document.getElementById('vote-gate-coin');
+        coin.classList.toggle('ge', tokenType === 'GEToken');
+        coin.innerHTML = tokenType === 'GEToken' ? '<i class="fa-solid fa-gem"></i>' : '<i class="fa-solid fa-coins"></i>';
+        document.getElementById('vote-gate-title').innerHTML = `To participate,<br>you need to have at least<br>${VOTE_GATE_MIN} ${escapeHtml(label)}`;
+        document.getElementById('vote-gate-required').textContent = `${VOTE_GATE_MIN} ${unit}`;
+        const balEl = document.getElementById('vote-gate-balance');
+        balEl.textContent = `${balance.toLocaleString()} ${unit}`;
+        balEl.classList.toggle('insufficient', !enough);
+        document.getElementById('vote-gate-remark').textContent = getGateRemark(camp);
+        document.getElementById('vote-gate-enter').disabled = !canEnter;
+        document.getElementById('vote-gate-overlay').classList.add('show');
+        return false;
+    }
+
+    function enterVoteGate() {
+        if (voteGateHref) window.location.href = voteGateHref;
+    }
+
+    function closeVoteGate() {
+        document.getElementById('vote-gate-overlay').classList.remove('show');
+    }
+
     function renderCampaignCards(campaignsList) {
         const container = document.getElementById("vote-container");
         container.innerHTML = ""; 
         
         const now = new Date().getTime();
 
+        renderedCampaigns = campaignsList;
         campaignsList.forEach(camp => {
             const status = (camp.Status || "Closed").trim().toUpperCase();
             const isOpen = status === "OPEN"; 
@@ -589,7 +682,7 @@
             const endDateText = formatEndDate(camp.EndTime);
 
             const cardHtml = `
-                <a href="majorvote_detail?id=${encodeURIComponent(camp.VoteCollectionID)}&status=${encodeURIComponent(status.toLowerCase())}" class="major-vote-card" aria-label="${escapeHtml(camp.Title || 'Major Vote')}">
+                <a href="majorvote_detail?id=${encodeURIComponent(camp.VoteCollectionID)}&status=${encodeURIComponent(status.toLowerCase())}" class="major-vote-card" aria-label="${escapeHtml(camp.Title || 'Major Vote')}" ${isOpen ? `onclick="return onCampaignCardClick(event, '${escapeAttr(camp.VoteCollectionID)}')"` : ''}>
                     <div class="image-fallback-bg">
                         <i class="fa-solid fa-star"></i>
                         <span>${escapeHtml(camp.Title || 'Coming Soon')}</span>

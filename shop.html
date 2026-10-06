@@ -747,7 +747,7 @@
         .merch-category, .card-tag {
             font-size: 0.8rem !important;
             font-weight: bold;
-            color: #c53f5a !important;
+            color: #c53f5a;
             margin-bottom: 4px;
         }
 
@@ -1053,28 +1053,6 @@
         .cookie-fall { position: fixed; top: -50px; z-index: -1; color: #e6b38a; pointer-events: none; animation: falling linear forwards; opacity: 0.6; }
         @keyframes falling { to { transform: translateY(110vh) rotate(360deg); } }
 
-        /* 🎉 เอฟเฟกต์ฉลองตอนซื้อสำเร็จ ใช้ร่วมกันทุกจุดในหน้า Shop (Cookie / Gacha / Cafe) */
-        .purchase-confetti-piece {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 8px;
-            height: 8px;
-            border-radius: 2px;
-            pointer-events: none;
-            z-index: 20000;
-            opacity: 1;
-            animation: purchaseConfettiBurst 0.9s ease-out forwards;
-        }
-        @keyframes purchaseConfettiBurst {
-            0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
-            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; }
-        }
-        .ssr-confetti-piece {
-            width: 10px;
-            height: 10px;
-            box-shadow: 0 0 6px rgba(255, 215, 0, 0.8);
-        }
           
         .inventory-grid {
             display: grid;
@@ -1356,20 +1334,166 @@
           100% { opacity: 0.6; }
         }
 
+
+        /* =====================================================================
+           🛍️ หน้าตาแบบ iAM Shop ให้เข้าชุดกับหน้าอื่นของแอป (Major Vote / Kami / Inventory):
+           พื้นขาว, แถบบนขาวเรียบ + ไอคอน My Orders / My Items, แท็บหมวดขีดเส้นใต้,
+           การ์ดสินค้าไม่มีกรอบ (มีกรอบที่รูป) ชื่อสินค้าสีเทา + แท็กเส้นขอบ + ราคาตัวหนา
+           วางท้ายสุดเพื่อทับสไตล์ธีมครีมโซดาเดิมด้วยลำดับใน source
+           ===================================================================== */
+        body.glass-mesh-bg.force-white-bg { background: #ffffff; }
+        .top-navbar { height: 56px; padding: 0 8px; box-shadow: none; border-bottom: 1px solid #e8e8e8; }
+        .top-navbar::before, .top-navbar::after { display: none; }
+        .nav-brand { font-size: 18px; font-weight: 600; color: #222; letter-spacing: 0; }
+        .shop-nav-icon {
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: #222; font-size: 20px; text-decoration: none; cursor: pointer;
+        }
+        .shop-nav-back { position: absolute; left: 6px; font-size: 22px; }
+        .shop-nav-right { position: absolute; right: 6px; display: flex; }
+        .top-navbar { box-sizing: border-box; }
+        .shop-nav-right .shop-nav-icon { width: 38px; }
+        .shop-nav-icon.has-badge { position: relative; }
+        .cart-badge {
+            position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px;
+            border-radius: 9px; background: #e1546f; color: #fff; font-size: 11px; font-weight: 700;
+            line-height: 18px; text-align: center; font-family: 'Quicksand', 'Kanit', sans-serif;
+        }
+        /* แจ้งเตือนสั้นๆ ตอนหยิบใส่ตะกร้า (ไม่ใช่ป๊อปอัป ไม่ต้องกดปิด) */
+        .cart-toast {
+            position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 3000;
+            transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+            background: #222; color: #fff; border-radius: 999px; padding: 10px 14px 10px 18px;
+            display: flex; align-items: center; gap: 12px; font-size: 14px; white-space: nowrap;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18); transition: opacity .2s, transform .2s;
+            font-family: 'Quicksand', 'Kanit', sans-serif; max-width: calc(100vw - 24px);
+        }
+        .cart-toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+        .cart-toast i { color: #7cd992; }
+        .cart-toast a {
+            color: #222; background: #ffd76e; border-radius: 999px; padding: 5px 12px;
+            font-weight: 700; text-decoration: none; font-size: 13px;
+        }
+        body { padding-top: 56px !important; }
+        @media (min-width: 768px) {
+            .top-navbar { height: 56px; padding: 0 8px; }
+            body { padding-top: 56px !important; }
+            .nav-brand { font-size: 18px; }
+        }
+
+        .shop-tabs {
+            position: sticky; top: 56px; z-index: 900; background: #fff;
+            display: flex; gap: 28px; overflow-x: auto; scrollbar-width: none;
+            padding: 0 20px; border-bottom: 1px solid #e8e8e8;
+        }
+        .shop-tabs::-webkit-scrollbar { display: none; }
+        .shop-tab {
+            flex-shrink: 0; background: none; border: none; cursor: pointer;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 16px; font-weight: 600;
+            color: #aaa; padding: 14px 0 12px; position: relative;
+        }
+        .shop-tab.active { color: #222; }
+        .shop-tab.active::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: 8px; height: 5px;
+            background: var(--primary-pink); opacity: .55; border-radius: 2px; z-index: -1;
+        }
+
+        /* 💰 ยอดเงินแบบแถบเตี้ยๆ */
+        .user-profile-bar {
+            max-width: none; margin: 14px 20px 0; padding: 12px 0;
+            background: #fafafa; border: none; border-image: none; border-radius: 14px; box-shadow: none;
+        }
+        .wallet-value { font-size: 15px; color: #222 !important; }
+        .wallet-value i { font-size: 13px; }
+        .wallet-item:nth-child(1) .wallet-value i { color: var(--cookie-brown); }
+        .wallet-item:nth-child(2) .wallet-value i { color: #c9932c; }
+        .wallet-item:nth-child(3) .wallet-value i { color: #4dabf7; }
+        .wallet-item:not(:last-child) { border-right: 1px solid #ececec; }
+        .wallet-label { color: #999; }
+
+        .section-title {
+            border-left: none; padding-left: 0; margin: 26px 20px 0; border-radius: 0;
+            font-size: 20px; font-weight: 700; color: #222; scroll-margin-top: 110px;
+        }
+        .preorder-category-title {
+            background: none; padding: 4px 0 0; margin: 6px 0 -4px; color: #555; font-size: 15px;
+        }
+        .preorder-category-title i { display: none; }
+
+        .merch-grid, .shop-container { gap: 22px 14px !important; padding: 14px 20px !important; }
+
+        .merch-card, .merch-card-large { border: none !important; border-radius: 0 !important; overflow: visible; }
+        .merch-card:hover, .merch-card-large:hover { border-color: transparent !important; animation: none; }
+        .merch-card:hover .merch-image, .merch-card-large:hover .merch-image { transform: none; }
+        .merch-card:active { transform: scale(0.98); }
+        .merch-image-container, .card-img-wrapper {
+            border: 1px solid #ececec; border-radius: 12px; background: #f6f6f8 !important;
+        }
+        .merch-image-container::after { display: none; }
+
+        /* ชื่อ → แท็ก → คำอธิบาย → ราคา/ปุ่ม เรียงซ้ายเหมือน iAM Shop */
+        .merch-info, .card-info {
+            padding: 10px 0 0 !important; align-items: flex-start; text-align: left;
+            flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 6px;
+        }
+        .merch-title, .card-title {
+            order: 1; width: 100%; margin: 0 !important;
+            font-size: 15px !important; font-weight: 500; color: #555; min-height: calc(1.3em * 2) !important;
+        }
+        .merch-category, .merch-badge, .merch-badge-bestseller, .merch-badge-comingsoon, .merch-badge-soldout {
+            order: 2; margin: 0 !important; transform: none; box-shadow: none;
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 12px !important; font-weight: 600; letter-spacing: 0; line-height: 1.2;
+            padding: 2px 6px; border-radius: 4px; background: #fff; border: 1px solid currentColor;
+        }
+        .merch-badge { color: var(--primary-pink); }
+        .merch-badge-bestseller { color: #e08e2e; }
+        .merch-badge-comingsoon { color: #a89686; }
+        .merch-badge-soldout { color: #8b7d99; }
+        .merch-subtitle, .card-subtitle { order: 3; width: 100%; margin: 0 !important; font-size: 12.5px !important; color: #999; }
+        .merch-button, .card-action, .merch-gacha-actions { order: 4; margin-top: 6px !important; }
+
+        /* ราคา/ปุ่มซื้อ: ตัวหนาสีเข้มบนพื้นเทาอ่อน */
+        .merch-button, .btn-token-buy {
+            background: #f2f2f5 !important; color: #222 !important;
+            border-radius: 10px !important; font-size: 15px !important; font-weight: 700;
+            padding: 9px 0 !important;
+        }
+        .merch-button i { color: #c9932c; }
+        .merch-button:hover, .btn-token-buy:hover { background: #e9e9ee !important; color: #222 !important; transform: none; }
+        .merch-button.merch-button-disabled, .merch-button.merch-button-disabled:hover { background: #f6f6f8 !important; color: #aaa !important; }
+        .merch-button.merch-button-disabled i { color: #bbb; }
+        .merch-gacha-actions .merch-button .pull-tier { color: #888; }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
 <div class="top-navbar">
-    <div class="nav-left-actions">
-        <button class="nav-btn" title="กลับ" onclick="history.back()" style="background: none; border: none; padding: 0; cursor: pointer;">
-            <i class="fas fa-chevron-left"></i>
-        </button>
+    <button class="shop-nav-icon shop-nav-back" title="กลับ" aria-label="ย้อนกลับ" onclick="history.back()">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <span class="nav-brand">BLM48 Shop</span>
+    <div class="shop-nav-right">
+        <a href="orders" class="shop-nav-icon" title="My Order" aria-label="My Order"><i class="fa-regular fa-clipboard"></i></a>
+        <a href="inventory" class="shop-nav-icon" title="My Items" aria-label="My Items"><i class="fas fa-box-open"></i></a>
+        <a href="cart" class="shop-nav-icon has-badge" title="Shopping Cart" aria-label="Shopping Cart">
+            <i class="fas fa-cart-shopping"></i>
+            <span class="cart-badge" id="cart-badge" style="display:none;">0</span>
+        </a>
     </div>
-    <div class="nav-brand-wrap">
-        <span class="nav-brand-tag">✦ BLM48 MEMBERSHIP ✦</span>
-        <span class="nav-brand">BLM48 Shop</span>
-    </div>
+</div>
+
+<div class="cart-toast" id="cart-toast" role="status" aria-live="polite">
+    <i class="fa-solid fa-circle-check"></i><span id="cart-toast-text">Added to cart</span><a href="cart">View cart</a>
+</div>
+
+<!-- แท็บหมวดสินค้า (แบบ iAM Shop) - กรองให้เห็นเฉพาะหมวดที่เลือก -->
+<div class="shop-tabs" id="shop-tabs">
+    <button type="button" class="shop-tab active" data-tab="all" onclick="selectShopTab('all')">All</button>
+    <button type="button" class="shop-tab" data-tab="preorder" onclick="selectShopTab('preorder')">Pre-order</button>
+    <button type="button" class="shop-tab" data-tab="gacha" onclick="selectShopTab('gacha')">Merchandise</button>
+    <button type="button" class="shop-tab" data-tab="cookie" onclick="selectShopTab('cookie')">Cookie</button>
+    <button type="button" class="shop-tab" data-tab="cafe" onclick="selectShopTab('cafe')">Cafe</button>
 </div>
 
 <div id="image-preview-modal" class="preview-modal" style="display: none;" onclick="closeImagePreview()">
@@ -1399,7 +1523,6 @@
 </div>
 
 <div class="user-profile-bar">
-    <div class="wallet-card-header"><i class="fas fa-wallet"></i> My Wallet</div>
     <div class="wallet" id="shop-wallet-bar">
         <div class="wallet-item">
             <div class="wallet-value" style="color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i> -</div>
@@ -1416,35 +1539,25 @@
     </div>
 </div>
 
-<div class="shop-quick-tiles">
-    <a href="#section-preorder" class="quick-tile">
-        <div class="quick-tile-icon" style="background:#fff6e0;color:#c9932c;"><i class="fas fa-box"></i></div>
-        <span class="quick-tile-label">Pre-order</span>
-    </a>
-    <a href="#section-cookie" class="quick-tile">
-        <div class="quick-tile-icon" style="background:#fdf0e6;color:var(--cookie-brown);"><i class="fas fa-cookie-bite"></i></div>
-        <span class="quick-tile-label">Cookie Shop</span>
-    </a>
-    <a href="#section-gacha" class="quick-tile">
-        <div class="quick-tile-icon" style="background:#ffe3ee;color:var(--primary-pink);"><i class="fas fa-gifts"></i></div>
-        <span class="quick-tile-label">Merchandise</span>
-    </a>
-    <a href="#section-cafe" class="quick-tile">
-        <div class="quick-tile-icon" style="background:#e8f7ee;color:#5fa896;"><i class="fas fa-mug-hot"></i></div>
-        <span class="quick-tile-label">Cafe</span>
-    </a>
-    <a href="inventory" class="quick-tile">
-        <div class="quick-tile-icon" style="background:#e7f5ff;color:#4dabf7;"><i class="fas fa-box-open"></i></div>
-        <span class="quick-tile-label">My Items</span>
-    </a>
-    <a href="my_preorders" class="quick-tile">
-        <div class="quick-tile-icon" style="background:#e0f0ff;color:#4d8fdb;"><i class="fas fa-clipboard-list"></i></div>
-        <span class="quick-tile-label">My Order</span>
-    </a>
+<section class="shop-section" data-shop-section="preorder">
+<div class="section-title" id="section-preorder">Pre-order
+</div>
+<div class="shop-container" id="preorder-container">
+    <!-- เพิ่มสินค้าพรีออเดอร์โดยระบบโหลดอัตโนมัติ -->
+</div>
+</section>
+
+<section class="shop-section" data-shop-section="gacha">
+<div class="section-title" id="section-gacha">Official Merchandise
 </div>
 
-<h2 class="section-title" id="section-cookie"><i class="fas fa-cookie-bite" style="color: var(--cookie-brown);"></i> Cookie Shop <i class="fas fa-star sparkle-icon"></i></h2>
-<p class="section-caption">sweet · everyday · treats</p>
+<div class="merch-grid" id="merch-container">
+    <!-- เพิ่มสินค้าโดยระบบโหลดอัตโนมัติ -->
+</div>
+</section>
+
+<section class="shop-section" data-shop-section="cookie">
+<h2 class="section-title" id="section-cookie">Cookie Shop</h2>
 <div class="shop-container" id="cookie-shop-container">
     <!-- 100Cookie -->
     <div class="merch-card" data-token-price="10">
@@ -1452,10 +1565,10 @@
             <img src="https://lh3.googleusercontent.com/d/1iYnw_eiQS4LZvHXF2bLEF7utf0wHi-FF=s1000" alt="100 Cookies" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category">[Pack]</span>
+            <span class="merch-category" style="color: #8b5a3c;">Pack</span>
             <h3 class="merch-title">100 Cookies</h3>
             <p class="merch-subtitle">เติมคุกกี้สำหรับใช้งานทั่วไป</p>
-            <button class="merch-button" onclick="buyCookies(10, 100, 'https://lh3.googleusercontent.com/d/1iYnw_eiQS4LZvHXF2bLEF7utf0wHi-FF=s1000')">
+            <button class="merch-button" onclick="addCookiesToCart(10, 100, 'https://lh3.googleusercontent.com/d/1iYnw_eiQS4LZvHXF2bLEF7utf0wHi-FF=s1000')">
                 <i class="fas fa-coins"></i> 10 Tokens
             </button>
         </div>
@@ -1468,37 +1581,20 @@
 
         <div class="merch-info">
             <span class="merch-badge"><i class="fas fa-star"></i> Best Value</span>
-            <span class="merch-category" style="color: #c53f5a;">[Value Pack]</span>
+            <span class="merch-category" style="color: #8b5a3c;">Value Pack</span>
             <h3 class="merch-title">1,000 Cookies</h3>
             <p class="merch-subtitle">เติมคุกกี้สำหรับใช้งานทั่วไป</p>
-            <button class="merch-button" onclick="buyCookies(100, 1000, 'https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000')">
+            <button class="merch-button" onclick="addCookiesToCart(100, 1000, 'https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000')">
                 <i class="fas fa-coins"></i> 100 Tokens
             </button>
         </div>
     </div>
 </div>
+</section>
 
-<div class="section-title" id="section-gacha">
-   <i class="fas fa-gifts" style="color: var(--primary-pink);"></i> Official Merchandise <i class="fas fa-star sparkle-icon"></i>
+<section class="shop-section" data-shop-section="cafe">
+<div class="section-title" id="section-cafe">BLM48 Cafe
 </div>
-<p class="section-caption">limited · collector · pulls</p>
-
-<div class="merch-grid" id="merch-container">
-    <!-- เพิ่มสินค้าโดยระบบโหลดอัตโนมัติ -->
-</div>
-
-<div class="section-title" id="section-preorder">
-   <i class="fas fa-box" style="color: #c9932c;"></i> Pre-order <i class="fas fa-star sparkle-icon"></i>
-</div>
-<p class="section-caption">order today · ship later</p>
-<div class="shop-container" id="preorder-container">
-    <!-- เพิ่มสินค้าพรีออเดอร์โดยระบบโหลดอัตโนมัติ -->
-</div>
-
-<div class="section-title" id="section-cafe">
-   <i class="fas fa-mug-hot" style="color: #8b5a3c;"></i> BLM48 Cafe <i class="fas fa-star sparkle-icon"></i>
-</div>
-<p class="section-caption">cream · soda · pudding</p>
 <div class="shop-container" id="cafe-shop-container">
     <!-- Suiito Matcha -->
     <div class="merch-card" data-item-name="Suiito Matcha">
@@ -1506,10 +1602,10 @@
             <img src="https://lh3.googleusercontent.com/d/1hc_AQblGKyamIOmspWseUcnY2gwW9dyg=s1000" alt="Suiito Matcha" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #afddd2;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #5fa896;">Cafe</span>
             <h3 class="merch-title">Suiito Matcha</h3>
             <p class="merch-subtitle">いちごミニパフェ</p>
-            <button class="merch-button" onclick="buyCafeItem('cafe_matcha_01', 5, 'Suiito Matcha', 'https://lh3.googleusercontent.com/d/1thW4VJVyFLsgMQNI0wAFaIC7gsqnATeM=s1000')">
+            <button class="merch-button" onclick="addCafeToCart('cafe_matcha_01', 5, 'Suiito Matcha', 'https://lh3.googleusercontent.com/d/1thW4VJVyFLsgMQNI0wAFaIC7gsqnATeM=s1000')">
                 <i class="fas fa-coins"></i> 5 Tokens
             </button>
         </div>
@@ -1521,10 +1617,10 @@
             <img src="https://lh3.googleusercontent.com/d/1_KC4glssnDILv1GP7BtUnjT1-uP1omlB=s1000" alt="Pinku Milk" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #5fa896;">Cafe</span>
             <h3 class="merch-title">Pinku Milk</h3>
             <p class="merch-subtitle">ピンクミルク</p>
-            <button class="merch-button" onclick="buyCafeItem('cafe_pinkmilk_01', 5, 'Pinku Milk', 'https://lh3.googleusercontent.com/d/1b_wl3lpi_QPd9-9nXBofw5mBL-jUu0Hn=s1000')">
+            <button class="merch-button" onclick="addCafeToCart('cafe_pinkmilk_01', 5, 'Pinku Milk', 'https://lh3.googleusercontent.com/d/1b_wl3lpi_QPd9-9nXBofw5mBL-jUu0Hn=s1000')">
                 <i class="fas fa-coins"></i> 5 Tokens
             </button>
         </div>
@@ -1536,10 +1632,10 @@
             <img src="https://lh3.googleusercontent.com/d/1ERV8sH_M0fv3dIFqfGGyf23JTTK3z0F-=s1000" alt="Koi Cocoa" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #5fa896;">Cafe</span>
             <h3 class="merch-title">Koi Cocoa</h3>
             <p class="merch-subtitle">濃いココア</p>
-            <button class="merch-button" onclick="buyCafeItem('cafe_cocoa_01', 5, 'Koi Cocoa', 'https://lh3.googleusercontent.com/d/1fHP-8N6VcRalynHDEZZWrjWhd7zYyHfF=s1000')">
+            <button class="merch-button" onclick="addCafeToCart('cafe_cocoa_01', 5, 'Koi Cocoa', 'https://lh3.googleusercontent.com/d/1fHP-8N6VcRalynHDEZZWrjWhd7zYyHfF=s1000')">
                 <i class="fas fa-coins"></i> 5 Tokens
             </button>
         </div>
@@ -1551,10 +1647,10 @@
             <img src="https://lh3.googleusercontent.com/d/11kPILdW6tOh5xZZ-Kl6JpAUsJeYWrlXE=s1000" alt="Thai Miruku Tea" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #5fa896;">Cafe</span>
             <h3 class="merch-title">Thai Miruku Tea</h3>
             <p class="merch-subtitle">タイミルクティー</p>
-            <button class="merch-button" onclick="buyCafeItem('cafe_thaimirukutea_01', 5, 'Thai Miruku Tea', 'https://lh3.googleusercontent.com/d/1HBOXvqFCL_-wrxbZlaEf15JvrGDUurhf=s1000')">
+            <button class="merch-button" onclick="addCafeToCart('cafe_thaimirukutea_01', 5, 'Thai Miruku Tea', 'https://lh3.googleusercontent.com/d/1HBOXvqFCL_-wrxbZlaEf15JvrGDUurhf=s1000')">
                 <i class="fas fa-coins"></i> 5 Tokens
             </button>
         </div>
@@ -1566,25 +1662,18 @@
             <img src="https://lh3.googleusercontent.com/d/1xhN872cKyptZ-vO8N6jHkCfSACE2okVo=s1000" alt="BLM48 Cafe BG V.1" class="merch-image">
         </div>
         <div class="merch-info">
-            <span class="merch-category" style="color: #c53f5a;">[BLM48 Cafe]</span>
+            <span class="merch-category" style="color: #5fa896;">Cafe</span>
             <h3 class="merch-title">BLM48 Cafe</h3>
             <p class="merch-subtitle">Background V.1</p>
-            <button class="merch-button" onclick="buyCafeItem('cafe_BLM48CafeBackground_01', 0, 'BLM48 Cafe BG V.1', 'https://lh3.googleusercontent.com/d/1MLtVYBkoWNrkqWr2AJqYtAfy6q7q2jJO=s1000')">
+            <button class="merch-button" onclick="addCafeToCart('cafe_BLM48CafeBackground_01', 0, 'BLM48 Cafe BG V.1', 'https://lh3.googleusercontent.com/d/1MLtVYBkoWNrkqWr2AJqYtAfy6q7q2jJO=s1000')">
                 <i class="fas fa-coins"></i> Free
             </button>
         </div>
     </div>
 </div>
+</section>
 
-<footer style="padding: 44px 20px 50px; text-align: center; color: #bbb; font-size: 12px;">
-  <!-- 🧺 แถบลายผ้าปิกนิกตารางเล็กๆ ล้อผ้าปูโต๊ะในโปสเตอร์ -->
-  <div style="width: 64px; height: 8px; margin: 0 auto 16px; border-radius: 999px; opacity: .55;
-              background-image: repeating-conic-gradient(var(--soda-sky-pink) 0% 25%, #fff 0% 50%);
-              background-size: 8px 8px;"></div>
-  <div style="font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--primary-pink); margin-bottom: 4px;">BLM48 Shop</div>
-  <div style="color: var(--caramel-soft); margin-bottom: 2px;">BLM48 MEMBERSHIP</div>
-  <div>© 2026 Virtual Idol Cover Group</div>
-</footer>
+
 
 <!-- 🎰 4. กล่องตู้สุ่มกาชาเดิมตามเดิม (ใช้สำหรับการสุ่มเพื่อความตื่นเต้น) -->
 <div id="blm-gacha-modal" class="blm-overlay">
@@ -1618,7 +1707,7 @@
 
 <script>
 let userData = null;
-const gachaCollectionsCache = {}; // CollectionID -> collection object, filled by loadGachaCollections(); buyGacha() reads prices from here
+const gachaCollectionsCache = {}; // CollectionID -> collection object, filled by loadGachaCollections(); addGachaToCart() reads prices from here
 
 // 1. โหลดข้อมูลผู้ใช้จากหน้าแรก (LocalStorage)
 function initShop() {
@@ -1646,47 +1735,85 @@ function initShop() {
     }
 }
 
-// 🎉 เอฟเฟกต์ฉลองตอนซื้อของสำเร็จ ยิงเป็นสะเก็ดสีสันบานออกจากกึ่งกลางจอ ใช้ร่วมกันทุกจุดในหน้า Shop
-function celebratePurchase() {
-    const colors = ['#e1546f', '#f3ce6e', '#afddd2', '#e1546f', '#ffffff', '#8b5a3c'];
-    const count = 24;
-    for (let i = 0; i < count; i++) {
-        const piece = document.createElement('div');
-        piece.className = 'purchase-confetti-piece';
-        const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
-        const distance = 80 + Math.random() * 120;
-        const tx = Math.cos(angle) * distance;
-        const ty = Math.sin(angle) * distance - 40; // ลอยขึ้นนิดนึงก่อนร่วง ดูมีชีวิตชีวา
-        piece.style.setProperty('--tx', tx + 'px');
-        piece.style.setProperty('--ty', ty + 'px');
-        piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.animationDelay = (Math.random() * 0.15) + 's';
-        document.body.appendChild(piece);
-        setTimeout(() => piece.remove(), 1300);
-    }
+// 🛒 หยิบสินค้าใส่ตะกร้า (ทุกหมวดใน Shop) แล้วไปจ่ายรวมที่หน้า Check Out
+// ราคาในตะกร้าเป็นแค่ตัวแสดงผล เซิร์ฟเวอร์ (shop_checkout) คิดราคาจริงตอน Place Order
+let cartToastTimer = null;
+function showCartToast(text) {
+    const toast = document.getElementById('cart-toast');
+    if (!toast) return;
+    document.getElementById('cart-toast-text').textContent = text;
+    toast.classList.add('show');
+    clearTimeout(cartToastTimer);
+    cartToastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
 }
 
-// 🌟 เอฟเฟกต์พิเศษตอนสุ่มกาชาได้ SSR - สะเก็ดสีทองเยอะกว่าและลอยไกลกว่าปกติ ให้ความรู้สึกแจ็คพอต
-function celebrateSSR() {
-    const colors = ['#f3ce6e', '#ffd700', '#fff6da', '#ffffff'];
-    const count = 60;
-    for (let i = 0; i < count; i++) {
-        const piece = document.createElement('div');
-        piece.className = 'purchase-confetti-piece ssr-confetti-piece';
-        const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
-        const distance = 110 + Math.random() * 200;
-        const tx = Math.cos(angle) * distance;
-        const ty = Math.sin(angle) * distance - 60;
-        piece.style.setProperty('--tx', tx + 'px');
-        piece.style.setProperty('--ty', ty + 'px');
-        piece.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.animationDelay = (Math.random() * 0.2) + 's';
-        piece.style.animationDuration = '1.5s';
-        document.body.appendChild(piece);
-        setTimeout(() => piece.remove(), 1800);
+function updateCartBadge() {
+    const badge = document.getElementById('cart-badge');
+    if (!badge) return;
+    const count = blm48Cart.count();
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = count > 0 ? '' : 'none';
+}
+
+function addCookiesToCart(tokenPrice, cookieReward, itemImg) {
+    if (!userData) return;
+    blm48Cart.add({
+        kind: 'cookie', refId: String(tokenPrice), variant: 1,
+        name: `${Number(cookieReward).toLocaleString()} Cookies`, label: 'Cookie Pack',
+        image: itemImg, unitPrice: tokenPrice
+    }, 1);
+    showCartToast(`${Number(cookieReward).toLocaleString()} Cookies added to cart`);
+}
+
+function addCafeToCart(itemId, price, itemName, itemImg) {
+    if (!userData) return;
+    blm48Cart.add({
+        kind: 'cafe', refId: itemId, variant: 1,
+        name: itemName, label: 'BLM48 Cafe', image: itemImg, unitPrice: price
+    }, 1);
+    showCartToast(`${itemName} added to cart`);
+}
+
+function addGachaToCart(collectionId, pullCount) {
+    if (!userData) return;
+    pullCount = (pullCount === 5) ? 5 : 1;
+    const col = gachaCollectionsCache[collectionId];
+    if (!col) return;
+
+    // สิทธิ์สุ่มต่อแอคเคาท์: นับรวมจำนวนที่อยู่ในตะกร้าแล้วด้วย กันใส่เกินสิทธิ์ที่เหลือ
+    if (col.MaxDrawsPerAccount !== null && col.MaxDrawsPerAccount !== undefined
+        && col.DrawsRemaining !== null && col.DrawsRemaining !== undefined) {
+        const inCart = blm48Cart.get()
+            .filter(l => l.kind === 'gacha' && l.refId === collectionId)
+            .reduce((n, l) => n + (l.variant || 1) * l.quantity, 0);
+        if (inCart + pullCount > Number(col.DrawsRemaining)) {
+            showCartToast(`Draw limit reached (${col.DrawsRemaining} left incl. your cart)`);
+            return;
+        }
     }
+
+    const cost = pullCount === 5 ? (col.CostTokensX5 || col.CostTokens * 5) : col.CostTokens;
+    blm48Cart.add({
+        kind: 'gacha', refId: collectionId, variant: pullCount,
+        name: col.CollectionName, label: `Merchandise · Draw ×${pullCount}`,
+        image: col.CoverImage, unitPrice: cost
+    }, 1);
+    showCartToast(`Draw ×${pullCount} added to cart`);
+}
+
+document.addEventListener('blm48-cart-change', updateCartBadge);
+document.addEventListener('DOMContentLoaded', updateCartBadge);
+// กลับมาจากหน้าตะกร้า (bfcache) ให้ตัวเลขบนไอคอนตรงกับของจริง
+window.addEventListener('pageshow', updateCartBadge);
+// 🗂️ แท็บหมวดสินค้า: All = แสดงทุกหมวด, อื่นๆ = เฉพาะหมวดนั้น
+function selectShopTab(tab) {
+    document.querySelectorAll('#shop-tabs .shop-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('.shop-section').forEach(sec => {
+        sec.style.display = (tab === 'all' || sec.dataset.shopSection === tab) ? '' : 'none';
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // 2. อัปเดตการแสดงผลยอดเงินในกระเป๋า (หน้าตาเดียวกับสถิติ Cookies/Tokens/GE Tokens ในหน้า profile.html)
@@ -1818,225 +1945,6 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
   }
 }
   
-// 🛒 5. ระบบแลกซื้อคุกกี้
-async function buyCookies(tokenPrice, cookieReward, itemImg) {
-    if (!userData) return;
-
-    if (Number(userData.token) < tokenPrice) {
-        Swal.fire('Token คงเหลือไม่เพียงพอ', 'กรุณาเติม Token ก่อนทำรายการ', 'error');
-        return;
-    }
-
-    const confirmResult = await Swal.fire({
-        title: `ยืนยันการทำรายการแลกซื้อ`,
-        text: `ระบบจะใช้ ${tokenPrice} Tokens เพื่อแลกรับคุกกี้จำนวน ${cookieReward.toLocaleString()} Cookies`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#e1546f',
-        confirmButtonText: 'ยืนยัน',
-        cancelButtonText: 'ยกเลิก'
-    });
-
-    if (confirmResult.isConfirmed) {
-        Swal.fire({
-            title: 'กำลังบันทึกข้อมูล...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-
-        try {
-            const res = await blm48ExchangeCookies(userData.username, tokenPrice);
-
-            if (res.status === "success") {
-                userData.token = res.newToken !== undefined ? res.newToken : (userData.token - tokenPrice);
-                userData.cookie = res.newCookie !== undefined ? res.newCookie : (Number(userData.cookie) + cookieReward);
-
-                const newSession = JSON.parse(localStorage.getItem('bnl_session'));
-                newSession.data = userData;
-                localStorage.setItem('bnl_session', JSON.stringify(newSession));
-
-                updateWalletUI();
-
-                // 🎉 เอฟเฟกต์ฉลองสไตล์เดียวกับ Gacha/Cafe เพื่อให้หน้าตาสอดคล้องกันทั้งร้าน
-                Swal.fire({
-                    title: `ทำรายการสำเร็จ`,
-                    html: `
-                        <style>
-                            .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
-                            .blm-cute-name { font-size: 21px; color: #c53f5a; font-weight: bold; margin-bottom: 6px; }
-                            .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; line-height: 1.5; }
-                            .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fdeef1; }
-                            @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-                        </style>
-                        <div class="blm-cute-reveal-container">
-                            <div class="blm-cute-name">+${cookieReward.toLocaleString()} Cookies</div>
-                            <div class="blm-cute-sub">ระบบได้เพิ่มคุกกี้เข้าบัญชีของท่านเรียบร้อยแล้ว</div>
-                        </div>
-                    `,
-                    imageUrl: itemImg,
-                    imageWidth: 160,
-                    imageHeight: 160,
-                    imageAlt: 'Cookies',
-                    confirmButtonText: `ตกลง`,
-                    confirmButtonColor: '#e1546f',
-                    background: '#ffffff',
-                    borderRadius: '24px',
-                    didOpen: () => celebratePurchase()
-                });
-            } else {
-                Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
-            }
-        } catch (error) {
-            console.error("Error exchanging cookies:", error);
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
-        }
-    }
-}
-  
-// 6. Limited gacha draw system (supports a single draw or a 5x draw)
-async function buyGacha(collectionId, pullCount) {
-  if(!userData) return;
-  pullCount = (pullCount === 5) ? 5 : 1;
-  const username = userData.username;
-
-  const col = gachaCollectionsCache[collectionId];
-  const cost = col ? (pullCount === 5 ? (col.CostTokensX5 || col.CostTokens * 5) : col.CostTokens) : null;
-  const costText = cost !== null ? `${Number(cost).toLocaleString()} Token${cost === 1 ? '' : 's'}` : '';
-
-  const confirmResult = await Swal.fire({
-    title: `ยืนยันการสุ่ม Draw ×${pullCount}`,
-    html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Quicksand', 'Kanit', sans-serif;">ระบบจะหัก ${costText} เพื่อสุ่ม ${pullCount === 5 ? '5 ไอเทม' : '1 ไอเทม'} จากคอลเลกชันนี้ ยืนยันการทำรายการหรือไม่?<br><span style="color: #999; font-size: 12px;">Token จะถูกหักทันทีเมื่อกดยืนยันค่ะ</span></div>`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: `Confirm`,
-    cancelButtonText: 'Cancel',
-    confirmButtonColor: '#e1546f',
-    cancelButtonColor: '#e0e0e0',
-    background: '#ffffff',
-    borderRadius: '16px'
-  });
-
-  if (!confirmResult.isConfirmed) return;
-
-  Swal.fire({
-    title: `Drawing...`,
-    html: `
-      <style>
-        .gacha-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
-        .gacha-loading-text { color: #e1546f; font-weight: 600; font-size: 14px; margin-top: 15px; }
-      </style>
-      <div class="gacha-loading-box">
-        <div class="blm-gacha-capsule"></div>
-        <div class="gacha-loading-text">Processing your draw</div>
-      </div>
-    `,
-    allowOutsideClick: false,
-    showConfirmButton: false,
-    background: '#ffffff',
-    borderRadius: '16px',
-    didOpen: () => {
-      Swal.showLoading();
-    }
-  });
-
-  const startTime = Date.now();
-
-  try {
-    const res = await blm48BuyGachaItem(username, collectionId, pullCount);
-
-    const elapsedTime = Date.now() - startTime;
-    const minimumAnimationTime = 2500;
-    if (elapsedTime < minimumAnimationTime) {
-      await new Promise(resolve => setTimeout(resolve, minimumAnimationTime - elapsedTime));
-    }
-
-    if (res.status === "success") {
-      localStorage.removeItem(`blm48_inventory_cache_${username}`);
-      localStorage.removeItem(`blm48_inventory_time_${username}`);
-
-      const items = Array.isArray(res.items) && res.items.length > 0
-        ? res.items
-        : [{ itemName: res.itemName, itemImg: res.itemImg, isSSR: false }];
-      const hasSSR = !!res.hasSSR;
-
-      const cardsHTML = items.map(it => `
-        <div class="gacha-reveal-card${it.isSSR ? ' gacha-reveal-ssr' : ''}">
-          ${it.isSSR ? '<div class="gacha-ssr-badge">SSR</div>' : ''}
-          <img src="${it.itemImg}" alt="${escapeHtml(it.itemName)}">
-          <div class="gacha-reveal-name">${escapeHtml(it.itemName)}</div>
-        </div>
-      `).join('');
-
-      Swal.fire({
-        title: hasSSR ? `SSR Obtained` : `Draw Complete`,
-        html: `
-          <style>
-            .gacha-reveal-container { padding: 5px 0; text-align: center; }
-            .gacha-reveal-sub { color: #777; font-size: 13px; margin-bottom: 10px; letter-spacing: 0.3px; }
-            .gacha-reveal-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: ${pullCount === 5 ? '10px' : '12px'}; padding: 4px 0; }
-            .gacha-reveal-card { width: ${pullCount === 5 ? '90px' : '200px'}; animation: gachaRevealFadeIn 0.4s ease forwards; }
-            .gacha-reveal-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 12px; border: 2px solid #f2f2f2; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-            .gacha-reveal-name { font-size: ${pullCount === 5 ? '10px' : '15px'}; color: #333; font-weight: 600; margin-top: 6px; }
-            .gacha-reveal-card.gacha-reveal-ssr img { border-color: #d4af37; box-shadow: 0 0 0 3px rgba(212,175,55,0.3), 0 0 16px rgba(212,175,55,0.5); }
-            .gacha-ssr-badge { font-size: ${pullCount === 5 ? '9px' : '12px'}; font-weight: 700; color: #a8790a; margin-bottom: 3px; letter-spacing: 1px; }
-            @keyframes gachaRevealFadeIn { 0% { opacity: 0; transform: translateY(4px); } 100% { opacity: 1; transform: translateY(0); } }
-            ${pullCount === 5 ? `
-            /* Mobile: cap the popup so only 3 cards fit per row (3 top, 2 centered below). Tablet/desktop: widen it so all 5 sit in a single row. */
-            .gacha-reveal-popup-x5 { width: 92vw !important; max-width: 330px !important; padding: 20px 16px 24px !important; }
-            .gacha-reveal-popup-x5 .swal2-html-container { margin: 0 !important; padding: 0 !important; }
-            @media (min-width: 768px) {
-              .gacha-reveal-popup-x5 { max-width: 580px !important; }
-              .gacha-reveal-popup-x5 .gacha-reveal-card { width: 96px; }
-              .gacha-reveal-popup-x5 .gacha-reveal-grid { gap: 12px; }
-            }
-            ` : ''}
-          </style>
-
-          <div class="gacha-reveal-container">
-            <div class="gacha-reveal-sub">[Coaster] from ${res.collectionName}</div>
-            <div class="gacha-reveal-grid">${cardsHTML}</div>
-          </div>
-        `,
-        customClass: { popup: pullCount === 5 ? 'gacha-reveal-popup-x5' : '' },
-        confirmButtonText: `Collect`,
-        confirmButtonColor: '#e1546f',
-        background: '#ffffff',
-        borderRadius: '16px',
-        didOpen: () => hasSSR ? celebrateSSR() : celebratePurchase()
-      });
-
-      if(res.newToken !== undefined) {
-          userData.token = res.newToken;
-          const session = JSON.parse(localStorage.getItem('bnl_session'));
-          session.data = userData;
-          localStorage.setItem('bnl_session', JSON.stringify(session));
-          updateWalletUI();
-      }
-
-      // Refresh the gacha listing in case stock ran out and the collection flipped to Sold Out
-      loadGachaCollections();
-    } else {
-      Swal.fire({
-        title: 'Transaction Failed',
-        text: res.message,
-        icon: 'warning',
-        confirmButtonColor: '#e1546f',
-        background: '#ffffff',
-        borderRadius: '16px'
-      });
-    }
-  } catch (error) {
-    Swal.fire({
-      title: 'Error',
-      text: 'Unable to connect to the draw system right now. Please try again later.',
-      icon: 'error',
-      confirmButtonColor: '#e1546f',
-      background: '#ffffff',
-      borderRadius: '16px'
-    });
-  }
-}
-  
 // 7. โหลดคอลเลกชันตู้สุ่มมาแสดงผลบนหน้าเว็บ
 async function loadGachaCollections() {
   const container = document.getElementById("merch-container");
@@ -2092,11 +2000,11 @@ async function loadGachaCollections() {
       } else {
         const x5Disabled = hasDrawCap && drawsRemaining < 5;
         buttonHTML = `<div class="merch-gacha-actions">
-                <button class="merch-button" onclick="buyGacha('${col.CollectionID}', 1)">
+                <button class="merch-button" onclick="addGachaToCart('${col.CollectionID}', 1)">
                   <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
                   <span class="pull-tier">Draw ×1</span>
                 </button>
-                ${allowX5 ? `<button class="merch-button${x5Disabled ? ' merch-button-disabled' : ''}" ${x5Disabled ? 'disabled' : `onclick="buyGacha('${col.CollectionID}', 5)"`}>
+                ${allowX5 ? `<button class="merch-button${x5Disabled ? ' merch-button-disabled' : ''}" ${x5Disabled ? 'disabled' : `onclick="addGachaToCart('${col.CollectionID}', 5)"`}>
                   <i class="fas fa-coins"></i> ${costX5} Tokens
                   <span class="pull-tier">Draw ×5</span>
                 </button>` : ''}
@@ -2129,7 +2037,7 @@ async function loadGachaCollections() {
             </div>
             <div class="merch-info">
               ${badgeHTML}
-              <span class="merch-category" style="color: #c53f5a;">[Merchandise]</span>
+              <span class="merch-category" style="color: #c53f5a;">Merchandise</span>
               <h3 class="merch-title">${col.CollectionName}</h3>
               <p class="merch-subtitle">${subtitle}</p>
               ${drawsInfoHTML}
@@ -2221,7 +2129,7 @@ async function loadPreorderProducts() {
               </div>
               <div class="merch-info">
                 ${badgeHTML}
-                <span class="merch-category" style="color: #c9932c;">[Pre-order]</span>
+                <span class="merch-category" style="color: #3d8bfd;">Pre-order</span>
                 <h3 class="merch-title">${escapePreorderText(p.name)}</h3>
                 <p class="merch-subtitle">${subtitle}</p>
                 ${buttonHTML}
@@ -2272,147 +2180,6 @@ async function loadBestSellerBadges() {
   } catch (error) {
     console.error("Error loading best sellers:", error);
   }
-}
-
-// ☕ 8. ระบบสั่งซื้อสินค้า BLM48 Cafe (ใช้ Swal.fire สมูทแบบเดียวกับ Gacha)
-async function buyCafeItem(itemId, price, itemName, itemImg) {
-    if (!userData) return;
-
-    // 1. ตรวจสอบ Token ว่าเพียงพอหรือไม่
-    if (Number(userData.token) < price) {
-        Swal.fire({
-            title: 'Token คงเหลือไม่เพียงพอ',
-            html: '<div style="font-size: 14px; color: #666; font-family: Quicksand, Kanit, sans-serif;">กรุณาเติม Token ก่อนสั่งซื้อสินค้าในคาเฟ่</div>',
-            icon: 'error',
-            confirmButtonColor: '#e1546f',
-            background: '#ffffff',
-            borderRadius: '24px'
-        });
-        return;
-    }
-
-    const iconHeartPink = `<svg width="18" height="18" viewBox="0 0 24 24" fill="#e1546f" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-
-    // 2. ถามยืนยันการซื้อด้วยป๊อปอัปสไตล์น่ารัก
-    const confirmResult = await Swal.fire({
-        title: `${iconHeartPink} ยืนยันการสั่งซื้อ "${itemName}" ${iconHeartPink}`,
-        html: `<div style="font-size: 15px; color: #555; line-height: 1.5; font-family: 'Quicksand', 'Kanit', sans-serif;">ระบบจะใช้ <b style="color: #e1546f;">${price} Tokens</b> ในการสั่งซื้อเมนูนี้<br><span style="color: #999; font-size: 12px;">(สินค้าจะเข้า Inventory ทันทีหลังยืนยัน)</span></div>`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: `ยืนยัน`,
-        cancelButtonText: 'ยกเลิก',
-        confirmButtonColor: '#e1546f', 
-        cancelButtonColor: '#e0e0e0',
-        background: '#ffffff',
-        borderRadius: '24px'
-    });
-
-    if (!confirmResult.isConfirmed) return;
-
-    // 3. แสดงหน้าต่างโหลดกำลังชงกาแฟ (ฝัง CSS ลงไปเลย)
-    Swal.fire({
-        title: `กำลังชงเครื่องดื่ม...`,
-        html: `
-            <style>
-                .blm-cafe-loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; }
-                .cafe-spinner-wrapper-border { border: 3px dashed #e1546f; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: spinDashed 4s linear infinite; background: #fdeef1; margin: 0 auto; }
-                .cafe-spinner-inner { animation: spinDashedReverse 4s linear infinite; display: flex; align-items: center; justify-content: center; }
-                .cafe-spinner-inner i { color: #e1546f; font-size: 26px; animation: coffeeBounce 0.8s ease-in-out infinite alternate; }
-                @keyframes spinDashed { 100% { transform: rotate(360deg); } }
-                @keyframes spinDashedReverse { 100% { transform: rotate(-360deg); } }
-                @keyframes coffeeBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-4px); } }
-                .blm-text-bounce { color: #e1546f; font-weight: bold; font-size: 14px; margin-top: 15px; animation: blmCuteBounce 1s infinite alternate; }
-            </style>
-            <div class="blm-cafe-loading-box">
-                <div class="cafe-spinner-wrapper-border">
-                    <div class="cafe-spinner-inner">
-                        <i class="fas fa-mug-hot"></i>
-                    </div>
-                </div>
-                <div class="blm-text-bounce">ระบบกำลังประมวลผลและเตรียมจัดส่ง</div>
-            </div>
-        `,
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        background: '#ffffff',
-        borderRadius: '24px',
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    const startTime = Date.now();
-
-    try {
-        // 4. ยิง API ทำรายการ (ราคาตรวจสอบฝั่ง Supabase จาก cafe_items แล้ว ไม่เชื่อ price จากฝั่งเราอีกต่อไป)
-        const res = await blm48BuyDirectItem(userData.username, itemId);
-
-        // หน่วงเวลาให้เห็นอนิเมชันชงเครื่องดื่มขั้นต่ำ 2.5 วินาที (เพื่อให้สมูท ไม่กระพริบเร็วเกินไป)
-        const elapsedTime = Date.now() - startTime;
-        const minimumAnimationTime = 2500; 
-        if (elapsedTime < minimumAnimationTime) {
-            await new Promise(resolve => setTimeout(resolve, minimumAnimationTime - elapsedTime));
-        }
-
-        if (res.status === "success") {
-            // อัปเดตข้อมูลผู้ใช้
-            userData.token = res.newToken !== undefined ? res.newToken : (userData.token - price);
-            const newSession = JSON.parse(localStorage.getItem('bnl_session'));
-            newSession.data = userData;
-            localStorage.setItem('bnl_session', JSON.stringify(newSession));
-            
-            localStorage.removeItem(`blm48_inventory_cache_${userData.username}`);
-            localStorage.removeItem(`blm48_inventory_time_${userData.username}`);
-            
-            updateWalletUI();
-
-            // 5. แจ้งเตือนได้รับสินค้าสำเร็จพร้อมเอฟเฟกต์เด้ง
-            Swal.fire({
-                title: `ทำรายการสำเร็จ`,
-                html: `
-                    <style>
-                        .blm-cute-reveal-container { padding: 5px 0; text-align: center; }
-                        .blm-cute-name { font-size: 21px; color: #c53f5a; font-weight: bold; margin-bottom: 6px; }
-                        .blm-cute-sub { color: #777; font-size: 13px; margin-bottom: 5px; line-height: 1.5; }
-                        .swal2-image { animation: blmCutePopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards; border-radius: 20px; box-shadow: 0 6px 16px rgba(255,105,180,0.15); border: 3px solid #fdeef1; }
-                        @keyframes blmCutePopIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-                    </style>
-                    <div class="blm-cute-reveal-container">
-                        <div class="blm-cute-name">${itemName}</div>
-                        <div class="blm-cute-sub">ระบบได้เพิ่มสินค้าเข้าบัญชีของท่านเรียบร้อยแล้ว<br>สามารถตรวจสอบได้ที่ Inventory</div>
-                    </div>
-                `,
-                imageUrl: itemImg,
-                imageWidth: 200,
-                imageHeight: 200,
-                imageAlt: itemName,
-                confirmButtonText: `ตกลง`,
-                confirmButtonColor: '#e1546f',
-                background: '#ffffff',
-                borderRadius: '24px',
-                didOpen: () => celebratePurchase()
-            });
-        } else {
-            Swal.fire({
-                title: 'เกิดข้อผิดพลาด',
-                text: res.message,
-                icon: 'error',
-                confirmButtonColor: '#e1546f',
-                background: '#ffffff',
-                borderRadius: '24px'
-            });
-        }
-    } catch (error) {
-        console.error("Error buying cafe item:", error);
-        Swal.fire({
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง',
-            icon: 'error',
-            confirmButtonColor: '#e1546f',
-            background: '#ffffff',
-            borderRadius: '24px'
-        });
-    }
 }
 
 // ⏳ 9. ระบบจัดการหน้าจอ Loading หน้าเว็บหลัก

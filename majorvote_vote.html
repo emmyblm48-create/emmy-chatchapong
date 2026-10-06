@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 | Major Vote</title>
+    <script type="module" src="assets/js/firebase-realtime.js"></script>
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/0">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1">
+
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --vote-yellow: #ffd76e;
+            --ring-purple: #c98fc6;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: #222;
+            margin: 0; padding: 0; padding-top: 60px; padding-bottom: 40px;
+        }
+        body.glass-mesh-bg { background-color: #ffffff; background-image: none; }
+
+        /* Top Navbar: แถบขาว ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง (เหมือนหน้า Major Vote Detail) */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: #ffffff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .nav-back {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: #333; font-size: 20px; cursor: pointer;
+        }
+        .nav-title { font-weight: 600; font-size: 17px; color: #222; }
+
+        /* หน้าโหวต: ชื่อ > รูปวงกลม > เหรียญ > ตัวเลือกจำนวน > ปุ่ม Vote */
+        .vote-page { max-width: 480px; margin: 0 auto; padding: 26px 24px 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .vote-title { font-size: 22px; font-weight: 700; color: #222; margin: 0 0 18px; line-height: 1.35; word-break: break-word; }
+        .vote-avatar { width: 116px; height: 116px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 3px solid var(--ring-purple); padding: 0; }
+        .token-coin { width: 46px; height: 46px; border-radius: 50%; margin-top: 16px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff8dc; background: radial-gradient(circle at 35% 30%, #e9cf7c, #a8843a 70%, #7d5f22); box-shadow: inset 0 0 0 3px rgba(255,255,255,0.25), 0 2px 6px rgba(125,95,34,0.35); }
+        .token-coin.ge { background: radial-gradient(circle at 35% 30%, #9fd3ff, #3a7fc4 70%, #24578c); color: #eaf6ff; box-shadow: inset 0 0 0 3px rgba(255,255,255,0.25), 0 2px 6px rgba(36,87,140,0.35); }
+        .vote-using { font-size: 15px; font-weight: 600; color: #333; margin-top: 12px; }
+
+        .amount-row { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 28px; width: 100%; }
+        .step-btn { width: 30px; height: 30px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; cursor: pointer; flex-shrink: 0; transition: transform 0.1s, background 0.15s; }
+        .step-btn:active { transform: scale(0.9); }
+        .step-btn.minus { background: #b9b9b9; }
+        .step-btn.plus { background: var(--vote-yellow); }
+        .step-btn:disabled { background: #e3e3e3; cursor: not-allowed; transform: none; }
+        .amount-input { width: 180px; max-width: 50vw; height: 52px; border: 1px solid #e2e2e2; border-radius: 10px; text-align: center; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; font-weight: 500; color: #222; outline: none; -moz-appearance: textfield; }
+        .amount-input::-webkit-outer-spin-button, .amount-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .amount-input:focus { border-color: var(--vote-yellow); }
+        .balance-text { font-size: 14px; color: #8a8a8a; margin-top: 10px; }
+        .balance-text.insufficient { color: #e05a5a; }
+        .min-text { font-size: 12.5px; color: #9a9a9a; margin-top: 46px; }
+        .vote-btn { width: 100%; max-width: 300px; margin-top: 14px; background: var(--vote-yellow); color: #222; border: none; border-radius: 999px; padding: 15px 0; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 18px; font-weight: 700; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+        .vote-btn:active { transform: scale(0.98); }
+        .vote-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        /* ป๊อปอัปกลางจอ: Confirm transaction / Submission completed */
+        .vote-dialog-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .vote-dialog-overlay.show { display: flex; }
+        .vote-dialog { background: #ffffff; width: 100%; max-width: 350px; border-radius: 12px; padding: 30px 22px 22px; text-align: center; animation: vote-dialog-pop 0.18s ease; }
+        @keyframes vote-dialog-pop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .vote-dialog h3 { font-size: 19px; font-weight: 700; color: #222; margin: 0 0 12px; }
+        .vote-dialog p { font-size: 13.5px; color: #8a8a8a; margin: 0; line-height: 1.55; }
+        .vote-dialog p b { color: #222; font-weight: 600; }
+        .vote-dialog .wait-note { margin-top: 26px; }
+        .done-check { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ring-purple); color: var(--ring-purple); display: flex; align-items: center; justify-content: center; font-size: 17px; margin: 4px auto 14px; }
+        .dialog-actions { display: flex; gap: 6px; margin-top: 24px; }
+        .dialog-btn { flex: 1; border: none; border-radius: 999px; padding: 13px 0; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; }
+        .dialog-btn.yes { background: var(--vote-yellow); color: #222; }
+        .dialog-btn.no { background: #f3f3f3; color: #222; }
+        .dialog-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .done-btn { display: block; width: 100%; margin-top: 36px; }
+
+        /* Thank you card: รูปการ์ดขอบมน + ปุ่ม X มุมขวาบน + ลิงก์ดูประวัติ */
+        .thank-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 2100; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+        .thank-overlay.show { display: flex; }
+        .thank-wrap { position: relative; width: 100%; max-width: 230px; animation: vote-dialog-pop 0.2s ease; }
+        .thank-close { position: absolute; top: -34px; right: -6px; background: none; border: none; color: #e6e6e6; font-size: 24px; cursor: pointer; padding: 4px; }
+        .thank-card { width: 100%; display: block; border-radius: 12px; background: #f4f4f4; box-shadow: 0 6px 24px rgba(0,0,0,0.25); }
+        .thank-history { margin-top: 12px; color: #ffffff; font-size: 13.5px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+
+        @media (min-width: 420px) {
+            .thank-wrap { max-width: 260px; }
+        }
+    </style>
+</head>
+<body class="glass-mesh-bg force-white-bg">
+
+    <div class="top-navbar">
+        <button class="nav-back" type="button" title="กลับ" onclick="goBack()"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="nav-title">Major vote</div>
+    </div>
+
+    <div class="vote-page">
+        <h1 class="vote-title" id="vote-title">Vote</h1>
+        <img id="vote-avatar" class="vote-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+        <div class="token-coin" id="token-coin"><i class="fa-solid fa-coins"></i></div>
+        <div class="vote-using" id="vote-using">Vote using token</div>
+
+        <div class="amount-row">
+            <button type="button" class="step-btn minus" id="minus-btn" onclick="stepAmount(-1)"><i class="fa-solid fa-minus"></i></button>
+            <input type="number" class="amount-input" id="amount-input" value="1" min="1" step="1" inputmode="numeric" oninput="onAmountInput()" onblur="normalizeAmount()">
+            <button type="button" class="step-btn plus" id="plus-btn" onclick="stepAmount(1)"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div class="balance-text" id="balance-text">Total balance: - tokens</div>
+
+        <div class="min-text">Minimum token per vote: 1 token</div>
+        <button type="button" class="vote-btn" id="vote-btn" onclick="openConfirm()">Vote</button>
+    </div>
+
+    <!-- Confirm transaction -->
+    <div class="vote-dialog-overlay" id="confirm-overlay">
+        <div class="vote-dialog">
+            <h3>Confirm transaction</h3>
+            <p id="confirm-text"></p>
+            <div class="dialog-actions">
+                <button type="button" class="dialog-btn yes" id="confirm-yes" onclick="submitVote()">Yes</button>
+                <button type="button" class="dialog-btn no" id="confirm-no" onclick="closeConfirm()">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submission completed -->
+    <div class="vote-dialog-overlay" id="done-overlay">
+        <div class="vote-dialog">
+            <h3>Submission completed</h3>
+            <div class="done-check"><i class="fa-solid fa-check"></i></div>
+            <p id="done-text"></p>
+            <p class="wait-note">Please wait for this transaction to show on your transaction history</p>
+            <button type="button" class="dialog-btn yes done-btn" onclick="onDone()">Done</button>
+        </div>
+    </div>
+
+    <!-- Thank you card -->
+    <div class="thank-overlay" id="thank-overlay" onclick="closeThankCard()">
+        <div class="thank-wrap" onclick="event.stopPropagation()">
+            <button type="button" class="thank-close" onclick="closeThankCard()" title="ปิด"><i class="fa-solid fa-xmark"></i></button>
+            <img id="thank-card" class="thank-card" src="" alt="Thank You Card" onerror="closeThankCard()">
+        </div>
+        <a class="thank-history" href="history" onclick="event.stopPropagation()"><i class="fa-solid fa-circle-info"></i> See transaction history</a>
+    </div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const campaignId = urlParams.get('id');
+    const candidateName = urlParams.get('candidate') || '';
+    const candidateImg = urlParams.get('img') || '';
+    const tokenType = urlParams.get('type') === 'GEToken' ? 'GEToken' : 'Token';
+
+    const TOKEN_TYPE_LABELS = { Token: 'BLM48 Token', GEToken: 'GE Token' };
+    const BLANK_IMG = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+    let campaignMechanic = 'burn';
+    let campaignRefundPercent = 0;
+    let isSubmitting = false;
+    let pendingThankYouCard = '';
+
+    function fixSecureImageUrl(urlStr) {
+        if (!urlStr) return BLANK_IMG;
+        let fixedUrl = urlStr.toString().trim();
+        if (fixedUrl.includes("googleusercontent.com")) return fixedUrl;
+        if (fixedUrl.startsWith("http://")) fixedUrl = fixedUrl.replace("http://", "https://");
+        if (fixedUrl.includes("drive.google.com")) {
+            const matches = fixedUrl.match(/\/d\/([^/]+)/);
+            if (matches && matches[1]) return `https://docs.google.com/uc?export=view&id=${matches[1]}`;
+        }
+        return fixedUrl;
+    }
+
+    function goBack() {
+        if (document.referrer && history.length > 1) history.back();
+        else window.location.href = campaignId ? `majorvote_detail?id=${encodeURIComponent(campaignId)}` : 'majorvote';
+    }
+
+    function getUserBalance(type) {
+        const userData = getUserSession();
+        if (!userData) return 0;
+        if (type === 'GEToken') {
+            return Number(userData.GEToken !== undefined ? userData.GEToken : (userData.geToken || 0));
+        }
+        return Number(userData.token || 0);
+    }
+
+    function normalizeMechanic(m) {
+        const t = String(m || '').trim().toLowerCase();
+        return (t === 'lock' || t === 'partial') ? t : 'burn';
+    }
+
+    // ข้อความในป๊อปอัปยืนยัน/สำเร็จ ตามโหมด Token ของแคมเปญ (burn / lock / partial)
+    function getMechanicText(withBold) {
+        const b = s => withBold ? `<b>${s}</b>` : s;
+        if (campaignMechanic === 'lock') {
+            return `Your token will be ${b('locked')} after spending<br>(token will be fully returned when the poll closes)`;
+        }
+        if (campaignMechanic === 'partial') {
+            const pct = Number(campaignRefundPercent) || 0;
+            return `Your token will be ${b('partially burned')} after spending<br>(${pct}% will be returned when the poll closes)`;
+        }
+        return `Your token will be ${b('burned')} after spending<br>(token will be permanently deducted)`;
+    }
+
+    function applyCampaign(c) {
+        if (!c) return;
+        campaignMechanic = normalizeMechanic(c.TokenMechanic);
+        campaignRefundPercent = Number(c.RefundPercent) || 0;
+    }
+
+    function loadCampaignInfo() {
+        try {
+            const list = JSON.parse(localStorage.getItem('blm48_major_votes_cache') || '[]');
+            applyCampaign(list.find(item => String(item.VoteCollectionID) === String(campaignId)));
+        } catch (e) { console.error("Cache Campaign Error:", e); }
+
+        // ดึงข้อมูลแคมเปญล่าสุดด้วย กันแอดมินเปลี่ยนโหมด Token ระหว่างทาง
+        blm48GetVoteCollections().then(data => {
+            if (!Array.isArray(data)) return;
+            const c = data.find(item => String(item.voteCollectionId) === String(campaignId));
+            if (c) applyCampaign({ TokenMechanic: c.tokenMechanic, RefundPercent: c.refundPercent });
+        }).catch(e => console.error("Campaign Fetch Error:", e));
+    }
+
+    async function refreshWallet() {
+        const username = getUsername();
+        if (!username) return;
+        try {
+            const wallet = await blm48GetWallet(username);
+            if (!wallet || wallet.token === undefined) return;
+            const userData = getUserSession();
+            if (!userData) return;
+            userData.token = wallet.token;
+            if (wallet.cookie !== undefined) userData.cookie = wallet.cookie;
+            if (wallet.geToken !== undefined) { userData.geToken = wallet.geToken; userData.GEToken = wallet.geToken; }
+            saveUserSession(userData);
+            updateAmountUI();
+        } catch (e) { console.error("Wallet Refresh Error:", e); }
+    }
+
+    function getAmount() {
+        const n = Math.floor(Number(document.getElementById('amount-input').value));
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    function setAmount(n) {
+        document.getElementById('amount-input').value = n;
+        updateAmountUI();
+    }
+
+    function stepAmount(delta) {
+        const balance = getUserBalance(tokenType);
+        const next = Math.max(1, getAmount() + delta);
+        setAmount(Math.min(next, Math.max(1, Math.floor(balance))));
+    }
+
+    function onAmountInput() {
+        updateAmountUI();
+    }
+
+    function normalizeAmount() {
+        setAmount(Math.max(1, getAmount()));
+    }
+
+    function updateAmountUI() {
+        const balance = getUserBalance(tokenType);
+        const amount = getAmount();
+        const balanceEl = document.getElementById('balance-text');
+        balanceEl.textContent = `Total balance: ${balance.toLocaleString()} tokens`;
+        balanceEl.classList.toggle('insufficient', amount > balance);
+        document.getElementById('minus-btn').disabled = amount <= 1;
+        document.getElementById('plus-btn').disabled = amount >= balance;
+        document.getElementById('vote-btn').disabled = isSubmitting || amount < 1 || amount > balance;
+    }
+
+    function openConfirm() {
+        const amount = getAmount();
+        const balance = getUserBalance(tokenType);
+        if (amount < 1) {
+            Swal.fire({ title: 'จำนวนไม่ถูกต้อง', text: `ขั้นต่ำในการโหวตคือ 1 ${TOKEN_TYPE_LABELS[tokenType]}`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: 'var(--vote-yellow)' });
+            return;
+        }
+        if (amount > balance) {
+            Swal.fire({ title: `${TOKEN_TYPE_LABELS[tokenType]} ไม่พอ`, text: `คุณมี ${balance.toLocaleString()} แต่ต้องการโหวต ${amount.toLocaleString()}`, icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: 'var(--vote-yellow)' });
+            return;
+        }
+        document.getElementById('confirm-text').innerHTML = getMechanicText(true);
+        document.getElementById('confirm-overlay').classList.add('show');
+    }
+
+    function closeConfirm() {
+        if (isSubmitting) return;
+        document.getElementById('confirm-overlay').classList.remove('show');
+    }
+
+    async function submitVote() {
+        if (isSubmitting) return;
+        const amount = getAmount();
+        const yesBtn = document.getElementById('confirm-yes');
+
+        isSubmitting = true;
+        yesBtn.disabled = true;
+        document.getElementById('confirm-no').disabled = true;
+        yesBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+        try {
+            const res = await blm48SubmitMajorVote(getUsername(), campaignId, candidateName, amount, tokenType);
+            document.getElementById('confirm-overlay').classList.remove('show');
+
+            if (res && res.status === "success") {
+                if (res.tokenMechanic) campaignMechanic = normalizeMechanic(res.tokenMechanic);
+                if (res.refundPercent !== undefined) campaignRefundPercent = Number(res.refundPercent) || 0;
+
+                // อัปเดตยอดคงเหลือใน session ให้ตรงกับหลังบ้านทันที
+                const usedType = res.tokenType === 'GEToken' ? 'GEToken' : tokenType;
+                try {
+                    const userData = getUserSession();
+                    const newBal = (res.newBalance !== undefined) ? Number(res.newBalance) : Math.max(0, getUserBalance(usedType) - amount);
+                    if (usedType === 'GEToken') { userData.GEToken = newBal; userData.geToken = newBal; }
+                    else userData.token = newBal;
+                    saveUserSession(userData);
+                } catch (e) { console.error("Session Update Error:", e); }
+
+                pendingThankYouCard = (res.thankYouCard || '').toString().trim();
+                document.getElementById('done-text').innerHTML = getMechanicText(false);
+                document.getElementById('done-overlay').classList.add('show');
+                setAmount(1);
+            } else {
+                Swal.fire({
+                    title: 'การลงคะแนนโหวตไม่สำเร็จ',
+                    text: (res && res.message) || 'เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์หรือการหักเหรียญ',
+                    icon: 'error',
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: 'var(--primary-pink)'
+                });
+            }
+        } catch (err) {
+            console.error("Submit Vote Error:", err);
+            document.getElementById('confirm-overlay').classList.remove('show');
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้งในภายหลัง',
+                icon: 'error',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: 'var(--primary-pink)'
+            });
+        } finally {
+            isSubmitting = false;
+            yesBtn.disabled = false;
+            document.getElementById('confirm-no').disabled = false;
+            yesBtn.textContent = 'Yes';
+            updateAmountUI();
+        }
+    }
+
+    // กด Done แล้วถ้าเมมเบอร์มี Thank you card ให้โชว์การ์ดต่อ
+    function onDone() {
+        document.getElementById('done-overlay').classList.remove('show');
+        if (pendingThankYouCard) {
+            document.getElementById('thank-card').src = fixSecureImageUrl(pendingThankYouCard);
+            document.getElementById('thank-overlay').classList.add('show');
+        }
+    }
+
+    function closeThankCard() {
+        document.getElementById('thank-overlay').classList.remove('show');
+    }
+
+    function initVotePage() {
+        if (!campaignId || !candidateName) {
+            Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลกิจกรรมโหวตหรือผู้สมัคร', 'error').then(() => goBack());
+            return;
+        }
+        if (!getUsername()) {
+            Swal.fire({ title: 'กรุณาเข้าสู่ระบบ', text: 'คุณต้องเข้าสู่ระบบก่อนทำการลงคะแนนโหวต', icon: 'warning', confirmButtonText: 'ตกลง', confirmButtonColor: 'var(--primary-pink)' })
+                .then(() => { window.location.href = 'login'; });
+            return;
+        }
+
+        document.getElementById('vote-title').textContent = `Vote for ${candidateName}`;
+        const avatar = document.getElementById('vote-avatar');
+        avatar.src = fixSecureImageUrl(candidateImg);
+        avatar.onerror = () => { avatar.src = BLANK_IMG; };
+        avatar.alt = candidateName;
+
+        const coin = document.getElementById('token-coin');
+        coin.classList.toggle('ge', tokenType === 'GEToken');
+        coin.innerHTML = tokenType === 'GEToken' ? '<i class="fa-solid fa-gem"></i>' : '<i class="fa-solid fa-coins"></i>';
+        document.getElementById('vote-using').textContent = `Vote using ${TOKEN_TYPE_LABELS[tokenType]}`;
+
+        loadCampaignInfo();
+        updateAmountUI();
+        refreshWallet();
+    }
+
+    document.addEventListener("DOMContentLoaded", initVotePage);
+</script>
+</body>
+</html>

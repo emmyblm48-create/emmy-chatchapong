@@ -52,6 +52,19 @@ function blm48BuyPreorder(username, productId, quantity) {
 function blm48GetMyPreorderOrders(username) {
   return blm48Rpc('get_my_preorder_orders', { p_username: username });
 }
+// ตะกร้า -> คำสั่งซื้อ -> Redeem (ทุกสินค้าใน Shop) items = [{ kind, refId, variant, quantity }]
+function blm48ShopCheckout(username, items) {
+  return blm48Rpc('shop_checkout', { p_username: username, p_items: items });
+}
+function blm48GetMyShopOrders(username) {
+  return blm48Rpc('get_my_shop_orders', { p_username: username });
+}
+function blm48GetShopOrder(username, orderId) {
+  return blm48Rpc('get_shop_order', { p_username: username, p_order_id: orderId });
+}
+function blm48RedeemShopOrder(username, orderId) {
+  return blm48Rpc('redeem_shop_order', { p_username: username, p_order_id: orderId });
+}
 function blm48AdminListPreorderOrders(adminUsername, statusFilter) {
   return blm48Rpc('admin_list_preorder_orders', { p_admin_username: adminUsername, p_status_filter: statusFilter || null });
 }

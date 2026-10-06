@@ -1,0 +1,100 @@
+/* 🛒 Shared look for the Shop order flow:
+   cart -> checkout -> payment -> orders -> order_detail -> order_received */
+:root {
+    --order-yellow: #ffd76e;
+    --order-yellow-text: #222;
+    --order-accent: #f0a73a;
+    --order-line: #efefef;
+    --order-muted: #8a8a8a;
+    --order-ready: #3bb28f;
+    --order-waiting: #3aa0d8;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+    font-family: 'Quicksand', 'Kanit', sans-serif;
+    margin: 0; padding: 0; min-height: 100vh;
+    color: #222; background: #ffffff;
+}
+body.has-bottom-bar { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+
+/* แถบบนสีขาว: ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง */
+.top-navigation-bar {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; display: flex; align-items: center; justify-content: center;
+    background: #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box;
+}
+.nav-back-btn {
+    position: absolute; left: 4px; bottom: 6px;
+    width: 44px; height: 44px; background: none; border: none;
+    color: #222; font-size: 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.top-bar-page-title { font-size: 18px; font-weight: 600; color: #222; }
+
+.page-wrapper { max-width: 720px; margin: 0 auto; }
+.section { padding: 16px 12px; border-bottom: 1px solid var(--order-line); }
+.section-heading { font-size: 16px; font-weight: 700; color: #222; margin: 0 0 12px; }
+
+/* บรรทัดสินค้า: รูปซ้าย ชื่อ+ราคาขวา */
+.order-line { display: flex; gap: 12px; padding: 14px 12px; border-bottom: 1px solid var(--order-line); }
+.order-line-thumb {
+    width: 84px; height: 84px; border-radius: 10px; object-fit: cover;
+    background: #f6f6f8; flex-shrink: 0; border: 1px solid #f0f0f0;
+}
+.order-line-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.order-line-top { display: flex; align-items: flex-start; gap: 8px; }
+.order-line-name {
+    flex: 1; min-width: 0; font-size: 14px; color: #555; line-height: 1.4;
+    overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.order-line-label { font-size: 11.5px; color: var(--order-muted); margin-top: 3px; }
+.order-line-bottom { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; }
+.order-line-price { font-size: 15px; font-weight: 600; color: #222; }
+.order-line-qty { font-size: 14px; color: #555; }
+
+.price-tokens i { color: #c9932c; margin-right: 3px; }
+
+/* ปุ่มเหลืองแบบในแอป iAM */
+.btn-yellow {
+    background: var(--order-yellow); color: var(--order-yellow-text);
+    border: none; border-radius: 999px; padding: 14px 26px;
+    font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-yellow:active { transform: scale(0.98); }
+.btn-yellow:disabled { background: #f1f1f3; color: #aaa; cursor: not-allowed; transform: none; }
+.btn-yellow.is-block { width: 100%; }
+
+/* แถบล่าง: Total + ปุ่มหลัก */
+.bottom-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
+    background: #ffffff; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    display: flex; align-items: center; justify-content: flex-end; gap: 14px;
+}
+.bottom-bar-inner { max-width: 720px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+.bottom-total { text-align: right; }
+.bottom-total-label { font-size: 13px; color: var(--order-muted); }
+.bottom-total-value { font-size: 17px; font-weight: 700; color: var(--order-accent); white-space: nowrap; }
+.bottom-bar .btn-yellow { min-width: 150px; }
+
+.summary-row { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: #666; padding: 4px 0; }
+.summary-row.is-total { color: #222; font-size: 15px; padding-top: 8px; }
+.summary-row.is-total .summary-value { color: var(--order-accent); font-weight: 700; }
+.summary-value { text-align: right; }
+
+.status-waiting { color: var(--order-waiting); }
+.status-ready { color: var(--order-ready); }
+.status-done { color: var(--order-muted); }
+
+.empty-state { text-align: center; color: #aaa; font-size: 14px; padding: 70px 20px; }
+.empty-state i { font-size: 34px; color: #d5d5d5; display: block; margin-bottom: 14px; }
+.empty-state .btn-yellow { margin-top: 18px; font-size: 15px; padding: 11px 24px; text-decoration: none; }
+.loading-state { text-align: center; color: #aaa; font-size: 14px; padding: 50px 20px; }
+
+.inline-error {
+    margin: 12px; padding: 12px 14px; border-radius: 12px;
+    background: #fff1f1; color: #d64545; font-size: 13.5px; line-height: 1.5; display: none;
+}

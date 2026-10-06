@@ -752,6 +752,52 @@ function saveUserSession(userData) {
   localStorage.setItem('bnl_session', JSON.stringify({ data: userData, expiry: expiry }));
 }
 
+// 🛒 ตะกร้า Shop: เก็บในเครื่อง (localStorage) แยกตาม username
+// แต่ละบรรทัด = { kind: 'cookie'|'cafe'|'gacha'|'preorder', refId, variant, name, label, image, unitPrice, quantity }
+// ราคาในตะกร้าเป็นแค่ตัวแสดงผล ตอน Place Order เซิร์ฟเวอร์ (shop_checkout) คิดราคาจริงเองทั้งหมด
+const blm48Cart = {
+  _key() {
+    const u = getUsername();
+    return u ? 'blm48_cart_' + u : null;
+  },
+  get() {
+    try {
+      const key = this._key();
+      const lines = key ? JSON.parse(localStorage.getItem(key) || '[]') : [];
+      return Array.isArray(lines) ? lines : [];
+    } catch (e) { return []; }
+  },
+  save(lines) {
+    try {
+      const key = this._key();
+      if (key) localStorage.setItem(key, JSON.stringify(lines));
+    } catch (e) { /* storage blocked - cart just won't persist */ }
+    document.dispatchEvent(new CustomEvent('blm48-cart-change'));
+  },
+  lineKey(l) { return l.kind + '|' + l.refId + '|' + (l.variant || 1); },
+  add(line, qty) {
+    const lines = this.get();
+    const k = this.lineKey(line);
+    const existing = lines.find(l => this.lineKey(l) === k);
+    if (existing) {
+      existing.quantity = Math.min(99, existing.quantity + (qty || 1));
+      Object.assign(existing, { name: line.name, label: line.label, image: line.image, unitPrice: line.unitPrice });
+    } else {
+      lines.push(Object.assign({ variant: 1 }, line, { quantity: Math.min(99, qty || 1) }));
+    }
+    this.save(lines);
+  },
+  setQty(key, qty) {
+    const lines = this.get();
+    const l = lines.find(x => this.lineKey(x) === key);
+    if (l) { l.quantity = Math.max(1, Math.min(99, qty)); this.save(lines); }
+  },
+  remove(key) { this.save(this.get().filter(l => this.lineKey(l) !== key)); },
+  clear() { this.save([]); },
+  count() { return this.get().reduce((n, l) => n + (Number(l.quantity) || 0), 0); },
+  total() { return this.get().reduce((n, l) => n + (Number(l.unitPrice) || 0) * (Number(l.quantity) || 0), 0); }
+};
+
 // เปิด/ปิดจุดแดงแจ้งเตือนที่แท็บ Notification ด้านล่าง (id="noti-badge")
 function checkNotificationBadge() {
   const hasNewNoti = localStorage.getItem("blm48_has_new_noti");
@@ -1001,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const notifTypeVal = row.notifType || row.notif_type;
     const targetUrl = row.post_id
       ? `postdetail?id=${encodeURIComponent(row.post_id)}`
-      : (notifTypeVal === 'shop' ? 'shop.html' : (notifTypeVal === 'wallet' ? 'history.html' : (notifTypeVal === 'preorder' ? 'my_preorders_history.html' : 'notification.html')));
+      : (notifTypeVal === 'shop' ? 'shop.html' : (notifTypeVal === 'wallet' ? 'history.html' : (notifTypeVal === 'preorder' ? 'orders.html' : 'notification.html')));
     showIosNotification({
       avatar: row.avatar,
       title: row.writer,

@@ -45,723 +45,215 @@
             color: var(--text-dark);
         }
 
-        .app-wrapper {
-            width: 100%;
-            min-height: 100vh;
-            background: transparent;
-            padding: 20px 40px;
-            display: flex;
-            flex-direction: column;
-        }
+        /* 🤍 พื้นขาวล้วน ทับพื้นหลังไล่สีของ glass-mesh-bg ให้เข้าชุดกับหน้า Major Vote / Kami */
+        body.glass-mesh-bg { background-color: #ffffff; background-image: none; }
 
-        @media (max-width: 768px) {
-            .app-wrapper {
-                padding: 16px 12px;
-            }
+        /* 📡 แถบบนสีขาว: ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง (แบบเดียวกับหน้า Kami) */
+        .top-navigation-bar {
+            position: sticky; top: 0; z-index: 100;
+            height: 56px; display: flex; align-items: center; justify-content: center;
+            background: #ffffff; border-bottom: 1px solid #e8e8e8;
+            padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box;
         }
-
-        /* --- Hero Header Card: back/profile row + title + live stats --- */
-        .inv-hero-card {
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border-radius: 24px;
-            padding: 18px 20px 22px;
-            margin-bottom: 25px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
+        .nav-back-btn {
+            position: absolute; left: 6px; bottom: 6px;
+            width: 44px; height: 44px; background: none; border: none;
+            color: #222; font-size: 22px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
+        .top-bar-page-title { font-size: 18px; font-weight: 600; color: #222; }
 
-        .inv-hero-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 18px;
+        .app-wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 0 0 40px; }
+
+        /* 📊 สรุปกระเป๋า: การ์ดขาวเงานุ่ม 2 ช่อง */
+        .inv-summary-card {
+            display: grid; grid-template-columns: 1fr 1fr;
+            margin: 18px 20px 0; background: #fafafa; border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); padding: 18px 0;
         }
-
-        .btn-back-top {
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            color: var(--primary-pink);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            border: 1px solid var(--glass-border);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--glass-shadow-sm);
-            transition: 0.2s;
-            flex-shrink: 0;
+        .inv-summary-box { display: flex; align-items: center; justify-content: center; gap: 12px; min-width: 0; }
+        .inv-summary-box + .inv-summary-box { border-left: 1px solid #ececec; }
+        .inv-summary-icon {
+            width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 18px; color: #333;
         }
+        .inv-summary-value { font-size: 22px; font-weight: 700; color: #111; line-height: 1.1; }
+        .inv-summary-label { font-size: 12px; color: #888; font-weight: 500; }
 
-        .btn-back-top:hover {
-            background: var(--primary-pink);
-            color: white;
-            transform: scale(1.06);
-        }
-
-        .user-profile-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar-img {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--primary-pink);
-            background: #fff;
-        }
-
-        .user-profile-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-display-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: #333;
-            line-height: 1.2;
-        }
-
-        .user-role-tag {
-            font-size: 10px;
-            color: var(--primary-pink);
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-            display: inline-block;
-            width: fit-content;
-            margin-top: 2px;
-        }
-
-        .header-title-zone {
-            text-align: center;
-            margin-bottom: 18px;
-        }
-
-        .header-title-zone h1 {
-            color: var(--primary-pink);
-            font-size: 26px;
-            margin: 0 0 6px 0;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .header-title-zone h1 i {
-            font-size: 21px;
-            -webkit-text-stroke: 0;
-        }
-
-        .header-title-zone p {
-            color: #999;
-            font-size: 13px;
-            margin: 0;
-        }
-
-        .inv-stats-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .inv-stat-pill {
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 10px 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: var(--glass-shadow-sm);
-        }
-
-        .inv-stat-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .inv-stat-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.25;
-        }
-
-        .inv-stat-value {
-            font-size: 16px;
-            font-weight: 800;
-            color: #333;
-        }
-
-        .inv-stat-label {
-            font-size: 10.5px;
-            color: #999;
-            font-weight: 600;
-        }
-
+        /* 📦 ลิงก์พรีออเดอร์: แถวรายการพร้อมไอคอนวงกลมพาสเทล */
         .preorder-link-card {
-            display: flex; align-items: center; gap: 12px;
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 14px 16px;
-            box-shadow: var(--glass-shadow);
-            margin-bottom: 25px;
-            text-decoration: none;
-            color: inherit;
+            display: flex; align-items: center; gap: 14px;
+            margin: 14px 20px 0; padding: 14px 0;
+            border-bottom: 1px solid #eeeeee;
+            text-decoration: none; color: inherit;
         }
         .preorder-link-icon {
-            width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
-            background: #fff6e0; color: #c9932c;
+            width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+            background: #fdf1bf; color: #333;
             display: flex; align-items: center; justify-content: center; font-size: 17px;
         }
         .preorder-link-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .preorder-link-title { font-weight: 700; color: #333; font-size: 14.5px; }
-        .preorder-link-sub { font-size: 11.5px; color: #999; }
-        .preorder-link-chevron { color: #ccc; flex-shrink: 0; }
+        .preorder-link-title { font-weight: 600; color: #222; font-size: 15px; }
+        .preorder-link-sub { font-size: 12.5px; color: #888; }
+        .preorder-link-chevron { color: #aaa; font-size: 13px; flex-shrink: 0; }
 
-        .filter-section-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 25px;
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: var(--glass-shadow);
-        }
-
-        .inv-search-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .inv-search-icon {
-            position: absolute;
-            left: 14px;
-            color: #ccc;
-            font-size: 13px;
-            pointer-events: none;
-        }
-
+        /* 🔍 ค้นหา + ตัวกรอง */
+        .filter-section-container { display: flex; flex-direction: column; gap: 12px; margin: 18px 0 4px; }
+        .inv-search-wrap { position: relative; display: flex; align-items: center; margin: 0 20px; }
+        .inv-search-icon { position: absolute; left: 14px; color: #999; font-size: 14px; pointer-events: none; }
         .inv-search-input {
-            width: 100%;
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            border: 1px solid var(--glass-border);
-            border-radius: 14px;
-            padding: 10px 36px;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 13px;
-            color: #444;
-            box-shadow: var(--glass-shadow-sm);
-            outline: none;
-            transition: border-color 0.2s ease;
+            width: 100%; background: #f2f2f5; border: 1px solid transparent; border-radius: 12px;
+            padding: 11px 38px; font-family: 'Quicksand', 'Kanit', sans-serif;
+            font-size: 14px; color: #222; outline: none; transition: border-color 0.2s ease, background 0.2s ease;
         }
-
-        .inv-search-input::placeholder {
-            color: #bbb;
-        }
-
-        .inv-search-input:focus {
-            border-color: var(--primary-pink);
-        }
-
+        .inv-search-input::placeholder { color: #9a9a9a; }
+        .inv-search-input:focus { background: #fff; border-color: var(--primary-pink); }
         .inv-search-clear {
-            position: absolute;
-            right: 8px;
-            background: none;
-            border: none;
-            color: #ccc;
-            font-size: 13px;
-            cursor: pointer;
-            padding: 6px;
+            position: absolute; right: 6px; width: 32px; height: 32px;
+            background: none; border: none; color: #999; font-size: 14px; cursor: pointer;
         }
 
-        .inv-search-clear:hover {
-            color: var(--primary-pink);
+        /* ชิปหมวดหมู่ เลื่อนซ้าย-ขวา (เดิมเป็น action sheet ต้องกดเปิดก่อน) */
+        .chip-row {
+            display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;
+            padding: 2px 20px; scrollbar-width: none;
         }
+        .chip-row::-webkit-scrollbar { display: none; }
+        .filter-chip {
+            flex-shrink: 0; border: 1px solid #e5e5e5; background: #fff; color: #444;
+            padding: 7px 16px; border-radius: 20px; cursor: pointer;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13.5px; font-weight: 500;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .filter-chip.active { background: var(--primary-pink); border-color: var(--primary-pink); color: #fff; font-weight: 600; }
+        .filter-chip:active { transform: scale(0.96); }
 
-        .filter-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #888;
-            margin-bottom: 2px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .sub-filter-row { display: flex; align-items: center; gap: 8px; margin: 0 20px; font-size: 13px; color: #888; }
+        .sort-btn {
+            border: none; background: #f2f2f5; border-radius: 20px; padding: 6px 14px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13.5px; font-weight: 600; color: #222;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
         }
+        .sort-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sort-btn .chev { font-size: 11px; color: #888; }
 
-        .tabs-row {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding-bottom: 4px;
-            scrollbar-width: none;
-        }
-        
-        .tabs-row::-webkit-scrollbar {
-            display: none;
-        }
-
-        .btn-tab {
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            color: #666;
-            border: 1px solid var(--glass-border);
-            padding: 8px 18px;
-            border-radius: 14px;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            box-shadow: var(--glass-shadow-sm);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-tab:hover {
-            border-color: var(--primary-pink);
-            color: var(--primary-pink);
-            background: #fff9fa;
-        }
-
-        .btn-tab.active {
-            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
-            color: white;
-            border-color: var(--primary-pink);
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(255,133,162,0.25);
-        }
-
-        /* สไตล์ตัวกรองย่อย Coasters */
-        .sub-filter-panel {
-            background: var(--glass-bg-soft);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            border-radius: 14px;
-            padding: 12px;
-            border: 1px dashed #ffcbd6;
-            animation: slideDownFade 0.25s ease-out;
-        }
-
-        @keyframes slideDownFade {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .btn-sub-tab {
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            color: #777;
-            border: 1px solid #ffd2dc;
-            padding: 6px 14px;
-            border-radius: 10px;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease-in-out;
-        }
-
-        .btn-sub-tab:hover {
-            border-color: var(--primary-pink);
-            color: var(--primary-pink);
-        }
-
-        .btn-sub-tab.active {
-            background: var(--primary-pink);
-            color: white;
-            border-color: var(--primary-pink);
-            font-weight: 600;
-        }
-
-        .collection-section {
-            background: var(--glass-bg);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 22px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: var(--glass-shadow);
-            transition: box-shadow 0.2s ease;
-        }
-
-        .collection-section:hover {
-            box-shadow: var(--glass-shadow-lg);
-        }
-
+        /* 🗂️ หัวข้อคอลเลกชัน: ตัวหนาซ้าย + จำนวนขวา (แบบหัวข้อหน้า Major Vote) */
+        .collection-section { margin-top: 22px; }
         .collection-title {
-            font-size: 16px;
-            font-weight: 700;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            color: var(--primary-pink);
-            margin-bottom: 16px;
-            padding-left: 12px;
-            border-left: 4px solid var(--primary-pink);
-            line-height: 1.2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+            margin: 0 20px 12px; font-size: 17px; font-weight: 700; color: #222;
         }
-
-        .collection-count-badge {
-            font-size: 11px;
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            color: var(--primary-pink);
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
+        .collection-title > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .collection-count-badge { flex-shrink: 0; font-size: 13px; font-weight: 500; color: #888; }
 
         .item-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 16px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+            gap: 14px 12px; padding: 0 20px;
         }
 
+        /* 🃏 การ์ดไอเทม: รูปในกรอบมน + จำนวนมุมขวาล่าง + ชื่อใต้รูป */
         .item-card {
             --tier-color: var(--primary-pink);
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border: 1.5px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 13px 10px 14px;
-            text-align: center;
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: var(--glass-shadow-sm);
+            position: relative; cursor: pointer; min-width: 0;
+            -webkit-tap-highlight-color: transparent; transition: transform 0.15s;
         }
-
-        .item-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: var(--tier-color);
-        }
-
-        .item-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--tier-color);
-            box-shadow: 0 10px 20px rgba(255, 133, 162, 0.12);
-        }
-
-        /* ⭐ ไอเทมที่ชื่อมีคำว่า SSR ให้มีกรอบทองเด่นตลอดเวลา ไม่ต้องรอ hover */
-        .item-card-ssr {
-            border-color: #e0b953;
-            box-shadow: 0 0 0 1px rgba(224, 185, 83, 0.45), 0 6px 16px rgba(224, 185, 83, 0.25);
-        }
-
-        .item-card-ssr:hover {
-            box-shadow: 0 10px 20px rgba(224, 185, 83, 0.35);
-        }
-
-        .item-qty {
-            position: absolute;
-            top: 13px;
-            right: 10px;
-            background: var(--tier-color);
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 3px 9px;
-            border-radius: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            z-index: 2;
-        }
-
-        .item-book-badge {
-            position: absolute;
-            top: 13px;
-            left: 10px;
-            background: var(--tier-color);
-            color: white;
-            font-size: 11px;
-            padding: 4px 7px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-            z-index: 2;
-        }
-
+        .item-card:active { transform: scale(0.96); }
         .item-img-wrap {
-            background: #fff9fa;
-            border-radius: 14px;
-            padding: 6px;
-            margin-bottom: 8px;
-            overflow: hidden;
+            position: relative; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
+            background: #f6f6f8; border: 1.5px solid #eeeeee;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .item-img {
-            width: 100%;
-            height: 110px;
-            object-fit: contain;
-            margin: 0 auto;
-            display: block;
-            border-radius: 8px;
-            transition: transform 0.3s ease;
+        /* ⭐ ไอเทมที่ชื่อมีคำว่า SSR ให้มีกรอบทองเด่นตลอดเวลา */
+        .item-card-ssr .item-img-wrap {
+            border-color: #e0b953;
+            box-shadow: 0 0 0 1px rgba(224, 185, 83, 0.45), 0 4px 12px rgba(224, 185, 83, 0.25);
         }
-
-        .item-card:hover .item-img {
-            transform: scale(1.06);
+        .item-img { width: 100%; height: 100%; object-fit: contain; display: block; padding: 6px; }
+        .item-qty {
+            position: absolute; right: 6px; bottom: 6px; z-index: 2;
+            background: rgba(0, 0, 0, 0.6); color: #fff;
+            font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
         }
-
+        .item-book-badge {
+            position: absolute; left: 6px; top: 6px; z-index: 2;
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--tier-color); color: #fff; font-size: 11px;
+            display: flex; align-items: center; justify-content: center;
+        }
         .item-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: #555;
-            margin-top: 4px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: flex; align-items: center; gap: 5px;
+            font-size: 12.5px; font-weight: 500; color: #333; margin-top: 7px;
+        }
+        .item-name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* จุดสีประจำหมวดหมู่หน้าชื่อไอเทม */
+        .item-name::before {
+            content: ''; width: 7px; height: 7px; border-radius: 50%;
+            background: var(--tier-color); flex-shrink: 0;
         }
 
         .inv-state-box {
-            text-align: center;
-            color: #bbb;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 13px;
-            padding: 50px 20px;
+            text-align: center; color: #aaa; font-size: 13.5px; padding: 50px 20px;
         }
-        .inv-state-box i {
-            font-size: 32px;
-            color: #ffd7e1;
-            display: block;
-            margin-bottom: 12px;
-        }
+        .inv-state-box i { font-size: 30px; color: #d5d5d5; display: block; margin-bottom: 12px; }
         .inv-state-box.is-error i { color: #ffb3c1; }
 
+        /* 🖼️ หน้าต่างดูไอเทม */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(74, 44, 54, 0.35);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            -webkit-backdrop-filter: blur(6px);
-            backdrop-filter: blur(6px);
-            padding: 20px;
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0, 0, 0, 0.4);
+            justify-content: center; align-items: center; padding: 20px;
         }
-
         .modal-body-content {
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-            backdrop-filter: blur(var(--glass-blur-lg));
-            padding: 24px;
-            border-radius: 28px;
-            max-width: 380px;
-            width: 100%;
-            text-align: center;
-            position: relative;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow-lg);
-            animation: zoomInSubtle 0.25s ease-out;
+            background: #ffffff; padding: 20px; border-radius: 22px;
+            max-width: 380px; width: 100%; text-align: center; position: relative;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+            animation: zoomInSubtle 0.2s ease-out;
         }
-
         @keyframes zoomInSubtle {
             from { transform: scale(0.95); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
-
         .modal-body-content img {
-            width: 100%;
-            max-height: 320px;
-            object-fit: contain;
-            border-radius: 18px;
-            background: #fafafa;
-            margin-bottom: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 100%; max-height: 320px; object-fit: contain;
+            border-radius: 14px; background: #f6f6f8; margin-bottom: 14px;
         }
-
-        .modal-item-name {
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 17px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            line-height: 1.3;
-        }
-
-        .modal-item-meta {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 20px;
-        }
-
+        .modal-item-name { font-size: 17px; font-weight: 700; color: #222; margin-bottom: 8px; line-height: 1.3; }
+        .modal-item-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 18px; }
         .modal-meta-tag {
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 11px;
-            font-weight: 500;
-            padding: 4px 12px;
-            border-radius: 12px;
-            color: white;
-            background: var(--tier-color, var(--primary-pink));
+            font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 10px;
+            color: #fff; background: var(--tier-color, var(--primary-pink));
         }
+        .modal-meta-tag.is-sub { background: #f2f2f5; color: #666; }
+        .modal-meta-tag.is-qty { background: #fff0f3; color: var(--primary-pink); }
 
-        .modal-meta-tag.is-sub {
-            background: #f4f4f4;
-            color: #777;
-        }
-
-        .modal-meta-tag.is-qty {
-            background: #fff0f3;
-            color: var(--primary-pink);
-        }
-
-        .inv-delete-zone {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .inv-qty-stepper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #f7f7f7;
-            border-radius: 999px;
-            padding: 5px 6px;
-        }
-
+        .inv-delete-zone { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+        .inv-qty-stepper { display: flex; align-items: center; gap: 10px; background: #f2f2f5; border-radius: 999px; padding: 5px 6px; }
         .inv-qty-btn {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            border: none;
-            background: #ffffff;
-            color: var(--primary-pink);
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            width: 28px; height: 28px; border-radius: 50%; border: none; background: #fff;
+            color: #222; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.08);
         }
-
-        .inv-qty-btn:active {
-            transform: scale(0.92);
-        }
-
-        .inv-qty-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .inv-qty-value {
-            min-width: 20px;
-            text-align: center;
-            font-weight: 700;
-            color: #333;
-            font-size: 13px;
-        }
-
+        .inv-qty-btn:active { transform: scale(0.92); }
+        .inv-qty-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .inv-qty-value { min-width: 20px; text-align: center; font-weight: 700; color: #222; font-size: 14px; }
         .btn-delete-item {
-            background: #fff0f0;
-            color: #e0435c;
-            border: 1px solid #ffd6dc;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 12.5px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: 0.2s;
+            background: #fff0f0; color: #e0435c; border: none; padding: 9px 16px; border-radius: 20px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
         }
 
-        .btn-delete-item:hover {
-            background: #ffe1e5;
-        }
-
-        .modal-action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
+        .modal-action-buttons { display: flex; gap: 10px; justify-content: center; }
+        .modal-action-buttons > * { flex: 1; justify-content: center; }
         .btn-close-modal {
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            backdrop-filter: blur(var(--glass-blur-sm));
-            color: #666;
-            border: 1px solid var(--glass-border);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 13px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.2s;
+            background: #f2f2f5; color: #333; border: none; padding: 12px 18px; border-radius: 14px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
         }
-
         .btn-save-image {
-            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
-            color: white;
-            text-decoration: none;
-            padding: 10px 24px;
-            border-radius: 20px;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(255,133,162,0.3);
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
+            background: var(--primary-pink); color: #fff; text-decoration: none;
+            padding: 12px 18px; border-radius: 14px; border: none; cursor: pointer;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 8px;
         }
-
-        .btn-save-image:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 15px rgba(255,133,162,0.4);
-        }
+        .btn-close-modal:active, .btn-save-image:active { transform: scale(0.97); }
 
         /* --- ตัวอ่าน E-Book (EPUB) สำหรับโฟโต้บุ๊ค --- */
         .epub-reader-overlay {
@@ -893,8 +385,6 @@
             text-align: center;
         }
         /* 🍎 Filter แบบ iOS action sheet (เหมือนหน้า Campaign) */
-        .sort-btn { border: none; background: none; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 17px; font-weight: 600; color: #222; padding: 4px 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-        .sort-btn .chev { font-size: 12px; }
         .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 3000; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s ease; }
         .sheet-overlay.open { opacity: 1; pointer-events: auto; }
         .sheet { width: 100%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .25s ease; }
@@ -909,68 +399,53 @@
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
+    <div class="top-navigation-bar">
+        <button type="button" class="nav-back-btn" onclick="goBackFromInventory()" aria-label="ย้อนกลับ">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <div class="top-bar-page-title">Inventory</div>
+    </div>
+
     <div class="app-wrapper">
-        <div class="inv-hero-card">
-            <div class="inv-hero-top">
-                <a href="index" class="btn-back-top" aria-label="กลับหน้าหลัก"><i class="fa-solid fa-chevron-left"></i></a>
-                <div class="user-profile-box">
-                    <img id="user-avatar" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" alt="Profile" class="user-avatar-img">
-                    <div class="user-profile-info">
-                        <span id="user-display-name" class="user-display-name">กำลังโหลด...</span>
-                        <span id="user-role" class="user-role-tag"></span>
-                    </div>
+        <div class="inv-summary-card">
+            <div class="inv-summary-box">
+                <div class="inv-summary-icon" style="background:#fde9ec;"><i class="fa-solid fa-layer-group"></i></div>
+                <div>
+                    <div class="inv-summary-value" id="stat-total-items">0</div>
+                    <div class="inv-summary-label">Total Items</div>
                 </div>
             </div>
-
-            <div class="header-title-zone">
-                <h1><i class="fa-solid fa-box-open"></i> My Inventory</h1>
-                <p>คอลเลกชันดิจิทัลไอเทมทั้งหมดของคุณ</p>
-            </div>
-
-            <div class="inv-stats-row">
-                <div class="inv-stat-pill">
-                    <div class="inv-stat-icon" style="background:#fdf0e6;color:var(--primary-pink);"><i class="fa-solid fa-layer-group"></i></div>
-                    <div class="inv-stat-text">
-                        <span class="inv-stat-value" id="stat-total-items">0</span>
-                        <span class="inv-stat-label">Total Items</span>
-                    </div>
-                </div>
-                <div class="inv-stat-pill">
-                    <div class="inv-stat-icon" style="background:#e7f5ff;color:#4dabf7;"><i class="fa-solid fa-boxes-stacked"></i></div>
-                    <div class="inv-stat-text">
-                        <span class="inv-stat-value" id="stat-total-collections">0</span>
-                        <span class="inv-stat-label">Collections</span>
-                    </div>
+            <div class="inv-summary-box">
+                <div class="inv-summary-icon" style="background:#e0edfb;"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <div>
+                    <div class="inv-summary-value" id="stat-total-collections">0</div>
+                    <div class="inv-summary-label">Collections</div>
                 </div>
             </div>
         </div>
 
-        <a href="my_preorders" class="preorder-link-card">
+        <a href="orders" class="preorder-link-card">
             <div class="preorder-link-icon"><i class="fa-solid fa-box"></i></div>
             <div class="preorder-link-text">
-                <span class="preorder-link-title">พรีออเดอร์ของฉัน</span>
-                <span class="preorder-link-sub">ดูสถานะคำสั่งซื้อและการจัดส่ง</span>
+                <span class="preorder-link-title">My Order</span>
+                <span class="preorder-link-sub">ดูคำสั่งซื้อ สถานะจัดส่ง และกด Redeem รับของ</span>
             </div>
             <i class="fa-solid fa-chevron-right preorder-link-chevron"></i>
         </a>
 
         <div class="filter-section-container">
-    <div class="inv-search-wrap">
-        <i class="fa-solid fa-magnifying-glass inv-search-icon"></i>
-        <input type="text" id="inventory-search-input" class="inv-search-input" placeholder="ค้นหาไอเทมด้วยชื่อ..." oninput="onInventorySearchInput(this.value)">
-        <button type="button" id="inventory-search-clear" class="inv-search-clear hidden" onclick="clearInventorySearch()" aria-label="ล้างคำค้นหา"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div>
-        <span class="filter-label"><i class="fa-solid fa-filter text-pink-400"></i> Fliter</span>
-        <button type="button" class="sort-btn" onclick="openFilterSheet()"><span id="filter-current">All</span><i class="fa-solid fa-chevron-down chev"></i></button>
-    </div>
-    
-    <div id="coaster-sub-panel" class="hidden">
-        <span class="filter-label"><i class="fa-solid fa-layer-group text-pink-400"></i> Collection</span>
-        <button type="button" class="sort-btn" onclick="openSubFilterSheet()"><span id="sub-filter-current">All</span><i class="fa-solid fa-chevron-down chev"></i></button>
-    </div>
-    </div>
-    
+            <div class="inv-search-wrap">
+                <i class="fa-solid fa-magnifying-glass inv-search-icon"></i>
+                <input type="text" id="inventory-search-input" class="inv-search-input" placeholder="ค้นหาไอเทมด้วยชื่อ..." oninput="onInventorySearchInput(this.value)">
+                <button type="button" id="inventory-search-clear" class="inv-search-clear hidden" onclick="clearInventorySearch()" aria-label="ล้างคำค้นหา"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="chip-row" id="filter-chips"></div>
+            <div id="coaster-sub-panel" class="sub-filter-row hidden">
+                <span>Collection</span>
+                <button type="button" class="sort-btn" onclick="openSubFilterSheet()"><span id="sub-filter-current">All</span><i class="fa-solid fa-chevron-down chev"></i></button>
+            </div>
+        </div>
+
         <div id="inventory-container">
             <div class="inv-state-box"><i class="fa-solid fa-spinner fa-spin"></i>กำลังหาคอลเลกชันของคุณ...</div>
         </div>
@@ -1023,10 +498,6 @@
         </div>
     </div>
 
-    <footer style="padding: 50px 20px; text-align: center; color: #bbb; font-size: 12px;">
-        <div style="font-weight: 700; color: #888; margin-bottom: 5px;">BLM48 MEMBERSHIP</div>
-        <div>© 2026 Virtual Idol Cover Group</div>
-    </footer>
 
 <script>
     let user = getUserSession();
@@ -1073,19 +544,16 @@
             return;
         }
         
-        if (user.profile_img && user.profile_img.toString().trim() !== "") {
-            document.getElementById('user-avatar').src = user.profile_img;
-        } else {
-            document.getElementById('user-avatar').src = "https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000";
-        }
-        
-        document.getElementById('user-display-name').textContent = user.name || "BLM48 MEMBER";
-        
-        const userRole = user.role || user.position || "BLM48 Member";
-        document.getElementById('user-role').textContent = userRole;
-        
         await loadMyInventory();
     };
+
+    function goBackFromInventory() {
+        if (document.referrer && window.history.length > 1) {
+            window.history.back();
+        } else {
+            window.location.href = 'majorvote';
+        }
+    }
 
     // โหลดข้อมูลแบบ Anti-Cache เพื่อให้ได้ของในกระเป๋าล่าสุดแบบเรียลไทม์
     async function loadMyInventory() {
@@ -1198,13 +666,16 @@
         photocard: 'BLM48 PhotoCard',
     };
 
+    // ชื่อคอลเลกชันสำหรับแสดงผล: ตัด prefix ภายใน (votemajor_ / gacha_) แล้วขึ้นต้นตัวพิมพ์ใหญ่
+    function formatCollectionName(name) {
+        const label = String(name || '').replace('votemajor_', '').replace('gacha_', '');
+        return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
     function subFilterOptions() {
         const cat = SUB_FILTER_CATEGORY[currentPrimaryTab];
         if (!cat) return [];
-        const subs = getSubCollections(cat).map(name => {
-            let label = name.replace('votemajor_', '').replace('gacha_', '');
-            return { value: name, label: label.charAt(0).toUpperCase() + label.slice(1) };
-        });
+        const subs = getSubCollections(cat).map(name => ({ value: name, label: formatCollectionName(name) }));
         return [{ value: 'all', label: 'All' }, ...subs];
     }
 
@@ -1226,17 +697,18 @@
     function closeFilterSheet() {
         document.getElementById('filter-sheet').classList.remove('open');
     }
-    function openFilterSheet() {
-        openSheet(availablePrimaryFilters(), currentPrimaryTab, selectPrimaryTab);
-    }
     function openSubFilterSheet() {
         openSheet(subFilterOptions(), currentSubTab, selectSubTab);
     }
 
    function renderFilters() {
-    const current = PRIMARY_FILTERS.find(f => f.value === currentPrimaryTab) || PRIMARY_FILTERS[0];
-    const label = document.getElementById('filter-current');
-    if (label) label.textContent = current.label;
+    // ชิปหมวดหลัก (โชว์เฉพาะหมวดที่ผู้ใช้มีไอเทมจริง)
+    const chips = document.getElementById('filter-chips');
+    if (chips) {
+        chips.innerHTML = availablePrimaryFilters().map(f =>
+            `<button type="button" class="filter-chip${f.value === currentPrimaryTab ? ' active' : ''}" onclick="selectPrimaryTab('${f.value}')">${escapeHtml(f.label)}</button>`
+        ).join('');
+    }
 
     // --- 🔘 ตัวกรองย่อย: แสดงเฉพาะหมวดที่มีชื่องานย่อย ---
     const subPanel = document.getElementById('coaster-sub-panel');
@@ -1340,7 +812,7 @@ function renderInventoryData() {
         const title = document.createElement('div');
         title.className = 'collection-title';
         title.innerHTML = `
-            <span>${subName}</span>
+            <span>${escapeHtml(formatCollectionName(subName))}</span>
             <span class="collection-count-badge">${items.length} รายการ</span>
         `;
         section.appendChild(title);
@@ -1356,12 +828,12 @@ function renderInventoryData() {
             card.onclick = () => openPreview(item);
 
             card.innerHTML = `
-                <span class="item-qty">x${item.qty}</span>
-                ${item.fileUrl ? '<span class="item-book-badge"><i class="fa-solid fa-book-open"></i></span>' : ''}
                 <div class="item-img-wrap">
-                    <img class="item-img" src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://placehold.co/140x110/ffeef2/ff85a2?text=BLM48';">
+                    ${item.fileUrl ? '<span class="item-book-badge"><i class="fa-solid fa-book-open"></i></span>' : ''}
+                    <img class="item-img" src="${escapeAttr(item.img)}" alt="${escapeAttr(item.name)}" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/140x140/f6f6f8/ff85a2?text=BLM48';">
+                    <span class="item-qty">x${item.qty}</span>
                 </div>
-                <div class="item-name" title="${item.name}">${item.name}</div>
+                <div class="item-name" title="${escapeAttr(item.name)}"><span>${escapeHtml(item.name)}</span></div>
             `;
             grid.appendChild(card);
         });

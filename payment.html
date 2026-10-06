@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Payment</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        body { background: #fafafa; }
+        .pay-card {
+            background: #fff; margin: 24px auto 0; width: calc(100% - 64px); max-width: 420px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 28px 22px 22px;
+        }
+        .pay-check {
+            width: 84px; height: 84px; margin: 0 auto; border-radius: 50%;
+            border: 3px solid #7cb82f; position: relative; display: flex; align-items: center; justify-content: center;
+        }
+        .pay-check::before {
+            content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 2px dashed #7cb82f;
+        }
+        .pay-check i { color: #7cb82f; font-size: 34px; }
+        .pay-divider { border-top: 2px dashed #e6e6e6; margin: 24px 0 18px; }
+        .pay-title { text-align: center; color: #7cb82f; font-weight: 700; font-size: 16px; margin-bottom: 14px; }
+        .pay-row { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: #333; padding: 5px 0; }
+        .pay-row span:last-child { text-align: right; font-weight: 500; }
+        .pay-hint { text-align: center; font-size: 14px; color: #222; line-height: 1.6; padding: 26px 32px 0; max-width: 480px; margin: 0 auto; }
+        .pay-hint a { color: var(--order-accent); }
+        .pay-bottom {
+            position: fixed; left: 0; right: 0; bottom: 0;
+            padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+        }
+        .pay-bottom .btn-yellow { max-width: 688px; margin: 0 auto; display: flex; font-weight: 500; }
+    </style>
+</head>
+<body class="has-bottom-bar">
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="location.replace('shop')" aria-label="กลับไปที่ Shop"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">Payment</div>
+</div>
+
+<div id="pay-content"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+
+<div class="pay-bottom">
+    <button type="button" class="btn-yellow is-block" onclick="location.replace('shop')">Continue Shopping</button>
+</div>
+
+<script>
+  function formatDateTime(value) {
+    if (!value) return '-';
+    const d = new Date(value);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const orderId = new URLSearchParams(location.search).get('order');
+    const box = document.getElementById('pay-content');
+    const res = orderId ? await blm48GetShopOrder(user.username, Number(orderId)) : null;
+    if (!res || res.status !== 'success') {
+      box.innerHTML = `<div class="empty-state"><i class="fa-solid fa-receipt"></i>${escapeHtml((res && res.message) || 'ไม่พบคำสั่งซื้อนี้ค่ะ')}</div>`;
+      return;
+    }
+    const o = res.data;
+    const anyReady = o.lines.some(l => l.status === 'ready');
+    const detailLink = `<a href="order_detail?id=${encodeURIComponent(o.orderId)}">order details</a>`;
+    const hint = anyReady
+      ? `This order has redeemable items, you can redeem them at ${detailLink}.`
+      : `Your pre-order items can be redeemed at ${detailLink} once they ship.`;
+
+    box.innerHTML = `
+      <div class="pay-card">
+        <div class="pay-check"><i class="fa-solid fa-check"></i></div>
+        <div class="pay-divider"></div>
+        <div class="pay-title">Your payment is approved</div>
+        <div class="pay-row"><span>Order Number</span><span>${escapeHtml(o.orderNo)}</span></div>
+        <div class="pay-row"><span>Total Payment</span><span>${Number(o.totalTokens).toLocaleString()} Tokens</span></div>
+        <div class="pay-row"><span>Payment Time</span><span>${formatDateTime(o.paidAt)}</span></div>
+      </div>
+      <div class="pay-hint">${hint}</div>`;
+  }
+
+  window.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Shopping Cart</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        .cart-trash { background: none; border: none; color: #888; font-size: 19px; cursor: pointer; padding: 0 2px; flex-shrink: 0; }
+        .qty-stepper {
+            display: inline-flex; align-items: center; border: 1.5px solid #888; border-radius: 999px;
+            padding: 3px; flex-shrink: 0;
+        }
+        .qty-btn {
+            width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .qty-btn.minus { background: #e6e6e6; color: #fff; }
+        .qty-btn.plus { background: var(--order-accent); color: #fff; }
+        .qty-btn:disabled { opacity: .55; cursor: not-allowed; }
+        .qty-value {
+            min-width: 40px; text-align: center; font-weight: 700; font-size: 15px;
+            border-left: 1px solid #ddd; border-right: 1px solid #ddd; margin: 0 6px; line-height: 30px;
+        }
+    </style>
+</head>
+<body class="has-bottom-bar">
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">Shopping Cart</div>
+</div>
+
+<div class="page-wrapper" id="cart-list"></div>
+
+<div class="bottom-bar" id="cart-bottom-bar">
+    <div class="bottom-bar-inner">
+        <div class="bottom-total">
+            <div class="bottom-total-label">Total</div>
+            <div class="bottom-total-value" id="cart-total">0 Tokens</div>
+        </div>
+        <button type="button" class="btn-yellow" id="btn-checkout" onclick="location.href='checkout'">Check Out</button>
+    </div>
+</div>
+
+<script>
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'shop';
+  }
+
+  function formatTokens(n) {
+    return Number(n || 0).toLocaleString() + ' Tokens';
+  }
+
+  function renderCart() {
+    const lines = blm48Cart.get();
+    const list = document.getElementById('cart-list');
+    document.getElementById('cart-total').textContent = formatTokens(blm48Cart.total());
+    document.getElementById('btn-checkout').disabled = lines.length === 0;
+
+    if (lines.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-cart-shopping"></i>ยังไม่มีสินค้าในตะกร้าค่ะ<br><a class="btn-yellow" href="shop">ไปที่ Shop</a></div>`;
+      return;
+    }
+
+    list.innerHTML = lines.map(l => {
+      const key = blm48Cart.lineKey(l);
+      return `
+        <div class="order-line">
+          <img class="order-line-thumb" src="${escapeHtml(l.image || '')}" alt="" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='">
+          <div class="order-line-body">
+            <div class="order-line-top">
+              <div class="order-line-name">${escapeHtml(l.name)}</div>
+              <button type="button" class="cart-trash" aria-label="ลบออกจากตะกร้า" onclick="blm48Cart.remove('${escapeAttr(key)}')"><i class="fa-regular fa-trash-can"></i></button>
+            </div>
+            ${l.label ? `<div class="order-line-label">${escapeHtml(l.label)}</div>` : ''}
+            <div class="order-line-bottom">
+              <div class="order-line-price price-tokens"><i class="fas fa-coins"></i>${Number(l.unitPrice || 0).toLocaleString()}</div>
+              <div class="qty-stepper">
+                <button type="button" class="qty-btn minus" aria-label="ลดจำนวน" ${l.quantity <= 1 ? 'disabled' : ''} onclick="blm48Cart.setQty('${escapeAttr(key)}', ${l.quantity - 1})"><i class="fa-solid fa-minus"></i></button>
+                <span class="qty-value">${l.quantity}</span>
+                <button type="button" class="qty-btn plus" aria-label="เพิ่มจำนวน" ${l.quantity >= 99 ? 'disabled' : ''} onclick="blm48Cart.setQty('${escapeAttr(key)}', ${l.quantity + 1})"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.addEventListener('blm48-cart-change', renderCart);
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!getUserSession()) { window.location.href = 'login'; return; }
+    renderCart();
+  });
+</script>
+</body>
+</html>

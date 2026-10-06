@@ -311,19 +311,78 @@ body {
   z-index: 10;
 }
     
-    /* 🔘 ปุ่มวงกลม Monthly Cookie / Redeem / Membership Card / Campaign - สไตล์เดียวกับปุ่ม Kami/Oshi/Cookie/More ในหน้า member */
-    .pf-circle-row { display: flex; justify-content: space-evenly; align-items: flex-start; gap: 8px; margin: 4px 0 22px; }
-    .pf-circle-btn { flex: 1 1 0; max-width: 90px; background: none; border: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: #444; text-align: center; line-height: 1.25; transition: transform 0.2s ease; }
-    .pf-circle-btn:hover { transform: translateY(-3px); }
-    .pf-circle-btn:disabled { opacity: 0.5; cursor: wait; }
-    .pf-circle-btn .icon-circle { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 19px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
-    .btn-pf-monthly .icon-circle { background: var(--blmem-pink-light, #ffeef2); color: var(--blmem-pink, #ff85a2); }
-    .btn-pf-redeem .icon-circle { background: #e7f5ff; color: #4dabf7; }
-    .btn-pf-card .icon-circle { background: linear-gradient(135deg, #e0b953 0%, #fff5c3 50%, #cba034 100%); color: #5e470c; }
-    .btn-pf-campaign .icon-circle { background: #fff9db; color: #f59f00; }
-    .btn-pf-push .icon-circle { background: #ebfbee; color: #40c057; }
-    .btn-pf-push.is-on .icon-circle { background: #40c057; color: #fff; }
-    .btn-pf-campaign.is-open .icon-circle { background: #fcc419; color: #fff; }
+
+    /* =====================================================================
+       🤍 หน้าโปรไฟล์แบบ iAM: ภาพปกเต็ม + ปุ่ม Edit, รูปโปรไฟล์กรอบเหลือง (สีวง BLM48),
+       แถวสถิติเรียบๆ คั่นเส้นบน-ล่าง, เมนูแบ่งหมวด (Wallet / My Account / Settings) ไอคอนเส้นสีเข้ม
+       วางท้ายสุดเพื่อทับสไตล์เดิมด้วยลำดับใน source
+       ===================================================================== */
+    .hero-image-container { height: 260px; }
+    .hero-image { filter: none; }
+    .cover-edit-btn {
+      width: auto; height: auto; padding: 6px 12px; border-radius: 8px; gap: 6px;
+      background: rgba(0,0,0,0.5); font-size: 14px; font-weight: 600; bottom: 10px; right: 10px;
+    }
+    .profile-body { padding: 0 0 35px; }
+    .profile-avatar-container { margin-top: -56px; margin-bottom: 12px; }
+    .profile-avatar-wrapper { border-radius: 50%; overflow: hidden; width: 112px; height: 112px; border: 4px solid #ffc107; background: #fff; }
+    .profile-avatar { width: 100%; height: 100%; border: none; box-shadow: none; }
+    .profile-avatar-wrapper:hover .profile-avatar { transform: none; filter: none; }
+    .edit-photo-overlay {
+      left: 0; right: 0; bottom: 0; width: auto; height: 26px; border: none; border-radius: 0;
+      background: rgba(0,0,0,0.45); font-size: 11.5px; font-weight: 600; gap: 4px;
+    }
+    .member-header-block { margin-bottom: 18px; }
+    .member-name { font-size: 24px; font-weight: 700; color: #222; gap: 8px; }
+    .edit-name-icon { background: #222; color: #fff; font-size: 11px; width: 26px; height: 26px; }
+    .edit-name-icon:hover { background: #222; color: #fff; }
+    .member-role {
+      display: block; width: fit-content; margin: 6px auto 0; padding: 2px 10px; border-radius: 20px;
+      background: #fff0f3; color: var(--blmem-pink); font-size: 11.5px; font-weight: 600; letter-spacing: 0.8px;
+    }
+
+    .stats-bar {
+      margin: 0 20px 6px; padding: 14px 0; border-radius: 0; background: none; box-shadow: none;
+      border-top: 1px solid #ececec; border-bottom: 1px solid #ececec;
+    }
+    .stat-box:not(:last-child) { border-right: none; }
+    .stat-box .stat-num { color: #222 !important; font-size: 17px; font-weight: 700; }
+    .stat-box .stat-num i { font-size: 14px; }
+    .stat-title { font-size: 12.5px; color: #666; margin-top: 4px; }
+
+    .menu-section-title { font-size: 15px; font-weight: 600; color: #222; margin: 20px 20px 2px; }
+    .menu-section {
+      background: none; border-radius: 0; box-shadow: none; padding: 0 0 8px; margin: 0 20px;
+      border-bottom: 1px solid #ececec;
+    }
+    .menu-section:last-child { border-bottom: none; }
+    .menu-item {
+      width: 100%; display: flex; align-items: center; background: none; border: none; border-bottom: none;
+      padding: 14px 0; text-align: left; color: #444; cursor: pointer; font-family: inherit;
+    }
+    .menu-item:hover { background: none; }
+    .menu-item:active { opacity: 0.55; }
+    .menu-item:disabled { opacity: 0.5; }
+    .menu-icon {
+      width: 30px; height: 30px; margin-right: 16px; border-radius: 0; background: none !important;
+      color: #222; font-size: 22px;
+    }
+    .menu-text { font-size: 16px; font-weight: 500; color: #555; }
+    .menu-value { font-size: 15px; font-weight: 700; color: #222; margin-right: 10px; }
+    .menu-value.is-muted { color: #aaa; font-weight: 500; }
+    .btn-pf-push.is-on .menu-value { color: #2e9e5b; }
+    .menu-arrow { color: #aaa; font-size: 14px; }
+    .pf-fanscore-detail { padding: 0 0 4px 46px; }
+
+    .pf-sticky-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+      height: calc(52px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px);
+      display: flex; align-items: center; justify-content: center;
+      background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      font-size: 17px; font-weight: 600; color: #222;
+      transform: translateY(-100%); transition: transform 0.2s ease;
+    }
+    .pf-sticky-header.visible { transform: translateY(0); }
   </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -332,26 +391,26 @@ body {
     <i class="fas fa-cookie-bite fa-spin" style="font-size: 40px; color: var(--blmem-pink);"></i>
   </div>
 
+  <!-- 📌 แถบชื่อด้านบน โผล่มาเมื่อเลื่อนผ่านชื่อแล้ว (แบบหน้าโปรไฟล์ iAM) -->
+  <div id="pf-sticky-header" class="pf-sticky-header"><span id="pf-sticky-name"></span></div>
+
   <div class="app-layout">
     <div class="hero-image-container">
       <img id="pf-cover" src="https://via.placeholder.com/800x400/ffe4e1/ff85a2?text=BLM48+Cover" class="hero-image">
-      <button id="cover-edit-btn" class="cover-edit-btn" onclick="triggerCoverUpload()"><i class="fas fa-camera"></i></button>
+      <button id="cover-edit-btn" class="cover-edit-btn" onclick="triggerCoverUpload()"><i class="fas fa-camera"></i> Edit</button>
       <input type="file" id="cover-upload" accept="image/*" style="display:none" onchange="handleCoverImageSelect(event)">
-      <div class="hero-gradient"></div>
     </div>
 
     <div class="profile-body">
-      
+
       <div class="profile-avatar-container">
         <div class="profile-avatar-wrapper" onclick="document.getElementById('profile-upload').click()">
           <img id="pf-avatar" src="https://via.placeholder.com/150" class="profile-avatar">
-          <div class="edit-photo-overlay">
-            <i class="fas fa-camera"></i>
-          </div>
+          <div class="edit-photo-overlay"><i class="fas fa-camera"></i> Edit</div>
           <input type="file" id="profile-upload" style="display:none" accept="image/*" onchange="handleProfileImageSelect(event)">
         </div>
       </div>
-      
+
       <div class="member-header-block">
         <div class="member-name">
           <span id="pf-name">กำลังโหลด...</span>
@@ -368,123 +427,121 @@ body {
           <div class="stat-title">Oshi Members</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num" style="color: #d2691e;"><i class="fas fa-cookie-bite"></i> <span id="pf-cookies">0</span></div>
+          <div class="stat-num"><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> <span id="pf-cookies">0</span></div>
           <div class="stat-title">Cookies</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num" style="color: #f59f00;"><i class="fas fa-coins"></i> <span id="pf-tokens">0</span></div>
+          <div class="stat-num"><i class="fas fa-coins" style="color:#f59f00;"></i> <span id="pf-tokens">0</span></div>
           <div class="stat-title">Tokens</div>
         </div>
         <div class="stat-box">
-          <div class="stat-num" style="color: #4dabf7;"><i class="fas fa-gem"></i> <span id="pf-getokens">0</span></div>
-          <div class="stat-title">GETokens</div>
+          <div class="stat-num"><i class="fas fa-gem" style="color:#4dabf7;"></i> <span id="pf-getokens">0</span></div>
+          <div class="stat-title">GE Tokens</div>
         </div>
       </div>
 
-      <!-- 🔘 ปุ่มวงกลม (สไตล์เดียวกับปุ่ม Kami/Oshi/Cookie/More ในหน้า member)
-           รับคุกกี้รายเดือน: ซ่อนสำหรับ role member/admin | Campaign: เฉพาะ role member -->
-      <div id="pf-circle-row" class="pf-circle-row">
-        <button type="button" id="btn-claim-monthly" class="pf-circle-btn btn-pf-monthly" style="display: none;">
-          <span class="icon-circle"><i class="fas fa-gift"></i></span>
-          <span class="btn-label">Monthly Cookie</span>
-        </button>
-        <button type="button" class="pf-circle-btn btn-pf-redeem" onclick="window.location.href='redeem'">
-          <span class="icon-circle"><i class="fas fa-ticket-alt"></i></span>
-          <span class="btn-label">Redeem</span>
-        </button>
-        <button type="button" class="pf-circle-btn btn-pf-card" onclick="window.location.href='membership_card'">
-          <span class="icon-circle"><i class="fas fa-id-card"></i></span>
-          <span class="btn-label">Membership Card</span>
-        </button>
-        <!-- 🔔 เปิด/ปิดการแจ้งเตือนบนมือถือ (ย้ายมาจากหน้า notification) -->
-        <button type="button" id="btn-pf-push" class="pf-circle-btn btn-pf-push" onclick="onProfilePushClick()">
-          <span class="icon-circle"><i class="fas fa-bell"></i></span>
-          <span class="btn-label">Notifications</span>
-        </button>
-        <button type="button" id="btn-pf-campaign" class="pf-circle-btn btn-pf-campaign" onclick="onProfileCampaignClick()" style="display: none;">
-          <span class="icon-circle"><i class="fas fa-trophy"></i></span>
-          <span class="btn-label">Campaign</span>
-        </button>
-      </div>
-
-      <div id="pf-fanscore-box" style="display: none; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 45%, #ff8fb3 55%, #e0447a 100%); border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4); border: 1px solid #ff6b9d;">
-        <i class="fas fa-heart-circle-check" style="color: #ffffff; font-size: 22px;"></i>
-        <span id="pf-fanscore" style="color: #ffffff; font-size: 20px; font-weight: 700;">0</span>
-        <span style="color: #ffffff; font-size: 12px; opacity: 0.85; font-weight: bold;">Fan Score</span>
-      </div>
-
-      <div id="pf-fanscore-detail-box" style="display: none; background: #fff; border-radius: 18px; padding: 4px 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #f4d4de;">
-        <div onclick="toggleFanScoreDetail()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 0; user-select: none;">
-          <span style="font-weight: 700; color: #555; font-size: 13.5px;"><i class="fas fa-heart-circle-check" style="color: #e0447a; margin-right: 7px;"></i>Fan Score แยกตามเมมเบอร์</span>
-          <i id="pf-fanscore-detail-arrow" class="fas fa-chevron-right" style="font-size: 13px; color: #888; transition: transform 0.3s ease;"></i>
-        </div>
-        <div id="pf-fanscore-detail-wrapper" style="max-height: 0px; opacity: 0; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease;">
-          <div id="pf-fanscore-detail-list" style="padding-bottom: 10px;"></div>
-        </div>
-      </div>
-
+      <!-- 🛍️ Wallet & Shop -->
+      <div class="menu-section-title">Wallet</div>
       <div class="menu-section">
-  <a href="index" class="menu-item">
-    <div class="menu-icon icon-pink"><i class="fas fa-home"></i></div>
-    <div class="menu-text">Home</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
-  
-  <!-- 👤 โปรไฟล์ Fan Club สาธารณะของตัวเอง (fan.html) - ซ่อนไว้สำหรับบัญชีเมมเบอร์ ดูที่ JS ด้านล่าง -->
-  <a href="fan" id="menu-fan-profile" class="menu-item" style="display:none;">
-    <div class="menu-icon icon-gold"><i class="fas fa-id-badge"></i></div>
-    <div class="menu-text">My Fan Club Profile</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
+        <a href="shop" class="menu-item">
+          <span class="menu-icon"><i class="fas fa-store"></i></span>
+          <span class="menu-text">Shop</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="inventory" class="menu-item">
+          <span class="menu-icon"><i class="fas fa-box-open"></i></span>
+          <span class="menu-text">Inventory</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="orders" class="menu-item">
+          <span class="menu-icon"><i class="fa-regular fa-clipboard"></i></span>
+          <span class="menu-text">My Order</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="history" class="menu-item">
+          <span class="menu-icon"><i class="fa-regular fa-clock"></i></span>
+          <span class="menu-text">History</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+      </div>
 
-  <a href="shop" class="menu-item">
-    <div class="menu-icon icon-green"><i class="fas fa-store"></i></div>
-    <div class="menu-text">Shop</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
+      <!-- 👤 My Account -->
+      <div class="menu-section-title">My Account</div>
+      <div class="menu-section">
+        <a href="membership_card" class="menu-item">
+          <span class="menu-icon"><i class="fa-regular fa-id-card"></i></span>
+          <span class="menu-text">Membership Card</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="redeem" class="menu-item">
+          <span class="menu-icon"><i class="fas fa-gift"></i></span>
+          <span class="menu-text">Redeem Code</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <!-- รับคุกกี้รายเดือน: ซ่อนสำหรับ role member/admin (ดู JS) -->
+        <button type="button" id="btn-claim-monthly" class="menu-item" style="display: none;">
+          <span class="menu-icon"><i class="fas fa-cookie-bite"></i></span>
+          <span class="menu-text">Monthly Cookie</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </button>
+        <!-- Campaign: เฉพาะ role member -->
+        <button type="button" id="btn-pf-campaign" class="menu-item btn-pf-campaign" onclick="onProfileCampaignClick()" style="display: none;">
+          <span class="menu-icon"><i class="fas fa-bolt"></i></span>
+          <span class="menu-text btn-label">Campaign</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </button>
+        <a href="kami" class="menu-item">
+          <span class="menu-icon"><i class="fa-regular fa-face-smile"></i></span>
+          <span class="menu-text">Kami-Oshi Member</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <!-- 👤 โปรไฟล์ Fan Club สาธารณะของตัวเอง (fan.html) - ซ่อนไว้สำหรับบัญชีเมมเบอร์ ดูที่ JS ด้านล่าง -->
+        <a href="fan" id="menu-fan-profile" class="menu-item" style="display:none;">
+          <span class="menu-icon"><i class="fa-regular fa-user"></i></span>
+          <span class="menu-text">My Fan Club Profile</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <!-- 💗 Fan Score (เฉพาะ role user) กดเพื่อดูยอดแยกตามเมมเบอร์ -->
+        <button type="button" id="pf-fanscore-box" class="menu-item" style="display: none;" onclick="toggleFanScoreDetail()">
+          <span class="menu-icon"><i class="fa-regular fa-heart"></i></span>
+          <span class="menu-text">Fan Score</span>
+          <span id="pf-fanscore" class="menu-value">0</span>
+          <i id="pf-fanscore-detail-arrow" class="fas fa-chevron-right menu-arrow" style="transition: transform 0.3s ease;"></i>
+        </button>
+        <div id="pf-fanscore-detail-box" class="pf-fanscore-detail" style="display: none;">
+          <div id="pf-fanscore-detail-wrapper" style="max-height: 0px; opacity: 0; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease;">
+            <div id="pf-fanscore-detail-list" style="padding-bottom: 6px;"></div>
+          </div>
+        </div>
+      </div>
 
-  <a href="inventory" class="menu-item">
-    <div class="menu-icon icon-blue"><i class="fas fa-briefcase"></i></div>
-    <div class="menu-text">Inventory</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
-
-  <a href="my_preorders" class="menu-item">
-    <div class="menu-icon icon-gray"><i class="fas fa-box-open"></i></div>
-    <div class="menu-text">My Pre-orders</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
-
-  <a href="kami" class="menu-item">
-    <div class="menu-icon icon-gold"><i class="fas fa-star"></i></div>
-    <div class="menu-text">My Kami-Oshi Members</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
-
-  <a href="history" class="menu-item">
-    <div class="menu-icon icon-purple"><i class="fas fa-history"></i></div>
-    <div class="menu-text">History</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
-
-  <a href="admin" id="menu-admin-dashboard" class="menu-item" style="display:none;">
-    <div class="menu-icon icon-gold"><i class="fas fa-gauge-high"></i></div>
-    <div class="menu-text">Admin Dashboard</div>
-    <span id="menu-admin-badge" style="display:none; background:var(--blmem-pink); color:#fff; font-size:11px; font-weight:700; border-radius:10px; padding:1px 8px; margin-right:6px;">0</span>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
-
-  <a href="https://blm48.vercel.app/index.html" target="_blank" class="menu-item">
-    <div class="menu-icon icon-dark"><i class="fas fa-external-link-alt"></i></div>
-    <div class="menu-text">Official Site</div>
-    <i class="fas fa-chevron-right menu-arrow"></i>
-  </a>
-  
-  <a href="#" class="menu-item menu-logout" onclick="confirmLogout(); return false;">
-  <div class="menu-icon"><i class="fas fa-sign-out-alt"></i></div>
-  <div class="menu-text">Logout</div>
-  </a>
-</div>
+      <!-- ⚙️ Settings -->
+      <div class="menu-section-title">Settings</div>
+      <div class="menu-section">
+        <!-- 🔔 เปิด/ปิดการแจ้งเตือนบนมือถือ -->
+        <button type="button" id="btn-pf-push" class="menu-item btn-pf-push" onclick="onProfilePushClick()">
+          <span class="menu-icon icon-circle"><i class="fas fa-bell"></i></span>
+          <span class="menu-text">Notifications</span>
+          <span id="pf-push-status" class="menu-value is-muted">Off</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </button>
+        <a href="admin" id="menu-admin-dashboard" class="menu-item" style="display:none;">
+          <span class="menu-icon"><i class="fas fa-gauge-high"></i></span>
+          <span class="menu-text">Admin Dashboard</span>
+          <span id="menu-admin-badge" style="display:none; background:var(--blmem-pink); color:#fff; font-size:11px; font-weight:700; border-radius:10px; padding:1px 8px; margin-right:8px;">0</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="https://blm48.vercel.app/index.html" target="_blank" class="menu-item">
+          <span class="menu-icon"><i class="fa-regular fa-circle-question"></i></span>
+          <span class="menu-text">Official Site</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+        <a href="#" class="menu-item" onclick="confirmLogout(); return false;">
+          <span class="menu-icon"><i class="fas fa-arrow-right-from-bracket"></i></span>
+          <span class="menu-text">Log Out</span>
+          <i class="fas fa-chevron-right menu-arrow"></i>
+        </a>
+      </div>
     </div>
   </div>
 
@@ -596,6 +653,15 @@ body {
       tabProfileImg.src = document.getElementById('pf-avatar').src; // ใช้รูปที่แปลงแล้วจาก pf-avatar ได้เลย
     }
   }
+
+  // 📌 โชว์แถบชื่อด้านบนเมื่อเลื่อนผ่านชื่อในหน้าโปรไฟล์แล้ว
+  window.addEventListener('scroll', () => {
+    const header = document.getElementById('pf-sticky-header');
+    const nameEl = document.getElementById('pf-name');
+    if (!header || !nameEl) return;
+    document.getElementById('pf-sticky-name').textContent = nameEl.textContent;
+    header.classList.toggle('visible', nameEl.getBoundingClientRect().bottom < 0);
+  }, { passive: true });
 
   function toggleFanScoreDetail() {
     const wrapper = document.getElementById('pf-fanscore-detail-wrapper');
@@ -1089,6 +1155,11 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
     btn.classList.toggle('is-on', profilePushOn);
     btn.querySelector('.icon-circle i').className = profilePushOn ? 'fas fa-bell' : 'fas fa-bell-slash';
     btn.title = profilePushOn ? 'การแจ้งเตือนเปิดอยู่' : 'การแจ้งเตือนปิดอยู่';
+    const statusEl = document.getElementById('pf-push-status');
+    if (statusEl) {
+      statusEl.textContent = profilePushOn ? 'On' : 'Off';
+      statusEl.classList.toggle('is-muted', !profilePushOn);
+    }
   }
 
   async function refreshProfilePushState() {

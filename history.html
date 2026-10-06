@@ -27,248 +27,132 @@
     <script src="assets/js/common.js"></script>
 
     <style>
-        :root {
-            --primary-pink: #ff85a2;
-            --soft-pink: #ffe4e1;
-            --card-border: #ffeef2;
-            --text-dark: #444;
-        }
-
+        :root { --primary-pink: #ff85a2; }
         * { box-sizing: border-box; }
-
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            color: var(--text-dark);
+            margin: 0; padding: 0; min-height: 100vh; color: #222;
         }
+        body.glass-mesh-bg { background: #ffffff; }
 
-        /* --- Top Bar --- */
+        /* 📡 แถบบนสีขาว: ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง (แบบเดียวกับหน้า Kami / Inventory / My Orders) */
         .top-navigation-bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg));
-            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--card-border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(255, 133, 162, 0.08);
+            position: sticky; top: 0; z-index: 100;
+            height: 56px; display: flex; align-items: center; justify-content: center;
+            background: #ffffff; border-bottom: 1px solid #e8e8e8;
+            padding-top: env(safe-area-inset-top, 0px); box-sizing: content-box;
         }
+        .nav-back-btn {
+            position: absolute; left: 6px; bottom: 6px;
+            width: 44px; height: 44px; background: none; border: none;
+            color: #222; font-size: 22px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .top-bar-page-title { font-size: 18px; font-weight: 600; color: #222; }
 
-        .back-circle-btn {
-            flex: 0 0 auto;
-            background: #fff0f3;
-            border: none;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-pink);
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
-
-        .top-bar-title {
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-weight: 600;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .page-wrapper {
-            max-width: 560px;
-            margin: 0 auto;
-            padding: 18px 12px 50px;
-        }
-
-        .header-title-zone {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header-title-zone h1 {
-            color: var(--primary-pink);
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 24px;
-            margin: 0 0 6px 0;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .header-title-zone p {
-            color: #999;
-            font-size: 13px;
-            margin: 0;
-        }
-
-        /* --- Filter Tabs --- */
+        /* แท็บหมวดขีดเส้นใต้ (แบบหน้า Shop) */
         .filter-tabs {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            margin-bottom: 18px;
-            scrollbar-width: none;
+            position: sticky; top: calc(57px + env(safe-area-inset-top, 0px)); z-index: 90; background: #fff;
+            display: flex; gap: 26px; overflow-x: auto; scrollbar-width: none;
+            padding: 0 20px; border-bottom: 1px solid #e8e8e8;
         }
         .filter-tabs::-webkit-scrollbar { display: none; }
-
         .filter-tab {
-            flex: 0 0 auto;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-sm));
-            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-            color: #888;
-            border: 1px solid var(--glass-border);
-            padding: 8px 18px;
-            border-radius: 14px;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-            box-shadow: var(--glass-shadow-sm);
+            flex-shrink: 0; background: none; border: none; cursor: pointer; position: relative;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 16px; font-weight: 600;
+            color: #aaa; padding: 14px 0 12px;
         }
-        .filter-tab:hover { border-color: var(--primary-pink); color: var(--primary-pink); }
-        .filter-tab.active {
-            background: linear-gradient(135deg, var(--primary-pink) 0%, #ff6b8b 100%);
-            color: white;
-            border-color: transparent;
-            font-weight: 600;
-            box-shadow: 0 4px 10px rgba(255,133,162,0.3);
+        .filter-tab.active { color: #222; }
+        .filter-tab.active::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: 8px; height: 5px;
+            background: var(--primary-pink); opacity: .55; border-radius: 2px; z-index: -1;
         }
 
-        /* --- Timeline List --- */
-        /* แถวเต็มความกว้าง (ชนขอบซ้าย-ขวา) คั่นด้วยเส้นดำบาง ไม่มีการ์ดมุมโค้ง - เนื้อหายังห่างขอบ 12px */
-        .entry-list {
-            display: flex;
-            flex-direction: column;
-            margin: 0 -12px;
-        }
+        .page-wrapper { max-width: 720px; margin: 0 auto; padding: 0 20px 50px; }
+        .page-heading { font-size: 22px; font-weight: 700; color: #222; margin: 22px 0 6px; }
 
+        /* 🧾 แถวรายการ: ชื่อ + วันที่ทางซ้าย, จำนวน (+เขียว / -แดง) ทางขวา คั่นเส้นบาง */
         .entry-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #fff;
-            padding: 14px 12px;
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 0; border-bottom: 1px solid #ececec;
         }
-        .entry-row + .entry-row { border-top: 0.5px solid #000; }
-
-        .entry-icon {
-            flex: 0 0 auto;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-
-        .entry-body {
-            flex: 1;
-            min-width: 0;
-        }
+        .entry-body { flex: 1; min-width: 0; }
         .entry-title {
-            font-weight: 700;
-            font-size: 13.5px;
-            color: #333;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 16px; color: #222; line-height: 1.35;
+            overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+            -webkit-line-clamp: 2; -webkit-box-orient: vertical;
         }
-        .entry-subtitle {
-            font-size: 11.5px;
-            color: #999;
-            margin-top: 1px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .entry-timestamp {
-            font-size: 10px;
-            color: #ccc;
-            margin-top: 2px;
-        }
+        .entry-subtitle { font-size: 13px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-timestamp { font-size: 13.5px; color: #666; margin-top: 2px; }
+        .entry-amount { text-align: right; flex-shrink: 0; max-width: 45%; }
+        .entry-amount-main { font-size: 18px; font-weight: 700; color: #222; }
+        .entry-amount-main.is-minus { color: #ff4d5e; }
+        .entry-amount-main.is-plus { color: #7cb518; }
+        .entry-amount-sub { font-size: 12px; color: #999; margin-top: 2px; }
 
-        .entry-amount {
-            flex: 0 0 auto;
-            text-align: right;
+        .empty-state { text-align: center; color: #aaa; font-size: 15px; padding: 90px 20px; }
+        .empty-icon {
+            width: 140px; height: 124px; margin: 0 auto 18px;
+            background: #f7f7f7; border-radius: 46% 54% 50% 50% / 52% 44% 56% 48%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 52px; color: #d0d0d0;
         }
-        .entry-amount-main {
-            font-weight: 800;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-        .entry-amount-sub {
-            font-size: 10.5px;
-            color: #d9a300;
-            font-weight: 600;
-            margin-top: 2px;
-            white-space: nowrap;
-        }
+        .loading-state { text-align: center; color: #aaa; font-size: 14px; padding: 60px 20px; }
 
-        .empty-state {
-            text-align: center;
-            color: #bbb;
-            font-family: 'Quicksand', 'Kanit', sans-serif;
-            font-size: 13px;
-            padding: 50px 20px;
-        }
-        .empty-state i {
-            font-size: 30px;
-            color: #ffd7e1;
-            display: block;
-            margin-bottom: 10px;
-        }
+        /* 🗳️ การ์ดรายการแบบแอป (Major vote / Redeem): หัวแถว ประเภท + สถานะ, วงกลมไอคอน, จำนวนตัวใหญ่, ปุ่ม Detail + วันเวลา */
+        .txn-row { padding: 18px 4px 20px; border-bottom: 1px solid #e3e3e3; }
+        .txn-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .txn-type { font-size: 15px; font-weight: 600; color: #222; }
+        .txn-status { font-size: 14px; color: #9a9a9a; }
+        .txn-main { display: flex; align-items: center; gap: 14px; }
+        .txn-icon { width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #222; }
+        .txn-icon.vote { background: #fff1b8; }
+        .txn-icon.redeem { background: #fdecee; }
+        .txn-info { flex: 1; min-width: 0; }
+        .txn-amount { font-size: 22px; font-weight: 700; color: #222; line-height: 1.2; }
+        .txn-unit { font-size: 14px; color: #8a8a8a; margin-top: 4px; }
+        .txn-sub { font-size: 14px; color: #8a8a8a; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .txn-side { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; text-align: right; }
+        .txn-detail-btn { background: #ffd76e; color: #222; border: none; border-radius: 999px; padding: 5px 20px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 6px; }
+        .txn-detail-btn:active { transform: scale(0.96); }
+        .txn-date { font-size: 13px; color: #8a8a8a; line-height: 1.35; }
 
-        .loading-state {
-            text-align: center;
-            color: #bbb;
-            font-size: 13px;
-            padding: 40px 20px;
-        }
+        /* หน้ารายละเอียดรายการ: หัวข้อกลาง + ตารางป้ายซ้าย/ค่าขวา */
+        .detail-view { padding: 6px 4px 40px; }
+        .detail-heading { text-align: center; font-size: 22px; font-weight: 700; color: #222; margin: 26px 0 34px; }
+        .detail-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 18px; }
+        .detail-label { font-size: 15px; color: #9a9a9a; flex-shrink: 0; }
+        .detail-value { font-size: 15px; font-weight: 600; color: #222; text-align: right; line-height: 1.6; word-break: break-word; }
+        .detail-value .mech-info { background: none; border: none; padding: 0 6px 0 0; color: #9a9a9a; font-size: 14px; cursor: pointer; }
+        .detail-note { font-size: 12.5px; font-weight: 400; color: #9a9a9a; }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
 <div class="top-navigation-bar">
-    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+    <button type="button" class="nav-back-btn" onclick="goBack()" aria-label="ย้อนกลับ">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
-    <div class="top-bar-title">Transaction History</div>
+    <div class="top-bar-page-title">Transactions</div>
 </div>
 
-<div class="page-wrapper">
-    <div class="header-title-zone">
-        <h1><i class="fa-solid fa-clock-rotate-left"></i> ประวัติการทำธุรกรรม</h1>
-        <p>รวมทุกความเคลื่อนไหวในบัญชีของคุณไว้ที่เดียว</p>
-    </div>
+<div class="filter-tabs" id="filter-tabs">
+    <button type="button" class="filter-tab active" data-type="all">All</button>
+    <button type="button" class="filter-tab" data-type="purchase">Shop</button>
+    <button type="button" class="filter-tab" data-type="gift">Gift</button>
+    <button type="button" class="filter-tab" data-type="vote">Vote</button>
+    <button type="button" class="filter-tab" data-type="redeem">Redeem</button>
+    <button type="button" class="filter-tab" data-type="cookie">Cookie</button>
+</div>
 
-    <div class="filter-tabs" id="filter-tabs">
-        <button type="button" class="filter-tab active" data-type="all"><i class="fa-solid fa-layer-group"></i> All</button>
-        <button type="button" class="filter-tab" data-type="purchase"><i class="fa-solid fa-bag-shopping"></i> Shop</button>
-        <button type="button" class="filter-tab" data-type="gift"><i class="fa-solid fa-gift"></i> Gift</button>
-        <button type="button" class="filter-tab" data-type="vote"><i class="fa-solid fa-crown"></i> Vote</button>
-        <button type="button" class="filter-tab" data-type="cookie"><i class="fa-solid fa-cookie-bite"></i> Cookie</button>
-    </div>
-
+<div class="page-wrapper" id="list-view">
+    <div class="page-heading">Transaction history</div>
     <div id="history-content">
-        <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูลนะคะ...</div>
+        <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
     </div>
 </div>
+
+<div class="page-wrapper" id="detail-view" style="display: none;"></div>
 
 <script>
     let allEntries = [];
@@ -276,6 +160,7 @@
 
     // ย้อนกลับไปหน้าก่อนหน้า ถ้าไม่มีประวัติให้ตีกลับไปหน้าแรกแทน
     function goBack() {
+        if (isDetailOpen()) { history.back(); return; }
         if (document.referrer && window.history.length > 1) {
             window.history.back();
         } else {
@@ -296,7 +181,10 @@
     function formatTime(ts) {
         const d = safeDate(ts);
         // 🇹🇭 บังคับแสดงผลตามไทม์โซนประเทศไทย ไม่อิงจากเครื่องผู้ใช้
-        return d ? d.toLocaleString('en-GB', { timeZone: 'Asia/Bangkok' }) : '-';
+        if (!d) return '-';
+        const date = d.toLocaleDateString('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'long', year: 'numeric' });
+        const time = d.toLocaleTimeString('en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false });
+        return `${date} ${time}`;
     }
 
     async function loadHistory() {
@@ -334,11 +222,156 @@
         return `${label} ${log.refunded ? '(คืนแล้ว)' : '(รอปิดโหวต)'}`;
     }
 
+    const TOKEN_LABELS = { token: 'BLM48 Token', getoken: 'GE Token', cookie: 'Cookie' };
+
+    function tokenLabel(type) {
+        const key = String(type || '').replace(/\s+/g, '').toLowerCase();
+        return TOKEN_LABELS[key] || String(type || '');
+    }
+
+    // แถว Redeem Code ใน wallet_logs: target = "CODE - Token" / "CODE - Cookie" / "CODE - GE Token" (หรือแค่ "CODE" ถ้าโค้ดไม่มีรางวัลเข้ากระเป๋า)
+    function buildRedeemEntry(log) {
+        const target = String(log.target || '');
+        const idx = target.lastIndexOf(' - ');
+        const code = idx >= 0 ? target.slice(0, idx) : target;
+        const token = idx >= 0 ? tokenLabel(target.slice(idx + 3)) : '';
+        return {
+            type: 'redeem',
+            card: 'redeem',
+            raw: { code, token, amount: log.amount },
+            timestamp: log.timestamp
+        };
+    }
+
+    function formatCardDate(ts) {
+        const d = safeDate(ts);
+        if (!d) return '-';
+        return d.toLocaleDateString('en-GB', { timeZone: 'Asia/Bangkok', day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatCardTime(ts) {
+        const d = safeDate(ts);
+        if (!d) return '-';
+        return d.toLocaleTimeString('en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    function formatAmount(n) {
+        const v = Number(n);
+        return isNaN(v) ? escapeHtml(n) : v.toLocaleString();
+    }
+
+    function renderTxnCard(e, index) {
+        const isVote = e.card === 'vote';
+        const r = e.raw;
+        return `
+            <div class="txn-row">
+                <div class="txn-head">
+                    <span class="txn-type">${isVote ? 'Major vote' : 'Redeem'}</span>
+                    <span class="txn-status">Successful</span>
+                </div>
+                <div class="txn-main">
+                    <div class="txn-icon ${e.card}"><i class="fa-solid ${isVote ? 'fa-check-to-slot' : 'fa-gift'}"></i></div>
+                    <div class="txn-info">
+                        <div class="txn-amount">${formatAmount(r.amount)}</div>
+                        <div class="txn-unit">${escapeHtml(isVote ? tokenLabel(r.tokenType || 'Token') : (r.token || '-'))}</div>
+                        <div class="txn-sub">${isVote ? `Vote for: ${escapeHtml(r.member)}` : 'Token redemption'}</div>
+                    </div>
+                    <div class="txn-side">
+                        <button type="button" class="txn-detail-btn" onclick="openDetail(${index})">Detail</button>
+                        <div class="txn-date">${formatCardDate(e.timestamp)}<br>${formatCardTime(e.timestamp)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // ===== หน้ารายละเอียด (กด Detail) — ใช้ history.pushState ให้ปัดย้อนกลับ/ปุ่มกลับของเครื่องปิดหน้ารายละเอียดได้ =====
+    let renderedEntries = [];
+
+    function isDetailOpen() {
+        return document.getElementById('detail-view').style.display !== 'none';
+    }
+
+    const MECHANIC_LABELS = { burn: 'Burned', lock: 'Locked', partial: 'Partially Burned' };
+
+    function mechanicNote(r) {
+        const m = String(r.mechanic || 'burn').toLowerCase();
+        if (m === 'lock') return r.refunded ? 'คืน Token ครบแล้ว' : 'คืนครบเมื่อปิดโหวต';
+        if (m === 'partial') {
+            const pct = Number(r.refundPercent) || 0;
+            return r.refunded ? `คืนแล้ว ${pct}%` : `คืน ${pct}% เมื่อปิดโหวต`;
+        }
+        return '';
+    }
+
+    function showMechanicInfo(mechanic) {
+        const m = String(mechanic || 'burn').toLowerCase();
+        const text = m === 'lock'
+            ? 'Locked: Token จะถูกล็อกไว้ระหว่างโหวต และได้คืนครบ 100% เมื่อปิดโหวต'
+            : m === 'partial'
+                ? 'Partially Burned: ได้ Token คืนบางส่วนตาม % ที่กำหนดเมื่อปิดโหวต ส่วนที่เหลือถูกหักถาวร'
+                : 'Burned: Token ที่ใช้โหวตจะถูกหักถาวร ไม่ได้คืน';
+        Swal.fire({ title: MECHANIC_LABELS[m] || 'Burned', text, confirmButtonText: 'ตกลง', confirmButtonColor: '#ffd76e' });
+    }
+
+    function detailRow(label, valueHtml) {
+        return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${valueHtml}</span></div>`;
+    }
+
+    function openDetail(index, fromPopState) {
+        const e = renderedEntries[index];
+        if (!e) return;
+        const r = e.raw;
+        let rows = '';
+        if (e.card === 'vote') {
+            const m = String(r.mechanic || 'burn').toLowerCase();
+            const note = mechanicNote(r);
+            rows += detailRow('Transaction type', 'Major vote');
+            rows += detailRow('Poll name', escapeHtml(r.campaignTitle || '-'));
+            rows += detailRow('Your answer', escapeHtml(r.member || '-'));
+            rows += detailRow('Token', escapeHtml(tokenLabel(r.tokenType || 'Token')));
+            rows += detailRow('Amount', formatAmount(r.amount));
+            rows += detailRow('Token mechanic', `<button type="button" class="mech-info" onclick="showMechanicInfo('${escapeAttr(m)}')"><i class="fa-regular fa-circle-question"></i></button>${MECHANIC_LABELS[m] || 'Burned'}${note ? `<br><span class="detail-note">${escapeHtml(note)}</span>` : ''}`);
+        } else {
+            rows += detailRow('Transaction type', 'Redeem');
+            rows += detailRow('Redeem type', 'Token redemption');
+            rows += detailRow('Code', escapeHtml(r.code || '-'));
+            rows += detailRow('Token', escapeHtml(r.token || '-'));
+            rows += detailRow('Amount', formatAmount(r.amount));
+        }
+        rows += detailRow('Status', 'Successful');
+        rows += detailRow('Date', formatCardDate(e.timestamp));
+        rows += detailRow('Time', formatCardTime(e.timestamp));
+
+        const view = document.getElementById('detail-view');
+        view.innerHTML = `<div class="detail-view"><div class="detail-heading">Transaction history</div>${rows}</div>`;
+        document.getElementById('list-view').style.display = 'none';
+        document.getElementById('filter-tabs').style.display = 'none';
+        view.style.display = 'block';
+        window.scrollTo(0, 0);
+        if (!fromPopState) history.pushState({ txnDetail: index }, '');
+    }
+
+    function closeDetail() {
+        document.getElementById('detail-view').style.display = 'none';
+        document.getElementById('list-view').style.display = '';
+        document.getElementById('filter-tabs').style.display = '';
+    }
+
+    window.addEventListener('popstate', (ev) => {
+        if (ev.state && ev.state.txnDetail !== undefined) openDetail(ev.state.txnDetail, true);
+        else if (isDetailOpen()) closeDetail();
+    });
+
     // 🧩 รวมประวัติทั้ง 4 ประเภทให้อยู่ในรูปแบบเดียวกัน เพื่อแสดงเป็นไทม์ไลน์เดียวกันได้
     function buildUnifiedEntries(res) {
         const entries = [];
 
         (res.purchaseHistory || []).forEach(log => {
+            if (String(log.action || '').trim().toLowerCase() === 'redeem code') {
+                entries.push(buildRedeemEntry(log));
+                return;
+            }
             entries.push({
                 type: 'purchase',
                 iconClass: 'fa-solid fa-bag-shopping',
@@ -361,7 +394,7 @@
                 iconColor: '#d2691e',
                 title: `ปาคุกกี้ให้ ${escapeHtml(log.member)}`,
                 subtitle: 'Send Cookie',
-                amountText: `${escapeHtml(log.amount)} 🍪`,
+                amountText: `-${escapeHtml(log.amount)} 🍪`,
                 amountColor: '#d2691e',
                 subAmountText: '',
                 timestamp: log.timestamp
@@ -371,12 +404,14 @@
         (res.voteLogs || []).forEach(log => {
             entries.push({
                 type: 'vote',
+                card: 'vote',
+                raw: log,
                 iconClass: 'fa-solid fa-crown',
                 iconBg: '#ffe3ee',
                 iconColor: '#ff6b81',
                 title: `Vote ให้ ${escapeHtml(log.member)}`,
                 subtitle: escapeHtml(log.campaignTitle),
-                amountText: `${escapeHtml(log.amount)} ${escapeHtml(log.tokenType)}`,
+                amountText: `-${escapeHtml(log.amount)} ${escapeHtml(log.tokenType)}`,
                 amountColor: '#ff6b81',
                 subAmountText: voteRefundNote(log),
                 timestamp: log.timestamp
@@ -413,24 +448,30 @@
         if (filtered.length === 0) {
             historyContent.innerHTML = `
                 <div class="empty-state">
-                    <i class="fa-solid fa-inbox"></i>
-                    ยังไม่มีประวัติในหมวดนี้เลยงับ
+                    <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                    No transactions
                 </div>`;
             return;
         }
 
+        // สีตามเครื่องหมาย: ขึ้นต้นด้วย - = ใช้ไป (แดง), + = ได้รับ (เขียว)
+        const signClass = (text) => {
+            const t = String(text || '').trim();
+            return t.startsWith('-') ? 'is-minus' : (t.startsWith('+') ? 'is-plus' : '');
+        };
+
+        renderedEntries = filtered;
         historyContent.innerHTML = `
             <div class="entry-list">
-                ${filtered.map(e => `
+                ${filtered.map((e, i) => e.card ? renderTxnCard(e, i) : `
                     <div class="entry-row">
-                        <div class="entry-icon" style="background:${e.iconBg}; color:${e.iconColor};"><i class="${e.iconClass}"></i></div>
                         <div class="entry-body">
                             <div class="entry-title">${e.title}</div>
-                            <div class="entry-subtitle">${e.subtitle}</div>
+                            ${e.subtitle ? `<div class="entry-subtitle">${e.subtitle}</div>` : ''}
                             <div class="entry-timestamp">${formatTime(e.timestamp)}</div>
                         </div>
                         <div class="entry-amount">
-                            <div class="entry-amount-main" style="color:${e.amountColor};">${e.amountText}</div>
+                            <div class="entry-amount-main ${signClass(e.amountText)}">${e.amountText}</div>
                             ${e.subAmountText ? `<div class="entry-amount-sub">${e.subAmountText}</div>` : ''}
                         </div>
                     </div>
@@ -447,6 +488,16 @@
         btn.classList.add('active');
         renderEntries(btn.dataset.type);
     });
+
+    // เปิดหน้าพร้อมแท็บที่ระบุใน ?tab= (เช่น history?tab=vote จากหน้า Major Vote)
+    (function applyInitialTab() {
+        const tab = new URLSearchParams(location.search).get('tab');
+        const btn = tab && document.querySelector(`.filter-tab[data-type="${CSS.escape(tab)}"]`);
+        if (!btn) return;
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = tab;
+    })();
 
     // เรียกโหลดข้อมูลทันทีที่เปิดหน้า
     loadHistory();

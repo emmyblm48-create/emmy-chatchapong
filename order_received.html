@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Success!</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc107">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        /* หัวสีเหลืองประจำวง BLM48 ขอบล่างโค้ง (แบบหน้า Success ของ iAM) */
+        .success-header {
+            position: relative; height: calc(80px + env(safe-area-inset-top, 0px));
+            padding-top: env(safe-area-inset-top, 0px);
+            background: #ffc107;
+            display: flex; align-items: center; justify-content: center;
+            border-bottom-left-radius: 50% 18px; border-bottom-right-radius: 50% 18px;
+        }
+        .success-header .nav-back-btn { bottom: 18px; }
+        .success-title { font-size: 19px; font-weight: 600; color: #222; margin-top: -8px; }
+
+        .received-wrap { max-width: 720px; margin: 0 auto; padding: 20px 12px 40px; }
+        .received-heading { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+        .received-item { display: flex; gap: 18px; padding: 18px 0; border-bottom: 1px solid #e8e8e8; }
+        .received-thumb {
+            width: 84px; height: 84px; flex-shrink: 0; border-radius: 10px; object-fit: cover; background: #f6f6f8;
+        }
+        .received-thumb.is-icon { display: flex; align-items: center; justify-content: center; font-size: 34px; }
+        .received-thumb.is-cookie { background: #fbefe3; color: #8b5a3c; }
+        .received-thumb.is-gem { background: #dcefff; color: #339af0; }
+        .received-thumb.is-ssr { box-shadow: 0 0 0 3px rgba(212,175,55,0.35), 0 0 14px rgba(212,175,55,0.5); }
+        .received-info { flex: 1; min-width: 0; }
+        .received-name { font-size: 16px; color: #222; line-height: 1.4; margin-bottom: 6px; }
+        .ssr-tag { font-size: 11px; font-weight: 700; color: #a8790a; background: #fff6da; border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
+        .received-row { font-size: 15px; color: #888; margin-bottom: 4px; }
+        .received-row span { color: #222; margin-left: 4px; }
+        .received-note { font-size: 12.5px; color: #777; line-height: 1.5; margin-top: 6px; }
+
+        .confetti-piece {
+            position: fixed; top: 40%; left: 50%; width: 8px; height: 8px; border-radius: 2px;
+            pointer-events: none; z-index: 20000; animation: confettiBurst 1s ease-out forwards;
+        }
+        .confetti-piece.is-gold { width: 10px; height: 10px; box-shadow: 0 0 6px rgba(255,215,0,0.8); animation-duration: 1.5s; }
+        @keyframes confettiBurst {
+            0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="success-header">
+    <button type="button" class="nav-back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="success-title">Success!</div>
+</div>
+
+<div class="received-wrap" id="received-content">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i></div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const orderId = Number(params.get('id'));
+  const justRedeemed = params.get('new') === '1';
+
+  function goBack() {
+    // หลังกด Redeem กลับไปที่ Order Details (ซึ่งจะโหลดสถานะใหม่) แทนการย้อนประวัติ
+    window.location.replace('order_detail?id=' + orderId);
+  }
+
+  function burst(gold) {
+    const colors = gold ? ['#f3ce6e', '#ffd700', '#fff6da', '#ffffff'] : ['#ffc107', '#ffb300', '#ffd54f', '#ffe082', '#ffffff'];
+    const count = gold ? 60 : 28;
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece' + (gold ? ' is-gold' : '');
+      const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
+      const distance = (gold ? 110 : 80) + Math.random() * (gold ? 200 : 130);
+      p.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+      p.style.setProperty('--ty', Math.sin(angle) * distance - 50 + 'px');
+      p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.animationDelay = (Math.random() * 0.2) + 's';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 1900);
+    }
+  }
+
+  // รวมของที่ได้รับซ้ำกันเป็นบรรทัดเดียว (เช่น สุ่มได้ลายเดียวกัน 2 ใบ -> Quantity 2)
+  function collectRewards(lines) {
+    const map = new Map();
+    lines.forEach(l => (l.rewards || []).forEach(r => {
+      let key, entry;
+      if (r.kind === 'cookie') {
+        key = 'cookie';
+        entry = { kind: 'cookie', label: 'Cookie', type: 'Cookie', qty: 0, note: 'Added to your Cookie balance.' };
+        entry.add = Number(r.amount) || 0;
+      } else if (r.kind === 'ge_token') {
+        key = 'ge|' + r.label;
+        entry = { kind: 'ge', label: r.label || 'GE Token', type: 'GE Token', qty: 0,
+                  note: 'You can check it in History > Transactions.' };
+        entry.add = Number(r.amount) || 0;
+      } else {
+        key = 'item|' + r.label + '|' + r.imageUrl;
+        const type = r.itemType === 'Coaster' ? 'Merchandise'
+          : r.collectionId === 'coll_cafe' ? 'Cafe' : (l.kind === 'preorder' ? 'Pre-order item' : 'Item');
+        entry = { kind: 'item', label: r.label, image: r.imageUrl, type, isSSR: !!r.isSSR, qty: 0,
+                  note: 'Saved to your Inventory.' };
+        entry.add = 1;
+      }
+      const existing = map.get(key) || entry;
+      existing.qty += entry.add;
+      map.set(key, existing);
+    }));
+    return [...map.values()];
+  }
+
+  function thumb(r) {
+    if (r.kind === 'cookie') return '<div class="received-thumb is-icon is-cookie"><i class="fas fa-cookie-bite"></i></div>';
+    if (r.kind === 'ge') return '<div class="received-thumb is-icon is-gem"><i class="fas fa-gem"></i></div>';
+    return `<img class="received-thumb${r.isSSR ? ' is-ssr' : ''}" src="${escapeHtml(r.image || '')}" alt="" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='">`;
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const box = document.getElementById('received-content');
+    const res = orderId ? await blm48GetShopOrder(user.username, orderId) : null;
+    if (!res || res.status !== 'success') {
+      box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'ไม่พบคำสั่งซื้อนี้ค่ะ')}</div>`;
+      return;
+    }
+
+    let lines = res.data.lines.filter(l => l.status === 'redeemed');
+    // เพิ่งกด Redeem: แสดงเฉพาะรอบล่าสุด (บรรทัดที่ Redeem พร้อมกันในครั้งนี้)
+    if (justRedeemed && lines.length) {
+      const latest = lines.map(l => l.redeemedAt).sort().pop();
+      lines = lines.filter(l => l.redeemedAt === latest);
+    }
+    const rewards = collectRewards(lines);
+    if (rewards.length === 0) {
+      box.innerHTML = `<div class="empty-state"><i class="fa-solid fa-gift"></i>ยังไม่มีรายการที่ Redeem ในคำสั่งซื้อนี้ค่ะ</div>`;
+      return;
+    }
+
+    box.innerHTML = `<div class="received-heading">You received:</div>` + rewards.map(r => `
+      <div class="received-item">
+        ${thumb(r)}
+        <div class="received-info">
+          <div class="received-name">${escapeHtml(r.label)}${r.isSSR ? '<span class="ssr-tag">SSR</span>' : ''}</div>
+          <div class="received-row">Type :<span>${escapeHtml(r.type)}</span></div>
+          <div class="received-row">Quantity :<span>${Number(r.qty).toLocaleString()}</span></div>
+          <div class="received-note">${escapeHtml(r.note)}</div>
+        </div>
+      </div>`).join('');
+
+    if (justRedeemed) burst(rewards.some(r => r.isSSR));
+  }
+
+  window.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

@@ -246,10 +246,15 @@
       backdrop-filter: blur(var(--glass-blur-sm));
       border: 1px solid var(--glass-border);
       color: var(--blm-pink);
-      padding: 8px 10px;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 50%;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       transition: 0.2s;
     }
     .btn-del-item:hover {
@@ -395,7 +400,7 @@
     <input type="text" id="input-action" placeholder="Enter notification message">
     <div class="btn-group">
       <button class="btn-submit" id="btn-add"><i class="fa-solid fa-plus"></i> Post Notification</button>
-      <button class="btn-clear" id="btn-reset"><i class="fa-solid fa-trash"></i> Clear All</button>
+      <button class="btn-clear" id="btn-reset"><i class="fa-solid fa-xmark"></i> Clear All</button>
     </div>
   </div>
 
@@ -804,7 +809,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
           </svg>` : '';
 
           const deleteBtn = isCurrentUserAdmin
-            ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.id})"><i class="fa-solid fa-trash-can"></i></button>`
+            ? `<button class="btn-del-item" onclick="deleteSingleNoti(${noti.id})"><i class="fa-solid fa-xmark"></i></button>`
             : '';
 
           const item = document.createElement("div");
@@ -831,7 +836,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
             item.style.cursor = "pointer";
             item.addEventListener("click", (e) => {
               if (e.target.closest(".btn-del-item")) return;
-              window.location.href = "my_preorders_history.html";
+              window.location.href = "orders.html";
             });
           }
           // แจ้งเตือนจากเมมเบอร์: กดรูป/ชื่อแล้วไปหน้าเมมเบอร์ (แจ้งเตือนเก็บแค่ชื่อที่แสดง ไม่มี username ของแฟนคลับ เลยลิงก์ได้เฉพาะเมมเบอร์)
@@ -928,7 +933,7 @@ function updateSubPageIcon(imgId, fallbackId, iconUrl) {
           cuteToast("เกิดข้อผิดพลาดในการล้างข้อมูล", "fa-circle-xmark");
         } finally {
           btnReset.disabled = false;
-          btnReset.innerHTML = '<i class="fa-solid fa-trash"></i> Clear All';
+          btnReset.innerHTML = '<i class="fa-solid fa-xmark"></i> Clear All';
         }
       });
     }

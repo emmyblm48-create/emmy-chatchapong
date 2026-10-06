@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | My Order</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        .order-card { border-bottom: 8px solid #f5f5f5; cursor: pointer; }
+        .order-card .order-line { padding: 12px; }
+        .order-card .order-line-thumb { width: 72px; height: 72px; }
+        .order-sum {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: 12px; border-bottom: 1px solid var(--order-line); font-size: 15px; color: #666;
+        }
+        .order-sum b { color: var(--order-accent); font-weight: 700; margin-left: 8px; }
+        .order-status-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px; font-size: 15px; }
+        .order-status-row i { margin-right: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">My Order</div>
+</div>
+
+<div class="page-wrapper" id="orders-list">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<script>
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'shop';
+  }
+
+  // สถานะซ้าย = การจัดส่ง, ขวา = การ Redeem (แบบหน้า My Order ของ iAM)
+  function statusRow(o) {
+    const shipping = o.hasWaiting
+      ? '<span class="status-waiting"><i class="fa-solid fa-truck-fast"></i>Waiting for shipment</span>'
+      : '<span class="status-done"><i class="fa-solid fa-circle-check"></i>Delivered</span>';
+    const redeem = o.hasReady
+      ? '<span class="status-ready">Redeemable</span>'
+      : (o.hasWaiting ? '' : '<span class="status-done">Redeemed</span>');
+    return `<div class="order-status-row">${shipping}${redeem}</div>`;
+  }
+
+  function render(orders) {
+    const list = document.getElementById('orders-list');
+    if (orders.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-receipt"></i>ยังไม่มีคำสั่งซื้อค่ะ<br><a class="btn-yellow" href="shop">ไปที่ Shop</a></div>`;
+      return;
+    }
+    list.innerHTML = orders.map(o => `
+      <div class="order-card" role="link" tabindex="0" onclick="location.href='order_detail?id=${o.orderId}'">
+        ${o.lines.map(l => `
+          <div class="order-line">
+            <img class="order-line-thumb" src="${escapeHtml(l.imageUrl || '')}" alt="" loading="lazy" onerror="this.onerror=null;this.src='data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='">
+            <div class="order-line-body">
+              <div class="order-line-name">${escapeHtml(l.name)}</div>
+              <div class="order-line-bottom">
+                <div class="order-line-qty">${Number(l.unitPrice).toLocaleString()} Tokens</div>
+                <div class="order-line-qty">X${l.quantity}</div>
+              </div>
+            </div>
+          </div>`).join('')}
+        <div class="order-sum">
+          <span>${o.itemCount} item${o.itemCount === 1 ? '' : 's'}</span>
+          <span>Order Total<b>${Number(o.totalTokens).toLocaleString()} Tokens</b></span>
+        </div>
+        ${statusRow(o)}
+      </div>`).join('');
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetMyShopOrders(user.username);
+    if (!res || res.status !== 'success') {
+      document.getElementById('orders-list').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    render(res.data || []);
+  }
+
+  window.addEventListener('DOMContentLoaded', load);
+  // กลับมาจากหน้า Order Details (bfcache) ให้สถานะ Redeem เป็นปัจจุบัน
+  window.addEventListener('pageshow', e => { if (e.persisted) load(); });
+</script>
+</body>
+</html>

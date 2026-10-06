@@ -108,6 +108,31 @@
         }
         .pd-buy-btn:active { transform: scale(0.97); }
         .pd-buy-btn.pd-buy-btn-disabled { background: #f0f1f3; color: #a89686; cursor: not-allowed; }
+        .pd-buy-btn { background: #ffd76e; color: #222; }
+        .pd-cart-btn {
+            width: 48px; height: 46px; flex-shrink: 0; border-radius: 999px; border: 1.5px solid #f0a73a;
+            background: #fff; color: #f0a73a; font-size: 18px; cursor: pointer;
+        }
+        .pd-cart-btn:active { transform: scale(0.95); }
+        .nav-cart-link {
+            position: absolute; right: 12px; width: 40px; height: 40px; color: #222; font-size: 19px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+        }
+        .pd-cart-badge {
+            position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 5px;
+            border-radius: 9px; background: var(--primary-pink); color: #fff; font-size: 11px; font-weight: 700;
+            line-height: 18px; text-align: center;
+        }
+        .pd-toast {
+            position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); z-index: 3000;
+            transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+            background: #222; color: #fff; border-radius: 999px; padding: 10px 14px 10px 18px;
+            display: flex; align-items: center; gap: 12px; font-size: 14px; white-space: nowrap;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18); transition: opacity .2s, transform .2s;
+        }
+        .pd-toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+        .pd-toast i { color: #7cd992; }
+        .pd-toast a { color: #222; background: #ffd76e; border-radius: 999px; padding: 5px 12px; font-weight: 700; text-decoration: none; font-size: 13px; }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -119,6 +144,10 @@
         </button>
     </div>
     <div class="nav-title" id="pd-nav-title">รายละเอียดสินค้า</div>
+    <a href="cart" class="nav-cart-link" aria-label="Shopping Cart">
+        <i class="fas fa-cart-shopping"></i>
+        <span class="pd-cart-badge" id="pd-cart-badge" style="display:none;">0</span>
+    </a>
 </div>
 
 <div id="pd-loading" class="pd-empty"><i class="fas fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
@@ -147,7 +176,12 @@
         <span class="pd-qty-value" id="pd-qty-value">1</span>
         <button type="button" class="pd-qty-btn" onclick="changeQty(1)">+</button>
     </div>
-    <button type="button" class="pd-buy-btn" id="pd-buy-btn" onclick="buyThisPreorder()"><i class="fas fa-coins"></i> สั่งซื้อ · 0 Tokens</button>
+    <button type="button" class="pd-cart-btn" onclick="addThisPreorderToCart(false)" aria-label="ใส่ตะกร้า"><i class="fas fa-cart-plus"></i></button>
+    <button type="button" class="pd-buy-btn" id="pd-buy-btn" onclick="addThisPreorderToCart(true)">Buy Now · 0 Tokens</button>
+</div>
+
+<div class="pd-toast" id="pd-toast" role="status" aria-live="polite">
+    <i class="fa-solid fa-circle-check"></i><span>Added to cart</span><a href="cart">View cart</a>
 </div>
 
 <script>
@@ -259,112 +293,39 @@ function changeQty(delta) {
 function updateBuyButton() {
     if (!currentProduct) return;
     const total = Number(currentProduct.costTokens) * currentQty;
-    document.getElementById('pd-buy-btn').innerHTML = `<i class="fas fa-coins"></i> สั่งซื้อ · ${total.toLocaleString()} Tokens`;
+    document.getElementById('pd-buy-btn').innerHTML = `Buy Now · ${total.toLocaleString()} Tokens`;
 }
 
-async function buyThisPreorder() {
+// 🛒 พรีออเดอร์จ่ายผ่านตะกร้าเหมือนสินค้าอื่นใน Shop (สั่งซื้อจริงตอน Place Order ที่หน้า Check Out)
+function addThisPreorderToCart(goToCart) {
     if (!userData || !currentProduct) return;
-
-    const productId = currentProduct.productId;
-    const productName = currentProduct.name;
-    const totalCost = Number(currentProduct.costTokens) * currentQty;
-
-    if (Number(userData.token) < totalCost) {
-        Swal.fire({
-            title: 'Token คงเหลือไม่เพียงพอ',
-            html: '<div style="font-size: 14px; color: #666; font-family: Quicksand, Kanit, sans-serif;">กรุณาเติม Token ก่อนสั่งซื้อพรีออเดอร์นี้</div>',
-            icon: 'error',
-            confirmButtonColor: '#e1546f',
-            background: '#ffffff',
-            borderRadius: '24px'
-        });
+    blm48Cart.add({
+        kind: 'preorder', refId: currentProduct.productId, variant: 1,
+        name: currentProduct.name, label: 'Pre-order · ship later',
+        image: currentProduct.coverImage, unitPrice: Number(currentProduct.costTokens)
+    }, currentQty);
+    if (goToCart) {
+        window.location.href = 'cart';
         return;
     }
-
-    const itemsListHTML = (currentProduct.items || []).map(item => {
-        if (item.kind === 'ge_token') {
-            return `<div style="text-align:left;"><i class="fas fa-gem"></i> ${escapePdText(item.label)} +${Number(item.amount).toLocaleString()}</div>`;
-        }
-        const randomTag = item.isRandom ? ' <span style="color:#c9932c;font-weight:700;">(สุ่มลาย)</span>' : '';
-        return `<div style="text-align:left;"><i class="fas fa-image"></i> ${escapePdText(item.label)}${randomTag}</div>`;
-    }).join('');
-
-    const confirmResult = await Swal.fire({
-        title: `ยืนยันการพรีออเดอร์ "${productName}"`,
-        html: `
-          <div style="font-size: 14px; color: #555; line-height: 1.6; font-family: 'Quicksand', 'Kanit', sans-serif; text-align:left;">
-            <div style="margin-bottom:10px;">จำนวน <b>${currentQty}</b> เซ็ต ใช้ <b style="color:#e1546f;">${totalCost.toLocaleString()} Tokens</b></div>
-            ${itemsListHTML}
-            <div style="color:#999; font-size:12px; margin-top:10px;">* สินค้าจะจัดส่งภายหลัง ติดตามสถานะได้ที่หน้า Inventory</div>
-          </div>`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'ยืนยันสั่งซื้อ',
-        cancelButtonText: 'ยกเลิก',
-        confirmButtonColor: '#e1546f',
-        cancelButtonColor: '#e0e0e0',
-        background: '#ffffff',
-        borderRadius: '24px'
-    });
-
-    if (!confirmResult.isConfirmed) return;
-
-    Swal.fire({
-        title: 'กำลังทำรายการ...',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        background: '#ffffff',
-        borderRadius: '24px',
-        didOpen: () => Swal.showLoading()
-    });
-
-    try {
-        const res = await blm48BuyPreorder(userData.username, productId, currentQty);
-
-        if (res.status === 'success') {
-            userData.token = res.newToken !== undefined ? res.newToken : (userData.token - totalCost);
-            const newSession = JSON.parse(localStorage.getItem('bnl_session'));
-            newSession.data = userData;
-            localStorage.setItem('bnl_session', JSON.stringify(newSession));
-
-            Swal.fire({
-                title: 'สั่งซื้อสำเร็จ!',
-                html: `
-                  <div style="text-align:center; padding: 5px 0;">
-                    <div style="font-size: 19px; color: #c53f5a; font-weight: bold; margin-bottom: 8px;">${escapePdText(productName)} x${currentQty}</div>
-                    <div style="color: #777; font-size: 13px; line-height: 1.6;">ระบบบันทึกคำสั่งซื้อของท่านเรียบร้อยแล้ว<br>ลายการ์ดที่สุ่มได้ และ Token/Cookie/GE Token ที่ได้รับ จะเข้ากระเป๋าของท่านเมื่อสินค้าจัดส่งแล้ว<br>ติดตามสถานะได้ที่หน้า "พรีออเดอร์ของฉัน" ค่ะ</div>
-                  </div>`,
-                icon: 'success',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#e1546f',
-                background: '#ffffff',
-                borderRadius: '24px'
-            });
-        } else {
-            Swal.fire({
-                title: 'เกิดข้อผิดพลาด',
-                text: res.message,
-                icon: 'error',
-                confirmButtonColor: '#e1546f',
-                background: '#ffffff',
-                borderRadius: '24px'
-            });
-        }
-    } catch (error) {
-        console.error('Error buying preorder:', error);
-        Swal.fire({
-            title: 'เกิดข้อผิดพลาด',
-            text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง',
-            icon: 'error',
-            confirmButtonColor: '#e1546f',
-            background: '#ffffff',
-            borderRadius: '24px'
-        });
-    }
+    updateCartBadge();
+    const toast = document.getElementById('pd-toast');
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2600);
 }
+
+function updateCartBadge() {
+    const badge = document.getElementById('pd-cart-badge');
+    const count = blm48Cart.count();
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = count > 0 ? '' : 'none';
+}
+window.addEventListener('pageshow', updateCartBadge);
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!initSession()) return;
+    updateCartBadge();
     await loadProductDetail();
 });
 </script>
