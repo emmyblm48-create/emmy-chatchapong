@@ -165,6 +165,7 @@
         .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
         .status-open { background: #e6f9ed; color: #2e7d32; }
         .status-closed { background: #ffebee; color: #c62828; }
+        .status-test { background: #ffc107; color: #222; }
         .end-date-pill {
             margin-left: auto; padding: 4px 10px; border-radius: 20px; white-space: nowrap;
             background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 11px; font-weight: 500;
@@ -571,9 +572,11 @@
                     TokenType: c.tokenType,
                     EnableGift: c.enableGift,
                     TokenMechanic: c.tokenMechanic,
-                    RefundPercent: c.refundPercent
+                    RefundPercent: c.refundPercent,
+                    AdminOnly: !!c.adminOnly
                 }));
-                localStorage.setItem('blm48_major_votes_cache', JSON.stringify(mapped));
+                // ไม่เก็บกิจกรรมทดสอบลง cache เครื่อง (กันบัญชีอื่นที่ล็อกอินเครื่องเดียวกันเห็น)
+                localStorage.setItem('blm48_major_votes_cache', JSON.stringify(mapped.filter(c => !c.AdminOnly)));
                 renderCampaignCards(mapped);
             } else if (!cachedVotes) {
                 container.innerHTML = `<div class="loading-text">ไม่มีการกิจกรรมโหวตในขณะนี้</div>`;
@@ -690,6 +693,7 @@
                     <img src="${imageSrc}" alt="${escapeHtml(camp.Title || 'Vote')}" style="${hasValidImage ? 'display:block;' : 'display:none;'}" onerror="this.style.display='none';">
                     <div class="card-overlay-top">
                         <span class="status-badge ${isOpen ? 'status-open' : 'status-closed'}">${isOpen ? 'OPEN' : 'CLOSED'}</span>
+                        ${camp.AdminOnly ? `<span class="status-badge status-test">TEST</span>` : ''}
                         ${endDateText ? `<span class="end-date-pill">End date: ${endDateText}</span>` : ''}
                     </div>
                 </a>

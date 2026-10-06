@@ -90,6 +90,7 @@
         .status-pill { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
         .status-pill.open { background: #e6f9ee; color: #1f9d55; }
         .status-pill.closed { background: #f1f1f1; color: #888; }
+        .status-pill.test { background: #ffc107; color: #222; }
 
         .cc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 12px 0; }
         .cc-stat { background: rgba(255,255,255,0.6); border: 1px solid var(--glass-border); border-radius: 10px; padding: 7px 4px; text-align: center; }
@@ -291,6 +292,9 @@
                     </select>
                 </div>
             </div>
+            <div class="form-field">
+                <label class="check-label"><input id="ev-admin-only" type="checkbox"> กิจกรรมทดสอบ: เห็นและโหวตได้เฉพาะแอดมิน</label>
+            </div>
             <div class="form-field" id="ev-gift-field">
                 <label class="check-label"><input id="ev-enable-gift" type="checkbox"> เปิดให้ส่ง Gift (Cookie) เป็นคะแนนเพิ่มได้ด้วย</label>
             </div>
@@ -402,8 +406,13 @@
               <div class="cc-title">${escapeHtml(c.title || c.voteCollectionId)}</div>
               <div class="cc-id">${escapeHtml(c.voteCollectionId)} · ${escapeHtml(TOKEN_LABELS[tokenType] || c.tokenType || '-')}</div>
             </div>
-            <span class="status-pill ${open ? 'open' : 'closed'}">${open ? 'OPEN' : 'CLOSED'}</span>
+            <div style="display:flex; gap:6px; flex:0 0 auto;">
+              ${c.adminOnly ? '<span class="status-pill test">TEST</span>' : ''}
+              <span class="status-pill ${open ? 'open' : 'closed'}">${open ? 'OPEN' : 'CLOSED'}</span>
+            </div>
           </div>
+
+          <label class="check-label" style="margin-bottom:12px;"><input type="checkbox" ${c.adminOnly ? 'checked' : ''} onchange="toggleAdminOnly(${i}, this)"> กิจกรรมทดสอบ: เห็นและโหวตได้เฉพาะแอดมิน</label>
 
           <div class="cc-stats">
             <div class="cc-stat"><div class="v">${fmt(c.voterCount)}</div><div class="k">คนโหวต</div></div>
@@ -743,6 +752,27 @@
     `).join('');
   }
 
+  // สลับกิจกรรมทดสอบ (เห็นเฉพาะแอดมิน) <-> เปิดให้ทุกคน บันทึกทันที
+  async function toggleAdminOnly(i, el) {
+    const c = campaignCache[i];
+    const next = el.checked;
+    el.disabled = true;
+    try {
+      const res = await blm48AdminSetVoteAdminOnly(user.username, c.voteCollectionId, next);
+      if (res && res.status === 'success') {
+        c.adminOnly = next;
+        renderCampaigns();
+        return;
+      }
+      Swal.fire('บันทึกไม่สำเร็จ', (res && res.message) || 'กรุณาลองใหม่อีกครั้ง', 'error');
+    } catch (e) {
+      console.error('Toggle admin-only error:', e);
+      Swal.fire('บันทึกไม่สำเร็จ', 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'error');
+    }
+    el.checked = !next;
+    el.disabled = false;
+  }
+
   function resetCreateForm() {
     ['ev-title', 'ev-desc', 'ev-start', 'ev-end', 'ev-pct', 'ev-member-search', 'ev-cp-at', 'ev-cp-label'].forEach(id => { document.getElementById(id).value = ''; });
     newEventCheckpoints = [];
@@ -750,6 +780,7 @@
     document.getElementById('ev-token-type').value = 'token';
     document.getElementById('ev-status').value = 'Open';
     document.getElementById('ev-enable-gift').checked = false;
+    document.getElementById('ev-admin-only').checked = false;
     document.getElementById('ev-cover-preview').style.display = 'none';
     coverFile = null;
     selectedCands = [];
@@ -772,6 +803,7 @@
     const enableGift = isGift || document.getElementById('ev-enable-gift').checked;
     const mechanic = isGift ? 'burn' : newEventMode;
     const pct = mechanic === 'partial' ? Number(document.getElementById('ev-pct').value) : 0;
+    const adminOnly = document.getElementById('ev-admin-only').checked;
 
     if (!title) { showFormError('กรุณากรอกชื่อกิจกรรมโหวต'); return; }
     if (startRaw && endRaw && new Date(endRaw) <= new Date(startRaw)) { showFormError('วันสิ้นสุดต้องอยู่หลังวันเริ่มกิจกรรม'); return; }
@@ -782,7 +814,9 @@
     const confirm = await Swal.fire({
       title: 'สร้างกิจกรรมโหวตนี้?',
       html: `<b>${escapeHtml(title)}</b><br>${escapeHtml(TOKEN_LABELS[tokenType])} · ${escapeHtml(modeText)} · ${escapeHtml(status)}<br>ผู้สมัคร ${selectedCands.length} คน${newEventCheckpoints.length ? ` · ผลด่วน ${newEventCheckpoints.length} ครั้ง` : ''}` +
-            (status === 'Open' ? '<div style="font-size:13px; margin-top:10px; color:#8a4b00;">สถานะ Open: ผู้ใช้เห็นและโหวตได้ทันที</div>' : ''),
+            (adminOnly
+              ? '<div style="font-size:13px; margin-top:10px; color:#8a4b00;">กิจกรรมทดสอบ: เห็นและโหวตได้เฉพาะแอดมิน</div>'
+              : (status === 'Open' ? '<div style="font-size:13px; margin-top:10px; color:#8a4b00;">สถานะ Open: ผู้ใช้เห็นและโหวตได้ทันที</div>' : '')),
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#ff85a2',
@@ -809,7 +843,7 @@
         startTime: startRaw ? new Date(startRaw).toISOString() : null,
         endTime: endRaw ? new Date(endRaw).toISOString() : null,
         status, tokenType, enableGift, tokenMechanic: mechanic, refundPercent: pct,
-        candidates, checkpoints: newEventCheckpoints
+        candidates, checkpoints: newEventCheckpoints, adminOnly
       });
       if (res && res.status === 'success') {
         await Swal.fire({ icon: 'success', title: 'สร้างกิจกรรมโหวตสำเร็จ!', text: `ผู้สมัคร ${res.candidateCount} คน`, timer: 1800, showConfirmButton: false });

@@ -110,8 +110,10 @@ function blm48GetGiftCatalog() {
 function blm48GetCampaigns() {
   return blm48Rpc('get_campaigns', {});
 }
+// ส่ง username ไปด้วย: กิจกรรมทดสอบ (adminOnly) server จะส่งกลับเฉพาะแอดมิน
 function blm48GetVoteCollections() {
-  return blm48Rpc('get_vote_collections', {});
+  const username = typeof getUsername === 'function' ? getUsername() : '';
+  return blm48Rpc('get_vote_collections', { p_username: username || null });
 }
 // unified transaction history for history.html: giveLogs, purchaseHistory, voteLogs, giftLogs
 function blm48GetMyHistory(username) {
@@ -689,8 +691,12 @@ function blm48AdminCreateVoteEvent(adminUsername, ev) {
     p_admin_username: adminUsername, p_title: ev.title, p_description: ev.description, p_cover_image: ev.coverImage,
     p_start_time: ev.startTime, p_end_time: ev.endTime, p_status: ev.status,
     p_token_type: ev.tokenType, p_enable_gift: ev.enableGift, p_token_mechanic: ev.tokenMechanic, p_refund_percent: ev.refundPercent,
-    p_candidates: ev.candidates, p_checkpoints: ev.checkpoints || null
+    p_candidates: ev.candidates, p_checkpoints: ev.checkpoints || null, p_admin_only: !!ev.adminOnly
   });
+}
+// กิจกรรมทดสอบ: true = เห็น/โหวตได้เฉพาะแอดมิน, false = เปิดให้ทุกคน
+function blm48AdminSetVoteAdminOnly(adminUsername, collectionId, adminOnly) {
+  return blm48Rpc('admin_set_vote_admin_only', { p_admin_username: adminUsername, p_collection_id: collectionId, p_admin_only: !!adminOnly });
 }
 function blm48AdminUpdateVoteCover(adminUsername, collectionId, coverImage) {
   return blm48Rpc('admin_update_vote_cover', { p_admin_username: adminUsername, p_collection_id: collectionId, p_cover_image: coverImage });

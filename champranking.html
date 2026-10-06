@@ -23,301 +23,111 @@
     <script src="assets/js/common.js"></script>
 
     <style>
+        /* หน้าตาเดียวกับ specialfansday.html (การ์ดอันดับ 1 + แถวอันดับ) แต่ไม่มีไทม์ไลน์ / ปุ่ม Send Cookie / ลูกศรขึ้นลง */
         :root {
             --blm-pink: #ff85a2;
             --blm-light-pink: #fff0f5;
+            --blm-yellow: #ffc107;
             --text-dark: #4a4a4a;
             --text-muted: #9e9e9e;
-            --glass-card: rgba(255, 255, 255, 0.95);
-            --rank-gold: #ffb703;
-            --rank-silver: #b0b6bd;
-            --rank-bronze: #e0895e;
         }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Quicksand', 'Kanit', sans-serif;
-            background-attachment: fixed;
             color: var(--text-dark);
             margin: 0;
             padding: 0;
         }
 
         .top-navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background: var(--glass-bg-strong);
             backdrop-filter: blur(var(--glass-blur-lg));
             -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 0 20px;
             box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
             z-index: 1000;
             border-bottom: 1px solid var(--glass-border);
         }
-
         .nav-back-btn {
-            color: var(--blm-pink);
-            font-size: 1.1rem;
-            text-decoration: none;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--blm-light-pink);
+            color: var(--blm-pink); font-size: 1.1rem; text-decoration: none;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; background: var(--blm-light-pink);
         }
-
-        .nav-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: var(--blm-pink);
-            letter-spacing: 0.5px;
-        }
-
+        .nav-title { font-weight: 600; font-size: 1.2rem; color: var(--blm-pink); letter-spacing: 0.5px; }
         .nav-spacer { width: 35px; }
 
         .main-container {
             width: 100%;
-            padding: 85px 12px 40px 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .ranking-page-wrapper {
             max-width: 800px;
-            width: 100%;
+            margin: 0 auto;
+            padding: 78px 12px 40px 12px;
         }
 
-        /* 🏆 การ์ดผู้ชนะด้านบน */
-        .winner-card {
+        /* 🥇 การ์ดอันดับ 1 (แชมป์) */
+        .top1-card {
             position: relative;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg));
-            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            padding: 28px 20px 24px 20px;
-            box-shadow: var(--glass-shadow-lg);
+            background: #fff;
+            border: 1px solid #f1f1f1;
+            border-radius: 20px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            padding: 26px 16px 22px;
             text-align: center;
             overflow: hidden;
-            animation: fadeInCard 0.4s ease-out;
+            margin: 4px 0 8px;
         }
-
-        .winner-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 50% -10%, rgba(255, 183, 3, 0.14), transparent 60%);
-            pointer-events: none;
+        .top1-decor { position: absolute; inset: 0; pointer-events: none; }
+        .top1-decor i { position: absolute; opacity: 0.85; }
+        .top1-avatar-wrap { position: relative; width: 104px; height: 104px; margin: 0 auto; }
+        .top1-avatar {
+            width: 104px; height: 104px; border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--blm-yellow); background: #fff;
         }
-
-        .confetti-icon {
-            position: absolute;
-            font-size: 1.1rem;
-            opacity: 0.55;
-            pointer-events: none;
+        .top1-crown {
+            position: absolute; right: -2px; bottom: 2px;
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #fff; display: flex; align-items: center; justify-content: center;
+            color: #f5a623; font-size: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
+        .top1-name { margin-top: 12px; font-size: 20px; font-weight: 600; position: relative; }
+        .top1-cookie { margin-top: 4px; font-size: 22px; font-weight: 700; color: #666; position: relative; }
 
-        .period-title {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-bottom: 16px;
-            position: relative;
-        }
-
-        .avatar-wrapper {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 14px auto;
-        }
-
-        .avatar-frame {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--rank-gold), #fff3cd, #ffe066);
-            padding: 4px;
-            box-shadow: 0 4px 12px rgba(255, 183, 3, 0.2);
-        }
-
-        .member-avatar {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            background-color: #fff;
-        }
-
-        .crown-icon {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            color: var(--rank-gold);
-            font-size: 1rem;
-            background: #fff;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--rank-gold);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-        }
-
-        .winner-name {
-            margin: 0 0 8px 0;
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            position: relative;
-        }
-
-        .winner-cookies {
-            font-size: 1.1rem;
-            color: var(--text-dark);
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            position: relative;
-        }
-
-        .winner-cookies i {
-            color: var(--blm-pink);
-        }
-
-        /* 📋 รายการอันดับที่เหลือ */
-        .ranking-list {
-            margin-top: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        /* 📋 อันดับ 2 เป็นต้นไป */
         .rank-row {
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border-radius: 16px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 10px 16px;
-            animation: fadeInRow 0.35s ease-out backwards;
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 6px;
         }
-
-        .rank-indicator {
-            width: 30px;
-            height: 30px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: var(--text-muted);
+        .rank-col { width: 34px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+        .rank-num {
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 1.5px solid #444; color: #333;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700;
         }
-
-        .rank-indicator.rank-2 { color: var(--rank-silver); font-size: 1.2rem; }
-        .rank-indicator.rank-3 { color: var(--rank-bronze); font-size: 1.2rem; }
-
+        .rank-medal { font-size: 18px; }
+        .rank-avatar-wrap { position: relative; flex-shrink: 0; }
         .rank-avatar {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            object-fit: cover;
-            flex-shrink: 0;
-            background-color: #fff;
-            border: 2px solid var(--blm-light-pink);
+            width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block;
+            border: 2px solid var(--blm-yellow); background: #fff;
         }
+        .rank-info { flex: 1; min-width: 0; }
+        .rank-name { font-size: 16px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rank-cookie { font-size: 16px; font-weight: 700; color: #777; margin-top: 2px; }
+        .rank-cookie i, .top1-cookie i { color: #d2691e; margin-right: 4px; }
 
-        .rank-name {
-            flex: 1;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            min-width: 0;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .rank-name span.name-text {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* 🎓 ป้ายสถานะแบบสีเทา - เหมือนหน้า champ */
+        /* 🎓 เมมเบอร์ที่จบการศึกษาแล้ว */
         .grad-badge {
-            font-size: 0.65rem;
-            color: #ffffff;
-            background-color: #a8a8a8;
-            padding: 1px 6px;
-            border-radius: 10px;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            font-weight: 600;
-            text-transform: uppercase;
+            font-size: 0.65rem; color: #ffffff; background-color: #a8a8a8;
+            padding: 1px 6px; border-radius: 10px; vertical-align: middle;
+            display: inline-flex; align-items: center; gap: 3px;
+            font-weight: 600; text-transform: uppercase;
         }
-
-        /* 🎓 ไอคอนหมวกปริญญามุมบนซ้ายของรูปโปรไฟล์ */
         .grad-icon-profile {
-            position: absolute;
-            top: -3px;
-            left: -3px;
-            background-color: #a8a8a8;
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 8px;
-            border: 2px solid white;
-            z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        }
-
-        .rank-avatar-wrapper {
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .rank-cookies {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            flex-shrink: 0;
-        }
-
-        .rank-cookies i {
-            color: var(--blm-pink);
-            font-size: 0.85rem;
+            position: absolute; top: -3px; left: -3px; z-index: 2;
+            background-color: #a8a8a8; color: white; border-radius: 50%;
+            width: 20px; height: 20px; display: flex; justify-content: center; align-items: center;
+            font-size: 9px; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
 
         .skeleton-anim {
@@ -325,41 +135,14 @@
             background-size: 400% 100%;
             animation: skeleton-loading 1.4s ease infinite;
         }
-
         @keyframes skeleton-loading {
             0% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        @keyframes fadeInCard {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInRow {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .empty-state, .error-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .error-state i {
-            color: #e63946;
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        @media (min-width: 768px) {
-            .winner-card { padding: 36px 30px 30px 30px; }
-            .avatar-wrapper { width: 130px; height: 130px; }
-            .winner-name { font-size: 1.7rem; }
-        }
+        .state-msg { text-align: center; color: #999; padding: 30px 0; font-size: 14px; }
+        .error-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.95rem; }
+        .error-state i { color: #e63946; font-size: 1.8rem; margin-bottom: 10px; display: block; }
     </style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
@@ -374,23 +157,23 @@
 
     <div class="main-container">
         <div class="ranking-page-wrapper" id="ranking-page-wrapper">
-            <div class="winner-card">
+            <div class="top1-card">
                 <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
-                    <div class="skeleton-anim" style="width:100px; height:100px; border-radius:50%;"></div>
-                    <div class="skeleton-anim" style="width:120px; height:16px; border-radius:4px;"></div>
-                    <div class="skeleton-anim" style="width:160px; height:22px; border-radius:4px;"></div>
+                    <div class="skeleton-anim" style="width:104px; height:104px; border-radius:50%;"></div>
+                    <div class="skeleton-anim" style="width:120px; height:18px; border-radius:4px;"></div>
+                    <div class="skeleton-anim" style="width:140px; height:22px; border-radius:4px;"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const CONFETTI_ICONS = ['fa-crown', 'fa-star', 'fa-heart'];
-        const CONFETTI_POSITIONS = [
-            { top: '10%', left: '8%', rotate: '-15deg' },
-            { top: '18%', right: '10%', rotate: '12deg' },
-            { top: '55%', left: '4%', rotate: '20deg' },
-            { top: '60%', right: '6%', rotate: '-10deg' }
+        const DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
+        // ไอคอนตกแต่งการ์ดอันดับ 1 ชุดเดียวกับ specialfansday.html: [ไอคอน, x%, y%, ขนาด, สี]
+        const TOP1_DECOR = [
+            ['fa-crown', 8, 14, 22, '#ffd56b'], ['fa-crown', 78, 8, 20, '#ffd56b'], ['fa-crown', 20, 62, 24, '#ffd56b'],
+            ['fa-crown', 84, 66, 22, '#ffd56b'], ['fa-heart', 30, 10, 12, '#ffb3c1'], ['fa-heart', 70, 40, 12, '#c9a7e8'],
+            ['fa-star', 12, 40, 12, '#ffd56b'], ['fa-star', 90, 30, 11, '#ffb3c1'], ['fa-star', 60, 12, 10, '#c9a7e8']
         ];
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -451,34 +234,29 @@
         function renderRankingPage(champData, rankingList) {
             const wrapper = document.getElementById('ranking-page-wrapper');
 
-            const winnerAvatar = champData.profileImage || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
+            const winnerAvatar = champData.profileImage || DEFAULT_AVATAR;
             const winnerCookies = Number(champData.totalCookie || 0).toLocaleString();
             const winnerIsGraduated = champData.status === 'Graduated' || champData.status === 'Not in System';
             const winnerGradIcon = winnerIsGraduated ? `<div class="grad-icon-profile"><i class="fa-solid fa-graduation-cap"></i></div>` : '';
-            const winnerGradBadge = winnerIsGraduated ? `<span class="grad-badge"><i class="fa-solid fa-graduation-cap"></i> GRADUATED</span>` : '';
+            const winnerGradBadge = winnerIsGraduated ? ` <span class="grad-badge"><i class="fa-solid fa-graduation-cap"></i> GRADUATED</span>` : '';
 
-            const confettiHtml = CONFETTI_POSITIONS.map((pos, i) => {
-                const style = Object.entries(pos).filter(([k]) => k !== 'rotate').map(([k, v]) => `${k}:${v}`).join(';');
-                return `<i class="fa-solid ${CONFETTI_ICONS[i % CONFETTI_ICONS.length]} confetti-icon" style="${style}; transform: rotate(${pos.rotate}); color:${i % 2 === 0 ? 'var(--rank-gold)' : 'var(--blm-pink)'};"></i>`;
-            }).join('');
+            const decorHtml = TOP1_DECOR
+                .map(([ic, x, y, s, c]) => `<i class="fa-solid ${ic}" style="left:${x}%;top:${y}%;font-size:${s}px;color:${c};"></i>`)
+                .join('');
 
-            let html = `
-                <div class="winner-card">
-                    ${confettiHtml}
-                    <div class="period-title">The Winner &nbsp;${escapeHtml(champData.monthYear || '')}</div>
-                    <div class="avatar-wrapper">
-                        <div class="avatar-frame">
-                            ${winnerGradIcon}
-                            <img class="member-avatar"${memberLinkAttr(champData.name)} src="${winnerAvatar}" alt="${escapeHtml(champData.name || '')}" onerror="this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400'">
-                        </div>
-                        <div class="crown-icon"><i class="fa-solid fa-crown"></i></div>
+            wrapper.innerHTML = `
+                <div class="top1-card">
+                    <div class="top1-decor">${decorHtml}</div>
+                    <div class="top1-avatar-wrap"${memberLinkAttr(champData.name)}>
+                        ${winnerGradIcon}
+                        <img class="top1-avatar" src="${winnerAvatar}" alt="${escapeHtml(champData.name || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
+                        <div class="top1-crown"><i class="fas fa-crown"></i></div>
                     </div>
-                    <h1 class="winner-name">${escapeHtml(champData.name || 'Unknown Member')} ${winnerGradBadge}</h1>
-                    <div class="winner-cookies"><i class="fa-solid fa-cookie"></i> ${winnerCookies} Cookies</div>
+                    <div class="top1-name"${memberLinkAttr(champData.name)}>${escapeHtml(champData.name || 'Unknown Member')}${winnerGradBadge}</div>
+                    <div class="top1-cookie"><i class="fas fa-cookie-bite"></i>${winnerCookies}</div>
                 </div>
-                <div class="ranking-list" id="ranking-list-body"></div>
+                <div id="ranking-list-body"></div>
             `;
-            wrapper.innerHTML = html;
 
             const listBody = document.getElementById('ranking-list-body');
 
@@ -496,44 +274,32 @@
             });
 
             if (restRanking.length === 0) {
-                listBody.innerHTML = `<div class="empty-state">ยังไม่มีข้อมูลอันดับอื่นในเดือนนี้ค่ะ</div>`;
+                listBody.innerHTML = `<div class="state-msg">ยังไม่มีข้อมูลอันดับอื่นในเดือนนี้ค่ะ</div>`;
                 return;
             }
 
-            const fragment = document.createDocumentFragment();
-
-            restRanking.forEach((member, i) => {
+            listBody.innerHTML = restRanking.map((member, i) => {
                 const rank = i + 2; // เริ่มที่อันดับ 2
-                const avatarImg = member.profile_img || 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
-                const cookieCount = Number(member.monthly_cookies || 0).toLocaleString();
-
-                let rankBadge;
-                if (rank === 2) rankBadge = `<i class="fa-solid fa-crown"></i>`;
-                else if (rank === 3) rankBadge = `<i class="fa-solid fa-crown"></i>`;
-                else rankBadge = rank;
-
-                const rankClass = rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
-
+                const badge = rank === 2 ? '<i class="fas fa-crown rank-medal" style="color:#c0c0c0;"></i>'
+                            : rank === 3 ? '<i class="fas fa-crown rank-medal" style="color:#cd7f32;"></i>'
+                            : `<div class="rank-num">${rank}</div>`;
                 const isGraduated = member.status === 'Graduated';
                 const gradIcon = isGraduated ? `<div class="grad-icon-profile"><i class="fa-solid fa-graduation-cap"></i></div>` : '';
-                const gradBadge = isGraduated ? `<span class="grad-badge"><i class="fa-solid fa-graduation-cap"></i> GRADUATED</span>` : '';
-
-                const row = document.createElement('div');
-                row.className = 'rank-row';
-                row.style.animationDelay = `${Math.min(i, 20) * 0.04}s`;
-                row.innerHTML = `
-                    <div class="rank-indicator ${rankClass}">${rankBadge}</div>
-                    <div class="rank-avatar-wrapper">
-                        ${gradIcon}
-                        <img class="rank-avatar"${memberLinkAttr(member.name)} loading="lazy" src="${avatarImg}" alt="${escapeHtml(member.name || '')}" onerror="this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400'">
+                const gradBadge = isGraduated ? ` <span class="grad-badge"><i class="fa-solid fa-graduation-cap"></i> GRADUATED</span>` : '';
+                return `
+                    <div class="rank-row">
+                        <div class="rank-col">${badge}</div>
+                        <div class="rank-avatar-wrap"${memberLinkAttr(member.name)}>
+                            ${gradIcon}
+                            <img class="rank-avatar" loading="lazy" src="${member.profile_img || DEFAULT_AVATAR}" alt="${escapeHtml(member.name || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
+                        </div>
+                        <div class="rank-info"${memberLinkAttr(member.name)}>
+                            <div class="rank-name">${escapeHtml(member.name || 'Unknown')}${gradBadge}</div>
+                            <div class="rank-cookie"><i class="fas fa-cookie-bite"></i>${Number(member.monthly_cookies || 0).toLocaleString()}</div>
+                        </div>
                     </div>
-                    <div class="rank-name"><span class="name-text">${escapeHtml(member.name || 'Unknown')}</span> ${gradBadge}</div>
-                    <div class="rank-cookies"><i class="fa-solid fa-cookie"></i> ${cookieCount}</div>
                 `;
-                fragment.appendChild(row);
-            });
-
-            listBody.appendChild(fragment);
+            }).join('');
         }
 
         function showError(msg) {
