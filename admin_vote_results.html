@@ -73,7 +73,7 @@
         .rank-row:last-child { border-bottom: none; }
         .rank-no { flex: 0 0 26px; text-align: center; font-weight: 700; font-size: 14px; color: #555; }
         .rank-row.top1 .rank-no { color: #f59f00; }
-        .rank-avatar { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid #ffc107; }
+        .rank-avatar { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid var(--frame, #ffde5b); }
         .rank-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .rank-votes { flex: 0 0 auto; text-align: right; font-weight: 700; font-size: 13.5px; color: #222; }
         .rank-pct { display: block; font-size: 11px; color: #aaa; font-weight: 500; }
@@ -179,7 +179,7 @@
     const rows = (c.ranking || []).map(r => `
       <div class="rank-row ${Number(r.rank) === 1 ? 'top1' : ''}">
         <div class="rank-no">${escapeHtml(r.rank)}</div>
-        <img class="rank-avatar" src="${escapeAttr(r.profile || '')}" alt="" onerror="this.style.visibility='hidden'">
+        <img class="rank-avatar" style="--frame:${groupFrameColor(r.memberName)}" src="${escapeAttr(r.profile || '')}" alt="" onerror="this.style.visibility='hidden'">
         <div class="rank-name">${escapeHtml(r.memberName)}</div>
         <div class="rank-votes">${fmt(r.votes)}<span class="rank-pct">${escapeHtml(r.percentage)}%</span></div>
       </div>`).join('');

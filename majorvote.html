@@ -662,11 +662,12 @@
             const status = (camp.Status || "Closed").trim().toUpperCase();
             const isOpen = status === "OPEN"; 
             
-            if (camp.StartTime) {
+            // กิจกรรมทดสอบ (Admin only) แสดงเสมอ ไม่สนวันเริ่ม/จบ — แอดมินต้องเข้าไปทดสอบได้ก่อนเปิดจริง
+            if (camp.StartTime && !camp.AdminOnly) {
                 const startTimeParsed = new Date(camp.StartTime).getTime();
-                if (!isNaN(startTimeParsed) && startTimeParsed > now) return; 
+                if (!isNaN(startTimeParsed) && startTimeParsed > now) return;
             }
-            if (camp.EndTime) {
+            if (camp.EndTime && !camp.AdminOnly) {
                 const endTimeParsed = new Date(camp.EndTime).getTime();
                 if (!isNaN(endTimeParsed) && endTimeParsed < now) return; 
             }

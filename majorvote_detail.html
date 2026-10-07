@@ -97,15 +97,13 @@
         .cand-avatar-fallback { position: absolute; color: #ccc; font-size: 2rem; z-index: 1; }
         .candidate-name { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; color: #111; overflow: hidden; text-overflow: ellipsis; }
         .candidate-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        .vote-action-btn, .getoken-action-btn, .gift-action-btn {
+        .vote-action-btn {
             min-width: 84px; border: none; padding: 8px 16px; border-radius: 999px;
             font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 700;
             cursor: pointer; transition: transform 0.1s; white-space: nowrap;
         }
         .vote-action-btn { background: #ffd75e; color: #222; }
-        .getoken-action-btn { background: #cfe8ff; color: #1c5d99; }
-        .gift-action-btn { background: #ffe1ea; color: #c2335b; }
-        .vote-action-btn:active, .getoken-action-btn:active, .gift-action-btn:active { transform: scale(0.95); }
+        .vote-action-btn:active { transform: scale(0.95); }
 
         /* Gift Sheet (แบบแผงส่งของขวัญของแอป: รูปเมมเบอร์ลอยขอบบน > แท็บขีดเส้นใต้ > กริด 4x2 ปัดเปลี่ยนหน้า > ปุ่มจำนวน > แถบ Send) */
         .gift-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 2000; align-items: flex-end; justify-content: center; }
@@ -114,7 +112,7 @@
         .gift-modal-close { position: absolute; top: 12px; right: 14px; background: #f3f3f3; border: none; width: 30px; height: 30px; border-radius: 50%; color: #888; cursor: pointer; font-size: 14px; z-index: 2; }
 
         .gift-modal-recipient { display: flex; flex-direction: column; align-items: center; margin-top: -56px; padding-bottom: 12px; flex-shrink: 0; }
-        .gift-modal-avatar { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; background: #f5f5f5; border: 4px solid #ffffff; box-shadow: 0 0 0 3px #ffc107, 0 4px 14px rgba(0,0,0,0.12); }
+        .gift-modal-avatar { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; background: #f5f5f5; border: 4px solid #ffffff; box-shadow: 0 0 0 3px var(--frame, #ffde5b), 0 4px 14px rgba(0,0,0,0.12); }
         .gift-modal-target { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; font-size: 21px; color: #111; text-transform: uppercase; margin-top: 10px; max-width: 80%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* แท็บหมวดของขวัญ + Backpack (ของที่ซื้อเก็บไว้) อยู่แถวเดียวกัน */
@@ -587,16 +585,18 @@
                     Vote
                 </button>`;
         }
+        // ทุกกิจกรรมใช้ปุ่มคำว่า "Vote" สีเหลืองเดียวกันหมด (Token / GE Token / Gift)
         if (types.includes('getoken')) {
             buttons += `
-                <button class="getoken-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'GEToken', '${escapeAttr(mImg)}')">
-                    GE Vote
+                <button class="vote-action-btn" onclick="handleVoteClick('${escapeAttr(mName)}', 'GEToken', '${escapeAttr(mImg)}')">
+                    Vote
                 </button>`;
         }
-        if (campaignEnableGift) {
+        // Gift เปิดได้เฉพาะกิจกรรมสกุล Gift (บังคับด้วย trigger ฝั่ง DB) จึงไม่มีกรณีปุ่มซ้ำกับ Token
+        if (campaignEnableGift && !buttons) {
             buttons += `
-                <button class="gift-action-btn" onclick="openGiftModal('${escapeAttr(mName)}', '${escapeAttr(mImg)}')">
-                    Gift
+                <button class="vote-action-btn" onclick="openGiftModal('${escapeAttr(mName)}', '${escapeAttr(mImg)}')">
+                    Vote
                 </button>`;
         }
         return buttons;
@@ -651,7 +651,7 @@
         container.innerHTML = `<div class="ranking-heading">${escapeHtml(campaignTitle || 'Major Vote')}</div>${rows}`;
     }
 
-    // กด Vote / GE Vote แล้วไปหน้าโหวตแยก (majorvote_vote): เลือกจำนวน > Confirm transaction > Submission completed > Thank you card
+    // กด Vote (Token / GE Token) แล้วไปหน้าโหวตแยก (majorvote_vote): เลือกจำนวน > Confirm transaction > Submission completed > Thank you card
     function handleVoteClick(candidateName, tokenType, candidateImg) {
         tokenType = tokenType === 'GEToken' ? 'GEToken' : 'Token';
 
@@ -779,6 +779,7 @@
 
         document.getElementById('gift-modal-target').textContent = candidateName;
         document.getElementById('gift-modal-avatar').src = fixSecureImageUrl(candidateImg);
+        document.getElementById('gift-modal-avatar').style.setProperty('--frame', groupFrameColor(candidateName));
         document.getElementById('gift-modal-overlay').style.display = 'flex';
         document.getElementById('gift-tabs').innerHTML = '';
         document.getElementById('gift-dots').innerHTML = '';

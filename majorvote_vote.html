@@ -30,7 +30,7 @@
         :root {
             --primary-pink: #ff85a2;
             --vote-yellow: #ffd76e;
-            --ring-yellow: #ffc107; /* สีเหลืองประจำวง BLM48 */
+            --ring-yellow: #ffde5b; /* สีกรอบประจำวง (BLM48 ค่าเริ่มต้น, เปลี่ยนตามวงของผู้สมัครใน JS) */
             --done-green: #2eb872;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -159,7 +159,7 @@
     <div class="thank-overlay" id="thank-overlay" onclick="closeThankCard()">
         <div class="thank-wrap" onclick="event.stopPropagation()">
             <button type="button" class="thank-close" onclick="closeThankCard()" title="ปิด"><i class="fa-solid fa-xmark"></i></button>
-            <img id="thank-card" class="thank-card" src="" alt="Thank You Card" onerror="closeThankCard()">
+            <img id="thank-card" class="thank-card" alt="Thank You Card" onerror="if (document.getElementById('thank-overlay').classList.contains('show')) closeThankCard();">
         </div>
         <a class="thank-history" href="history" onclick="event.stopPropagation()"><i class="fa-solid fa-circle-info"></i> See transaction history</a>
     </div>
@@ -412,6 +412,7 @@
         avatar.src = fixSecureImageUrl(candidateImg);
         avatar.onerror = () => { avatar.src = BLANK_IMG; };
         avatar.alt = candidateName;
+        document.documentElement.style.setProperty('--ring-yellow', groupFrameColor(candidateName));
 
         const coin = document.getElementById('token-coin');
         coin.classList.toggle('ge', tokenType === 'GEToken');

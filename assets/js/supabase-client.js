@@ -701,6 +701,25 @@ function blm48AdminSetVoteAdminOnly(adminUsername, collectionId, adminOnly) {
 function blm48AdminUpdateVoteCover(adminUsername, collectionId, coverImage) {
   return blm48Rpc('admin_update_vote_cover', { p_admin_username: adminUsername, p_collection_id: collectionId, p_cover_image: coverImage });
 }
+// หน้ารายละเอียดกิจกรรมโหวต (admin_vote_event.html): ดู / แก้ไข / เพิ่มผู้สมัคร
+function blm48AdminGetVoteEvent(adminUsername, collectionId) {
+  return blm48Rpc('admin_get_vote_event', { p_admin_username: adminUsername, p_collection_id: collectionId });
+}
+function blm48AdminUpdateVoteEventDetails(adminUsername, collectionId, ev) {
+  return blm48Rpc('admin_update_vote_event_details', {
+    p_admin_username: adminUsername, p_collection_id: collectionId, p_title: ev.title, p_description: ev.description,
+    p_start_time: ev.startTime, p_end_time: ev.endTime, p_enable_gift: !!ev.enableGift
+  });
+}
+function blm48AdminAddVoteCandidates(adminUsername, collectionId, candidates) {
+  return blm48Rpc('admin_add_vote_candidates', { p_admin_username: adminUsername, p_collection_id: collectionId, p_candidates: candidates });
+}
+function blm48AdminUpdateVoteCandidateCard(adminUsername, candidateId, thankYouCard) {
+  return blm48Rpc('admin_update_vote_candidate_card', { p_admin_username: adminUsername, p_candidate_id: candidateId, p_thank_you_card: thankYouCard || null });
+}
+function blm48AdminRemoveVoteCandidate(adminUsername, candidateId) {
+  return blm48Rpc('admin_remove_vote_candidate', { p_admin_username: adminUsername, p_candidate_id: candidateId });
+}
 // ผลด่วน: อันดับคะแนน ณ เวลาที่ตั้งไว้ เก็บหลังบ้านเท่านั้น (แอดมินดูย้อนหลังได้ หน้าบ้านไม่แสดง)
 function blm48AdminListVoteCheckpoints(adminUsername, collectionId) {
   return blm48Rpc('admin_list_vote_checkpoints', { p_admin_username: adminUsername, p_collection_id: collectionId });

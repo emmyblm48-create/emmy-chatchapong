@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership | จัดการกิจกรรมโหวต</title>
+    <title>BLM48 Membership | Vote Events</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -17,7 +17,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/glassmorphism.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
@@ -74,7 +73,8 @@
         .cc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 
         /* รูปกิจกรรม (รูปปก 2:1 แบบหน้าโหวตฝั่งผู้ใช้) */
-        .cc-cover { position: relative; width: 100%; aspect-ratio: 2 / 1; border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+        /* รูปปกเต็มความกว้างจอ (เลยขอบ 12px ของหน้า) */
+        .cc-cover { position: relative; width: calc(100% + 24px); margin-left: -12px; aspect-ratio: 2 / 1; border-radius: 0; overflow: hidden; margin-bottom: 12px;
             background: linear-gradient(135deg, #fff8e1 0%, #ffe9a8 100%); }
         .cc-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .cc-cover-empty { position: absolute; inset: 0; border: 1.5px dashed #ffd36b; border-radius: 12px; background: #fffbf0;
@@ -83,8 +83,11 @@
         .cc-cover-empty i { font-size: 22px; color: #f59f00; }
         .cc-cover-btn { position: absolute; right: 8px; bottom: 8px; border: none; border-radius: 16px; padding: 6px 12px;
             background: rgba(0,0,0,0.55); color: #fff; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
-        .cc-cover.uploading::after { content: "กำลังอัปโหลด..."; position: absolute; inset: 0; background: rgba(255,255,255,0.8);
+        .cc-cover.uploading::after { content: "Uploading..."; position: absolute; inset: 0; background: rgba(255,255,255,0.8);
             display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #666; }
+        a.cc-link { display: block; text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s; }
+        a.cc-link:active { transform: scale(0.99); }
+        .cc-open { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--primary-pink); }
         .cc-title { font-weight: 700; font-size: 15px; color: #333; }
         .cc-id { font-size: 11px; color: #aaa; margin-top: 2px; word-break: break-all; }
         .status-pill { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
@@ -136,87 +139,28 @@
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
 
-        /* ฟอร์มสร้างกิจกรรมโหวตใหม่ */
-        .btn-toggle-create {
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            width: 100%; border: none; border-radius: 20px; padding: 12px;
-            background: var(--soft-pink); color: var(--primary-pink); font-weight: 700; font-size: 13.5px;
-            font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer; margin-bottom: 16px;
-        }
-        .form-card {
-            display: none;
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border); border-radius: 16px;
-            padding: 18px 16px; box-shadow: var(--glass-shadow-sm);
-            margin-bottom: 18px;
-        }
-        .form-card.show { display: block; }
-        .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-        .form-field > label { font-size: 13px; color: #666; font-weight: 600; }
-        .form-field input[type=text], .form-field input[type=datetime-local], .form-field textarea, .form-field select {
-            border: 1px solid var(--glass-border); border-radius: 12px; width: 100%;
-            padding: 11px 14px; font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif;
-            color: var(--text-dark); background: rgba(255, 255, 255, 0.7);
-        }
-        .form-field textarea { min-height: 90px; resize: vertical; }
-        .form-field input:focus, .form-field textarea:focus, .form-field select:focus { outline: none; border-color: var(--primary-pink); }
-        .form-row-2 { display: flex; gap: 10px; }
-        .form-row-2 .form-field { flex: 1; min-width: 0; }
-        @media (max-width: 420px) { .form-row-2 { flex-direction: column; gap: 0; } }
-        .form-msg { border-radius: 12px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 14px; display: none; }
-        .form-msg.error { background: #ffeef0; color: #ff5c7a; display: block; }
-        .check-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
-
-        .cover-picker { display: flex; align-items: center; gap: 10px; }
-        .cover-preview { width: 120px; aspect-ratio: 2 / 1; border-radius: 10px; object-fit: cover; background: #f4f4f4; border: 1px solid var(--glass-border); display: none; }
-        .btn-file {
-            border: 1px dashed var(--primary-pink); color: var(--primary-pink); background: none;
-            border-radius: 20px; padding: 8px 14px; cursor: pointer; font-size: 12.5px; font-family: 'Quicksand', 'Kanit', sans-serif;
-        }
-
-        .member-tools { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
-        .member-tools input { flex: 1 1 160px; }
-        .chip-btn { border: 1px solid #ececec; background: #fafafa; color: #666; border-radius: 16px; padding: 6px 12px; font-size: 12px; font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer; white-space: nowrap; }
-        .member-pick-list { max-height: 300px; overflow-y: auto; border: 1px solid var(--glass-border); border-radius: 12px; background: rgba(255,255,255,0.5); }
-        .member-pick { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid #f3f3f3; cursor: pointer; }
-        .member-pick:last-child { border-bottom: none; }
-        .member-pick img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid #ffc107; flex-shrink: 0; }
-        .member-pick .mp-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: #333; }
-        .member-pick .mp-group { font-size: 11px; color: #aaa; font-weight: 500; }
-        .member-pick.inactive .mp-name { color: #aaa; }
-
-        .selected-cands { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-        .sel-cand { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--glass-border); border-radius: 12px; padding: 8px 10px; }
-        .sel-cand img.av { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid #ffc107; flex-shrink: 0; }
-        .sel-cand .sc-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .sel-cand .ty-thumb { width: 30px; height: 40px; object-fit: cover; border-radius: 4px; background: #f4f4f4; display: none; }
-        .sel-cand .ty-btn { border: 1px dashed #ffb877; color: #a85d00; background: none; border-radius: 14px; padding: 5px 10px; font-size: 11.5px; font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer; white-space: nowrap; }
-        .sel-cand .rm { background: none; border: none; color: #ff5c7a; cursor: pointer; font-size: 15px; }
         .section-heading { font-size: 14px; font-weight: 700; color: #333; margin: 6px 0 10px; }
 
-        /* ผลด่วน (เก็บหลังบ้านเท่านั้น) */
-        .cp-hint { font-size: 11.5px; color: #999; line-height: 1.6; }
-        .cp-add-row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .cp-add-row input { flex: 1 1 150px; border: 1px solid var(--glass-border); border-radius: 12px; padding: 9px 12px; font-size: 13.5px; font-family: 'Quicksand', 'Kanit', sans-serif; color: var(--text-dark); background: rgba(255,255,255,0.7); min-width: 0; }
-        .cp-add-row button { flex: 0 0 auto; }
-        .cp-chips { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-        .cp-chip { display: flex; align-items: center; gap: 8px; background: #f7f3ff; border: 1px solid #e3d9ff; color: #5b3fa8; border-radius: 12px; padding: 7px 10px; font-size: 12.5px; }
-        .cp-chip span { flex: 1; min-width: 0; }
-        .cp-chip button { background: none; border: none; color: #ff5c7a; cursor: pointer; }
-        .btn-checkpoints { width: 100%; margin-bottom: 10px; border: 1px solid #e3d9ff; background: #f7f3ff; color: #5b3fa8; border-radius: 20px; padding: 9px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
-
+        /* ปุ่มลอย + มุมขวาล่าง -> หน้าสร้างกิจกรรมโหวต */
+        .fab-create {
+            position: fixed; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom)); z-index: 200;
+            width: 58px; height: 58px; border-radius: 50%;
+            background: #ffc107; color: #222; font-size: 24px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+            box-shadow: 0 6px 18px rgba(255, 170, 0, 0.45); transition: transform 0.15s;
+        }
+        .fab-create:active { transform: scale(0.94); }
+        #campaign-list { padding-bottom: 80px; }
     </style>
     <link rel="stylesheet" href="assets/css/admin-theme.css">
 </head>
 <body>
 
 <div class="top-navigation-bar">
-    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="Back">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
-    <div class="top-bar-title">จัดการกิจกรรมโหวต</div>
+    <div class="top-bar-title">Vote Events</div>
 </div>
 
 <div class="page-wrapper">
@@ -227,12 +171,12 @@
 
     <div id="page-content">
         <div class="header-title-zone">
-            <h1><i class="fa-solid fa-crown"></i> จัดการกิจกรรมโหวต</h1>
-            <p>สร้างกิจกรรมโหวตใหม่ เลือกโหมด Token และเปิด/ปิดโหวตของแต่ละกิจกรรม Major Vote</p>
+            <h1><i class="fa-solid fa-crown"></i> Vote Events</h1>
+            <p>Tap an event to view, edit or add candidates · tap + to create a new one</p>
         </div>
 
         <div class="menu-section" style="margin-bottom:16px;">
-            <a class="menu-item" href="admin_votes_access"><div class="menu-icon icon-purple"><i class="fas fa-clock-rotate-left"></i></div><span class="menu-text">ประวัติการเข้าหน้านี้<span class="menu-sub">ใครเข้ามาเมื่อไหร่ และการใส่ PIN ผิด</span></span><i class="fas fa-chevron-right menu-arrow"></i></a>
+            <a class="menu-item" href="admin_votes_access"><div class="menu-icon icon-purple"><i class="fas fa-clock-rotate-left"></i></div><span class="menu-text">Access History<span class="menu-sub">ใครเข้ามาเมื่อไหร่ และการใส่ PIN ผิด</span></span><i class="fas fa-chevron-right menu-arrow"></i></a>
         </div>
 
         <div class="mode-legend">
@@ -242,102 +186,11 @@
             <div style="margin-top:4px; color:#999;">ระบบคืน Token อัตโนมัติทันทีที่เปลี่ยนสถานะเป็น Closed · คะแนนโหวตของเมมเบอร์ไม่ลดลง · คนที่โหวตไปแล้วได้คืนตามโหมดตอนที่โหวต</div>
         </div>
 
-        <button class="btn-toggle-create" id="toggle-create-btn" onclick="toggleCreateForm()">
-            <i class="fas fa-plus"></i> สร้างกิจกรรมโหวตใหม่
-        </button>
+        <a class="fab-create" href="admin_vote_create" aria-label="Create Vote Event" title="Create Vote Event"><i class="fas fa-plus"></i></a>
 
-        <div class="form-card" id="create-form">
-            <div id="form-msg" class="form-msg"></div>
-
-            <div class="form-field">
-                <label>ชื่อกิจกรรมโหวต</label>
-                <input id="ev-title" type="text" maxlength="120" placeholder="เช่น BLM48 Tanabata 2027">
-            </div>
-            <div class="form-field">
-                <label>รายละเอียด (ไม่บังคับ)</label>
-                <textarea id="ev-desc" placeholder="อธิบายกิจกรรม ระยะเวลาโหวต รางวัล ฯลฯ"></textarea>
-            </div>
-            <div class="form-field">
-                <label>รูปปก (สัดส่วน 2:1, ไม่บังคับ)</label>
-                <div class="cover-picker">
-                    <img id="ev-cover-preview" class="cover-preview" alt="">
-                    <button type="button" class="btn-file" onclick="document.getElementById('ev-cover-file').click()"><i class="fa-solid fa-image"></i> เลือกรูป</button>
-                    <input id="ev-cover-file" type="file" accept="image/*" style="display:none;" onchange="onCoverPicked(this)">
-                </div>
-            </div>
-            <div class="form-row-2">
-                <div class="form-field">
-                    <label>วันเริ่ม (ไม่บังคับ)</label>
-                    <input id="ev-start" type="datetime-local">
-                </div>
-                <div class="form-field">
-                    <label>วันสิ้นสุด (ไม่บังคับ)</label>
-                    <input id="ev-end" type="datetime-local">
-                </div>
-            </div>
-            <div class="form-row-2">
-                <div class="form-field">
-                    <label>สกุลที่ใช้โหวต</label>
-                    <select id="ev-token-type" onchange="onTokenTypeChange()">
-                        <option value="token">Token</option>
-                        <option value="getoken">GE Token</option>
-                        <option value="gift">Gift (Cookie)</option>
-                    </select>
-                </div>
-                <div class="form-field">
-                    <label>สถานะเริ่มต้น</label>
-                    <select id="ev-status">
-                        <option value="Open">Open (เปิดรับโหวตทันที)</option>
-                        <option value="Closed">Closed (ยังไม่เปิด)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-field">
-                <label class="check-label"><input id="ev-admin-only" type="checkbox"> กิจกรรมทดสอบ: เห็นและโหวตได้เฉพาะแอดมิน</label>
-            </div>
-            <div class="form-field" id="ev-gift-field">
-                <label class="check-label"><input id="ev-enable-gift" type="checkbox"> เปิดให้ส่ง Gift (Cookie) เป็นคะแนนเพิ่มได้ด้วย</label>
-            </div>
-            <div class="form-field" id="ev-mode-field">
-                <label>โหมด Token</label>
-                <div class="mode-seg" id="ev-mode-seg"></div>
-                <div class="pct-row" id="ev-pct-row">
-                    คืน <input id="ev-pct" type="number" min="1" max="99" step="1" placeholder="เช่น 30"> % เมื่อปิดโหวต
-                </div>
-            </div>
-
-            <div class="form-field">
-                <label>ผู้สมัคร (<span id="ev-cand-count">0</span> คน)</label>
-                <div class="member-tools">
-                    <input id="ev-member-search" type="text" placeholder="ค้นหาชื่อเมมเบอร์..." oninput="renderMemberPicker()">
-                    <button type="button" class="chip-btn" onclick="selectAllVisibleMembers()">เลือกทั้งหมดที่แสดง</button>
-                    <button type="button" class="chip-btn" onclick="clearSelectedMembers()">ล้าง</button>
-                </div>
-                <div class="member-pick-list" id="ev-member-list">
-                    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดรายชื่อ...</div>
-                </div>
-                <div class="selected-cands" id="ev-selected"></div>
-            </div>
-
-            <div class="form-field">
-                <label>ผลด่วน (ไม่บังคับ)</label>
-                <div class="cp-hint"><i class="fa-solid fa-lock"></i> ระบบจะเก็บอันดับคะแนน ณ เวลาที่ตั้งไว้ <b>ไว้หลังบ้านเท่านั้น</b> ดูย้อนหลังได้ในหน้านี้ หน้าบ้านจะแสดงแค่ผล Final ตอนปิดโหวต</div>
-                <div class="cp-add-row" style="margin-top:8px;">
-                    <input id="ev-cp-at" type="datetime-local">
-                    <input id="ev-cp-label" type="text" maxlength="60" placeholder="ชื่อเรียก เช่น ผลด่วน 1">
-                    <button type="button" class="chip-btn" onclick="addNewEventCheckpoint()"><i class="fas fa-plus"></i> เพิ่ม</button>
-                </div>
-                <div class="cp-chips" id="ev-cp-chips"></div>
-            </div>
-
-            <button class="btn-primary" id="create-event-btn" onclick="submitCreateEvent()">
-                <i class="fas fa-check"></i> สร้างกิจกรรมโหวต
-            </button>
-        </div>
-
-        <div class="section-heading">กิจกรรมโหวตทั้งหมด</div>
+        <div class="section-heading">All Events</div>
         <div class="campaign-list" id="campaign-list">
-            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
         </div>
     </div>
 </div>
@@ -345,8 +198,6 @@
 <script>
   let user = null;
   let campaignCache = [];
-  // ค่าที่แอดมินกำลังแก้อยู่ (ยังไม่บันทึก) แยกตามกิจกรรม
-  const drafts = {};
   const MODE_LABELS = { burn: 'Burned', lock: 'Locked', partial: 'Partially Burned' };
   const TOKEN_LABELS = { token: 'Token', getoken: 'GE Token', gift: 'Gift (Cookie)', cookie: 'Cookie' };
 
@@ -367,13 +218,6 @@
       const res = await blm48AdminListVoteCampaigns(user.username);
       if (!res || res.status !== 'success') { list.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
       campaignCache = res.data || [];
-      campaignCache.forEach(c => {
-        drafts[c.voteCollectionId] = {
-          mechanic: c.tokenMechanic || 'burn',
-          pct: Number(c.refundPercent) || 0,
-          status: isOpenStatus(c.status) ? 'Open' : 'Closed'
-        };
-      });
       renderCampaigns();
     } catch (e) {
       list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
@@ -383,61 +227,39 @@
   function renderCampaigns() {
     const list = document.getElementById('campaign-list');
     if (campaignCache.length === 0) {
-      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-crown"></i>ยังไม่มีกิจกรรมโหวตในระบบ</div>`;
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-crown"></i>No vote events yet</div>`;
       return;
     }
-    list.innerHTML = campaignCache.map((c, i) => {
-      const d = drafts[c.voteCollectionId];
+    // กดการ์ด -> หน้ารายละเอียดของกิจกรรมนั้น (ดู / แก้ไข / เพิ่มผู้สมัคร)
+    list.innerHTML = campaignCache.map(c => {
       const open = isOpenStatus(c.status);
       const tokenType = String(c.tokenType || '').toLowerCase();
-      const isGift = tokenType === 'gift';
-      const modeBtn = (m) => `<button type="button" class="mode-btn ${m} ${d.mechanic === m ? 'active' : ''}" onclick="setMode(${i}, '${m}')">${MODE_LABELS[m]}</button>`;
+      const modeText = tokenType === 'gift' ? '' : (c.tokenMechanic === 'partial' ? `Partially Burned ${fmt(c.refundPercent)}%` : MODE_LABELS[c.tokenMechanic || 'burn']);
       return `
-        <div class="campaign-card">
-          <div class="cc-cover" id="cc-cover-${i}">
+        <a class="campaign-card cc-link" href="admin_vote_event?id=${encodeURIComponent(c.voteCollectionId)}">
+          <div class="cc-cover">
             ${c.coverImage
-              ? `<img src="${escapeAttr(fixCoverUrl(c.coverImage))}" alt="${escapeAttr(c.title || '')}" onerror="this.style.display='none'">
-                 <button type="button" class="cc-cover-btn" onclick="pickEventCover(${i})"><i class="fa-solid fa-camera"></i> เปลี่ยนรูป</button>`
-              : `<button type="button" class="cc-cover-empty" onclick="pickEventCover(${i})"><i class="fa-solid fa-image"></i> แนบรูปกิจกรรม</button>`}
-            <input type="file" id="cc-cover-file-${i}" accept="image/*" style="display:none;" onchange="uploadEventCover(${i}, this)">
+              ? `<img src="${escapeAttr(fixCoverUrl(c.coverImage))}" alt="${escapeAttr(c.title || '')}" onerror="this.style.display='none'">`
+              : `<div class="cc-cover-empty"><i class="fa-solid fa-image"></i> No cover image</div>`}
           </div>
           <div class="cc-head">
             <div style="min-width:0;">
               <div class="cc-title">${escapeHtml(c.title || c.voteCollectionId)}</div>
-              <div class="cc-id">${escapeHtml(c.voteCollectionId)} · ${escapeHtml(TOKEN_LABELS[tokenType] || c.tokenType || '-')}</div>
+              <div class="cc-id">${escapeHtml(TOKEN_LABELS[tokenType] || c.tokenType || '-')}${modeText ? ' · ' + escapeHtml(modeText) : ''}</div>
             </div>
             <div style="display:flex; gap:6px; flex:0 0 auto;">
               ${c.adminOnly ? '<span class="status-pill test">TEST</span>' : ''}
               <span class="status-pill ${open ? 'open' : 'closed'}">${open ? 'OPEN' : 'CLOSED'}</span>
             </div>
           </div>
-
-          <label class="check-label" style="margin-bottom:12px;"><input type="checkbox" ${c.adminOnly ? 'checked' : ''} onchange="toggleAdminOnly(${i}, this)"> กิจกรรมทดสอบ: เห็นและโหวตได้เฉพาะแอดมิน</label>
-
           <div class="cc-stats">
-            <div class="cc-stat"><div class="v">${fmt(c.voterCount)}</div><div class="k">คนโหวต</div></div>
-            <div class="cc-stat"><div class="v">${fmt(c.tokensUsed)}</div><div class="k">Token ที่ใช้</div></div>
-            <div class="cc-stat"><div class="v">${fmt(c.pendingRefund)}</div><div class="k">รอคืน</div></div>
-            <div class="cc-stat"><div class="v">${fmt(c.refunded)}</div><div class="k">คืนแล้ว</div></div>
+            <div class="cc-stat"><div class="v">${fmt(c.voterCount)}</div><div class="k">Voters</div></div>
+            <div class="cc-stat"><div class="v">${fmt(c.tokensUsed)}</div><div class="k">Tokens Used</div></div>
+            <div class="cc-stat"><div class="v">${fmt(c.pendingRefund)}</div><div class="k">Pending Refund</div></div>
+            <div class="cc-stat"><div class="v">${fmt(c.refunded)}</div><div class="k">Refunded</div></div>
           </div>
-
-          <div class="field-label">โหมด Token</div>
-          <div class="mode-seg">${modeBtn('burn')}${modeBtn('lock')}${modeBtn('partial')}</div>
-          <div class="pct-row ${d.mechanic === 'partial' ? 'show' : ''}">
-            คืน <input type="number" min="1" max="99" step="1" value="${d.pct || ''}" placeholder="เช่น 30" oninput="setPct(${i}, this.value)"> % เมื่อปิดโหวต
-          </div>
-          ${isGift ? `<div class="cc-note"><i class="fa-solid fa-circle-info"></i> กิจกรรมนี้โหวตด้วย Gift (Cookie) ซึ่งไม่ได้ใช้โหมด Token — โหมดจะมีผลกับการโหวตด้วย Token / GE Token เท่านั้น</div>` : ''}
-
-          <button type="button" class="btn-checkpoints" onclick="window.location.href='admin_vote_results?id=' + encodeURIComponent('${escapeAttr(c.voteCollectionId)}')"><i class="fa-solid fa-stopwatch"></i> ผลด่วน (${fmt(c.checkpointCount)})</button>
-
-          <div class="field-label">สถานะ</div>
-          <select class="status-select" onchange="setStatus(${i}, this.value)">
-            <option value="Open" ${d.status === 'Open' ? 'selected' : ''}>Open (เปิดรับโหวต)</option>
-            <option value="Closed" ${d.status === 'Closed' ? 'selected' : ''}>Closed (ปิดโหวต + คืน Token)</option>
-          </select>
-
-          <button type="button" class="btn-primary" id="save-btn-${i}" onclick="saveCampaign(${i})"><i class="fas fa-check"></i> บันทึก</button>
-        </div>
+          <div class="cc-open">View · Edit · Candidates <i class="fas fa-chevron-right"></i></div>
+        </a>
       `;
     }).join('');
   }
@@ -449,416 +271,6 @@
     if (u.startsWith('http://')) u = u.replace('http://', 'https://');
     const m = u.includes('drive.google.com') && u.match(/\/d\/([^/]+)/);
     return m ? `https://docs.google.com/uc?export=view&id=${m[1]}` : u;
-  }
-
-  function pickEventCover(i) {
-    document.getElementById('cc-cover-file-' + i).click();
-  }
-
-  // แนบ/เปลี่ยนรูปกิจกรรม: อัปโหลดเข้า Storage แล้วบันทึก URL ลงกิจกรรมทันที
-  async function uploadEventCover(i, input) {
-    const file = input.files && input.files[0];
-    input.value = '';
-    const c = campaignCache[i];
-    if (!c || !validImageFile(file)) return;
-    const box = document.getElementById('cc-cover-' + i);
-    box.classList.add('uploading');
-    try {
-      const url = await blm48UploadPostImage(user.username, file);
-      const res = await blm48AdminUpdateVoteCover(user.username, c.voteCollectionId, url);
-      if (!res || res.status !== 'success') throw new Error((res && res.message) || 'บันทึกรูปไม่สำเร็จ');
-      c.coverImage = url;
-      renderCampaigns();
-    } catch (e) {
-      console.error('Upload event cover error:', e);
-      box.classList.remove('uploading');
-      Swal.fire('เปลี่ยนรูปไม่สำเร็จ', e.message || 'กรุณาลองใหม่อีกครั้ง', 'error');
-    }
-  }
-
-  function setMode(i, mechanic) {
-    const c = campaignCache[i];
-    drafts[c.voteCollectionId].mechanic = mechanic;
-    renderCampaigns();
-  }
-  function setPct(i, value) {
-    drafts[campaignCache[i].voteCollectionId].pct = value === '' ? 0 : Number(value);
-  }
-  function setStatus(i, value) {
-    drafts[campaignCache[i].voteCollectionId].status = value;
-  }
-
-  async function saveCampaign(i) {
-    const c = campaignCache[i];
-    const d = drafts[c.voteCollectionId];
-    const wasOpen = isOpenStatus(c.status);
-    const pct = d.mechanic === 'partial' ? d.pct : 0;
-
-    if (d.mechanic === 'partial' && (!Number.isInteger(pct) || pct < 1 || pct > 99)) {
-      Swal.fire('กรุณากำหนด %', 'Partially Burned ต้องกำหนด % ที่คืนเป็นจำนวนเต็ม 1–99', 'warning');
-      return;
-    }
-
-    // ยืนยันก่อนทำรายการที่ย้อนกลับไม่ได้ / มีผลกับคนที่โหวตไปแล้ว
-    const notes = [];
-    const modeChanged = d.mechanic !== (c.tokenMechanic || 'burn') || pct !== (Number(c.refundPercent) || 0);
-    if (modeChanged && Number(c.voteCount) > 0) {
-      notes.push('มีคนโหวตไปแล้ว — คนที่โหวตก่อนหน้านี้ยังได้คืนตามโหมดเดิมตอนที่โหวต โหมดใหม่มีผลกับการโหวตครั้งถัดไปเท่านั้น');
-    }
-    if (wasOpen && d.status === 'Closed') {
-      notes.push(Number(c.pendingRefund) > 0
-        ? `ปิดโหวตแล้วระบบจะคืน Token ประมาณ <b>${fmt(c.pendingRefund)}</b> ให้ผู้โหวต ${fmt(c.voterCount)} คนทันที (ย้อนกลับไม่ได้)`
-        : 'ปิดโหวตกิจกรรมนี้ (ไม่มี Token ที่ต้องคืน)');
-    }
-    const modeText = d.mechanic === 'partial' ? `Partially Burned (คืน ${pct}%)` : MODE_LABELS[d.mechanic];
-    const confirm = await Swal.fire({
-      title: 'บันทึกการตั้งค่า?',
-      html: `<b>${escapeHtml(c.title || c.voteCollectionId)}</b><br>โหมด: ${modeText} · สถานะ: ${d.status}` +
-            (notes.length ? `<div style="text-align:left; font-size:13px; margin-top:12px; color:#8a4b00;">${notes.map(n => '• ' + n).join('<br>')}</div>` : ''),
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#ff85a2',
-      confirmButtonText: 'บันทึก',
-      cancelButtonText: 'ยกเลิก'
-    });
-    if (!confirm.isConfirmed) return;
-
-    const btn = document.getElementById('save-btn-' + i);
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
-    try {
-      const res = await blm48AdminUpdateVoteCampaign(user.username, c.voteCollectionId, d.mechanic, pct, d.status);
-      if (res && res.status === 'success') {
-        const refundText = Number(res.refundedTotal) > 0 ? `คืน Token ${fmt(res.refundedTotal)} ให้ ${fmt(res.refundedUsers)} คนแล้ว` : '';
-        await Swal.fire({ icon: 'success', title: 'บันทึกเรียบร้อย', text: refundText, timer: refundText ? 2500 : 1200, showConfirmButton: false });
-      } else {
-        await Swal.fire('เกิดข้อผิดพลาด', (res && res.message) || 'ไม่สามารถบันทึกได้', 'error');
-      }
-    } catch (e) {
-      await Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
-    }
-    loadCampaigns();
-  }
-
-  // =========================================================
-  // ➕ สร้างกิจกรรมโหวตใหม่
-  // =========================================================
-  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-  let voteMembers = [];          // จากตาราง members
-  let voteMembersLoaded = false;
-  let selectedCands = [];        // [{ name, profile, tyFile, tyPreview }]
-  let coverFile = null;
-  let newEventMode = 'burn';
-
-  function showFormError(msg) {
-    const el = document.getElementById('form-msg');
-    el.textContent = msg;
-    el.classList.add('error');
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-  function clearFormError() {
-    const el = document.getElementById('form-msg');
-    el.textContent = '';
-    el.classList.remove('error');
-  }
-
-  function toggleCreateForm(forceOpen) {
-    const form = document.getElementById('create-form');
-    const shouldShow = forceOpen !== undefined ? forceOpen : !form.classList.contains('show');
-    form.classList.toggle('show', shouldShow);
-    if (shouldShow) {
-      renderNewEventMode();
-      onTokenTypeChange();
-      if (!voteMembersLoaded) loadVoteMembers();
-    }
-  }
-
-  // ชื่อผู้สมัครตามรูปแบบเดิมของระบบ "ชื่อ กลุ่ม" เช่น "Emmy BLM48" (หน้าโหวตใช้คำท้ายเป็นแท็บกลุ่ม)
-  function candidateNameOf(m) {
-    return [m.name, m.group].filter(Boolean).join(' ').trim();
-  }
-
-  async function loadVoteMembers() {
-    const list = document.getElementById('ev-member-list');
-    try {
-      const res = await blm48AdminListVoteMembers(user.username);
-      if (!res || res.status !== 'success') { list.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดรายชื่อไม่สำเร็จ')}</div>`; return; }
-      voteMembers = res.data || [];
-      voteMembersLoaded = true;
-      renderMemberPicker();
-    } catch (e) {
-      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
-    }
-  }
-
-  function getVisibleMembers() {
-    const q = document.getElementById('ev-member-search').value.trim().toLowerCase();
-    return voteMembers.filter(m => !q || candidateNameOf(m).toLowerCase().includes(q));
-  }
-
-  function isSelected(name) { return selectedCands.some(c => c.name.toLowerCase() === name.toLowerCase()); }
-
-  function renderMemberPicker() {
-    const list = document.getElementById('ev-member-list');
-    if (!voteMembersLoaded) return;
-    const visible = getVisibleMembers();
-    if (visible.length === 0) {
-      list.innerHTML = `<div class="empty-state" style="padding:20px;">ไม่พบเมมเบอร์</div>`;
-      return;
-    }
-    list.innerHTML = visible.map(m => {
-      const name = candidateNameOf(m);
-      const inactive = m.status && String(m.status).toLowerCase() !== 'active';
-      return `
-        <label class="member-pick ${inactive ? 'inactive' : ''}">
-          <input type="checkbox" ${isSelected(name) ? 'checked' : ''} onchange="toggleMemberPick('${escapeAttr(name)}', this.checked)">
-          <img src="${escapeAttr(m.profileImg || '')}" alt="" onerror="this.style.visibility='hidden'">
-          <span class="mp-name">${escapeHtml(m.name)} <span class="mp-group">${escapeHtml(m.group || '')}${inactive ? ' · ' + escapeHtml(m.status) : ''}</span></span>
-        </label>`;
-    }).join('');
-  }
-
-  function toggleMemberPick(name, checked) {
-    if (checked && !isSelected(name)) {
-      const m = voteMembers.find(x => candidateNameOf(x).toLowerCase() === name.toLowerCase());
-      selectedCands.push({ name, profile: m ? (m.profileImg || '') : '', tyFile: null, tyPreview: '' });
-    } else if (!checked) {
-      selectedCands = selectedCands.filter(c => c.name.toLowerCase() !== name.toLowerCase());
-    }
-    renderSelectedCands();
-  }
-
-  function selectAllVisibleMembers() {
-    getVisibleMembers().forEach(m => {
-      const name = candidateNameOf(m);
-      if (!isSelected(name)) selectedCands.push({ name, profile: m.profileImg || '', tyFile: null, tyPreview: '' });
-    });
-    renderMemberPicker();
-    renderSelectedCands();
-  }
-
-  function clearSelectedMembers() {
-    selectedCands = [];
-    renderMemberPicker();
-    renderSelectedCands();
-  }
-
-  function removeSelectedCand(i) {
-    selectedCands.splice(i, 1);
-    renderMemberPicker();
-    renderSelectedCands();
-  }
-
-  function renderSelectedCands() {
-    document.getElementById('ev-cand-count').textContent = selectedCands.length;
-    const box = document.getElementById('ev-selected');
-    box.innerHTML = selectedCands.map((c, i) => `
-      <div class="sel-cand">
-        <img class="av" src="${escapeAttr(c.profile)}" alt="" onerror="this.style.visibility='hidden'">
-        <span class="sc-name">${escapeHtml(c.name)}</span>
-        <img class="ty-thumb" src="${escapeAttr(c.tyPreview)}" alt="" style="${c.tyPreview ? 'display:block;' : ''}">
-        <button type="button" class="ty-btn" onclick="document.getElementById('ty-file-${i}').click()">${c.tyFile ? 'เปลี่ยน' : '+'} Thank You Card</button>
-        <input id="ty-file-${i}" type="file" accept="image/*" style="display:none;" onchange="onThankYouPicked(${i}, this)">
-        <button type="button" class="rm" onclick="removeSelectedCand(${i})" aria-label="ลบ"><i class="fas fa-xmark"></i></button>
-      </div>
-    `).join('');
-  }
-
-  function readPreview(file) {
-    return new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = () => resolve('');
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function validImageFile(file) {
-    if (!file) return false;
-    if (!file.type.startsWith('image/')) { Swal.fire('ไฟล์ไม่ถูกต้อง', 'กรุณาเลือกไฟล์รูปภาพ', 'warning'); return false; }
-    if (file.size > MAX_IMAGE_BYTES) { Swal.fire('ไฟล์ใหญ่เกินไป', 'รูปต้องมีขนาดไม่เกิน 5MB', 'warning'); return false; }
-    return true;
-  }
-
-  async function onCoverPicked(input) {
-    const file = input.files && input.files[0];
-    input.value = '';
-    if (!validImageFile(file)) return;
-    coverFile = file;
-    const img = document.getElementById('ev-cover-preview');
-    img.src = await readPreview(file);
-    img.style.display = 'block';
-  }
-
-  async function onThankYouPicked(i, input) {
-    const file = input.files && input.files[0];
-    input.value = '';
-    if (!validImageFile(file) || !selectedCands[i]) return;
-    selectedCands[i].tyFile = file;
-    selectedCands[i].tyPreview = await readPreview(file);
-    renderSelectedCands();
-  }
-
-  function renderNewEventMode() {
-    const seg = document.getElementById('ev-mode-seg');
-    seg.innerHTML = ['burn', 'lock', 'partial'].map(m =>
-      `<button type="button" class="mode-btn ${m} ${newEventMode === m ? 'active' : ''}" onclick="setNewEventMode('${m}')">${MODE_LABELS[m]}</button>`
-    ).join('');
-    document.getElementById('ev-pct-row').classList.toggle('show', newEventMode === 'partial');
-  }
-  function setNewEventMode(m) { newEventMode = m; renderNewEventMode(); }
-
-  // Gift (Cookie) ไม่ได้ใช้โหมด Token และเปิดรับ Gift อยู่แล้วในตัว -> ซ่อนสองช่องนี้
-  function onTokenTypeChange() {
-    const isGift = document.getElementById('ev-token-type').value === 'gift';
-    document.getElementById('ev-gift-field').style.display = isGift ? 'none' : '';
-    document.getElementById('ev-mode-field').style.display = isGift ? 'none' : '';
-  }
-
-  // ผลด่วนของกิจกรรมที่กำลังสร้าง: [{ at: ISO, label }]
-  let newEventCheckpoints = [];
-
-  function formatCpTime(ts) {
-    const d = new Date(ts);
-    if (isNaN(d.getTime())) return '-';
-    return d.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' });
-  }
-
-  function addNewEventCheckpoint() {
-    const atRaw = document.getElementById('ev-cp-at').value;
-    const label = document.getElementById('ev-cp-label').value.trim();
-    if (!atRaw) { Swal.fire('กรุณาเลือกวันเวลา', 'เลือกวันเวลาที่ต้องการเก็บผลด่วน', 'warning'); return; }
-    const at = new Date(atRaw).toISOString();
-    if (newEventCheckpoints.some(c => c.at === at)) { Swal.fire('เวลาซ้ำ', 'มีผลด่วนเวลานี้อยู่แล้วค่ะ', 'warning'); return; }
-    newEventCheckpoints.push({ at, label });
-    newEventCheckpoints.sort((a, b) => a.at.localeCompare(b.at));
-    document.getElementById('ev-cp-at').value = '';
-    document.getElementById('ev-cp-label').value = '';
-    renderNewEventCheckpoints();
-  }
-
-  function removeNewEventCheckpoint(i) {
-    newEventCheckpoints.splice(i, 1);
-    renderNewEventCheckpoints();
-  }
-
-  function renderNewEventCheckpoints() {
-    document.getElementById('ev-cp-chips').innerHTML = newEventCheckpoints.map((c, i) => `
-      <div class="cp-chip">
-        <i class="fa-solid fa-stopwatch"></i>
-        <span>${escapeHtml(formatCpTime(c.at))}${c.label ? ' · ' + escapeHtml(c.label) : ''}</span>
-        <button type="button" onclick="removeNewEventCheckpoint(${i})" aria-label="ลบ"><i class="fas fa-xmark"></i></button>
-      </div>
-    `).join('');
-  }
-
-  // สลับกิจกรรมทดสอบ (เห็นเฉพาะแอดมิน) <-> เปิดให้ทุกคน บันทึกทันที
-  async function toggleAdminOnly(i, el) {
-    const c = campaignCache[i];
-    const next = el.checked;
-    el.disabled = true;
-    try {
-      const res = await blm48AdminSetVoteAdminOnly(user.username, c.voteCollectionId, next);
-      if (res && res.status === 'success') {
-        c.adminOnly = next;
-        renderCampaigns();
-        return;
-      }
-      Swal.fire('บันทึกไม่สำเร็จ', (res && res.message) || 'กรุณาลองใหม่อีกครั้ง', 'error');
-    } catch (e) {
-      console.error('Toggle admin-only error:', e);
-      Swal.fire('บันทึกไม่สำเร็จ', 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'error');
-    }
-    el.checked = !next;
-    el.disabled = false;
-  }
-
-  function resetCreateForm() {
-    ['ev-title', 'ev-desc', 'ev-start', 'ev-end', 'ev-pct', 'ev-member-search', 'ev-cp-at', 'ev-cp-label'].forEach(id => { document.getElementById(id).value = ''; });
-    newEventCheckpoints = [];
-    renderNewEventCheckpoints();
-    document.getElementById('ev-token-type').value = 'token';
-    document.getElementById('ev-status').value = 'Open';
-    document.getElementById('ev-enable-gift').checked = false;
-    document.getElementById('ev-admin-only').checked = false;
-    document.getElementById('ev-cover-preview').style.display = 'none';
-    coverFile = null;
-    selectedCands = [];
-    newEventMode = 'burn';
-    renderNewEventMode();
-    onTokenTypeChange();
-    renderMemberPicker();
-    renderSelectedCands();
-  }
-
-  async function submitCreateEvent() {
-    clearFormError();
-    const title = document.getElementById('ev-title').value.trim();
-    const description = document.getElementById('ev-desc').value.trim();
-    const startRaw = document.getElementById('ev-start').value;
-    const endRaw = document.getElementById('ev-end').value;
-    const tokenType = document.getElementById('ev-token-type').value;
-    const status = document.getElementById('ev-status').value;
-    const isGift = tokenType === 'gift';
-    const enableGift = isGift || document.getElementById('ev-enable-gift').checked;
-    const mechanic = isGift ? 'burn' : newEventMode;
-    const pct = mechanic === 'partial' ? Number(document.getElementById('ev-pct').value) : 0;
-    const adminOnly = document.getElementById('ev-admin-only').checked;
-
-    if (!title) { showFormError('กรุณากรอกชื่อกิจกรรมโหวต'); return; }
-    if (startRaw && endRaw && new Date(endRaw) <= new Date(startRaw)) { showFormError('วันสิ้นสุดต้องอยู่หลังวันเริ่มกิจกรรม'); return; }
-    if (mechanic === 'partial' && (!Number.isInteger(pct) || pct < 1 || pct > 99)) { showFormError('Partially Burned ต้องกำหนด % ที่คืนเป็นจำนวนเต็ม 1–99'); return; }
-    if (selectedCands.length === 0) { showFormError('กรุณาเลือกผู้สมัครอย่างน้อย 1 คน'); return; }
-
-    const modeText = isGift ? 'Gift (Cookie)' : (mechanic === 'partial' ? `Partially Burned (คืน ${pct}%)` : MODE_LABELS[mechanic]);
-    const confirm = await Swal.fire({
-      title: 'สร้างกิจกรรมโหวตนี้?',
-      html: `<b>${escapeHtml(title)}</b><br>${escapeHtml(TOKEN_LABELS[tokenType])} · ${escapeHtml(modeText)} · ${escapeHtml(status)}<br>ผู้สมัคร ${selectedCands.length} คน${newEventCheckpoints.length ? ` · ผลด่วน ${newEventCheckpoints.length} ครั้ง` : ''}` +
-            (adminOnly
-              ? '<div style="font-size:13px; margin-top:10px; color:#8a4b00;">กิจกรรมทดสอบ: เห็นและโหวตได้เฉพาะแอดมิน</div>'
-              : (status === 'Open' ? '<div style="font-size:13px; margin-top:10px; color:#8a4b00;">สถานะ Open: ผู้ใช้เห็นและโหวตได้ทันที</div>' : '')),
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#ff85a2',
-      confirmButtonText: 'สร้าง',
-      cancelButtonText: 'ยกเลิก'
-    });
-    if (!confirm.isConfirmed) return;
-
-    const btn = document.getElementById('create-event-btn');
-    btn.disabled = true;
-    try {
-      // อัปโหลดรูปก่อน แล้วค่อยสร้างกิจกรรมพร้อม URL
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูป...';
-      const coverUrl = coverFile ? await blm48UploadPostImage(user.username, coverFile) : null;
-      const candidates = [];
-      for (const c of selectedCands) {
-        const tyUrl = c.tyFile ? await blm48UploadPostImage(user.username, c.tyFile) : null;
-        candidates.push({ name: c.name, profile: c.profile || null, thankYouCard: tyUrl });
-      }
-
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้างกิจกรรม...';
-      const res = await blm48AdminCreateVoteEvent(user.username, {
-        title, description, coverImage: coverUrl,
-        startTime: startRaw ? new Date(startRaw).toISOString() : null,
-        endTime: endRaw ? new Date(endRaw).toISOString() : null,
-        status, tokenType, enableGift, tokenMechanic: mechanic, refundPercent: pct,
-        candidates, checkpoints: newEventCheckpoints, adminOnly
-      });
-      if (res && res.status === 'success') {
-        await Swal.fire({ icon: 'success', title: 'สร้างกิจกรรมโหวตสำเร็จ!', text: `ผู้สมัคร ${res.candidateCount} คน`, timer: 1800, showConfirmButton: false });
-        resetCreateForm();
-        toggleCreateForm(false);
-        loadCampaigns();
-      } else {
-        showFormError((res && res.message) || 'ไม่สามารถสร้างกิจกรรมได้');
-      }
-    } catch (e) {
-      console.error('Create vote event error:', e);
-      showFormError('อัปโหลดรูปหรือเชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
-    }
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-check"></i> สร้างกิจกรรมโหวต';
   }
 
   window.addEventListener('DOMContentLoaded', async () => {

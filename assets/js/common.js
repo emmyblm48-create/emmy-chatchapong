@@ -109,6 +109,15 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
   document.head.appendChild(style);
 })();
 
+// 🪙 ไอคอนเหรียญ Token / GE Token ของวง (รูป token.png / getoken.png แทน fa-coins / fa-gem ทุกหน้า)
+(function loadTokenIcons() {
+  if (document.querySelector('link[href*="token-icons.css"]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'assets/css/token-icons.css';
+  document.head.appendChild(link);
+})();
+
 // 📱 [เปิดโพสต์เต็มจอ] กดที่พื้นที่ว่างของการ์ดโพสต์ (index.html/member.html) เพื่อไปหน้า postdetail
 // แบบเต็มจอโพสต์เดียว กดย้อนกลับได้ - ไม่ทำงานถ้าคลิกโดนปุ่ม/ลิงก์/รูป/ช่องคอมเมนต์ที่มี action ของตัวเองอยู่แล้ว
 // (เช็คจาก tagName ของปุ่ม/ลิงก์/อินพุตมาตรฐาน บวกกับ attribute onclick ที่ผูกไว้ตรงๆ เช่นรูปโปรไฟล์/ชื่อผู้โพส)
@@ -1090,6 +1099,15 @@ const GROUP_THEMES = {
   NPT48: { primary: '#6acbfc', light: '#e4f6ff', metaColor: '#6acbfc' },
   BLM48: { primary: '#ff85a2', light: '#ffe4e1', metaColor: '#ffc0cb' }
 };
+
+// สีกรอบรูปโปรไฟล์ประจำวง — ใช้กับรูปเมมเบอร์ในกิจกรรมโหวต และกิจกรรมอื่นๆ ที่จะตามมา
+// รับได้ทั้งชื่อวง ("NPT48") และชื่อผู้สมัครแบบมีวงต่อท้าย ("April NPT48"); ไม่รู้วง = BLM48
+const GROUP_FRAME_COLORS = { BLM48: '#ffde5b', NPT48: '#66cbff' };
+function groupFrameColor(groupOrName) {
+  const s = String(groupOrName || '').trim().toUpperCase();
+  const key = Object.keys(GROUP_FRAME_COLORS).find(g => s === g || s.endsWith(' ' + g));
+  return GROUP_FRAME_COLORS[key || 'BLM48'];
+}
 
 // เขียนค่าตัวแปรสี CSS ทุกชื่อ (ทุกหน้า) ให้ตรงกับวงที่ระบุ ("BLM48" คือค่าปกติ)
 function applyGroupThemeVars(groupName) {

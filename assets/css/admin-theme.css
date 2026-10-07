@@ -222,3 +222,67 @@ input.form-input, select.form-input, textarea.form-input {
 .stat-num { font-size: 18px; font-weight: 700; color: #3a3a3a; }
 .stat-title { font-size: 11px; color: var(--admin-muted); margin-top: 3px; }
 .stat-box.alert .stat-num { color: var(--admin-pink); }
+
+/* =========================================================
+   เต็มจอ ไม่มีกล่องมุมโค้ง (2026-10-07, คำขอของเอ้มมี่)
+   - เนื้อหาเต็มความกว้างจอ ห่างขอบ 12px
+   - กล่อง/การ์ดที่ครอบเนื้อหา -> ส่วนเรียบ ไม่มีพื้น ไม่มีเงา ไม่มีมุมโค้ง คั่นด้วยเส้นบางด้านล่าง
+   - ไทล์ตัวเลขที่เรียงเป็นกริด -> พื้นเทาอ่อน มุมเหลี่ยม (ไม่งั้นตัวเลขจะลอยติดกัน)
+   - ปุ่ม / ช่องกรอก / ป้ายสถานะ ยังโค้งเหมือนเดิม (ไม่ใช่กล่องคอนเทนเนอร์)
+   ========================================================= */
+.page-wrapper {
+    max-width: none !important;
+    padding-left: 12px !important; padding-right: 12px !important;
+}
+
+/* กล่องครอบเนื้อหา -> ส่วนเรียบคั่นด้วยเส้น */
+.card, .panel, .form-card, .summary-card, .table-card, .campaign-card, .menu-section,
+.entry-row, .code-row, .order-card, .sales-card, .reward-card, .result-card, .day-card,
+.target-preview, .my-balance, .sel-cand, .member-pick-list {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding-left: 0 !important; padding-right: 0 !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+.menu-item { padding-left: 4px; padding-right: 4px; }
+
+/* ไทล์ตัวเลข/สรุปในกริด -> พื้นเทาอ่อน มุมเหลี่ยม */
+.stat-card, .kpi, .member-card, .wallet-role-card, .tool-card, .cc-stat {
+    background: #f8f8f8 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+.stat-card.highlight { background: var(--admin-yellow-soft) !important; }
+.stats-bar {
+    background: transparent !important; border-radius: 0 !important; box-shadow: none !important;
+    border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0;
+}
+
+/* กล่องข้อความแจ้ง/คำอธิบายที่มีสีพื้น: มุมโค้ง (คำขอของเอ้มมี่ 2026-10-07) */
+.mode-legend, .hint, .reco, .confirm-box, .msg, .form-msg, .grand-card {
+    border-radius: 14px !important;
+    box-shadow: none !important;
+}
+
+/* ช่องกรอก: ไม่ให้ล้นจอบนมือถือ (width:100% + padding ต้องนับรวมในความกว้าง) */
+.form-field input, .form-field select, .form-field textarea {
+    box-sizing: border-box; max-width: 100%; min-width: 0;
+}
+/* ช่องวันเวลา: iOS Safari ให้ความกว้างขั้นต่ำเองจนล้นจอ -> ปิดสไตล์ native แล้วชิดซ้าย */
+input[type=datetime-local], input[type=date], input[type=time] {
+    -webkit-appearance: none; appearance: none;
+    display: block; box-sizing: border-box;
+    width: 100%; max-width: 100%; min-width: 0;
+    min-height: 44px; text-align: left;
+}
+input[type=datetime-local]::-webkit-date-and-time-value,
+input[type=date]::-webkit-date-and-time-value,
+input[type=time]::-webkit-date-and-time-value { text-align: left; }
+
+/* รูปปกกิจกรรม: มุมเหลี่ยม */
+.cc-cover, .cc-cover-empty, .ev-cover, .ev-cover-empty { border-radius: 0 !important; }

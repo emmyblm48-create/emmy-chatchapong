@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <title>BLM48 Membership | Vote Event</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/admin-pin.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; min-height: 100vh; }
+        .top-navigation-bar { display: flex; align-items: center; }
+        .back-circle-btn { cursor: pointer; }
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding-top: 18px; padding-bottom: 60px; }
+
+        /* รูปปก 2:1 */
+        /* รูปปกเต็มความกว้างจอ (เลยขอบ 12px ของหน้า) */
+        .ev-cover { position: relative; width: calc(100% + 24px); margin-left: -12px; margin-top: -18px; aspect-ratio: 2 / 1; border-radius: 0; overflow: hidden; margin-bottom: 14px;
+            background: linear-gradient(135deg, #fff8e1 0%, #ffe9a8 100%); }
+        .ev-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ev-cover-empty { position: absolute; inset: 0; width: 100%; border: 1.5px dashed #ffd36b; border-radius: 14px; background: #fffbf0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+            color: #a07800; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .ev-cover-empty i { font-size: 22px; color: #f59f00; }
+        .ev-cover-btn { position: absolute; right: 8px; bottom: 8px; border: none; border-radius: 16px; padding: 6px 12px;
+            background: rgba(0,0,0,0.55); color: #fff; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .ev-cover.uploading::after { content: "Uploading..."; position: absolute; inset: 0; background: rgba(255,255,255,0.8);
+            display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #666; }
+
+        .ev-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+        .ev-title { font-size: 18px; font-weight: 700; color: #222; }
+        .ev-meta { font-size: 11.5px; color: #aaa; margin-top: 2px; word-break: break-all; }
+        .pills { display: flex; gap: 6px; flex: 0 0 auto; }
+        .pill { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+        .pill.open { background: #e6f9ee; color: #1f9d55; }
+        .pill.closed { background: #f1f1f1; color: #888; }
+        .pill.test { background: #ffc107; color: #222; }
+
+        .stats-bar.ev-stats { grid-template-columns: repeat(4, 1fr); margin-bottom: 14px; }
+        @media (max-width: 340px) { .stats-bar.ev-stats { grid-template-columns: repeat(2, 1fr); row-gap: 10px; } .ev-stats .stat-box:nth-child(2) { border-right: none; } }
+
+        /* แท็บ ดู / แก้ไข / ผู้สมัคร */
+        .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+        .tab { flex: 1; border: 1.5px solid #ececec; background: #fafafa; color: #888; border-radius: 20px; padding: 9px 4px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .tab.active { background: #fff4cc; border-color: #ffd75e; color: #6b5200; }
+        .tab-panel { display: none; }
+        .tab-panel.show { display: block; }
+
+        .card { border-radius: 16px; padding: 16px 14px; margin-bottom: 12px; }
+        .card-title { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .card-title i { color: #f59f00; }
+
+        .info-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+        .info-row:last-child { border-bottom: none; }
+        .info-row .k { flex: 0 0 110px; color: #999; }
+        .info-row .v { flex: 1; min-width: 0; color: #333; font-weight: 600; white-space: pre-wrap; word-break: break-word; }
+
+        .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .form-field > label { font-size: 13px; color: #666; font-weight: 600; }
+        .form-field input[type=text], .form-field input[type=datetime-local], .form-field input[type=number], .form-field textarea, .form-field select {
+            border: 1px solid #e6e6e6; border-radius: 12px; width: 100%; padding: 11px 14px; font-size: 14px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; color: #222; background: #fff; }
+        .form-field textarea { min-height: 100px; resize: vertical; }
+        .form-field input:focus, .form-field textarea:focus, .form-field select:focus { outline: none; border-color: #ffc107; }
+        .form-row-2 { display: flex; gap: 10px; }
+        .form-row-2 .form-field { flex: 1; min-width: 0; }
+        @media (max-width: 420px) { .form-row-2 { flex-direction: column; gap: 0; } }
+        .check-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
+
+        .mode-seg { display: flex; gap: 6px; }
+        .mode-btn { flex: 1; border: 1.5px solid #ececec; background: #fafafa; color: #888; border-radius: 12px; padding: 9px 4px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+        .mode-btn.active.burn { background: #fff4cc; border-color: #ffd75e; color: #6b5200; }
+        .mode-btn.active.lock { background: #e3f1ff; border-color: #8cc4ff; color: #1c5d99; }
+        .mode-btn.active.partial { background: #fff0e0; border-color: #ffb877; color: #8a4b00; }
+        .pct-row { display: none; align-items: center; gap: 8px; font-size: 13px; color: #666; margin-top: 8px; }
+        .pct-row.show { display: flex; }
+        .pct-row input { width: 90px !important; }
+        .note { font-size: 11.5px; color: #999; line-height: 1.6; }
+
+        .btn-primary { width: 100%; padding: 12px; font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer; }
+        .btn-soft { width: 100%; border: 1px solid #e3d9ff; background: #f7f3ff; color: #5b3fa8; border-radius: 20px; padding: 10px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .msg { border-radius: 12px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 12px; display: none; line-height: 1.6; }
+        .msg.error { display: block; background: #ffeef0; color: #ff5c7a; }
+        .msg.ok { display: block; background: #e6f9ee; color: #1f9d55; }
+
+        /* ยืนยันในหน้า (ไม่ใช้ป๊อปอัป) */
+        .confirm-box { display: none; background: #fff8ec; border: 1px solid #ffd9a8; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+            font-size: 12.5px; color: #8a4b00; line-height: 1.7; }
+        .confirm-box.show { display: block; }
+        .confirm-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .confirm-actions button { flex: 1; border: none; border-radius: 20px; padding: 10px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-cancel { background: #f1f1f1; color: #777; }
+        .btn-confirm { background: #ff85a2; color: #fff; }
+
+        /* ผู้สมัคร */
+        .cand-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+        .cand-row:last-child { border-bottom: none; }
+        .cand-no { flex: 0 0 24px; text-align: center; font-weight: 700; font-size: 13px; color: #555; }
+        .cand-row.top1 .cand-no { color: #f59f00; }
+        .cand-av { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid var(--frame, #ffde5b); }
+        .cand-info { flex: 1; min-width: 0; }
+        .cand-name { font-size: 13.5px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cand-sub { font-size: 11.5px; color: #aaa; margin-top: 1px; }
+        .cand-votes { flex: 0 0 auto; text-align: right; font-weight: 700; font-size: 13.5px; color: #222; }
+        .cand-votes span { display: block; font-size: 11px; color: #aaa; font-weight: 500; }
+        .cand-actions { display: flex; gap: 6px; margin: 2px 0 0 34px; padding-bottom: 10px; border-bottom: 1px solid #f5f5f5; flex-wrap: wrap; align-items: center; }
+        .cand-actions button { border: none; border-radius: 16px; padding: 6px 12px; cursor: pointer; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12px; font-weight: 600; }
+        .ty-thumb { width: 30px; height: 40px; object-fit: cover; border-radius: 4px; background: #f4f4f4; }
+        .btn-ty { background: #fff0e0; color: #a85d00; }
+        .btn-ty-rm { background: #f4f4f4; color: #888; }
+        .btn-rm { background: #ffeef0; color: #ff5c7a; margin-left: auto; }
+        .btn-rm.confirming { background: #ff5c7a; color: #fff; }
+        .cand-wrap.busy { opacity: 0.5; pointer-events: none; }
+
+        .member-tools { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .member-tools input { flex: 1 1 160px; border: 1px solid #e6e6e6; border-radius: 12px; padding: 9px 12px; font-size: 13.5px; font-family: 'Quicksand', 'Kanit', sans-serif; min-width: 0; }
+        .chip-btn { border: 1px solid #ececec; background: #fafafa; color: #666; border-radius: 16px; padding: 6px 12px; font-size: 12px; font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer; white-space: nowrap; }
+        .member-pick-list { max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 12px; background: #fff; }
+        .member-pick { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-bottom: 1px solid #f3f3f3; cursor: pointer; }
+        .member-pick:last-child { border-bottom: none; }
+        .member-pick img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid var(--frame, #ffde5b); flex-shrink: 0; }
+        .member-pick .mp-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: #333; }
+        .member-pick .mp-group { font-size: 11px; color: #aaa; font-weight: 500; }
+        .member-pick.inactive .mp-name { color: #aaa; }
+        .selected-cands { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 12px; }
+        .sel-cand { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 8px 10px; }
+        .sel-cand img.av { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f4f4f4; border: 1.5px solid var(--frame, #ffde5b); flex-shrink: 0; }
+        .sel-cand .sc-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sel-cand .ty-btn { border: 1px dashed #ffb877; color: #a85d00; background: none; border-radius: 14px; padding: 5px 10px; font-size: 11.5px; font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer; white-space: nowrap; }
+        .sel-cand .rm { background: none; border: none; color: #ff5c7a; cursor: pointer; font-size: 15px; }
+
+        .empty-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="Back">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">Vote Event</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div id="ev-root"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+    </div>
+</div>
+
+<script>
+  const eventId = new URLSearchParams(window.location.search).get('id');
+  const MODE_LABELS = { burn: 'Burned', lock: 'Locked', partial: 'Partially Burned' };
+  const TOKEN_LABELS = { token: 'Token', getoken: 'GE Token', gift: 'Gift (Cookie)', cookie: 'Cookie' };
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+  let user = null;
+  let ev = null;
+  let activeTab = 'view';
+  let modeDraft = null;               // { mechanic, pct, status } ที่กำลังแก้ (ยังไม่บันทึก)
+  let confirmRemoveId = null;         // กดเอาออกครั้งแรก = ขอยืนยัน
+  let voteMembers = [];
+  let voteMembersLoaded = false;
+  let newCands = [];                  // [{ name, profile, tyFile, tyPreview }]
+
+  function goBack() {
+    if (document.referrer && window.history.length > 1) window.history.back();
+    else window.location.href = 'admin_votes';
+  }
+
+  function isOpenStatus(s) { return String(s || '').toLowerCase() === 'open'; }
+  function fmt(n) { return Number(n || 0).toLocaleString(); }
+  function fmtTime(ts) {
+    if (!ts) return '-';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' });
+  }
+  // ISO -> ค่าใส่ <input type=datetime-local> ตามเวลาเครื่อง
+  function toLocalInput(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  // ลิงก์ Google Drive เก่าใช้เป็นรูปตรงๆ ไม่ได้ -> แปลงเป็นลิงก์รูป (แบบเดียวกับ majorvote_detail.html)
+  function fixImgUrl(url) {
+    let u = String(url || '').trim();
+    if (u.includes('googleusercontent.com')) return u;
+    if (u.startsWith('http://')) u = u.replace('http://', 'https://');
+    const m = u.includes('drive.google.com') && u.match(/\/d\/([^/]+)/);
+    return m ? `https://docs.google.com/uc?export=view&id=${m[1]}` : u;
+  }
+  function tokenTypeOf() { return String(ev.tokenType || '').toLowerCase(); }
+
+  function setMsg(id, text, kind) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = 'msg' + (text ? ' ' + (kind || 'error') : '');
+  }
+
+  async function loadEvent() {
+    const root = document.getElementById('ev-root');
+    try {
+      const res = await blm48AdminGetVoteEvent(user.username, eventId);
+      if (!res || res.status !== 'success') { root.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
+      ev = res.data;
+      modeDraft = { mechanic: ev.tokenMechanic || 'burn', pct: Number(ev.refundPercent) || 0, status: isOpenStatus(ev.status) ? 'Open' : 'Closed' };
+      document.title = 'BLM48 Membership | ' + (ev.title || 'กิจกรรมโหวต');
+      render();
+    } catch (e) {
+      root.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function render() {
+    const open = isOpenStatus(ev.status);
+    document.getElementById('ev-root').innerHTML = `
+      <div class="ev-cover" id="ev-cover">
+        ${ev.coverImage
+          ? `<img src="${escapeAttr(fixImgUrl(ev.coverImage))}" alt="${escapeAttr(ev.title || '')}" onerror="this.style.display='none'">
+             <button type="button" class="ev-cover-btn" onclick="document.getElementById('ev-cover-file').click()"><i class="fa-solid fa-camera"></i> Change Cover</button>`
+          : `<button type="button" class="ev-cover-empty" onclick="document.getElementById('ev-cover-file').click()"><i class="fa-solid fa-image"></i> Add Cover Image</button>`}
+        <input type="file" id="ev-cover-file" accept="image/*" style="display:none;" onchange="uploadCover(this)">
+      </div>
+
+      <div class="ev-head">
+        <div style="min-width:0;">
+          <div class="ev-title">${escapeHtml(ev.title || ev.voteCollectionId)}</div>
+          <div class="ev-meta">${escapeHtml(ev.voteCollectionId)} · ${escapeHtml(TOKEN_LABELS[tokenTypeOf()] || ev.tokenType || '-')}</div>
+        </div>
+        <div class="pills">
+          ${ev.adminOnly ? '<span class="pill test">TEST</span>' : ''}
+          <span class="pill ${open ? 'open' : 'closed'}">${open ? 'OPEN' : 'CLOSED'}</span>
+        </div>
+      </div>
+
+      <div class="stats-bar ev-stats">
+        <div class="stat-box"><div class="stat-num">${fmt(ev.voterCount)}</div><div class="stat-title">Voters</div></div>
+        <div class="stat-box"><div class="stat-num">${fmt(ev.tokensUsed)}</div><div class="stat-title">Tokens Used</div></div>
+        <div class="stat-box"><div class="stat-num">${fmt(ev.pendingRefund)}</div><div class="stat-title">Pending Refund</div></div>
+        <div class="stat-box"><div class="stat-num">${fmt(ev.refunded)}</div><div class="stat-title">Refunded</div></div>
+      </div>
+
+      <div class="tabs">
+        <button type="button" class="tab ${activeTab === 'view' ? 'active' : ''}" onclick="setTab('view')"><i class="fa-solid fa-eye"></i> View</button>
+        <button type="button" class="tab ${activeTab === 'edit' ? 'active' : ''}" onclick="setTab('edit')"><i class="fa-solid fa-pen"></i> Edit</button>
+        <button type="button" class="tab ${activeTab === 'cands' ? 'active' : ''}" onclick="setTab('cands')"><i class="fa-solid fa-user-plus"></i> Candidates (${(ev.candidates || []).length})</button>
+      </div>
+
+      <div class="tab-panel ${activeTab === 'view' ? 'show' : ''}">${renderViewTab()}</div>
+      <div class="tab-panel ${activeTab === 'edit' ? 'show' : ''}">${renderEditTab()}</div>
+      <div class="tab-panel ${activeTab === 'cands' ? 'show' : ''}">${renderCandsTab()}</div>
+    `;
+    if (activeTab === 'cands') renderMemberPicker();
+  }
+
+  function setTab(t) {
+    activeTab = t;
+    confirmRemoveId = null;
+    render();
+    if (t === 'cands' && !voteMembersLoaded) loadVoteMembers();
+  }
+
+  // ---------------- ดู ----------------
+  function renderViewTab() {
+    const tt = tokenTypeOf();
+    const modeText = tt === 'gift' ? '- (Gift vote)' : (ev.tokenMechanic === 'partial' ? `Partially Burned (${fmt(ev.refundPercent)}% refund)` : MODE_LABELS[ev.tokenMechanic || 'burn']);
+    const cands = ev.candidates || [];
+    const total = cands.reduce((s, c) => s + Number(c.currentVotes || 0), 0);
+    const rows = cands.map((c, i) => `
+      <div class="cand-row ${i === 0 && Number(c.currentVotes) > 0 ? 'top1' : ''}">
+        <div class="cand-no">${i + 1}</div>
+        <img class="cand-av" style="--frame:${groupFrameColor(c.memberName)}" src="${escapeAttr(fixImgUrl(c.profile))}" alt="" onerror="this.style.visibility='hidden'">
+        <div class="cand-info">
+          <div class="cand-name">${escapeHtml(c.memberName)}</div>
+          <div class="cand-sub">${fmt(c.voterCount)} voters${c.thankYouCard ? ' · Thank You Card' : ''}</div>
+        </div>
+        <div class="cand-votes">${fmt(c.currentVotes)}<span>${total > 0 ? (Number(c.currentVotes) * 100 / total).toFixed(1) : '0.0'}%</span></div>
+      </div>`).join('');
+    return `
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-circle-info"></i> Event Info</div>
+        <div class="info-row"><div class="k">Start</div><div class="v">${escapeHtml(fmtTime(ev.startTime))}</div></div>
+        <div class="info-row"><div class="k">End</div><div class="v">${escapeHtml(fmtTime(ev.endTime))}</div></div>
+        <div class="info-row"><div class="k">Vote Currency</div><div class="v">${escapeHtml(TOKEN_LABELS[tt] || ev.tokenType || '-')}</div></div>
+        <div class="info-row"><div class="k">Token Mode</div><div class="v">${escapeHtml(modeText)}</div></div>
+        <div class="info-row"><div class="k">Visibility</div><div class="v">${ev.adminOnly ? 'Admins only (Test Event)' : 'Everyone'}</div></div>
+        <div class="info-row"><div class="k">Description</div><div class="v">${escapeHtml(ev.description || '-')}</div></div>
+      </div>
+      <button type="button" class="btn-soft" style="margin-bottom:12px;" onclick="window.location.href='admin_vote_results?id=' + encodeURIComponent(eventId)"><i class="fa-solid fa-stopwatch"></i> Interim Results (${fmt(ev.checkpointCount)})</button>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-ranking-star"></i> Current Ranking (Total ${fmt(total)})</div>
+        ${rows || '<div class="empty-state">No candidates yet</div>'}
+      </div>`;
+  }
+
+  // ---------------- แก้ไข ----------------
+  function renderEditTab() {
+    const tt = tokenTypeOf();
+    const isGift = tt === 'gift';
+    const d = modeDraft;
+    const modeBtn = m => `<button type="button" class="mode-btn ${m} ${d.mechanic === m ? 'active' : ''}" onclick="setMode('${m}')">${MODE_LABELS[m]}</button>`;
+    return `
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-pen"></i> Event Info</div>
+        <div id="detail-msg" class="msg"></div>
+        <div class="form-field">
+          <label>Event Title</label>
+          <input id="ed-title" type="text" maxlength="120" value="${escapeAttr(ev.title || '')}">
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <textarea id="ed-desc" placeholder="อธิบายกิจกรรม ระยะเวลาโหวต รางวัล ฯลฯ">${escapeHtml(ev.description || '')}</textarea>
+        </div>
+          <div class="form-field"><label>Start</label><input id="ed-start" type="datetime-local" value="${toLocalInput(ev.startTime)}"></div>
+          <div class="form-field"><label>End</label><input id="ed-end" type="datetime-local" value="${toLocalInput(ev.endTime)}"></div>
+        <div class="note" style="margin-bottom:12px;"><i class="fa-solid fa-circle-info"></i> สกุลที่ใช้โหวตเปลี่ยนไม่ได้หลังสร้างกิจกรรม · ประวัติ Token เดิมยังแสดงชื่อกิจกรรมตอนที่ทำรายการ</div>
+        <button type="button" class="btn-primary" id="save-detail-btn" onclick="saveDetails()"><i class="fas fa-check"></i> Save Info</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-coins"></i> Token Mode & Status</div>
+        <div id="mode-msg" class="msg"></div>
+        ${isGift ? '' : `
+        <div class="form-field">
+          <label>Token Mode</label>
+          <div class="mode-seg">${modeBtn('burn')}${modeBtn('lock')}${modeBtn('partial')}</div>
+          <div class="pct-row ${d.mechanic === 'partial' ? 'show' : ''}">
+            Refund <input type="number" min="1" max="99" step="1" value="${d.pct || ''}" placeholder="e.g. 30" oninput="modeDraft.pct = this.value === '' ? 0 : Number(this.value)"> % on close
+          </div>
+        </div>`}
+        <div class="form-field">
+          <label>Status</label>
+          <select onchange="modeDraft.status = this.value">
+            <option value="Open" ${d.status === 'Open' ? 'selected' : ''}>Open</option>
+            <option value="Closed" ${d.status === 'Closed' ? 'selected' : ''}>Closed (+ refund Tokens)</option>
+          </select>
+        </div>
+        <div class="note" style="margin-bottom:12px;">ระบบคืน Token อัตโนมัติทันทีที่เปลี่ยนเป็น Closed · คนที่โหวตไปแล้วได้คืนตามโหมดตอนที่โหวต</div>
+        <div class="confirm-box" id="mode-confirm"></div>
+        <button type="button" class="btn-primary" id="save-mode-btn" onclick="askSaveMode()"><i class="fas fa-check"></i> Save Mode & Status</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-flask"></i> Test Event</div>
+        <label class="check-label"><input type="checkbox" ${ev.adminOnly ? 'checked' : ''} onchange="toggleAdminOnly(this)"> Admins only — เห็นและโหวตได้เฉพาะแอดมิน (บันทึกทันที)</label>
+      </div>`;
+  }
+
+  function setMode(m) { modeDraft.mechanic = m; render(); }
+
+  function validImageFile(file, msgId) {
+    if (!file) return false;
+    if (!file.type.startsWith('image/')) { setMsg(msgId, 'กรุณาเลือกไฟล์รูปภาพ'); return false; }
+    if (file.size > MAX_IMAGE_BYTES) { setMsg(msgId, 'รูปต้องมีขนาดไม่เกิน 5MB'); return false; }
+    return true;
+  }
+
+  async function uploadCover(input) {
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > MAX_IMAGE_BYTES) { alert('กรุณาเลือกไฟล์รูปภาพขนาดไม่เกิน 5MB'); return; }
+    const box = document.getElementById('ev-cover');
+    box.classList.add('uploading');
+    try {
+      const url = await blm48UploadPostImage(user.username, file);
+      const res = await blm48AdminUpdateVoteCover(user.username, eventId, url);
+      if (!res || res.status !== 'success') throw new Error((res && res.message) || 'บันทึกรูปไม่สำเร็จ');
+      ev.coverImage = url;
+      render();
+    } catch (e) {
+      console.error('Upload event cover error:', e);
+      box.classList.remove('uploading');
+      alert('เปลี่ยนรูปไม่สำเร็จ: ' + (e.message || 'กรุณาลองใหม่อีกครั้ง'));
+    }
+  }
+
+  async function saveDetails() {
+    setMsg('detail-msg', '');
+    const title = document.getElementById('ed-title').value.trim();
+    const description = document.getElementById('ed-desc').value.trim();
+    const startRaw = document.getElementById('ed-start').value;
+    const endRaw = document.getElementById('ed-end').value;
+    if (!title) { setMsg('detail-msg', 'กรุณากรอกชื่อกิจกรรมโหวต'); return; }
+    if (startRaw && endRaw && new Date(endRaw) <= new Date(startRaw)) { setMsg('detail-msg', 'วันสิ้นสุดต้องอยู่หลังวันเริ่มกิจกรรม'); return; }
+
+    const btn = document.getElementById('save-detail-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    try {
+      const res = await blm48AdminUpdateVoteEventDetails(user.username, eventId, {
+        title, description,
+        startTime: startRaw ? new Date(startRaw).toISOString() : null,
+        endTime: endRaw ? new Date(endRaw).toISOString() : null,
+        enableGift: tokenTypeOf() === 'gift' // Gift เปิดได้เฉพาะกิจกรรมสกุล Gift
+      });
+      if (res && res.status === 'success') {
+        await loadEvent();
+        setMsg('detail-msg', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'ok');
+        return;
+      }
+      setMsg('detail-msg', (res && res.message) || 'บันทึกไม่สำเร็จ');
+    } catch (e) {
+      setMsg('detail-msg', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Save Info';
+  }
+
+  // กดบันทึกครั้งแรก -> แสดงสรุป + ผลกระทบในหน้า ให้กดยืนยันอีกครั้ง
+  function askSaveMode() {
+    setMsg('mode-msg', '');
+    const d = modeDraft;
+    const isGift = tokenTypeOf() === 'gift';
+    const mechanic = isGift ? (ev.tokenMechanic || 'burn') : d.mechanic;
+    const pct = mechanic === 'partial' ? d.pct : 0;
+    if (mechanic === 'partial' && (!Number.isInteger(pct) || pct < 1 || pct > 99)) {
+      setMsg('mode-msg', 'Partially Burned ต้องกำหนด % ที่คืนเป็นจำนวนเต็ม 1–99');
+      return;
+    }
+    const notes = [];
+    const modeChanged = mechanic !== (ev.tokenMechanic || 'burn') || pct !== (Number(ev.refundPercent) || 0);
+    if (modeChanged && Number(ev.voteCount) > 0) notes.push('มีคนโหวตไปแล้ว — คนที่โหวตก่อนหน้านี้ยังได้คืนตามโหมดเดิม โหมดใหม่มีผลกับการโหวตครั้งถัดไปเท่านั้น');
+    if (isOpenStatus(ev.status) && d.status === 'Closed') {
+      notes.push(Number(ev.pendingRefund) > 0
+        ? `ปิดโหวตแล้วระบบจะคืน Token ประมาณ <b>${fmt(ev.pendingRefund)}</b> ให้ผู้โหวตทันที (ย้อนกลับไม่ได้)`
+        : 'ปิดโหวตกิจกรรมนี้ (ไม่มี Token ที่ต้องคืน)');
+    }
+    if (!isOpenStatus(ev.status) && d.status === 'Open') notes.push(ev.adminOnly ? 'เปิดรับโหวต (เห็นเฉพาะแอดมิน)' : 'เปิดรับโหวต: ผู้ใช้เห็นและโหวตได้ทันที');
+    const modeText = isGift ? 'Gift (Cookie)' : (mechanic === 'partial' ? `Partially Burned (${pct}% refund)` : MODE_LABELS[mechanic]);
+
+    const box = document.getElementById('mode-confirm');
+    box.innerHTML = `<b>Confirm save?</b> Mode: ${escapeHtml(modeText)} · Status: ${escapeHtml(d.status)}` +
+      (notes.length ? '<br>' + notes.map(n => '• ' + n).join('<br>') : '') +
+      `<div class="confirm-actions">
+         <button type="button" class="btn-cancel" onclick="document.getElementById('mode-confirm').classList.remove('show'); document.getElementById('save-mode-btn').style.display='';">Cancel</button>
+         <button type="button" class="btn-confirm" id="mode-confirm-btn" onclick="saveMode('${mechanic}', ${pct})">Confirm</button>
+       </div>`;
+    box.classList.add('show');
+    document.getElementById('save-mode-btn').style.display = 'none';
+  }
+
+  async function saveMode(mechanic, pct) {
+    const btn = document.getElementById('mode-confirm-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    try {
+      const res = await blm48AdminUpdateVoteCampaign(user.username, eventId, mechanic, pct, modeDraft.status);
+      if (res && res.status === 'success') {
+        await loadEvent();
+        const refundText = Number(res.refundedTotal) > 0 ? ` · คืน Token ${fmt(res.refundedTotal)} ให้ ${fmt(res.refundedUsers)} คนแล้ว` : '';
+        setMsg('mode-msg', 'บันทึกเรียบร้อยแล้ว' + refundText, 'ok');
+        return;
+      }
+      setMsg('mode-msg', (res && res.message) || 'ไม่สามารถบันทึกได้');
+    } catch (e) {
+      setMsg('mode-msg', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง');
+    }
+    document.getElementById('mode-confirm').classList.remove('show');
+    document.getElementById('save-mode-btn').style.display = '';
+  }
+
+  async function toggleAdminOnly(el) {
+    const next = el.checked;
+    el.disabled = true;
+    try {
+      const res = await blm48AdminSetVoteAdminOnly(user.username, eventId, next);
+      if (res && res.status === 'success') { ev.adminOnly = next; render(); return; }
+      setMsg('mode-msg', (res && res.message) || 'บันทึกไม่สำเร็จ');
+    } catch (e) {
+      setMsg('mode-msg', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง');
+    }
+    el.checked = !next;
+    el.disabled = false;
+  }
+
+  // ---------------- ผู้สมัคร ----------------
+  function renderCandsTab() {
+    const cands = ev.candidates || [];
+    const rows = cands.map((c, i) => {
+      const locked = Number(c.currentVotes) > 0 || Number(c.voterCount) > 0;
+      const confirming = confirmRemoveId === c.candidateId;
+      return `
+        <div class="cand-wrap" id="cw-${i}">
+          <div class="cand-row" style="border-bottom:none; padding-bottom:4px;">
+            <div class="cand-no">${i + 1}</div>
+            <img class="cand-av" style="--frame:${groupFrameColor(c.memberName)}" src="${escapeAttr(fixImgUrl(c.profile))}" alt="" onerror="this.style.visibility='hidden'">
+            <div class="cand-info">
+              <div class="cand-name">${escapeHtml(c.memberName)}</div>
+              <div class="cand-sub">${fmt(c.currentVotes)} votes · ${fmt(c.voterCount)} voters</div>
+            </div>
+          </div>
+          <div class="cand-actions">
+            ${c.thankYouCard ? `<img class="ty-thumb" src="${escapeAttr(fixImgUrl(c.thankYouCard))}" alt="" onerror="this.style.visibility='hidden'">` : ''}
+            <button type="button" class="btn-ty" onclick="document.getElementById('cty-${i}').click()"><i class="fa-solid fa-image"></i> ${c.thankYouCard ? 'Change' : 'Add'} Thank You Card</button>
+            ${c.thankYouCard ? `<button type="button" class="btn-ty-rm" onclick="setCandCard(${i}, null)">Remove Card</button>` : ''}
+            <input type="file" id="cty-${i}" accept="image/*" style="display:none;" onchange="uploadCandCard(${i}, this)">
+            ${locked ? '' : `<button type="button" class="btn-rm ${confirming ? 'confirming' : ''}" onclick="removeCand(${i})"><i class="fas fa-trash"></i> ${confirming ? 'Tap again to remove' : 'Remove'}</button>`}
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-users"></i> Candidates (${cands.length})</div>
+        <div id="cand-msg" class="msg"></div>
+        ${rows || '<div class="empty-state">No candidates yet</div>'}
+        <div class="note" style="margin-top:10px;">เอาออกได้เฉพาะคนที่ยังไม่มีคะแนนโหวต</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-user-plus"></i> Add Candidates</div>
+        <div id="add-msg" class="msg"></div>
+        <div class="member-tools">
+          <input id="mem-search" type="text" placeholder="Search members..." oninput="renderMemberPicker()">
+        </div>
+        <div class="member-pick-list" id="mem-list">
+          <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+        <div class="selected-cands" id="new-cands"></div>
+        <button type="button" class="btn-primary" id="add-cands-btn" onclick="submitNewCands()" ${newCands.length ? '' : 'disabled'}><i class="fas fa-plus"></i> Add Candidates (<span id="new-count">${newCands.length}</span>)</button>
+      </div>`;
+  }
+
+  async function uploadCandCard(i, input) {
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!validImageFile(file, 'cand-msg')) return;
+    const wrap = document.getElementById('cw-' + i);
+    if (wrap) wrap.classList.add('busy');
+    try {
+      const url = await blm48UploadPostImage(user.username, file);
+      await setCandCard(i, url);
+    } catch (e) {
+      console.error('Upload thank-you card error:', e);
+      if (wrap) wrap.classList.remove('busy');
+      setMsg('cand-msg', 'อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    }
+  }
+
+  async function setCandCard(i, url) {
+    const c = ev.candidates[i];
+    try {
+      const res = await blm48AdminUpdateVoteCandidateCard(user.username, c.candidateId, url);
+      if (res && res.status === 'success') { c.thankYouCard = url; render(); return; }
+      setMsg('cand-msg', (res && res.message) || 'บันทึกไม่สำเร็จ');
+    } catch (e) {
+      setMsg('cand-msg', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+    }
+    const wrap = document.getElementById('cw-' + i);
+    if (wrap) wrap.classList.remove('busy');
+  }
+
+  async function removeCand(i) {
+    const c = ev.candidates[i];
+    if (confirmRemoveId !== c.candidateId) {
+      confirmRemoveId = c.candidateId;
+      render();
+      // ไม่กดยืนยันภายใน 4 วิ -> กลับเป็นปุ่มปกติ
+      setTimeout(() => { if (confirmRemoveId === c.candidateId) { confirmRemoveId = null; render(); } }, 4000);
+      return;
+    }
+    confirmRemoveId = null;
+    try {
+      const res = await blm48AdminRemoveVoteCandidate(user.username, c.candidateId);
+      if (res && res.status === 'success') { await loadEvent(); return; }
+      setMsg('cand-msg', (res && res.message) || 'เอาออกไม่สำเร็จ');
+    } catch (e) {
+      setMsg('cand-msg', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+    }
+  }
+
+  // ชื่อผู้สมัครตามรูปแบบเดิมของระบบ "ชื่อ กลุ่ม" เช่น "Emmy BLM48"
+  function candidateNameOf(m) { return [m.name, m.group].filter(Boolean).join(' ').trim(); }
+  function inEvent(name) { return (ev.candidates || []).some(c => String(c.memberName).toLowerCase() === name.toLowerCase()); }
+  function isPicked(name) { return newCands.some(c => c.name.toLowerCase() === name.toLowerCase()); }
+
+  async function loadVoteMembers() {
+    try {
+      const res = await blm48AdminListVoteMembers(user.username);
+      if (!res || res.status !== 'success') {
+        const list = document.getElementById('mem-list');
+        if (list) list.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดรายชื่อไม่สำเร็จ')}</div>`;
+        return;
+      }
+      voteMembers = res.data || [];
+      voteMembersLoaded = true;
+      renderMemberPicker();
+    } catch (e) {
+      const list = document.getElementById('mem-list');
+      if (list) list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function renderMemberPicker() {
+    const list = document.getElementById('mem-list');
+    if (!list || !voteMembersLoaded) { renderNewCands(); return; }
+    const q = (document.getElementById('mem-search').value || '').trim().toLowerCase();
+    const visible = voteMembers.filter(m => {
+      const n = candidateNameOf(m);
+      return !inEvent(n) && (!q || n.toLowerCase().includes(q));
+    });
+    list.innerHTML = visible.length === 0
+      ? `<div class="empty-state" style="padding:20px;">No members left to add</div>`
+      : visible.map(m => {
+          const name = candidateNameOf(m);
+          const inactive = m.status && String(m.status).toLowerCase() !== 'active';
+          return `
+            <label class="member-pick ${inactive ? 'inactive' : ''}">
+              <input type="checkbox" ${isPicked(name) ? 'checked' : ''} onchange="toggleMemberPick('${escapeAttr(name)}', this.checked)">
+              <img style="--frame:${groupFrameColor(m.group)}" src="${escapeAttr(m.profileImg || '')}" alt="" onerror="this.style.visibility='hidden'">
+              <span class="mp-name">${escapeHtml(m.name)} <span class="mp-group">${escapeHtml(m.group || '')}${inactive ? ' · ' + escapeHtml(m.status) : ''}</span></span>
+            </label>`;
+        }).join('');
+    renderNewCands();
+  }
+
+  function toggleMemberPick(name, checked) {
+    if (checked && !isPicked(name)) {
+      const m = voteMembers.find(x => candidateNameOf(x).toLowerCase() === name.toLowerCase());
+      newCands.push({ name, profile: m ? (m.profileImg || '') : '', tyFile: null, tyPreview: '' });
+    } else if (!checked) {
+      newCands = newCands.filter(c => c.name.toLowerCase() !== name.toLowerCase());
+    }
+    renderNewCands();
+  }
+
+  function renderNewCands() {
+    const box = document.getElementById('new-cands');
+    if (!box) return;
+    box.innerHTML = newCands.map((c, i) => `
+      <div class="sel-cand">
+        <img class="av" style="--frame:${groupFrameColor(c.name)}" src="${escapeAttr(c.profile)}" alt="" onerror="this.style.visibility='hidden'">
+        <span class="sc-name">${escapeHtml(c.name)}</span>
+        ${c.tyPreview ? `<img class="ty-thumb" src="${escapeAttr(c.tyPreview)}" alt="">` : ''}
+        <button type="button" class="ty-btn" onclick="document.getElementById('nty-${i}').click()">${c.tyFile ? 'Change' : '+'} Thank You Card</button>
+        <input id="nty-${i}" type="file" accept="image/*" style="display:none;" onchange="onNewTyPicked(${i}, this)">
+        <button type="button" class="rm" onclick="newCands.splice(${i}, 1); renderMemberPicker();" aria-label="Remove"><i class="fas fa-xmark"></i></button>
+      </div>`).join('');
+    const btn = document.getElementById('add-cands-btn');
+    if (btn) {
+      btn.disabled = newCands.length === 0;
+      document.getElementById('new-count').textContent = newCands.length;
+    }
+  }
+
+  function onNewTyPicked(i, input) {
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!validImageFile(file, 'add-msg') || !newCands[i]) return;
+    const reader = new FileReader();
+    reader.onload = () => { newCands[i].tyFile = file; newCands[i].tyPreview = reader.result; renderNewCands(); };
+    reader.readAsDataURL(file);
+  }
+
+  async function submitNewCands() {
+    setMsg('add-msg', '');
+    if (newCands.length === 0) return;
+    const btn = document.getElementById('add-cands-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+    try {
+      const candidates = [];
+      for (const c of newCands) {
+        const tyUrl = c.tyFile ? await blm48UploadPostImage(user.username, c.tyFile) : null;
+        candidates.push({ name: c.name, profile: c.profile || null, thankYouCard: tyUrl });
+      }
+      const res = await blm48AdminAddVoteCandidates(user.username, eventId, candidates);
+      if (res && res.status === 'success') {
+        newCands = [];
+        await loadEvent();
+        setMsg('add-msg', `เพิ่มผู้สมัคร ${fmt(res.added)} คนเรียบร้อยแล้ว`, 'ok');
+        return;
+      }
+      setMsg('add-msg', (res && res.message) || 'เพิ่มผู้สมัครไม่สำเร็จ');
+    } catch (e) {
+      console.error('Add candidates error:', e);
+      setMsg('add-msg', 'อัปโหลดรูปหรือเชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    }
+    renderNewCands();
+    btn.innerHTML = `<i class="fas fa-plus"></i> Add Candidates (<span id="new-count">${newCands.length}</span>)`;
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    if (!eventId) { window.location.href = 'admin_votes'; return; }
+    // 🔒 หน้าย่อยของ admin_votes ล็อกด้วย PIN เดียวกัน (ไม่งั้นเข้าทางนี้เลี่ยง PIN ได้)
+    await blm48RequireAdminPin(user, { page: 'admin_vote_event', cancelUrl: 'admin' });
+    document.getElementById('page-content').style.display = 'block';
+    loadEvent();
+  });
+</script>
+</body>
+</html>

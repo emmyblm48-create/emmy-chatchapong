@@ -571,7 +571,9 @@
 
   blm48GetAllMembers().then(res => {
     if (res && res.status === 'success' && Array.isArray(res.data)) {
-      mentionMembers = res.data.filter(m => m.name && m.name.toString().trim() !== '');
+      // เมมเบอร์ที่จบการศึกษาแล้ว (Graduated) แท็กในโพสต์ไม่ได้
+      mentionMembers = res.data.filter(m => m.name && m.name.toString().trim() !== ''
+        && String(m.status || '').trim().toLowerCase() !== 'graduated');
     }
   }).catch(err => console.error('โหลดรายชื่อเมมเบอร์สำหรับแท็กไม่สำเร็จ:', err));
 

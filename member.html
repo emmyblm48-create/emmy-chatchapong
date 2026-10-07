@@ -33,7 +33,7 @@
       object-fit: cover;
       object-position: center;
       flex-shrink: 0;
-      border: 3px solid #ffc107; /* กรอบเหลือง BLM48 (เดิมชมพู #ffccd7) */
+      border: 3px solid #ffde5b; /* กรอบสีประจำวง BLM48 (เดิม #ffc107) */
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
@@ -156,27 +156,66 @@
       }
     }
 
-    .back-circle-btn {
+    /* 🧭 แถบนำทางด้านบน (แบบ iAM): ตอนอยู่บนสุดโปร่งใส มีแค่ลูกศรย้อนกลับ
+       เลื่อนลงพ้นชื่อเมมเบอร์แล้วกลายเป็นแถบสีทึบ + ชื่อเมมเบอร์ตรงกลาง */
+    .member-top-nav {
       position: fixed;
-      top: 20px;
-      left: 20px;
-      background: var(--glass-bg-strong);
-      border: none;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(56px + env(safe-area-inset-top, 0px));
+      padding: env(safe-area-inset-top, 0px) 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: transparent;
+      z-index: 999;
+      transition: background 0.25s ease, box-shadow 0.25s ease;
+    }
+    .member-top-nav.solid {
+      background: #fff9db;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+    }
+    .nav-back-btn {
       width: 40px;
       height: 40px;
-      border-radius: 50%;
+      border: none;
+      background: none;
       display: flex;
-      justify-content: center;
       align-items: center;
-      color: var(--blmem-pink);
+      justify-content: center;
+      font-size: 1.35rem;
+      color: #ffffff;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.45);
       cursor: pointer;
-      backdrop-filter: blur(var(--glass-blur-sm));
-      -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-      z-index: 999;
-      box-shadow: var(--glass-shadow-sm);
-      transition: 0.2s;
+      flex-shrink: 0;
+      transition: color 0.25s ease, text-shadow 0.25s ease;
     }
-    .back-circle-btn:hover { transform: scale(1.08); background: #fff; }
+    .member-top-nav.past-cover .nav-back-btn,
+    .member-top-nav.solid .nav-back-btn {
+      color: #222222;
+      text-shadow: none;
+    }
+    .member-nav-title {
+      flex: 1;
+      text-align: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #222222;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .member-top-nav.solid .member-nav-title {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .nav-spacer { width: 40px; flex-shrink: 0; }
 
     .profile-body {
       padding: 0 12px 35px 12px;
@@ -690,7 +729,11 @@
 <body class="glass-mesh-bg force-white-bg">
 
   <div class="app-layout">
-    <button class="back-circle-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i></button>
+    <nav id="member-top-nav" class="member-top-nav">
+      <button class="nav-back-btn" onclick="goBack()" aria-label="Back"><i class="fas fa-chevron-left"></i></button>
+      <div id="member-nav-title" class="member-nav-title"></div>
+      <div class="nav-spacer"></div>
+    </nav>
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
@@ -1134,6 +1177,31 @@ function renderMemberStatsAndFans() {
         }
     }
   
+    // 🧭 แถบนำทางด้านบน: ชื่อตามเมมเบอร์ที่กดเข้ามา + เปลี่ยนเป็นแถบทึบเมื่อเลื่อนพ้นชื่อ
+    (function initMemberTopNav() {
+      const nav = document.getElementById('member-top-nav');
+      const titleEl = document.getElementById('member-nav-title');
+      const nameEl = document.getElementById('mb-name');
+      if (!nav || !titleEl || !nameEl) return;
+
+      const syncTitle = () => {
+        const text = (nameEl.innerText || '').trim();
+        titleEl.textContent = (!text || text === 'กำลังโหลด...') ? (memberName || '') : text;
+      };
+      syncTitle();
+      new MutationObserver(syncTitle).observe(nameEl, { childList: true, characterData: true, subtree: true });
+
+      const update = () => {
+        const navBottom = nav.getBoundingClientRect().bottom;
+        const hero = document.querySelector('.hero-image-container');
+        nav.classList.toggle('past-cover', !!hero && hero.getBoundingClientRect().bottom - 60 <= navBottom);
+        nav.classList.toggle('solid', nameEl.getBoundingClientRect().bottom <= navBottom);
+      };
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+      update();
+    })();
+
     function goBack() {
       if (window.history.length > 1) {
         window.history.back();
