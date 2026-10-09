@@ -25,6 +25,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
+    <script src="assets/js/admin-pin.js"></script>
     <style>
         :root {
             --primary-pink: #ff85a2;
@@ -442,6 +443,10 @@
             return;
         }
         checkAppVersion();
+
+        // 🔒 ใส่ PIN 6 หลักก่อนเข้าหน้า Major Vote (หน้าจอ PIN ทับหน้าไว้ ข้อมูลด้านล่างโหลดรอไปพร้อมกัน)
+        // PIN ชุดเดียวกับหลังบ้าน · ปลดล็อกแล้วอยู่ได้ 10 นาที · กด Cancel กลับหน้า Home
+        blm48RequireAdminPin({ username }, { page: 'majorvote', cancelUrl: 'index', mode: 'user' });
 
         loadWalletFromCache();
         loadChampThemeSubPage(); // 🎨 ไอคอน nav-bar ธีมแชมป์ประจำเดือน (เพิ่มมาพร้อม bottom-tab-bar ของหน้านี้)

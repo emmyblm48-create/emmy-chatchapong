@@ -1464,7 +1464,9 @@
         .merch-button.merch-button-disabled, .merch-button.merch-button-disabled:hover { background: #f6f6f8 !important; color: #aaa !important; }
         .merch-button.merch-button-disabled i { color: #bbb; }
         .merch-gacha-actions .merch-button .pull-tier { color: #888; }
-    </style>
+      /* แตะการ์ดเพื่อเปิดหน้ารายละเอียดสินค้า */
+  .merch-card[data-product] { cursor: pointer; }
+</style>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
@@ -1560,7 +1562,7 @@
 <h2 class="section-title" id="section-cookie">Cookie Shop</h2>
 <div class="shop-container" id="cookie-shop-container">
     <!-- 100Cookie -->
-    <div class="merch-card" data-token-price="10">
+    <div class="merch-card" data-token-price="10" data-product="cookie:10">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1iYnw_eiQS4LZvHXF2bLEF7utf0wHi-FF=s1000" alt="100 Cookies" class="merch-image">
         </div>
@@ -1574,7 +1576,7 @@
         </div>
     </div>
     <!-- 1000Cookie -->
-    <div class="merch-card" data-token-price="100">
+    <div class="merch-card" data-token-price="100" data-product="cookie:100">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000" alt="1,000 Cookies" class="merch-image">
         </div>
@@ -1597,7 +1599,7 @@
 </div>
 <div class="shop-container" id="cafe-shop-container">
     <!-- Suiito Matcha -->
-    <div class="merch-card" data-item-name="Suiito Matcha">
+    <div class="merch-card" data-item-name="Suiito Matcha" data-product="cafe:cafe_matcha_01">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1hc_AQblGKyamIOmspWseUcnY2gwW9dyg=s1000" alt="Suiito Matcha" class="merch-image">
         </div>
@@ -1612,7 +1614,7 @@
     </div>
 
     <!-- Pinku Milk -->
-    <div class="merch-card" data-item-name="Pinku Milk">
+    <div class="merch-card" data-item-name="Pinku Milk" data-product="cafe:cafe_pinkmilk_01">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1_KC4glssnDILv1GP7BtUnjT1-uP1omlB=s1000" alt="Pinku Milk" class="merch-image">
         </div>
@@ -1627,7 +1629,7 @@
     </div>
 
     <!-- Koi Cocoa -->
-    <div class="merch-card" data-item-name="Koi Cocoa">
+    <div class="merch-card" data-item-name="Koi Cocoa" data-product="cafe:cafe_cocoa_01">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1ERV8sH_M0fv3dIFqfGGyf23JTTK3z0F-=s1000" alt="Koi Cocoa" class="merch-image">
         </div>
@@ -1642,7 +1644,7 @@
     </div>
 
     <!-- Thai Miruku Tea -->
-    <div class="merch-card" data-item-name="Thai Miruku Tea">
+    <div class="merch-card" data-item-name="Thai Miruku Tea" data-product="cafe:cafe_thaimirukutea_01">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/11kPILdW6tOh5xZZ-Kl6JpAUsJeYWrlXE=s1000" alt="Thai Miruku Tea" class="merch-image">
         </div>
@@ -1657,7 +1659,7 @@
     </div>
   
     <!-- BLM48 Cafe Background -->
-    <div class="merch-card">
+    <div class="merch-card" data-product="cafe:cafe_BLM48CafeBackground_01">
         <div class="merch-image-container">
             <img src="https://lh3.googleusercontent.com/d/1xhN872cKyptZ-vO8N6jHkCfSACE2okVo=s1000" alt="BLM48 Cafe BG V.1" class="merch-image">
         </div>
@@ -1774,6 +1776,43 @@ function addCafeToCart(itemId, price, itemName, itemImg) {
     showCartToast(`${itemName} added to cart`);
 }
 
+// 🎁 Lucky Box: สิทธิ์สุ่มฟรีที่เหลือ (หักจำนวนที่อยู่ในตะกร้าแล้ว) + ราคาที่ต้องจ่ายจริงของการสุ่มครั้งนี้
+// ราคาในตะกร้าเป็นแค่ตัวแสดงผล เซิร์ฟเวอร์คิดสิทธิ์ฟรี/ราคาจริงเองตอน Place Order
+function luckyFreeLeft(col) {
+    const inCart = blm48Cart.get()
+        .filter(l => l.kind === 'gacha' && l.refId === col.CollectionID)
+        .reduce((n, l) => n + (l.variant || 1) * l.quantity, 0);
+    return Math.max(0, Number(col.FreeRemaining || 0) - inCart);
+}
+function luckyDrawCost(col, pullCount, freeLeft) {
+    const free = Math.min(pullCount, freeLeft === undefined ? luckyFreeLeft(col) : freeLeft);
+    const paid = pullCount - free;
+    if (paid === 0) return 0;
+    if (paid === 5) return Number(col.CostTokensX5 || col.CostTokens * 5);
+    return paid * Number(col.CostTokens);
+}
+
+function luckyPriceHTML(col, pullCount, freeLeft) {
+    const cost = luckyDrawCost(col, pullCount, freeLeft);
+    return cost === 0 ? '<i class="fas fa-gift"></i> FREE' : `<i class="fas fa-coins"></i> ${cost} Tokens`;
+}
+// หยิบใส่ตะกร้าแล้ว สิทธิ์ฟรีที่เหลือลดลง -> อัปเดตราคาบนปุ่ม Lucky Box ทันที
+function refreshLuckyPrices() {
+    document.querySelectorAll('.lucky-price').forEach(el => {
+        const col = gachaCollectionsCache[el.dataset.lucky];
+        if (col) el.innerHTML = luckyPriceHTML(col, Number(el.dataset.pull));
+    });
+}
+document.addEventListener('blm48-cart-change', refreshLuckyPrices);
+
+// 🛍️ แตะการ์ดสินค้า (นอกปุ่มราคา) -> หน้ารายละเอียดสินค้า product?kind=&id= · ปุ่มราคาบนการ์ดยังหยิบใส่ตะกร้าได้ทันทีเหมือนเดิม
+document.addEventListener('click', (e) => {
+    const card = e.target.closest('.merch-card[data-product]');
+    if (!card || e.target.closest('button, a')) return;
+    const [kind, ...rest] = card.dataset.product.split(':');
+    location.href = 'product?kind=' + encodeURIComponent(kind) + '&id=' + encodeURIComponent(rest.join(':'));
+});
+
 function addGachaToCart(collectionId, pullCount) {
     if (!userData) return;
     pullCount = (pullCount === 5) ? 5 : 1;
@@ -1792,7 +1831,7 @@ function addGachaToCart(collectionId, pullCount) {
         }
     }
 
-    const cost = pullCount === 5 ? (col.CostTokensX5 || col.CostTokens * 5) : col.CostTokens;
+    const cost = col.IsLucky ? luckyDrawCost(col, pullCount) : (pullCount === 5 ? (col.CostTokensX5 || col.CostTokens * 5) : col.CostTokens);
     blm48Cart.add({
         kind: 'gacha', refId: collectionId, variant: pullCount,
         name: col.CollectionName, label: `Merchandise · Draw ×${pullCount}`,
@@ -1806,15 +1845,42 @@ document.addEventListener('DOMContentLoaded', updateCartBadge);
 // กลับมาจากหน้าตะกร้า (bfcache) ให้ตัวเลขบนไอคอนตรงกับของจริง
 window.addEventListener('pageshow', updateCartBadge);
 // 🗂️ แท็บหมวดสินค้า: All = แสดงทุกหมวด, อื่นๆ = เฉพาะหมวดนั้น
+let activeShopTab = 'all';
 function selectShopTab(tab) {
+    activeShopTab = tab;
     document.querySelectorAll('#shop-tabs .shop-tab').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
     document.querySelectorAll('.shop-section').forEach(sec => {
-        sec.style.display = (tab === 'all' || sec.dataset.shopSection === tab) ? '' : 'none';
+        const empty = sec.dataset.empty === '1';
+        sec.style.display = !empty && (tab === 'all' || sec.dataset.shopSection === tab) ? '' : 'none';
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// 🙈 หมวดที่ไม่มีสินค้า (ไม่มีการ์ดสินค้าเลย) ไม่ต้องแสดง ทั้งหัวข้อหมวดและแท็บด้านบน
+// ยกเว้นกรณีโหลดข้อมูลไม่สำเร็จ ยังแสดงข้อความแจ้ง error ให้เห็น · คอยเช็กใหม่ทุกครั้งที่รายการในหมวดเปลี่ยน
+function refreshEmptyShopSections() {
+    document.querySelectorAll('.shop-section').forEach(sec => {
+        const hasItems = !!sec.querySelector('.merch-card');
+        const hasError = !!sec.querySelector('.shop-empty-state .fa-triangle-exclamation');
+        const empty = !hasItems && !hasError;
+        sec.dataset.empty = empty ? '1' : '0';
+        const tabBtn = document.querySelector(`#shop-tabs .shop-tab[data-tab="${sec.dataset.shopSection}"]`);
+        if (tabBtn) tabBtn.style.display = empty ? 'none' : '';
+    });
+    const activeBtn = document.querySelector(`#shop-tabs .shop-tab[data-tab="${activeShopTab}"]`);
+    if (activeShopTab !== 'all' && activeBtn && activeBtn.style.display === 'none') activeShopTab = 'all';
+    document.querySelectorAll('#shop-tabs .shop-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === activeShopTab));
+    document.querySelectorAll('.shop-section').forEach(sec => {
+        sec.style.display = sec.dataset.empty !== '1' && (activeShopTab === 'all' || sec.dataset.shopSection === activeShopTab) ? '' : 'none';
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const observer = new MutationObserver(refreshEmptyShopSections);
+    document.querySelectorAll('.shop-section').forEach(sec => observer.observe(sec, { childList: true, subtree: true }));
+    refreshEmptyShopSections();
+});
 
 // 2. อัปเดตการแสดงผลยอดเงินในกระเป๋า (หน้าตาเดียวกับสถิติ Cookies/Tokens/GE Tokens ในหน้า profile.html)
 function updateWalletUI() {
@@ -1999,13 +2065,19 @@ async function loadGachaCollections() {
               </button>`;
       } else {
         const x5Disabled = hasDrawCap && drawsRemaining < 5;
+        // Lucky Box: ปุ่มบอก FREE เมื่อยังมีสิทธิ์สุ่มฟรีพอ (x5 ที่ฟรีบางส่วนแสดงราคาส่วนที่จ่ายจริง)
+        const freeLeft = col.IsLucky ? luckyFreeLeft(col) : 0;
+        const priceLabel = (pull, fullPrice) => {
+          if (!col.IsLucky) return `<i class="fas fa-coins"></i> ${fullPrice} Tokens`;
+          return `<span class="lucky-price" data-lucky="${col.CollectionID}" data-pull="${pull}">${luckyPriceHTML(col, pull, freeLeft)}</span>`;
+        };
         buttonHTML = `<div class="merch-gacha-actions">
                 <button class="merch-button" onclick="addGachaToCart('${col.CollectionID}', 1)">
-                  <i class="fas fa-coins"></i> ${col.CostTokens} Tokens
+                  ${priceLabel(1, col.CostTokens)}
                   <span class="pull-tier">Draw ×1</span>
                 </button>
                 ${allowX5 ? `<button class="merch-button${x5Disabled ? ' merch-button-disabled' : ''}" ${x5Disabled ? 'disabled' : `onclick="addGachaToCart('${col.CollectionID}', 5)"`}>
-                  <i class="fas fa-coins"></i> ${costX5} Tokens
+                  ${priceLabel(5, costX5)}
                   <span class="pull-tier">Draw ×5</span>
                 </button>` : ''}
               </div>`;
@@ -2026,12 +2098,16 @@ async function loadGachaCollections() {
         ? `Opens ${new Date(col.SaleStartAt).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
         : (col.Description || 'Limited collection - draw for a chance at rare members');
 
-      const drawsInfoHTML = (!isComingSoon && !isSoldOut && hasDrawCap)
+      let drawsInfoHTML = (!isComingSoon && !isSoldOut && hasDrawCap)
         ? `<p class="merch-subtitle" style="color:#c53f5a;">${limitReached ? 'You have used all your draws for this collection.' : `Draws remaining: ${drawsRemaining} / ${col.MaxDrawsPerAccount}`}</p>`
         : '';
+      // 🎁 Lucky Box: แสดงแค่สิทธิ์สุ่มฟรีที่เหลือ (ไม่บอกเรื่อง SSR / การันตี SSR ให้ผู้ใช้เห็น)
+      if (col.IsLucky && !isComingSoon && !isSoldOut && col.FreeRemaining !== null && col.FreeRemaining !== undefined) {
+        drawsInfoHTML = `<p class="merch-subtitle" style="color:#c53f5a;">Free draws left: ${col.FreeRemaining} / ${col.FreeDraws}</p>`;
+      }
 
       const cardHTML = `
-          <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}">
+          <div class="merch-card${isSoldOut ? ' merch-item-unavailable' : ''}" data-collection-name="${escapeHtml(col.CollectionName)}" data-product="gacha:${col.CollectionID}">
             <div class="merch-image-container">
               <img src="${coverImg}" alt="${col.CollectionName}" class="merch-image" onerror="this.src='https://placehold.co/500x500/fff0f2/ff85a2?text=BLM48+Gacha'">
             </div>
@@ -2106,7 +2182,7 @@ async function loadPreorderProducts() {
       grouped[category].forEach(p => {
         const isSoldOut = p.status === 'sold_out';
         const isComingSoon = p.status === 'coming_soon';
-        const goToDetail = `location.href='preorder_detail?id=' + encodeURIComponent('${p.productId}')`;
+        const goToDetail = `location.href='product?kind=preorder&id=' + encodeURIComponent('${p.productId}')`;
 
         let badgeHTML = '';
         let buttonHTML = `<button class="merch-button" onclick="${goToDetail}"><i class="fas fa-coins"></i> ${Number(p.costTokens).toLocaleString()} Tokens</button>`;

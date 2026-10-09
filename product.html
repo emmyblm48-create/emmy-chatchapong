@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLM48 | Details</title>
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: #ffffff; color: #222; font-family: 'Quicksand', 'Kanit', sans-serif;
+            padding-top: calc(60px + env(safe-area-inset-top)); padding-bottom: calc(190px + env(safe-area-inset-bottom)); }
+
+        /* แถบบน: ย้อนกลับ · Details · ตะกร้า */
+        .top-navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #fff;
+            height: calc(60px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top);
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .top-navbar h1 { margin: 0; font-size: 17px; font-weight: 600; }
+        .nav-icon { position: absolute; top: calc(env(safe-area-inset-top) + 11px); width: 38px; height: 38px; display: flex;
+            align-items: center; justify-content: center; background: none; border: none; color: #222; font-size: 20px; cursor: pointer; text-decoration: none; }
+        .nav-back { left: 8px; }
+        .nav-cart { right: 8px; font-size: 21px; }
+        .cart-badge { position: absolute; top: 2px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+            background: #ff4d6d; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+        /* รูปสินค้าเต็มความกว้างจอ + ตัวนับรูปมุมขวาล่าง */
+        .pd-gallery { position: relative; width: 100%; max-width: 640px; margin: 0 auto; aspect-ratio: 1 / 1; background: #fff; overflow: hidden; }
+        .pd-track { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .pd-track::-webkit-scrollbar { display: none; }
+        .pd-track img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: contain; scroll-snap-align: center; }
+        .pd-counter { position: absolute; right: 12px; bottom: 12px; background: rgba(240,240,240,0.92); color: #444; font-size: 12.5px;
+            border-radius: 999px; padding: 3px 11px; }
+
+        .pd-body { max-width: 640px; margin: 0 auto; padding: 18px 12px 18px; }
+        .pd-tag { display: inline-block; font-size: 13px; line-height: 1; padding: 4px 5px; border: 1.5px solid var(--tag, #3d8bfd);
+            color: var(--tag, #3d8bfd); border-radius: 3px; margin-bottom: 10px; }
+        .pd-title { margin: 0 0 12px; font-size: 20px; font-weight: 500; color: #444; line-height: 1.35; }
+        .pd-price { font-size: 17px; font-weight: 700; color: #222; }
+        .pd-price .free { color: #e8262e; }
+        .pd-note { margin-top: 6px; font-size: 12.5px; color: #c53f5a; }
+
+        /* ตัวเลือก Draw ×1 / ×5 (เฉพาะ Merchandise แบบสุ่ม) */
+        .pd-variants { display: flex; gap: 10px; margin-top: 14px; }
+        .pd-variant { flex: 1; border: 1.5px solid #e2e2e2; background: #fff; border-radius: 10px; padding: 10px 8px; text-align: center;
+            font-family: inherit; cursor: pointer; color: #444; }
+        .pd-variant b { display: block; font-size: 14px; color: #222; }
+        .pd-variant span { font-size: 12.5px; }
+        .pd-variant.active { border-color: #f5b335; background: #fff8e6; }
+        .pd-variant:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .pd-divider { height: 4px; background: #f2f2f2; border: none; margin: 0; }
+        .pd-desc-wrap { max-width: 640px; margin: 0 auto; padding: 18px 12px 24px; }
+        .pd-desc-wrap h2 { margin: 0 0 12px; font-size: 17px; font-weight: 600; color: #555; }
+        .pd-desc { margin: 0; font-size: 15px; color: #666; line-height: 1.75; white-space: pre-line; }
+
+        /* แถบล่าง: Quantity + ปุ่ม Add to cart */
+        .pd-bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #fff;
+            padding: 12px 12px calc(14px + env(safe-area-inset-bottom)); box-shadow: 0 -2px 10px rgba(0,0,0,0.04); }
+        .pd-bottom-inner { max-width: 640px; margin: 0 auto; }
+        .pd-qty-row { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-bottom: 12px; }
+        .pd-qty-label { font-size: 16px; font-weight: 600; color: #555; }
+        .pd-stepper { display: flex; align-items: center; border: 1.5px solid #333; border-radius: 999px; overflow: hidden; height: 46px; }
+        .pd-step { width: 52px; height: 100%; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; padding: 0; }
+        .pd-step i { width: 30px; height: 30px; border-radius: 50%; background: #f5b335; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+        .pd-step:disabled { cursor: default; }
+        .pd-step:disabled i { background: #e3e3e3; }
+        .pd-qty { width: 54px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600;
+            border-left: 1px solid #e5e5e5; border-right: 1px solid #e5e5e5; }
+        .pd-add { width: 100%; height: 54px; border: none; border-radius: 999px; background: #ffd75e; color: #222; font-family: inherit;
+            font-size: 19px; font-weight: 700; cursor: pointer; }
+        .pd-add:active { transform: scale(0.99); }
+        .pd-add:disabled { background: #eee; color: #aaa; cursor: not-allowed; }
+
+        .pd-toast { position: fixed; left: 50%; bottom: calc(150px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0;
+            background: rgba(34,34,34,0.92); color: #fff; font-size: 13.5px; border-radius: 999px; padding: 10px 16px; z-index: 1100;
+            display: flex; gap: 10px; align-items: center; transition: opacity 0.2s, transform 0.2s; pointer-events: none; white-space: nowrap; }
+        .pd-toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+        .pd-toast a { color: #ffd75e; font-weight: 600; text-decoration: none; }
+        .pd-state { text-align: center; color: #999; padding: 80px 20px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="top-navbar">
+    <button type="button" class="nav-icon nav-back" onclick="goBack()" aria-label="Back"><i class="fas fa-chevron-left"></i></button>
+    <h1>Details</h1>
+    <a href="cart" class="nav-icon nav-cart" aria-label="Cart"><i class="fas fa-cart-shopping"></i><span class="cart-badge" id="cart-badge" style="display:none;">0</span></a>
+</div>
+
+<div id="pd-root"><div class="pd-state"><i class="fas fa-spinner fa-spin"></i></div></div>
+
+<div class="pd-bottom" id="pd-bottom" style="display:none;">
+    <div class="pd-bottom-inner">
+        <div class="pd-qty-row">
+            <span class="pd-qty-label">Quantity</span>
+            <div class="pd-stepper">
+                <button type="button" class="pd-step" id="qty-minus" onclick="changeQty(-1)" aria-label="Decrease"><i class="fas fa-minus"></i></button>
+                <span class="pd-qty" id="qty-value">1</span>
+                <button type="button" class="pd-step" id="qty-plus" onclick="changeQty(1)" aria-label="Increase"><i class="fas fa-plus"></i></button>
+            </div>
+        </div>
+        <button type="button" class="pd-add" id="pd-add" onclick="addToCart()">Add to cart</button>
+    </div>
+</div>
+
+<div class="pd-toast" id="pd-toast" role="status" aria-live="polite"><span id="pd-toast-text">Added to cart</span><a href="cart">View cart</a></div>
+
+<script>
+    // 🛍️ หน้ารายละเอียดสินค้า (แบบหน้า Details ของ iAM) ใช้ได้กับทุกหมวดใน Shop
+    // product?kind=cookie|cafe|gacha|preorder&id=...  · ใส่ตะกร้าผ่าน blm48Cart เหมือนหน้า Shop (เซิร์ฟเวอร์คิดราคาจริงตอน Place Order)
+    const params = new URLSearchParams(location.search);
+    const KIND = params.get('kind');
+    const REF = params.get('id');
+    const MAX_QTY = 99;
+
+    // คุกกี้/คาเฟ่ เป็นสินค้าคงที่ในหน้า Shop (รูปบนการ์ด + รูปของที่ได้จริง)
+    const STATIC_PRODUCTS = {
+        cookie: {
+            '10': { name: '100 Cookies', tag: 'Cookie Pack', price: 10, reward: 100,
+                    images: ['https://lh3.googleusercontent.com/d/1iYnw_eiQS4LZvHXF2bLEF7utf0wHi-FF=s1000'],
+                    desc: 'เติมคุกกี้สำหรับใช้งานทั่วไป\nได้รับ 100 Cookies เข้ากระเป๋าหลังกด Redeem ในหน้าคำสั่งซื้อ' },
+            '100': { name: '1,000 Cookies', tag: 'Value Pack', price: 100, reward: 1000,
+                    images: ['https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000'],
+                    desc: 'เติมคุกกี้สำหรับใช้งานทั่วไป (คุ้มที่สุด)\nได้รับ 1,000 Cookies เข้ากระเป๋าหลังกด Redeem ในหน้าคำสั่งซื้อ' }
+        },
+        cafe: {
+            cafe_matcha_01: { name: 'Suiito Matcha', sub: 'いちごミニパフェ', price: 5,
+                images: ['https://lh3.googleusercontent.com/d/1hc_AQblGKyamIOmspWseUcnY2gwW9dyg=s1000', 'https://lh3.googleusercontent.com/d/1thW4VJVyFLsgMQNI0wAFaIC7gsqnATeM=s1000'] },
+            cafe_pinkmilk_01: { name: 'Pinku Milk', sub: 'ピンクミルク', price: 5,
+                images: ['https://lh3.googleusercontent.com/d/1_KC4glssnDILv1GP7BtUnjT1-uP1omlB=s1000', 'https://lh3.googleusercontent.com/d/1b_wl3lpi_QPd9-9nXBofw5mBL-jUu0Hn=s1000'] },
+            cafe_cocoa_01: { name: 'Koi Cocoa', sub: '濃いココア', price: 5,
+                images: ['https://lh3.googleusercontent.com/d/1ERV8sH_M0fv3dIFqfGGyf23JTTK3z0F-=s1000', 'https://lh3.googleusercontent.com/d/1fHP-8N6VcRalynHDEZZWrjWhd7zYyHfF=s1000'] },
+            cafe_thaimirukutea_01: { name: 'Thai Miruku Tea', sub: 'タイミルクティー', price: 5,
+                images: ['https://lh3.googleusercontent.com/d/11kPILdW6tOh5xZZ-Kl6JpAUsJeYWrlXE=s1000', 'https://lh3.googleusercontent.com/d/1HBOXvqFCL_-wrxbZlaEf15JvrGDUurhf=s1000'] },
+            cafe_BLM48CafeBackground_01: { name: 'BLM48 Cafe BG V.1', sub: 'Background V.1', price: 0,
+                images: ['https://lh3.googleusercontent.com/d/1xhN872cKyptZ-vO8N6jHkCfSACE2okVo=s1000', 'https://lh3.googleusercontent.com/d/1MLtVYBkoWNrkqWr2AJqYtAfy6q7q2jJO=s1000'] }
+        }
+    };
+
+    let product = null;   // { kind, name, tag, tagColor, images, desc, available, cartLine(variant) }
+    let qty = 1;
+    let variant = 1;      // Draw ×1 / ×5 (เฉพาะกาชา)
+
+    function goBack() {
+        if (document.referrer && history.length > 1) history.back();
+        else location.href = 'shop';
+    }
+
+    // ---------- Lucky Box: สิทธิ์สุ่มฟรีที่เหลือ (หักที่อยู่ในตะกร้าแล้ว) ----------
+    function luckyFreeLeft(col) {
+        const inCart = blm48Cart.get().filter(l => l.kind === 'gacha' && l.refId === col.CollectionID)
+            .reduce((n, l) => n + (l.variant || 1) * l.quantity, 0);
+        return Math.max(0, Number(col.FreeRemaining || 0) - inCart);
+    }
+    function gachaCost(col, pull, freeLeft) {
+        const full = pull === 5 ? Number(col.CostTokensX5 || col.CostTokens * 5) : Number(col.CostTokens);
+        if (!col.IsLucky) return full;
+        const free = Math.min(pull, freeLeft);
+        const paid = pull - free;
+        return paid === 0 ? 0 : (paid === 5 ? Number(col.CostTokensX5 || col.CostTokens * 5) : paid * Number(col.CostTokens));
+    }
+    // ราคารวมของ (จำนวน × ครั้งต่อชุด) โดยคิดสิทธิ์ฟรีที่เหลือทีละชุด
+    function gachaTotal(col, pull, count) {
+        let free = col.IsLucky ? luckyFreeLeft(col) : 0, total = 0;
+        for (let i = 0; i < count; i++) { total += gachaCost(col, pull, free); free = Math.max(0, free - pull); }
+        return total;
+    }
+
+    async function loadProduct() {
+        if (KIND === 'cookie' || KIND === 'cafe') {
+            const p = (STATIC_PRODUCTS[KIND] || {})[REF];
+            if (!p) return null;
+            return {
+                name: p.name,
+                tag: KIND === 'cookie' ? p.tag : 'Cafe',
+                tagColor: KIND === 'cookie' ? '#8b5a3c' : '#5fa896',
+                images: p.images,
+                desc: KIND === 'cookie' ? p.desc : `${p.sub}\nเครื่องดื่ม/ไอเทมจาก BLM48 Cafe ได้รับเข้ากระเป๋าหลังกด Redeem ในหน้าคำสั่งซื้อ`,
+                available: true,
+                unitPrice: () => p.price,
+                cartLine: () => ({ kind: KIND, refId: REF, variant: 1, name: KIND === 'cookie' ? p.name : p.name,
+                                   label: KIND === 'cookie' ? 'Cookie Pack' : 'BLM48 Cafe', image: p.images[p.images.length - 1], unitPrice: p.price })
+            };
+        }
+        if (KIND === 'gacha') {
+            const res = await blm48GetGachaCollections(getUsername());
+            const col = (res && res.data || []).find(c => c.CollectionID === REF);
+            if (!col) return null;
+            const status = col.Status;
+            const hasCap = col.MaxDrawsPerAccount !== null && col.MaxDrawsPerAccount !== undefined && col.DrawsRemaining !== null && col.DrawsRemaining !== undefined;
+            return {
+                col, hasCap,
+                name: col.CollectionName,
+                tag: 'Merchandise',
+                tagColor: '#c53f5a',
+                images: [col.CoverImage].filter(Boolean),
+                desc: col.Description || 'Limited collection - draw for a chance at rare members',
+                available: status !== 'Closed' && status !== 'Sold Out' && status !== 'Coming Soon',
+                statusText: status === 'Sold Out' ? 'Sold Out' : status === 'Coming Soon' ? 'Coming Soon' : status === 'Closed' ? 'Closed' : '',
+                cartLine: () => ({ kind: 'gacha', refId: REF, variant, name: col.CollectionName, label: `Merchandise · Draw ×${variant}`,
+                                   image: col.CoverImage, unitPrice: Math.round(gachaTotal(col, variant, qty) / qty) })
+            };
+        }
+        if (KIND === 'preorder') {
+            const res = await blm48GetPreorderProducts();
+            const p = (res && res.data || []).find(x => String(x.productId) === String(REF));
+            if (!p) return null;
+            const lines = [];
+            if (p.description) lines.push(p.description);
+            if (p.preorderPeriod) lines.push('พรีออเดอร์ : ' + p.preorderPeriod);
+            if (p.deliveryInfo) lines.push('จัดส่ง : ' + p.deliveryInfo);
+            return {
+                name: p.name,
+                tag: 'Pre-order',
+                tagColor: '#3d8bfd',
+                images: [p.coverImage].filter(Boolean),
+                desc: lines.join('\n\n') || 'order today · ship later',
+                available: p.status !== 'sold_out' && p.status !== 'coming_soon',
+                statusText: p.status === 'sold_out' ? 'Sold Out' : p.status === 'coming_soon' ? 'Coming Soon' : '',
+                unitPrice: () => Number(p.costTokens),
+                cartLine: () => ({ kind: 'preorder', refId: p.productId, variant: 1, name: p.name, label: 'Pre-order · ship later',
+                                   image: p.coverImage, unitPrice: Number(p.costTokens) })
+            };
+        }
+        return null;
+    }
+
+    function priceHTML() {
+        if (!product.available) return `<span style="color:#999;">${escapeHtml(product.statusText || 'Unavailable')}</span>`;
+        if (product.col) {
+            const total = gachaTotal(product.col, variant, qty);
+            return total === 0 ? '<span class="free">FREE</span>' : `${total.toLocaleString()} Tokens`;
+        }
+        const unit = product.unitPrice();
+        return unit === 0 ? '<span class="free">FREE</span>' : `${(unit * qty).toLocaleString()} Tokens`;
+    }
+
+    function render() {
+        const imgs = product.images.length ? product.images : ['https://placehold.co/600x600/fff0f2/ff85a2?text=BLM48'];
+        let variantsHTML = '';
+        let noteHTML = '';
+        if (product.col) {
+            const col = product.col;
+            const allowX5 = col.AllowX5 !== false;
+            const remaining = product.hasCap ? Number(col.DrawsRemaining) : null;
+            const free = col.IsLucky ? luckyFreeLeft(col) : 0;
+            const opt = (pull) => {
+                const cost = gachaCost(col, pull, free);
+                const disabled = (pull === 5 && !allowX5) || (remaining !== null && remaining < pull);
+                return `<button type="button" class="pd-variant${variant === pull ? ' active' : ''}" ${disabled ? 'disabled' : `onclick="selectVariant(${pull})"`}>
+                          <b>Draw ×${pull}</b><span>${cost === 0 ? 'FREE' : cost.toLocaleString() + ' Tokens'}</span></button>`;
+            };
+            variantsHTML = `<div class="pd-variants">${opt(1)}${allowX5 ? opt(5) : ''}</div>`;
+            if (col.IsLucky && col.FreeRemaining !== null && col.FreeRemaining !== undefined) noteHTML = `<div class="pd-note">Free draws left: ${col.FreeRemaining} / ${col.FreeDraws}</div>`;
+            else if (remaining !== null) noteHTML = `<div class="pd-note">Draws remaining: ${remaining} / ${col.MaxDrawsPerAccount}</div>`;
+        }
+
+        document.getElementById('pd-root').innerHTML = `
+            <div class="pd-gallery">
+                <div class="pd-track" id="pd-track">${imgs.map(src => `<img src="${escapeHtml(src)}" alt="" draggable="false" onerror="this.src='https://placehold.co/600x600/fff0f2/ff85a2?text=BLM48'">`).join('')}</div>
+                <span class="pd-counter" id="pd-counter">1/${imgs.length}</span>
+            </div>
+            <div class="pd-body">
+                <span class="pd-tag" style="--tag:${product.tagColor}">${escapeHtml(product.tag)}</span>
+                <h2 class="pd-title">${escapeHtml(product.name)}</h2>
+                <div class="pd-price" id="pd-price">${priceHTML()}</div>
+                ${noteHTML}
+                ${variantsHTML}
+            </div>
+            <hr class="pd-divider">
+            <div class="pd-desc-wrap">
+                <h2>Description</h2>
+                <p class="pd-desc">${escapeHtml(product.desc)}</p>
+            </div>`;
+
+        const track = document.getElementById('pd-track');
+        track.addEventListener('scroll', () => {
+            const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
+            document.getElementById('pd-counter').textContent = `${i + 1}/${imgs.length}`;
+        }, { passive: true });
+
+        document.getElementById('pd-bottom').style.display = '';
+        updateBottom();
+        fitBottomSpace();
+    }
+
+    // เว้นที่ด้านล่างเท่าความสูงจริงของแถบ Quantity/Add to cart (รวมขอบล่างของ iPhone) ให้เลื่อนดู Description ได้สุด
+    function fitBottomSpace() {
+        const bar = document.getElementById('pd-bottom');
+        if (bar && bar.offsetHeight) document.body.style.paddingBottom = (bar.offsetHeight + 24) + 'px';
+    }
+    window.addEventListener('resize', fitBottomSpace);
+
+    function maxQty() {
+        if (product && product.col && product.hasCap) {
+            const inCart = blm48Cart.get().filter(l => l.kind === 'gacha' && l.refId === REF).reduce((n, l) => n + (l.variant || 1) * l.quantity, 0);
+            return Math.max(0, Math.floor((Number(product.col.DrawsRemaining) - inCart) / variant));
+        }
+        return MAX_QTY;
+    }
+
+    function updateBottom() {
+        const max = maxQty();
+        if (qty > Math.max(1, max)) qty = Math.max(1, max);
+        document.getElementById('qty-value').textContent = qty;
+        document.getElementById('qty-minus').disabled = qty <= 1;
+        document.getElementById('qty-plus').disabled = qty >= max;
+        const addBtn = document.getElementById('pd-add');
+        addBtn.disabled = !product.available || max < 1;
+        addBtn.textContent = !product.available ? (product.statusText || 'Unavailable') : (max < 1 ? 'Draw Limit Reached' : 'Add to cart');
+        const priceEl = document.getElementById('pd-price');
+        if (priceEl) priceEl.innerHTML = priceHTML();
+    }
+
+    function changeQty(d) {
+        qty = Math.min(MAX_QTY, Math.max(1, qty + d));
+        updateBottom();
+    }
+
+    function selectVariant(pull) {
+        variant = pull;
+        qty = 1;
+        render();
+    }
+
+    function addToCart() {
+        if (!product || !product.available || maxQty() < 1) return;
+        blm48Cart.add(product.cartLine(), qty);
+        const t = document.getElementById('pd-toast');
+        document.getElementById('pd-toast-text').textContent = `${product.name} ×${qty} added to cart`;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 2600);
+        qty = 1;
+        if (product.col) render(); else updateBottom(); // สิทธิ์ฟรี/สิทธิ์สุ่มที่เหลือเปลี่ยนตามตะกร้า
+    }
+
+    function updateCartBadge() {
+        const badge = document.getElementById('cart-badge');
+        const count = blm48Cart.count();
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = count > 0 ? '' : 'none';
+    }
+    document.addEventListener('blm48-cart-change', updateCartBadge);
+    window.addEventListener('pageshow', updateCartBadge);
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (!getUsername()) { location.href = 'login'; return; }
+        updateCartBadge();
+        try { product = await loadProduct(); } catch (e) { console.error('Load product error:', e); }
+        if (!product) {
+            document.getElementById('pd-root').innerHTML = '<div class="pd-state">Product not found.</div>';
+            return;
+        }
+        document.title = 'BLM48 | ' + product.name;
+        render();
+    });
+</script>
+</body>
+</html>

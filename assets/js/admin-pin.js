@@ -1,18 +1,22 @@
 // 🔒 หน้าจอใส่ PIN 6 หลักสำหรับหน้า Admin ที่ต้องล็อก (หน้าตาแบบแอปธนาคาร: จุด 6 จุด + ปุ่มตัวเลขวงกลม)
 // ใช้: await blm48RequireAdminPin(user, { page: 'admin_votes', cancelUrl: 'admin' }) แล้วค่อยแสดงเนื้อหาหน้า
+// หน้าฝั่งผู้ใช้: { page: 'majorvote', cancelUrl: 'index', mode: 'user' } (ทุกบัญชี, PIN ชุดเดียวกับหลังบ้าน)
 // - แอดมินแต่ละคนมี PIN ของตัวเอง (ครั้งแรกให้ตั้ง PIN + ยืนยันอีกรอบ)
 // - ตรวจ PIN ที่เซิร์ฟเวอร์ (เก็บแบบ hash) ผิด 5 ครั้งล็อก 15 นาที และบันทึกประวัติการเข้าหน้าทุกครั้ง
-// - ปลดล็อกแล้วเปลี่ยนไปมาระหว่างหน้าที่ล็อกด้วย PIN ได้ 10 นาทีโดยไม่ต้องใส่ซ้ำ (ต่อเวลาทุกครั้งที่เปิดหน้า)
+// - หน้า Admin: ถาม PIN ทุกครั้งที่เข้าหน้า (ไม่จำการปลดล็อก)
+// - หน้า Major Vote (mode 'user'): ปลดล็อกแล้วเข้าได้ 10 นาทีโดยไม่ต้องใส่ซ้ำ (ต่อเวลาทุกครั้งที่เปิดหน้า) แยกจากหน้า Admin
 (function () {
-  const UNLOCK_KEY = 'blm48_admin_pin_unlock';
+  const USER_UNLOCK_KEY = 'blm48_majorvote_pin_unlock';
   const UNLOCK_MS = 10 * 60 * 1000;
   const PIN_LENGTH = 6;
+  // ล้างสถานะปลดล็อกแบบเก่า (เคยใช้ร่วมกันระหว่างหน้า Admin กับ Major Vote)
+  try { sessionStorage.removeItem('blm48_admin_pin_unlock'); } catch (e) { /* ไม่มี storage */ }
 
   function readUnlock() {
-    try { return JSON.parse(sessionStorage.getItem(UNLOCK_KEY) || 'null'); } catch (e) { return null; }
+    try { return JSON.parse(sessionStorage.getItem(USER_UNLOCK_KEY) || 'null'); } catch (e) { return null; }
   }
   function writeUnlock(username) {
-    try { sessionStorage.setItem(UNLOCK_KEY, JSON.stringify({ username, until: Date.now() + UNLOCK_MS })); } catch (e) { /* ไม่มี storage = ถาม PIN ทุกครั้ง */ }
+    try { sessionStorage.setItem(USER_UNLOCK_KEY, JSON.stringify({ username, until: Date.now() + UNLOCK_MS })); } catch (e) { /* ไม่มี storage = ถาม PIN ทุกครั้ง */ }
   }
 
   // อุปกรณ์แบบสั้นๆ ไว้ดูในประวัติ เช่น "iPhone · Safari"
@@ -59,8 +63,13 @@
   window.blm48RequireAdminPin = function (user, opts) {
     const page = (opts && opts.page) || location.pathname.replace(/^\//, '').replace(/\.html$/, '');
     const cancelUrl = (opts && opts.cancelUrl) || 'admin';
+    // mode 'user' = หน้าฝั่งผู้ใช้ (Major Vote): ทุกบัญชีใช้ได้ ส่วนค่าเริ่มต้นเป็นหน้าแอดมิน (เช็กสิทธิ์แอดมินที่เซิร์ฟเวอร์)
+    const isUser = opts && opts.mode === 'user';
+    const pinStatus = isUser ? blm48UserPinStatus : blm48AdminPinStatus;
+    const setPin = isUser ? blm48UserSetPin : blm48AdminSetPin;
+    const verifyPin = isUser ? blm48UserVerifyPin : blm48AdminVerifyPin;
 
-    const unlock = readUnlock();
+    const unlock = isUser ? readUnlock() : null; // หน้า Admin ไม่ข้าม PIN เลย
     if (unlock && unlock.username === user.username && unlock.until > Date.now()) {
       writeUnlock(user.username); // ต่อเวลา
       return Promise.resolve();
@@ -109,7 +118,7 @@
       }
 
       function finish() {
-        writeUnlock(user.username);
+        if (isUser) writeUnlock(user.username); // จำการปลดล็อกเฉพาะหน้า Major Vote
         document.removeEventListener('keydown', onKey);
         document.documentElement.style.overflow = '';
         screen.remove();
@@ -123,7 +132,7 @@
           if (pin !== firstPin) { shake(); setMode('create'); setSub('PIN ไม่ตรงกัน กรุณาตั้งใหม่อีกครั้ง', true); return; }
           setBusy(true);
           try {
-            const res = await blm48AdminSetPin(user.username, pin, page, deviceLabel());
+            const res = await setPin(user.username, pin, page, deviceLabel());
             if (res && res.status === 'success') return finish();
             setMode('create'); setSub((res && res.message) || 'ตั้ง PIN ไม่สำเร็จ', true);
           } catch (e) { setMode('create'); setSub('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', true); }
@@ -132,7 +141,7 @@
         }
         setBusy(true);
         try {
-          const res = await blm48AdminVerifyPin(user.username, pin, page, deviceLabel());
+          const res = await verifyPin(user.username, pin, page, deviceLabel());
           if (res && res.status === 'success') return finish();
           shake(); setMode('enter');
           if (res && res.code === 'locked') { setSub(lockedMessage(res.lockedUntil), true); return; } // ปุ่มกดยังปิดอยู่
@@ -161,7 +170,7 @@
 
       (async () => {
         try {
-          const st = await blm48AdminPinStatus(user.username);
+          const st = await pinStatus(user.username);
           if (!st || st.status !== 'success') { setSub((st && st.message) || 'ตรวจสอบสิทธิ์ไม่สำเร็จ', true); return; }
           if (!st.hasPin) { setMode('create'); setSub('ครั้งแรก: ตั้ง PIN 6 หลักสำหรับเข้าหน้านี้'); setBusy(false); return; }
           setMode('enter');

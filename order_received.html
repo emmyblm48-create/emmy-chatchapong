@@ -17,6 +17,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
+    <script src="assets/js/pack-opening.js"></script>
+    <script src="assets/js/item-3d-viewer.js"></script>
     <style>
         /* หัวสีเหลืองประจำวง BLM48 ขอบล่างโค้ง (แบบหน้า Success ของ iAM) */
         .success-header {
@@ -45,6 +47,9 @@
         .received-row { font-size: 15px; color: #888; margin-bottom: 4px; }
         .received-row span { color: #222; margin-left: 4px; }
         .received-note { font-size: 12.5px; color: #777; line-height: 1.5; margin-top: 6px; }
+        .received-item.can-view { cursor: pointer; }
+        .view-3d { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12.5px; font-weight: 600; color: #222;
+            background: #fff3c4; border-radius: 999px; padding: 4px 12px; }
 
         .confetti-piece {
             position: fixed; top: 40%; left: 50%; width: 8px; height: 8px; border-radius: 2px;
@@ -153,17 +158,36 @@
       return;
     }
 
-    box.innerHTML = `<div class="received-heading">You received:</div>` + rewards.map(r => `
-      <div class="received-item">
+    // 🎴 เพิ่งกด Redeem และมีรายการสุ่ม (กาชา): เปิดซองก่อน แล้วค่อยแสดงรายการของที่ได้
+    const packs = justRedeemed ? lines.filter(l => l.kind === 'gacha').map(l => ({
+      cover: l.imageUrl,
+      name: l.name,
+      cards: (l.rewards || []).filter(r => r.kind === 'item').map(r => ({ image: r.imageUrl, label: r.label, isSSR: !!r.isSSR }))
+    })) : [];
+
+    box.innerHTML = `<div class="received-heading">You received:</div>` + rewards.map((r, i) => `
+      <div class="received-item${r.kind === 'item' ? ' can-view' : ''}" data-i="${i}">
         ${thumb(r)}
         <div class="received-info">
           <div class="received-name">${escapeHtml(r.label)}${r.isSSR ? '<span class="ssr-tag">SSR</span>' : ''}</div>
           <div class="received-row">Type :<span>${escapeHtml(r.type)}</span></div>
           <div class="received-row">Quantity :<span>${Number(r.qty).toLocaleString()}</span></div>
           <div class="received-note">${escapeHtml(r.note)}</div>
+          ${r.kind === 'item' ? '<span class="view-3d"><i class="fa-solid fa-cube"></i> View in 3D</span>' : ''}
         </div>
       </div>`).join('');
 
+    // แตะของที่ได้ (ไอเทม/การ์ด) เพื่อหมุนดูแบบ 3D
+    box.querySelectorAll('.received-item.can-view').forEach(el => el.addEventListener('click', () => {
+      const r = rewards[Number(el.dataset.i)];
+      blm48Open3DViewer({ image: r.image, label: r.label, isSSR: r.isSSR });
+    }));
+
+    if (packs.some(p => p.cards.length)) {
+      await blm48OpenPacks(packs);
+      // เปิดซองแล้ว: กด back/รีเฟรชไม่ต้องเปิดซองซ้ำ
+      history.replaceState(null, '', 'order_received?id=' + orderId);
+    }
     if (justRedeemed) burst(rewards.some(r => r.isSSR));
   }
 

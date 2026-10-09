@@ -23,6 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
+    <script src="assets/js/item-3d-viewer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 
     <style>
@@ -242,7 +243,7 @@
         }
 
         .modal-action-buttons { display: flex; gap: 10px; justify-content: center; }
-        .modal-action-buttons > * { flex: 1; justify-content: center; }
+        .modal-action-buttons > * { flex: 1; justify-content: center; padding-left: 10px !important; padding-right: 10px !important; white-space: nowrap; }
         .btn-close-modal {
             background: #f2f2f5; color: #333; border: none; padding: 12px 18px; border-radius: 14px;
             font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
@@ -475,6 +476,9 @@
             </div>
             <div class="modal-action-buttons">
                 <button type="button" class="btn-close-modal" onclick="closePreview()">Close</button>
+                <button type="button" class="btn-save-image" onclick="openPreview3D()">
+                    <i class="fa-solid fa-cube"></i> 3D
+                </button>
                 <button type="button" id="viewPhotoBookBtn" class="btn-save-image" style="display:none;" onclick="openEpubReaderFromPreview()">
                     <i class="fa-solid fa-book-open"></i> Read
                 </button>
@@ -878,6 +882,12 @@ function renderInventoryData() {
 
         document.getElementById('previewModal').style.display = 'flex';
         blm48LockBodyScroll();
+    }
+
+    // 🔍 หมุนดูไอเทมแบบ 3D (ตัวดูเดียวกับหน้า Success! หลัง Redeem) ซ้อนบนหน้าต่างพรีวิว ปิดแล้วกลับมาที่พรีวิวเดิม
+    function openPreview3D() {
+        if (!currentPreviewItem) return;
+        blm48Open3DViewer({ image: currentPreviewItem.img, label: currentPreviewItem.name, isSSR: isSsrByName(currentPreviewItem.name) });
     }
 
     function closePreview() {

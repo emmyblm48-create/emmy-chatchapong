@@ -673,6 +673,16 @@ function blm48AdminSetPin(adminUsername, pin, page, device) {
 function blm48AdminVerifyPin(adminUsername, pin, page, device) {
   return blm48Rpc('admin_verify_pin', { p_admin_username: adminUsername, p_pin: pin, p_page: page, p_device: device });
 }
+// PIN ของทุกบัญชี (หน้า Major Vote) — ใช้ PIN ชุดเดียวกับหลังบ้าน (ตาราง admin_pins)
+function blm48UserPinStatus(username) {
+  return blm48Rpc('user_pin_status', { p_username: username });
+}
+function blm48UserSetPin(username, pin, page, device) {
+  return blm48Rpc('user_set_pin', { p_username: username, p_pin: pin, p_page: page, p_device: device });
+}
+function blm48UserVerifyPin(username, pin, page, device) {
+  return blm48Rpc('user_verify_pin', { p_username: username, p_pin: pin, p_page: page, p_device: device });
+}
 function blm48AdminListPageAccessLogs(adminUsername, page, limit) {
   return blm48Rpc('admin_list_page_access_logs', { p_admin_username: adminUsername, p_page: page || null, p_limit: limit || 200 });
 }
