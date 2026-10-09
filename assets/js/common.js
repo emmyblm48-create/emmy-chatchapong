@@ -118,6 +118,14 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
   document.head.appendChild(link);
 })();
 
+// 🔄 ลากจอลงเพื่อรีเฟรชหน้า (ทุกหน้า) — ตัวโค้ดอยู่ใน assets/js/pull-to-refresh.js
+(function loadPullToRefresh() {
+  if (document.querySelector('script[src*="pull-to-refresh.js"]')) return;
+  const s = document.createElement('script');
+  s.src = 'assets/js/pull-to-refresh.js';
+  document.head.appendChild(s);
+})();
+
 // 📱 [เปิดโพสต์เต็มจอ] กดที่พื้นที่ว่างของการ์ดโพสต์ (index.html/member.html) เพื่อไปหน้า postdetail
 // แบบเต็มจอโพสต์เดียว กดย้อนกลับได้ - ไม่ทำงานถ้าคลิกโดนปุ่ม/ลิงก์/รูป/ช่องคอมเมนต์ที่มี action ของตัวเองอยู่แล้ว
 // (เช็คจาก tagName ของปุ่ม/ลิงก์/อินพุตมาตรฐาน บวกกับ attribute onclick ที่ผูกไว้ตรงๆ เช่นรูปโปรไฟล์/ชื่อผู้โพส)

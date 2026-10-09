@@ -51,6 +51,8 @@
         .pill.open { background: #e6f9ee; color: #1f9d55; }
         .pill.closed { background: #f1f1f1; color: #888; }
         .pill.test { background: #ffc107; color: #222; }
+        .pill.pending { background: #fff3d6; color: #b7791f; }
+        .pill.published { background: #e8f1ff; color: #2b6cb0; }
 
         .stats-bar.ev-stats { grid-template-columns: repeat(4, 1fr); margin-bottom: 14px; }
         @media (max-width: 340px) { .stats-bar.ev-stats { grid-template-columns: repeat(2, 1fr); row-gap: 10px; } .ev-stats .stat-box:nth-child(2) { border-right: none; } }
@@ -262,6 +264,7 @@
         <div class="pills">
           ${ev.adminOnly ? '<span class="pill test">TEST</span>' : ''}
           <span class="pill ${open ? 'open' : 'closed'}">${open ? 'OPEN' : 'CLOSED'}</span>
+          ${ev.ended ? (ev.resultsPublished ? '<span class="pill published">RESULTS SHOWN</span>' : '<span class="pill pending">RESULTS HIDDEN</span>') : ''}
         </div>
       </div>
 
@@ -318,11 +321,64 @@
         <div class="info-row"><div class="k">Visibility</div><div class="v">${ev.adminOnly ? 'Admins only (Test Event)' : 'Everyone'}</div></div>
         <div class="info-row"><div class="k">Description</div><div class="v">${escapeHtml(ev.description || '-')}</div></div>
       </div>
+      ${renderResultsCard()}
       <button type="button" class="btn-soft" style="margin-bottom:12px;" onclick="window.location.href='admin_vote_results?id=' + encodeURIComponent(eventId)"><i class="fa-solid fa-stopwatch"></i> Interim Results (${fmt(ev.checkpointCount)})</button>
       <div class="card">
         <div class="card-title"><i class="fa-solid fa-ranking-star"></i> Current Ranking (Total ${fmt(total)})</div>
         ${rows || '<div class="empty-state">No candidates yet</div>'}
       </div>`;
+  }
+
+  // ---------------- แสดงผล ----------------
+  // หมดเวลาโหวตแล้ว ผู้ใช้โหวตต่อไม่ได้ และการ์ดกิจกรรมในหน้า Major Vote จะซ่อนไว้จนกว่าแอดมินกดแสดงผล
+  function renderResultsCard() {
+    let body;
+    if (!ev.ended) {
+      body = `<div class="note">ยังอยู่ในช่วงเวลาโหวต · กดแสดงผลได้หลังหมดเวลาโหวต (${escapeHtml(fmtTime(ev.endTime))})</div>`;
+    } else if (ev.resultsPublished) {
+      body = `<div class="info-row"><div class="k">Status</div><div class="v">แสดงผลแล้ว · ${escapeHtml(fmtTime(ev.resultsPublishedAt))}</div></div>
+        <div id="results-msg" class="msg"></div>
+        <div class="confirm-box" id="results-confirm"></div>
+        <button type="button" class="btn-soft" id="results-btn" onclick="askResults(false)"><i class="fa-solid fa-eye-slash"></i> Hide Results</button>`;
+    } else {
+      body = `<div class="note" style="margin-bottom:12px;">หมดเวลาโหวตแล้ว · ผู้ใช้ยังไม่เห็นการ์ดกิจกรรมและผลโหวต จนกว่าจะกดแสดงผล</div>
+        <div id="results-msg" class="msg"></div>
+        <div class="confirm-box" id="results-confirm"></div>
+        <button type="button" class="btn-primary" id="results-btn" onclick="askResults(true)"><i class="fa-solid fa-bullhorn"></i> Show Results</button>`;
+    }
+    return `<div class="card"><div class="card-title"><i class="fa-solid fa-trophy"></i> Results</div>${body}</div>`;
+  }
+
+  function askResults(publish) {
+    const box = document.getElementById('results-confirm');
+    box.innerHTML = (publish
+        ? '<b>แสดงผลกิจกรรมนี้?</b><br>• การ์ดกิจกรรมจะกลับมาแสดงในหน้า Major Vote และทุกคนเห็นอันดับ/คะแนนได้ทันที'
+        : '<b>ซ่อนผลกิจกรรมนี้?</b><br>• การ์ดกิจกรรมจะหายจากหน้า Major Vote และผู้ใช้จะดูอันดับไม่ได้จนกว่าจะกดแสดงผลอีกครั้ง') +
+      `<div class="confirm-actions">
+         <button type="button" class="btn-cancel" onclick="document.getElementById('results-confirm').classList.remove('show'); document.getElementById('results-btn').style.display='';">Cancel</button>
+         <button type="button" class="btn-confirm" id="results-confirm-btn" onclick="saveResults(${publish ? 'true' : 'false'})">Confirm</button>
+       </div>`;
+    box.classList.add('show');
+    document.getElementById('results-btn').style.display = 'none';
+  }
+
+  async function saveResults(publish) {
+    const btn = document.getElementById('results-confirm-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    try {
+      const res = await blm48AdminSetVoteResultsPublished(user.username, eventId, publish);
+      if (res && res.status === 'success') {
+        await loadEvent();
+        setMsg('results-msg', publish ? 'แสดงผลเรียบร้อยแล้ว' : 'ซ่อนผลเรียบร้อยแล้ว', 'ok');
+        return;
+      }
+      setMsg('results-msg', (res && res.message) || 'บันทึกไม่สำเร็จ');
+    } catch (e) {
+      setMsg('results-msg', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง');
+    }
+    document.getElementById('results-confirm').classList.remove('show');
+    document.getElementById('results-btn').style.display = '';
   }
 
   // ---------------- แก้ไข ----------------

@@ -28,7 +28,7 @@
         }
         body.glass-mesh-bg { background-color: #ffffff; background-image: none; }
 
-        /* แถบบนขาว: ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง (แบบเดียวกับ token_wallet.html) */
+        /* แถบบนขาว: ปุ่มย้อนกลับซ้าย + ชื่อหน้าตรงกลาง */
         .top-navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background: #ffffff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
@@ -41,58 +41,68 @@
         }
         .top-navbar h1 { margin: 0; font-size: 17px; font-weight: 600; color: #222; }
 
-        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 0 12px 40px; }
-        .page-wrapper > h2 { margin: 32px 0 10px; font-size: 20px; font-weight: 700; color: #222; }
-        .intro { font-size: 13px; color: #666; margin: 0 0 22px; line-height: 1.6; }
-
-        .tier-card {
-            display: flex; gap: 14px; align-items: flex-start;
-            border-radius: 16px; padding: 16px; margin-bottom: 14px;
-            border-left: 4px solid var(--accent); background: var(--bg);
-        }
-        .tier-card img {
-            width: 72px; height: 72px; object-fit: cover; object-position: left;
-            border-radius: 10px; flex-shrink: 0; box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+        /* 🏅 แบนเนอร์ = รูปบัตร Membership Card ของ Tier ปัจจุบัน (Member ใช้บัตรเมมเบอร์) เต็มความกว้างจอ */
+        .tier-hero { width: 100%; background: #f6f6f6; }
+        .tier-hero img {
+            display: block; width: 100%; max-width: 640px; margin: 0 auto; aspect-ratio: 1000 / 571; object-fit: cover;
             -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; pointer-events: none;
         }
-        .tier-body { flex: 1; min-width: 0; }
-        .tier-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; font-size: 16px; color: var(--accent); margin-bottom: 4px; }
-        .tier-current {
-            font-size: 11px; font-weight: 600; color: #fff; background: var(--accent);
-            padding: 2px 9px; border-radius: 999px;
+
+        .score-line { text-align: center; font-size: 14.5px; color: #333; margin: 22px 12px 4px; }
+        .score-line b { font-weight: 700; }
+        .score-next { text-align: center; font-size: 12.5px; color: #999; margin: 0 12px; min-height: 18px; }
+
+        .benefits-title { text-align: center; font-size: 22px; font-weight: 700; margin: 34px 0 18px; }
+
+        /* แท็บ Copper / Silver / Gold (ขีดเหลืองใต้แท็บที่เลือก) */
+        .tier-tabs { display: flex; gap: 6px; border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; padding: 0 12px; }
+        .tier-tab {
+            background: none; border: none; padding: 16px 18px 14px; font-family: inherit; font-size: 16px; font-weight: 700;
+            color: #c4c4c4; cursor: pointer;
         }
-        .tier-condition { font-size: 13px; color: #666; margin-bottom: 8px; line-height: 1.5; }
-        .tier-benefits { font-size: 13px; color: #444; line-height: 1.7; }
-        .note { font-size: 12px; color: #999; margin-top: 8px; line-height: 1.6; }
+        .tier-tab span { position: relative; z-index: 0; }
+        .tier-tab.active { color: #222; }
+        .tier-tab.active span::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 5px; border-radius: 3px;
+            background: #ffd75e; z-index: -1;
+        }
+
+        .tier-detail { max-width: 640px; margin: 0 auto; padding: 22px 12px 40px; font-size: 14px; line-height: 1.75; color: #333; }
+        .tier-detail h3 { font-size: 15px; font-weight: 700; margin: 0 0 12px; color: #222; }
+        .tier-detail h4 { font-size: 14px; font-weight: 700; margin: 18px 0 8px; color: #222; }
+        .tier-detail p { margin: 0 0 6px; }
+        .tier-detail ul { margin: 0; padding-left: 0; list-style: none; }
+        .tier-detail li { margin-bottom: 8px; padding-left: 14px; position: relative; }
+        .tier-detail li::before { content: '•'; position: absolute; left: 0; }
+        .tier-current-note { display: inline-block; font-size: 11px; font-weight: 600; color: #222; background: #ffd75e; padding: 2px 10px; border-radius: 999px; margin-left: 6px; vertical-align: 2px; }
+        .note { font-size: 12.5px; color: #888; margin-top: 22px; line-height: 1.75; text-align: justify; }
     </style>
 </head>
 <body class="glass-mesh-bg">
 
 <div class="top-navbar">
     <button class="back-btn" type="button" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fas fa-chevron-left"></i></button>
-    <h1>Membership Tier</h1>
+    <h1>Status</h1>
 </div>
 
-<div class="page-wrapper">
-    <h2>BLM48 Membership Tier</h2>
-    <p class="intro">ระดับ Tier ของคุณคำนวณจาก <strong>Fan Score สะสมทั้งหมด</strong> (ยอดคุกกี้ที่มอบให้เมมเบอร์สะสมตลอดกาล) ระบบจะอัปเดตระดับ Tier ให้ทันทีเมื่อ Fan Score เปลี่ยนแปลง</p>
-
-    <div id="tier-list"></div>
-
-    <p class="note">หมายเหตุ: สิทธิพิเศษของแต่ละ Tier ใน BLM48 Membership Tier รวมทั้งเงื่อนไขและอัตราการคำนวณ อาจมีการปรับเปลี่ยนตามความเหมาะสม โดยทีมงาน BLM48 จะประกาศการเปลี่ยนแปลงล่วงหน้าผ่านแอปพลิเคชัน BLM48 Membership ก่อนมีผลบังคับใช้</p>
+<div class="tier-hero">
+    <img id="tier-hero-img" alt="" draggable="false" oncontextmenu="return false">
 </div>
+
+<div class="score-line" id="score-line">&nbsp;</div>
+<div class="score-next" id="score-next"></div>
+
+<div class="benefits-title">Your Benefits</div>
+<div class="tier-tabs" id="tier-tabs"></div>
+<div class="tier-detail" id="tier-detail"></div>
 
 <script>
     const username = getUsernameFromSession();
 
-    // --- ข้อมูล BLM48 Membership Tier (Copper/Silver/Gold ตาม Fan Score สะสม) ย้ายมาจาก popup ในหน้า majorvote.html ---
+    // --- ข้อมูล BLM48 Membership Tier (Copper/Silver/Gold ตาม Fan Score สะสม) ---
     const TIER_INFO_LIST = [
         {
-            key: 'copper',
-            name: 'Copper Tier',
-            img: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',
-            accent: '#cba034',
-            bg: '#fdf6e3',
+            key: 'copper', label: 'Copper', name: 'Copper Tier', min: 0,
             condition: 'ทุกบัญชีจะได้รับ Copper Tier ตั้งแต่วันที่เปิดใช้งานบัญชี และคงระดับนี้ไว้เมื่อมี Fan Score สะสมต่ำกว่า 5,000',
             benefits: [
                 'ได้รับ Copper Membership Card ประจำตัว',
@@ -100,11 +110,7 @@
             ]
         },
         {
-            key: 'silver',
-            name: 'Silver Tier',
-            img: 'https://lh3.googleusercontent.com/d/1byHhVpGymz84M2MDHE30ewJVNNSFTYcI=s1000',
-            accent: '#8a97a0',
-            bg: '#f4f6f8',
+            key: 'silver', label: 'Silver', name: 'Silver Tier', min: 5000,
             condition: 'ได้รับสถานะ Silver Tier เมื่อมี Fan Score สะสมตั้งแต่ 5,000 แต่ไม่ถึง 10,000',
             benefits: [
                 'ได้รับ Silver Membership Card ประจำตัว',
@@ -112,11 +118,7 @@
             ]
         },
         {
-            key: 'gold',
-            name: 'Gold Tier',
-            img: 'https://lh3.googleusercontent.com/d/18ag8mAELvjn4IQQvboOxAXfB_PddYO17=s1000',
-            accent: '#cba034',
-            bg: '#fff8e1',
+            key: 'gold', label: 'Gold', name: 'Gold Tier', min: 10000,
             condition: 'ได้รับสถานะ Gold Tier เมื่อมี Fan Score สะสมตั้งแต่ 10,000 ขึ้นไป',
             benefits: [
                 'ได้รับ Gold Membership Card ประจำตัว',
@@ -124,40 +126,84 @@
             ]
         }
     ];
+    const NOTE_TEXT = 'หมายเหตุ: สิทธิพิเศษของแต่ละ Tier ใน BLM48 Membership Tier รวมทั้งเงื่อนไขและอัตราการคำนวณ อาจมีการปรับเปลี่ยนตามความเหมาะสม โดยทีมงาน BLM48 จะประกาศการเปลี่ยนแปลงล่วงหน้าผ่านแอปพลิเคชัน BLM48 Membership ก่อนมีผลบังคับใช้';
+
+    // รูปบัตรชุดเดียวกับหน้า membership_card.html
+    const TIER_CARD_IMAGES = {
+        member: 'https://lh3.googleusercontent.com/d/1z1rqVAMbE6a0-i-A_9W-PfErg0V8RSqy=s1000',
+        copper: 'https://lh3.googleusercontent.com/d/1ZlMrb8p1Du8-KITKpVlYt7E1H1aBGlC8=s1000',
+        silver: 'https://lh3.googleusercontent.com/d/1byHhVpGymz84M2MDHE30ewJVNNSFTYcI=s1000',
+        gold: 'https://lh3.googleusercontent.com/d/18ag8mAELvjn4IQQvboOxAXfB_PddYO17=s1000'
+    };
+
+    let currentTier = null;   // Tier ของบัญชีนี้ (null = Member หรือยังโหลดไม่เสร็จ)
+    let activeTab = 'copper';
 
     function goBack() {
         if (document.referrer && history.length > 1) history.back();
         else window.location.href = 'majorvote';
     }
 
-    function renderTiers(currentKey) {
-        document.getElementById('tier-list').innerHTML = TIER_INFO_LIST.map(t => `
-            <div class="tier-card" style="--accent: ${t.accent}; --bg: ${t.bg};">
-                <img src="${t.img}" alt="${t.name}" draggable="false" oncontextmenu="return false" onerror="this.style.display='none'">
-                <div class="tier-body">
-                    <div class="tier-title">${t.name}${t.key === currentKey ? '<span class="tier-current">Tier ปัจจุบัน</span>' : ''}</div>
-                    <div class="tier-condition">${t.condition}</div>
-                    <div class="tier-benefits">${t.benefits.map(b => `<div>• ${b}</div>`).join('')}</div>
-                </div>
-            </div>
-        `).join('');
+    function renderHero(key) {
+        const img = document.getElementById('tier-hero-img');
+        img.src = TIER_CARD_IMAGES[key] || TIER_CARD_IMAGES.copper;
+        img.alt = key === 'member' ? 'Member Card' : key.charAt(0).toUpperCase() + key.slice(1) + ' Membership Card';
     }
 
-    // ป้าย "Tier ปัจจุบัน" เฉพาะบัญชี user (Member ไม่มี Copper/Silver/Gold)
+    function renderTabs() {
+        document.getElementById('tier-tabs').innerHTML = TIER_INFO_LIST.map(t =>
+            `<button type="button" class="tier-tab ${t.key === activeTab ? 'active' : ''}" onclick="selectTab('${t.key}')"><span>${t.label}</span></button>`
+        ).join('');
+        const t = TIER_INFO_LIST.find(x => x.key === activeTab);
+        document.getElementById('tier-detail').innerHTML = `
+            <h3>${t.name}${t.key === currentTier ? '<span class="tier-current-note">Tier ปัจจุบัน</span>' : ''}</h3>
+            <p>${t.condition}</p>
+            <h4>สิทธิพิเศษ</h4>
+            <ul>${t.benefits.map(b => `<li>${b}</li>`).join('')}</ul>
+            <p class="note">${NOTE_TEXT}</p>
+        `;
+    }
+
+    function selectTab(key) { activeTab = key; renderTabs(); }
+
+    // Fan Score + ระยะห่างถึง Tier ถัดไป
+    function renderScore(fanScore) {
+        const score = Number(fanScore) || 0;
+        document.getElementById('score-line').innerHTML = `Your Fan Score <b>${score.toLocaleString()}</b>`;
+        const next = TIER_INFO_LIST.find(t => t.min > score);
+        document.getElementById('score-next').textContent = next
+            ? `อีก ${(next.min - score).toLocaleString()} Fan Score จะได้ ${next.name}`
+            : 'คุณอยู่ระดับสูงสุดแล้ว';
+    }
+
+    // แบนเนอร์/แท็บเริ่มต้นตาม Tier ปัจจุบัน (Member ไม่มี Copper/Silver/Gold)
     async function loadCurrentTier() {
         const sessionUser = getUserSession();
-        if (sessionUser && sessionUser.role && sessionUser.role.toUpperCase().trim() === 'MEMBER') return;
+        if (sessionUser && sessionUser.role && sessionUser.role.toUpperCase().trim() === 'MEMBER') {
+            renderHero('member');
+            document.getElementById('score-line').textContent = 'บัญชี Member ไม่มีระดับ Tier';
+            return;
+        }
         try {
             const res = await blm48GetMembershipTier(username);
-            if (res && res.status === 'success' && res.tier) renderTiers(String(res.tier).toLowerCase());
-        } catch (e) { /* แสดงรายการ Tier โดยไม่มีป้าย */ }
+            if (res && res.status === 'success' && res.tier) {
+                currentTier = String(res.tier).toLowerCase();
+                activeTab = currentTier;
+                renderHero(currentTier);
+                renderScore(res.fanScore);
+                renderTabs();
+                return;
+            }
+        } catch (e) { /* แสดงข้อมูล Tier โดยไม่มีระดับปัจจุบัน */ }
+        renderHero('copper'); // โหลด Tier ไม่ได้: ใช้บัตร Copper (ระดับเริ่มต้น)
     }
 
     if (!username) {
         alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
         window.location.href = 'login';
     } else {
-        renderTiers(null);
+        // ยังไม่ใส่รูปบัตรจนกว่าจะรู้ Tier จริง (กัน Gold/Silver เห็นบัตร Copper แวบหนึ่ง)
+        renderTabs();
         loadCurrentTier();
     }
 </script>
