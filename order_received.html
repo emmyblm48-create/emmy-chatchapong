@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership | Success!</title>
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Success!</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc107">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -22,7 +23,8 @@
     <style>
         /* หัวสีเหลืองประจำวง BLM48 ขอบล่างโค้ง (แบบหน้า Success ของ iAM) */
         .success-header {
-            position: relative; height: calc(80px + env(safe-area-inset-top, 0px));
+            /* ล็อกหัวพร้อมปุ่มย้อนกลับไว้บนสุดเสมอ */
+            position: sticky; top: 0; z-index: 50; height: calc(80px + env(safe-area-inset-top, 0px));
             padding-top: env(safe-area-inset-top, 0px);
             background: #ffc107;
             display: flex; align-items: center; justify-content: center;
@@ -79,8 +81,8 @@
   const justRedeemed = params.get('new') === '1';
 
   function goBack() {
-    // หลังกด Redeem กลับไปที่ Order Details (ซึ่งจะโหลดสถานะใหม่) แทนการย้อนประวัติ
-    window.location.replace('order_detail?id=' + orderId);
+    // หลังกด Redeem กลับไปที่ Order Details (โหลดสถานะใหม่) — ย้อนในประวัติแทนการเปิดหน้าซ้อน
+    blm48BackTo('order_detail?id=' + orderId, { refresh: true });
   }
 
   function burst(gold) {
@@ -120,7 +122,9 @@
         const type = r.itemType === 'Coaster' ? 'Merchandise'
           : r.collectionId === 'coll_cafe' ? 'Cafe' : (l.kind === 'preorder' ? 'Pre-order item' : 'Item');
         entry = { kind: 'item', label: r.label, image: r.imageUrl, type, isSSR: !!r.isSSR, qty: 0,
-                  note: 'Saved to your Inventory.' };
+                  note: 'Saved to your Inventory.', collectionId: r.collectionId,
+                  // ชื่อคอลเลกชันจริงจากเซิร์ฟเวอร์ (เช่น การ์ดคอนเสิร์ตจาก Lucky Box) ใช้เลือกพื้นหลัง 3D
+                  collection: r.collection || '' };
         entry.add = 1;
       }
       const existing = map.get(key) || entry;
@@ -128,6 +132,11 @@
       map.set(key, existing);
     }));
     return [...map.values()];
+  }
+
+  // 🥤 เครื่องดื่ม BLM48 Cafe = แก้ว 3D จริง (ยกเว้นไอเทมพื้นหลัง "BG")
+  function isCafeDrink(r) {
+    return r.kind === 'item' && r.collectionId === 'coll_cafe' && !/\bBG\b/i.test(r.label || '');
   }
 
   function thumb(r) {
@@ -177,16 +186,27 @@
         </div>
       </div>`).join('');
 
+    // 🥤 เครื่องดื่ม BLM48 Cafe: รูปในรายการเป็นแก้ว 3D หมุนช้าๆ (ไม่รองรับก็เป็นรูปเดิม)
+    if (window.blm48CupThumb) {
+      box.querySelectorAll('.received-item.can-view').forEach(el => {
+        const r = rewards[Number(el.dataset.i)];
+        if (!isCafeDrink(r)) return;
+        const img = el.querySelector('img.received-thumb');
+        if (img) blm48CupThumb(img, r.image, { style: 'display:block;' });
+      });
+    }
+
     // แตะของที่ได้ (ไอเทม/การ์ด) เพื่อหมุนดูแบบ 3D
     box.querySelectorAll('.received-item.can-view').forEach(el => el.addEventListener('click', () => {
       const r = rewards[Number(el.dataset.i)];
-      blm48Open3DViewer({ image: r.image, label: r.label, isSSR: r.isSSR });
+      blm48Open3DViewer({ image: r.image, label: r.label, isSSR: r.isSSR, collection: r.collection, collectionId: r.collectionId,
+        cup: isCafeDrink(r) });
     }));
 
     if (packs.some(p => p.cards.length)) {
       await blm48OpenPacks(packs);
       // เปิดซองแล้ว: กด back/รีเฟรชไม่ต้องเปิดซองซ้ำ
-      history.replaceState(null, '', 'order_received?id=' + orderId);
+      history.replaceState(history.state, '', 'order_received?id=' + orderId);
     }
     if (justRedeemed) burst(rewards.some(r => r.isSSR));
   }

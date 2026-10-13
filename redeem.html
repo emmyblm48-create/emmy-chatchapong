@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="assets/js/back-nav.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>BLM48 Membership | Redeem</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <meta name="theme-color" content="#ffffff">
@@ -23,7 +24,8 @@
 
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; }
+    /* ล็อกความสูงแค่ html - ถ้า body สูงตายตัว 100% แถบหัว sticky จะหลุดออกจอเมื่อเนื้อหายาวกว่าจอ */
+    html { height: 100%; }
     body {
       margin: 0;
       font-family: 'Quicksand', 'Kanit', sans-serif;
@@ -141,21 +143,13 @@
     // ผู้ใช้ต้องล็อกอินก่อน (เช็ควันหมดอายุของ session ผ่าน getUserSession ใน common.js)
     const sessionUser = getUserSession();
     if (!sessionUser || !sessionUser.username) {
-      window.location.replace('login');
+      blm48Replace('login');
     }
 
     // กลับไปหน้าที่กดมา (โหลดหน้าใหม่ ให้ยอดเงินในกระเป๋าเป็นค่าล่าสุดหลังแลกโค้ด)
     function goBack() {
-      try {
-        if (document.referrer) {
-          const ref = new URL(document.referrer);
-          if (ref.origin === location.origin && !/\/redeem/.test(ref.pathname)) {
-            location.href = ref.pathname + ref.search;
-            return;
-          }
-        }
-      } catch (e) {}
-      location.href = 'profile';
+      // กลับไปหน้าที่กดมา และโหลดหน้านั้นใหม่ ให้ยอดเงินในกระเป๋าเป็นค่าล่าสุดหลังแลกโค้ด
+      blm48Back('profile', { refresh: true });
     }
 
     const input = document.getElementById('code-input');

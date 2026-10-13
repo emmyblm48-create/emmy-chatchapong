@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="assets/js/back-nav.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Post | BLM48</title>
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -35,6 +36,8 @@
       margin: 0;
       font-family: 'Quicksand', 'Kanit', sans-serif;
     }
+    /* body ใช้ clip แทน hidden - hidden ทำให้ body กลายเป็นกล่องเลื่อนของตัวเอง แถบหัว (.pd-header) ที่ sticky เลยไม่ติดบนจอ */
+    body { overflow-x: clip; }
 
     .pd-header {
       position: sticky;
@@ -218,11 +221,7 @@
 
   // ⬅️ ปุ่มย้อนกลับ: ใช้ history เดิมถ้ามี (กันแตกกรณีเปิดลิงก์ตรงๆ ไม่มีประวัติหน้าให้ย้อน)
   function goBackFromPostDetail() {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      window.location.href = 'index';
-    }
+    blm48Back('index');
   }
 
   function openMemberProfile(name) {
@@ -1051,7 +1050,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
     user = getUserSession();
     if (!user || !user.username) {
-      window.location.replace('login');
+      blm48Replace('login');
       return;
     }
     isMemberRole = (user.role || '').toLowerCase() === 'member';

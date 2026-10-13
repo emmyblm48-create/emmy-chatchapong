@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership | Check Out</title>
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Check Out</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffffff">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -45,7 +46,7 @@
 <body class="has-bottom-bar">
 
 <div class="top-navigation-bar">
-    <button type="button" class="nav-back-btn" onclick="history.back()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <button type="button" class="nav-back-btn" onclick="blm48Back('cart')" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
     <div class="top-bar-page-title">Check Out</div>
 </div>
 
@@ -103,7 +104,7 @@
   function render() {
     const lines = blm48Cart.get();
     if (lines.length === 0) {
-      window.location.replace('cart');
+      blm48Replace('cart');
       return;
     }
     const total = blm48Cart.total();
@@ -160,7 +161,7 @@
       blm48Cart.clear();
       user.token = res.newToken;
       saveUserSession(user);
-      window.location.replace('payment?order=' + encodeURIComponent(res.orderId));
+      blm48Replace('payment?order=' + encodeURIComponent(res.orderId));
       return;
     }
 

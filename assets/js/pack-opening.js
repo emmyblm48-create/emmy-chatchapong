@@ -1,4 +1,5 @@
-// 🎴 ฉากเปิดซองสุ่ม: ซองพลาสติกฟอยล์ → ลากนิ้วตามรอยปะเพื่อฉีก → เห็นของจริงทันทีทีละชิ้น แตะเพื่อดูชิ้นถัดไป (SSR มีป้าย SSR + พลุ, ไม่มีแสงเรือง)
+// 🎴 ฉากเปิดซองสุ่ม: ซองพลาสติกฟอยล์ → ลากนิ้วตามรอยปะเพื่อฉีก → เห็นของจริงทันทีทีละชิ้น แตะเพื่อดูชิ้นถัดไป (SSR มีป้าย SSR + พลุทอง)
+// ซองที่มีของ SSR อยู่ข้างในจะเป็น "ซองทอง" ตั้งแต่ก่อนฉีก (ลำแสงหมุน ออร่า ประกาย ซองสั่น แฟลชทองตอนฉีก)
 // ใช้: await blm48OpenPacks([{ cover, name, cards: [{ image, label, isSSR }] }, ...])  (หนึ่งซองต่อหนึ่งรายการสุ่ม)
 // resolve เมื่อผู้ใช้เปิดครบทุกซอง หรือกด "ข้าม"
 (function () {
@@ -41,15 +42,16 @@
         animation: po-sheen 3.2s linear infinite; }
       @keyframes po-sheen { from { background-position: 150% 0; } to { background-position: -100% 0; } }
       .po-top .po-mini { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #c8151d; font-weight: 700; font-size: 11px; letter-spacing: 2px; }
-      /* รอยปะ + มือชี้ */
+      /* รอยปะ + จุดแสงวิ่งตามรอยปะบอกทิศปัด (แทนอิโมจิมือชี้) */
       .po-guide { position: absolute; left: -4%; right: -4%; top: 15.6%; height: 2px; z-index: 4; pointer-events: none;
         background: repeating-linear-gradient(90deg, rgba(255,255,255,0.95) 0 8px, transparent 8px 14px); }
       .po-cut { position: absolute; left: 0; top: 15%; height: 6px; width: 0; z-index: 4; pointer-events: none;
         background: linear-gradient(#fff, #ffd0d2); border-radius: 3px; }
-      .po-finger { position: absolute; top: calc(15.6% - 4px); left: 0; z-index: 6; font-size: 30px; pointer-events: none;
-        animation: po-finger 1.6s ease-in-out infinite; text-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+      .po-finger { position: absolute; top: calc(15.6% - 6px); left: 0; z-index: 6; width: 14px; height: 14px; border-radius: 50%; pointer-events: none;
+        background: #fff; box-shadow: 0 0 6px 2px rgba(255,255,255,0.95), 0 0 16px 6px rgba(255,214,214,0.6), -14px 0 12px -2px rgba(255,255,255,0.55);
+        animation: po-finger 1.6s ease-in-out infinite; }
       @keyframes po-finger { 0% { transform: translate(-10%, 0); opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(230px, 0); opacity: 0; } }
-      .po-hint { margin-top: 30px; font-size: 14px; color: rgba(255,255,255,0.85); text-align: center; min-height: 20px; }
+      .po-hint { margin-top: 30px; padding: 0 16px; font-size: 14px; color: rgba(255,255,255,0.85); text-align: center; min-height: 20px; }
 
       /* ของที่ได้: แสดงรูปจริงตามรูปทรง (ไม่มีกรอบการ์ด ไม่ต้องพลิก) ทีละชิ้น */
       .po-cards { position: absolute; inset: 2% 2% 12%; z-index: 1; }
@@ -80,16 +82,58 @@
         animation: po-burst 1.4s ease-out forwards; }
       @keyframes po-burst { 0% { transform: translate(-50%,-50%) rotate(0); opacity: 1; }
         100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4); opacity: 0; } }
+
+      /* ✨ ซองทอง: ซองที่มีของ SSR อยู่ข้างใน — ซองฟอยล์สีทอง + ลำแสงหมุน + ออร่าเต้น + ประกายวิบวับ + ซองสั่น + แฟลชตอนฉีก */
+      .po-overlay { transition: opacity 0.3s, background 0.6s; }
+      .po-overlay.gold { background: radial-gradient(circle at 50% 38%, #e3343c 0%, #a50f17 52%, #5a060b 100%); }
+      .po-fx { position: absolute; pointer-events: none; z-index: 0; }
+      .po-rays { inset: -75%; border-radius: 50%;
+        background: repeating-conic-gradient(from 0deg, rgba(255,224,120,0.42) 0deg 7deg, transparent 7deg 20deg);
+        -webkit-mask: radial-gradient(circle, #000 12%, transparent 62%); mask: radial-gradient(circle, #000 12%, transparent 62%);
+        animation: po-spin 16s linear infinite; }
+      @keyframes po-spin { to { transform: rotate(360deg); } }
+      .po-aura { inset: -18%; border-radius: 50%; background: radial-gradient(circle, rgba(255,214,90,0.8) 0%, rgba(255,190,40,0.35) 38%, transparent 66%);
+        animation: po-aura 1.8s ease-in-out infinite; }
+      @keyframes po-aura { 0%,100% { transform: scale(0.92); opacity: 0.75; } 50% { transform: scale(1.06); opacity: 1; } }
+      .po-spark { z-index: 5; width: 16px; height: 16px; background: #fff6cf;
+        clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+        filter: drop-shadow(0 0 6px rgba(255,215,90,0.95)); animation: po-twinkle 1.6s ease-in-out infinite; }
+      @keyframes po-twinkle { 0%,100% { transform: scale(0.2) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
+
+      .po-stage.gold .po-part { background: linear-gradient(135deg, #fff6d1 0%, #f3c548 18%, #fff1b8 36%, #d9a521 56%, #ffe8a3 76%, #c08a0e 100%);
+        background-size: 220% 220%; animation: po-foil 3.5s ease-in-out infinite; }
+      @keyframes po-foil { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+      .po-stage.gold .po-top::before, .po-stage.gold .po-body::after {
+        background: repeating-linear-gradient(90deg, rgba(140,90,0,0.4) 0 3px, rgba(255,250,225,0.6) 3px 6px); }
+      .po-stage.gold .po-body { box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 34px 8px rgba(255,205,70,0.6); }
+      .po-stage.gold .po-art { background: #b8860b; box-shadow: 0 0 0 2px rgba(255,246,207,0.95), 0 0 16px rgba(255,215,90,0.8); }
+      .po-stage.gold .po-name, .po-stage.gold .po-top .po-mini { color: #7a4f00; }
+      .po-stage.gold .po-sheen { background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.85) 45%, transparent 60%);
+        background-size: 250% 100%; animation-duration: 1.9s; }
+      .po-stage.gold .po-cut { background: linear-gradient(#fffbe8, #ffd75e); }
+      .po-stage.gold .po-finger { background: #fffbe8;
+        box-shadow: 0 0 6px 2px rgba(255,246,207,0.95), 0 0 18px 7px rgba(255,205,70,0.75), -14px 0 12px -2px rgba(255,224,120,0.6); }
+      .po-stage.gold .po-pack.idle { animation: po-float-gold 2.6s ease-in-out infinite; }
+      @keyframes po-float-gold {
+        0%,100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-8px) rotate(1.2deg); }
+        70% { transform: translateY(-4px) rotate(0deg); } 73% { transform: translateY(-4px) rotate(-3deg); } 76% { transform: translateY(-4px) rotate(3deg); }
+        79% { transform: translateY(-4px) rotate(-2deg); } 82% { transform: translateY(-4px) rotate(0deg); } }
+      .po-hint.gold { color: #ffe8a3; font-weight: 600; text-shadow: 0 0 10px rgba(255,205,70,0.6); }
+      .po-flash { position: fixed; inset: 0; z-index: 20550; pointer-events: none; opacity: 0;
+        background: radial-gradient(circle at 50% 42%, rgba(255,255,255,0.98) 0%, rgba(255,226,130,0.85) 30%, rgba(255,190,40,0) 70%);
+        animation: po-flash 0.9s ease-out forwards; }
+      @keyframes po-flash { 0% { opacity: 0; } 18% { opacity: 1; } 100% { opacity: 0; } }
     `;
     document.head.appendChild(st);
   }
 
-  function confetti() {
-    const colors = ['#ffffff', '#ffd0d2', '#ff6b70', '#ffffff', '#ffe3e4'];
-    for (let i = 0; i < 46; i++) {
+  function confetti(gold) {
+    const colors = gold ? ['#fff6d1', '#ffd75e', '#f3c548', '#ffffff', '#d9a521'] : ['#ffffff', '#ffd0d2', '#ff6b70', '#ffffff', '#ffe3e4'];
+    const count = gold ? 70 : 46;
+    for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
       p.className = 'po-confetti';
-      const a = (Math.PI * 2 * i) / 46 + Math.random() * 0.4, d = 120 + Math.random() * 180;
+      const a = (Math.PI * 2 * i) / count + Math.random() * 0.4, d = (gold ? 150 : 120) + Math.random() * (gold ? 230 : 180);
       p.style.setProperty('--tx', Math.cos(a) * d + 'px');
       p.style.setProperty('--ty', Math.sin(a) * d - 40 + 'px');
       p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
@@ -146,12 +190,20 @@
           <button type="button" class="po-done">Add to Inventory</button>`;
         o.appendChild(sum);
         sum.querySelector('.po-done').addEventListener('click', finish);
-        if (allCards.some(c => c.isSSR)) confetti();
+        if (allCards.some(c => c.isSSR)) confetti(true);
       }
 
       function openPack(pack) {
         countEl.textContent = packs.length > 1 ? `Pack ${packIdx + 1}/${packs.length}` : '';
-        stage.innerHTML = `
+        // ซองที่มีของ SSR อย่างน้อย 1 ชิ้น = ซองทอง
+        const isGold = pack.cards.some(c => c.isSSR);
+        stage.classList.toggle('gold', isGold);
+        o.classList.toggle('gold', isGold);
+        hint.classList.toggle('gold', isGold);
+        const sparks = [[-14, 8], [104, 14], [-10, 62], [106, 70], [8, -8], [86, 96], [46, -12], [100, 40], [-16, 36], [20, 102]];
+        const goldFx = isGold ? `<div class="po-fx po-rays"></div><div class="po-fx po-aura"></div>${sparks.map(([x, y], i) =>
+          `<div class="po-fx po-spark" style="left:${x}%;top:${y}%;animation-delay:${(i * 0.37) % 1.6}s;${i % 3 === 0 ? 'width:11px;height:11px;' : ''}"></div>`).join('')}` : '';
+        stage.innerHTML = `${goldFx}
           <div class="po-cards">${pack.cards.map((c, i) => `
             <div class="po-card${c.isSSR ? ' is-ssr' : ''}" data-i="${i}">
               <img src="${esc(c.image)}" alt="" draggable="false">
@@ -165,8 +217,8 @@
               <div class="po-sheen"></div>
             </div>
           </div>
-          <div class="po-guide"></div><div class="po-cut"></div><div class="po-finger">👆</div>`;
-        hint.textContent = 'Swipe along the dotted line to tear open';
+          <div class="po-guide"></div><div class="po-cut"></div><div class="po-finger"></div>`;
+        hint.textContent = isGold ? 'Something special is inside! Swipe along the dotted line' : 'Swipe along the dotted line to tear open';
 
         const packEl = stage.querySelector('.po-pack');
         const topEl = stage.querySelector('.po-top');
@@ -210,7 +262,15 @@
 
         function tear() {
           torn = true;
-          if (navigator.vibrate) navigator.vibrate(30);
+          if (isGold) {
+            // ซองทอง: แสงแฟลชทองทั้งจอ + พลุทอง + สั่นยาว
+            const flash = document.createElement('div');
+            flash.className = 'po-flash';
+            o.appendChild(flash);
+            setTimeout(() => flash.remove(), 950);
+            confetti(true);
+            if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 120]);
+          } else if (navigator.vibrate) navigator.vibrate(30);
           cutEl.style.width = '100%';
           topEl.style.transition = 'transform 0.6s cubic-bezier(0.3,0,0.6,1), opacity 0.6s';
           topEl.style.transform = 'translate(90px, -220px) rotate(-38deg)';
@@ -234,7 +294,7 @@
           const data = pack.cards[i];
           cards[i].classList.remove('peek');
           cards[i].classList.add('show');
-          if (data.isSSR) { confetti(); if (navigator.vibrate) navigator.vibrate([40, 40, 80]); }
+          if (data.isSSR) { confetti(true); if (navigator.vibrate) navigator.vibrate([40, 40, 80]); }
           const counter = cards.length > 1 ? ` (${i + 1}/${cards.length})` : '';
           hint.textContent = (i < cards.length - 1 ? 'Tap for the next item' : (packIdx < packs.length - 1 ? 'Tap to open the next pack' : 'Tap to see all items')) + counter;
         }

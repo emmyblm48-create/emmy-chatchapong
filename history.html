@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership | History</title>
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | History</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <!-- สำหรับ iOS Home Screen Icon -->
@@ -161,11 +162,7 @@
     // ย้อนกลับไปหน้าก่อนหน้า ถ้าไม่มีประวัติให้ตีกลับไปหน้าแรกแทน
     function goBack() {
         if (isDetailOpen()) { history.back(); return; }
-        if (document.referrer && window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = 'index';
-        }
+        blm48Back('index');
     }
 
     function safeDate(ts) {
@@ -349,7 +346,7 @@
         document.getElementById('filter-tabs').style.display = 'none';
         view.style.display = 'block';
         window.scrollTo(0, 0);
-        if (!fromPopState) history.pushState({ txnDetail: index }, '');
+        if (!fromPopState) history.pushState(Object.assign({}, history.state, { txnDetail: index }), '');
     }
 
     function closeDetail() {

@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership | Inventory</title>
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Inventory</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -24,6 +25,7 @@
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
     <script src="assets/js/item-3d-viewer.js"></script>
+    <script src="assets/js/photobook-3d.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 
     <style>
@@ -476,11 +478,11 @@
             </div>
             <div class="modal-action-buttons">
                 <button type="button" class="btn-close-modal" onclick="closePreview()">Close</button>
-                <button type="button" class="btn-save-image" onclick="openPreview3D()">
+                <button type="button" id="view3DBtn" class="btn-save-image" onclick="openPreview3D()">
                     <i class="fa-solid fa-cube"></i> 3D
                 </button>
                 <button type="button" id="viewPhotoBookBtn" class="btn-save-image" style="display:none;" onclick="openEpubReaderFromPreview()">
-                    <i class="fa-solid fa-book-open"></i> Read
+                    <i class="fa-solid fa-book-open"></i> Read 3D
                 </button>
                 <a id="saveImgBtn" href="" target="_blank" download="blm48_reward.png" class="btn-save-image">
                     <i class="fa-solid fa-download"></i> Save
@@ -552,11 +554,7 @@
     };
 
     function goBackFromInventory() {
-        if (document.referrer && window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = 'majorvote';
-        }
+        blm48Back('majorvote');
     }
 
     // โหลดข้อมูลแบบ Anti-Cache เพื่อให้ได้ของในกระเป๋าล่าสุดแบบเรียลไทม์
@@ -609,6 +607,34 @@
 
     // ⭐ เช็กจากชื่อไอเทมตรงๆ ว่ามีคำว่า "SSR" อยู่ไหม (ไม่ใช่แค่เช็กจาก category)
     // เพื่อให้ของหายากที่ได้จากกาชาคอลเลกชันอื่นๆ (ไม่ใช่แค่หมวด SSR Photo โดยตรง) ก็ได้กรอบทองด้วย
+    // 🥤 เครื่องดื่ม BLM48 Cafe = แก้ว 3D จริง (ยกเว้นไอเทมพื้นหลัง "BG")
+    function isCafeDrinkItem(item) {
+        return item.category === 'BLM48 Cafe' && !/\bBG\b/i.test(item.name || '');
+    }
+
+    // 📸 บันทึกภาพแก้ว 3D (ถ้าสร้างไม่ได้ ก็เปิดรูปเดิมให้บันทึกแทน)
+    async function saveCup3D(item, btn) {
+        if (btn.dataset.busy) return;
+        btn.dataset.busy = '1';
+        const label = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Save';
+        try {
+            const blob = await blm48CupSnapshot(item.img);
+            if (!blob) { window.open(item.img, '_blank'); return; }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'BLM48 ' + (item.name || 'Cafe').replace(/[\\/:*?"<>|]/g, '') + ' 3D.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+        } finally {
+            btn.innerHTML = label;
+            delete btn.dataset.busy;
+        }
+    }
+
     function isSsrByName(name) {
         return /ssr/i.test(name || '');
     }
@@ -792,6 +818,7 @@ function renderInventoryData() {
     }
 
     // จัดกลุ่มไอเทมแยกตามชื่องานย่อยเพื่อทำกล่อง Section หัวข้อ
+    const cupThumbs = [];
     const grouped = {};
     filteredItems.forEach(item => {
         if (!grouped[item.subCollection]) grouped[item.subCollection] = [];
@@ -840,11 +867,15 @@ function renderInventoryData() {
                 <div class="item-name" title="${escapeAttr(item.name)}"><span>${escapeHtml(item.name)}</span></div>
             `;
             grid.appendChild(card);
+            if (isCafeDrinkItem(item)) cupThumbs.push([card.querySelector('.item-img'), item.img]);
         });
-        
+
         section.appendChild(grid);
         container.appendChild(section);
     });
+
+    // 🥤 เครื่องดื่ม BLM48 Cafe โชว์เป็นแก้ว 3D หมุนช้าๆ (ไม่รองรับก็เป็นรูปเดิม)
+    if (window.blm48CupThumb) cupThumbs.forEach(([img, url]) => blm48CupThumb(img, url));
 }
 
     let currentPreviewItem = null;
@@ -855,12 +886,26 @@ function renderInventoryData() {
 
     function openPreview(item) {
         currentPreviewItem = item;
-        document.getElementById('previewImg').src = item.img;
-        document.getElementById('saveImgBtn').href = item.img;
+        const previewImg = document.getElementById('previewImg');
+        previewImg.src = item.img;
+        // 🥤 เครื่องดื่ม Cafe: โชว์แก้ว 3D หมุนช้าๆ แทนรูปแบน (ล้างแก้วของชิ้นก่อนหน้าออกก่อน)
+        previewImg.parentNode.querySelectorAll('canvas.is-3d-cup').forEach(c => c.remove());
+        previewImg.style.display = '';
+        if (isCafeDrinkItem(item) && window.blm48CupThumb) {
+            blm48CupThumb(previewImg, item.img, {
+                style: 'width:100%;height:300px;display:block;border-radius:14px;background:#f6f6f8;margin-bottom:14px;'
+            });
+        }
+        const saveBtn = document.getElementById('saveImgBtn');
+        saveBtn.href = item.img;
+        // 🥤 เครื่องดื่ม Cafe: Save เป็นภาพแก้ว 3D ความละเอียดสูง (พื้นหลังโปร่งใส) แทนรูปแบน
+        saveBtn.onclick = isCafeDrinkItem(item) && window.blm48CupSnapshot ? (e) => { e.preventDefault(); saveCup3D(item, saveBtn); } : null;
         document.getElementById('previewName').textContent = item.name;
 
         const viewPhotoBookBtn = document.getElementById('viewPhotoBookBtn');
         viewPhotoBookBtn.style.display = item.fileUrl ? 'inline-flex' : 'none';
+        // โฟโต้บุ๊ค: ปุ่ม 3D กับ Read เปิดหนังสือ 3D เล่มเดียวกัน เลยรวมเหลือปุ่มเดียว "Read 3D"
+        document.getElementById('view3DBtn').style.display = item.fileUrl ? 'none' : '';
 
         const meta = document.getElementById('previewMeta');
         meta.style.setProperty('--tier-color', isSsrByName(item.name) ? '#e0b953' : getTierColor(item.category));
@@ -887,7 +932,10 @@ function renderInventoryData() {
     // 🔍 หมุนดูไอเทมแบบ 3D (ตัวดูเดียวกับหน้า Success! หลัง Redeem) ซ้อนบนหน้าต่างพรีวิว ปิดแล้วกลับมาที่พรีวิวเดิม
     function openPreview3D() {
         if (!currentPreviewItem) return;
-        blm48Open3DViewer({ image: currentPreviewItem.img, label: currentPreviewItem.name, isSSR: isSsrByName(currentPreviewItem.name) });
+        // 📖 โฟโต้บุ๊ค = หนังสือ 3D เปิดอ่านได้
+        if (currentPreviewItem.fileUrl) { openPhotobook3D(currentPreviewItem); return; }
+        blm48Open3DViewer({ image: currentPreviewItem.img, label: currentPreviewItem.name, isSSR: isSsrByName(currentPreviewItem.name), collection: currentPreviewItem.subCollection,
+            cup: isCafeDrinkItem(currentPreviewItem) });
     }
 
     function closePreview() {
@@ -979,8 +1027,17 @@ function renderInventoryData() {
 
     function openEpubReaderFromPreview() {
         if (!currentPreviewItem || !currentPreviewItem.fileUrl) return;
+        openPhotobook3D(currentPreviewItem);
+    }
+
+    // เปิดเป็นหนังสือ 3D (ซ้อนบนหน้าต่างพรีวิว ปิดแล้วกลับมาที่พรีวิวเดิม) ถ้าโหลดตัว 3D ไม่ได้ค่อยใช้ตัวอ่านแบบเดิม
+    function openPhotobook3D(item) {
+        if (window.blm48OpenPhotobook3D) {
+            blm48OpenPhotobook3D({ title: item.name, cover: item.img, folder: item.fileUrl });
+            return;
+        }
         closePreview();
-        openEpubReader(currentPreviewItem.fileUrl, currentPreviewItem.name);
+        openEpubReader(item.fileUrl, item.name);
     }
 
     function showFlipbookError(viewerEl) {

@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <script src="assets/js/back-nav.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BLM48 | Details</title>
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-title" content="BLM48">
@@ -135,15 +136,20 @@
                     images: ['https://lh3.googleusercontent.com/d/15UzuRt7ArZ-wUuoLLdZfqF9pdgCJt6ZQ=s1000'],
                     desc: 'เติมคุกกี้สำหรับใช้งานทั่วไป (คุ้มที่สุด)\nได้รับ 1,000 Cookies เข้ากระเป๋าหลังกด Redeem ในหน้าคำสั่งซื้อ' }
         },
+        // images = รูปในหน้ารายละเอียด (รูปที่ 2 ของเครื่องดื่ม = ภาพสินค้าจริง) · item = รูปแก้วที่ได้รับเข้ากระเป๋า · รูปในตะกร้าใช้ภาพโปรโมท (BLM48_CAFE_CART_IMAGES ใน common.js)
         cafe: {
             cafe_matcha_01: { name: 'Suiito Matcha', sub: 'いちごミニパフェ', price: 5,
-                images: ['https://lh3.googleusercontent.com/d/1hc_AQblGKyamIOmspWseUcnY2gwW9dyg=s1000', 'https://lh3.googleusercontent.com/d/1thW4VJVyFLsgMQNI0wAFaIC7gsqnATeM=s1000'] },
+                images: ['https://lh3.googleusercontent.com/d/1M9JtYBOwdqADFZtXTKhKq45WRE9GBziE=s1000', 'https://lh3.googleusercontent.com/d/1vR5ETR6i5H84G0ZtX_WxlU9cJQjkJ1IV=s1000'],
+                item: 'https://lh3.googleusercontent.com/d/1thW4VJVyFLsgMQNI0wAFaIC7gsqnATeM=s1000' },
             cafe_pinkmilk_01: { name: 'Pinku Milk', sub: 'ピンクミルク', price: 5,
-                images: ['https://lh3.googleusercontent.com/d/1_KC4glssnDILv1GP7BtUnjT1-uP1omlB=s1000', 'https://lh3.googleusercontent.com/d/1b_wl3lpi_QPd9-9nXBofw5mBL-jUu0Hn=s1000'] },
+                images: ['https://lh3.googleusercontent.com/d/1wFYHde-eBVjzwocJyvreJM2XZeTjsDc8=s1000', 'https://lh3.googleusercontent.com/d/1RgRXPSPOT1gni2VxrDjoVyO0-JoH4D49=s1000'],
+                item: 'https://lh3.googleusercontent.com/d/1b_wl3lpi_QPd9-9nXBofw5mBL-jUu0Hn=s1000' },
             cafe_cocoa_01: { name: 'Koi Cocoa', sub: '濃いココア', price: 5,
-                images: ['https://lh3.googleusercontent.com/d/1ERV8sH_M0fv3dIFqfGGyf23JTTK3z0F-=s1000', 'https://lh3.googleusercontent.com/d/1fHP-8N6VcRalynHDEZZWrjWhd7zYyHfF=s1000'] },
+                images: ['https://lh3.googleusercontent.com/d/1ILJYZnane2OGreL8weF_4qfObmk1dy3_=s1000', 'https://lh3.googleusercontent.com/d/1Dhv_9iVXnuO6yfrRh5rIWWvLcgcaLSAf=s1000'],
+                item: 'https://lh3.googleusercontent.com/d/1fHP-8N6VcRalynHDEZZWrjWhd7zYyHfF=s1000' },
             cafe_thaimirukutea_01: { name: 'Thai Miruku Tea', sub: 'タイミルクティー', price: 5,
-                images: ['https://lh3.googleusercontent.com/d/11kPILdW6tOh5xZZ-Kl6JpAUsJeYWrlXE=s1000', 'https://lh3.googleusercontent.com/d/1HBOXvqFCL_-wrxbZlaEf15JvrGDUurhf=s1000'] },
+                images: ['https://lh3.googleusercontent.com/d/1I-EBFnkTdtPRFgkEsN9mOF72gAmlxtuT=s1000', 'https://lh3.googleusercontent.com/d/1xeq-cFP8ubvQ0ARj9ieuPW6PwcU1IBwV=s1000'],
+                item: 'https://lh3.googleusercontent.com/d/1HBOXvqFCL_-wrxbZlaEf15JvrGDUurhf=s1000' },
             cafe_BLM48CafeBackground_01: { name: 'BLM48 Cafe BG V.1', sub: 'Background V.1', price: 0,
                 images: ['https://lh3.googleusercontent.com/d/1xhN872cKyptZ-vO8N6jHkCfSACE2okVo=s1000', 'https://lh3.googleusercontent.com/d/1MLtVYBkoWNrkqWr2AJqYtAfy6q7q2jJO=s1000'] }
         }
@@ -154,8 +160,7 @@
     let variant = 1;      // Draw ×1 / ×5 (เฉพาะกาชา)
 
     function goBack() {
-        if (document.referrer && history.length > 1) history.back();
-        else location.href = 'shop';
+        blm48Back('shop');
     }
 
     // ---------- Lucky Box: สิทธิ์สุ่มฟรีที่เหลือ (หักที่อยู่ในตะกร้าแล้ว) ----------
@@ -191,7 +196,7 @@
                 available: true,
                 unitPrice: () => p.price,
                 cartLine: () => ({ kind: KIND, refId: REF, variant: 1, name: KIND === 'cookie' ? p.name : p.name,
-                                   label: KIND === 'cookie' ? 'Cookie Pack' : 'BLM48 Cafe', image: p.images[p.images.length - 1], unitPrice: p.price })
+                                   label: KIND === 'cookie' ? 'Cookie Pack' : 'BLM48 Cafe', image: (KIND === 'cafe' && BLM48_CAFE_CART_IMAGES[REF]) || p.item || p.images[p.images.length - 1], unitPrice: p.price })
             };
         }
         if (KIND === 'gacha') {

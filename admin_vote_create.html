@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership | Create Vote Event</title>
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Create Vote Event</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -283,8 +284,7 @@
   const TOKEN_LABELS = { token: 'Token', getoken: 'GE Token', gift: 'Gift (Cookie)', cookie: 'Cookie' };
 
   function goBack() {
-    if (document.referrer && window.history.length > 1) window.history.back();
-    else window.location.href = 'admin_votes';
+    blm48Back('admin_votes');
   }
 
   const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -554,7 +554,7 @@
       });
       if (res && res.status === 'success') {
         // สร้างเสร็จ -> ไปหน้ารายละเอียดของกิจกรรมใหม่ (replace เพื่อไม่ให้ย้อนกลับมาฟอร์มเดิม)
-        window.location.replace('admin_vote_event?id=' + encodeURIComponent(res.voteCollectionId));
+        blm48Replace('admin_vote_event?id=' + encodeURIComponent(res.voteCollectionId));
         return;
       }
       showFormError((res && res.message) || 'ไม่สามารถสร้างกิจกรรมได้');

@@ -3,7 +3,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership | เปิด Campaign</title>
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | เปิด Campaign</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
@@ -70,8 +71,7 @@
   let user = null;
 
   function goBack() {
-    if (document.referrer && window.history.length > 1) window.history.back();
-    else window.location.href = 'profile';
+    blm48Back('profile');
   }
 
   function render(profileImg, groupName) {
@@ -123,20 +123,20 @@
       return;
     }
     await Swal.fire({ title: 'เปิด Campaign แล้ว!', text: 'Campaign ของคุณขึ้นที่หน้า Home เรียบร้อย', icon: 'success', confirmButtonColor: '#fcc419' });
-    window.location.replace(`campaign_detail?id=${encodeURIComponent(res.campaign.id)}`);
+    blm48Replace(`campaign_detail?id=${encodeURIComponent(res.campaign.id)}`);
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
     user = getUserSession();
     if (!user) { window.location.href = 'login'; return; }
     // เฉพาะบัญชีเมมเบอร์เท่านั้น
-    if ((user.role || '').toLowerCase() !== 'member') { window.location.replace('profile'); return; }
+    if ((user.role || '').toLowerCase() !== 'member') { blm48Replace('profile'); return; }
 
     try {
       // เปิดไปแล้วเดือนนี้ -> ไปหน้า Campaign ของตัวเองเลย
       const existing = await blm48GetMemberCampaign(user.name);
       if (existing && existing.status === 'success' && existing.campaign) {
-        window.location.replace(`campaign_detail?id=${encodeURIComponent(existing.campaign.id)}`);
+        blm48Replace(`campaign_detail?id=${encodeURIComponent(existing.campaign.id)}`);
         return;
       }
       let profileImg = null, groupName = null;

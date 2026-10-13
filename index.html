@@ -4,7 +4,8 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta charset="UTF-8">
-    <title>BLM48 Membership</title>
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership</title>
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
     <meta name="theme-color" content="#ffc0cb">
     <!-- สำหรับ iOS Home Screen Icon -->
@@ -2300,7 +2301,7 @@ async function syncUserData() {
   // 1. ดึงข้อมูลเซสชันล่าสุดในเครื่องขึ้นมาเช็กก่อน
   const sessionData = localStorage.getItem('bnl_session');
   if (!sessionData) {
-    window.location.replace('login');
+    blm48Replace('login');
     return;
   }
   
@@ -2309,7 +2310,7 @@ async function syncUserData() {
     currentUser = JSON.parse(sessionData);
   } catch(e) {
     localStorage.removeItem('bnl_session');
-    window.location.replace('login');
+    blm48Replace('login');
     return;
   }
   
@@ -2318,7 +2319,7 @@ async function syncUserData() {
   
   if (!currentUsername) {
     localStorage.removeItem('bnl_session');
-    window.location.replace('login');
+    blm48Replace('login');
     return;
   }
 
@@ -2372,11 +2373,11 @@ async function syncUserData() {
           confirmButtonColor: '#ffb3c1',
           allowOutsideClick: false
         }).then(() => {
-          window.location.replace('login'); // เตะไปหน้า login
+          blm48Replace('login'); // เตะไปหน้า login
         });
       } else {
         alert(alertMessage);
-        window.location.replace('login'); // เตะไปหน้า login
+        blm48Replace('login'); // เตะไปหน้า login
       }
     }
   } catch (error) {
@@ -2802,7 +2803,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 🚨 ดักจับ: ถ้าไม่มี user ให้เตะออกไปหน้า Login ทันที
     if (!user || !user.username || user.username.trim() === "") {
       localStorage.removeItem('bnl_session'); 
-      window.location.replace('login'); 
+      blm48Replace('login'); 
       return; 
     }
 
@@ -2975,6 +2976,12 @@ function updateUI() {
   
 // ข้อมูล MV ของ BLM48 (ใส่รูปปก ชื่อเพลง และลิงก์ YouTube ได้เลย)
 const blm48MVs = [
+   { 
+    title: "【Cover】มปร. (It’s OK.) - BLM48", 
+    date: "4 October 2026",
+    image: "https://lh3.googleusercontent.com/d/1_YU62p83JdEfJtzyMEnF_0iCWyHmQbVq=s1000",
+    link: "https://youtu.be/gxRNWB1iBJA?si=jp7Be1TwkQ7HBA1t"
+  },   
    { 
     title: "【Thai ver.】Rapsodi - BLM48", 
     date: "26 September 2026",
@@ -4722,7 +4729,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // ↩️ ส่งคำตอบกลับคอมเมนต์ (นับเป็นคอมเมนต์ปกติ เจ้าของโพสได้ 4 คุกกี้)
+  // ↩️ ส่งคำตอบกลับคอมเมนต์ (นับเป็นคอมเมนต์ปกติ เจ้าของโพสได้ 9 คุกกี้)
   window.submitReply = async function(postId, parentCommentId, btnElement) {
     const currentUser = getUserSession();
     if (!currentUser || !currentUser.username) {
