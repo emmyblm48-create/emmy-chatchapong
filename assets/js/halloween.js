@@ -74,9 +74,27 @@
     document.body.appendChild(deco);
   }
 
+  // ไอคอนพื้นหลังหลังการ์ดอันดับ (index.html #bg-decorations) → ไอคอนฮาโลวีน
+  const DECOR_ICON_SWAP = {
+    'fa-crown': 'fa-ghost',
+    'fa-heart': 'fa-spider',
+    'fa-star': 'fa-moon',
+    'fa-music': 'fa-hat-wizard',
+    'fa-wand-magic-sparkles': 'fa-skull'
+  };
+
+  function swapDecorIcons() {
+    document.querySelectorAll('.bg-decorations .decor-item').forEach(function (icon) {
+      Object.keys(DECOR_ICON_SWAP).forEach(function (from) {
+        if (icon.classList.contains(from)) icon.classList.replace(from, DECOR_ICON_SWAP[from]);
+      });
+    });
+  }
+
   function init() {
     setThemeColor();
     buildDecorations();
+    swapDecorIcons();
   }
 
   if (document.readyState === 'loading') {
