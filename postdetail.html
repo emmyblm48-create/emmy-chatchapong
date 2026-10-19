@@ -504,10 +504,17 @@
       container.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: var(--primary-pink);"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.4rem;"></i></div>`;
     }
     try {
-      const posts = await blm48GetPosts(user ? user.username : '');
-      const post = Array.isArray(posts) ? posts.find(p => p.id === currentPostId) : null;
+      // ดึงเฉพาะโพสต์นี้ (เดิมดึงทั้งฟีดผ่าน get_posts ซึ่งหนักจน timeout ครั้งแรก -> ขึ้น "ไม่พบโพสต์" ทั้งที่โพสต์มีอยู่)
+      // เชื่อมต่อไม่สำเร็จ ลองใหม่อัตโนมัติอีก 2 ครั้งก่อน และไม่เหมาว่า "ไม่พบโพสต์"
+      let post = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        post = await blm48GetPost(user ? user.username : '', currentPostId);
+        if (!(post && post.networkError)) break;
+        await new Promise(r => setTimeout(r, 700 * (attempt + 1)));
+      }
+      if (post && post.networkError) throw new Error(post.message);
 
-      if (!post) {
+      if (!post || !post.id) {
         container.innerHTML = `<div style="text-align: center; padding: 60px 20px; color: gray;"><i class="fa-solid fa-circle-exclamation" style="font-size: 1.6rem; margin-bottom: 10px; display: block;"></i>ไม่พบโพสต์นี้ อาจถูกลบไปแล้วค่ะ</div>`;
         hideCommentBar();
         return;

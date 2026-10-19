@@ -363,6 +363,16 @@
   /* ==========================================
      🌸 Feed loading
      ========================================== */
+  // 🌸 Cursor-based infinite scroll เหมือน index.html / member.html - เดิมดึง get_posts (ทุกโพสต์ + ทุกคอมเมนต์
+  // ทั้งแอป หลาย MB) แล้วค่อยกรองเอาแต่โพสต์แฟนคลับ จนเซิร์ฟเวอร์ timeout (HTTP 500) บ่อย
+  // ตอนนี้ใช้ get_fan_posts_page ดึงเฉพาะโพสต์แฟนคลับทีละหน้า
+  const FAN_FEED_PAGE_SIZE = 20;
+  let fanFeedCursor = null;
+  let fanFeedHasMore = true;
+  let fanFeedPaginated = false;
+  let fanFeedLoadingMore = false;
+  let fanFeedObserver = null;
+
   window.isFeedLoading = false;
   async function loadFanPostFeed() {
     if (window.isFeedLoading) return;
@@ -373,17 +383,27 @@
     try {
       const currentUser = getUserSession();
       const username = currentUser ? currentUser.username : "";
-      const allPosts = await blm48GetPosts(username);
-      const posts = (Array.isArray(allPosts) ? allPosts : []).filter(p => p.postType === 'fan');
+      const sharedPostId = new URLSearchParams(window.location.search).get('post');
+      const res = await blm48GetFanPostsPage(username, FAN_FEED_PAGE_SIZE, null, sharedPostId);
+      if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
+        throw new Error((res && res.message) || 'ไม่สามารถดึงข้อมูลโพสต์ได้');
+      }
+      const posts = res.data;
+
+      // เลื่อนโหลดเกินหน้าแรกไปแล้ว: realtime refresh รอบนี้แค่อัปเดตหัวฟีด ไม่รีเซ็ต cursor/hasMore ที่ใช้อยู่
+      // (โพสต์ที่แนบมาจากลิงก์แชร์อยู่ท้าย array และอาจเก่ากว่าหน้าแรก - ไม่ใช้เป็น cursor)
+      const pagePosts = sharedPostId ? posts.filter((p, i) => !(i === posts.length - 1 && p.id === sharedPostId && posts.length > FAN_FEED_PAGE_SIZE)) : posts;
+      if (!fanFeedPaginated && pagePosts.length > 0) {
+        fanFeedCursor = pagePosts[pagePosts.length - 1].createdAtEpochMs;
+        fanFeedHasMore = !!res.hasMore;
+      }
 
       if (posts.length === 0) {
         container.innerHTML = `<div class="empty-feed-state"><i class="fa-solid fa-star"></i>ยังไม่มีโพสต์แฟนคลับ มาเป็นคนแรกกันเลย!</div>`;
         return;
       }
 
-      // get_posts already orders newest-first (created_at desc). Only touch posts that changed:
-      // existing cards get their live counters patched in place (no re-render, images never
-      // reload); a post with no card yet gets inserted fresh - the rest of the feed is left alone.
+      // ใหม่ -> เก่า: การ์ดที่มีอยู่แล้วอัปเดตเฉพาะจุดที่เปลี่ยน (patchPostLive) โพสต์ใหม่แทรกที่หัวฟีด
       const wasEmpty = container.querySelectorAll('.post-card').length === 0;
       if (wasEmpty) container.innerHTML = '';
 
@@ -396,6 +416,13 @@
         }
       });
 
+      // โพสต์จากลิงก์แชร์ที่เก่ากว่าหน้าแรก ให้ไปอยู่ท้ายฟีดแทนหัวฟีด
+      if (wasEmpty && pagePosts.length !== posts.length) {
+        const shared = document.getElementById(`post-${sharedPostId}`);
+        if (shared) container.appendChild(shared);
+      }
+
+      setupFanFeedInfiniteScroll();
       if (wasEmpty) scrollToSharedPostFromUrl();
     } catch (error) {
       console.error('โหลดฟีดแฟนคลับไม่สำเร็จ:', error);
@@ -406,6 +433,73 @@
       window.isFeedLoading = false;
     }
   }
+
+  // sentinel ท้ายฟีด - เลื่อนใกล้ถึงแล้วโหลดโพสต์เก่าเพิ่มเอง
+  function setupFanFeedInfiniteScroll() {
+    const container = document.getElementById('fanpost-feed');
+    if (!container) return;
+
+    let sentinel = document.getElementById('fan-feed-scroll-sentinel');
+    if (!sentinel) {
+      sentinel = document.createElement('div');
+      sentinel.id = 'fan-feed-scroll-sentinel';
+      sentinel.style.cssText = 'text-align:center; padding:16px 0; color:#bbb; font-size:0.85rem; min-height:20px;';
+      container.insertAdjacentElement('afterend', sentinel);
+    }
+
+    if (!fanFeedHasMore) {
+      if (fanFeedObserver) { fanFeedObserver.disconnect(); fanFeedObserver = null; }
+      sentinel.innerHTML = container.querySelectorAll('.post-card').length > 0
+        ? '<i class="fa-solid fa-check"></i> คุณดูครบทุกโพสต์แล้วค่ะ'
+        : '';
+      return;
+    }
+
+    sentinel.innerHTML = '';
+    if (fanFeedObserver) return;
+    fanFeedObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) loadMoreFanFeedPosts();
+    }, { rootMargin: '400px' });
+    fanFeedObserver.observe(sentinel);
+  }
+
+  async function loadMoreFanFeedPosts() {
+    if (fanFeedLoadingMore || window.isFeedLoading || !fanFeedHasMore) return;
+    const container = document.getElementById('fanpost-feed');
+    const sentinel = document.getElementById('fan-feed-scroll-sentinel');
+    if (!container) return;
+
+    fanFeedLoadingMore = true;
+    fanFeedPaginated = true;
+    if (sentinel) sentinel.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
+
+    try {
+      const currentUser = getUserSession();
+      const username = currentUser ? currentUser.username : "";
+      const res = await blm48GetFanPostsPage(username, FAN_FEED_PAGE_SIZE, fanFeedCursor);
+      if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
+        throw new Error((res && res.message) || 'โหลดโพสต์เพิ่มเติมไม่สำเร็จ');
+      }
+
+      res.data.forEach(post => {
+        if (!document.getElementById(`post-${post.id}`)) {
+          container.insertAdjacentHTML('beforeend', renderPost(post));
+        }
+      });
+      if (res.data.length > 0) fanFeedCursor = res.data[res.data.length - 1].createdAtEpochMs;
+      fanFeedHasMore = !!res.hasMore;
+
+      setupFanFeedInfiniteScroll();
+    } catch (error) {
+      console.error('โหลดโพสต์เพิ่มเติมล้มเหลว:', error);
+      if (sentinel) {
+        sentinel.innerHTML = '<span style="color:#ff4d4d; cursor:pointer;" onclick="loadMoreFanFeedPosts()"><i class="fa-solid fa-rotate-right"></i> โหลดไม่สำเร็จ แตะเพื่อลองใหม่</span>';
+      }
+    } finally {
+      fanFeedLoadingMore = false;
+    }
+  }
+  window.loadMoreFanFeedPosts = loadMoreFanFeedPosts;
 
   /* ==========================================
      🖼️ Post management (menu, edit, delete)
