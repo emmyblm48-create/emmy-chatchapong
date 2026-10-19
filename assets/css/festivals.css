@@ -1,0 +1,499 @@
+/* =========================================================================
+   BLM48 Membership — 🎉 ธีมเทศกาล (สากล + ไทย) แบบเปิด/ปิดเองตามวันที่
+   Loaded on every member-facing page right after glassmorphism.css:
+     <link rel="stylesheet" href="assets/css/festivals.css">
+     <script src="assets/js/festivals.js"></script>
+   festivals.js adds html.theme-festival + html.theme-<id> only inside a
+   festival's date window (see FESTIVALS in festivals.js) — outside every
+   window this file does nothing.
+
+   แต่ละเทศกาลกำหนดแค่ชุดสี/อีโมจิ (--fx-*) ในส่วน "พาเลตต์" ด้านล่าง
+   ส่วน "กฎร่วม" ใช้ตัวแปรเหล่านั้นกับทุกหน้าเหมือนกันหมด
+   Content surfaces stay light so every page's existing dark text (much of it
+   inline-styled) stays readable; only accents, nav bars and the backdrop change.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   พาเลตต์ของแต่ละเทศกาล
+     --fx-primary / -rgb   สีหลัก (ปุ่ม แท็บที่เลือก แท่งอันดับ BLM48)
+     --fx-accent / -rgb    สีรอง (แท่งอันดับ NPT48 ป้าย/แท็ก)
+     --fx-pale             พื้นอ่อนของปุ่ม/แท็บ   --fx-pale-border ขอบอ่อน
+     --fx-bar-1/-2         ไล่สีแถบบน          --fx-bar-text/-icon สีตัวอักษร/ไอคอนบนแถบ
+     --fx-tabbar           พื้นแถบเมนูล่าง      --fx-tab-muted สีแท็บที่ไม่ได้เลือก
+     --fx-ink              สีตัวอักษรเข้ม       --fx-score สีคะแนนบนแท่งอันดับ
+     --fx-bg-1/-2/-3       ไล่สีพื้นหลังหน้า     --fx-orb ดวงจันทร์/แสงมุมขวาบน
+     --fx-decor-1/-2       ไอคอนพื้นหลังการ์ดอันดับ
+     --fx-logo / --fx-heading / --fx-shop-heading   อีโมจิต่อท้ายโลโก้ / หน้าหัวข้อ
+   ------------------------------------------------------------------------- */
+html.theme-halloween {
+  --fx-primary: #ff7518; --fx-primary-rgb: 255, 117, 24; --fx-primary-soft: #ffa65c;
+  --fx-accent: #6b3fa0; --fx-accent-rgb: 107, 63, 160; --fx-candy: #ffb627;
+  --fx-pale: #fff1e3; --fx-pale-border: #f6e2cc; --fx-pale-hover: #ffe3c7;
+  --fx-bar-1: #1c0f2e; --fx-bar-2: #2b1745; --fx-bar-text: #fff3c4; --fx-bar-icon: #ffd9b8;
+  --fx-tabbar: rgba(43, 23, 69, 0.86); --fx-tab-muted: #bfa6e0; --fx-tab-text: #b9a3c9;
+  --fx-ink: #2b1745; --fx-ink-rgb: 43, 23, 69; --fx-score: #b5440a; --fx-price: #c2560f;
+  --fx-bg-1: #fffaf3; --fx-bg-2: #fff4e6; --fx-bg-3: #ffeedd; --fx-bg-base: #fff8ef;
+  --fx-orb: rgba(255, 243, 196, 0.95); --fx-orb-glow: rgba(255, 214, 120, 0.35);
+  --fx-decor-1: #b9a3d6; --fx-decor-2: #ffe08a;
+  --fx-logo: " 🎃"; --fx-heading: "🦇 "; --fx-shop-heading: "🎃 ";
+}
+html.theme-christmas {
+  --fx-primary: #c1121f; --fx-primary-rgb: 193, 18, 31; --fx-primary-soft: #e5383b;
+  --fx-accent: #2d6a4f; --fx-accent-rgb: 45, 106, 79; --fx-candy: #e9b949;
+  --fx-pale: #fdeeee; --fx-pale-border: #f3d4d4; --fx-pale-hover: #fadcdc;
+  --fx-bar-1: #0f3d22; --fx-bar-2: #1b7a43; --fx-bar-text: #ffffff; --fx-bar-icon: #d8f3dc;
+  --fx-tabbar: rgba(15, 61, 34, 0.88); --fx-tab-muted: #a7d7b8; --fx-tab-text: #9bb8a6;
+  --fx-ink: #14532d; --fx-ink-rgb: 20, 83, 45; --fx-score: #9b0d17; --fx-price: #a4161a;
+  --fx-bg-1: #fbfdfb; --fx-bg-2: #f1f8f3; --fx-bg-3: #e8f3ec; --fx-bg-base: #f6fbf7;
+  --fx-orb: rgba(255, 255, 255, 0); --fx-orb-glow: rgba(255, 255, 255, 0);
+  --fx-decor-1: #e5383b; --fx-decor-2: #52b788;
+  --fx-logo: " 🎄"; --fx-heading: "🎁 "; --fx-shop-heading: "🎄 ";
+}
+html.theme-newyear {
+  --fx-primary: #c9971c; --fx-primary-rgb: 201, 151, 28; --fx-primary-soft: #e8c04d;
+  --fx-accent: #3a5bbf; --fx-accent-rgb: 58, 91, 191; --fx-candy: #f6d365;
+  --fx-pale: #fdf6e3; --fx-pale-border: #efe1b8; --fx-pale-hover: #f8ebc4;
+  --fx-bar-1: #0a1430; --fx-bar-2: #1d2e5f; --fx-bar-text: #ffe9a8; --fx-bar-icon: #f3ddb0;
+  --fx-tabbar: rgba(15, 27, 61, 0.88); --fx-tab-muted: #a9b6dd; --fx-tab-text: #a7a4b8;
+  --fx-ink: #1d2e5f; --fx-ink-rgb: 29, 46, 95; --fx-score: #8a6410; --fx-price: #9c7212;
+  --fx-bg-1: #fffdf7; --fx-bg-2: #fbf6ea; --fx-bg-3: #f3f0e8; --fx-bg-base: #fcfaf3;
+  --fx-orb: rgba(255, 233, 168, 0.75); --fx-orb-glow: rgba(255, 214, 120, 0.25);
+  --fx-decor-1: #e8c04d; --fx-decor-2: #8ea3e0;
+  --fx-logo: " 🎉"; --fx-heading: "✨ "; --fx-shop-heading: "🎉 ";
+}
+html.theme-childrensday {
+  --fx-primary: #ff9f1c; --fx-primary-rgb: 255, 159, 28; --fx-primary-soft: #ffbf69;
+  --fx-accent: #3a86ff; --fx-accent-rgb: 58, 134, 255; --fx-candy: #ff5d8f;
+  --fx-pale: #fff4e0; --fx-pale-border: #ffe1b3; --fx-pale-hover: #ffe8c2;
+  --fx-bar-1: #2ec4b6; --fx-bar-2: #3a86ff; --fx-bar-text: #ffffff; --fx-bar-icon: #e9fbff;
+  --fx-tabbar: rgba(32, 120, 180, 0.88); --fx-tab-muted: #cfe8ff; --fx-tab-text: #8fb3c9;
+  --fx-ink: #1d4e89; --fx-ink-rgb: 29, 78, 137; --fx-score: #b85c00; --fx-price: #c26a00;
+  --fx-bg-1: #fffdf5; --fx-bg-2: #f2fbff; --fx-bg-3: #fff3e6; --fx-bg-base: #fbfdff;
+  --fx-orb: rgba(255, 233, 120, 0.85); --fx-orb-glow: rgba(255, 214, 90, 0.3);
+  --fx-decor-1: #ff9f1c; --fx-decor-2: #2ec4b6;
+  --fx-logo: " 🎈"; --fx-heading: "🎈 "; --fx-shop-heading: "🧸 ";
+}
+html.theme-chinesenewyear {
+  --fx-primary: #d62828; --fx-primary-rgb: 214, 40, 40; --fx-primary-soft: #ef5b5b;
+  --fx-accent: #c98a00; --fx-accent-rgb: 201, 138, 0; --fx-candy: #f4a300;
+  --fx-pale: #fff0e6; --fx-pale-border: #f6d6c4; --fx-pale-hover: #ffe0cc;
+  --fx-bar-1: #7a0000; --fx-bar-2: #c1121f; --fx-bar-text: #ffd166; --fx-bar-icon: #ffe3a3;
+  --fx-tabbar: rgba(122, 0, 0, 0.88); --fx-tab-muted: #f2b8a2; --fx-tab-text: #c9a39a;
+  --fx-ink: #7a0000; --fx-ink-rgb: 122, 0, 0; --fx-score: #9b1010; --fx-price: #b3261e;
+  --fx-bg-1: #fffaf2; --fx-bg-2: #fff1e3; --fx-bg-3: #ffe9d6; --fx-bg-base: #fff7ee;
+  --fx-orb: rgba(255, 209, 102, 0.6); --fx-orb-glow: rgba(255, 170, 60, 0.25);
+  --fx-decor-1: #e63946; --fx-decor-2: #f4a300;
+  --fx-logo: " 🧧"; --fx-heading: "🏮 "; --fx-shop-heading: "🧧 ";
+}
+html.theme-valentine {
+  --fx-primary: #e63973; --fx-primary-rgb: 230, 57, 115; --fx-primary-soft: #ff7aa2;
+  --fx-accent: #b5179e; --fx-accent-rgb: 181, 23, 158; --fx-candy: #ff8fab;
+  --fx-pale: #fff0f5; --fx-pale-border: #fbd3e0; --fx-pale-hover: #ffe0ea;
+  --fx-bar-1: #ff4d79; --fx-bar-2: #c9184a; --fx-bar-text: #ffffff; --fx-bar-icon: #ffe5ec;
+  --fx-tabbar: rgba(170, 20, 70, 0.86); --fx-tab-muted: #ffc2d4; --fx-tab-text: #d29bb0;
+  --fx-ink: #8a1040; --fx-ink-rgb: 138, 16, 64; --fx-score: #a4133c; --fx-price: #b5174a;
+  --fx-bg-1: #fffafc; --fx-bg-2: #fff0f5; --fx-bg-3: #ffe5ee; --fx-bg-base: #fff6f9;
+  --fx-orb: rgba(255, 255, 255, 0); --fx-orb-glow: rgba(255, 255, 255, 0);
+  --fx-decor-1: #ff4d79; --fx-decor-2: #c77dff;
+  --fx-logo: " 💘"; --fx-heading: "💕 "; --fx-shop-heading: "💝 ";
+}
+html.theme-songkran {
+  --fx-primary: #0096c7; --fx-primary-rgb: 0, 150, 199; --fx-primary-soft: #48cae4;
+  --fx-accent: #ff6392; --fx-accent-rgb: 255, 99, 146; --fx-candy: #ffd23f;
+  --fx-pale: #e6f7ff; --fx-pale-border: #c4e8f5; --fx-pale-hover: #d2effa;
+  --fx-bar-1: #0077b6; --fx-bar-2: #00b4d8; --fx-bar-text: #ffffff; --fx-bar-icon: #e0f7ff;
+  --fx-tabbar: rgba(0, 105, 160, 0.86); --fx-tab-muted: #bde9f7; --fx-tab-text: #8fb3c4;
+  --fx-ink: #03506f; --fx-ink-rgb: 3, 80, 111; --fx-score: #005f86; --fx-price: #006d96;
+  --fx-bg-1: #f7fdff; --fx-bg-2: #eaf8fd; --fx-bg-3: #fff2f6; --fx-bg-base: #f3fbfe;
+  --fx-orb: rgba(255, 236, 140, 0.85); --fx-orb-glow: rgba(255, 210, 63, 0.3);
+  --fx-decor-1: #48cae4; --fx-decor-2: #ff8fab;
+  --fx-logo: " 💦"; --fx-heading: "🌼 "; --fx-shop-heading: "💦 ";
+}
+html.theme-loykrathong {
+  --fx-primary: #e08e2b; --fx-primary-rgb: 224, 142, 43; --fx-primary-soft: #f2a541;
+  --fx-accent: #1f7a8c; --fx-accent-rgb: 31, 122, 140; --fx-candy: #ffd166;
+  --fx-pale: #fff6e5; --fx-pale-border: #f3e2c2; --fx-pale-hover: #ffebc7;
+  --fx-bar-1: #081530; --fx-bar-2: #123c69; --fx-bar-text: #ffe8a3; --fx-bar-icon: #f6dfb0;
+  --fx-tabbar: rgba(11, 29, 58, 0.88); --fx-tab-muted: #9fb7d6; --fx-tab-text: #9aa8bb;
+  --fx-ink: #123c69; --fx-ink-rgb: 18, 60, 105; --fx-score: #a35a00; --fx-price: #b26200;
+  --fx-bg-1: #fffcf5; --fx-bg-2: #f4f7fb; --fx-bg-3: #e9f0f8; --fx-bg-base: #f8fafc;
+  --fx-orb: rgba(255, 246, 200, 0.98); --fx-orb-glow: rgba(255, 220, 130, 0.4);
+  --fx-decor-1: #ffd166; --fx-decor-2: #8ecae6;
+  --fx-logo: " 🪷"; --fx-heading: "🕯️ "; --fx-shop-heading: "🪷 ";
+}
+
+/* -------------------------------------------------------------------------
+   กฎร่วม — ใช้ตัวแปรด้านบนกับทุกเทศกาล
+   Brand tokens every page already reads (defined per page on :root —
+   html.theme-festival is more specific than :root so it wins regardless of order)
+   ------------------------------------------------------------------------- */
+html.theme-festival {
+  --primary-pink: var(--fx-primary);
+  --blm-pink: var(--fx-primary);
+  --blmem-pink: var(--fx-primary);
+  --blm-light-pink: var(--fx-pale);
+  --blmem-pink-light: var(--fx-pale);
+
+  --glass-pink: var(--fx-primary);
+  --glass-pink-soft: var(--fx-primary-soft);
+  --glass-gold: var(--fx-candy);
+  --glass-gold-soft: var(--fx-pale-hover);
+  --glass-shadow: 0 8px 32px rgba(var(--fx-ink-rgb), 0.12), 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  --glass-shadow-sm: 0 4px 16px rgba(var(--fx-ink-rgb), 0.10);
+  --glass-shadow-lg: 0 20px 60px rgba(var(--fx-ink-rgb), 0.18), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+
+  /* shop.html awning stripes */
+  --soda-blue: var(--fx-accent);
+  --soda-sky-pink: var(--fx-primary);
+}
+
+html.theme-festival ::selection {
+  background: rgba(var(--fx-primary-rgb), 0.35);
+}
+
+/* Backdrop — covers both the gradient (glass-mesh-bg) and plain white
+   (force-white-bg) page variants, plus index.html's own solid-yellow override. */
+html.theme-festival body.glass-mesh-bg,
+html.theme-festival body.glass-mesh-bg.force-white-bg,
+html.theme-festival body.force-white-bg {
+  background-color: var(--fx-bg-base) !important;
+  background-image:
+    radial-gradient(circle at 86% 9%, var(--fx-orb) 0 34px, var(--fx-orb-glow) 36px, transparent 120px),
+    radial-gradient(circle at 10% 18%, rgba(var(--fx-accent-rgb), 0.12) 0%, transparent 42%),
+    radial-gradient(circle at 92% 82%, rgba(var(--fx-primary-rgb), 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 8% 92%, rgba(var(--fx-accent-rgb), 0.10) 0%, transparent 40%),
+    linear-gradient(180deg, var(--fx-bg-1) 0%, var(--fx-bg-2) 60%, var(--fx-bg-3) 100%) !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+/* Top bars — index.html .navbar และ shop.html .top-navbar */
+html.theme-festival .navbar {
+  background: linear-gradient(180deg, var(--fx-bar-1) 0%, var(--fx-bar-2) 100%) !important;
+  box-shadow: 0 3px 14px rgba(var(--fx-primary-rgb), 0.28) !important;
+  border-bottom: 2px solid var(--fx-primary) !important;
+}
+html.theme-festival .navbar .logo-text,
+html.theme-festival .navbar .brand {
+  color: var(--fx-bar-text) !important;
+  text-shadow: 0 0 10px rgba(var(--fx-primary-rgb), 0.55);
+}
+html.theme-festival .navbar .logo-text::after {
+  content: var(--fx-logo);
+}
+html.theme-festival .navbar .nav-icon {
+  color: var(--fx-bar-icon) !important;
+}
+
+html.theme-festival .top-navbar {
+  background: linear-gradient(180deg, var(--fx-bar-1) 0%, var(--fx-bar-2) 100%);
+  border-bottom: 2px solid var(--fx-primary);
+  box-shadow: 0 3px 14px rgba(var(--fx-primary-rgb), 0.25);
+}
+html.theme-festival .top-navbar .nav-brand {
+  color: var(--fx-bar-text);
+  text-shadow: 0 0 10px rgba(var(--fx-primary-rgb), 0.55);
+}
+html.theme-festival .top-navbar .nav-brand::after {
+  content: var(--fx-logo);
+}
+html.theme-festival .top-navbar .shop-nav-icon {
+  color: var(--fx-bar-icon);
+}
+/* หน้าอื่นที่ใช้ .top-navbar (h1 / .nav-title + ปุ่มย้อนกลับ/ไอคอน) — ตัวอักษรเดิมสีเข้ม
+   มองไม่เห็นบนแถบสีเข้มของเทศกาล เลยเปลี่ยนเป็นสีอ่อนของแถบ */
+html.theme-festival .top-navbar > :is(h1, h2, .nav-title) {
+  color: var(--fx-bar-text) !important;
+}
+html.theme-festival .top-navbar > :is(a, button) {
+  color: var(--fx-bar-icon) !important;
+}
+html.theme-festival .top-navbar > :is(a, button) > i {
+  color: inherit !important;
+}
+/* ปุ่มย้อนกลับที่มีวงกลมพื้นชมพูอ่อน -> วงกลมโปร่งบนแถบเข้ม */
+html.theme-festival .top-navbar > .nav-back-btn {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+html.theme-festival .cart-badge {
+  background: var(--fx-primary);
+}
+
+/* 🛍️ shop.html — แท็บหมวดสีอ่อน, การ์ดสินค้าขาวมุมมน
+   (เดิมการ์ดเป็นกล่องขาวเหลี่ยมบนพื้นขาว พอพื้นเปลี่ยนสีเลยเห็นเป็นบล็อกแข็งๆ) */
+html.theme-festival .shop-tabs {
+  background: var(--fx-bg-2);
+  border-bottom-color: var(--fx-pale-border);
+}
+html.theme-festival .shop-tab {
+  color: var(--fx-tab-text);
+}
+html.theme-festival .shop-tab.active {
+  color: var(--fx-ink);
+}
+html.theme-festival .shop-tab.active::after {
+  background: var(--fx-primary);
+  opacity: 0.8;
+}
+html.theme-festival .shop-section .merch-card,
+html.theme-festival .shop-section .merch-card-large {
+  border-radius: 16px !important;
+  padding: 8px 8px 10px !important;
+  border: 1px solid var(--fx-pale-border) !important;
+  box-shadow: 0 6px 18px rgba(var(--fx-ink-rgb), 0.08) !important;
+}
+html.theme-festival .shop-section .merch-category,
+html.theme-festival .shop-section .card-tag,
+html.theme-festival .shop-section .merch-badge {
+  color: var(--fx-accent) !important;
+}
+html.theme-festival .shop-section .merch-subtitle[style*="#c53f5a"] {
+  color: var(--fx-price) !important;
+}
+html.theme-festival .shop-section .merch-button,
+html.theme-festival .shop-section .btn-token-buy {
+  background: var(--fx-pale) !important;
+}
+html.theme-festival .shop-section .merch-button:hover,
+html.theme-festival .shop-section .btn-token-buy:hover {
+  background: var(--fx-pale-hover) !important;
+}
+html.theme-festival .shop-section .merch-button.merch-button-disabled {
+  background: #f6f1ec !important;
+}
+html.theme-festival .shop-section .section-title:not(.fan-ticker)::before {
+  content: var(--fx-shop-heading);
+}
+
+/* Bottom tab bar — แถบกระจกสีเข้มของเทศกาล แท็บที่เลือกเรืองสีหลัก */
+html.theme-festival .bottom-tab-bar::before {
+  background: var(--fx-tabbar) !important;
+  border-top: 2px solid var(--fx-primary) !important;
+  box-shadow: 0 -6px 26px rgba(var(--fx-primary-rgb), 0.25) !important;
+}
+html.theme-festival .tab-item {
+  color: var(--fx-tab-muted);
+}
+html.theme-festival .tab-item.active {
+  color: var(--fx-primary-soft);
+}
+html.theme-festival .tab-item.active i {
+  filter: drop-shadow(0 0 8px rgba(var(--fx-primary-rgb), 0.7));
+}
+html.theme-festival #tab-profile-img {
+  border-color: var(--fx-primary) !important;
+}
+
+/* Shared components from glassmorphism.css */
+html.theme-festival .swal2-popup,
+html.theme-festival .swal2-toast {
+  border-color: var(--fx-pale-border) !important;
+}
+html.theme-festival .swal2-title {
+  color: var(--fx-ink) !important;
+}
+html.theme-festival .swal2-confirm {
+  background: linear-gradient(90deg, var(--fx-primary), var(--fx-primary-soft)) !important;
+  box-shadow: 0 6px 18px rgba(var(--fx-primary-rgb), 0.35) !important;
+}
+html.theme-festival .swal2-container.swal2-backdrop-show:not(:has(.swal2-toast)),
+html.theme-festival .swal2-container.swal2-backdrop-hide:not(:has(.swal2-toast)) {
+  background: rgba(var(--fx-ink-rgb), 0.45) !important;
+}
+html.theme-festival .glass-input:focus {
+  border-color: var(--fx-primary);
+  box-shadow: 0 6px 18px rgba(var(--fx-primary-rgb), 0.18);
+}
+html.theme-festival .glass-nav {
+  box-shadow: 0 -4px 24px rgba(var(--fx-accent-rgb), 0.18);
+}
+html.theme-festival .glass-scroll::-webkit-scrollbar-thumb {
+  background: rgba(var(--fx-primary-rgb), 0.4);
+}
+
+/* Special Fans Day timeline (index + specialfansday) */
+html.theme-festival .week-label {
+  color: var(--fx-accent);
+}
+/* เส้นเชื่อมทีละช่วง (glassmorphism.css): ถึงวันแล้ว = เส้นลายสีเทศกาล, ยังไม่ถึง = เส้นเทาทึบ */
+html.theme-festival .day-item + .day-item::before {
+  background: repeating-linear-gradient(90deg, var(--fx-primary) 0 8px, var(--fx-accent) 8px 16px);
+}
+html.theme-festival .day-item + .day-item.upcoming::before {
+  background: #d4d4d4;
+}
+html.theme-festival .day-circle.checked {
+  background: var(--fx-primary);
+  box-shadow: 0 2px 6px rgba(var(--fx-primary-rgb), 0.5);
+}
+html.theme-festival .day-circle.current {
+  background: var(--fx-pale);
+  color: var(--fx-ink);
+  border-color: var(--fx-primary);
+  box-shadow: 0 0 0 4px rgba(var(--fx-primary-rgb), 0.15), 0 4px 12px rgba(var(--fx-primary-rgb), 0.45);
+}
+
+/* โพสต์ขอบคุณของ Champ */
+html.theme-festival .post-card.champ-special-post .champ-post-badge {
+  background: var(--fx-primary) !important;
+}
+html.theme-festival .post-card.champ-special-post .champ-post-star {
+  background: rgba(var(--fx-accent-rgb), 0.12);
+  color: var(--fx-accent);
+}
+
+/* ไอคอนพื้นหลังการ์ดอันดับ (index.html) — festivals.js สลับเป็นไอคอนของเทศกาล
+   ส่วนสีทองเดิม (#ffe479 !important) เปลี่ยนเป็นสองสีของเทศกาลสลับกัน */
+html.theme-festival .bg-decorations .decor-item {
+  color: var(--fx-decor-1) !important;
+}
+html.theme-festival .bg-decorations .decor-item:nth-child(even) {
+  color: var(--fx-decor-2) !important;
+}
+
+/* แท่งการ์ดอันดับ (index.html .member-card): BLM48 = สีหลัก, NPT48 = สีรอง (ยังแยกวงได้) */
+html.theme-festival .member-card.rank-1,
+html.theme-festival .member-card.rank-2,
+html.theme-festival .member-card.rank-3,
+html.theme-festival .member-card.rank-other {
+  background: linear-gradient(180deg, rgba(var(--fx-primary-rgb), 0.42) 0%, rgba(var(--fx-primary-rgb), 0.22) 100%) !important;
+}
+html.theme-festival .member-card.group-npt48.rank-1,
+html.theme-festival .member-card.group-npt48.rank-2,
+html.theme-festival .member-card.group-npt48.rank-3,
+html.theme-festival .member-card.group-npt48.rank-other {
+  background: linear-gradient(180deg, rgba(var(--fx-accent-rgb), 0.30) 0%, rgba(var(--fx-accent-rgb), 0.16) 100%) !important;
+}
+html.theme-festival .member-card .cookie-text {
+  color: var(--fx-score);
+}
+html.theme-festival .member-card.group-npt48 .cookie-text {
+  color: var(--fx-ink);
+}
+
+/* Section headings: อีโมจินำหน้า (ยกเว้น .fan-ticker ที่เลื่อนสลับข้อความอยู่ข้างใน) */
+html.theme-festival .section-title:not(.fan-ticker) > span:first-child::before,
+html.theme-festival .section-title:not(.fan-ticker):not(:has(> span))::before {
+  content: var(--fx-heading);
+}
+
+/* -------------------------------------------------------------------------
+   Floating decorations (markup injected by festivals.js)
+   z-index -1 → painted above the page backdrop but behind all content,
+   and pointer-events: none so it can never intercept a tap.
+   ------------------------------------------------------------------------- */
+#fx-deco {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#fx-deco .fx-web {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  opacity: 0.18;
+}
+#fx-deco .fx-web.left { top: 0; left: 0; }
+#fx-deco .fx-web.right { top: 0; right: 0; transform: scaleX(-1); }
+
+#fx-deco .fx-spider {
+  position: absolute;
+  top: 0;
+  right: 40px;
+  width: 20px;
+  opacity: 0.75;
+  animation: fx-spider-drop 7s ease-in-out infinite;
+  transform-origin: top center;
+}
+#fx-deco .fx-spider::before {
+  /* silk thread */
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 1px;
+  height: 400px;
+  background: rgba(42, 29, 51, 0.35);
+}
+
+#fx-deco .fx-bat {
+  position: absolute;
+  left: -60px;
+  width: 42px;
+  opacity: 0.55;
+  animation: fx-fly linear infinite;
+}
+#fx-deco .fx-bat svg {
+  display: block;
+  width: 100%;
+  animation: fx-flap 0.28s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+
+#fx-deco .fx-rise {
+  position: absolute;
+  bottom: -60px;
+  font-size: 30px;
+  line-height: 1;
+  opacity: 0.45;
+  animation: fx-rise linear infinite;
+}
+
+#fx-deco .fx-fall {
+  position: absolute;
+  top: -50px;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0;
+  animation: fx-fall linear infinite;
+}
+
+@keyframes fx-fly {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(calc(25vw + 15px), -30px); }
+  50%  { transform: translate(calc(50vw + 30px), 10px); }
+  75%  { transform: translate(calc(75vw + 45px), -25px); }
+  100% { transform: translate(calc(100vw + 60px), 0); }
+}
+@keyframes fx-flap {
+  from { transform: scaleY(1); }
+  to   { transform: scaleY(0.45); }
+}
+@keyframes fx-rise {
+  0%   { transform: translate(0, 0) rotate(-8deg); opacity: 0; }
+  10%  { opacity: 0.45; }
+  50%  { transform: translate(24px, -55vh) rotate(8deg); }
+  90%  { opacity: 0.45; }
+  100% { transform: translate(-10px, calc(-100vh - 80px)) rotate(-8deg); opacity: 0; }
+}
+@keyframes fx-fall {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.55; }
+  50%  { transform: translate(-28px, 55vh) rotate(160deg); }
+  90%  { opacity: 0.55; }
+  100% { transform: translate(18px, calc(100vh + 80px)) rotate(320deg); opacity: 0; }
+}
+@keyframes fx-spider-drop {
+  0%, 100% { transform: translateY(70px); }
+  50%      { transform: translateY(150px) rotate(4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #fx-deco .fx-bat,
+  #fx-deco .fx-rise,
+  #fx-deco .fx-fall,
+  #fx-deco .fx-spider,
+  #fx-deco .fx-bat svg {
+    animation: none;
+  }
+  #fx-deco .fx-bat,
+  #fx-deco .fx-rise,
+  #fx-deco .fx-fall {
+    display: none;
+  }
+  #fx-deco .fx-spider { transform: translateY(90px); }
+}

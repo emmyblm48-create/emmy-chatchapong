@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Member Score</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 1100px; margin: 0 auto; padding: 18px 12px 50px; }
+        @media (min-width: 768px) { .page-wrapper { padding: 24px 24px 60px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 18px; }
+        .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
+
+        .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+        .search-input {
+            flex: 1; min-width: 180px; border: 1px solid var(--glass-border); border-radius: 12px;
+            padding: 11px 14px; font-size: 14px; font-family: 'Quicksand', 'Kanit', sans-serif;
+            color: var(--text-dark); background: rgba(255, 255, 255, 0.7);
+        }
+        .search-input:focus { outline: none; border-color: var(--primary-pink); }
+        .result-count { font-size: 12px; color: #767676; white-space: nowrap; }
+        .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #2ecc71; white-space: nowrap; font-weight: 600; }
+        .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #2ecc71; box-shadow: 0 0 0 rgba(46,204,113,0.6); animation: live-pulse 1.6s infinite; }
+        @keyframes live-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.6); }
+            70% { box-shadow: 0 0 0 6px rgba(46,204,113,0); }
+            100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
+        }
+
+        /* --- Excel-style table --- */
+        .sheet-wrap {
+            border: 1px solid #d7dbe0; border-radius: 8px; overflow: auto;
+            max-height: 72vh; background: #fff;
+            box-shadow: var(--glass-shadow-sm);
+        }
+        table.sheet { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 12.5px; }
+        table.sheet thead th {
+            position: sticky; top: 0; z-index: 2;
+            background: #f1f3f5; color: #333; text-align: left;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; font-size: 12px;
+            padding: 9px 10px; border: 1px solid #d7dbe0; white-space: nowrap;
+            cursor: pointer; user-select: none;
+        }
+        table.sheet thead th:hover { background: #e7ebee; }
+        table.sheet thead th .sort-icon { margin-left: 4px; color: #bbb; font-size: 10px; }
+        table.sheet thead th.sorted .sort-icon { color: var(--primary-pink); }
+        table.sheet tbody td {
+            padding: 7px 10px; border: 1px solid #eceff1; white-space: nowrap;
+            color: #333;
+        }
+        table.sheet tbody tr:nth-child(even) { background: #fafbfc; }
+        table.sheet tbody tr:hover { background: #fff2f5; }
+        td.num { text-align: right; font-family: 'Quicksand', 'Kanit', sans-serif; font-variant-numeric: tabular-nums; }
+        td.wallet-code { font-variant-numeric: tabular-nums; letter-spacing: 0.5px; white-space: nowrap; color: #555; }
+        .name-cell { display: flex; align-items: center; gap: 8px; }
+        .name-cell img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
+        .role-chip { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 8px; text-transform: uppercase; }
+        .role-chip.role-user { background: #e8f4ff; color: #2c8ce0; }
+        .role-chip.role-member { background: #fff0e0; color: #e08a2c; }
+        .role-chip.role-admin, .role-chip.role-ceo { background: #ffe0ea; color: #ff4d7d; }
+        .tag-suspended { color: #ff5c7a; font-weight: 600; font-size: 10.5px; }
+        .tag-pending { color: #f59f00; font-weight: 600; font-size: 10.5px; }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+        td.score { font-weight: 700; color: #d6336c; }
+        td.pts { color: #767676; font-size: 11.5px; }
+        .tag-graduated { color: #767676; font-weight: 600; font-size: 10.5px; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">Member Score</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-star"></i> Member Score</h1>
+            <p>คะแนนสะสมของเมมเบอร์: 10 Cookie = 1 · 1 Like = 1 · 1 Post = 10 · 1 Comment = 2</p>
+        </div>
+
+        <div class="toolbar">
+            <input id="score-search" class="search-input" type="text" placeholder="ค้นหาชื่อเมมเบอร์...">
+            <div class="result-count" id="result-count"></div>
+        </div>
+
+        <div class="sheet-wrap">
+            <table class="sheet">
+                <thead>
+                    <tr>
+                        <th data-key="name">เมมเบอร์ <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="cookies">Cookie <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="likes">Likes <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="posts">Post <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="comments">Comment <i class="fa-solid fa-sort sort-icon"></i></th>
+                        <th data-key="total" class="sorted">Member Score <i class="fa-solid fa-sort-down sort-icon"></i></th>
+                    </tr>
+                </thead>
+                <tbody id="score-tbody">
+                    <tr><td colspan="6"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let scoresCache = [];
+  let sortKey = 'total';
+  let sortDir = -1; // 1 = asc, -1 = desc
+
+  function goBack() {
+    blm48Back('admin');
+  }
+
+  function resolveDriveImage(url) {
+    const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+    if (!url) return fallback;
+    if (url.includes('drive.google.com')) {
+      const driveMatch = url.match(/[-\w]{25,}/);
+      return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+    }
+    return url;
+  }
+
+  async function loadScores() {
+    const tbody = document.getElementById('score-tbody');
+    try {
+      const res = await blm48AdminGetMemberScores(user.username);
+      if (!res || res.status !== 'success') {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div></td></tr>`;
+        return;
+      }
+      scoresCache = res.data || [];
+      renderTable();
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div></td></tr>`;
+    }
+  }
+
+  // ช่องตัวเลข: ยอดจริง + คะแนนที่แปลงได้ (บรรทัดเล็กด้านล่าง)
+  function numCell(count, pts) {
+    return `<td class="num">${Number(count || 0).toLocaleString()}<div class="pts">+${Number(pts || 0).toLocaleString()}</div></td>`;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('score-tbody');
+    const q = (document.getElementById('score-search').value || '').trim().toLowerCase();
+
+    let rows = scoresCache;
+    if (q) rows = rows.filter(s => (s.name || '').toLowerCase().includes(q));
+
+    rows = [...rows].sort((a, b) => {
+      if (sortKey === 'name') return (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase(), 'th') * sortDir;
+      return ((Number(a[sortKey]) || 0) - (Number(b[sortKey]) || 0)) * sortDir;
+    });
+
+    document.getElementById('result-count').textContent = `${rows.length.toLocaleString()} / ${scoresCache.length.toLocaleString()} เมมเบอร์`;
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบเมมเบอร์</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(s => `
+        <tr>
+          <td>
+            <div class="name-cell">
+              <img src="${escapeAttr(resolveDriveImage(s.profile_img))}" alt="">
+              <div>${escapeHtml(s.name || s.username)}${s.graduated ? ' <span class="tag-graduated">Graduated</span>' : ''}</div>
+            </div>
+          </td>
+          ${numCell(s.cookies, s.cookie_pts)}
+          ${numCell(s.likes, s.like_pts)}
+          ${numCell(s.posts, s.post_pts)}
+          ${numCell(s.comments, s.comment_pts)}
+          <td class="num score">${Number(s.total || 0).toLocaleString()}</td>
+        </tr>
+      `).join('');
+  }
+
+  function setupSortHeaders() {
+    document.querySelectorAll('table.sheet thead th').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.key;
+        if (sortKey === key) {
+          sortDir *= -1;
+        } else {
+          sortKey = key;
+          sortDir = key === 'name' ? 1 : -1;
+        }
+        document.querySelectorAll('table.sheet thead th').forEach(h => {
+          h.classList.remove('sorted');
+          const icon = h.querySelector('.sort-icon');
+          if (icon) icon.className = 'fa-solid fa-sort sort-icon';
+        });
+        th.classList.add('sorted');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.className = `fa-solid ${sortDir === 1 ? 'fa-sort-up' : 'fa-sort-down'} sort-icon`;
+        renderTable();
+      });
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login';
+      return;
+    }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+
+    setupSortHeaders();
+
+    let debounceTimer;
+    document.getElementById('score-search').addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(renderTable, 200);
+    });
+
+    loadScores();
+  });
+</script>
+</body>
+</html>

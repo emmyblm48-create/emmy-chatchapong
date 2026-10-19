@@ -363,57 +363,144 @@ body.glass-mesh-bg.force-white-bg {
 }
 
 /* =========================================================================
-   💬 คอมเมนต์แบบแอป iAM48 (index / member / fanpost / postdetail)
-   รูปกลมซ้าย + ฟองสีเทาอ่อนพอดีข้อความ (ชื่อตัวหนาสีดำ + ข้อความ)
-   ใต้ฟอง: เวลา "7 minutes ago" สีเทา + ปุ่มหัวใจสีส้มแบบปุ่ม Cheer + Reply/Edit สีเทา
+   💬 คอมเมนต์สไตล์ Instagram (index / member / fanpost / postdetail) - HTML มาจาก blm48CommentHtml ใน common.js
+   รูปกลมซ้าย | ชื่อตัวหนา + เวลาสั้นสีเทา / ข้อความ / Reply | หัวใจ + ยอดไลก์ชิดขวา
+   reply ย่อเข้าไป, "—— View 2 replies" / "Hide replies", @แท็กสีน้ำเงิน, คอมเมนต์ที่กำลังตอบอยู่ไฮไลต์ฟ้าอ่อน
    ========================================================================= */
 .comment-item {
-  background: transparent !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  gap: 10px !important;
-  margin-bottom: 14px !important;
+  display: block;
+  text-align: left;
+  font-size: 14px;
 }
-.comment-item > img {
-  width: 36px !important;
-  height: 36px !important;
-  border: 1px solid #ececec !important;
+.comment-item.cmt-top { margin-bottom: 14px; }
+.comment-item .cmt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px 0;
+  border-radius: 10px;
+  transition: background-color 0.25s ease;
 }
-/* การตอบกลับ: รูปเล็กลง */
-[id^="replies-"] .comment-item > img {
-  width: 28px !important;
-  height: 28px !important;
+.comment-item.cmt-replying > .cmt-row {
+  background: #e8f1fd;
+  box-shadow: 0 0 0 6px #e8f1fd;
 }
+.comment-item .cmt-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #ececec;
+  cursor: pointer;
+}
+.comment-item .cmt-body { flex: 1; min-width: 0; }
+/* ฟองข้อความสีเทาอ่อนพอดีข้อความ (ชื่อ + ข้อความ) */
 .comment-item .cmt-bubble {
   display: inline-block;
   max-width: 100%;
   box-sizing: border-box;
   background: #f2f2f4;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 8px 12px;
 }
-.comment-item .cmt-bubble b {
-  color: #222 !important;
-  font-weight: 700;
+.comment-item .cmt-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.3;
 }
-.comment-item .cmt-bubble [id^="cmt-text-"] {
-  color: #222 !important;
+.comment-item .cmt-name { color: #111; font-weight: 700; cursor: pointer; }
+.comment-item .cmt-verified { width: 13px; height: 13px; fill: #0095f6; flex-shrink: 0; }
+.comment-item .cmt-time { color: #8e8e8e; font-size: 12px; font-weight: 400; }
+.comment-item .cmt-text {
+  color: #111;
+  margin-top: 2px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
+.comment-item .cmt-mention { color: #3a62e6; cursor: pointer; }
 .comment-item .cmt-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
   padding-left: 4px;
-  margin-top: 5px !important;
 }
-.comment-item .cmt-actions .cmt-time {
+.comment-item .cmt-actions:empty { display: none; }
+.comment-item .cmt-actions button {
+  background: none;
+  border: none;
+  padding: 0;
   color: #8e8e8e;
   font-size: 12px;
-}
-.comment-item .cmt-actions button {
-  font-size: 12px !important;
-  color: #8e8e8e !important;
-}
-.comment-item .cmt-actions button[onclick^="toggleCommentLike"] {
-  color: #f5a623 !important;
   font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.comment-item .cmt-like {
+  background: none;
+  border: none;
+  padding: 6px 0 0;
+  width: 28px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #8e8e8e;
+  font-family: inherit;
+  cursor: pointer;
+}
+/* หัวใจใช้สีส้มเดิมของระบบ (แบบปุ่ม Cheer) ทั้งตอนยังไม่กดและกดแล้ว */
+.comment-item .cmt-like i { font-size: 15px; color: #f5a623; }
+.comment-item .cmt-like-count { font-size: 11px; color: #f5a623; font-weight: 600; }
+.comment-item .cmt-like-count[data-n="0"] { visibility: hidden; }
+/* reply: ย่อเข้าไปใต้ชื่อคอมเมนต์แม่ รูปเล็กลง */
+.comment-item .cmt-replies { margin-left: 48px; margin-top: 6px; }
+.comment-item.cmt-reply { margin-bottom: 10px; }
+.comment-item.cmt-reply .cmt-avatar { width: 28px; height: 28px; }
+.comment-item .cmt-replies-toggle {
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0 0 48px;
+  padding: 2px 0;
+  background: none;
+  border: none;
+  color: #8e8e8e;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.comment-item .cmt-replies-line { width: 24px; height: 1px; background: #c7c7c7; }
+/* ลิสต์คอมเมนต์ในการ์ดโพสต์ (index/member/fanpost) สูงขึ้นให้อ่านเป็นเธรดได้ */
+.post-card [id^="comment-list-"][style*="max-height"] { max-height: 360px !important; }
+/* แถบ "Replying to ชื่อ ×" เหนือช่องพิมพ์ */
+.cmt-replying-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #f0f1f4;
+  color: #737373;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+.cmt-replying-bar b { color: #555; font-weight: 600; }
+.cmt-replying-bar button {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 15px;
+  padding: 0 2px;
+  cursor: pointer;
 }
 
 /* ช่องพิมพ์คอมเมนต์: ขอบเทามน + ปุ่มส่งเป็นไอคอนเครื่องบินกระดาษ */
@@ -502,25 +589,32 @@ body.glass-mesh-bg.force-white-bg {
     width: 100%;
     position: relative;
   }
-  .days-row::before {
-  content: '';
-  position: absolute;
-  top: 19px; 
-  left: 7.14%;           /* 👈 เส้นจะเริ่มจากกึ่งกลางวงกลมวงแรกเป๊ะๆ ทุกหน้าจอ */
-  right: 7.14%;          /* 👈 เส้นจะไปจบที่กึ่งกลางวงกลมวงสุดท้ายเป๊ะๆ ทุกหน้าจอ */
-  height: 3px;           /* ความหนาของเส้นเชื่อม */
-  background: #ffb3c1; 
-  z-index: 0;         
-  }
-
   .day-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   flex: 1;               /* 👈 เฉลี่ยให้ทุกวันกว้างเท่ากัน 7 ช่อง */
   position: relative;
-  z-index: 1;
   }
+
+  /* เส้นเชื่อมทีละช่วง: จากขอบวงกลมวันก่อนหน้า -> ขอบวงกลมวันนี้
+     ถึงวันนั้นแล้ว = เส้นชมพู, ยังไม่ถึง = เส้นตรงสีเทาทึบ */
+  .day-item + .day-item::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: calc(-50% + 19px);
+  width: calc(100% - 38px);
+  height: 3px;           /* ความหนาของเส้นเชื่อม */
+  border-radius: 2px;
+  background: #ffb3c1;
+  z-index: 0;
+  }
+  .day-item + .day-item.upcoming::before {
+  background: #d4d4d4;
+  }
+
+  .day-circle { position: relative; z-index: 1; }
 
   /* 🌟 2. เพิ่มคลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
   .day-date {

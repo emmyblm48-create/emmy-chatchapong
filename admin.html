@@ -118,7 +118,8 @@
             margin: 26px 0 12px;
             display: flex; align-items: center; gap: 8px;
         }
-        .section-title .badge-count, .member-subsection-title .badge-count {
+        .menu-item .badge-count { margin-right: 6px; }
+        .section-title .badge-count, .member-subsection-title .badge-count, .menu-item .badge-count {
             background: var(--primary-pink);
             color: #fff;
             font-size: 11px;
@@ -153,32 +154,6 @@
         .stat-card.highlight .stat-label { color: rgba(255,255,255,0.85); }
         .stat-card .stat-value { font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; font-weight: 700; color: #333; margin-top: 2px; }
         .stat-card.highlight .stat-value { color: #fff; }
-
-        /* --- Pending approval / entry rows (matches history.html entry-row) --- */
-        .entry-list { display: flex; flex-direction: column; gap: 10px; }
-        .entry-row {
-            display: flex; align-items: center; gap: 12px;
-            background: var(--glass-bg-strong);
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            border-radius: 16px; padding: 12px 14px;
-            box-shadow: var(--glass-shadow-sm);
-        }
-        .entry-avatar {
-            flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%;
-            object-fit: cover; background: #f3f3f3;
-        }
-        .entry-body { flex: 1; min-width: 0; }
-        .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry-actions { flex: 0 0 auto; display: flex; gap: 6px; }
-        .btn-pill {
-            border: none; border-radius: 20px; font-size: 12px; font-weight: 600;
-            padding: 8px 14px; cursor: pointer; white-space: nowrap;
-        }
-        .btn-approve { background: #e6f9ee; color: #2ecc71; }
-        .btn-reject { background: #ffeef0; color: #ff5c7a; }
 
         .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
         .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
@@ -310,14 +285,6 @@
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
 
-        <div class="section-title">
-            <i class="fa-solid fa-user-clock"></i> บัญชีรอการอนุมัติ
-            <span class="badge-count" id="pending-count-badge" style="display:none;">0</span>
-        </div>
-        <div class="entry-list" id="pending-list">
-            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
-        </div>
-
         <!-- เครื่องมือแอดมิน: เมนูแบบหน้าโปรไฟล์ จัดเป็นหมวด -->
         <div class="menu-groups">
             <div>
@@ -325,12 +292,14 @@
             <div class="menu-section">
                 <a class="menu-item" href="admin_dashboard"><div class="menu-icon icon-gold"><i class="fas fa-gauge-high"></i></div><span class="menu-text">Dashboard บริหาร</span><i class="fas fa-chevron-right menu-arrow"></i></a>
                 <a class="menu-item" href="admin_users"><div class="menu-icon icon-blue"><i class="fas fa-table"></i></div><span class="menu-text">ภาพรวมผู้ใช้งาน</span><i class="fas fa-chevron-right menu-arrow"></i></a>
+                <a class="menu-item" href="admin_member_score"><div class="menu-icon icon-gold"><i class="fas fa-star"></i></div><span class="menu-text">Member Score</span><i class="fas fa-chevron-right menu-arrow"></i></a>
                 <a class="menu-item" href="admin_sales"><div class="menu-icon icon-green"><i class="fas fa-chart-line"></i></div><span class="menu-text">สรุปยอดขาย</span><i class="fas fa-chevron-right menu-arrow"></i></a>
             </div>
             </div>
             <div>
             <div class="menu-group-title">บัญชีผู้ใช้</div>
             <div class="menu-section">
+                <a class="menu-item" href="admin_pending_accounts"><div class="menu-icon icon-gold"><i class="fas fa-user-clock"></i></div><span class="menu-text">บัญชีรออนุมัติ</span><span class="badge-count" id="pending-count-badge" style="display:none;">0</span><i class="fas fa-chevron-right menu-arrow"></i></a>
                 <a class="menu-item" href="admin_create_account"><div class="menu-icon icon-pink"><i class="fas fa-user-plus"></i></div><span class="menu-text">สร้างบัญชีผู้ใช้งาน</span><i class="fas fa-chevron-right menu-arrow"></i></a>
                 <a class="menu-item" href="admin_manage_accounts"><div class="menu-icon icon-dark"><i class="fas fa-user-shield"></i></div><span class="menu-text">จัดการ/ระงับบัญชี</span><i class="fas fa-chevron-right menu-arrow"></i></a>
             </div>
@@ -477,99 +446,16 @@
     }
   }
 
-  let pendingCache = [];
-
+  // จำนวนบัญชีรออนุมัติ แสดงเป็นป้ายบนเมนู — การอนุมัติ/ปฏิเสธย้ายไปหน้า admin_pending_accounts แล้ว
   async function loadPendingList() {
-    const list = document.getElementById('pending-list');
     try {
       const res = await blm48AdminGetPendingUsers(user.username);
-      if (res.status !== 'success') { list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
-      pendingCache = res.data || [];
-      renderPendingList();
-    } catch (e) {
-      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
-    }
-  }
-
-  function renderPendingList() {
-    const list = document.getElementById('pending-list');
-    const badge = document.getElementById('pending-count-badge');
-    badge.style.display = pendingCache.length > 0 ? 'inline-block' : 'none';
-    badge.innerText = pendingCache.length;
-
-    if (pendingCache.length === 0) {
-      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check"></i>ไม่มีบัญชีรอการอนุมัติค่ะ</div>`;
-      return;
-    }
-
-    list.innerHTML = pendingCache.map((u, i) => {
-      const dt = new Date(u.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
-      return `
-        <div class="entry-row">
-          <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(u.profile_img))}">
-          <div class="entry-body">
-            <div class="entry-title">${escapeHtml(u.name || u.username)} <span style="color:#999; font-weight:400;">@${escapeHtml(u.username)}</span></div>
-            <div class="entry-subtitle">${escapeHtml((u.role || '').toUpperCase())} · สร้างเมื่อ ${dt}</div>
-          </div>
-          <div class="entry-actions">
-            <button class="btn-pill btn-approve" onclick="approvePending(${i})"><i class="fas fa-check"></i></button>
-            <button class="btn-pill btn-reject" onclick="rejectPending(${i})"><i class="fas fa-xmark"></i></button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  async function approvePending(index) {
-    const target = pendingCache[index];
-    if (!target) return;
-    const confirmResult = await Swal.fire({
-      title: 'อนุมัติบัญชีนี้?',
-      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะสามารถเข้าใช้งานได้ทันที`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: 'var(--primary-pink)',
-      confirmButtonText: 'อนุมัติ',
-      cancelButtonText: 'ยกเลิก'
-    });
-    if (!confirmResult.isConfirmed) return;
-
-    Swal.fire({ title: 'กำลังอนุมัติ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-    try {
-      const res = await blm48AdminApproveUser(user.username, target.username);
-      if (res.status === 'success') {
-        Swal.fire('ทำรายการสำเร็จ', 'อนุมัติบัญชีเรียบร้อยแล้ว', 'success');
-        loadDashboard();
-      } else {
-        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถอนุมัติได้', 'error');
-      }
-    } catch (e) { Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error'); }
-  }
-
-  async function rejectPending(index) {
-    const target = pendingCache[index];
-    if (!target) return;
-    const confirmResult = await Swal.fire({
-      title: 'ปฏิเสธและลบบัญชีนี้?',
-      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะถูกลบออกจากระบบถาวร`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ff5c7a',
-      confirmButtonText: 'ลบบัญชี',
-      cancelButtonText: 'ยกเลิก'
-    });
-    if (!confirmResult.isConfirmed) return;
-
-    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-    try {
-      const res = await blm48AdminRejectUser(user.username, target.username);
-      if (res.status === 'success') {
-        Swal.fire('ทำรายการสำเร็จ', 'ปฏิเสธและลบบัญชีเรียบร้อยแล้ว', 'success');
-        loadDashboard();
-      } else {
-        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถลบได้', 'error');
-      }
-    } catch (e) { Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error'); }
+      if (res.status !== 'success') return;
+      const count = (res.data || []).length;
+      const badge = document.getElementById('pending-count-badge');
+      badge.style.display = count > 0 ? 'inline-block' : 'none';
+      badge.innerText = count;
+    } catch (e) {}
   }
 
   // =========================================================================

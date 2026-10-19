@@ -166,6 +166,16 @@ function blm48GetUserFanScores(username) {
   return blm48Rpc('get_user_fan_scores', { p_username: username });
 }
 
+// Member Score ของบัญชีเมมเบอร์: แปลง Cookie/Likes/Post/Comment เป็นคะแนนสะสม + อันดับ (get_member_score)
+function blm48GetMemberScore(username) {
+  return blm48Rpc('get_member_score', { p_username: username });
+}
+
+// Admin: Member Score ของทุกบัญชีเมมเบอร์ (admin_get_member_scores)
+function blm48AdminGetMemberScores(adminUsername) {
+  return blm48Rpc('admin_get_member_scores', { p_admin_username: adminUsername });
+}
+
 // Live-updates whenever anyone's monthly cookie total changes (give_cookie, likePost).
 // onChange is called with no arguments — caller decides what to re-fetch/re-render.
 // Debounced so a burst of cookies within the same window only triggers one refresh.

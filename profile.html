@@ -385,9 +385,9 @@ body {
     }
     .pf-sticky-header.visible { transform: translateY(0); }
   </style>
-  <!-- 🎃 ธีมฮาโลวีน (เปิดเองอัตโนมัติเฉพาะช่วง 1 ต.ค. - 2 พ.ย. ดู assets/js/halloween.js) -->
-  <link rel="stylesheet" href="assets/css/halloween.css">
-  <script src="assets/js/halloween.js"></script>
+  <!-- 🎉 ธีมเทศกาล (เปิด/ปิดเองตามวันที่ ดูรายการเทศกาลใน assets/js/festivals.js) -->
+  <link rel="stylesheet" href="assets/css/festivals.css">
+  <script src="assets/js/festivals.js"></script>
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
@@ -517,6 +517,18 @@ body {
             <div id="pf-fanscore-detail-list" style="padding-bottom: 6px;"></div>
           </div>
         </div>
+        <!-- ⭐ Member Score (เฉพาะ role member) คะแนนสะสมจาก Cookie / Likes / Post / Comment กดเพื่อดูที่มาของคะแนน -->
+        <button type="button" id="pf-memberscore-box" class="menu-item" style="display: none;" onclick="toggleMemberScoreDetail()">
+          <span class="menu-icon"><i class="fa-regular fa-star"></i></span>
+          <span class="menu-text">Member Score</span>
+          <span id="pf-memberscore" class="menu-value">0</span>
+          <i id="pf-memberscore-detail-arrow" class="fas fa-chevron-right menu-arrow" style="transition: transform 0.3s ease;"></i>
+        </button>
+        <div id="pf-memberscore-detail-box" class="pf-fanscore-detail" style="display: none;">
+          <div id="pf-memberscore-detail-wrapper" style="max-height: 0px; opacity: 0; overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease;">
+            <div id="pf-memberscore-detail-list" style="padding-bottom: 6px;"></div>
+          </div>
+        </div>
       </div>
 
       <!-- ⚙️ Settings -->
@@ -625,6 +637,16 @@ body {
       if (fanScoreDetailBox) fanScoreDetailBox.style.display = 'none';
     }
 
+    // Member Score โชว์เฉพาะ role member (แบบเดียวกับ Fan Score ของแฟนคลับ)
+    const memberScoreBox = document.getElementById('pf-memberscore-box');
+    if (isUserMember()) {
+      loadMemberScore();
+    } else {
+      if (memberScoreBox) memberScoreBox.style.display = 'none';
+      const memberScoreDetailBox = document.getElementById('pf-memberscore-detail-box');
+      if (memberScoreDetailBox) memberScoreDetailBox.style.display = 'none';
+    }
+
     if (user.role && user.role.toLowerCase() === 'user') {
       document.getElementById('edit-name-btn').style.display = 'inline-flex';
     }
@@ -713,6 +735,61 @@ body {
       }).join('');
     } catch (e) {
       console.error('loadFanScoreDetail error:', e);
+      box.style.display = 'none';
+    }
+  }
+
+  function toggleMemberScoreDetail() {
+    const wrapper = document.getElementById('pf-memberscore-detail-wrapper');
+    const arrow = document.getElementById('pf-memberscore-detail-arrow');
+    if (!wrapper) return;
+    if (wrapper.style.maxHeight === '0px' || !wrapper.style.maxHeight) {
+      wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+      wrapper.style.opacity = '1';
+      arrow.style.transform = 'rotate(90deg)';
+    } else {
+      wrapper.style.maxHeight = '0px';
+      wrapper.style.opacity = '0';
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  // คะแนนสะสมเมมเบอร์: 10 Cookie = 1 / 1 Like = 1 / 1 Post = 10 / 1 Comment จากแฟน = 2 (คำนวณใน RPC get_member_score)
+  async function loadMemberScore() {
+    if (!user || !user.username) return;
+    const btn = document.getElementById('pf-memberscore-box');
+    const box = document.getElementById('pf-memberscore-detail-box');
+    const list = document.getElementById('pf-memberscore-detail-list');
+    if (!btn || !box || !list) return;
+    try {
+      const s = await blm48GetMemberScore(user.username);
+      if (!s || s.total === undefined) {
+        btn.style.display = 'none';
+        box.style.display = 'none';
+        return;
+      }
+      btn.style.display = 'flex';
+      document.getElementById('pf-memberscore').innerText = Number(s.total || 0).toLocaleString();
+      const rows = [
+        { icon: 'fas fa-cookie-bite', label: 'Cookie', count: s.cookies, pts: s.cookie_pts, rule: '10 Cookie = 1' },
+        { icon: 'fas fa-heart', label: 'Likes', count: s.likes, pts: s.like_pts, rule: '1 Like = 1' },
+        { icon: 'fas fa-pen-to-square', label: 'Post', count: s.posts, pts: s.post_pts, rule: '1 Post = 10' },
+        { icon: 'fas fa-comment', label: 'Comment', count: s.comments, pts: s.comment_pts, rule: '1 Comment = 2' }
+      ];
+      list.innerHTML = rows.map(r => `
+          <div style="display:flex; align-items:center; gap:12px; padding:9px 0; border-top:1px solid #f9f9f9;">
+            <div style="width:38px; height:38px; border-radius:50%; background:#fdeef4; color:#e0447a; display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="${r.icon}"></i></div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:13px; font-weight:600; color:#444;">${r.label} ${Number(r.count || 0).toLocaleString()}</div>
+              <div style="font-size:11.5px; color:#767676;">${r.rule}</div>
+            </div>
+            <div style="font-size:13px; font-weight:700; color:#e0447a; white-space:nowrap;">+${Number(r.pts || 0).toLocaleString()}</div>
+          </div>
+        `).join('');
+      box.style.display = 'block';
+    } catch (e) {
+      console.error('loadMemberScore error:', e);
+      btn.style.display = 'none';
       box.style.display = 'none';
     }
   }

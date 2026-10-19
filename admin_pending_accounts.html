@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | บัญชีรออนุมัติ</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        :root {
+            --primary-pink: #ff85a2;
+            --soft-pink: #ffe4e1;
+            --card-border: #ffeef2;
+            --text-dark: #444;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: var(--text-dark); background: #ffffff; }
+
+        .top-navigation-bar {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            backdrop-filter: blur(var(--glass-blur-lg));
+            padding: 14px 16px; border-bottom: 1px solid var(--glass-border);
+            position: sticky; top: 0; z-index: 100; box-shadow: var(--glass-shadow-sm);
+        }
+        .back-circle-btn {
+            flex: 0 0 auto; background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+            backdrop-filter: blur(var(--glass-blur-sm));
+            border: 1px solid var(--glass-border);
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-pink); cursor: pointer; transition: 0.2s;
+        }
+        .back-circle-btn:hover { background: var(--primary-pink); color: white; transform: scale(1.05); }
+        .top-bar-title { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: #333; }
+
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 18px 12px 50px; }
+        @media (min-width: 768px) { .page-wrapper { max-width: 760px; padding: 24px 24px 60px; } }
+
+        .header-title-zone { text-align: center; margin-bottom: 20px; }
+        .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+
+        .list-count { font-size: 13px; color: #888; margin: 0 0 10px; }
+        .list-count b { color: var(--primary-pink); }
+
+        /* แต่ละบัญชี: แถวสรุปไม่มีปุ่ม — แตะเพื่อเปิดดูรายละเอียดและปุ่มทำรายการ (กันกดโดนโดยไม่ตั้งใจ) */
+        .entry-list { display: flex; flex-direction: column; }
+        /* ตามธีมแอดมิน: ไม่มีกล่องมุมโค้ง — แต่ละบัญชีคั่นด้วยเส้นเท่านั้น */
+        .pending-card { border-bottom: 1px solid #f0f0f0; }
+        .entry-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 0; cursor: pointer; width: 100%;
+            text-align: left; font: inherit; color: inherit;
+        }
+        .pending-card .entry-row { border-bottom: none !important; }
+        .entry-avatar { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #f3f3f3; }
+        .entry-body { flex: 1; min-width: 0; }
+        .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-chevron { flex: 0 0 auto; color: #ccc; font-size: 13px; transition: transform 0.2s; }
+        .pending-card.open .entry-chevron { transform: rotate(90deg); color: var(--primary-pink); }
+
+        .pending-detail { display: none; padding: 0 0 14px; }
+        .pending-card.open .pending-detail { display: block; }
+        .detail-line { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 6px 0; }
+        .detail-line span:first-child { color: #999; }
+        .detail-line span:last-child { color: #333; font-weight: 600; text-align: right; word-break: break-all; }
+
+        .action-row { display: flex; gap: 12px; margin-top: 12px; }
+        .btn-action {
+            flex: 1; border: none; border-radius: 12px; font-size: 14px; font-weight: 600;
+            font-family: 'Quicksand', 'Kanit', sans-serif;
+            padding: 12px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-approve { background: #e6f9ee; color: #27ae60; }
+        .btn-reject { background: #ffeef0; color: #ff5c7a; }
+        .btn-approve.solid { background: #2ecc71; color: #fff; }
+        .btn-reject.solid { background: #ff5c7a; color: #fff; }
+        .btn-back { background: #f3f3f3; color: #777; }
+        .btn-action:disabled { opacity: 0.6; cursor: default; }
+
+        .confirm-box { margin-top: 12px; padding: 12px; font-size: 13px; line-height: 1.5; }
+        .confirm-box.approve { background: #f1fbf5; color: #27794a; }
+        .confirm-box.reject { background: #fff4f6; color: #c43d58; }
+        .confirm-box .action-row { margin-top: 10px; }
+
+        .result-box { margin-top: 12px; padding: 12px; font-size: 13px; text-align: center; }
+        .result-box.ok { background: #f1fbf5; color: #27794a; }
+        .result-box.err { background: #fff4f6; color: #c43d58; }
+
+        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
+        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
+        #page-content { display: none; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="ย้อนกลับ">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <div class="top-bar-title">บัญชีรออนุมัติ</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied">
+        <i class="fa-solid fa-lock"></i>
+        หน้านี้สำหรับ Role Admin เท่านั้นค่ะ
+    </div>
+
+    <div id="page-content">
+        <div class="header-title-zone">
+            <h1><i class="fa-solid fa-user-clock"></i> บัญชีรอการอนุมัติ</h1>
+            <p>แตะที่บัญชีเพื่อดูรายละเอียด แล้วเลือกอนุมัติหรือปฏิเสธ</p>
+        </div>
+
+        <div class="list-count" id="pending-count"></div>
+        <div class="entry-list" id="pending-list">
+            <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let pendingCache = [];
+  // สถานะต่อบัญชี: { open, step: 'choose' | 'confirm-approve' | 'confirm-reject' | 'working' | 'done', result }
+  const cardState = {};
+
+  function goBack() {
+    blm48Back('admin');
+  }
+
+  function resolveDriveImage(url) {
+    const fallback = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+    if (!url) return fallback;
+    if (url.includes('drive.google.com')) {
+      const driveMatch = url.match(/[-\w]{25,}/);
+      return driveMatch ? `https://lh3.googleusercontent.com/u/0/d/${driveMatch[0]}` : url;
+    }
+    return url;
+  }
+
+  async function loadPendingList() {
+    const list = document.getElementById('pending-list');
+    try {
+      const res = await blm48AdminGetPendingUsers(user.username);
+      if (res.status !== 'success') { list.innerHTML = `<div class="empty-state">โหลดข้อมูลไม่สำเร็จ</div>`; return; }
+      pendingCache = res.data || [];
+      renderPendingList();
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
+    }
+  }
+
+  function stateOf(username) {
+    if (!cardState[username]) cardState[username] = { open: false, step: 'choose', result: null };
+    return cardState[username];
+  }
+
+  function renderPendingList() {
+    const list = document.getElementById('pending-list');
+    const remaining = pendingCache.filter(u => stateOf(u.username).step !== 'done').length;
+    document.getElementById('pending-count').innerHTML = pendingCache.length
+      ? `เหลือรออนุมัติ <b>${remaining}</b> บัญชี`
+      : '';
+
+    if (pendingCache.length === 0) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check"></i>ไม่มีบัญชีรอการอนุมัติค่ะ</div>`;
+      return;
+    }
+
+    list.innerHTML = pendingCache.map((u, i) => {
+      const st = stateOf(u.username);
+      const dt = new Date(u.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+      return `
+        <div class="pending-card ${st.open ? 'open' : ''}">
+          <button type="button" class="entry-row" onclick="toggleCard(${i})">
+            <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(u.profile_img))}">
+            <div class="entry-body">
+              <div class="entry-title">${escapeHtml(u.name || u.username)} <span style="color:#999; font-weight:400;">@${escapeHtml(u.username)}</span></div>
+              <div class="entry-subtitle">${escapeHtml((u.role || '').toUpperCase())} · สร้างเมื่อ ${dt}</div>
+            </div>
+            <i class="fas fa-chevron-right entry-chevron"></i>
+          </button>
+          <div class="pending-detail">
+            <div class="detail-line"><span>ชื่อ</span><span>${escapeHtml(u.name || '-')}</span></div>
+            <div class="detail-line"><span>Username</span><span>@${escapeHtml(u.username)}</span></div>
+            <div class="detail-line"><span>Role</span><span>${escapeHtml((u.role || '-').toUpperCase())}</span></div>
+            <div class="detail-line"><span>สร้างเมื่อ</span><span>${dt}</span></div>
+            ${renderActionArea(u, i, st)}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderActionArea(u, i, st) {
+    const who = `<b>${escapeHtml(u.name || u.username)}</b> (@${escapeHtml(u.username)})`;
+    if (st.step === 'done') {
+      return `<div class="result-box ${st.result.ok ? 'ok' : 'err'}">${escapeHtml(st.result.message)}</div>`;
+    }
+    if (st.step === 'confirm-approve' || (st.step === 'working' && st.pending === 'approve')) {
+      const busy = st.step === 'working';
+      return `
+        <div class="confirm-box approve">
+          ยืนยันอนุมัติ ${who}? บัญชีนี้จะเข้าใช้งานได้ทันที
+          <div class="action-row">
+            <button class="btn-action btn-back" onclick="setStep(${i}, 'choose')" ${busy ? 'disabled' : ''}>ย้อนกลับ</button>
+            <button class="btn-action btn-approve solid" onclick="doApprove(${i})" ${busy ? 'disabled' : ''}>
+              ${busy ? '<i class="fas fa-spinner fa-spin"></i> กำลังอนุมัติ...' : '<i class="fas fa-check"></i> ยืนยันอนุมัติ'}
+            </button>
+          </div>
+        </div>`;
+    }
+    if (st.step === 'confirm-reject' || (st.step === 'working' && st.pending === 'reject')) {
+      const busy = st.step === 'working';
+      return `
+        <div class="confirm-box reject">
+          ยืนยันปฏิเสธ ${who}? บัญชีนี้จะถูก<b>ลบออกจากระบบถาวร</b>
+          <div class="action-row">
+            <button class="btn-action btn-back" onclick="setStep(${i}, 'choose')" ${busy ? 'disabled' : ''}>ย้อนกลับ</button>
+            <button class="btn-action btn-reject solid" onclick="doReject(${i})" ${busy ? 'disabled' : ''}>
+              ${busy ? '<i class="fas fa-spinner fa-spin"></i> กำลังลบ...' : '<i class="fas fa-trash"></i> ยืนยันลบบัญชี'}
+            </button>
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="action-row">
+        <button class="btn-action btn-reject" onclick="setStep(${i}, 'confirm-reject')"><i class="fas fa-xmark"></i> ปฏิเสธ</button>
+        <button class="btn-action btn-approve" onclick="setStep(${i}, 'confirm-approve')"><i class="fas fa-check"></i> อนุมัติ</button>
+      </div>`;
+  }
+
+  function toggleCard(i) {
+    const u = pendingCache[i];
+    if (!u) return;
+    const st = stateOf(u.username);
+    if (st.step === 'working') return;
+    st.open = !st.open;
+    // ปิดการ์ดแล้วกลับไปขั้นเลือกใหม่ ไม่ค้างอยู่ที่ขั้นยืนยัน
+    if (!st.open && st.step !== 'done') st.step = 'choose';
+    renderPendingList();
+  }
+
+  function setStep(i, step) {
+    const u = pendingCache[i];
+    if (!u) return;
+    stateOf(u.username).step = step;
+    renderPendingList();
+  }
+
+  async function runAction(i, kind) {
+    const u = pendingCache[i];
+    if (!u) return;
+    const st = stateOf(u.username);
+    st.step = 'working';
+    st.pending = kind;
+    renderPendingList();
+    try {
+      const res = kind === 'approve'
+        ? await blm48AdminApproveUser(user.username, u.username)
+        : await blm48AdminRejectUser(user.username, u.username);
+      if (res.status === 'success') {
+        st.result = { ok: true, message: kind === 'approve' ? 'อนุมัติบัญชีเรียบร้อยแล้ว' : 'ปฏิเสธและลบบัญชีเรียบร้อยแล้ว' };
+        st.step = 'done';
+      } else {
+        st.result = { ok: false, message: res.message || (kind === 'approve' ? 'ไม่สามารถอนุมัติได้' : 'ไม่สามารถลบได้') };
+        st.step = 'done';
+      }
+    } catch (e) {
+      st.result = { ok: false, message: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง' };
+      st.step = 'done';
+    }
+    // ทำรายการไม่สำเร็จ ให้กลับไปเลือกใหม่ได้
+    if (!st.result.ok) {
+      renderPendingList();
+      setTimeout(() => { if (st.step === 'done' && !st.result.ok) { st.step = 'choose'; renderPendingList(); } }, 2500);
+      return;
+    }
+    renderPendingList();
+  }
+
+  function doApprove(i) { runAction(i, 'approve'); }
+  function doReject(i) { runAction(i, 'reject'); }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) {
+      window.location.href = 'login';
+      return;
+    }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    loadPendingList();
+  });
+</script>
+</body>
+</html>

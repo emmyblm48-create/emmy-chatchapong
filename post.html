@@ -25,47 +25,200 @@
     }
     body {
       font-family: 'Quicksand', 'Kanit', sans-serif;
-      padding: 20px 12px;
+      padding: 0 0 110px;
       margin: 0;
     }
-    .post-container {
-      max-width: 500px;
-      margin: 40px auto;
-      background: var(--glass-bg-strong);
-      backdrop-filter: blur(var(--glass-blur-lg));
-      -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-      border: 1px solid var(--glass-border);
-      padding: 24px;
-      border-radius: 24px;
-      box-shadow: var(--glass-shadow-lg);
-    }
-    /* แถบหัวพร้อมปุ่มย้อนกลับล็อกติดบนจอเสมอระหว่างเลื่อนฟอร์ม */
-    .header {
+    /* แถบหัวแบบ Instagram: ปุ่มย้อนกลับวงกลมซ้าย, ชื่อหน้ากลาง, เส้นคั่นล่าง - ล็อกติดบนจอเสมอ */
+    .compose-topbar {
       position: sticky;
       top: 0;
-      z-index: 20;
-      background: rgba(255, 255, 255, 0.96);
-      padding: 12px 0;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 1.15rem;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 60px;
+      padding-top: env(safe-area-inset-top);
+      background: rgba(255, 255, 255, 0.97);
+      border-bottom: 1px solid #ececec;
+      font-size: 1.1rem;
       font-weight: 700;
-      color: var(--blm-pink);
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
+      color: #222;
     }
     .back-icon {
       position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.2rem;
-      color: var(--blm-pink);
+      left: 12px;
+      bottom: 8px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #222;
       cursor: pointer;
       transition: opacity 0.2s;
     }
     .back-icon:hover {
       opacity: 0.6;
+    }
+    .post-container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* พรีวิวรูปขนาดใหญ่ด้านบน (เลื่อนซ้าย-ขวาได้เมื่อมีหลายรูป) */
+    .compose-media {
+      padding: 18px 16px 4px;
+    }
+    #image-preview-container {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto; overflow-y: hidden;
+      justify-content: safe center;
+      padding: 6px 2px;
+      scrollbar-width: none;
+    }
+    #image-preview-container::-webkit-scrollbar { display: none; }
+    .media-add-tile {
+      flex-shrink: 0;
+      height: 240px;
+      width: 120px;
+      border: 2px dashed #ffccd5;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.6);
+      color: var(--blm-pink);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    .media-add-tile i { font-size: 1.6rem; }
+    .media-add-tile.empty {
+      width: 100%;
+      max-width: 260px;
+    }
+
+    /* ช่องพิมพ์แคปชันแบบไร้กรอบ */
+    #post-content {
+      height: 120px;
+      border: none;
+      border-radius: 0;
+      padding: 14px 20px;
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      font-size: 1rem;
+    }
+    #post-content:focus {
+      background: transparent;
+      box-shadow: none;
+    }
+
+    /* ปุ่มลัดทรงเม็ดยา (แบบ Poll / Prompt) */
+    .compose-chips {
+      display: flex;
+      gap: 10px;
+      padding: 6px 16px 10px;
+    }
+    .compose-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 12px;
+      background: #f1f2f5;
+      color: #222;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* แถวตัวเลือกแบบรายการ: ไอคอน + ชื่อ + ค่าทางขวา + ลูกศร */
+    .compose-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      font-size: 1.02rem;
+      color: #222;
+      cursor: pointer;
+    }
+    .compose-row > i:first-child {
+      width: 24px;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+    .compose-row .row-label { flex: 1; }
+    .compose-row .row-value {
+      color: #888;
+      font-size: 0.9rem;
+    }
+    .compose-row .row-chevron {
+      color: #999;
+      font-size: 0.95rem;
+    }
+
+    /* ชิปเมมเบอร์แนะนำใต้ "Tag members" (แตะเพื่อแท็ก) */
+    .member-chips {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto; overflow-y: hidden;
+      padding: 0 16px 6px;
+      scrollbar-width: none;
+    }
+    .member-chips::-webkit-scrollbar { display: none; }
+    .member-chip {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px 5px 5px;
+      border: none;
+      border-radius: 12px;
+      background: #f1f2f5;
+      color: #222;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .member-chip img {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .member-chip.tagged {
+      background: #fff0f3;
+      color: var(--blm-pink);
+    }
+    .compose-note {
+      font-size: 0.78rem;
+      color: #8a8a8a;
+      line-height: 1.45;
+      padding: 8px 18px 0;
+    }
+
+    /* ปุ่ม Share ติดล่างจอ */
+    .compose-share-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+      background: rgba(255, 255, 255, 0.97);
+      border-top: 1px solid #ececec;
     }
     textarea {
       width: 100%;
@@ -139,82 +292,44 @@
       color: var(--dark-text, #3a3a3a);
     }
 
-    /* Media Sections styling */
-    .media-section {
-      margin-top: 20px;
-    }
-    .section-label {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--blm-pink);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    /* Custom Upload Button & Wrappers */
-    .custom-file-upload {
-      border: 2px dashed #ffccd5;
-      color: var(--blm-pink);
-      background-color: rgba(255, 255, 255, 0.55);
-      backdrop-filter: blur(var(--glass-blur-sm));
-      -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-      padding: 12px;
-      border-radius: 14px;
-      width: 100%;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-sizing: border-box;
-      transition: all 0.2s;
-    }
-    .custom-file-upload:hover {
-      border-color: var(--blm-pink);
-      background-color: #fff5f7;
-    }
     .hidden-input {
       display: none;
     }
-    
-    /* Image Preview Tray (ปรับปรุงใหม่ให้รองรับ Card คุมสไตล์) */
-    #image-preview-container {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      margin-top: 12px;
-      padding: 6px 2px;
-    }
+
+    /* การ์ดพรีวิวรูปขนาดใหญ่ (กว้างตามสัดส่วนรูป สูงคงที่) */
     .preview-image-wrapper {
       position: relative;
       flex-shrink: 0;
-      width: 85px;
-      height: 85px;
-      border-radius: 12px;
-      border: 1px solid #ffccd5;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      height: 240px;
+      max-width: 78%;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     }
     .preview-image-wrapper img {
-      width: 100%;
+      display: block;
       height: 100%;
+      width: auto;
+      max-width: 100%;
       object-fit: cover;
-      border-radius: 11px;
+      border-radius: 16px;
+    }
+    .preview-image-wrapper.loading {
+      width: 180px;
+      background: #f3f3f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #bbb;
     }
     .img-action-overlay {
       position: absolute;
-      top: -6px;
-      right: -6px;
-      background: var(--blm-pink);
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.55);
       color: white;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 26px;
+      height: 26px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -224,35 +339,36 @@
     }
     .img-sort-btn {
       position: absolute;
-      bottom: 2px;
-      background: var(--glass-bg-strong);
-      backdrop-filter: blur(var(--glass-blur-sm));
-      -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-      color: var(--blm-pink);
+      bottom: 8px;
+      background: rgba(255, 255, 255, 0.85);
+      color: #222;
       border: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 0.7rem;
       cursor: pointer;
     }
-    .img-sort-left { left: 4px; }
-    .img-sort-right { right: 4px; }
+    .img-sort-left { left: 8px; }
+    .img-sort-right { right: 8px; }
 
     /* Action Button */
     .btn-submit-full {
+      display: block;
       width: 100%;
-      height: 48px;
+      max-width: 500px;
+      margin: 0 auto;
+      height: 52px;
       background-color: var(--blm-pink);
       color: white;
       border: none;
-      border-radius: 24px;
+      border-radius: 16px;
+      font-family: inherit;
       font-weight: 700;
-      font-size: 1rem;
-      margin-top: 28px;
+      font-size: 1.05rem;
       cursor: pointer;
       letter-spacing: 0.5px;
       box-shadow: 0 4px 12px rgba(255, 133, 162, 0.25);
@@ -269,7 +385,9 @@
       display: none;
       position: relative;
       max-width: 500px;
-      margin: 40px auto 20px auto;
+      width: calc(100% - 24px);
+      box-sizing: border-box;
+      margin: 20px auto;
       background: linear-gradient(to bottom, #fffdf0, #ffffff);
       border: 2px solid #d4af37;
       border-radius: 24px;
@@ -403,11 +521,16 @@
       box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
     }
   </style>
-  <!-- 🎃 ธีมฮาโลวีน (เปิดเองอัตโนมัติเฉพาะช่วง 1 ต.ค. - 2 พ.ย. ดู assets/js/halloween.js) -->
-  <link rel="stylesheet" href="assets/css/halloween.css">
-  <script src="assets/js/halloween.js"></script>
+  <!-- 🎉 ธีมเทศกาล (เปิด/ปิดเองตามวันที่ ดูรายการเทศกาลใน assets/js/festivals.js) -->
+  <link rel="stylesheet" href="assets/css/festivals.css">
+  <script src="assets/js/festivals.js"></script>
 </head>
 <body class="glass-mesh-bg force-white-bg">
+
+<div class="compose-topbar">
+  <i class="fa-solid fa-chevron-left back-icon" onclick="blm48Back('index')"></i>
+  New post
+</div>
 
 <div id="champ-thanks-card">
   <div class="champ-thanks-ribbon">EXCLUSIVE</div>
@@ -430,32 +553,39 @@
 </div>
 
 <div class="post-container" id="normal-post-container">
-  <div class="header">
-    <i class="fa-solid fa-chevron-left back-icon" onclick="blm48Back('index')"></i>
-    New Post
-  </div>
-
-  <div class="compose-wrap">
-    <textarea id="post-content" placeholder="Share something with the community..."></textarea>
-    <div id="mention-dropdown"></div>
-  </div>
-  <div class="compose-hint">
-    <i class="fa-solid fa-hashtag"></i> ใส่แฮชแท็ก &nbsp; <i class="fa-solid fa-link"></i> วางลิงก์ได้เลย &nbsp; <i class="fa-solid fa-at"></i> พิมพ์ @ เพื่อแท็กเมมเบอร์
-  </div>
-
-  <div class="media-section">
-    <div class="section-label">
-      <i class="fa-regular fa-image"></i> Add Gallery
-    </div>
-    <label for="post-image" class="custom-file-upload">
-      <i class="fa-solid fa-cloud-arrow-up"></i> Choose Images
-    </label>
+  <div class="compose-media">
     <input type="file" id="post-image" class="hidden-input" accept="image/*" multiple>
     <div id="image-preview-container"></div>
   </div>
 
+  <div class="compose-wrap">
+    <textarea id="post-content" placeholder="Add a caption..."></textarea>
+    <div id="mention-dropdown"></div>
+  </div>
 
-  <button class="btn-submit-full" onclick="submitPost()">Publish Post</button>
+  <div class="compose-chips">
+    <button type="button" class="compose-chip" onclick="insertComposeToken('#')"><i class="fa-solid fa-hashtag"></i> Hashtag</button>
+    <button type="button" class="compose-chip" onclick="insertComposeToken('@')"><i class="fa-solid fa-at"></i> Mention</button>
+  </div>
+
+  <label for="post-image" class="compose-row">
+    <i class="fa-regular fa-images"></i>
+    <span class="row-label">Add photos</span>
+    <span class="row-value" id="photo-count"></span>
+    <i class="fa-solid fa-chevron-right row-chevron"></i>
+  </label>
+
+  <div class="compose-row" onclick="insertComposeToken('@')">
+    <i class="fa-regular fa-user"></i>
+    <span class="row-label">Tag members</span>
+    <i class="fa-solid fa-chevron-right row-chevron"></i>
+  </div>
+  <div class="member-chips" id="member-chips"></div>
+  <div class="compose-note">ใส่ #แฮชแท็ก หรือวางลิงก์ในแคปชันได้เลย</div>
+
+  <div class="compose-share-bar">
+    <button class="btn-submit-full" onclick="submitPost()">Share</button>
+  </div>
 </div>
 
 <script type="module">
@@ -584,11 +714,63 @@
       // เมมเบอร์ที่จบการศึกษาแล้ว (Graduated) แท็กในโพสต์ไม่ได้
       mentionMembers = res.data.filter(m => m.name && m.name.toString().trim() !== ''
         && String(m.status || '').trim().toLowerCase() !== 'graduated');
+      renderMemberChips();
     }
   }).catch(err => console.error('โหลดรายชื่อเมมเบอร์สำหรับแท็กไม่สำเร็จ:', err));
 
   const postContentEl = document.getElementById('post-content');
   const mentionDropdownEl = document.getElementById('mention-dropdown');
+  const memberChipsEl = document.getElementById('member-chips');
+
+  // แทรกข้อความที่ตำแหน่ง cursor ของแคปชัน (ถ้ายังไม่เคยโฟกัส = ต่อท้ายข้อความ)
+  // เติมช่องว่างนำหน้าให้เองถ้าจำเป็น เพราะ @/# ต้องไม่ติดกับคำก่อนหน้าถึงจะนับเป็นแท็ก
+  function insertAtCaret(text) {
+    const value = postContentEl.value;
+    const start = postContentEl.selectionStart ?? value.length;
+    const end = postContentEl.selectionEnd ?? value.length;
+    const before = value.slice(0, start);
+    const prefix = before && !/\s$/.test(before) ? ' ' : '';
+    postContentEl.value = before + prefix + text + value.slice(end);
+    const caret = start + prefix.length + text.length;
+    postContentEl.focus();
+    postContentEl.setSelectionRange(caret, caret);
+  }
+
+  // ปุ่ม Hashtag / Mention / แถว Tag members — แทรก # หรือ @ แล้วเปิด dropdown แท็กเมมเบอร์ทันที
+  window.insertComposeToken = function(token) {
+    insertAtCaret(token);
+    if (token === '@') updateMentionDropdown();
+  };
+
+  // ชิปเมมเบอร์แนะนำใต้ "Tag members" — แตะเพื่อแท็ก, เมมเบอร์ที่แท็กไปแล้วจะขึ้นสีชมพู
+  function renderMemberChips() {
+    memberChipsEl.innerHTML = mentionMembers.map((m, i) => {
+      const imgUrl = m.profile || m.profile_img || mentionFallbackAvatar;
+      return `
+        <button type="button" class="member-chip" data-index="${i}">
+          <img src="${imgUrl}" onerror="this.onerror=null; this.src='${mentionFallbackAvatar}';">
+          ${escapeHtml(m.name)}
+        </button>
+      `;
+    }).join('');
+    memberChipsEl.querySelectorAll('.member-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const member = mentionMembers[parseInt(chip.getAttribute('data-index'))];
+        if (postContentEl.value.includes(`@${member.name}`)) return;
+        insertAtCaret(`@${member.name} `);
+        updateTaggedChips();
+      });
+    });
+    updateTaggedChips();
+  }
+
+  function updateTaggedChips() {
+    const caption = postContentEl.value;
+    memberChipsEl.querySelectorAll('.member-chip').forEach(chip => {
+      const member = mentionMembers[parseInt(chip.getAttribute('data-index'))];
+      chip.classList.toggle('tagged', caption.includes(`@${member.name}`));
+    });
+  }
 
   // หา token "@..." ที่ตำแหน่ง cursor ปัจจุบันกำลังพิมพ์อยู่ (ถ้ามี) คืน {query, start, end} หรือ null
   function findActiveMentionToken() {
@@ -646,6 +828,7 @@
     postContentEl.focus();
     postContentEl.setSelectionRange(newCursor, newCursor);
     closeMentionDropdown();
+    updateTaggedChips();
   }
 
   function closeMentionDropdown() {
@@ -672,10 +855,14 @@
   }
 
   postContentEl.addEventListener('input', updateMentionDropdown);
+  postContentEl.addEventListener('input', updateTaggedChips);
   postContentEl.addEventListener('click', updateMentionDropdown);
   postContentEl.addEventListener('blur', () => {
     // หน่วงเล็กน้อยเพื่อให้ mousedown ของ .mention-option ทำงานก่อน blur จะปิด dropdown
-    setTimeout(closeMentionDropdown, 150);
+    // (ถ้ากดปุ่ม Mention/Tag members ที่โฟกัสกลับมาที่ช่องพิมพ์แล้ว ไม่ต้องปิด dropdown ที่เพิ่งเปิด)
+    setTimeout(() => {
+      if (document.activeElement !== postContentEl) closeMentionDropdown();
+    }, 150);
   });
   postContentEl.addEventListener('keydown', (e) => {
     if (mentionMatches.length === 0) return;
@@ -749,6 +936,7 @@
       const startIndex = selectedImageFiles.length;
       const files = Array.from(this.files);
       files.forEach((file, i) => { selectedImageFiles[startIndex + i] = { file: file, preview: null }; });
+      renderImagePreviews();
 
       files.forEach(async (file, i) => {
         const compressedFile = await compressImageFile(file);
@@ -773,7 +961,15 @@
     selectedImageFiles.forEach((imgObj, index) => {
       const wrapper = document.createElement('div');
       wrapper.className = 'preview-image-wrapper';
-      
+
+      // รูปที่ยังบีบอัด/อ่านไฟล์ไม่เสร็จ — แสดงกล่องโหลดไว้ก่อนแทนรูปเสีย
+      if (!imgObj.preview) {
+        wrapper.classList.add('loading');
+        wrapper.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        container.appendChild(wrapper);
+        return;
+      }
+
       // แทรกโครงสร้างปุ่มลบ และปุ่มเลื่อนซ้ายขวาสำหรับการจัดเรียงตำแหน่งรูปภาพคิวท์ๆ
       wrapper.innerHTML = `
         <img src="${imgObj.preview}">
@@ -813,7 +1009,20 @@
 
       container.appendChild(wrapper);
     });
+
+    // ช่องเพิ่มรูป: ยังไม่มีรูป = ช่องใหญ่ตรงกลาง, มีรูปแล้ว = ช่องเล็กต่อท้าย
+    const addTile = document.createElement('label');
+    addTile.htmlFor = 'post-image';
+    addTile.className = 'media-add-tile' + (selectedImageFiles.length === 0 ? ' empty' : '');
+    addTile.innerHTML = selectedImageFiles.length === 0
+      ? '<i class="fa-regular fa-images"></i> Add photos'
+      : '<i class="fa-solid fa-plus"></i> Add more';
+    container.appendChild(addTile);
+
+    const count = selectedImageFiles.length;
+    document.getElementById('photo-count').textContent = count ? `${count} photo${count > 1 ? 's' : ''}` : '';
   }
+  renderImagePreviews();
 
   // Submit Logic
   window.submitPost = async function() {

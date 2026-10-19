@@ -15,9 +15,11 @@
   const START_OFFSET = -48;  // ตำแหน่งวงกลมตอนซ่อน (อยู่เหนือขอบจอ)
 
   // กัน native pull-to-refresh ของ Chrome Android ซ้อนกับของเรา (จะได้ไม่รีเฟรชสองรอบ)
+  // ใส่แค่ html (= viewport) ห้ามใส่ body: หน้าที่ html+body มี overflow-x: hidden ทั้งคู่ body จะกลายเป็น
+  // scroll container ของตัวเอง แล้ว iOS Safari จะไม่ส่งต่อการเลื่อนจาก body ขึ้นไปที่หน้าจอ = ลากเนื้อหากลางจอแล้วจอไม่เลื่อน
   const st = document.createElement('style');
   st.textContent =
-    'html, body { overscroll-behavior-y: contain; }' +
+    'html { overscroll-behavior-y: contain; }' +
     '#blm-ptr { position: fixed; left: 50%; top: 0; width: 40px; height: 40px; margin-left: -20px;' +
     ' border-radius: 50%; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.15);' +
     ' display: flex; align-items: center; justify-content: center; z-index: 2147483000;' +

@@ -10,8 +10,8 @@ const CAMPAIGN_TIERS = [
     desc: 'Tier 2 : Get Deluxe Cookie เมื่อซัพพอร์ทคุกกี้ครบ 30,000 เมมเบอร์จะได้ Splash Screen in BLM48 Web Application, Theme of BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 10%' },
   { tier: 3, name: 'Premium Cookie', amount: 50000,  refund: 15,
     desc: 'Tier 3 : Get Premium Cookie เมื่อซัพพอร์ทคุกกี้ครบ 50,000 เมมเบอร์จะได้ Splash Screen in BLM48 Web Application, Theme of BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 15%' },
-  { tier: 4, name: 'Luxury Cookie',  amount: 100000, refund: 20,
-    desc: 'Tier 4 : Get Luxury Cookie เมื่อซัพพอร์ทคุกกี้ครบ 100,000 เมมเบอร์จะได้ Splash Screen in BLM48 Web Application, Theme of BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 20%' }
+  { tier: 4, name: 'Luxury Cookie',  amount: 100000, refund: 25,
+    desc: 'Tier 4 : Get Luxury Cookie เมื่อซัพพอร์ทคุกกี้ครบ 100,000 เมมเบอร์จะได้ Splash Screen in BLM48 Web Application, Theme of BLM48 Web Application และแฟนคลับที่ซัพพอร์ตจะได้รับคุกกี้คืน 25%' }
 ];
 
 // 🎨 รายการ Tier แบบการ์ด (ติ๊กถูกเมื่อยอดถึง) ใช้ร่วมกันหน้าเปิด Campaign / Campaign Detail

@@ -217,6 +217,7 @@ function reconcileComments(postId, comments) {
     }
   });
 
+  comments.forEach(blm48RegisterCommenter);
   const findItem = (root, cid) => root.querySelector(`.comment-item[data-comment-id="${CSS.escape(cid)}"]`);
 
   // อัปเดตคอมเมนต์/reply ที่มีอยู่แล้วบนจอ: ยอดไลก์ + หัวใจ + ข้อความ (ถ้าไม่ได้กำลังแก้ไขอยู่)
@@ -225,13 +226,14 @@ function reconcileComments(postId, comments) {
     const heart = document.getElementById(`cmt-heart-${cid}`);
     const likeSpan = document.getElementById(`cmt-like-count-${cid}`);
     if (heart && likeSpan && heart.dataset.loading !== 'true') {
-      likeSpan.innerText = cmt.likes || 0;
+      blm48SetCmtLikeCount(likeSpan, cmt.likes || 0);
       heart.classList.toggle('fa-solid', !!cmt.isLiked);
       heart.classList.toggle('fa-regular', !cmt.isLiked);
     }
     const textEl = document.getElementById(`cmt-text-${cid}`);
-    if (textEl && textEl.dataset.editing !== 'true' && textEl.textContent !== (cmt.text || '')) {
-      textEl.textContent = cmt.text || '';
+    if (textEl && textEl.dataset.editing !== 'true') {
+      const html = blm48FormatCommentText(cmt.text || '');
+      if (textEl.innerHTML !== html) textEl.innerHTML = html;
     }
     window.__commentTextCache = window.__commentTextCache || {};
     if (!(textEl && textEl.dataset.editing === 'true')) window.__commentTextCache[cid] = cmt.text || '';
@@ -281,10 +283,7 @@ function reconcileComments(postId, comments) {
           }
           if (rEl) prevReply = rEl;
         });
-        const repliesCountEl = document.getElementById(`replies-count-${cmt.commentId}`);
-        if (repliesCountEl) repliesCountEl.innerText = replies.length;
-        const toggleBtn = document.getElementById(`replies-toggle-btn-${cmt.commentId}`);
-        if (toggleBtn) toggleBtn.style.display = replies.length > 0 ? 'flex' : 'none';
+        blm48UpdateRepliesToggle(cmt.commentId);
       }
     } else {
       const html = buildSingleCommentHtml(cmt, postId, false, replies);
@@ -439,6 +438,302 @@ function commentTimeAgo(ts) {
     }
   }
   return 'Just now';
+}
+
+// =========================================================================
+// 💬 คอมเมนต์สไตล์ Instagram (index / member / fanpost / postdetail ใช้ร่วมกัน)
+// ชื่อตัวหนา + เวลาสั้น "3h" / "84w" บรรทัดเดียว, ข้อความ, ปุ่ม Reply ใต้ข้อความ, หัวใจ + ยอดไลก์ชิดขวา
+// reply ย่อเข้าไป + ปุ่ม "View N replies" / "Hide replies" มีเส้นนำหน้า
+// กด Reply ที่คอมเมนต์ไหนก็ได้ (รวมถึง reply) -> ช่องพิมพ์หลักขึ้นแถบ "Replying to ชื่อ" + เติม @ชื่อ ให้
+// ฝั่ง server (add_comment) ผูก reply ของ reply เข้ากับคอมเมนต์บนสุดเอง + แจ้งเตือนเจ้าของคอมเมนต์ที่ถูกตอบ
+// =========================================================================
+const BLM48_CMT_DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+const BLM48_CMT_BADGE_ROLES = ['member', 'admin', 'ceo'];
+const BLM48_CMT_BADGE = `<svg class="cmt-verified" viewBox="0 0 24 24"><path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/></svg>`;
+
+// เวลาแบบสั้นของ IG: now / 5m / 3h / 2d / 6w / 1y
+function commentTimeShort(ts) {
+  const t = typeof ts === 'number' ? ts : Date.parse(ts);
+  if (!t || isNaN(t)) return 'now';
+  const sec = Math.max(0, Math.round((Date.now() - t) / 1000));
+  if (sec < 60) return 'now';
+  if (sec < 3600) return Math.floor(sec / 60) + 'm';
+  if (sec < 86400) return Math.floor(sec / 3600) + 'h';
+  if (sec < 604800) return Math.floor(sec / 86400) + 'd';
+  if (sec < 31536000) return Math.floor(sec / 604800) + 'w';
+  return Math.floor(sec / 31536000) + 'y';
+}
+
+// รายชื่อคนที่คอมเมนต์ (ชื่อที่แสดง/username -> username) ใช้ระบายสี @แท็ก เฉพาะชื่อที่มีอยู่จริง (ชื่อมั่วไม่ระบาย)
+window.__cmtPeople = window.__cmtPeople || {};
+function blm48RegisterCommenter(c) {
+  if (!c || !c.username) return;
+  if (c.name) window.__cmtPeople[String(c.name).trim().toLowerCase()] = { label: String(c.name).trim(), username: c.username };
+  window.__cmtPeople[String(c.username).trim().toLowerCase()] = { label: String(c.username).trim(), username: c.username };
+}
+
+// escape ข้อความ + ระบายสี @ชื่อ (ชื่อมีเว้นวรรคได้ เทียบชื่อยาวสุดก่อน) กดแล้วเปิดโปรไฟล์คนนั้น
+function blm48FormatCommentText(text) {
+  const raw = String(text == null ? '' : text);
+  if (raw.indexOf('@') === -1) return escapeHtml(raw);
+  const keys = Object.keys(window.__cmtPeople).sort((a, b) => b.length - a.length);
+  const lower = raw.toLowerCase();
+  let out = '';
+  let i = 0;
+  while (i < raw.length) {
+    const at = raw.indexOf('@', i);
+    if (at === -1) { out += escapeHtml(raw.slice(i)); break; }
+    out += escapeHtml(raw.slice(i, at));
+    let hit = null;
+    for (const k of keys) {
+      if (!k || lower.substr(at + 1, k.length) !== k) continue;
+      const next = raw.charAt(at + 1 + k.length);
+      if (next && /[A-Za-z0-9_.]/.test(next)) continue; // ต้องจบคำพอดี
+      hit = k; break;
+    }
+    if (hit) {
+      const p = window.__cmtPeople[hit];
+      out += `<span class="cmt-mention"${profileLinkAttr(p.username)}>@${escapeHtml(raw.substr(at + 1, hit.length))}</span>`;
+      i = at + 1 + hit.length;
+    } else {
+      out += '@';
+      i = at + 1;
+    }
+  }
+  return out;
+}
+
+// HTML ของคอมเมนต์ 1 อัน (top-level จะห่อ reply ของมันไว้ข้างในด้วย)
+// opts.canReply = false -> ไม่มีปุ่ม Reply (เช่นบัญชีเมมเบอร์ในโพสต์แฟนคลับ)
+function blm48CommentHtml(cmt, postId, isReply, replies, opts) {
+  opts = opts || {};
+  const canReply = opts.canReply !== false;
+  const replyList = Array.isArray(replies) ? replies : [];
+  blm48RegisterCommenter(cmt);
+  replyList.forEach(blm48RegisterCommenter);
+
+  const commentId = cmt.commentId || '';
+  const cid = escapeAttr(commentId);
+  const likes = cmt.likes || 0;
+  const heartClass = cmt.isLiked ? 'fa-solid' : 'fa-regular';
+  const role = cmt.role ? String(cmt.role).toLowerCase() : '';
+  const badge = BLM48_CMT_BADGE_ROLES.includes(role) ? BLM48_CMT_BADGE : '';
+  const img = cmt.profile_img || BLM48_CMT_DEFAULT_AVATAR;
+
+  window.__commentTextCache = window.__commentTextCache || {};
+  if (commentId) window.__commentTextCache[commentId] = cmt.text || '';
+  const sessionUser = (typeof getUserSession === 'function') ? getUserSession() : null;
+  const isOwn = !!(sessionUser && sessionUser.username && cmt.username && sessionUser.username === cmt.username);
+
+  const row = `
+    <div class="cmt-row">
+      <img class="cmt-avatar" src="${escapeAttr(img)}"${profileLinkAttr(cmt.username)} alt="">
+      <div class="cmt-body">
+        <div class="cmt-bubble">
+          <div class="cmt-head"><b class="cmt-name"${profileLinkAttr(cmt.username)}>${escapeHtml(cmt.name)}</b>${badge}</div>
+          <div class="cmt-text" id="cmt-text-${cid}">${blm48FormatCommentText(cmt.text)}</div>
+        </div>
+        <div class="cmt-actions">
+          <span class="cmt-time">${commentTimeShort(cmt.timestamp)}</span>
+          ${canReply ? `<button type="button" onclick="blm48StartReply('${escapeAttr(postId)}', '${cid}')">Reply</button>` : ''}
+          ${isOwn ? `<button type="button" onclick="startEditComment('${cid}')">Edit</button>` : ''}
+        </div>
+      </div>
+      <button type="button" class="cmt-like" onclick="blm48ToggleCommentLike('${cid}')" aria-label="Like">
+        <i class="${heartClass} fa-heart" id="cmt-heart-${cid}"></i>
+        <span class="cmt-like-count" id="cmt-like-count-${cid}" data-n="${likes}">${likes}</span>
+      </button>
+    </div>`;
+
+  if (isReply) {
+    return `<div class="comment-item cmt-reply" data-comment-id="${cid}" data-name="${escapeAttr(cmt.name || '')}" data-username="${escapeAttr(cmt.username || '')}">${row}</div>`;
+  }
+
+  const repliesHtml = replyList.map(r => buildSingleCommentHtml(r, postId, true)).join('');
+  const n = replyList.length;
+  return `
+    <div class="comment-item cmt-top" data-comment-id="${cid}" data-name="${escapeAttr(cmt.name || '')}" data-username="${escapeAttr(cmt.username || '')}">
+      ${row}
+      <div class="cmt-replies" id="replies-${cid}" style="display: none;">${repliesHtml}</div>
+      <button type="button" class="cmt-replies-toggle" id="replies-toggle-btn-${cid}" onclick="blm48ToggleReplies('${cid}')" style="display: ${n > 0 ? 'flex' : 'none'};">
+        <span class="cmt-replies-line"></span><span id="replies-toggle-label-${cid}">${n === 1 ? 'View 1 reply' : `View ${n} replies`}</span><span id="replies-count-${cid}" hidden>${n}</span>
+      </button>
+    </div>`;
+}
+
+// ข้อความปุ่ม View N replies / Hide replies ตามจำนวน + สถานะเปิด/ปิด
+function blm48UpdateRepliesToggle(topId) {
+  const repliesEl = document.getElementById(`replies-${topId}`);
+  const btn = document.getElementById(`replies-toggle-btn-${topId}`);
+  const label = document.getElementById(`replies-toggle-label-${topId}`);
+  const countEl = document.getElementById(`replies-count-${topId}`);
+  if (!repliesEl || !btn) return;
+  const n = repliesEl.querySelectorAll(':scope > .comment-item').length;
+  if (countEl) countEl.innerText = n;
+  btn.style.display = n > 0 ? 'flex' : 'none';
+  const open = repliesEl.style.display !== 'none';
+  if (label) label.innerText = open ? 'Hide replies' : (n === 1 ? 'View 1 reply' : `View ${n} replies`);
+}
+
+function blm48ToggleReplies(topId) {
+  const repliesEl = document.getElementById(`replies-${topId}`);
+  if (!repliesEl) return;
+  repliesEl.style.display = repliesEl.style.display === 'none' ? 'block' : 'none';
+  blm48UpdateRepliesToggle(topId);
+}
+
+// ยอดไลก์ 0 ไม่ต้องโชว์ตัวเลข (แบบ IG) - CSS ซ่อนด้วย [data-n="0"]
+function blm48SetCmtLikeCount(span, n) {
+  if (!span) return;
+  span.innerText = n;
+  span.dataset.n = String(n);
+}
+
+// 💖 กดใจคอมเมนต์/reply (เจ้าของโพสต์ได้ 9 คุกกี้ - คิดฝั่ง server)
+async function blm48ToggleCommentLike(commentId) {
+  const currentUser = getUserSession();
+  if (!currentUser || !currentUser.username) {
+    if (window.Swal) Swal.fire({ icon: 'warning', title: 'ไม่พบผู้ใช้งาน', text: 'กรุณาล็อกอินก่อนงับ', confirmButtonColor: 'var(--primary-pink)' });
+    return;
+  }
+  const heartIcon = document.getElementById(`cmt-heart-${commentId}`);
+  const likeSpan = document.getElementById(`cmt-like-count-${commentId}`);
+  if (!heartIcon || !likeSpan) return;
+  if (heartIcon.dataset.loading === 'true') return;
+  heartIcon.dataset.loading = 'true';
+
+  const wasLiked = heartIcon.classList.contains('fa-solid');
+  const before = parseInt(likeSpan.innerText) || 0;
+  heartIcon.classList.toggle('fa-solid', !wasLiked);
+  heartIcon.classList.toggle('fa-regular', wasLiked);
+  blm48SetCmtLikeCount(likeSpan, wasLiked ? Math.max(0, before - 1) : before + 1);
+
+  try {
+    const result = await blm48LikeComment(currentUser.username, commentId);
+    if (!result || result.status !== 'success') throw new Error(result && result.message);
+    blm48SetCmtLikeCount(likeSpan, result.likes || 0);
+    heartIcon.classList.toggle('fa-solid', !!result.isLiked);
+    heartIcon.classList.toggle('fa-regular', !result.isLiked);
+    updatePostCookiesUI(findPostIdFromElement(heartIcon), result.postCookies);
+  } catch (error) {
+    heartIcon.classList.toggle('fa-solid', wasLiked);
+    heartIcon.classList.toggle('fa-regular', !wasLiked);
+    blm48SetCmtLikeCount(likeSpan, before);
+    console.error('Like Comment Error:', error);
+  } finally {
+    delete heartIcon.dataset.loading;
+  }
+}
+
+// ↩️ กด Reply: ใช้ช่องพิมพ์คอมเมนต์หลักของโพสต์นั้น + แถบ "Replying to ชื่อ ×" + เติม @ชื่อ ให้
+function blm48StartReply(postId, commentId) {
+  const input = document.getElementById(`comment-input-${postId}`);
+  const item = document.querySelector(`.comment-item[data-comment-id="${CSS.escape(String(commentId))}"]`);
+  if (!input || !item) return;
+  const name = item.dataset.name || item.dataset.username || '';
+
+  document.querySelectorAll('.comment-item.cmt-replying').forEach(el => el.classList.remove('cmt-replying'));
+  item.classList.add('cmt-replying');
+
+  input.dataset.replyParent = commentId;
+  let bar = document.getElementById(`reply-bar-${postId}`);
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.className = 'cmt-replying-bar';
+    bar.id = `reply-bar-${postId}`;
+    input.parentElement.insertAdjacentElement('beforebegin', bar);
+  }
+  bar.innerHTML = `<span>Replying to <b>${escapeHtml(name)}</b></span><button type="button" onclick="blm48CancelReply('${escapeAttr(postId)}')" aria-label="Cancel reply"><i class="fa-solid fa-xmark"></i></button>`;
+
+  const section = document.getElementById(`comment-section-${postId}`);
+  if (section && section.style.display === 'none') section.style.display = 'block';
+  input.value = name ? `@${name} ` : '';
+  input.placeholder = `Reply to ${name}...`;
+  input.focus();
+  try { input.setSelectionRange(input.value.length, input.value.length); } catch (e) {}
+}
+
+function blm48CancelReply(postId) {
+  const input = document.getElementById(`comment-input-${postId}`);
+  const bar = document.getElementById(`reply-bar-${postId}`);
+  if (bar) bar.remove();
+  document.querySelectorAll('.comment-item.cmt-replying').forEach(el => el.classList.remove('cmt-replying'));
+  if (input) {
+    const parentId = input.dataset.replyParent;
+    const item = parentId ? document.querySelector(`.comment-item[data-comment-id="${CSS.escape(parentId)}"]`) : null;
+    const prefill = item ? `@${item.dataset.name || item.dataset.username || ''} ` : null;
+    if (prefill && input.value === prefill) input.value = '';
+    delete input.dataset.replyParent;
+    input.placeholder = 'Write a comment...';
+  }
+}
+
+function blm48IsReplying(postId) {
+  const input = document.getElementById(`comment-input-${postId}`);
+  return !!(input && input.dataset.replyParent);
+}
+
+// ส่ง reply จากช่องพิมพ์หลัก (เรียกจาก submitComment ของแต่ละหน้า ตอนกำลังตอบกลับอยู่)
+async function blm48SubmitReply(postId, btnElement) {
+  const currentUser = getUserSession();
+  if (!currentUser || !currentUser.username) {
+    Swal.fire('พบปัญหา 😥', 'กรุณาล็อกอินเข้าสู่ระบบก่อนตอบกลับนะงับ', 'warning');
+    return;
+  }
+  const inputEl = document.getElementById(`comment-input-${postId}`);
+  if (!inputEl) return;
+  const parentId = inputEl.dataset.replyParent;
+  const replyText = inputEl.value.trim();
+  if (btnElement && btnElement.disabled) return;
+  if (!replyText) {
+    Swal.fire('ข้อความว่างเปล่า', 'พิมพ์อะไรบางอย่างก่อนส่งน้า', 'info');
+    return;
+  }
+
+  let originalHtml = '';
+  if (btnElement) { originalHtml = btnElement.innerHTML; btnElement.disabled = true; }
+  inputEl.disabled = true;
+
+  try {
+    const result = await blm48AddComment(currentUser.username, postId, replyText, parentId);
+    if (!result || result.status !== 'success') throw new Error(result && result.message);
+
+    // server ผูก reply เข้ากับคอมเมนต์บนสุดเสมอ (parentCommentId ที่ตอบกลับมา)
+    const parentItem = document.querySelector(`.comment-item[data-comment-id="${CSS.escape(parentId)}"]`);
+    const topEl = parentItem ? (parentItem.closest('.cmt-top') || parentItem) : null;
+    const topId = result.parentCommentId || (topEl && topEl.dataset.commentId) || parentId;
+    const repliesEl = document.getElementById(`replies-${topId}`);
+    if (repliesEl) {
+      if (!commentAlreadyOnScreen(result.commentId)) repliesEl.insertAdjacentHTML('beforeend', buildSingleCommentHtml({
+        commentId: result.commentId,
+        username: currentUser.username,
+        name: currentUser.name || currentUser.username || 'Anonymous',
+        role: currentUser.role || 'user',
+        profile_img: currentUser.profile_img || BLM48_CMT_DEFAULT_AVATAR,
+        text: replyText,
+        likes: 0,
+        isLiked: false,
+        timestamp: Date.now(),
+        parentCommentId: topId
+      }, postId, true));
+      repliesEl.style.display = 'block';
+      blm48UpdateRepliesToggle(topId);
+      const newEl = document.querySelector(`.comment-item[data-comment-id="${CSS.escape(String(result.commentId))}"]`);
+      if (newEl) newEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    const commentCountEl = document.getElementById(`comment-count-${postId}`);
+    if (commentCountEl) commentCountEl.innerText = (parseInt(commentCountEl.innerText) || 0) + 1;
+    updatePostCookiesUI(postId, result.postCookies);
+
+    inputEl.value = '';
+    blm48CancelReply(postId);
+  } catch (error) {
+    console.error('Submit Reply Error:', error);
+    Swal.fire('เกิดข้อผิดพลาด', (error && error.message) || 'ส่งการตอบกลับไม่สำเร็จงับ', 'error');
+  } finally {
+    if (btnElement) { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }
+    inputEl.disabled = false;
+  }
 }
 
 // =========================================================================
@@ -1214,7 +1509,7 @@ function buildSpecialFansDaysHtml() {
       content = '<i class="fas fa-cookie-bite"></i>';
     }
     daysHtml += `
-      <div class="day-item">
+      <div class="day-item ${day <= today ? 'reached' : 'upcoming'}">
         <div class="day-circle ${statusClass}">${content}</div>
         <span class="day-date">${day} ${MONTHS[month]}</span>
       </div>
