@@ -70,8 +70,34 @@
       padding-top: 50px;    /* ระยะดันจากด้านบน (ปรับเพิ่ม/ลดตามความสูงของ Navbar เดิม) */
       padding-bottom: 100px; /* ระยะเผื่อด้านล่างเพื่อไม่ให้ Tab-bar บังโพสต์สุดท้ายงับ 🎀 */
     }
-    /* 🌼 หน้า Home: พื้นหลังด้านบน (หลังป้าย Champ) เป็นเหลืองทึบสีเดียวกับ navbar แทนไล่สีของ glass-mesh-bg ที่ทำให้สีไม่ตรงกัน */
-    body.glass-mesh-bg { background: #fff2bd; }
+    /* 🌙 หน้า Home สไตล์ iAM48: พื้นหน้าเป็นขาว + "โค้งด้านบน" เป็นชั้นพื้นหลังที่ติดอยู่กับจอ (position: fixed)
+       - สูงถึงประมาณครึ่งล่างของป้าย Champ ตอนอยู่บนสุด
+       - ตอนดึงจอลง (iOS เด้ง) เนื้อหา+ป้ายเลื่อนลง แต่โค้งอยู่ที่เดิม เลยเห็นโค้งเต็มๆ
+       - ตอนเลื่อนลง กล่องเนื้อหาสีขาวทึบเลื่อนขึ้นมาบังโค้งเอง
+       วาดที่ body::before ชั้นเดียว (โค้งหลัก + แถบอ่อนใต้โค้ง) — ไม่ใช้ ::after เพราะจะวาดทับของตกแต่งธีม (#fx-deco)
+       สีโค้ง (--home-curve-fill): วันปกติเหลือง, ธีมเทศกาลใช้ไล่สีของเทศกาล, ธีม Sustainable ใช้รูปท้องฟ้า */
+    body.glass-mesh-bg,
+    html.theme-festival body.glass-mesh-bg:not(#_) { background: #ffffff !important; } /* :not(#_) ให้ชนะพื้นธีมของ festivals.css */
+    body.glass-mesh-bg {
+      --home-curve-fill: linear-gradient(#fff2bd, #fff2bd);
+      --home-curve-band: #fff8dc;
+    }
+    html.theme-festival body.glass-mesh-bg {
+      --home-curve-fill:
+        radial-gradient(circle at 86% 30%, var(--fx-orb) 0 30px, var(--fx-orb-glow) 32px, transparent 100px) left top / 100% 262px no-repeat,
+        linear-gradient(180deg, var(--fx-bg-2) 0%, var(--fx-bg-3) 100%) left top / 100% 262px no-repeat; /* ขนาดตายตัว 262px = ไล่สีเท่ากันทั้งในโค้งและใน navbar */
+      --home-curve-band: var(--fx-pale);
+    }
+    /* 🌸 ธีมซิงเกิล Sustainable: โค้งเป็นรูปท้องฟ้ายามเย็น (ส่วนบนของรูปทุ่งดอกไม้) */
+    html.theme-sustainable body.glass-mesh-bg {
+      --home-curve-fill: url("assets/images/theme-sustainable-home.webp") center top / 100% auto no-repeat; /* กว้างเต็มจอเสมอ = ตำแหน่งรูปตรงกันทั้งในโค้งและใน navbar */
+      --home-curve-band: #fbeef5;
+    }
+    /* 🌹 ธีม Magic Hour: โค้งเป็นรูปห้องโถงโกธิกพระจันทร์สีเลือด (ส่วนบนของรูป) + แถบแดงเข้มใต้โค้ง */
+    html.theme-magichour body.glass-mesh-bg {
+      --home-curve-fill: #12070a url("assets/images/theme-magichour-home.webp") center top / 100% auto no-repeat;
+      --home-curve-band: #4a0b14;
+    }
     body::before {
       content: "";
       position: fixed;
@@ -90,7 +116,19 @@
       background-size: 150px 150px;
       background-repeat: repeat;
     }
-    
+    /* 🌙 โค้งด้านบนหน้า Home (ดูคำอธิบายที่ body.glass-mesh-bg ด้านบน)
+       ขอบจอสูงประมาณ 200px ตรงกลาง 235px = โค้งตื้นๆ; แถบอ่อนหนาอีก ~27px ใต้โค้ง
+       ชั้นบน: ในวงรีโค้งหลักโปร่งใส นอกวงรี = สีแถบอ่อน / ชั้นล่าง: สีหรือรูปของโค้ง / clip-path ตัดตามวงรีแถบอ่อน
+       ⚠️ ขนาดวงรีใน radial-gradient ห้ามใช้ calc() — เบราว์เซอร์ไม่รองรับแล้วทิ้ง background ทั้งก้อน */
+    body.glass-mesh-bg::before {
+      height: 262px;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 95% 235px at 50% 0, transparent 99.5%, var(--home-curve-band) 100%),
+        var(--home-curve-fill);
+      clip-path: ellipse(95% 262px at 50% 0);
+    }
+
     .bg-video-layer {
   position: fixed;   /* ตรึงวิดีโอให้อยู่กับที่เวลาเลื่อนหน้าจอ */
   top: 0;
@@ -315,12 +353,45 @@ body {
   justify-content: space-between;
   padding: 15px 20px; 
 
-  /* 🌼 สีพื้นเหลืองทึบโทนเดียวกับพื้นหลังหน้า (ไม่ใช้กระจกฝ้าแล้ว ตามคำขอ) */
-  background: #fff2bd !important;
+  /* 🌤️ เลื่อนลงแล้ว = พื้นเดียวกับส่วนหัว (สไตล์ iAM48): ใช้ --home-curve-fill ชุดเดียวกับโค้งด้านบน
+     ทั้งคู่ติดขอบบนจอ เลยต่อกันเนียนเหมือนตัดส่วนหัวมาเป็นแถบ (วันปกติเหลือง / เทศกาลไล่สี / Sustainable รูปท้องฟ้า) */
+  background: var(--home-curve-fill, #ffffff) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border-bottom: none !important;
   box-shadow: none !important;
+}
+/* 🔝 อยู่บนสุดของหน้า (ยังไม่เลื่อน) = navbar ใส มองทะลุเห็นโค้งด้านบน
+   - JS ใต้ <nav> ใส่ .is-scrolled เมื่อเลื่อนลง
+   - selector ยาวเพื่อชนะ html.theme-festival .navbar ... ของ festivals.css */
+html body .navbar:not(.is-scrolled),
+html body .navbar.is-scrolled {
+  box-shadow: none !important;
+  border-bottom: none !important;
+}
+html body .navbar:not(.is-scrolled) {
+  background: transparent !important;
+}
+html body .navbar.is-scrolled {
+  background: var(--home-curve-fill, #ffffff) !important;
+}
+/* ช่วงธีมเทศกาล: พื้นแถบเป็นสีอ่อนตลอดแล้ว (ไม่ใช่แถบสีเข้มของเทศกาล) ตัวอักษร/ไอคอนเลยต้องเป็นสีเข้มตลอด */
+/* คำว่า Discover บน navbar ตัวหนา (ตามคำขอ) */
+.navbar .logo-text {
+  font-weight: 700;
+}
+html.theme-festival body .navbar :is(.logo-text, .brand) {
+  color: #252525 !important;
+  text-shadow: none !important;
+}
+html.theme-festival body .navbar .nav-icon {
+  color: #000000 !important;
+}
+/* 🌹 ธีม Magic Hour: ส่วนหัวเป็นรูปโทนมืด -> ตัวอักษร/ไอคอนบน navbar เป็นสีขาว (ต้องอยู่หลังกฎสีเข้มด้านบน) */
+html.theme-magichour body .navbar :is(.logo-text, .brand),
+html.theme-magichour body .navbar .nav-icon {
+  color: #ffffff !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45) !important;
 }
 
     /* 🎀 แก้ชื่อแบรนด์ให้เป็นสีเทาเข้มเกือบดำตามธีม */
@@ -2094,6 +2165,15 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <i class="fas fa-search"></i> </a>
     </div>
 </nav>
+<script>
+  // 🔝 navbar ใสตอนอยู่บนสุด -> พื้นขาวเมื่อเลื่อนลง (CSS: .navbar.is-scrolled)
+  (function () {
+    var nav = document.querySelector('.navbar');
+    function syncNav() { nav.classList.toggle('is-scrolled', (window.scrollY || document.documentElement.scrollTop) > 8); }
+    window.addEventListener('scroll', syncNav, { passive: true });
+    syncNav();
+  })();
+</script>
   
 <div class="champ-banner" onclick="window.location.href='specialthanks?index=0'">
       <div class="champ-info">
@@ -2106,7 +2186,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         <img src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" id="home-champ-img" class="champ-img" alt="Champ">
       </div>
 </div>
-  
+
 <div class="main-content-container">
 <!-- 🌟 Special Fans Day: หัวข้อ + ไทม์ไลน์ 7 วัน เหนือ Member Ranking -> กดแล้วไปหน้าอันดับแนวตั้ง specialfansday.html -->
 <div class="section-title" onclick="window.location.href='specialfansday'" style="margin-top: 0; cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 0; user-select: none;">

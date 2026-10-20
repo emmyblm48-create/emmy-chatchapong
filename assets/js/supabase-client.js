@@ -221,6 +221,22 @@ function blm48SubscribeAdminUsersOverview(onChange, debounceMs) {
 function blm48GetPosts(username) {
   return blm48Rpc('get_posts', { p_username: username || null });
 }
+// Single post (any post_type) for postdetail.html - returns the post object, null if it doesn't exist,
+// or { status:'error', networkError:true } if the call itself failed. Much lighter than get_posts
+// (the whole feed), which was timing out (HTTP 500) on first open.
+function blm48GetPost(username, postId) {
+  return blm48Rpc('get_post', { p_username: username || null, p_post_id: postId });
+}
+// Paginated fan posts (post_type='fan') for fanpost.html - same cursor + { status, hasMore, data }
+// shape as blm48GetPostsPage (which only returns member posts).
+function blm48GetFanPostsPage(username, limit, beforeEpochMs, includePostId) {
+  return blm48Rpc('get_fan_posts_page', {
+    p_username: username || null,
+    p_limit: limit || 20,
+    p_before_epoch_ms: beforeEpochMs || null,
+    p_include_post_id: includePostId || null
+  });
+}
 // Paginated feed fetch - use this instead of blm48GetPosts() for the main scrolling feed (index.html)
 // so it doesn't pull every post + every comment in one multi-MB response. Cursor-based (beforeEpochMs
 // = createdAtEpochMs of the oldest post already loaded, or null/omitted for the first page) rather

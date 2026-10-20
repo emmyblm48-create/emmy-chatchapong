@@ -46,43 +46,38 @@
             padding: 0;
         }
 
-        /* 📡 Top Navbar */
+        /* 📡 Top Navbar — พื้นขาวทึบ ตัวหนังสือ/ลูกศรสีเข้ม เส้นบางด้านล่าง (สไตล์ iAM48 History) */
         .top-navbar {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 60px;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg));
-            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
+            padding: 0 16px;
             z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid #ececec;
         }
 
         .nav-back-btn {
-            color: var(--blm-pink);
-            font-size: 1.1rem;
+            color: #222222;
+            font-size: 1.25rem;
             text-decoration: none;
             width: 35px;
             height: 35px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--blm-light-pink);
+            justify-content: flex-start;
         }
 
         .nav-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: var(--blm-pink);
-            letter-spacing: 0.5px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #222222;
+            letter-spacing: 0.3px;
         }
 
         .nav-spacer { width: 35px; }
@@ -101,33 +96,13 @@
             width: 100%;
         }
       
-        @media (min-width: 768px) {
-            .champ-row-box {
-                border-radius: 20px;
-            }
-
-            .avatar-frame {
-                width: 80px;  
-                height: 80px;
-            }
-
-            .member-name {
-                font-size: 1.4rem;
-            }
-
-            .cookie-amount {
-                font-size: 1.05rem;
-            }
-        }
-
-        /* ✨ กล่องแถวปรับดีไซน์ใหม่ตามรูปที่ 1 (ซ่อนปุ่มไว้ด้านล่างสุด) */
+        /* ✨ การ์ดแชมป์สไตล์ iAM48 History:
+           บน = แถบสีวงโค้งด้านซ้าย (รูป+มงกุฎ) + ข้อความด้านขวา (ช่วงวันที่ / ชื่อ / คะแนนตัวใหญ่ / ปุ่มขอบดำ View special thanks)
+           ล่าง = แถบ View Ranking เต็มความกว้าง */
         .champ-row-box {
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border-radius: 16px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -139,26 +114,46 @@
             transform: scale(0.99);
         }
 
-        /* ส่วนข้อมูลด้านบน เพิ่มมิติพื้นหลังไล่เฉดสีมุมซ้ายแบบรูปที่ 1 (เป็นโทนชมพูอ่อนของ BLM) */
         .box-main-content {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px 16px 14px 16px;
+            gap: 14px;
+            padding: 18px 16px 18px 0;
             position: relative;
-            background: linear-gradient(90deg, rgba(255, 133, 162, 0.08) 0%, rgba(255, 255, 255, 0) 45%);
+            /* สีแถบโค้งซ้ายตามวง (ตั้งต่อการ์ดใน JS): BLM48 เหลือง / NPT48 ฟ้า */
+            --panel: #fbe3a0;
+            --panel-soft: #fdf0c8;
+        }
+        /* แถบสีซ้าย: ชั้นหลัง = สีอ่อนกว้างกว่า, ชั้นหน้า = สีเข้มขึ้น ขอบขวาโค้ง */
+        .box-main-content::before,
+        .box-main-content::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            border-radius: 0 50% 50% 0 / 0 60% 60% 0;
+            z-index: 0;
+        }
+        .box-main-content::before { width: 128px; background: var(--panel-soft); }
+        .box-main-content::after  { width: 116px; background: var(--panel); }
+
+        .avatar-cell {
+            width: 112px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
         }
 
         .avatar-frame {
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            background: linear-gradient(45deg, var(--blm-pink), #ffe4e1, #ffb6c1);
-            padding: 2.5px;
-            box-shadow: 0 3px 8px rgba(255, 133, 162, 0.1);
+            padding: 3px;           /* วงสีวง (ตั้งใน JS) */
             flex-shrink: 0;
             position: relative;
-            z-index: 2;
         }
 
         .member-avatar {
@@ -167,46 +162,50 @@
             border-radius: 50%;
             object-fit: cover;
             background-color: #fff;
+            border: 2px solid #ffffff;
+            box-sizing: border-box;
         }
 
-        /* 👑 มงกุฎมุมล่างขวา */
+        /* 👑 มงกุฎในวงกลมขาวมุมล่างขวา */
         .crown-mini {
             position: absolute;
-            bottom: -2px;
-            right: -2px;
-            color: #ffb703;
-            font-size: 0.95rem;
+            bottom: -4px;
+            right: -6px;
+            color: #f5b301;
+            font-size: 0.85rem;
             background-color: white;
-            width: 22px;
-            height: 22px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 1.5px solid #ffb703;
             z-index: 5;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
         }
 
         .member-details {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
             min-width: 0;
+            position: relative;
             z-index: 2;
         }
 
         .period-text {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            font-weight: 500;
+            font-size: 0.85rem;
+            color: #8e8e8e;
+            font-weight: 600;
         }
 
         .member-name {
-            margin: 0;
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-dark);
+            margin: 4px 0 0;
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: #333333;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -217,56 +216,61 @@
         }
 
         .cookie-amount {
-            font-size: 0.95rem;
-            color: var(--text-dark);
+            font-size: 1.35rem;
+            color: #222222;
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-weight: 600;
+            gap: 8px;
+            font-weight: 700;
+            line-height: 1.2;
         }
 
         .cookie-amount i {
-            color: var(--blm-pink);
+            color: #444444;
+            font-size: 1rem;
+        }
+
+        /* ปุ่มขอบดำทรงแคปซูล */
+        .view-thanks-btn {
+            align-self: flex-start;
+            margin-top: 6px;
+            padding: 6px 14px;
+            border: 1.5px solid #222222;
+            border-radius: 999px;
+            color: #222222;
             font-size: 0.85rem;
-        }
-
-        /* 👑 แถบปุ่มด้านล่างสุด แบ่งครึ่ง: View special thanks | View Ranking */
-        .box-bottom-bar {
-            display: flex;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .view-thanks-bottom-btn,
-        .view-ranking-bottom-btn {
-            flex: 1;
-            background: transparent;
-            color: var(--text-dark);
-            padding: 12px 8px;
-            font-size: 0.82rem;
             font-weight: 600;
             text-decoration: none;
+            background: #ffffff;
+            white-space: nowrap;
+            transition: background 0.2s ease;
+        }
+        .view-thanks-btn:active { background: #f2f2f2; }
+
+        /* แถบ View Ranking เต็มความกว้างด้านล่าง */
+        .view-ranking-bottom-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-            text-align: center;
+            gap: 10px;
+            padding: 15px 8px;
+            border-top: 1px solid #ececec;
+            color: #333333;
+            font-size: 0.98rem;
+            font-weight: 500;
+            text-decoration: none;
+            background: #ffffff;
+            transition: background 0.2s ease;
         }
-
-        .view-ranking-bottom-btn {
-            border-left: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .view-thanks-bottom-btn:hover,
-        .view-ranking-bottom-btn:hover {
-            background: var(--blm-light-pink);
-            color: var(--blm-pink);
-        }
-
-        .view-thanks-bottom-btn i,
+        .view-ranking-bottom-btn:active { background: #f7f7f7; }
         .view-ranking-bottom-btn i {
-            font-size: 0.95rem;
-            color: var(--blm-pink);
+            font-size: 1.1rem;
+            color: #333333;
+        }
+
+        @media (min-width: 768px) {
+            .avatar-frame { width: 80px; height: 80px; }
+            .cookie-amount { font-size: 1.5rem; }
         }
 
         .coming-soon-btn {
@@ -345,7 +349,7 @@
         }
       /* 🎁 ปุ่มของขวัญใน Navbar */
 .nav-gift-btn {
-    color: var(--blm-pink);
+    color: #222222; /* ให้เข้ากับ navbar ขาว ตัวหนังสือเข้ม */
     font-size: 1.3rem;
     text-decoration: none;
     width: 35px;
@@ -452,11 +456,12 @@
                 const memberName = champ.name ? champ.name : 'Unknown Member';
                 const avatarImg = champ.profileImage ? champ.profileImage : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
 
-                // 🎨 กรอบรูปแยกสีตามวง: BLM48 = #ffde5b, NPT48 = #66cbff
+                // 🎨 แยกสีตามวง: กรอบรูป BLM48 = #ffde5b, NPT48 = #66cbff + แถบโค้งซ้ายสีอ่อนของวง
                 const isNPT48 = (champ.groupName || 'BLM48').toString().trim().toUpperCase() === 'NPT48';
-                const avatarFrameBg = isNPT48
-                    ? 'linear-gradient(45deg, #66cbff, #e4f6ff, #a8e0fb)'
-                    : 'linear-gradient(45deg, #ffde5b, #fff3cd, #ffe066)';
+                const avatarFrameBg = isNPT48 ? '#66cbff' : '#ffde5b';
+                const panelVars = isNPT48
+                    ? '--panel: #bfe7fd; --panel-soft: #def3fe;'
+                    : '--panel: #fbe3a0; --panel-soft: #fdf0c8;';
 
                 // 1. ตรวจสอบสถานะ Graduated
                 const isGraduated = champ.status === 'Graduated';
@@ -478,30 +483,24 @@
 
                 // ปรับเปลี่ยนโครงสร้างภายใน: แยกเป็นส่วนเนื้อหาด้านบน (box-main-content) และปุ่มบาร์ยาวด้านล่าง (view-thanks-bottom-btn)
                 row.innerHTML = `
-                    <div class="box-main-content">
-                        <div class="avatar-frame" style="background: ${avatarFrameBg};">
-                            ${statusProfileIcon}
-                            <img class="member-avatar"${memberLinkAttr(memberName)} loading="lazy" src="${avatarImg}" alt="${escapeHtml(memberName)}" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'">
-                            <i class="fa-solid fa-crown crown-mini"></i>
+                    <div class="box-main-content" style="${panelVars}">
+                        <div class="avatar-cell">
+                            <div class="avatar-frame" style="background: ${avatarFrameBg};">
+                                ${statusProfileIcon}
+                                <img class="member-avatar"${memberLinkAttr(memberName)} loading="lazy" src="${avatarImg}" alt="${escapeHtml(memberName)}" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'">
+                                <i class="fa-solid fa-crown crown-mini"></i>
+                            </div>
                         </div>
                         <div class="member-details">
-                            <span class="period-text">The Winner ${escapeHtml(champ.monthYear || 'ไม่ระบุช่วงเวลา')}</span>
+                            <span class="period-text">The Winner&nbsp; ${escapeHtml(champ.monthYear || 'ไม่ระบุช่วงเวลา')}</span>
                             <h2 class="member-name">${escapeHtml(memberName)} ${statusBadge}</h2>
-                            <span class="cookie-amount"><i class="fa-solid fa-cookie"></i> ${formatCookieCount} Cookies</span>
+                            <span class="cookie-amount"><i class="fa-solid fa-cookie-bite"></i> ${formatCookieCount}</span>
+                            <a href="${champ.postId ? `postdetail?id=${encodeURIComponent(champ.postId)}` : `specialthanks?index=${index}`}" class="view-thanks-btn">View special thanks</a>
                         </div>
                     </div>
-                    <div class="box-bottom-bar">
-                        ${champ.postId ? `
-                        <a href="postdetail?id=${encodeURIComponent(champ.postId)}" class="view-thanks-bottom-btn">
-                            <i class="fa-solid fa-heart"></i> View special thanks
-                        </a>` : `
-                        <a href="specialthanks?index=${index}" class="view-thanks-bottom-btn">
-                            <i class="fa-solid fa-heart"></i> View special thanks
-                        </a>`}
-                        <a href="champranking?index=${index}" class="view-ranking-bottom-btn">
-                            <i class="fa-solid fa-ranking-star"></i> View Ranking
-                        </a>
-                    </div>
+                    <a href="champranking?index=${index}" class="view-ranking-bottom-btn">
+                        <i class="fa-solid fa-ranking-star"></i> View Ranking
+                    </a>
                 `;
                 fragment.appendChild(row);
             });
