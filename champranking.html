@@ -40,23 +40,19 @@
             padding: 0;
         }
 
+        /* navbar พื้นขาว ตัวหนังสือ/ลูกศรเข้ม (สไตล์เดียวกับ champ.html) */
         .top-navbar {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg));
-            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            background: #ffffff;
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px;
-            box-shadow: 0 2px 10px rgba(255, 133, 162, 0.06);
+            padding: 0 16px;
             z-index: 1000;
-            border-bottom: 1px solid var(--glass-border);
         }
         .nav-back-btn {
-            color: var(--blm-pink); font-size: 1.1rem; text-decoration: none;
-            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; background: var(--blm-light-pink);
+            color: #222222; font-size: 1.25rem; text-decoration: none;
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: flex-start;
         }
-        .nav-title { font-weight: 600; font-size: 1.2rem; color: var(--blm-pink); letter-spacing: 0.5px; }
+        .nav-title { font-weight: 700; font-size: 1.15rem; color: #222222; letter-spacing: 0.3px; }
         .nav-spacer { width: 35px; }
 
         .main-container {
@@ -66,24 +62,36 @@
             padding: 78px 12px 40px 12px;
         }
 
-        /* 🥇 การ์ดอันดับ 1 (แชมป์) */
+        /* 🥇 การ์ดอันดับ 1 (แชมป์) + แถบเหลืองโค้งด้านหลังการ์ด (โผล่ซ้าย-ขวา สไตล์ iAM48) */
+        .top1-zone { position: relative; margin: 4px 0 10px; }
+        .top1-zone::before {
+            content: "";
+            position: absolute;
+            left: -12px; right: -12px;      /* ชนขอบจอ (หักล้าง padding 12px ของ .main-container) */
+            top: 34%; height: 52%;
+            background: linear-gradient(180deg, rgba(253, 233, 168, 0) 0%, #fde9a8 100%);
+            clip-path: ellipse(75% 100% at 50% 0);  /* ขอบล่างโค้งลง */
+            z-index: 0;
+        }
         .top1-card {
             position: relative;
+            z-index: 1;
             background: #fff;
-            border: 1px solid #f1f1f1;
             border-radius: 20px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-            padding: 26px 16px 22px;
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+            padding: 20px 16px 24px;
             text-align: center;
             overflow: hidden;
-            margin: 4px 0 8px;
+            margin: 0 10px;
         }
+        .top1-title { position: relative; z-index: 1; font-size: 17px; font-weight: 700; color: #222; margin-bottom: 18px; }
         .top1-decor { position: absolute; inset: 0; pointer-events: none; }
-        .top1-decor i { position: absolute; opacity: 0.85; }
+        .top1-decor i, .top1-decor .confetti { position: absolute; opacity: 0.9; }
+        .top1-decor .confetti { width: 11px; height: 5px; border-radius: 3px; }
         .top1-avatar-wrap { position: relative; width: 104px; height: 104px; margin: 0 auto; }
         .top1-avatar {
             width: 104px; height: 104px; border-radius: 50%; object-fit: cover;
-            border: 3px solid #ffde5b; background: #fff;
+            border: 3px solid #ffde5b; background: #fff;   /* สีกรอบตามวง ตั้งใน JS */
         }
         .top1-crown {
             position: absolute; right: -2px; bottom: 2px;
@@ -91,13 +99,13 @@
             background: #fff; display: flex; align-items: center; justify-content: center;
             color: #f5a623; font-size: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
-        .top1-name { margin-top: 12px; font-size: 20px; font-weight: 600; position: relative; }
+        .top1-name { margin-top: 12px; font-size: 19px; font-weight: 500; color: #333; text-transform: uppercase; letter-spacing: 0.4px; position: relative; }
         .top1-cookie { margin-top: 4px; font-size: 22px; font-weight: 700; color: #666; position: relative; }
 
         /* 📋 อันดับ 2 เป็นต้นไป */
         .rank-row {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 6px;
+            display: flex; align-items: center; gap: 14px;
+            padding: 11px 16px;
         }
         .rank-col { width: 34px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
         .rank-num {
@@ -110,12 +118,12 @@
         .rank-avatar-wrap { position: relative; flex-shrink: 0; }
         .rank-avatar {
             width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: block;
-            border: 2px solid #ffde5b; background: #fff;
+            border: 2.5px solid #ffde5b; background: #fff;   /* สีกรอบตามวง ตั้งใน JS */
         }
         .rank-info { flex: 1; min-width: 0; }
-        .rank-name { font-size: 16px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .rank-cookie { font-size: 16px; font-weight: 700; color: #777; margin-top: 2px; }
-        .rank-cookie i, .top1-cookie i { color: #d2691e; margin-right: 4px; }
+        .rank-name { font-size: 16px; font-weight: 500; color: #333; text-transform: uppercase; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rank-cookie { font-size: 16px; font-weight: 700; color: #666; margin-top: 2px; }
+        .rank-cookie i, .top1-cookie i { color: #666; margin-right: 6px; }
 
         /* 🎓 เมมเบอร์ที่จบการศึกษาแล้ว */
         .grad-badge {
@@ -173,12 +181,17 @@
 
     <script>
         const DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s400';
-        // ไอคอนตกแต่งการ์ดอันดับ 1 ชุดเดียวกับ specialfansday.html: [ไอคอน, x%, y%, ขนาด, สี]
-        const TOP1_DECOR = [
-            ['fa-crown', 8, 14, 22, '#ffd56b'], ['fa-crown', 78, 8, 20, '#ffd56b'], ['fa-crown', 20, 62, 24, '#ffd56b'],
-            ['fa-crown', 84, 66, 22, '#ffd56b'], ['fa-heart', 30, 10, 12, '#ffb3c1'], ['fa-heart', 70, 40, 12, '#c9a7e8'],
-            ['fa-star', 12, 40, 12, '#ffd56b'], ['fa-star', 90, 30, 11, '#ffb3c1'], ['fa-star', 60, 12, 10, '#c9a7e8']
+        // ของตกแต่งการ์ดอันดับ 1 (สไตล์ iAM48): มงกุฎทอง + กระดาษโปรยชิ้นเล็กสีชมพู/ม่วง/เหลือง
+        // มงกุฎ: [x%, y%, ขนาด px] / กระดาษโปรย: [x%, y%, องศา, สี]
+        const TOP1_CROWNS = [[12, 30, 26], [72, 22, 26], [24, 58, 26], [84, 62, 26]];
+        const TOP1_CONFETTI = [
+            [4, 34, -30, '#f7a8c4'], [16, 22, 35, '#f7a8c4'], [28, 18, 25, '#c9a7e8'], [56, 16, 30, '#f7a8c4'],
+            [70, 16, -25, '#c9a7e8'], [88, 26, 30, '#c9a7e8'], [3, 52, -20, '#ffd56b'], [22, 48, 30, '#ffd56b'],
+            [14, 64, 40, '#ffd56b'], [8, 72, 30, '#c9a7e8'], [76, 40, -30, '#ffd56b'], [62, 52, -35, '#f7a8c4'],
+            [78, 56, -25, '#ffd56b'], [86, 46, -35, '#f7a8c4'], [92, 72, -20, '#ffd56b']
         ];
+        // สีกรอบรูปตามวง
+        const groupRing = g => (g || 'BLM48').toString().trim().toUpperCase() === 'NPT48' ? '#66cbff' : '#ffde5b';
 
         window.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -223,8 +236,6 @@
                 return;
             }
 
-            document.querySelector('.nav-title').textContent = `Ranking · ${champData.monthYear || ''}`;
-
             try {
                 const rankingResult = await blm48GetRankingFull(champData.yearMonth);
                 const rankingList = Array.isArray(rankingResult) ? rankingResult : [];
@@ -244,20 +255,23 @@
             const winnerGradIcon = winnerIsGraduated ? `<div class="grad-icon-profile"><i class="fa-solid fa-graduation-cap"></i></div>` : '';
             const winnerGradBadge = winnerIsGraduated ? ` <span class="grad-badge"><i class="fa-solid fa-graduation-cap"></i> GRADUATED</span>` : '';
 
-            const decorHtml = TOP1_DECOR
-                .map(([ic, x, y, s, c]) => `<i class="fa-solid ${ic}" style="left:${x}%;top:${y}%;font-size:${s}px;color:${c};"></i>`)
-                .join('');
+            const decorHtml =
+                TOP1_CROWNS.map(([x, y, s]) => `<i class="fa-solid fa-crown" style="left:${x}%;top:${y}%;font-size:${s}px;color:#ffd56b;"></i>`).join('')
+                + TOP1_CONFETTI.map(([x, y, r, c]) => `<span class="confetti" style="left:${x}%;top:${y}%;transform:rotate(${r}deg);background:${c};"></span>`).join('');
 
             wrapper.innerHTML = `
-                <div class="top1-card">
-                    <div class="top1-decor">${decorHtml}</div>
-                    <div class="top1-avatar-wrap"${memberLinkAttr(champData.name)}>
-                        ${winnerGradIcon}
-                        <img class="top1-avatar" src="${winnerAvatar}" alt="${escapeHtml(champData.name || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
-                        <div class="top1-crown"><i class="fas fa-crown"></i></div>
+                <div class="top1-zone">
+                    <div class="top1-card">
+                        <div class="top1-decor">${decorHtml}</div>
+                        <div class="top1-title">The Winner&nbsp; ${escapeHtml(champData.monthYear || '')}</div>
+                        <div class="top1-avatar-wrap"${memberLinkAttr(champData.name)}>
+                            ${winnerGradIcon}
+                            <img class="top1-avatar" style="border-color:${groupRing(champData.groupName)};" src="${winnerAvatar}" alt="${escapeHtml(champData.name || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
+                            <div class="top1-crown"><i class="fas fa-crown"></i></div>
+                        </div>
+                        <div class="top1-name"${memberLinkAttr(champData.name)}>${escapeHtml(champData.name || 'Unknown Member')}${winnerGradBadge}</div>
+                        <div class="top1-cookie"><i class="fas fa-cookie-bite"></i>${winnerCookies}</div>
                     </div>
-                    <div class="top1-name"${memberLinkAttr(champData.name)}>${escapeHtml(champData.name || 'Unknown Member')}${winnerGradBadge}</div>
-                    <div class="top1-cookie"><i class="fas fa-cookie-bite"></i>${winnerCookies}</div>
                 </div>
                 <div id="ranking-list-body"></div>
             `;
@@ -295,7 +309,7 @@
                         <div class="rank-col">${badge}</div>
                         <div class="rank-avatar-wrap"${memberLinkAttr(member.name)}>
                             ${gradIcon}
-                            <img class="rank-avatar" loading="lazy" src="${member.profile_img || DEFAULT_AVATAR}" alt="${escapeHtml(member.name || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
+                            <img class="rank-avatar" style="border-color:${groupRing(member.group_name)};" loading="lazy" src="${member.profile_img || DEFAULT_AVATAR}" alt="${escapeHtml(member.name || '')}" onerror="this.src='${DEFAULT_AVATAR}'">
                         </div>
                         <div class="rank-info"${memberLinkAttr(member.name)}>
                             <div class="rank-name">${escapeHtml(member.name || 'Unknown')}${gradBadge}</div>

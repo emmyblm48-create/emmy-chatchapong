@@ -607,11 +607,11 @@ body.glass-mesh-bg.force-white-bg {
   width: calc(100% - 38px);
   height: 3px;           /* ความหนาของเส้นเชื่อม */
   border-radius: 2px;
-  background: #ffb3c1;
+  background: #f5c57c; /* ถึงวันแล้ว = เส้นสีพีช */
   z-index: 0;
   }
   .day-item + .day-item.upcoming::before {
-  background: #d4d4d4;
+  background: #b3b3b3; /* ยังไม่ถึง = เส้นเทา */
   }
 
   .day-circle { position: relative; z-index: 1; }
@@ -619,11 +619,14 @@ body.glass-mesh-bg.force-white-bg {
   /* 🌟 2. เพิ่มคลาสสำหรับปรับแต่งตัวหนังสือวันที่ */
   .day-date {
   font-size: 11px;
-  color: #a0a0a0;
+  color: #a8a8a8;
   margin-top: 6px;
   font-weight: 600;
   text-align: center;
   }
+  /* สีป้ายวันที่: ผ่านแล้ว = พีช, วันนี้ = ส้มตัวหนา, ยังไม่ถึง = เทา (ชุดสีเดียวทุกธีม ตามคำขอ) */
+  .day-item.reached .day-date { color: #f5c57c; }
+  .day-item:has(.day-circle.current) .day-date { color: #e39b4a; font-weight: 700; }
     
   .day-circle {
   width: 38px;
@@ -637,26 +640,34 @@ body.glass-mesh-bg.force-white-bg {
   transition: transform 0.3s ease;
   }
 
+  /* ผ่านแล้ว = วงกลมพีชทึบ ✓ ขาว + วงประรอบนอก */
   .day-circle.checked {
-    background: #ffb3c1;
+    background: #f5c57c;
     color: white;
-    box-shadow: 0 2px 5px rgba(255, 179, 193, 0.5);
+  }
+  .day-circle.checked::after {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1.5px dashed #f5c57c;
+    pointer-events: none;
   }
 
+  /* วันนี้ = วงขาว ขอบส้มหนา ไอคอนส้ม */
   .day-circle.current {
-    background: #fff0f3;
-    color: #d2691e;
-    border: 2px solid #ffb3c1;
-    transform: scale(1.15);
-    box-shadow: 0 4px 10px rgba(255, 179, 193, 0.4);
+    background: #ffffff;
+    color: #e39b4a;
+    border: 3px solid #e39b4a;
+    box-sizing: border-box;
+    transform: scale(1.12);
     z-index: 1;
   }
 
+  /* ยังไม่ถึง = วงขาว ขอบประเทา ตัวเลขเทา */
   .day-circle.future {
-  background: var(--glass-bg-strong);
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-  backdrop-filter: blur(var(--glass-blur-sm));
-  color: #adb5bd;
-  border: 2px dashed #e0e0e0;
+  background: #ffffff;
+  color: #a8a8a8;
+  border: 2px dashed #b3b3b3;
   box-sizing: border-box;
   }
