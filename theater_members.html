@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Members on this stage</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="blm48Back('theater_event?id=' + encodeURIComponent(eventId))" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">Members on this stage</div>
+</div>
+
+<div class="page-wrapper" id="members">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<script>
+  const eventId = new URLSearchParams(location.search).get('id');
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetTheaterEvent(user.username, Number(eventId));
+    const box = document.getElementById('members');
+    if (!res || res.status !== 'success') {
+      box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    const members = res.event.members || [];
+    if (!members.length) { box.innerHTML = '<div class="empty-state">ยังไม่ได้ระบุสมาชิกที่ขึ้นแสดงค่ะ</div>'; return; }
+    box.innerHTML = members.map(m => `
+      <a class="th-member" href="member?name=${encodeURIComponent(m.name)}">
+        <img src="${escapeHtml(m.img || '')}" alt="" loading="lazy" style="border-color:${groupFrameColor(m.group)}">
+        <div>
+          <div class="th-member-name">${escapeHtml(m.name)}</div>
+          ${m.fullName ? `<div class="th-member-full">${escapeHtml(m.fullName)}</div>` : ''}
+        </div>
+      </a>`).join('');
+  }
+  window.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

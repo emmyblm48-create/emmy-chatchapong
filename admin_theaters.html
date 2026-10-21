@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Theaters &amp; Concerts Admin</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/admin-pin.js"></script>
+    <script src="assets/js/theater.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #page-content { display: none; }
+        .legend { background: #fffaf0; border: 1px solid #ffe6ae; padding: 12px 14px; font-size: 12.5px; color: #6b5a3a; line-height: 1.8; margin-bottom: 14px; }
+        .ev-row { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eee; text-decoration: none; color: inherit; }
+        .ev-row img, .ev-row .ph { width: 64px; aspect-ratio: 3/4; object-fit: cover; background: linear-gradient(135deg,#ffe7a3,#ffc2d4); flex-shrink: 0; }
+        .ev-body { flex: 1; min-width: 0; }
+        .ev-title { font-weight: 700; font-size: 15px; color: #333; }
+        .ev-sub { font-size: 12.5px; color: #888; margin-top: 3px; }
+        .ev-stats { font-size: 12.5px; color: #555; margin-top: 6px; }
+        .pill { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; margin-left: 6px; white-space: nowrap; }
+        .pill.published { background: #e6f9ee; color: #1f9d55; }
+        .pill.draft { background: #f1f1f1; color: #777; }
+        .pill.cancelled { background: #ffe9e9; color: #d64545; }
+        .empty-state, .loading-state { text-align: center; color: #999; font-size: 13px; padding: 40px 20px; }
+        .fab-create { position: fixed; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom)); z-index: 200; width: 58px; height: 58px; border-radius: 50%;
+            background: #ffc107; color: #222; font-size: 24px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 6px 18px rgba(255,170,0,.45); }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="blm48Back('admin')" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">Theaters &amp; Concerts</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div class="legend">
+            <b>Normal round</b> = ขายช่วงเวลาที่กำหนด ระบบสุ่มเลขที่นั่งเมื่อปิดรอบ · <b>Express round</b> = ได้ที่นั่งทันที<br>
+            ผู้ซื้อจ่ายด้วย Token เท่านั้น ได้ลิงก์รับชม (YouTube / Roblox) + ของรางวัลประจำโซน + Ticket Stub เข้า Inventory
+        </div>
+        <div id="event-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+    </div>
+</div>
+<a class="fab-create" href="admin_theater_event" aria-label="สร้างการแสดงใหม่" style="display:none" id="fab"><i class="fa-solid fa-plus"></i></a>
+
+<script>
+  let user = null;
+
+  async function load() {
+    const res = await blm48AdminListTheaterEvents(user.username);
+    const box = document.getElementById('event-list');
+    if (!res || res.status !== 'success') { box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดไม่สำเร็จ')}</div>`; return; }
+    const events = res.events || [];
+    if (!events.length) { box.innerHTML = '<div class="empty-state"><i class="fa-solid fa-masks-theater"></i><br>ยังไม่มีการแสดง กด + เพื่อสร้าง</div>'; return; }
+    const statusTh = { published: 'เปิดแสดง', draft: 'ฉบับร่าง', cancelled: 'ยกเลิกแล้ว' };
+    box.innerHTML = events.map(e => `
+      <a class="ev-row" href="admin_theater_event?id=${e.id}">
+        ${e.coverUrl ? `<img src="${escapeHtml(e.coverUrl)}" alt="">` : '<div class="ph"></div>'}
+        <div class="ev-body">
+          <div class="ev-title">${escapeHtml(e.title)}<span class="pill ${e.status}">${statusTh[e.status] || e.status}</span></div>
+          <div class="ev-sub">${theaterDate(e.eventDate)} ${theaterTimeRange(e)} · ${escapeHtml(theaterPlatform(e.platform).label)}</div>
+          <div class="ev-stats">ขายแล้ว ${Number(e.sold).toLocaleString()} / ${Number(e.capacity).toLocaleString()} ที่นั่ง · <i class="fas fa-coins"></i> ${Number(e.revenue).toLocaleString()} Tokens</div>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="color:#bbb;align-self:center"></i>
+      </a>`).join('');
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && ['admin','ceo'].includes(user.role.toLowerCase())))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    document.getElementById('fab').style.display = 'flex';
+    load();
+  });
+  window.addEventListener('pageshow', e => { if (e.persisted && user) load(); });
+</script>
+</body>
+</html>

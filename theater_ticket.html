@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Tickets</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="blm48Back('theater_booking?id=' + encodeURIComponent(bookingId))" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title" id="page-title">Tickets</div>
+</div>
+
+<div class="page-wrapper" id="tickets">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<script>
+  const bookingId = new URLSearchParams(location.search).get('id');
+
+  function render(b, user) {
+    const box = document.getElementById('tickets');
+    if (!b.ticketIssued) {
+      box.innerHTML = `<div class="th-wait-msg" style="padding-top:60px">${b.status === 'cancelled' ? 'การจองนี้ถูกยกเลิกแล้วค่ะ' : 'Please wait for random seat assignment.<br>Ticket will be available on ' + theaterDateTime(b.seatDrawAt) + '.'}</div>`;
+      return;
+    }
+    const n = b.tickets.length;
+    document.getElementById('page-title').textContent = `${n} Ticket${n > 1 ? 's' : ''}`;
+    const e = b.event;
+    box.innerHTML = `
+      <div class="th-ticket-wrap" id="wrap">
+        ${b.tickets.map((t, i) => `
+          <div class="th-ticket">
+            <div class="th-ticket-idx">${i + 1}/${n}</div>
+            <div class="th-qr" id="qr-${i}"></div>
+            <div class="th-ticket-name">${escapeHtml(user.name || user.username)}</div>
+            <div class="th-ticket-code">${escapeHtml(t.code)}</div>
+            <div class="th-ticket-cut"></div>
+            <div class="th-ticket-title">${escapeHtml(e.title)}</div>
+            <div class="th-kv"><span class="k">Zone</span><span class="v">${escapeHtml(b.zoneName)}</span></div>
+            <div class="th-kv"><span class="k">Seat No.</span><span class="v">${escapeHtml(t.seat)}</span></div>
+            <div class="th-kv"><span class="k">Date</span><span class="v">${theaterDate(e.eventDate)}</span></div>
+            ${e.startTime ? `<div class="th-kv"><span class="k">Time</span><span class="v">${theaterTimeRange(e)}</span></div>` : ''}
+            <div class="th-kv"><span class="k">Location</span><span class="v">${escapeHtml(theaterVenue(e))}</span></div>
+          </div>`).join('')}
+      </div>
+      ${n > 1 ? `<div class="th-dots">${b.tickets.map((_, i) => `<span class="${i === 0 ? 'is-active' : ''}"></span>`).join('')}</div>` : ''}`;
+    b.tickets.forEach((t, i) => {
+      if (window.QRCode) new QRCode(document.getElementById('qr-' + i), { text: 'BLM48-TICKET:' + b.bookingNo + ':' + t.code, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+    });
+    const wrap = document.getElementById('wrap');
+    wrap.addEventListener('scroll', () => {
+      const idx = Math.round(wrap.scrollLeft / (wrap.firstElementChild.offsetWidth + 16));
+      document.querySelectorAll('.th-dots span').forEach((d, i) => d.classList.toggle('is-active', i === idx));
+    }, { passive: true });
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetTheaterBooking(user.username, Number(bookingId));
+    if (!res || res.status !== 'success') {
+      document.getElementById('tickets').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    render(res.booking, user);
+  }
+  window.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

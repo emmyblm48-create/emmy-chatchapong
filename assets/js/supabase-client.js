@@ -65,6 +65,40 @@ function blm48GetShopOrder(username, orderId) {
 function blm48RedeemShopOrder(username, orderId) {
   return blm48Rpc('redeem_shop_order', { p_username: username, p_order_id: orderId });
 }
+// 🎭 Theaters & Concerts (theaters / theater_* pages) — Token only, see supabase/theater_concerts.sql
+function blm48GetTheaterEvents(username) {
+  return blm48Rpc('get_theater_events', { p_username: username });
+}
+function blm48GetTheaterEvent(username, eventId) {
+  return blm48Rpc('get_theater_event', { p_username: username, p_event_id: eventId });
+}
+function blm48TheaterBook(username, roundId, zoneId, quantity) {
+  return blm48Rpc('theater_book', { p_username: username, p_round_id: roundId, p_zone_id: zoneId, p_quantity: quantity });
+}
+function blm48GetMyTheaterBookings(username) {
+  return blm48Rpc('get_my_theater_bookings', { p_username: username });
+}
+function blm48GetTheaterBooking(username, bookingId) {
+  return blm48Rpc('get_theater_booking', { p_username: username, p_booking_id: bookingId });
+}
+function blm48RedeemTheaterRewards(username, bookingId) {
+  return blm48Rpc('redeem_theater_rewards', { p_username: username, p_booking_id: bookingId });
+}
+function blm48AdminListTheaterEvents(adminUsername) {
+  return blm48Rpc('admin_list_theater_events', { p_admin_username: adminUsername });
+}
+function blm48AdminGetTheaterEvent(adminUsername, eventId) {
+  return blm48Rpc('admin_get_theater_event', { p_admin_username: adminUsername, p_event_id: eventId });
+}
+function blm48AdminSaveTheaterEvent(adminUsername, event) {
+  return blm48Rpc('admin_save_theater_event', { p_admin_username: adminUsername, p_event: event });
+}
+function blm48AdminCancelTheaterEvent(adminUsername, eventId, reason) {
+  return blm48Rpc('admin_cancel_theater_event', { p_admin_username: adminUsername, p_event_id: eventId, p_reason: reason });
+}
+function blm48AdminDeleteTheaterEvent(adminUsername, eventId) {
+  return blm48Rpc('admin_delete_theater_event', { p_admin_username: adminUsername, p_event_id: eventId });
+}
 function blm48AdminListPreorderOrders(adminUsername, statusFilter) {
   return blm48Rpc('admin_list_preorder_orders', { p_admin_username: adminUsername, p_status_filter: statusFilter || null });
 }

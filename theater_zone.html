@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Select Zone</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+    <style> body { padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px)); } </style>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="blm48Back('theater_event?id=' + encodeURIComponent(eventId))" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title" id="page-title">Select Zone</div>
+</div>
+
+<div class="page-wrapper" id="zone-page">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<div class="th-buy-bar" id="buy-bar" style="display:none">
+    <div class="th-buy-inner">
+        <div class="th-buy-note" id="buy-note"></div>
+        <div class="th-qty-row">
+            <span class="th-qty-label">Quantity</span>
+            <div class="th-stepper">
+                <button type="button" id="qty-minus" onclick="changeQty(-1)" aria-label="ลด"><i class="fa-solid fa-minus"></i></button>
+                <span id="qty">0</span>
+                <button type="button" id="qty-plus" onclick="changeQty(1)" aria-label="เพิ่ม"><i class="fa-solid fa-plus"></i></button>
+            </div>
+        </div>
+        <button type="button" class="btn-yellow is-block" id="btn-next" onclick="goNext()" disabled>Next</button>
+    </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const eventId = params.get('event');
+  const roundId = params.get('round');
+  let ev = null, zoneId = null, qty = 0;
+
+  function selectedZone() { return (ev.zones || []).find(z => String(z.id) === String(zoneId)); }
+
+  function maxQty() {
+    const z = selectedZone();
+    return z ? Math.min(ev.maxPerUser, Number(z.left)) : 0;
+  }
+
+  function syncBar() {
+    const max = maxQty();
+    if (qty > max) qty = max;
+    document.getElementById('qty').textContent = qty;
+    document.getElementById('qty-minus').disabled = qty <= 0;
+    document.getElementById('qty-plus').disabled = !zoneId || qty >= max;
+    const z = selectedZone();
+    document.getElementById('btn-next').disabled = !z || qty < 1;
+    document.getElementById('btn-next').textContent = z && qty > 0
+      ? `Next · ${(Number(z.price) * qty).toLocaleString()} Tokens` : 'Next';
+  }
+
+  function changeQty(d) { qty = Math.max(0, qty + d); syncBar(); }
+
+  function pickZone(id) {
+    const z = ev.zones.find(x => String(x.id) === String(id));
+    if (!z || Number(z.left) <= 0) return;
+    zoneId = id;
+    if (qty === 0) qty = 1;
+    document.querySelectorAll('.th-zone').forEach(el => el.classList.toggle('is-selected', el.dataset.id === String(id)));
+    syncBar();
+  }
+
+  function goNext() {
+    if (!zoneId || qty < 1) return;
+    location.href = `theater_checkout?event=${eventId}&round=${roundId}&zone=${zoneId}&qty=${qty}`;
+  }
+
+  function render() {
+    const round = (ev.rounds || []).find(r => String(r.id) === String(roundId));
+    const box = document.getElementById('zone-page');
+    if (!round) { box.innerHTML = '<div class="empty-state">ไม่พบรอบการขายนี้ค่ะ</div>'; return; }
+    document.getElementById('page-title').textContent = round.kind === 'express' ? 'Express Round' : 'Normal Round';
+    if (ev.myBookingId) {
+      box.innerHTML = `<div class="empty-state">คุณจองการแสดงนี้ไปแล้วค่ะ<br><a class="btn-yellow" href="theater_booking?id=${ev.myBookingId}">View booking</a></div>`;
+      return;
+    }
+    if (round.state !== 'open') {
+      box.innerHTML = `<div class="empty-state">${round.state === 'upcoming' ? 'รอบนี้ยังไม่เปิดขายค่ะ' : 'รอบนี้ปิดการขายแล้วค่ะ (Booking Closed)'}</div>`;
+      return;
+    }
+    box.innerHTML = `
+      <div class="section" style="border:none;padding-bottom:12px"><div class="section-heading" style="margin:0">Seating area</div></div>
+      <div class="th-seatmap">${(ev.seatmapUrl || ev.coverUrl) ? `<img src="${escapeHtml(ev.seatmapUrl || ev.coverUrl)}" alt="">` : ''}</div>
+      <div class="section" style="border:none;padding-bottom:4px"><div class="section-heading" style="margin:0">Select zone</div></div>
+      ${ev.zones.map(z => {
+        const out = Number(z.left) <= 0;
+        return `
+        <div class="th-zone ${out ? 'is-disabled' : ''}" data-id="${z.id}" onclick="pickZone('${z.id}')" role="radio" aria-checked="false">
+          <div class="th-zone-info">
+            <div class="th-zone-name">${escapeHtml(z.name)}</div>
+            <div class="th-zone-left">${out ? 'Sold out' : Number(z.left).toLocaleString() + ' seats left'}</div>
+            ${z.note ? `<div class="th-zone-note">${escapeHtml(z.note)}</div>` : ''}
+            ${(z.rewards || []).length ? `<div class="th-rewards">${theaterRewardsHtml(z.rewards)}</div>` : ''}
+          </div>
+          <div class="th-zone-price">${Number(z.price).toLocaleString()} Tokens</div>
+          <div class="th-radio"></div>
+        </div>`;
+      }).join('')}`;
+    document.getElementById('buy-note').textContent = round.kind === 'express'
+      ? `Express round: ได้เลขที่นั่งทันทีหลังชำระ · จำกัด ${ev.maxPerUser} ที่นั่งต่อบัญชี`
+      : `Normal round: ระบบสุ่มที่นั่งหลังปิดรอบขาย · จำกัด ${ev.maxPerUser} ที่นั่งต่อบัญชี`;
+    document.getElementById('buy-bar').style.display = '';
+    const firstOpen = ev.zones.find(z => Number(z.left) > 0);
+    if (ev.zones.length === 1 && firstOpen) pickZone(firstOpen.id); else syncBar();
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetTheaterEvent(user.username, Number(eventId));
+    if (!res || res.status !== 'success') {
+      document.getElementById('zone-page').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    ev = res.event;
+    render();
+  }
+  window.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Theaters &amp; Concerts</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="blm48Back('index')" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">Theaters &amp; Concerts</div>
+</div>
+
+<div class="page-wrapper">
+    <a class="th-bookings-card" href="theater_bookings">
+        <span class="th-bookings-icon"><i class="fa-solid fa-ticket"></i></span>
+        <span class="th-bookings-text">
+            <span class="th-bookings-title" id="bookings-title">My Bookings</span>
+            <span class="th-bookings-sub" style="display:block">Check your booking here</span>
+        </span>
+        <i class="fa-solid fa-chevron-right"></i>
+    </a>
+
+    <div class="th-section-title">Current available performances</div>
+    <div id="event-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div></div>
+</div>
+
+<script>
+  function saleRow(e) {
+    const s = theaterSaleState(e);
+    const icon = '<i class="fa-solid fa-ticket"></i>';
+    if (e.myBookingId) {
+      return `<div class="th-sale-row"><span class="th-sale-text is-open">${icon}Booked</span>
+        <a class="btn-yellow" href="theater_booking?id=${e.myBookingId}" onclick="event.stopPropagation()">View</a></div>`;
+    }
+    const btn = s.kind === 'open'
+      ? `<a class="btn-yellow" href="theater_event?id=${e.id}" onclick="event.stopPropagation()">Book</a>` : '';
+    return `<div class="th-sale-row"><span class="th-sale-text ${s.cls}">${s.kind === 'upcoming' ? '' : icon}${escapeHtml(s.text)}</span>${btn}</div>`;
+  }
+
+  function render(data) {
+    const n = Number(data.myBookings || 0);
+    document.getElementById('bookings-title').innerHTML = n > 0 ? `My Bookings <b>(${n})</b>` : 'My Bookings';
+    const list = document.getElementById('event-list');
+    const events = data.events || [];
+    if (!events.length) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-masks-theater"></i>ยังไม่มีการแสดงที่เปิดจองตอนนี้ค่ะ</div>`;
+      return;
+    }
+    list.innerHTML = events.map(e => `
+      <div class="th-event">
+        <a class="th-event-link" href="theater_event?id=${e.id}">${theaterEventHead(e)}</a>
+        ${saleRow(e)}
+      </div>`).join('');
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetTheaterEvents(user.username);
+    if (!res || res.status !== 'success') {
+      document.getElementById('event-list').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    render(res);
+  }
+  window.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('pageshow', e => { if (e.persisted) load(); });
+</script>
+</body>
+</html>

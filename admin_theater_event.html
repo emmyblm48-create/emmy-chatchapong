@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Theater Event</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/admin-pin.js"></script>
+    <script src="assets/js/theater.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 0 12px 120px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #page-content { display: none; }
+        .panel { padding: 16px 0; border-bottom: 1px solid #eee; }
+        .panel h2 { font-size: 15px; font-weight: 700; color: #333; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+        .field { margin-bottom: 12px; }
+        .field label { display: block; font-size: 12.5px; color: #666; font-weight: 600; margin-bottom: 5px; }
+        .field input, .field select, .field textarea {
+            width: 100%; border: 1px solid #e3e3e3; border-radius: 12px; padding: 10px 12px; font-size: 14px;
+            font-family: inherit; color: #333; background: #fff;
+        }
+        .field textarea { min-height: 110px; resize: vertical; }
+        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .hint { font-size: 11.5px; color: #888; margin-top: 4px; line-height: 1.5; }
+        .cover { width: calc(100% + 24px); margin-left: -12px; background: #f6f3f9; min-height: 160px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .cover img { max-height: 320px; max-width: 100%; display: block; }
+        .cover .ph { color: #a07800; font-size: 13px; font-weight: 600; text-align: center; }
+        .cover-btn { position: absolute; right: 12px; bottom: 10px; border: none; border-radius: 16px; padding: 7px 12px; background: rgba(0,0,0,.6); color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+        .sub-row { padding: 12px 0; border-bottom: 1px dashed #e8e8e8; }
+        .sub-row:last-child { border-bottom: none; }
+        .sub-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 700; font-size: 13.5px; color: #333; }
+        .btn-del { border: none; background: none; color: #d64545; font: inherit; font-size: 12.5px; cursor: pointer; }
+        .btn-add { border: 1.5px dashed #ffc107; background: #fffbef; color: #8a6400; border-radius: 12px; padding: 9px 14px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; width: 100%; }
+        .reward-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 8px; align-items: start; margin-bottom: 8px; }
+        .reward-row .reward-extra { grid-column: 2 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .reward-row input, .reward-row select { border: 1px solid #e3e3e3; border-radius: 10px; padding: 8px 10px; font: inherit; font-size: 13px; width: 100%; }
+        .rewards-box { background: #fffaf0; padding: 10px; margin-top: 4px; }
+        .rewards-box .title { font-size: 12.5px; font-weight: 700; color: #6b5a3a; margin-bottom: 8px; }
+        .member-search { margin-bottom: 8px; }
+        .member-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 260px; overflow-y: auto; }
+        .m-chip { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #e6e6e6; border-radius: 999px; padding: 3px 10px 3px 3px; font-size: 12.5px; cursor: pointer; background: #fff; font-family: inherit; }
+        .m-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: #eee; }
+        .m-chip.on { border-color: #ffc107; background: #fff6d6; font-weight: 700; }
+        .save-bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; box-shadow: 0 -2px 10px rgba(0,0,0,.06); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); z-index: 150; }
+        .save-inner { max-width: 760px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+        .save-inner .msg { flex: 1; font-size: 13px; color: #d64545; }
+        .save-inner .msg.ok { color: #1f9d55; }
+        .btn-primary { border: none; border-radius: 20px; padding: 11px 22px; background: #ffc107; color: #222; font-weight: 700; font-size: 14px; font-family: inherit; cursor: pointer; }
+        .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+        .btn-danger { border: 1.5px solid #d64545; color: #d64545; background: #fff; border-radius: 20px; padding: 9px 16px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-danger.armed { background: #d64545; color: #fff; }
+        .bk-row { padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+        .bk-top { display: flex; justify-content: space-between; gap: 8px; }
+        .bk-top b { color: #333; }
+        .bk-sub { color: #888; margin-top: 3px; font-size: 12px; }
+        .stat-line { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+        .stat-line > div { background: #f8f8f8; padding: 8px; text-align: center; }
+        .stat-line .v { font-weight: 700; color: #333; }
+        .stat-line .k { font-size: 11px; color: #888; }
+        .cancelled-box { background: #ffecec; color: #d64545; padding: 12px; font-size: 13px; margin-top: 12px; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="blm48Back('admin_theaters')" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title" id="page-title">สร้างการแสดง</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div class="cover" id="cover"><div class="ph"><i class="fa-regular fa-image" style="font-size:24px"></i><br>โปสเตอร์การแสดง (แนวตั้ง 3:4)</div>
+            <button type="button" class="cover-btn" onclick="document.getElementById('cover-file').click()"><i class="fa-solid fa-camera"></i> อัปโหลดโปสเตอร์</button>
+        </div>
+        <input type="file" id="cover-file" accept="image/*" hidden onchange="uploadCover(this)">
+
+        <div class="panel">
+            <h2><i class="fa-solid fa-masks-theater"></i> ข้อมูลการแสดง</h2>
+            <div class="field"><label>ชื่อการแสดง *</label><input id="f-title" placeholder="เช่น Jew and Palmmy Birthday Fanmeet"></div>
+            <div class="field"><label>วันที่แสดง *</label><input type="date" id="f-date"></div>
+            <div class="row2">
+                <div class="field"><label>เวลาเริ่ม</label><input type="time" id="f-start"></div>
+                <div class="field"><label>เวลาจบ</label><input type="time" id="f-end"></div>
+            </div>
+            <div class="field"><label>รูปผังที่นั่ง (ไม่บังคับ)</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input id="f-seatmap" placeholder="ลิงก์รูป หรือกดอัปโหลด" oninput="previewSeatmap()">
+                    <button type="button" class="btn-add" style="width:auto;white-space:nowrap" onclick="document.getElementById('seatmap-file').click()"><i class="fa-solid fa-upload"></i></button>
+                </div>
+                <input type="file" id="seatmap-file" accept="image/*" hidden onchange="uploadSeatmap(this)">
+                <img id="seatmap-preview" alt="" style="display:none;max-width:100%;max-height:200px;margin-top:8px">
+                <div class="hint">แสดงในหน้าเลือกโซน (Seating area) ถ้าไม่ใส่จะใช้โปสเตอร์แทน</div>
+            </div>
+            <div class="field"><label>ช่องทางรับชม</label>
+                <select id="f-platform">
+                    <option value="youtube">YouTube Live</option>
+                    <option value="roblox">Roblox Concert</option>
+                    <option value="onsite">On-site (สถานที่จริง)</option>
+                    <option value="other">อื่น ๆ (ออนไลน์)</option>
+                </select>
+            </div>
+            <div class="field"><label>สถานที่ / ชื่อห้อง</label><input id="f-venue" placeholder="เช่น BLM48 Theater (Roblox) หรือ YouTube: BLM48 Official"></div>
+            <div class="field"><label>ลิงก์รับชม (เห็นเฉพาะผู้ถือบัตรที่ได้ที่นั่งแล้ว)</label><input id="f-watch" placeholder="https://youtube.com/... หรือ https://www.roblox.com/games/..."></div>
+            <div class="field"><label>คำแนะนำการรับชม (เห็นเฉพาะผู้ถือบัตร)</label><textarea id="f-watch-note" style="min-height:70px" placeholder="เช่น รหัสเซิร์ฟเวอร์ส่วนตัว / เข้าห้องก่อนเวลา 15 นาที"></textarea></div>
+            <div class="field"><label>รายละเอียด</label><textarea id="f-desc" placeholder="รายละเอียดการแสดง สมาชิกที่ขึ้นแสดง ราคา ฯลฯ"></textarea></div>
+            <div class="row2">
+                <div class="field"><label>จำกัดที่นั่งต่อบัญชี</label><input type="number" id="f-max" min="1" max="10" value="2"></div>
+                <div class="field"><label>สถานะ</label>
+                    <select id="f-status"><option value="draft">ฉบับร่าง (ผู้ใช้ไม่เห็น)</option><option value="published">เปิดแสดง</option></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2><i class="fa-regular fa-id-badge"></i> สมาชิกที่ขึ้นแสดง <span id="member-count" style="color:#888;font-weight:600"></span></h2>
+            <div class="field member-search"><input id="member-q" placeholder="ค้นหาชื่อสมาชิก" oninput="renderMembers()"></div>
+            <div class="member-grid" id="member-grid"></div>
+        </div>
+
+        <div class="panel">
+            <h2><i class="fa-regular fa-calendar-check"></i> รอบการขาย</h2>
+            <div id="rounds"></div>
+            <button type="button" class="btn-add" onclick="addRound()"><i class="fa-solid fa-plus"></i> เพิ่มรอบขาย</button>
+            <div class="hint">Normal: สุ่มเลขที่นั่งให้ทุกคนเมื่อถึงเวลาปิดรอบ · Express: ได้ที่นั่งทันที (มักเปิดหลัง Normal ปิด เพื่อขายที่นั่งที่เหลือ) · เวลาเป็นเวลาไทย</div>
+        </div>
+
+        <div class="panel">
+            <h2><i class="fa-solid fa-couch"></i> โซนที่นั่ง &amp; ของรางวัล</h2>
+            <div id="zones"></div>
+            <button type="button" class="btn-add" onclick="addZone()"><i class="fa-solid fa-plus"></i> เพิ่มโซน</button>
+            <div class="hint">ของรางวัลคิดต่อ 1 ที่นั่ง (ซื้อ 2 ที่นั่งได้ 2 เท่า) ผู้ซื้อกด Redeem เข้า Inventory ได้เมื่อได้เลขที่นั่งแล้ว และได้ Ticket Stub อัตโนมัติ</div>
+        </div>
+
+        <div id="manage" style="display:none"></div>
+    </div>
+</div>
+
+<div class="save-bar" id="save-bar" style="display:none">
+    <div class="save-inner">
+        <div class="msg" id="save-msg"></div>
+        <button type="button" class="btn-primary" id="btn-save" onclick="save()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let eventId = new URLSearchParams(location.search).get('id');
+  let coverUrl = '';
+  let members = [];
+  let selected = new Set();
+  let cancelArmed = false;
+
+  // ISO -> value for <input type=datetime-local> in Bangkok time
+  function toLocalInput(iso) {
+    if (!iso) return '';
+    const d = new Date(new Date(iso).getTime() + 7 * 3600 * 1000);
+    return d.toISOString().slice(0, 16);
+  }
+  function fromLocalInput(v) { return v ? v + ':00+07:00' : ''; }
+
+  function setCover(url) {
+    coverUrl = url || '';
+    const box = document.getElementById('cover');
+    const ph = box.querySelector('.ph');
+    let img = box.querySelector('img');
+    if (coverUrl) {
+      if (!img) { img = document.createElement('img'); box.insertBefore(img, box.firstChild); }
+      img.src = coverUrl;
+      if (ph) ph.style.display = 'none';
+    } else if (img) { img.remove(); if (ph) ph.style.display = ''; }
+  }
+
+  async function uploadCover(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const btn = document.querySelector('.cover-btn');
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด';
+    try { setCover(await blm48UploadPostImage(user.username, file)); }
+    catch (e) { showMsg('อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+    btn.innerHTML = '<i class="fa-solid fa-camera"></i> เปลี่ยนโปสเตอร์';
+    input.value = '';
+  }
+
+  function previewSeatmap() {
+    const url = document.getElementById('f-seatmap').value.trim();
+    const img = document.getElementById('seatmap-preview');
+    img.style.display = /^https?:\/\//i.test(url) ? 'block' : 'none';
+    if (img.style.display === 'block') img.src = url;
+  }
+
+  async function uploadSeatmap(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    showMsg('กำลังอัปโหลดผังที่นั่ง...', true);
+    try {
+      document.getElementById('f-seatmap').value = await blm48UploadPostImage(user.username, file);
+      previewSeatmap();
+      showMsg('');
+    } catch (e) { showMsg('อัปโหลดรูปไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+    input.value = '';
+  }
+
+  function renderMembers() {
+    const q = (document.getElementById('member-q').value || '').trim().toLowerCase();
+    document.getElementById('member-count').textContent = selected.size ? `(${selected.size})` : '';
+    document.getElementById('member-grid').innerHTML = members
+      .filter(m => selected.has(m.member_id) || !q || String(m.name).toLowerCase().includes(q))
+      .map(m => `<button type="button" class="m-chip ${selected.has(m.member_id) ? 'on' : ''}" onclick="toggleMember('${escapeHtml(m.member_id)}')">
+          <img src="${escapeHtml(m.profile || '')}" alt="" loading="lazy">${escapeHtml(m.name)}</button>`).join('');
+  }
+  function toggleMember(id) { selected.has(id) ? selected.delete(id) : selected.add(id); renderMembers(); }
+
+  function addRound(r) {
+    r = r || {};
+    const el = document.createElement('div');
+    el.className = 'sub-row round-row';
+    el.dataset.id = r.id || '';
+    el.innerHTML = `
+      <div class="sub-head"><span>รอบขาย${r.drawDone ? ' <span style="color:#1f9d55;font-weight:600">· สุ่มที่นั่งแล้ว</span>' : ''}</span><button type="button" class="btn-del" onclick="this.closest('.round-row').remove()"><i class="fa-solid fa-trash"></i> ลบ</button></div>
+      <div class="field"><label>ประเภทรอบ</label><select class="r-kind"><option value="normal">Normal round (สุ่มที่นั่งหลังปิดรอบ)</option><option value="express">Express round (ได้ที่นั่งทันที)</option></select></div>
+      <div class="field"><label>เปิดขาย</label><input type="datetime-local" class="r-open" value="${toLocalInput(r.openAt)}"></div>
+      <div class="field"><label>ปิดขาย</label><input type="datetime-local" class="r-close" value="${toLocalInput(r.closeAt)}"></div>`;
+    el.querySelector('.r-kind').value = r.kind || 'normal';
+    document.getElementById('rounds').appendChild(el);
+  }
+
+  function rewardRowHtml(rw) {
+    rw = rw || { kind: 'item' };
+    return `<div class="reward-row">
+        <select class="rw-kind" onchange="syncRewardRow(this)">
+          <option value="item" ${rw.kind === 'item' ? 'selected' : ''}>ไอเทม</option>
+          <option value="cookie" ${rw.kind === 'cookie' ? 'selected' : ''}>Cookie</option>
+          <option value="ge_token" ${rw.kind === 'ge_token' ? 'selected' : ''}>GE Token</option>
+        </select>
+        <div class="rw-fields">
+          <div class="rw-item" style="display:${rw.kind === 'item' ? 'grid' : 'none'};gap:8px">
+            <input class="rw-label" placeholder="ชื่อไอเทม เช่น Photo Card Jew" value="${escapeHtml(rw.label || '')}">
+            <div class="reward-extra" style="grid-column:auto">
+              <input class="rw-type" placeholder="ประเภท เช่น PhotoCard / Poster" value="${escapeHtml(rw.itemType || '')}">
+              <input class="rw-img" placeholder="ลิงก์รูปภาพ" value="${escapeHtml(rw.imageUrl || '')}">
+            </div>
+          </div>
+          <input class="rw-amount" type="number" min="1" placeholder="จำนวน" value="${rw.amount || ''}" style="display:${rw.kind === 'item' ? 'none' : 'block'}">
+        </div>
+        <button type="button" class="btn-del" onclick="this.closest('.reward-row').remove()"><i class="fa-solid fa-xmark"></i></button>
+      </div>`;
+  }
+  function syncRewardRow(sel) {
+    const row = sel.closest('.reward-row');
+    const isItem = sel.value === 'item';
+    row.querySelector('.rw-item').style.display = isItem ? 'grid' : 'none';
+    row.querySelector('.rw-amount').style.display = isItem ? 'none' : 'block';
+  }
+
+  function addZone(z) {
+    z = z || {};
+    const el = document.createElement('div');
+    el.className = 'sub-row zone-row';
+    el.dataset.id = z.id || '';
+    const sold = z.id ? Number(z.capacity) - Number(z.left) : 0;
+    el.innerHTML = `
+      <div class="sub-head"><span>โซน${z.id ? ` <span style="color:#888;font-weight:600">· จองแล้ว ${sold}/${z.capacity}</span>` : ''}</span>
+        ${z.hasBookings ? '' : `<button type="button" class="btn-del" onclick="this.closest('.zone-row').remove()"><i class="fa-solid fa-trash"></i> ลบ</button>`}</div>
+      <div class="field"><label>ชื่อโซน *</label><input class="z-name" placeholder="เช่น Normal Zone / Lady Zone (For women only)" value="${escapeHtml(z.name || '')}"></div>
+      <div class="field"><label>หมายเหตุโซน</label><input class="z-note" placeholder="เช่น แถวหน้าติดเวที" value="${escapeHtml(z.note || '')}"></div>
+      <div class="row2">
+        <div class="field"><label>ราคา (Tokens) *</label><input class="z-price" type="number" min="0" value="${z.price != null ? z.price : ''}"></div>
+        <div class="field"><label>จำนวนที่นั่ง *</label><input class="z-cap" type="number" min="1" value="${z.capacity || ''}"></div>
+      </div>
+      <div class="field"><label>อักษรนำหน้าเลขที่นั่ง</label><input class="z-prefix" maxlength="3" value="${escapeHtml(z.seatPrefix || 'A')}"><div class="hint">เช่น A → A1, A2, …</div></div>
+      <div class="rewards-box">
+        <div class="title"><i class="fas fa-gift"></i> ของรางวัลต่อ 1 ที่นั่ง</div>
+        <div class="rw-list">${(z.rewards || []).map(rewardRowHtml).join('')}</div>
+        <button type="button" class="btn-add" style="padding:6px" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend', rewardRowHtml())"><i class="fa-solid fa-plus"></i> เพิ่มของรางวัล</button>
+      </div>`;
+    document.getElementById('zones').appendChild(el);
+  }
+
+  function collect() {
+    const rounds = [...document.querySelectorAll('.round-row')].map(el => ({
+      id: el.dataset.id || null,
+      kind: el.querySelector('.r-kind').value,
+      openAt: fromLocalInput(el.querySelector('.r-open').value),
+      closeAt: fromLocalInput(el.querySelector('.r-close').value)
+    }));
+    const zones = [...document.querySelectorAll('.zone-row')].map(el => ({
+      id: el.dataset.id || null,
+      name: el.querySelector('.z-name').value.trim(),
+      note: el.querySelector('.z-note').value.trim(),
+      price: el.querySelector('.z-price').value,
+      capacity: el.querySelector('.z-cap').value,
+      seatPrefix: el.querySelector('.z-prefix').value.trim(),
+      rewards: [...el.querySelectorAll('.reward-row')].map(r => {
+        const kind = r.querySelector('.rw-kind').value;
+        if (kind === 'item') {
+          return { kind, label: r.querySelector('.rw-label').value.trim(), itemType: r.querySelector('.rw-type').value.trim(),
+                   imageUrl: r.querySelector('.rw-img').value.trim() };
+        }
+        return { kind, amount: Number(r.querySelector('.rw-amount').value) || 0 };
+      }).filter(r => r.kind === 'item' ? r.label : r.amount > 0)
+    }));
+    return {
+      id: eventId || null,
+      title: document.getElementById('f-title').value.trim(),
+      coverUrl,
+      seatmapUrl: document.getElementById('f-seatmap').value.trim(),
+      eventDate: document.getElementById('f-date').value,
+      startTime: document.getElementById('f-start').value,
+      endTime: document.getElementById('f-end').value,
+      platform: document.getElementById('f-platform').value,
+      venue: document.getElementById('f-venue').value.trim(),
+      watchUrl: document.getElementById('f-watch').value.trim(),
+      watchNote: document.getElementById('f-watch-note').value.trim(),
+      description: document.getElementById('f-desc').value,
+      maxPerUser: document.getElementById('f-max').value,
+      status: document.getElementById('f-status').value,
+      memberIds: [...selected],
+      rounds, zones
+    };
+  }
+
+  function validate(ev) {
+    if (!ev.title) return 'กรุณากรอกชื่อการแสดง';
+    if (!ev.eventDate) return 'กรุณาเลือกวันที่แสดง';
+    if (!ev.rounds.length) return 'ต้องมีอย่างน้อย 1 รอบขาย';
+    for (const r of ev.rounds) {
+      if (!r.openAt || !r.closeAt) return 'กรุณาใส่เวลาเปิด/ปิดขายให้ครบทุกรอบ';
+      if (new Date(r.closeAt) <= new Date(r.openAt)) return 'เวลาปิดขายต้องหลังเวลาเปิดขาย';
+    }
+    if (!ev.zones.length) return 'ต้องมีอย่างน้อย 1 โซน';
+    for (const z of ev.zones) {
+      if (!z.name || z.price === '' || !(Number(z.capacity) > 0)) return 'กรุณากรอกชื่อ ราคา และจำนวนที่นั่งของทุกโซน';
+    }
+    if (ev.watchUrl && !/^https?:\/\//i.test(ev.watchUrl)) return 'ลิงก์รับชมต้องขึ้นต้นด้วย https://';
+    return '';
+  }
+
+  function showMsg(text, ok) {
+    const m = document.getElementById('save-msg');
+    m.textContent = text || '';
+    m.className = 'msg' + (ok ? ' ok' : '');
+  }
+
+  async function save() {
+    const ev = collect();
+    const err = validate(ev);
+    if (err) { showMsg(err); return; }
+    const btn = document.getElementById('btn-save');
+    btn.disabled = true;
+    showMsg('');
+    const res = await blm48AdminSaveTheaterEvent(user.username, ev);
+    btn.disabled = false;
+    if (res && res.status === 'success') {
+      showMsg('บันทึกแล้ว', true);
+      if (!eventId) { blm48Replace('admin_theater_event?id=' + res.id); return; }
+      loadEvent();
+    } else {
+      showMsg((res && res.message) || 'บันทึกไม่สำเร็จ');
+    }
+  }
+
+  function renderManage(e) {
+    const box = document.getElementById('manage');
+    box.style.display = '';
+    const paid = (e.bookings || []).filter(b => b.status === 'paid');
+    const seats = paid.reduce((s, b) => s + Number(b.quantity), 0);
+    const revenue = paid.reduce((s, b) => s + Number(b.total), 0);
+    const cap = (e.zones || []).reduce((s, z) => s + Number(z.capacity), 0);
+    box.innerHTML = `
+      <div class="panel">
+        <h2><i class="fa-solid fa-ticket"></i> การจอง</h2>
+        <div class="stat-line">
+          <div><div class="v">${paid.length}</div><div class="k">การจอง</div></div>
+          <div><div class="v">${seats}/${cap}</div><div class="k">ที่นั่ง</div></div>
+          <div><div class="v">${revenue.toLocaleString()}</div><div class="k">Tokens</div></div>
+        </div>
+        ${(e.bookings || []).length ? e.bookings.map(b => `
+          <div class="bk-row">
+            <div class="bk-top"><b>${escapeHtml(b.name || b.username || '-')}</b><span>${b.source === 'holder' ? 'บัตรผู้ซื้อสินค้า' : Number(b.total).toLocaleString() + ' Tokens'}</span></div>
+            <div class="bk-sub">${escapeHtml(b.username || '')} · ${escapeHtml(b.zoneName)} · ${b.roundKind === 'express' ? 'Express' : 'Normal'} · ${b.quantity} ที่นั่ง
+              · ${b.status === 'cancelled' ? '<span style="color:#d64545">ยกเลิก/คืน Token แล้ว</span>' : (b.seats || []).filter(Boolean).length ? 'ที่นั่ง ' + b.seats.map(escapeHtml).join(', ') : 'รอสุ่มที่นั่ง'}
+              ${b.redeemed ? ' · รับของแล้ว' : ''}</div>
+            <div class="bk-sub">${escapeHtml(b.bookingNo)} · ${theaterDateTime(b.createdAt)}</div>
+          </div>`).join('') : '<div class="hint">ยังไม่มีการจอง</div>'}
+      </div>
+      <div class="panel">
+        <h2><i class="fa-solid fa-triangle-exclamation"></i> ยกเลิก / ลบ</h2>
+        ${e.status === 'cancelled'
+          ? `<div class="cancelled-box">การแสดงนี้ถูกยกเลิกแล้ว (${escapeHtml(e.cancelReason || '')}) คืน Token ให้ผู้จองครบแล้ว</div>`
+          : (e.bookings || []).length
+            ? `<div class="field"><label>เหตุผลที่ยกเลิก (ผู้จองจะเห็น)</label><input id="cancel-reason" placeholder="เช่น เลื่อนการแสดง"></div>
+               <button type="button" class="btn-danger" id="btn-cancel" onclick="cancelEvent()">ยกเลิกการแสดง + คืน Token ทุกคน</button>
+               <div class="hint">ของรางวัลที่ผู้จองกด Redeem ไปแล้วจะไม่ถูกดึงคืน</div>`
+            : `<button type="button" class="btn-danger" id="btn-delete" onclick="deleteEvent()">ลบการแสดงนี้</button>`}
+        <div class="hint" id="manage-msg" style="color:#d64545"></div>
+      </div>`;
+  }
+
+  async function cancelEvent() {
+    const btn = document.getElementById('btn-cancel');
+    if (!cancelArmed) { cancelArmed = true; btn.classList.add('armed'); btn.textContent = 'กดอีกครั้งเพื่อยืนยันการยกเลิก'; return; }
+    btn.disabled = true;
+    const res = await blm48AdminCancelTheaterEvent(user.username, Number(eventId), document.getElementById('cancel-reason').value);
+    if (res && res.status === 'success') { cancelArmed = false; loadEvent(); return; }
+    btn.disabled = false;
+    document.getElementById('manage-msg').textContent = (res && res.message) || 'ยกเลิกไม่สำเร็จ';
+  }
+
+  async function deleteEvent() {
+    const btn = document.getElementById('btn-delete');
+    if (!cancelArmed) { cancelArmed = true; btn.classList.add('armed'); btn.textContent = 'กดอีกครั้งเพื่อลบ'; return; }
+    btn.disabled = true;
+    const res = await blm48AdminDeleteTheaterEvent(user.username, Number(eventId));
+    if (res && res.status === 'success') { blm48Replace('admin_theaters'); return; }
+    btn.disabled = false;
+    document.getElementById('manage-msg').textContent = (res && res.message) || 'ลบไม่สำเร็จ';
+  }
+
+  async function loadEvent() {
+    const res = await blm48AdminGetTheaterEvent(user.username, Number(eventId));
+    if (!res || res.status !== 'success') { showMsg((res && res.message) || 'โหลดไม่สำเร็จ'); return; }
+    const e = res.event;
+    document.getElementById('page-title').textContent = e.title;
+    setCover(e.coverUrl);
+    document.getElementById('f-title').value = e.title || '';
+    document.getElementById('f-seatmap').value = e.seatmapUrl || '';
+    previewSeatmap();
+    document.getElementById('f-date').value = e.eventDate || '';
+    document.getElementById('f-start').value = e.startTime || '';
+    document.getElementById('f-end').value = e.endTime || '';
+    document.getElementById('f-platform').value = e.platform || 'youtube';
+    document.getElementById('f-venue').value = e.venue || '';
+    document.getElementById('f-watch').value = e.watchUrl || '';
+    document.getElementById('f-watch-note').value = e.watchNote || '';
+    document.getElementById('f-desc').value = e.description || '';
+    document.getElementById('f-max').value = e.maxPerUser || 2;
+    document.getElementById('f-status').value = e.status === 'published' ? 'published' : 'draft';
+    selected = new Set(e.memberIds || []);
+    renderMembers();
+    document.getElementById('rounds').innerHTML = '';
+    (e.rounds || []).forEach(addRound);
+    document.getElementById('zones').innerHTML = '';
+    (e.zones || []).forEach(addZone);
+    const locked = e.status === 'cancelled';
+    document.getElementById('save-bar').style.display = locked ? 'none' : '';
+    renderManage(e);
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && ['admin','ceo'].includes(user.role.toLowerCase())))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    document.getElementById('save-bar').style.display = '';
+    const mres = await blm48GetAllMembers();
+    members = ((mres && mres.data) || []).filter(m => String(m.status || '').toLowerCase() !== 'graduated');
+    renderMembers();
+    if (eventId) {
+      loadEvent();
+    } else {
+      addRound({ kind: 'normal' });
+      addZone({ name: 'Normal Zone', seatPrefix: 'A' });
+    }
+  });
+</script>
+</body>
+</html>
