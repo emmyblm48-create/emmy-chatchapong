@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | My Bookings</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="blm48Back('theaters')" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">My Bookings</div>
+</div>
+
+<div class="th-tabs" role="tablist">
+    <button type="button" class="th-tab is-active" data-tab="current" onclick="setTab('current')"><span>Current</span></button>
+    <button type="button" class="th-tab" data-tab="cancelled" onclick="setTab('cancelled')"><span>Cancelled</span></button>
+    <button type="button" class="th-tab" data-tab="past" onclick="setTab('past')"><span>Past</span></button>
+</div>
+
+<div class="page-wrapper" id="list">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<script>
+  let bookings = null;
+  let tab = sessionStorage.getItem('blm48TheaterTab') || 'current';
+
+  function statusRow(b) {
+    if (b.status === 'cancelled') return `<div class="th-status"><span class="status-cancel"><i class="fa-solid fa-circle-xmark"></i>Cancelled · Tokens refunded</span></div>`;
+    if (b.ticketIssued) return `<div class="th-status"><span class="status-paid"><i class="fa-solid fa-circle-check"></i>${b.source === 'holder' ? 'Merch holder' : 'Paid'} · Ticket ready</span>
+      <a class="btn-yellow" href="theater_ticket?id=${b.id}" onclick="event.stopPropagation()">Show Ticket</a></div>`;
+    return `<div class="th-status"><span class="status-wait"><i class="fa-solid fa-hourglass-half"></i>Paid · Waiting for seat draw</span></div>`;
+  }
+
+  function setTab(t) {
+    tab = t;
+    try { sessionStorage.setItem('blm48TheaterTab', t); } catch (e) {}
+    document.querySelectorAll('.th-tab').forEach(el => el.classList.toggle('is-active', el.dataset.tab === t));
+    render();
+  }
+
+  function render() {
+    if (!bookings) return;
+    const list = document.getElementById('list');
+    const rows = bookings.filter(b => b.tab === tab);
+    if (tab === 'past') rows.reverse();
+    if (!rows.length) {
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-ticket"></i>No bookings yet</div>`;
+      return;
+    }
+    list.innerHTML = rows.map(b => `
+      <div class="th-event th-event-link" role="link" tabindex="0" onclick="location.href='theater_booking?id=${b.id}'">
+        ${theaterEventHead(b.event)}
+        <div class="th-booking-meta">
+          <div>Round: ${b.roundKind === 'express' ? 'Express' : 'Normal'}</div>
+          <div>Zone: ${escapeHtml(b.zoneName)} ${b.quantity} seat${b.quantity > 1 ? 's' : ''}</div>
+        </div>
+        ${statusRow(b)}
+      </div>`).join('');
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetMyTheaterBookings(user.username);
+    if (!res || res.status !== 'success') {
+      document.getElementById('list').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    bookings = res.bookings || [];
+    setTab(tab);
+  }
+  window.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('pageshow', e => { if (e.persisted) load(); });
+</script>
+</body>
+</html>
