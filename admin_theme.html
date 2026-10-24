@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Theme Application</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #page-content { display: none; }
+        .legend { background: #fffaf0; border: 1px solid #ffe6ae; padding: 12px 14px; font-size: 12.5px; color: #6b5a3a; line-height: 1.8; margin-bottom: 12px; }
+        .search { width: 100%; padding: 11px 14px; border: 1px solid #eee; border-radius: 10px; font-family: inherit; font-size: 14px; margin-bottom: 6px; }
+        .empty-state, .loading-state { text-align: center; color: #999; font-size: 13px; padding: 40px 20px; }
+
+        /* แถวเมมเบอร์ -> กดแล้วเปิดหน้า admin_theme_member */
+        .m-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; }
+        .m-row img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #ffde5b; flex-shrink: 0; background: #f4f4f4; }
+        .m-info { flex: 1; min-width: 0; }
+        .m-name { font-weight: 700; font-size: 15px; color: #333; }
+        .m-name .champ { font-size: 11px; font-weight: 700; background: #fff3c4; color: #b07d00; padding: 2px 8px; border-radius: 20px; margin-left: 6px; }
+        .m-name .grad { font-size: 11px; font-weight: 600; background: #f1f1f1; color: #767676; padding: 2px 8px; border-radius: 20px; margin-left: 6px; }
+        .m-sub { font-size: 12.5px; color: #767676; margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .m-sub .ok { color: #1f9d55; }
+        .m-sub .no { color: #8a8a8a; }
+        .m-arrow { color: #bbb; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="blm48Back('admin')" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">Theme Application</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div class="legend">
+            <b>Birthday Photo</b> = ใส่รูปเมมเบอร์ธรรมดา ระบบจะสร้าง Splash + Banner วันเกิดพร้อมสีที่เข้ากับรูปให้เอง (ขึ้นก่อนวันเกิด 3 วัน → หมดวันเกิด)<br>
+            <b>Champ Menu Buttons</b> = ไอคอนแถบเมนูล่าง 4 ปุ่ม ที่จะใช้ตอนเมมเบอร์คนนั้นได้ Champ of the Month (ช่องว่าง = ใช้ไอคอนปกติ)
+        </div>
+        <input id="search" class="search" type="search" placeholder="Search member..." oninput="renderList()">
+        <div id="member-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let members = [];
+  let champName = '';
+
+  // ช่องรูปปุ่ม Champ (ต้องตรงกับ admin_theme_member.html)
+  const NAV_KEYS = ['navHome', 'navKami', 'navCart', 'navNoti'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function bdayText(md) {
+    const m = String(md || '').match(/^(\d{2})-(\d{2})$/);
+    return m ? `${parseInt(m[2], 10)} ${MONTHS[parseInt(m[1], 10) - 1]}` : 'No birthday';
+  }
+
+  // อีกกี่วันถึงวันเกิด (เวลาไทย) - ใช้เรียงคนที่ใกล้วันเกิดขึ้นก่อน
+  function daysUntil(md) {
+    const m = String(md || '').match(/^(\d{2})-(\d{2})$/);
+    if (!m) return 9999;
+    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+    now.setHours(0, 0, 0, 0);
+    let d = new Date(now.getFullYear(), parseInt(m[1], 10) - 1, parseInt(m[2], 10));
+    if (d < now) d = new Date(now.getFullYear() + 1, parseInt(m[1], 10) - 1, parseInt(m[2], 10));
+    return Math.round((d - now) / 86400000);
+  }
+
+  function renderList() {
+    const box = document.getElementById('member-list');
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const list = members
+      .filter(m => !q || m.name.toLowerCase().includes(q))
+      .sort((a, b) => (a.graduated - b.graduated) || (daysUntil(a.birthday) - daysUntil(b.birthday)) || a.name.localeCompare(b.name));
+    if (!list.length) { box.innerHTML = '<div class="empty-state">ไม่พบเมมเบอร์</div>'; return; }
+    box.innerHTML = list.map(m => {
+      const navCount = NAV_KEYS.filter(k => m[k]).length;
+      const isChamp = champName && m.name.toLowerCase() === champName.toLowerCase();
+      const dleft = daysUntil(m.birthday);
+      return `
+        <a class="m-row" href="admin_theme_member?id=${encodeURIComponent(m.memberId)}">
+          <img src="${escapeHtml(m.profileImg || '')}" alt="" onerror="this.style.visibility='hidden'">
+          <div class="m-info">
+            <div class="m-name">${escapeHtml(m.name)}${isChamp ? '<span class="champ"><i class="fa-solid fa-crown"></i> Current Champ</span>' : ''}${m.graduated ? '<span class="grad">Graduated</span>' : ''}</div>
+            <div class="m-sub">
+              <span><i class="fa-solid fa-cake-candles"></i> ${bdayText(m.birthday)}${dleft <= 3 ? ' · <b style="color:#d6336c">Birthday now</b>' : (dleft < 9999 ? ` · in ${dleft} day${dleft === 1 ? '' : 's'}` : '')}</span>
+              <span class="${m.splashBd ? 'ok' : 'no'}"><i class="fa-solid ${m.splashBd ? 'fa-circle-check' : 'fa-circle'}"></i> Birthday Photo</span>
+              <span class="${navCount ? 'ok' : 'no'}"><i class="fa-solid fa-crown"></i> Buttons ${navCount}/4</span>
+            </div>
+          </div>
+          <i class="fa-solid fa-chevron-right m-arrow"></i>
+        </a>`;
+    }).join('');
+  }
+
+  async function load() {
+    const res = await blm48AdminListMemberImages(user.username);
+    const box = document.getElementById('member-list');
+    if (!res || res.status !== 'success') { box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดไม่สำเร็จ')}</div>`; return; }
+    members = res.members || [];
+    champName = res.champName || '';
+    renderList();
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && ['admin','ceo'].includes(user.role.toLowerCase())))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    load();
+  });
+  // กลับมาจากหน้าเมมเบอร์ -> โหลดสถานะใหม่ (เผื่อเพิ่งอัปโหลดรูป)
+  window.addEventListener('pageshow', e => { if (e.persisted && user) load(); });
+</script>
+</body>
+</html>

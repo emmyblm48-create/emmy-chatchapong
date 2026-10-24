@@ -21,6 +21,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
+    <script src="assets/js/admin-pin.js"></script>
 
     <style>
         * { box-sizing: border-box; }
@@ -112,6 +113,14 @@
         .confirm-actions button { flex: 1; border: none; border-radius: 20px; padding: 10px; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
         .btn-cancel { background: #f1f1f1; color: #777; }
         .btn-confirm { background: #ff85a2; color: #fff; }
+        .confirm-box.danger { background: #fff1f3; border-color: #ffc2cc; color: #b3243f; }
+        .btn-confirm.danger { background: #ff5c7a; }
+        .btn-danger { width: 100%; border: 1px solid #ffc2cc; background: #fff1f3; color: #ff5c7a; border-radius: 20px; padding: 11px;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .delete-pin { display: block; width: 100%; margin-top: 10px; border: 1px solid #ffc2cc; border-radius: 12px; padding: 10px 12px; background: #fff;
+            font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 16px; letter-spacing: 4px; text-align: center; }
+        .delete-pin::placeholder { letter-spacing: normal; font-size: 14px; color: #c08a96; }
+        .delete-pin:focus { outline: none; border-color: #ff5c7a; }
 
         /* ผู้สมัคร */
         .cand-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
@@ -430,7 +439,62 @@
       <div class="card">
         <div class="card-title"><i class="fa-solid fa-flask"></i> Test Event</div>
         <label class="check-label"><input type="checkbox" ${ev.adminOnly ? 'checked' : ''} onchange="toggleAdminOnly(this)"> Admins only — เห็นและโหวตได้เฉพาะแอดมิน (บันทึกทันที)</label>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="color:#ff5c7a;"><i class="fa-solid fa-trash"></i> Delete Event</div>
+        <div id="delete-msg" class="msg"></div>
+        <div class="note" style="margin-bottom:12px;">ลบกิจกรรมโหวตนี้ออกจากระบบ (ผู้สมัครและผลด่วนจะหายไปด้วย) · ประวัติการโหวตและการใช้ Token ของผู้ใช้ยังเก็บไว้ ไม่มีการคืน Token</div>
+        <div class="confirm-box danger" id="delete-confirm"></div>
+        <button type="button" class="btn-danger" id="delete-btn" onclick="askDelete()"><i class="fa-solid fa-trash"></i> Delete Event</button>
       </div>`;
+  }
+
+  // ลบกิจกรรม: กดครั้งแรก -> สรุปผลกระทบ + ใส่ PIN แอดมินในหน้า -> ยืนยัน (เซิร์ฟเวอร์ตรวจ PIN อีกครั้ง)
+  function askDelete() {
+    setMsg('delete-msg', '');
+    const notes = [];
+    if (Number(ev.voteCount) > 0) notes.push(`มีการโหวตแล้ว ${fmt(ev.voteCount)} ครั้ง จาก ${fmt(ev.voterCount)} คน — ประวัติยังอยู่ แต่จะไม่มีหน้ากิจกรรมนี้อีก`);
+    if (Number(ev.pendingRefund) > 0) notes.push(`ยังมี Token รอคืน ${fmt(ev.pendingRefund)} — ต้องเปลี่ยนสถานะเป็น Closed ให้ระบบคืน Token ก่อน ถึงจะลบได้`);
+    if (isOpenStatus(ev.status)) notes.push('กิจกรรมนี้ยังเปิดรับโหวตอยู่');
+    const box = document.getElementById('delete-confirm');
+    box.innerHTML = `<b>ลบ “${escapeHtml(ev.title || eventId)}” ถาวร?</b> ย้อนกลับไม่ได้` +
+      (notes.length ? '<br>' + notes.map(n => '• ' + escapeHtml(n)).join('<br>') : '') +
+      `<input id="delete-pin" class="delete-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="ใส่ PIN แอดมิน 6 หลัก">
+       <div class="confirm-actions">
+         <button type="button" class="btn-cancel" onclick="cancelDelete()">Cancel</button>
+         <button type="button" class="btn-confirm danger" id="delete-confirm-btn" onclick="deleteEvent()">Delete</button>
+       </div>`;
+    box.classList.add('show');
+    document.getElementById('delete-btn').style.display = 'none';
+    document.getElementById('delete-pin').focus();
+  }
+
+  function cancelDelete() {
+    document.getElementById('delete-confirm').classList.remove('show');
+    document.getElementById('delete-btn').style.display = '';
+  }
+
+  async function deleteEvent() {
+    const pin = document.getElementById('delete-pin').value.trim();
+    if (!/^\d{6}$/.test(pin)) { setMsg('delete-msg', 'กรุณาใส่ PIN 6 หลัก'); return; }
+    setMsg('delete-msg', '');
+    const btn = document.getElementById('delete-confirm-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    try {
+      const res = await blm48AdminDeleteVoteEvent(user.username, eventId, pin, blm48PinDeviceLabel());
+      if (res && res.status === 'success') {
+        blm48Replace('admin_votes');
+        return;
+      }
+      setMsg('delete-msg', (res && res.message) || 'ลบไม่สำเร็จ');
+    } catch (e) {
+      setMsg('delete-msg', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Delete';
+    document.getElementById('delete-pin').value = '';
   }
 
   function setMode(m) { modeDraft.mechanic = m; render(); }

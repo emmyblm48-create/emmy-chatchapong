@@ -96,6 +96,22 @@ function blm48AdminSaveTheaterEvent(adminUsername, event) {
 function blm48AdminCancelTheaterEvent(adminUsername, eventId, reason) {
   return blm48Rpc('admin_cancel_theater_event', { p_admin_username: adminUsername, p_event_id: eventId, p_reason: reason });
 }
+// 🎂🏆 Theme Application (admin_theme.html / admin_theme_member.html): รูปวันเกิด (Splash/Banner) + รูปปุ่มเมนูตอนเป็น Champ ของเมมเบอร์แต่ละคน
+function blm48AdminListMemberImages(adminUsername) {
+  return blm48Rpc('admin_list_member_images', { p_admin_username: adminUsername });
+}
+// field: splashBd | bannerBd | splashChamp | navHome | navKami | navCart | navNoti — url ว่าง/null = ลบรูป
+function blm48AdminSetMemberImage(adminUsername, memberId, field, url) {
+  return blm48Rpc('admin_set_member_image', { p_admin_username: adminUsername, p_member_id: memberId, p_field: field, p_url: url || null });
+}
+// ฟอนต์ตัวหนังสือ Splash/Banner วันเกิด (ชื่อจาก BLM48BirthdaySplash.FONTS) — ว่าง/null = ฟอนต์ตั้งต้นของดีไซน์
+function blm48AdminSetMemberBdayFont(adminUsername, memberId, font) {
+  return blm48Rpc('admin_set_member_bday_font', { p_admin_username: adminUsername, p_member_id: memberId, p_font: font || null });
+}
+// ขนาด/ตำแหน่งรูปเมมเบอร์บน Splash/Banner วันเกิด: { splash: {zoom,x,y} | null, banner: {...} | null }
+function blm48AdminSetMemberBdayAdjust(adminUsername, memberId, adjust) {
+  return blm48Rpc('admin_set_member_bday_adjust', { p_admin_username: adminUsername, p_member_id: memberId, p_adjust: adjust || {} });
+}
 function blm48AdminDeleteTheaterEvent(adminUsername, eventId) {
   return blm48Rpc('admin_delete_theater_event', { p_admin_username: adminUsername, p_event_id: eventId });
 }
@@ -545,6 +561,31 @@ function blm48GetMemberCampaignDetail(campaignId, username) {
 function blm48SupportMemberCampaign(username, campaignId, amount) {
   return blm48Rpc('support_member_campaign', { p_username: username, p_campaign_id: campaignId, p_amount: amount });
 }
+// บันทึกรูปเมมเบอร์ (จากเว็บ Official) ที่ใช้บน Campaign Banner: อัปเดตได้ระหว่าง Campaign เปิด จบแล้วล็อก
+function blm48SetCampaignBannerPhoto(campaignId, url) {
+  return blm48Rpc('set_campaign_banner_photo', { p_campaign_id: Number(campaignId), p_url: url });
+}
+// Admin (admin_campaigns.html / admin_campaign.html) - ทุกตัวเช็ค is_admin_or_ceo ฝั่งเซิร์ฟเวอร์
+function blm48AdminListMemberCampaigns(adminUsername) {
+  return blm48Rpc('admin_list_member_campaigns', { p_admin_username: adminUsername });
+}
+function blm48AdminGetMemberCampaign(adminUsername, campaignId) {
+  return blm48Rpc('admin_get_member_campaign', { p_admin_username: adminUsername, p_campaign_id: campaignId });
+}
+// url ว่าง/null = ลบรูปปก (กลับไปใช้รูปโปรไฟล์เมมเบอร์)
+function blm48AdminSetCampaignCover(adminUsername, campaignId, url) {
+  return blm48Rpc('admin_set_campaign_cover', { p_admin_username: adminUsername, p_campaign_id: campaignId, p_url: url || null });
+}
+// ซ่อนบัญชีจาก Top Supporters ทุก Campaign (คุกกี้ยังนับยอด, คืนคุกกี้ตามปกติ)
+function blm48AdminSetCampaignHiddenSupporter(adminUsername, username, hidden) {
+  return blm48Rpc('admin_set_campaign_hidden_supporter', { p_admin_username: adminUsername, p_username: username, p_hidden: !!hidden });
+}
+function blm48AdminListCampaignHiddenSupporters(adminUsername) {
+  return blm48Rpc('admin_list_campaign_hidden_supporters', { p_admin_username: adminUsername });
+}
+function blm48AdminDeleteMemberCampaign(adminUsername, campaignId) {
+  return blm48Rpc('admin_delete_member_campaign', { p_admin_username: adminUsername, p_campaign_id: campaignId });
+}
 
 // Members directory / headline count
 function blm48GetAllMembers() {
@@ -743,6 +784,13 @@ function blm48UserSetPin(username, pin, page, device) {
 function blm48UserVerifyPin(username, pin, page, device) {
   return blm48Rpc('user_verify_pin', { p_username: username, p_pin: pin, p_page: page, p_device: device });
 }
+// Change PIN (ต้องใส่ PIN เดิม) / Forgot PIN (ยืนยันด้วยรหัสผ่านที่ใช้ล็อกอิน; newPin = null คือเช็กรหัสผ่านอย่างเดียว)
+function blm48UserChangePin(username, oldPin, newPin, device) {
+  return blm48Rpc('user_change_pin', { p_username: username, p_old_pin: oldPin, p_new_pin: newPin, p_device: device });
+}
+function blm48UserResetPin(username, password, newPin, device) {
+  return blm48Rpc('user_reset_pin', { p_username: username, p_password: password, p_new_pin: newPin, p_device: device });
+}
 function blm48AdminListPageAccessLogs(adminUsername, page, limit) {
   return blm48Rpc('admin_list_page_access_logs', { p_admin_username: adminUsername, p_page: page || null, p_limit: limit || 200 });
 }
@@ -786,6 +834,23 @@ function blm48AdminUpdateVoteEventDetails(adminUsername, collectionId, ev) {
     p_admin_username: adminUsername, p_collection_id: collectionId, p_title: ev.title, p_description: ev.description,
     p_start_time: ev.startTime, p_end_time: ev.endTime, p_enable_gift: !!ev.enableGift
   });
+}
+// ลบกิจกรรมโหวต (ต้องใส่ PIN แอดมินซ้ำ) - ประวัติโหวต/Token ของผู้ใช้ยังเก็บไว้, ลบไม่ได้ถ้ายังมี Token รอคืน
+function blm48AdminDeleteVoteEvent(adminUsername, collectionId, pin, device) {
+  return blm48Rpc('admin_delete_vote_event', { p_admin_username: adminUsername, p_collection_id: collectionId, p_pin: pin, p_device: device || null });
+}
+// จัดการรายการของขวัญ (admin_gifts.html) - giftId = null คือสร้างใหม่, ลบได้เฉพาะชิ้นที่ยังไม่เคยมีใครซื้อ/ส่ง
+function blm48AdminListGifts(adminUsername) {
+  return blm48Rpc('admin_list_gifts', { p_admin_username: adminUsername });
+}
+function blm48AdminSaveGift(adminUsername, giftId, g) {
+  return blm48Rpc('admin_save_gift', {
+    p_admin_username: adminUsername, p_gift_id: giftId || null, p_gift_name: g.giftName, p_tier: g.tier,
+    p_cost_cookies: g.costCookies, p_points: g.points, p_image_url: g.imageUrl || null, p_active: g.active !== false
+  });
+}
+function blm48AdminDeleteGift(adminUsername, giftId) {
+  return blm48Rpc('admin_delete_gift', { p_admin_username: adminUsername, p_gift_id: giftId });
 }
 function blm48AdminAddVoteCandidates(adminUsername, collectionId, candidates) {
   return blm48Rpc('admin_add_vote_candidates', { p_admin_username: adminUsername, p_collection_id: collectionId, p_candidates: candidates });

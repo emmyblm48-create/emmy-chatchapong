@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Event Detail</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="blm48Back('theaters')" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">Event Detail</div>
+</div>
+
+<div class="page-wrapper" id="detail">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<script>
+  const eventId = new URLSearchParams(location.search).get('id');
+
+  function perks(e) {
+    const p = theaterPlatform(e.platform);
+    const hasRewards = (e.zones || []).some(z => (z.rewards || []).length);
+    return `
+      <div class="th-detail-block">
+        <div class="section-heading">With this ticket you get</div>
+        <div class="th-perks">
+          <div class="th-perk"><i class="${p.icon}"></i><div><b>${escapeHtml(p.watch)}</b><br>ลิงก์รับชม${e.platform === 'roblox' ? 'เซิร์ฟเวอร์ Roblox' : e.platform === 'youtube' ? 'ไลฟ์ YouTube' : ''}เฉพาะผู้ถือบัตร เปิดให้ในหน้า Booking Detail เมื่อได้ที่นั่งแล้ว</div></div>
+          <div class="th-perk"><i class="fa-solid fa-qrcode"></i><div><b>Digital Ticket + Seat No.</b><br>บัตรพร้อม QR Code และเลขที่นั่งตามจำนวนที่จอง</div></div>
+          ${hasRewards ? `<div class="th-perk"><i class="fas fa-gift"></i><div><b>Ticket Rewards</b><br>ของรางวัลประจำโซน (ดูด้านล่าง) กด Redeem เข้า Inventory ได้เมื่อได้ที่นั่งแล้ว</div></div>` : ''}
+          <div class="th-perk"><i class="fa-solid fa-ticket-simple"></i><div><b>Ticket Stub</b><br>ต้นขั้วบัตรที่ระลึกพร้อมเลขที่นั่ง เก็บไว้ใน Inventory</div></div>
+        </div>
+      </div>`;
+  }
+
+  function zonesBlock(e) {
+    if (!(e.zones || []).length) return '';
+    return `
+      <div class="th-detail-block">
+        <div class="section-heading">Zones &amp; Price</div>
+        ${e.zones.map(z => `
+          <div style="padding:8px 0;">
+            <div class="th-kv"><span>${escapeHtml(z.name)}</span><span>${Number(z.price) > 0 ? `<i class="fas fa-coins"></i> ${Number(z.price).toLocaleString()} Tokens` : 'Included'}</span></div>
+            ${z.note ? `<div class="th-zone-note">${escapeHtml(z.note)}</div>` : ''}
+            ${(z.rewards || []).length ? `<div class="th-rewards">${theaterRewardsHtml(z.rewards)}</div>` : ''}
+          </div>`).join('')}
+      </div>`;
+  }
+
+  function render(e) {
+    document.title = 'BLM48 Membership | ' + e.title;
+    const p = theaterPlatform(e.platform);
+    const open = (e.rounds || []).filter(r => r.state === 'open');
+    const booked = !!e.myBookingId;
+    const roundsHtml = (e.status === 'cancelled' || e.isPast) ? '' : open.map(r => {
+      const soldOut = (e.zones || []).every(z => Number(z.left) <= 0);
+      const disabled = booked || soldOut;
+      return `
+        <div class="th-round">
+          <div class="th-round-info">
+            <div class="th-round-name">${theaterRoundName(r.kind)}</div>
+            <div class="th-round-date">Start Date : ${theaterDateTime(r.openAt)}<br>End Date : ${theaterDateTime(r.closeAt)}</div>
+            ${soldOut ? '<div class="th-round-date is-soldout">Sold Out</div>' : ''}
+          </div>
+          <button type="button" class="btn-yellow" ${disabled ? 'disabled' : ''} onclick="location.href='theater_zone?event=${e.id}&round=${r.id}'">Book</button>
+        </div>`;
+    }).join('');
+
+    let notice = '';
+    if (e.status === 'cancelled') notice = `<div class="th-notice">การแสดงนี้ถูกยกเลิกแล้ว${e.cancelReason ? ' (' + escapeHtml(e.cancelReason) + ')' : ''} ผู้ที่จองได้รับ Token คืนเต็มจำนวน</div>`;
+    else if (booked) notice = `<div class="th-notice">You have already made a booking for this event.<br><a href="theater_booking?id=${e.myBookingId}">View booking</a></div>`;
+    else if (!open.length) {
+      const s = theaterSaleState(e);
+      notice = `<div class="th-notice" style="color:#555">${escapeHtml(s.text)}</div>`;
+    }
+
+    document.getElementById('detail').innerHTML = `
+      <div class="th-hero">
+        ${e.coverUrl ? `<div class="th-hero-bg" style="background-image:url('${escapeHtml(e.coverUrl)}')"></div><img src="${escapeHtml(e.coverUrl)}" alt="">`
+                     : '<div class="th-hero-empty"><i class="fa-solid fa-masks-theater"></i></div>'}
+        <div class="th-flag"><i class="fa-solid fa-music"></i>BLM<br>48</div>
+      </div>
+      <div class="th-detail-block">
+        <div class="th-detail-title">${escapeHtml(e.title)}</div>
+        <div class="th-meta"><i class="fa-regular fa-calendar"></i>${theaterDate(e.eventDate)}</div>
+        ${e.startTime ? `<div class="th-meta"><i class="fa-regular fa-clock"></i>${theaterTimeRange(e)}</div>` : ''}
+        <div class="th-meta"><i class="${p.icon}" style="color:${p.color}"></i>${escapeHtml(theaterVenue(e))}</div>
+        ${(e.members || []).length ? `<a class="th-link th-members-link" href="theater_members?id=${e.id}"><i class="fa-regular fa-id-badge"></i>${e.members.length} Members on this stage</a>` : ''}
+      </div>
+      ${notice}
+      ${roundsHtml}
+      <div class="th-detail-block">
+        <div class="section-heading"><i class="fa-regular fa-calendar-check"></i> Booking Schedule</div>
+        ${(e.rounds || []).map(r => `
+          <div class="th-schedule-row"><div class="k">${theaterRoundName(r.kind)}</div>
+          <div class="v">${theaterDateTime(r.openAt)} - ${theaterDateTime(r.closeAt)}</div></div>`).join('')}
+        <div class="th-zone-note" style="margin-top:8px;">Normal round: ระบบสุ่มที่นั่งหลังปิดรอบขาย · Express round: ได้ที่นั่งทันทีหลังชำระ · จำกัด ${e.maxPerUser} ที่นั่งต่อ 1 บัญชี · ชำระด้วย Token เท่านั้น</div>
+      </div>
+      ${perks(e)}
+      ${zonesBlock(e)}
+      ${e.description ? `<div class="th-detail-block"><div class="section-heading">Description</div><div class="th-desc">${escapeHtml(e.description)}</div></div>` : ''}
+      <div style="height:30px"></div>`;
+  }
+
+  async function load() {
+    const user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetTheaterEvent(user.username, Number(eventId));
+    if (!res || res.status !== 'success') {
+      document.getElementById('detail').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    render(res.event);
+  }
+  window.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('pageshow', e => { if (e.persisted) load(); });
+</script>
+</body>
+</html>

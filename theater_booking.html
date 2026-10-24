@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Booking Detail</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" onclick="blm48Back('theater_bookings')" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title">Booking Detail</div>
+</div>
+
+<div class="page-wrapper" id="detail">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<script>
+  const bookingId = new URLSearchParams(location.search).get('id');
+  let user = null, booking = null, redeeming = false;
+
+  function copyNo() {
+    const done = () => {
+      const el = document.getElementById('copy-btn');
+      if (el) { el.textContent = 'Copied'; setTimeout(() => { el.textContent = 'Copy'; }, 1500); }
+    };
+    if (navigator.clipboard) navigator.clipboard.writeText(booking.bookingNo).then(done).catch(() => {});
+  }
+
+  function statusLine(b) {
+    if (b.status === 'cancelled') return `<span class="status-cancel"><i class="fa-solid fa-circle-xmark"></i>Cancelled${b.cancelReason ? ' · ' + escapeHtml(b.cancelReason) : ''} · ${Number(b.total).toLocaleString()} Tokens refunded</span>`;
+    return `<span class="status-paid"><i class="fa-solid fa-circle-check"></i>${b.source === 'holder' ? 'Included with Concert merchandise' : 'Paid'}</span>`;
+  }
+
+  function watchBlock(b) {
+    if (!b.ticketIssued) return '';
+    const p = theaterPlatform(b.event.platform);
+    if (!b.watchUrl && !b.watchNote) {
+      return `<div class="section"><div class="section-heading">How to watch</div>
+        <div class="th-zone-note">ยังไม่มีลิงก์รับชม (${escapeHtml(p.label)}) ผู้จัดจะเพิ่มให้ที่หน้านี้ กลับมาดูอีกครั้งนะคะ</div></div>`;
+    }
+    const safeUrl = /^https?:\/\//i.test(b.watchUrl || '') ? b.watchUrl : '';
+    return `<div class="section"><div class="section-heading">How to watch</div>
+      ${safeUrl ? `<a class="th-watch" href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener">
+        <i class="${p.icon}" style="color:${p.color}"></i>
+        <div class="th-watch-text"><div class="th-watch-title">${escapeHtml(p.watch)}</div>
+        <div class="th-watch-sub">เฉพาะผู้ถือบัตร · ${theaterDate(b.event.eventDate)} ${theaterTimeRange(b.event)}</div></div>
+        <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+      ${b.watchNote ? `<div class="th-desc" style="margin-top:10px">${escapeHtml(b.watchNote)}</div>` : ''}
+    </div>`;
+  }
+
+  function rewardsBlock(b) {
+    if (b.status === 'cancelled') return '';
+    const items = theaterRewardsHtml(b.rewards);
+    const stub = `<span class="th-reward"><i class="fa-solid fa-ticket-simple" style="color:#f0a73a"></i>Ticket Stub x${b.quantity}</span>`;
+    let action;
+    if (b.rewardsRedeemedAt) action = `<div class="th-zone-note status-paid" style="margin-top:10px"><i class="fa-solid fa-circle-check"></i> Redeemed · ดูได้ที่ <a href="inventory">Inventory</a></div>`;
+    else if (b.ticketIssued) action = `<button type="button" class="btn-yellow is-block" id="btn-redeem" style="margin-top:12px" onclick="redeem()">Redeem to Inventory</button>`;
+    else action = `<div class="th-zone-note" style="margin-top:10px">Redeem ได้หลังระบบสุ่มที่นั่งเสร็จ</div>`;
+    return `<div class="section"><div class="section-heading">Ticket Rewards</div>
+      <div class="th-rewards">${items}${stub}</div>${action}
+      <div class="inline-error" id="redeem-error" style="margin:12px 0 0"></div></div>`;
+  }
+
+  function render() {
+    const b = booking;
+    let footer = '';
+    if (b.status === 'paid' && b.ticketIssued) {
+      footer = `<div style="padding:16px 12px"><a class="btn-yellow is-block" href="theater_ticket?id=${b.id}" style="text-decoration:none"><i class="fa-solid fa-ticket"></i> Show Ticket</a></div>`;
+    } else if (b.status === 'paid') {
+      footer = `<div class="th-wait-msg">Please wait for random seat assignment.<br>Ticket will be available for viewing on ${theaterDateTime(b.seatDrawAt)}.</div>`;
+    }
+    document.getElementById('detail').innerHTML = `
+      ${theaterEventHead(b.event, { extra: `<a class="th-link" style="font-size:14px;display:inline-block;margin-top:8px" href="theater_event?id=${b.event.id}">View details</a>` })}
+      <div class="th-booking-meta">
+        <div>Round: ${b.roundKind === 'express' ? 'Express' : 'Normal'}</div>
+        <div>Zone: ${escapeHtml(b.zoneName)}</div>
+      </div>
+      <div class="th-status">${statusLine(b)}</div>
+      <div class="section" style="border-top:1px solid var(--order-line)">
+        <div class="section-heading">Summary</div>
+        <div class="th-kv"><span class="k">${b.quantity} seat${b.quantity > 1 ? 's' : ''}</span><span class="v" style="color:var(--order-accent)">${b.source === 'holder' ? 'Included' : Number(b.total).toLocaleString() + ' Tokens'}</span></div>
+        ${b.ticketIssued ? `<div class="th-kv"><span class="k">Seat No.</span><span class="v">${b.tickets.map(t => escapeHtml(t.seat)).join(', ')}</span></div>` : ''}
+      </div>
+      <div class="section">
+        <div class="section-heading">Payment Method</div>
+        ${b.source === 'holder'
+          ? '<div class="th-kv"><span><i class="fas fa-box-open" style="color:#f0a73a"></i> Included with your Concert merchandise purchase</span></div>'
+          : '<div class="th-kv"><span><i class="fas fa-coins"></i> Token Wallet</span></div>'}
+      </div>
+      ${watchBlock(b)}
+      ${rewardsBlock(b)}
+      <div class="section">
+        <div class="th-kv"><span class="k">Booking No.</span><span class="v">${escapeHtml(b.bookingNo)}<button type="button" class="th-copy" id="copy-btn" onclick="copyNo()">Copy</button></span></div>
+        <div class="th-kv"><span class="k">Created At</span><span class="v">${theaterDateTime(b.createdAt)}</span></div>
+        <div class="th-kv"><span class="k">Payment Time</span><span class="v">${theaterDateTime(b.createdAt)}</span></div>
+      </div>
+      ${footer}`;
+  }
+
+  async function redeem() {
+    if (redeeming) return;
+    redeeming = true;
+    const btn = document.getElementById('btn-redeem');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing';
+    const res = await blm48RedeemTheaterRewards(user.username, Number(bookingId));
+    redeeming = false;
+    if (res && res.status === 'success') {
+      if (res.wallet) { Object.assign(user, { token: res.wallet.token, cookie: res.wallet.cookie, ge_token: res.wallet.geToken }); saveUserSession(user); }
+      await load();
+      return;
+    }
+    btn.disabled = false;
+    btn.textContent = 'Redeem to Inventory';
+    const err = document.getElementById('redeem-error');
+    err.textContent = (res && res.message) || 'ทำรายการไม่สำเร็จค่ะ';
+    err.style.display = 'block';
+  }
+
+  async function load() {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const res = await blm48GetTheaterBooking(user.username, Number(bookingId));
+    if (!res || res.status !== 'success') {
+      document.getElementById('detail').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    booking = res.booking;
+    render();
+  }
+  window.addEventListener('DOMContentLoaded', load);
+  window.addEventListener('pageshow', e => { if (e.persisted) load(); });
+</script>
+</body>
+</html>

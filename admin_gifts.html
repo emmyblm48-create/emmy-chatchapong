@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Gifts</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/member-gift-stickers.js"></script>
+    <script src="assets/js/admin-gift-form.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
+        #page-content { display: none; }
+        .empty-state, .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 40px 20px; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+        .filter-tab { flex: 1; border-radius: 20px; padding: 9px 6px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+        /* แถวของขวัญ -> กดแล้วไปหน้าแก้ไข */
+        a.g-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; }
+        .g-img { width: 56px; height: 56px; flex: 0 0 56px; display: flex; align-items: center; justify-content: center; }
+        .g-info { flex: 1; min-width: 0; }
+        .g-name { font-weight: 700; font-size: 15px; color: #333; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .g-sub { font-size: 12.5px; color: #767676; margin-top: 3px; }
+        .g-id { font-size: 11px; color: #767676; }
+        .pill-off { font-size: 11px; font-weight: 700; background: #f1f1f1; color: #666; padding: 2px 8px; border-radius: 20px; }
+        .g-arrow { color: #ccc; }
+
+        /* ปุ่มลอย + มุมขวาล่าง -> หน้าเพิ่มของขวัญ (แบบหน้า Vote Events) */
+        .fab-create {
+            position: fixed; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom)); z-index: 200;
+            width: 58px; height: 58px; border-radius: 50%;
+            background: #ffc107; color: #222; font-size: 24px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); transition: transform 0.15s;
+        }
+        .fab-create:active { transform: scale(0.94); }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="blm48Back('admin')" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">Gifts</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div class="tabs" id="tabs"></div>
+        <div id="gift-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+        <a class="fab-create" id="fab-create" href="admin_gift_create" aria-label="Add Gift" title="Add Gift"><i class="fas fa-plus"></i></a>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let gifts = [];
+  const TIERS = window.BLM48_GIFT_TIERS;
+  let activeTier = new URLSearchParams(location.search).get('tier') || 'Normal';
+  if (!TIERS.some(t => t.key === activeTier)) activeTier = 'Normal';
+
+  function fmt(n) { return Number(n || 0).toLocaleString(); }
+
+  async function loadGifts() {
+    const list = document.getElementById('gift-list');
+    try {
+      const res = await blm48AdminListGifts(user.username);
+      if (!res || res.status !== 'success') { list.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
+      gifts = res.data || [];
+      render();
+    } catch (e) {
+      list.innerHTML = '<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>';
+    }
+  }
+
+  function render() {
+    document.getElementById('tabs').innerHTML = TIERS.map(t => {
+      const n = gifts.filter(g => g.tier === t.key).length;
+      return `<button type="button" class="filter-tab ${activeTier === t.key ? 'active' : ''}" onclick="setTier('${t.key}')">${t.label} (${n})</button>`;
+    }).join('');
+    // ปุ่ม + เปิดหน้าเพิ่มของขวัญโดยเลือกหมวดของแท็บนี้ไว้ให้
+    document.getElementById('fab-create').href = 'admin_gift_create?tier=' + encodeURIComponent(activeTier);
+    const rows = gifts.filter(g => g.tier === activeTier);
+    document.getElementById('gift-list').innerHTML = rows.length ? rows.map(g => `
+      <a class="g-row" href="admin_gift_edit?id=${encodeURIComponent(g.giftId)}">
+        <div class="g-img">${blm48AdminGiftImg(g.giftId, g.imageUrl, 56)}</div>
+        <div class="g-info">
+          <div class="g-name">${escapeHtml(g.giftName || g.giftId)} ${g.active ? '' : '<span class="pill-off">ปิดขาย</span>'}</div>
+          <div class="g-sub">${fmt(g.costCookies)} Cookie · +${fmt(g.points)} คะแนน · ส่งแล้ว ${fmt(g.sentQty)}</div>
+          <div class="g-id">${escapeHtml(g.giftId)}</div>
+        </div>
+        <i class="fas fa-chevron-right g-arrow"></i>
+      </a>`).join('') : '<div class="empty-state">ยังไม่มีของขวัญในหมวดนี้ · กด + เพื่อเพิ่ม</div>';
+  }
+
+  function setTier(t) {
+    activeTier = t;
+    history.replaceState(history.state, '','admin_gifts?tier=' + encodeURIComponent(t)); // กลับมาจากหน้าแก้ไขแล้วอยู่แท็บเดิม
+    render();
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    loadGifts();
+  });
+</script>
+</body>
+</html>

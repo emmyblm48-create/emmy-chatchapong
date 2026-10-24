@@ -94,7 +94,8 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
   // property นี้ก็ไม่เป็นไร ยังมี contextmenu preventDefault ด้านบนช่วยกันซ้ำอีกชั้น)
   // pointer-events: none คือตัวที่กันเมนู "ดาวน์โหลดรูปภาพ" ของ Android Chrome ตอนกดค้างได้จริง (Android ไม่สนใจ
   // -webkit-touch-callout และบางรุ่นก็ไม่ยิง contextmenu event ให้ preventDefault ทัน) - ทำให้รูปไม่รับอีเวนต์การกด
-  // เลยแทน ยกเว้นรูปที่มี onclick ของตัวเอง (เช่น รูปโพสต์ที่กดเพื่อเปิดดูเต็มจอ) ที่ยังต้องคลิกได้ปกติ
+  // เลยแทน ยกเว้นรูปที่มี onclick ของตัวเอง (เช่น รูปโพสต์ที่กดเพื่อเปิดดูเต็มจอ) และรูปโปรไฟล์ที่กดเปิดโปรไฟล์ได้
+  // (data-fan / data-member เช่น รูปคนคอมเมนต์) ที่ยังต้องคลิกได้ปกติ
   const style = document.createElement('style');
   style.textContent = `
     img {
@@ -102,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
       -webkit-user-select: none;
       user-select: none;
     }
-    img:not([onclick]) {
+    img:not([onclick]):not([data-fan]):not([data-member]) {
       pointer-events: none;
     }
   `;
@@ -374,7 +375,7 @@ function escapeAttr(text) {
 // =========================================================================
 // 🖼️ แกลเลอรี่รูปในโพสต์ (ใช้ร่วมกัน index / member / fanpost / postdetail ผ่าน buildImagesHtml ของแต่ละหน้า)
 // แบบแอป iAM48: มุมเหลี่ยม ช่องห่าง 4px
-//   2 รูป = คู่สี่เหลี่ยมจัตุรัส | 3 รูป = รูปใหญ่ซ้าย + 2 รูปซ้อนขวา | 4 รูป = 2x2 | มากกว่า 4 = 2x2 + "+N" ที่ช่องสุดท้าย
+//   1 รูป = จัตุรัสเต็มความกว้าง | 2 รูป = คู่สี่เหลี่ยมจัตุรัส | 3 รูป = รูปใหญ่ซ้าย + 2 รูปซ้อนขวา | 4 รูป = 2x2 | มากกว่า 4 = 2x2 + "+N" ที่ช่องสุดท้าย
 // =========================================================================
 function buildPostImagesHtml(displayImage) {
   if (!displayImage) return '';
@@ -382,13 +383,14 @@ function buildPostImagesHtml(displayImage) {
   if (!urls.length) return '';
 
   const allJs = urls.map(u => `'${escapeAttr(u)}'`).join(',');
-  const imgTag = (i, extra) => `<img src="${escapeHtml(urls[i])}" onclick="openImageViewer(${i}, [${allJs}])" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; border-radius: 0;${extra || ''}">`;
-  const cell = (i, style, inner) => `<div style="position: relative; overflow: hidden; background: #f1f3f5; ${style || ''}">${inner || imgTag(i)}</div>`;
+  // รูปวางแบบ absolute เต็มช่อง → ขนาดจริงของรูป (เช่นรูปแนวตั้งยาว ๆ) ไม่ดันช่อง/กริดให้ยืด ขนาดล็อกตามเลย์เอาต์เสมอ
+  const imgTag = (i, extra) => `<img src="${escapeHtml(urls[i])}" onclick="openImageViewer(${i}, [${allJs}])" loading="lazy" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; border-radius: 0;${extra || ''}">`;
+  const cell = (i, style, inner) => `<div style="position: relative; overflow: hidden; min-width: 0; min-height: 0; background: #f1f3f5; ${style || ''}">${inner || imgTag(i)}</div>`;
 
   if (urls.length === 1) {
     return `
-      <div class="post-gallery-single" style="margin-top: 10px; width: 100%;">
-        <img src="${escapeHtml(urls[0])}" onclick="openImageViewer(0, [${allJs}])" style="width: 100%; max-height: 450px; object-fit: cover; border-radius: 0; cursor: pointer; display: block; margin: 0 auto;">
+      <div class="post-gallery-single" style="position: relative; overflow: hidden; margin-top: 10px; width: 100%; aspect-ratio: 1 / 1; background: #f1f3f5;">
+        ${imgTag(0)}
       </div>
     `;
   }
@@ -406,7 +408,7 @@ function buildPostImagesHtml(displayImage) {
       cell(0, 'grid-row: 1 / span 2;') +
       cell(1, 'aspect-ratio: 1 / 1;') +
       cell(2, 'aspect-ratio: 1 / 1;'),
-      'grid-template-rows: auto auto;');
+      'grid-template-rows: 1fr 1fr;');
   }
 
   // 4 รูปขึ้นไป: 2x2 ช่องสุดท้ายมีป้าย +N ถ้ามีรูปเกิน

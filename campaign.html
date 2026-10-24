@@ -43,9 +43,35 @@
         .sheet-option:active { background: rgba(0,0,0,.06); }
         .sheet-cancel { display: block; width: 100%; margin-top: 8px; border: none; background: #fff; border-radius: 14px; font-family: inherit; font-size: 20px; font-weight: 700; color: #111; padding: 17px 12px; cursor: pointer; }
         .sheet-cancel:active { background: #f0f0f0; }
-        .toolbar-note { font-size: 12px; color: #999; }
+        .filter-btn { border: none; background: none; font-family: inherit; color: #222; padding: 4px 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .filter-btn i { font-size: 19px; }
+        .filter-count { display: none; background: #222; color: #fff; border-radius: 999px; font-size: 12.5px; font-weight: 600; padding: 3px 10px; white-space: nowrap; }
+        .filter-btn.active .filter-count { display: inline-block; }
+        /* Choose Member (เต็มจอ) */
+        .picker { position: fixed; inset: 0; z-index: 1100; background: #fff; display: flex; flex-direction: column; transform: translateY(100%); transition: transform .25s ease; visibility: hidden; }
+        .picker.open { transform: translateY(0); visibility: visible; }
+        .picker-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: calc(12px + env(safe-area-inset-top)) 12px 12px; border-bottom: 1px solid #e5e5e5; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+        .picker-head button { border: none; background: none; font-family: inherit; font-size: 16px; color: #222; cursor: pointer; padding: 6px 4px; }
+        .picker-head .done { font-weight: 600; justify-self: start; }
+        .picker-head .clear { justify-self: end; }
+        .picker-title { font-weight: 600; font-size: 17px; color: #222; }
+        .picker-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .picker-inner { max-width: 640px; margin: 0 auto; padding: 0 12px 30px; }
+        .picker-search { width: 100%; border: none; border-bottom: 1px solid #e5e5e5; padding: 18px 0 14px; font-family: inherit; font-size: 16px; color: #222; outline: none; background: transparent; }
+        .pm-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid #efefef; cursor: pointer; user-select: none; }
+        .pm-avatar { position: relative; width: 54px; height: 54px; flex-shrink: 0; }
+        .pm-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #ffde5b; background: #f4f4f4; display: block; }
+        /* ป้ายสีเดียวกับ .kami-days-badge (member.html) / .my-kami-days (search.html) */
+        .pm-kami { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 3px; background: linear-gradient(135deg, #ffe08a, #ffc107); color: #6b4a00; font-size: 9px; font-weight: bold; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px; box-shadow: 0 2px 5px rgba(0,0,0,0.08); white-space: nowrap; }
+        .pm-kami i { font-size: 8px; }
+        .pm-info { flex: 1; min-width: 0; }
+        .pm-name { font-weight: 700; font-size: 15px; color: #222; text-transform: uppercase; letter-spacing: .2px; }
+        .pm-full { font-size: 13.5px; color: #666; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pm-check { width: 22px; height: 22px; border: 2px solid #f5b041; border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
+        .pm-row.on .pm-check { background: #f5b041; }
+        .pm-row:not(.on) .pm-check i { display: none; }
         #campaign-list { display: flex; flex-direction: column; gap: 6px; }
-        .empty-state { text-align: center; color: #999; padding: 50px 20px; font-size: 14px; }
+        .empty-state { text-align: center; color: #767676; padding: 50px 20px; font-size: 14px; }
         .empty-state i { display: block; font-size: 34px; margin-bottom: 10px; color: #ffc9d6; }
     </style>
   <!-- 🎉 ธีมเทศกาล (เปิด/ปิดเองตามวันที่ ดูรายการเทศกาลใน assets/js/festivals.js) -->
@@ -63,7 +89,7 @@
 <div class="page-wrapper">
     <div class="toolbar">
         <button type="button" class="sort-btn" onclick="openSortSheet()"><span id="sort-label">Newest</span><i class="fa-solid fa-chevron-down"></i></button>
-        <span class="toolbar-note"><i class="fa-solid fa-trophy" style="color:#fcc419;"></i> Champ of the Month</span>
+        <button type="button" id="filter-btn" class="filter-btn" onclick="openMemberPicker()" aria-label="Filter members"><span class="filter-count" id="filter-label"></span><i class="fa-solid fa-sliders"></i></button>
     </div>
     <div id="campaign-list">
         <div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>
@@ -74,6 +100,20 @@
     <div class="sheet">
         <div class="sheet-group" id="sort-options"></div>
         <button type="button" class="sheet-cancel" onclick="closeSortSheet()">Cancel</button>
+    </div>
+</div>
+
+<div id="member-picker" class="picker" aria-hidden="true">
+    <div class="picker-head">
+        <button type="button" class="done" onclick="applyMemberPicker()">Done</button>
+        <div class="picker-title">Choose Member</div>
+        <button type="button" class="clear" onclick="clearMemberPicker()">Clear All</button>
+    </div>
+    <div class="picker-body">
+        <div class="picker-inner">
+            <input id="picker-search" class="picker-search" type="search" placeholder="Search BLM48 Members" oninput="renderMemberPicker()" autocomplete="off">
+            <div id="picker-list"></div>
+        </div>
     </div>
 </div>
 
@@ -118,9 +158,12 @@
       return;
     }
     // ตัวเลือกอื่นใช้รายการ active (ซึ่งมีที่เพิ่งจบ 7 วันติดมาด้วย -> กรองออก)
-    const pool = sort === 'ended' ? endedCampaigns.slice() : campaigns.filter(c => !isCampaignEnded(c));
+    const pool = (sort === 'ended' ? endedCampaigns.slice() : campaigns.filter(c => !isCampaignEnded(c)))
+      .filter(c => !selectedMembers.size || selectedMembers.has(String(c.memberName || '').toLowerCase()));
     if (pool.length === 0) {
-      list.innerHTML = sort === 'ended'
+      list.innerHTML = selectedMembers.size
+        ? `<div class="empty-state"><i class="fa-solid fa-filter"></i>ไม่มี Campaign ของเมมเบอร์ที่เลือก<br><button type="button" onclick="setMemberFilter([])" style="margin-top:14px; border:none; border-radius:20px; padding:8px 20px; background:#ffd43b; font-family:inherit; font-weight:600; cursor:pointer;">แสดงทั้งหมด</button></div>`
+        : sort === 'ended'
         ? `<div class="empty-state"><i class="fa-solid fa-flag-checkered"></i>ยังไม่มี Campaign ที่จบแล้ว</div>`
         : `<div class="empty-state"><i class="fa-solid fa-trophy"></i>ยังไม่มี Campaign ที่เปิดอยู่ในขณะนี้</div>`;
       return;
@@ -134,6 +177,87 @@
       return new Date(b.startedAt) - new Date(a.startedAt);
     });
     list.innerHTML = sorted.map(c => renderMemberCampaignCard(c, { full: true })).join('');
+  }
+
+  // 🔎 ฟิลเตอร์เมมเบอร์: เลือกได้หลายคน (ชื่อตัวเล็ก) จำไว้ในเครื่องผู้ใช้
+  const FILTER_KEY = 'bnl_campaign_member_filter';
+  let selectedMembers = new Set();
+  let pickerDraft = new Set();
+  let pickerMembers = null;
+  let myKamiName = '';
+  try { selectedMembers = new Set(JSON.parse(localStorage.getItem(FILTER_KEY) || '[]').map(s => String(s).toLowerCase())); } catch (e) {}
+
+  function setMemberFilter(names) {
+    selectedMembers = new Set(names);
+    try { localStorage.setItem(FILTER_KEY, JSON.stringify([...selectedMembers])); } catch (e) {}
+    updateFilterButton();
+    renderList();
+  }
+  function updateFilterButton() {
+    const n = selectedMembers.size;
+    document.getElementById('filter-btn').classList.toggle('active', n > 0);
+    document.getElementById('filter-label').textContent = n ? `${n} Filters` : '';
+  }
+
+  async function openMemberPicker() {
+    pickerDraft = new Set(selectedMembers);
+    document.getElementById('picker-search').value = '';
+    const picker = document.getElementById('member-picker');
+    picker.classList.add('open');
+    picker.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    if (!pickerMembers) {
+      document.getElementById('picker-list').innerHTML = `<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>`;
+      const me = getUserSession();
+      if (me && me.kamioshi) myKamiName = String(me.kamioshi).trim();
+      const [res] = await Promise.all([
+        campaignFetchWithRetry(() => blm48GetAllMembers()),
+        me && me.username ? blm48GetUserInfo(me.username).then(r => {
+          if (r && r.status === 'success' && r.data) myKamiName = r.data.kamioshi ? String(r.data.kamioshi).trim() : '';
+        }).catch(() => {}) : null
+      ]);
+      const data = res && Array.isArray(res.data) ? res.data : null;
+      if (!data) {
+        document.getElementById('picker-list').innerHTML = `<div class="empty-state">${escapeHtml('โหลดรายชื่อเมมเบอร์ไม่ได้')}</div>`;
+        return;
+      }
+      const kami = myKamiName.toLowerCase();
+      pickerMembers = data
+        .filter(m => String(m.status || '').toLowerCase() !== 'graduated')
+        .map(m => ({ name: m.name, full: m['Full Name(EN)'] || m.full_name || '', img: m.profile || '', group: m.group_name, kami: !!kami && String(m.name).toLowerCase() === kami }))
+        .sort((a, b) => (b.kami - a.kami) || a.name.localeCompare(b.name));
+    }
+    renderMemberPicker();
+  }
+  function renderMemberPicker() {
+    if (!pickerMembers) return;
+    const q = document.getElementById('picker-search').value.trim().toLowerCase();
+    const list = pickerMembers.filter(m => !q || m.name.toLowerCase().includes(q) || m.full.toLowerCase().includes(q));
+    document.getElementById('picker-list').innerHTML = list.length ? list.map(m => {
+      const key = m.name.toLowerCase();
+      return `<div class="pm-row ${pickerDraft.has(key) ? 'on' : ''}" data-key="${escapeAttr(key)}" onclick="togglePickerMember(this)" role="checkbox" aria-checked="${pickerDraft.has(key)}">
+        <div class="pm-avatar"><img src="${escapeAttr(m.img || 'assets/images/default-profile.png')}" alt="" loading="lazy" style="border-color:${groupFrameColor(m.group)}" draggable="false" oncontextmenu="return false">${m.kami ? '<span class="pm-kami"><i class="fas fa-crown"></i> Kami-Oshi</span>' : ''}</div>
+        <div class="pm-info"><div class="pm-name">${escapeHtml(m.name)}</div>${m.full ? `<div class="pm-full">${escapeHtml(m.full)}</div>` : ''}</div>
+        <div class="pm-check"><i class="fa-solid fa-check"></i></div>
+      </div>`;
+    }).join('') : `<div class="empty-state">ไม่พบเมมเบอร์</div>`;
+  }
+  function togglePickerMember(row) {
+    const key = row.dataset.key;
+    if (pickerDraft.has(key)) pickerDraft.delete(key); else pickerDraft.add(key);
+    row.classList.toggle('on', pickerDraft.has(key));
+    row.setAttribute('aria-checked', pickerDraft.has(key));
+  }
+  function clearMemberPicker() {
+    pickerDraft.clear();
+    renderMemberPicker();
+  }
+  function applyMemberPicker() {
+    const picker = document.getElementById('member-picker');
+    picker.classList.remove('open');
+    picker.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    setMemberFilter([...pickerDraft]);
   }
 
   // Already Ended ดึงแยกจาก RPC ที่ไม่มีลิมิต 7 วัน (โหลดครั้งแรกตอนเลือกแท็บ)
@@ -162,6 +286,7 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
+    updateFilterButton();
     loadCampaigns();
     // 🔴 Realtime: ยอด Campaign = ยอด Ranking เดือนนี้ -> Ranking ขยับเมื่อไหร่ รีเฟรชรายการทันที
     subscribeCampaignLive(loadCampaigns);

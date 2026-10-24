@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Champ Campaigns</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/campaign.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
+        #page-content { display: none; }
+        .empty-state, .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 40px 20px; }
+
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 14px; }
+        .stat { padding: 12px 6px; text-align: center; }
+        .stat + .stat { border-left: 1px solid #eee; }
+        .stat b { display: block; font-size: 18px; font-weight: 700; color: #222; }
+        .stat span { font-size: 11.5px; color: #767676; }
+
+        .filters { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .filters select, .search { padding: 10px 12px; border: 1px solid #e5e5e5; border-radius: 10px; font-family: inherit; font-size: 14px; background: #fff; color: #333; }
+        .filters select { flex: 1; min-width: 130px; }
+        .search { width: 100%; margin-bottom: 4px; }
+        .tabs { display: flex; gap: 6px; margin: 4px 0 6px; }
+        .tab { border: 1px solid #e5e5e5; background: #fff; border-radius: 20px; padding: 6px 14px; font-family: inherit; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; }
+        .tab.on { background: #222; border-color: #222; color: #fff; }
+
+        .c-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; }
+        .c-row img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #ffde5b; flex-shrink: 0; background: #f4f4f4; }
+        .c-info { flex: 1; min-width: 0; }
+        .c-name { font-weight: 700; font-size: 15px; color: #333; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+        .b-active { background: #e6f7ec; color: #1f7a45; }
+        .b-ended { background: #fff3c4; color: #8a6200; }
+        .b-settled { background: #f1f1f1; color: #555; }
+        .b-bday { background: #ffe3ec; color: #b02a5b; }
+        .c-sub { font-size: 12.5px; color: #767676; margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .c-bar { height: 5px; background: #eee; border-radius: 5px; overflow: hidden; margin-top: 7px; }
+        .c-bar div { height: 100%; background: #fcc419; }
+        .c-arrow { color: #bbb; }
+
+        @media (max-width: 420px) { .stat b { font-size: 15px; } }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="blm48Back('admin')" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">Champ Campaigns</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div class="stats" id="stats"></div>
+        <div class="filters">
+            <select id="month" onchange="renderList()" aria-label="Month"></select>
+        </div>
+        <input id="search" class="search" type="search" placeholder="Search member..." oninput="renderList()">
+        <div class="tabs" id="tabs">
+            <button type="button" class="tab on" data-v="all" onclick="setTab('all')">All</button>
+            <button type="button" class="tab" data-v="active" onclick="setTab('active')">Active</button>
+            <button type="button" class="tab" data-v="ended" onclick="setTab('ended')">Ended</button>
+        </div>
+        <div id="campaign-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let campaigns = [];
+  let tab = 'all';
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function monthText(ym) {
+    const m = String(ym || '').match(/^(\d{4})-(\d{2})$/);
+    return m ? `${MONTHS[parseInt(m[2], 10) - 1]} ${m[1]}` : ym;
+  }
+  function statusOf(c) {
+    if (c.settledAt) return 'settled';
+    return isCampaignEnded(c) ? 'ended' : 'active';
+  }
+  function setTab(v) {
+    tab = v;
+    document.querySelectorAll('#tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    renderList();
+  }
+
+  function renderStats(list) {
+    const sum = (f) => list.reduce((s, c) => s + Number(f(c) || 0), 0);
+    const active = list.filter(c => statusOf(c) === 'active').length;
+    const tierHit = list.filter(c => Number(c.tier) >= 1).length;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><b>${list.length}</b><span>Campaigns</span></div>
+      <div class="stat"><b>${active}</b><span>Active</span></div>
+      <div class="stat"><b>${tierHit}</b><span>Tier 1+</span></div>
+      <div class="stat"><b>${sum(c => c.refundPaid).toLocaleString()}</b><span>Refunded</span></div>`;
+  }
+
+  function renderList() {
+    const ym = document.getElementById('month').value;
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const inMonth = campaigns.filter(c => !ym || c.yearMonth === ym);
+    renderStats(inMonth);
+    const list = inMonth.filter(c => {
+      const st = statusOf(c);
+      if (tab === 'active' && st !== 'active') return false;
+      if (tab === 'ended' && st === 'active') return false;
+      return !q || String(c.memberName).toLowerCase().includes(q);
+    });
+    const box = document.getElementById('campaign-list');
+    if (!list.length) { box.innerHTML = '<div class="empty-state">ไม่มี Campaign</div>'; return; }
+    box.innerHTML = list.map(c => {
+      const st = statusOf(c);
+      const badge = st === 'active' ? '<span class="badge b-active">Active</span>'
+        : st === 'settled' ? '<span class="badge b-settled">Settled</span>' : '<span class="badge b-ended">Ended · waiting refund</span>';
+      const left = campaignTimeLeft(c.endAt);
+      return `
+        <a class="c-row" href="admin_campaign?id=${encodeURIComponent(c.id)}">
+          <img src="${escapeAttr(c.profileImage || 'assets/images/default-profile.png')}" alt="" style="border-color:${groupFrameColor(c.groupName)}" onerror="this.style.visibility='hidden'">
+          <div class="c-info">
+            <div class="c-name">${escapeHtml(campaignMemberLabel(c))} ${badge}${c.isBirthMonth ? '<span class="badge b-bday"><i class="fa-solid fa-cake-candles"></i> Birth month</span>' : ''}</div>
+            <div class="c-sub">
+              <span>${escapeHtml(monthText(c.yearMonth))}</span>
+              <span><i class="fa-solid fa-cookie-bite"></i> ${Number(c.totalCookies || 0).toLocaleString()}</span>
+              <span>Tier ${Number(c.tier) || 0} · ${Number(c.refundPct) || 0}%</span>
+              <span><i class="fa-solid fa-users"></i> ${Number(c.supporters || 0).toLocaleString()}</span>
+              ${st === 'active' ? `<span><i class="fa-solid fa-hourglass-half"></i> ${escapeHtml(left.text)}</span>` : ''}
+              ${c.hasCustomCover ? '' : '<span style="color:#b02a5b"><i class="fa-solid fa-image"></i> No cover</span>'}
+            </div>
+            <div class="c-bar"><div style="width:${Math.min(100, campaignFundedPct(c))}%"></div></div>
+          </div>
+          <i class="fa-solid fa-chevron-right c-arrow"></i>
+        </a>`;
+    }).join('');
+  }
+
+  async function load() {
+    const res = await campaignFetchWithRetry(() => blm48AdminListMemberCampaigns(user.username));
+    const box = document.getElementById('campaign-list');
+    if (!res || res.status !== 'success') { box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดไม่สำเร็จ')}</div>`; return; }
+    campaigns = res.campaigns || [];
+    const sel = document.getElementById('month');
+    const prev = sel.value;
+    const months = [...new Set(campaigns.map(c => c.yearMonth))].sort().reverse();
+    sel.innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${escapeAttr(m)}">${escapeHtml(monthText(m))}</option>`).join('');
+    sel.value = prev && months.includes(prev) ? prev : (months[0] || '');
+    renderList();
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && ['admin','ceo'].includes(user.role.toLowerCase())))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    load();
+  });
+  window.addEventListener('pageshow', e => { if (e.persisted && user) load(); });
+</script>
+</body>
+</html>

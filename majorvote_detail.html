@@ -26,6 +26,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
     <script src="assets/js/common.js"></script>
+    <script src="assets/js/member-gift-stickers.js"></script>
 
     <style>
         :root {
@@ -136,7 +137,16 @@
         .gift-item-cost i { color: #e2a63b; font-size: 13px; }
         .gift-loading, .gift-empty { flex: 0 0 100%; min-height: 290px; display: flex; align-items: center; justify-content: center; text-align: center; color: #999; padding: 30px 24px; font-size: 13.5px; line-height: 1.6; }
         .gift-dots { display: flex; justify-content: center; gap: 10px; padding: 6px 0 12px; flex-shrink: 0; min-height: 26px; }
-        .gift-dot { width: 8px; height: 8px; border-radius: 50%; background: #e3e3e3; transition: background 0.2s; }
+        .gift-dot { width: 8px; height: 8px; border-radius: 50%; background: #e3e3e3; transition: background 0.2s; border: none; padding: 0; cursor: pointer; }
+        /* คอม: เมาส์ปัดหน้าไม่ได้ เลยมีลากด้วยเมาส์ / ล้อเมาส์ / กดจุด / ปุ่มลูกศร (ลูกศรโชว์เฉพาะเครื่องที่มีเมาส์) */
+        .gift-pager-wrap { position: relative; display: flex; flex-shrink: 1; min-height: 0; }
+        .gift-pager-wrap .gift-pager { flex: 1; min-width: 0; }
+        .gift-pager.dragging, .gift-pager.paging { scroll-snap-type: none; }
+        .gift-pager.dragging { cursor: grabbing; user-select: none; }
+        .gift-page-arrow { display: none; position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(255,255,255,0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15); color: #555; font-size: 14px; cursor: pointer; z-index: 2; align-items: center; justify-content: center; }
+        .gift-page-arrow.prev { left: 4px; }
+        .gift-page-arrow.next { right: 4px; }
+        @media (hover: hover) and (pointer: fine) { .gift-page-arrow:not([hidden]) { display: flex; } }
         .gift-dot.active { background: #9a9a9a; }
 
         .gift-qty-row { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-top: 1px solid #eeeeee; flex-shrink: 0; }
@@ -254,7 +264,11 @@
 
             <div class="gift-tabs" id="gift-tabs"></div>
 
-            <div class="gift-pager" id="gift-pager"></div>
+            <div class="gift-pager-wrap">
+                <button type="button" class="gift-page-arrow prev" id="gift-page-prev" onclick="stepGiftPage(-1)" aria-label="หน้าก่อนหน้า" hidden><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="gift-pager" id="gift-pager"></div>
+                <button type="button" class="gift-page-arrow next" id="gift-page-next" onclick="stepGiftPage(1)" aria-label="หน้าถัดไป" hidden><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
             <div class="gift-dots" id="gift-dots"></div>
 
             <div class="gift-qty-row" id="gift-qty-row"></div>
@@ -536,7 +550,9 @@
         document.getElementById("ranking-view").style.display = "none";
         votingCandidates = candidates;
 
-        const groups = [...new Set(candidates.map(m => getCandidateGroup(m.MemberName)))];
+        // BLM48 มาก่อนเสมอ กลุ่มอื่นเรียงตามลำดับที่เจอในรายชื่อ
+        const groups = [...new Set(candidates.map(m => getCandidateGroup(m.MemberName)))]
+            .sort((a, b) => (b === 'BLM48') - (a === 'BLM48'));
         if (activeGroup !== 'All' && !groups.includes(activeGroup)) activeGroup = 'All';
         const tabs = document.getElementById("group-tabs");
         tabs.innerHTML = ['All', ...groups].map(g =>
@@ -690,8 +706,8 @@
     let isGiftBusy = false;
     let myGiftWallet = [];
 
-    const GIFT_TIER_LABELS = { Normal: "Normal", MembersDesign: "BLM48" };
-    const GIFT_TIER_ORDER = ["Normal", "MembersDesign"];
+    const GIFT_TIER_LABELS = { Normal: "Normal", MembersDesign: "BLM48", NPT48Design: "NPT48" };
+    const GIFT_TIER_ORDER = ["Normal", "MembersDesign", "NPT48Design"];
     const GIFT_BACKPACK_TAB = "__backpack";
     const GIFT_QTY_PRESETS = [1, 10, 50, 100];
     const GIFT_PER_PAGE = 8;
@@ -755,6 +771,16 @@
             id: String(g.GiftID), rawId: g.GiftID, name: g.GiftName, img: g.ImageURL,
             cost: Number(g.CostCookies || 0), points: Number(g.Points || 0), owned: null
         }));
+    }
+
+    // ของขวัญประจำตัวเมมเบอร์ที่ยังไม่มีรูปจริง ใช้สติ๊กเกอร์จาก member-gift-stickers.js
+    // สติ๊กเกอร์ในกริดจะขยับเมื่อการ์ดถูกเลือก (.selected) / opts.play = ขยับตลอด เช่นในกล่องยืนยัน
+    function giftImageHtml(item, size, imgHtml, opts) {
+        return window.blm48GiftImageHtml ? window.blm48GiftImageHtml(item.rawId, item.img, size, imgHtml, opts) : imgHtml;
+    }
+
+    function giftGridImgSize() {
+        return window.matchMedia('(max-width: 360px)').matches ? 56 : 70;
     }
 
     function getSelectedGiftItem() {
@@ -837,7 +863,7 @@
 
         if (!items.length) {
             pager.innerHTML = isBackpackTab()
-                ? `<div class="gift-empty">Backpack ของคุณยังว่างอยู่ค่ะ<br>ซื้อของขวัญเก็บไว้ก่อนได้ ตอนกด Send ในแท็บร้านค้า</div>`
+                ? `<div class="gift-empty">No Gift</div>`
                 : `<div class="gift-empty">ยังไม่มีของขวัญในหมวดนี้</div>`;
             dots.innerHTML = '';
             return;
@@ -850,7 +876,7 @@
             <div class="gift-page">
                 ${page.map(item => `
                     <div class="gift-item-card ${item.id === String(selectedGiftId) ? 'selected' : ''}" data-gift-id="${escapeAttr(item.id)}" onclick="selectGiftItem('${escapeAttr(item.id)}')">
-                        <img src="${fixSecureImageUrl(item.img)}" class="gift-item-img" alt="" onerror="this.src='${BLANK_IMG}'">
+                        ${giftImageHtml(item, giftGridImgSize(), `<img src="${fixSecureImageUrl(item.img)}" class="gift-item-img" alt="" onerror="this.src='${BLANK_IMG}'">`)}
                         <div class="gift-item-name">${escapeAttr(item.name)}</div>
                         <div class="gift-item-cost">${item.owned !== null
                             ? `x${item.owned.toLocaleString()}`
@@ -859,24 +885,123 @@
                 `).join('')}
             </div>
         `).join('');
+        clearTimeout(pager._pagingTimer); // ยกเลิกการเลื่อนหน้าที่ค้างอยู่ (เช่นสลับแท็บระหว่างเลื่อน)
+        if (pager._pagingDone) pager.removeEventListener('scrollend', pager._pagingDone);
+        pager._pagingDone = null;
+        pager.classList.remove('paging');
         pager.scrollLeft = 0;
 
         dots.innerHTML = pages.length > 1
-            ? pages.map((_, i) => `<span class="gift-dot ${i === 0 ? 'active' : ''}"></span>`).join('')
+            ? pages.map((_, i) => `<button type="button" class="gift-dot ${i === 0 ? 'active' : ''}" onclick="goGiftPage(${i})" aria-label="หน้า ${i + 1}"></button>`).join('')
             : '';
+        updateGiftPageDots();
+    }
+
+    function getGiftPageInfo() {
+        const pager = document.getElementById('gift-pager');
+        const width = Math.max(1, pager.clientWidth);
+        const count = pager.querySelectorAll('.gift-page').length;
+        // ระหว่างกำลังเลื่อนไปหน้าใหม่ ให้นับจากหน้าปลายทาง (กดลูกศร/หมุนล้อซ้ำจะได้ไม่ข้ามหรือค้าง)
+        const page = pager.classList.contains('paging') ? pager._targetPage : Math.round(pager.scrollLeft / width);
+        return { pager, width, count, page };
     }
 
     function updateGiftPageDots() {
-        const pager = document.getElementById('gift-pager');
-        const page = Math.round(pager.scrollLeft / Math.max(1, pager.clientWidth));
+        const { count, page } = getGiftPageInfo();
         document.querySelectorAll('#gift-dots .gift-dot').forEach((d, i) => d.classList.toggle('active', i === page));
+        document.getElementById('gift-page-prev').hidden = count < 2 || page <= 0;
+        document.getElementById('gift-page-next').hidden = count < 2 || page >= count - 1;
+    }
+
+    function goGiftPage(index) {
+        const { pager, width, count } = getGiftPageInfo();
+        if (!count) return;
+        const target = Math.max(0, Math.min(count - 1, index));
+        // smooth scroll ชนกับ scroll-snap แบบ mandatory (เลื่อนค้างกลางทาง) เลยปิด snap ระหว่างเลื่อน แล้วค่อยเปิดคืน
+        pager._targetPage = target;
+        pager.classList.add('paging');
+        clearTimeout(pager._pagingTimer);
+        if (pager._pagingDone) pager.removeEventListener('scrollend', pager._pagingDone);
+        const done = () => {
+            clearTimeout(pager._pagingTimer);
+            pager.removeEventListener('scrollend', done);
+            pager._pagingDone = null;
+            pager.scrollLeft = target * width;
+            pager.classList.remove('paging');
+            updateGiftPageDots();
+        };
+        pager._pagingDone = done;
+        pager.addEventListener('scrollend', done);
+        pager._pagingTimer = setTimeout(done, 700); // เบราว์เซอร์ที่ไม่มี scrollend
+        pager.scrollTo({ left: target * width, behavior: 'smooth' });
+    }
+
+    function stepGiftPage(delta) {
+        goGiftPage(getGiftPageInfo().page + delta);
+    }
+
+    // คอม: ลากด้วยเมาส์ / ล้อเมาส์เพื่อเปลี่ยนหน้า (มือถือใช้การปัดของเบราว์เซอร์อยู่แล้ว)
+    function setupGiftPagerMouse() {
+        const pager = document.getElementById('gift-pager');
+        let drag = null;
+        let suppressClick = false;
+
+        pager.addEventListener('pointerdown', e => {
+            if (e.pointerType !== 'mouse' || e.button !== 0) return;
+            drag = { x: e.clientX, left: pager.scrollLeft, moved: false };
+        });
+        window.addEventListener('pointermove', e => {
+            if (!drag) return;
+            const dx = e.clientX - drag.x;
+            if (!drag.moved && Math.abs(dx) < 6) return;
+            drag.moved = true;
+            pager.classList.add('dragging');
+            pager.scrollLeft = drag.left - dx;
+        });
+        window.addEventListener('pointerup', e => {
+            if (!drag) return;
+            const { moved, x, left } = drag;
+            drag = null;
+            if (!moved) return;
+            pager.classList.remove('dragging');
+            suppressClick = true; // ลากแล้วปล่อยบนการ์ด ไม่นับเป็นการเลือกของขวัญ
+            setTimeout(() => { suppressClick = false; }, 0);
+            const width = Math.max(1, pager.clientWidth);
+            const dx = e.clientX - x;
+            const startPage = Math.round(left / width);
+            goGiftPage(Math.abs(dx) > width * 0.15 ? startPage + (dx < 0 ? 1 : -1) : startPage);
+        });
+        pager.addEventListener('click', e => {
+            if (suppressClick) { e.stopPropagation(); e.preventDefault(); }
+        }, true);
+
+        // ล้อเมาส์ (เลื่อนขึ้นลง) = เปลี่ยนหน้าทีละหน้า
+        // หมุนล้อ/ปัดทัชแพดหนึ่งครั้งยิง wheel ออกมาหลายอันต่อเนื่อง เลยนับเป็นครั้งเดียวจนกว่าจะหยุดไป 250ms
+        let lastWheel = 0;
+        pager.addEventListener('wheel', e => {
+            const { count, page } = getGiftPageInfo();
+            if (count < 2 || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+            const next = page + (e.deltaY > 0 ? 1 : -1);
+            if (next < 0 || next > count - 1) return;
+            e.preventDefault();
+            const now = Date.now();
+            const newGesture = now - lastWheel > 250;
+            lastWheel = now;
+            if (newGesture) goGiftPage(next);
+        }, { passive: false });
     }
 
     function selectGiftItem(giftId) {
         selectedGiftId = giftId;
         // สลับแค่คลาส ไม่ render ใหม่ทั้งกริด จะได้ไม่เด้งกลับหน้าแรก
         document.querySelectorAll('#gift-pager .gift-item-card').forEach(card => {
-            card.classList.toggle('selected', card.dataset.giftId === String(giftId));
+            const isSelected = card.dataset.giftId === String(giftId);
+            // กดการ์ดที่เลือกอยู่แล้วซ้ำ = เล่นท่าเคลื่อนไหวใหม่ตั้งแต่ต้น
+            if (isSelected && card.classList.contains('selected')) {
+                card.classList.remove('selected');
+                void card.offsetWidth;
+            }
+            card.classList.toggle('selected', isSelected);
         });
         selectedGiftQty = Math.min(selectedGiftQty, Math.max(1, getMaxGiftQty()));
         renderQtyRow();
@@ -975,7 +1100,7 @@
         document.getElementById('gift-confirm-body').innerHTML = `
             <div class="gift-confirm-item">
                 <div class="gift-confirm-item-col">
-                    <img src="${fixSecureImageUrl(item.img)}" alt="" onerror="this.src='${BLANK_IMG}'">
+                    ${giftImageHtml(item, 96, `<img src="${fixSecureImageUrl(item.img)}" alt="" onerror="this.src='${BLANK_IMG}'">`, { play: true })}
                     <div class="gift-item-name">${escapeAttr(item.name)}</div>
                     <div class="gift-item-cost">${pill}</div>
                 </div>
@@ -1101,6 +1226,7 @@
     }
 
     document.getElementById('gift-pager').addEventListener('scroll', updateGiftPageDots, { passive: true });
+    setupGiftPagerMouse();
 
     document.addEventListener("DOMContentLoaded", initDetailPage);
     // โหวตเสร็จแล้วหน้าโหวตพากลับมาด้วย history.back() -> หน้านี้อาจถูกคืนจาก cache ของเบราว์เซอร์ ให้ดึงยอดใหม่

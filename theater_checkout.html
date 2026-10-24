@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Check Out</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/shop-orders.css">
+    <link rel="stylesheet" href="assets/css/theater.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/theater.js"></script>
+    <style>
+        .pay-option { display: flex; align-items: center; gap: 14px; padding: 6px 0; }
+        .pay-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; background: #fff4d6; color: #c9932c; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .pay-info { flex: 1; min-width: 0; }
+        .pay-name { font-size: 15.5px; color: #333; }
+        .pay-balance { font-size: 13px; color: var(--order-muted); margin-top: 2px; }
+        .pay-balance.is-short { color: #d64545; }
+        .pay-radio { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--order-accent); display: flex; align-items: center; justify-content: center; }
+        .pay-radio::after { content: ''; width: 14px; height: 14px; border-radius: 50%; background: var(--order-accent); }
+        .total-band { background: #fff8ea; padding: 14px 12px; display: flex; justify-content: space-between; font-size: 15px; color: #666; }
+        .total-band b { color: var(--order-accent); }
+        .checkout-note { padding: 16px 12px; font-size: 13.5px; color: #777; line-height: 1.6; text-align: center; }
+    </style>
+</head>
+<body class="has-bottom-bar">
+
+<div class="top-navigation-bar">
+    <button type="button" class="nav-back-btn" id="btn-back" onclick="goBack()" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-page-title" id="page-title">Check Out</div>
+</div>
+
+<div class="page-wrapper" id="checkout">
+    <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading data...</div>
+</div>
+
+<div class="bottom-bar" id="bottom-bar" style="display:none">
+    <div class="bottom-bar-inner">
+        <div class="bottom-total">
+            <div class="bottom-total-label">Total</div>
+            <div class="bottom-total-value" id="bottom-total">0 Tokens</div>
+        </div>
+        <button type="button" class="btn-yellow" id="btn-place" onclick="placeOrder()">Place Order</button>
+    </div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const eventId = params.get('event');
+  const roundId = params.get('round');
+  const zoneId = params.get('zone');
+  const qty = Math.max(1, parseInt(params.get('qty'), 10) || 1);
+  let user = null, ev = null, zone = null, round = null, placing = false, bookingId = null;
+
+  function goBack() {
+    if (bookingId) { blm48BackTo('theaters'); return; }
+    blm48Back(`theater_zone?event=${eventId}&round=${roundId}`);
+  }
+
+  function total() { return Number(zone.price) * qty; }
+
+  function showError(msg) {
+    const el = document.getElementById('checkout-error');
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+    if (msg) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function render() {
+    const balance = Number(user.token || 0);
+    const short = balance < total();
+    document.getElementById('checkout').innerHTML = `
+      <div class="section">
+        <div class="section-heading"><i class="fa-regular fa-file-lines"></i> Buyer Information</div>
+        <div class="th-kv"><span class="k">Name</span><span class="v">${escapeHtml(user.name || user.username)}</span></div>
+        <div class="th-kv"><span class="k">Username</span><span class="v">${escapeHtml(user.username)}</span></div>
+        <div class="th-kv"><span class="k">Round</span><span class="v">${theaterRoundName(round.kind)}</span></div>
+        <div class="th-kv"><span class="k">Zone</span><span class="v">${escapeHtml(zone.name)}</span></div>
+      </div>
+      ${theaterEventHead(ev)}
+      <div class="total-band"><span>${qty} seat${qty > 1 ? 's' : ''}</span><b>${total().toLocaleString()} Tokens</b></div>
+      ${(zone.rewards || []).length ? `
+        <div class="section">
+          <div class="section-heading">Ticket Rewards (per seat)</div>
+          <div class="th-rewards">${theaterRewardsHtml(zone.rewards)}</div>
+          <div class="th-zone-note" style="margin-top:8px">+ ลิงก์รับชมเฉพาะผู้ถือบัตร และ Ticket Stub ที่ระลึก</div>
+        </div>` : ''}
+      <div class="section">
+        <div class="section-heading">Payment Option</div>
+        <div class="pay-option">
+          <div class="pay-icon"><i class="fas fa-coins"></i></div>
+          <div class="pay-info">
+            <div class="pay-name">Token Wallet</div>
+            <div class="pay-balance ${short ? 'is-short' : ''}">Balance: ${balance.toLocaleString()} Tokens${short ? ' · not enough' : ''}</div>
+          </div>
+          <div class="pay-radio" aria-label="เลือกแล้ว"></div>
+        </div>
+      </div>
+      <div class="inline-error" id="checkout-error"></div>
+      <div class="checkout-note">
+        ${round.kind === 'express' ? 'Express round: ได้เลขที่นั่งทันทีหลังชำระ' : 'Normal round: ระบบจะสุ่มที่นั่งหลังปิดรอบขาย (' + theaterDateTime(round.closeAt) + ')'}<br>
+        ตรวจสอบรอบ โซน และจำนวนที่นั่งให้ถูกต้อง หลังกด <b>Place Order</b> แล้วจะยกเลิก เปลี่ยนแปลง หรือโอนบัตรไม่ได้
+      </div>`;
+    document.getElementById('bottom-total').textContent = total().toLocaleString() + ' Tokens';
+    document.getElementById('bottom-bar').style.display = '';
+    document.getElementById('btn-place').disabled = short || placing;
+  }
+
+  function renderSuccess(newToken) {
+    document.getElementById('page-title').textContent = 'Payment';
+    document.getElementById('bottom-bar').style.display = 'none';
+    document.body.classList.remove('has-bottom-bar');
+    document.getElementById('checkout').innerHTML = `
+      <div class="th-success">
+        <div class="th-success-icon"><i class="fa-regular fa-circle-check"></i></div>
+        <div class="th-success-title">Your payment is approved</div>
+        <div class="th-kv"><span class="k">Event</span><span class="v">${escapeHtml(ev.title)}</span></div>
+        <div class="th-kv"><span class="k">Total Payment</span><span class="v">${total().toLocaleString()} Tokens</span></div>
+        <div class="th-kv"><span class="k">Token left</span><span class="v">${Number(newToken).toLocaleString()} Tokens</span></div>
+      </div>
+      <div style="padding:0 16px"><button type="button" class="btn-yellow is-block" onclick="blm48Replace('theater_booking?id=${bookingId}')">View Booking</button></div>`;
+  }
+
+  async function placeOrder() {
+    if (placing) return;
+    placing = true;
+    showError('');
+    const btn = document.getElementById('btn-place');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing';
+    const res = await blm48TheaterBook(user.username, Number(roundId), Number(zoneId), qty);
+    if (res && res.status === 'success') {
+      bookingId = res.bookingId;
+      user.token = res.newToken;
+      saveUserSession(user);
+      renderSuccess(res.newToken);
+      return;
+    }
+    placing = false;
+    btn.innerHTML = 'Place Order';
+    btn.disabled = false;
+    showError((res && res.message) || 'ทำรายการไม่สำเร็จ กรุณาลองใหม่อีกครั้งค่ะ');
+  }
+
+  async function load() {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    const [res, info] = await Promise.all([
+      blm48GetTheaterEvent(user.username, Number(eventId)),
+      blm48GetUserInfo(user.username).catch(() => null)
+    ]);
+    if (info && info.status === 'success' && info.data) { user = Object.assign(user, info.data); saveUserSession(user); }
+    const box = document.getElementById('checkout');
+    if (!res || res.status !== 'success') {
+      box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จค่ะ')}</div>`;
+      return;
+    }
+    ev = res.event;
+    zone = (ev.zones || []).find(z => String(z.id) === String(zoneId));
+    round = (ev.rounds || []).find(r => String(r.id) === String(roundId));
+    if (!zone || !round) { box.innerHTML = '<div class="empty-state">ไม่พบรอบหรือโซนที่เลือกค่ะ</div>'; return; }
+    if (ev.myBookingId) {
+      box.innerHTML = `<div class="empty-state">คุณจองการแสดงนี้ไปแล้วค่ะ<br><a class="btn-yellow" href="theater_booking?id=${ev.myBookingId}">View booking</a></div>`;
+      return;
+    }
+    render();
+  }
+  window.addEventListener('DOMContentLoaded', load);
+</script>
+</body>
+</html>
