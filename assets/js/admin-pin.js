@@ -60,6 +60,10 @@
     document.head.appendChild(st);
   }
 
+  // ให้หน้า Change PIN ใช้หน้าตา/ป้ายอุปกรณ์ชุดเดียวกัน
+  window.blm48PinInjectStyles = injectStyles;
+  window.blm48PinDeviceLabel = deviceLabel;
+
   window.blm48RequireAdminPin = function (user, opts) {
     const page = (opts && opts.page) || location.pathname.replace(/^\//, '').replace(/\.html$/, '');
     const cancelUrl = (opts && opts.cancelUrl) || 'admin';

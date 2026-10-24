@@ -1090,80 +1090,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       .rank-1 .img-wrapper { width: 100px; height: 100px; }
     }
     
-    /* 🚀 หน้าโหลดเข้าแอป: โลโก้ BLM48 กลางจอ + แถบโหลด (แสดงจนข้อมูล Home พร้อม แล้วค่อยต่อด้วย Splash Champ/วันเกิด) */
-    #app-loading-screen {
-  position: fixed;
-  inset: 0;
-  background: #ffffff;
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.loader-content {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.loader-logo {
-  width: 104px;
-  height: 104px;
-  border-radius: 26px;
-  background: #ffde5b;
-  overflow: hidden;
-  animation: loader-logo-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both, loader-logo-breathe 2.2s ease-in-out 0.6s infinite;
-}
-.loader-logo img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
-
-.loader-brand {
-  font-family: 'Quicksand', 'Kanit', sans-serif;
-  font-size: 26px;
-  font-weight: 700;
-  color: #222;
-  letter-spacing: 3px;
-  margin-top: 22px;
-}
-
-.loader-sub {
-  font-family: 'Quicksand', 'Kanit', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: #b0b0b0;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-.loader-bar {
-  position: absolute;
-  bottom: calc(64px + env(safe-area-inset-bottom));
-  left: 50%;
-  width: 120px;
-  height: 4px;
-  margin-left: -60px;
-  border-radius: 4px;
-  background: #f3f3f3;
-  overflow: hidden;
-}
-.loader-bar::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 40%;
-  height: 100%;
-  border-radius: 4px;
-  background: #ffd75e;
-  animation: loader-bar-slide 1.1s ease-in-out infinite;
-}
-
-@keyframes loader-logo-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes loader-logo-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-@keyframes loader-bar-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+    /* 🚀 หน้าโหลดเข้าแอป: ดีไซน์ "Loading — Live" อยู่ที่ assets/js/blm48-loading.js (ใช้ร่วมทุกหน้าที่มีหน้าโหลด) */
     
  /* สมมติว่าคลาสของลิสต์คือ .fan-list */
 .fan-list {
@@ -2125,18 +2052,17 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 </head>
 <body>
 
-<div id="app-loading-screen">
-  <div class="loader-content">
-    <div class="loader-logo"><img src="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s300" alt="BLM48" draggable="false"></div>
-    <div class="loader-brand">BLM48</div>
-    <div class="loader-sub">Membership</div>
-  </div>
-  <div class="loader-bar"></div>
-</div>
+<!-- ⏳ หน้า Loading เข้าแอป -> ต่อด้วย Splash (Champ/วันเกิด) -> Home -->
+<div id="app-loading-screen" data-blm48-loading></div>
+<script src="assets/js/blm48-loading.js"></script>
 <div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #000; display: none; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; opacity: 1;">
     <!-- ดึงรูปภาพกางเต็มจอ 100% สัดส่วนไม่เพี้ยนด้วย object-fit: cover -->
-    <img id="main-splash" src="https://lh3.googleusercontent.com/d/1nvKkrs0bjgR8YAL8VKLDIxooRUtSekcb=s1000" style="width: 100%; height: 100%; object-fit: cover;">
+    <img id="main-splash" src="https://lh3.googleusercontent.com/d/1nvKkrs0bjgR8YAL8VKLDIxooRUtSekcb=s1000" style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.4s ease;">
+    <!-- 🏆 Splash Champ of the Month แบบแอนิเมชัน (assets/js/champ-splash.js) วาดทับรูปด้านบน -->
+    <div id="champ-splash-stage" style="display: none; position: absolute; inset: 0;"></div>
 </div>
+<script src="assets/js/champ-splash.js"></script>
+<script src="assets/js/bday-splash.js"></script>
 
 <!-- 3. Navbar (ปรับปรุงปุ่ม) -->
 <nav class="navbar">
@@ -2543,7 +2469,7 @@ async function loadData() {
 // ==========================================
 function loadChampOfTheMonth() {
   const CACHE_KEY = "bnl_winner_theme_cache";
-  const TOGGLE_KEY = "bnl_splash_toggle"; // ใช้จำว่าครั้งที่แล้วโชว์ Splash ของอะไรไป
+  const TOGGLE_KEY = "bnl_splash_toggle"; // (เลิกใช้แล้ว - Splash เล่นต่อกันตามลำดับ วันเกิด -> Champ ไม่สลับรอบแล้ว)
   
   // 1. ดึงข้อมูลธีมเก่าจากแคชในเครื่องขึ้นมาโชว์ก่อนทันที (แอปเปิดไว ไม่รอกระพริบ)
   const cachedData = localStorage.getItem(CACHE_KEY);
@@ -2595,7 +2521,7 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
   if (!themeData || !themeData.champ) return;
   
   const champ = themeData.champ;
-  // 🎂 เมมเบอร์ทุกคนที่อยู่ในช่วงวันเกิด (ก่อนวันเกิด 1 วัน -> หมดวันเกิด) เรียงตามไทม์ไลน์จากหลังบ้าน
+  // 🎂 เมมเบอร์ทุกคนที่อยู่ในช่วงวันเกิด (ก่อนวันเกิด 3 วัน -> หมดวันเกิด) เรียงตามไทม์ไลน์จากหลังบ้าน
   // แคชเก่าอาจยังเป็นแบบคนเดียว (birthdaySplash / birthdayBanner) ก็แปลงให้เป็นลิสต์เหมือนกัน
   const birthdays = Array.isArray(themeData.birthdays)
     ? themeData.birthdays
@@ -2606,48 +2532,84 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
   const mainSplash = document.getElementById('main-splash');
   const splashScreen = document.getElementById('splash-screen');
 
-  // 🔁 วนโชว์ Splash ทีละอันต่อการเปิดแอป: Champ -> วันเกิดคนที่ 1 -> วันเกิดคนที่ 2 -> ...
-  const splashCandidates = [];
-  if (champ.splash) splashCandidates.push({ type: 'champ', src: champ.splash });
-  birthdays.forEach(b => { if (b.splash) splashCandidates.push({ type: 'birthday', src: b.splash }); });
+  // 🎬 เล่น Splash ต่อกันตามลำดับทุกครั้งที่ขึ้น: วันเกิดทุกคน (ใกล้วันเกิดสุดก่อน) -> Champ of the Month
+  // (เดิมสลับโชว์ทีละอันต่อการเปิดแอป - ผู้ใช้ขอเปลี่ยน 2026-10-23)
+  // แต่ละอันใช้แอนิเมชัน (วันเกิด: assets/js/bday-splash.js, Champ: assets/js/champ-splash.js) โชว์ 6 วินาที
+  // ถ้าวาดแอนิเมชันไม่ได้ (รูป Splash สำเร็จรูปแบบเดิม / ดึงรูปไม่ได้) จะโชว์รูปเต็มจอเดิม 3 วินาทีแทน
+  const splashQueue = [];
+  birthdays.forEach(b => { if (b.splash) splashQueue.push({ type: 'birthday', src: b.splash, name: b.name, birthday: b.birthday, font: b.font, adjust: b.adjust }); });
+  if (champ.name || champ.splash) splashQueue.push({ type: 'champ', src: champ.splash || '', name: champ.name, photo: champ.photo || '', photoAdjust: champ.photoAdjust || null });
 
-  let chosen = null;
-  if (splashCandidates.length > 0) {
-    let idx = parseInt(localStorage.getItem(toggleKey + '_idx'), 10);
-    idx = isNaN(idx) ? 0 : (idx + 1) % splashCandidates.length;
-    localStorage.setItem(toggleKey + '_idx', String(idx));
-    chosen = splashCandidates[idx];
-  }
+  const champStage = document.getElementById('champ-splash-stage');
+  // ฟังก์ชันนี้ถูกเรียกซ้ำได้ (แคช -> ข้อมูลสด) - เริ่มคิว Splash แค่ครั้งเดียวต่อการเปิดหน้า
+  if (mainSplash && splashScreen && champStage && splashQueue.length && !window.__splashQueueStarted) {
+    window.__splashQueueStarted = true;
+    window.__champSplashActive = true; // ให้คิวนี้คุมเวลาปิดเอง (ตัวจับเวลา 5 วิ ตอนเปิดหน้าจะไม่ตัดจบ)
+    if (splashQueue.some(q => q.type === 'champ') && window.BLM48ChampSplash) window.BLM48ChampSplash.refreshOfficialPhotos(); // อุ่นแคชรูประหว่างหน้า Loading
 
-  const splashToShow = chosen ? chosen.src : null;
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+    champStage.style.transition = 'opacity 0.4s ease';
 
-  if (mainSplash && splashToShow) {
-    mainSplash.src = splashToShow;
+    // วาด 1 อัน -> คืนเวลาที่ต้องโชว์ (ms) หรือ 0 ถ้าไม่มีอะไรให้โชว์
+    const showOne = async (item) => {
+      let ok = false;
+      if (item.type === 'champ' && window.BLM48ChampSplash) {
+        ok = await window.BLM48ChampSplash.render(champStage, item.name, item.photo, item.photoAdjust); // รูปที่แอดมินอัปโหลด (Theme Application) ก่อน ไม่มีใช้รูปเว็บ Official
+        if (ok) splashScreen.style.background = '#FFEEF3';
+      } else if (item.type === 'birthday' && window.BLM48BirthdaySplash) {
+        ok = await window.BLM48BirthdaySplash.render(champStage, { name: item.name, photo: item.src, birthday: item.birthday, font: item.font, adjust: item.adjust && item.adjust.splash }); // font = ฟอนต์ที่แอดมินเลือก (Theme Application)
+        if (ok) splashScreen.style.background = '#DCE3DD';
+      }
+      if (ok) {
+        mainSplash.style.visibility = 'hidden';
+        champStage.style.display = 'block';
+        return 6000;
+      }
+      if (!item.src) return 0;
+      champStage.style.display = 'none';
+      splashScreen.style.background = '#000';
+      mainSplash.src = item.src;
+      mainSplash.style.visibility = 'visible';
+      return 3000;
+    };
 
-    if(splashScreen) {
-       splashScreen.style.display = "flex";
-       setTimeout(() => splashScreen.style.opacity = "1", 10);
-       setTimeout(() => {
-           splashScreen.style.opacity = "0";
-           setTimeout(() => splashScreen.style.display = "none", 500);
-       }, 3000); 
-    }
+    mainSplash.style.visibility = 'hidden';
+    splashScreen.style.background = splashQueue[0].type === 'champ' ? '#FFEEF3' : '#DCE3DD';
+    splashScreen.style.display = "flex";
+    setTimeout(() => splashScreen.style.opacity = "1", 10);
+
+    // เริ่มตอนหน้า Loading เฟดออก แอนิเมชันอันแรกจะได้เริ่มจากต้นต่อหน้าผู้ใช้
+    whenAppLoadingDone(async () => {
+      for (let i = 0; i < splashQueue.length; i++) {
+        if (splashScreen.style.display === 'none') return; // ผู้ใช้ปิด Splash เองระหว่างทาง
+        if (i > 0) { champStage.style.opacity = '0'; mainSplash.style.opacity = '0'; await wait(400); }
+        const ms = await showOne(splashQueue[i]);
+        champStage.style.opacity = '1'; mainSplash.style.opacity = '1';
+        if (ms) await wait(ms);
+      }
+      window.__champSplashActive = false;
+      splashScreen.style.opacity = "0";
+      setTimeout(() => splashScreen.style.display = "none", 500);
+    });
   }
 
   // 🎂 📌 ส่วน HBD Banner
-  const birthdayBanners = birthdays.filter(b => b.banner && b.banner !== "");
+  // banner_bd_url เป็น Banner สำเร็จรูป (รูปกว้าง 3:1) -> โชว์รูปนั้นตามเดิม
+  // ไม่ใช่ (เป็นรูปเมมเบอร์ หรือว่าง) -> ระบบสร้าง Banner ให้เองจากรูปเมมเบอร์ (banner_bd_url ก่อน ไม่มีค่อยใช้รูปเดียวกับ Splash)
+  // ดู BLM48BirthdaySplash.renderBanner ใน assets/js/bday-splash.js
+  const birthdayBanners = birthdays.filter(b => (b.banner && b.banner !== "") || (b.splash && b.splash !== ""));
   if (birthdayBanners.length > 0) {
     const bannerContainer = document.getElementById("autoBannerContainer");
 
     if (bannerContainer && !bannerContainer.querySelector(".hbd-banner-item")) {
-        // แทรกทุกคนไว้หน้าสุด เรียงตามไทม์ไลน์ (วันเกิดวันนี้ก่อน แล้วค่อยพรุ่งนี้)
-        const hbdBannerHTML = birthdayBanners.map(b => `
-            <a href="#" class="auto-banner-item hbd-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: block;">
-                <img src="${b.banner}" alt="Happy Birthday ${b.name || ''}" style="width: 100%; height: auto; display: block; object-fit: cover;">
-            </a>
+        // แทรกทุกคนไว้หน้าสุด เรียงตามไทม์ไลน์ (วันเกิดวันนี้ก่อน แล้วค่อยพรุ่งนี้) - กรอบ 3:1 จองที่ไว้ก่อน แล้วค่อยเติมเนื้อหา
+        const hbdBannerHTML = birthdayBanners.map(() => `
+            <a href="#" class="auto-banner-item hbd-banner-item" style="flex: 0 0 100%; min-width: 100%; scroll-snap-align: start; text-decoration: none; display: block; aspect-ratio: 3 / 1;"></a>
         `).join('');
 
         bannerContainer.insertAdjacentHTML('afterbegin', hbdBannerHTML);
+        const slots = bannerContainer.querySelectorAll('.hbd-banner-item');
+        birthdayBanners.forEach((b, i) => fillBirthdayBanner(slots[i], b));
     }
     // 🚀 เรียกใช้ระบบสไลด์ตัวใหม่ หลังจากแทรกรูปวันเกิดเสร็จ!
     initBannerFeatures();
@@ -2657,6 +2619,24 @@ function applyThemeAndToggleSplash(themeData, toggleKey) {
   }
   
   applyIconsOnly(champ);
+}
+
+// 🎂 เติม Banner วันเกิด 1 ช่อง: ลองสร้างจากรูปเมมเบอร์ก่อน ถ้าเป็นรูป Banner สำเร็จรูปก็โชว์รูปนั้น
+// ใช้ไม่ได้ทั้งคู่ (เช่นมีแค่ Splash เต็มจอแบบเดิม) -> เอาช่องออกแล้วนับสไลด์ใหม่
+async function fillBirthdayBanner(slot, b) {
+  if (!slot) return;
+  const legacyImg = (src) => {
+    slot.style.aspectRatio = '';
+    slot.innerHTML = `<img src="${src}" alt="Happy Birthday ${b.name || ''}" style="width: 100%; height: auto; display: block; object-fit: cover;">`;
+  };
+  const gen = window.BLM48BirthdaySplash && window.BLM48BirthdaySplash.renderBanner;
+  // มี banner_bd_url -> ใช้ช่องนั้นอย่างเดียว (รูปเมมเบอร์ = สร้างให้, รูป Banner สำเร็จ = โชว์ตามเดิม)
+  // ไม่มี -> สร้างจากรูปเดียวกับ Splash
+  const src = b.banner || b.splash;
+  if (gen && await gen(slot, { name: b.name, photo: src, birthday: b.birthday, font: b.font, adjust: b.adjust && b.adjust.banner })) return;
+  if (b.banner) { legacyImg(b.banner); return; }
+  slot.remove();
+  initBannerFeatures();
 }
 
 // =========================================================
@@ -2811,8 +2791,7 @@ function updateTabIcon(imgId, fallbackId, iconUrl) {
  * ฟังก์ชันปิดหน้าจอโหลดวงกลมคุกกี้หมุนๆ แบบปลอดภัย
  */
 function hideThemeLoadingScreen() {
-  const appLoading = document.getElementById('app-loading-screen');
-  if (appLoading) appLoading.style.display = 'none';
+  hideAppLoading(); // ใช้จังหวะเดียวกับหน้า Loading หลัก (ค้างขั้นต่ำ + เฟด แล้วค่อยปล่อย Splash)
 }
 
 window.addEventListener('pageshow', function(event) {
@@ -2933,12 +2912,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         splashScreen.style.display = 'flex';
         sessionStorage.setItem('blm48_splash_shown', 'true');
 
-        setTimeout(() => {
+        // ⏱️ โชว์ค้างไว้ 5 วินาที นับหลังหน้า Loading เฟดออกแล้ว (Loading -> Splash -> Home)
+        // Splash Champ แบบแอนิเมชันคุมเวลาปิดเอง (ใน applyThemeAndToggleSplash) ไม่ตัดจบที่ 5 วินาทีตรงนี้
+        whenAppLoadingDone(() => window.__champSplashActive || setTimeout(() => {
           splashScreen.style.opacity = '0'; // ค่อยๆ เฟดจางลงเพื่อความละมุน
           setTimeout(() => {
             splashScreen.style.display = 'none';
-          }, 500); 
-        }, 5000); // ⏱️ ตั้งเวลาให้โชว์ค้างไว้ 5 วินาทีตรงนี้งับ
+          }, 500);
+        }, 5000));
 
       } else {
         // เคยโชว์ไปแล้วในเซสชันนี้ -> ปิดตายทันที แฟนคลับใช้งานเว็บต่อได้เลย ไม่หน่วงเวลา
@@ -3015,13 +2996,30 @@ async function fetchActiveCampaigns() {
     // 🏆 ส่วน Campaign หน้า Home แสดงเฉพาะ Champ of the Month Campaign (เมมเบอร์เปิดเองจากหน้า profile)
     // Campaign เป็นแค่แรงกระตุ้นบน Champ of the Month เดิม ไม่ยุ่งกับ Splash / Banner / Theme (ระบบ Champ + วันเกิดเดิมจัดการเอง)
     // แคมเปญโหวต (ตาราง campaign / Major Vote) ไม่แสดงที่นี่แล้ว
-    const memberCampaigns = await campaignFetchWithRetry(() => blm48GetActiveMemberCampaigns());
-    if (!Array.isArray(memberCampaigns)) {
+    const activeCampaigns = await campaignFetchWithRetry(() => blm48GetActiveMemberCampaigns());
+    if (!Array.isArray(activeCampaigns)) {
       // รีเฟรชไม่สำเร็จชั่วคราว (เซิร์ฟเวอร์ช้า) -> ถ้ามีการ์ดแสดงอยู่แล้ว คงไว้ ไม่ล้างเป็น error
       if (scrollerContainer.querySelector('.mc-card')) return;
       scrollerContainer.innerHTML = `<div style="color:#999; padding:10px; font-size:13px;">โหลด Campaign ไม่สำเร็จ ลองใหม่อีกครั้ง</div>`;
       return;
     }
+    // Campaign ที่จบไปแล้ว (เดือนก่อนๆ) ยังโชว์ต่อพร้อมตราหัวใจ TIER X SUCCESS / CAMPAIGN SUCCESS! แต่ไม่เกิน 10 อัน
+    // ยอดของ Campaign ที่จบแล้วถูกล็อกไว้ ไม่เปลี่ยน -> โหลดครั้งเดียวพอ ไม่ต้องโหลดซ้ำทุกครั้งที่ Ranking ขยับ
+    if (!Array.isArray(window.__endedCampaignsCache)) {
+      const ended = await campaignFetchWithRetry(() => blm48GetEndedMemberCampaigns());
+      if (Array.isArray(ended)) window.__endedCampaignsCache = ended;
+    }
+    const byId = new Map();
+    [...activeCampaigns, ...(window.__endedCampaignsCache || [])].forEach(c => byId.set(c.id, c));
+    // เรียง: เดือนล่าสุดก่อน -> ในเดือนเดียวกัน คนเปิดก่อนอยู่ซ้ายสุด ไปจนถึงคนเปิดล่าสุด
+    // (เฉพาะหน้า Home - หน้า campaign มีตัวเลือกเรียงของตัวเอง)
+    const homeOrder = (a, b) => String(b.yearMonth || '').localeCompare(String(a.yearMonth || ''))
+      || (Date.parse(a.startedAt) || 0) - (Date.parse(b.startedAt) || 0);
+    const all = [...byId.values()].sort(homeOrder);
+    const memberCampaigns = [
+      ...all.filter(c => !isCampaignEnded(c)),
+      ...all.filter(c => isCampaignEnded(c)).slice(0, 10)
+    ].sort(homeOrder);
     if (memberCampaigns.length === 0) {
       scrollerContainer.innerHTML = `
         <div style="text-align: center; width: 100%; color: #999; padding: 20px; font-size: 14px;">
@@ -3029,9 +3027,7 @@ async function fetchActiveCampaigns() {
         </div>`;
       return;
     }
-    // เรียงตามวัน-เวลาที่เปิด Campaign: เปิดล่าสุดอยู่ซ้ายสุด (เฉพาะหน้า Home - หน้า campaign มีตัวเลือกเรียงของตัวเอง)
-    const byNewest = [...memberCampaigns].sort((a, b) => (Date.parse(b.startedAt) || 0) - (Date.parse(a.startedAt) || 0));
-    scrollerContainer.innerHTML = byNewest.map(c => renderMemberCampaignCard(c)).join('');
+    scrollerContainer.innerHTML = memberCampaigns.map(c => renderMemberCampaignCard(c)).join('');
   } catch (error) {
     console.error("Fetch Campaigns Network Error:", error);
     scrollerContainer.innerHTML = `<div style="color:#999; padding:10px; font-size:13px;">ไม่สามารถเชื่อมต่อระบบแคมเปญได้</div>`;
@@ -3682,7 +3678,7 @@ function renderPost(post) {
     </div>
   ` : `
     <div onclick="openMemberProfile('${authorName}')" style="margin-right: 10px; flex-shrink: 0; cursor: pointer;">
-      <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+      <img src="${authorProfileImg}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; box-sizing: border-box; border: 2px solid ${groupFrameColor()};">
     </div>
   `;
 
@@ -4300,6 +4296,18 @@ function setupUserProfile(user) {
   }
 }
   
+  // ⏳ Loading -> Splash -> Home: จับเวลาตั้งแต่สคริปต์เริ่ม (ก่อน DOMContentLoaded ตั้ง blm48_splash_shown)
+const APP_LOADING_STARTED_AT = Date.now();
+const APP_LOADING_MIN_MS = sessionStorage.getItem('blm48_splash_shown') ? 0 : 2500;
+let appLoadingDoneFired = false;
+let appLoadingDoneResolve;
+const appLoadingDonePromise = new Promise(r => { appLoadingDoneResolve = r; });
+function resolveAppLoadingDone() {
+  appLoadingDoneFired = true;
+  appLoadingDoneResolve();
+}
+function whenAppLoadingDone(fn) { appLoadingDonePromise.then(fn); }
+
   // ฟังก์ชันแสดงหน้าโหลด
 function showAppLoading() {
   const loader = document.getElementById('app-loading-screen');
@@ -4310,12 +4318,18 @@ function showAppLoading() {
 }
 
 // ฟังก์ชันซ่อนหน้าโหลด
+// เปิดแอปครั้งแรกของเซสชัน: ค้างหน้า Loading อย่างน้อย APP_LOADING_MIN_MS แล้วค่อยเฟดออกไปเผย Splash (z-index ต่ำกว่า)
+// Splash ทุกตัวรอ whenAppLoadingDone() ก่อนเริ่มนับเวลา จะได้ไม่หมดเวลาไปตอนยังโดน Loading บังอยู่
 function hideAppLoading() {
   const loader = document.getElementById('app-loading-screen');
-  if (loader) {
-    loader.style.opacity = '0';
-    setTimeout(() => { loader.style.display = 'none'; }, 500);
-  }
+  const wait = Math.max(0, APP_LOADING_STARTED_AT + APP_LOADING_MIN_MS - Date.now());
+  setTimeout(() => {
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => { loader.style.display = 'none'; }, 500);
+    }
+    resolveAppLoadingDone();
+  }, appLoadingDoneFired ? 0 : wait);
 }
   
 // ฟังก์ชันรีเฟรชข้อมูลทั้งหมด

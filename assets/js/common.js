@@ -94,7 +94,8 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
   // property นี้ก็ไม่เป็นไร ยังมี contextmenu preventDefault ด้านบนช่วยกันซ้ำอีกชั้น)
   // pointer-events: none คือตัวที่กันเมนู "ดาวน์โหลดรูปภาพ" ของ Android Chrome ตอนกดค้างได้จริง (Android ไม่สนใจ
   // -webkit-touch-callout และบางรุ่นก็ไม่ยิง contextmenu event ให้ preventDefault ทัน) - ทำให้รูปไม่รับอีเวนต์การกด
-  // เลยแทน ยกเว้นรูปที่มี onclick ของตัวเอง (เช่น รูปโพสต์ที่กดเพื่อเปิดดูเต็มจอ) ที่ยังต้องคลิกได้ปกติ
+  // เลยแทน ยกเว้นรูปที่มี onclick ของตัวเอง (เช่น รูปโพสต์ที่กดเพื่อเปิดดูเต็มจอ) และรูปโปรไฟล์ที่กดเปิดโปรไฟล์ได้
+  // (data-fan / data-member เช่น รูปคนคอมเมนต์) ที่ยังต้องคลิกได้ปกติ
   const style = document.createElement('style');
   style.textContent = `
     img {
@@ -102,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
       -webkit-user-select: none;
       user-select: none;
     }
-    img:not([onclick]) {
+    img:not([onclick]):not([data-fan]):not([data-member]) {
       pointer-events: none;
     }
   `;

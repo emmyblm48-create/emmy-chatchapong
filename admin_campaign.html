@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Campaign</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/campaign.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
+        #page-content { display: none; }
+        .empty-state, .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
+
+        .cover { position: relative; width: 100%; aspect-ratio: 1320 / 662; /* เท่ากับปก Campaign Banner บนการ์ดจริง */ background: linear-gradient(135deg, #ffeef2, #e7f1ff); border-radius: 12px; overflow: hidden; }
+        .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .cover .cover-tag { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-size: 11.5px; padding: 3px 9px; border-radius: 20px; }
+        .cover-actions { display: flex; gap: 8px; margin: 10px 0 4px; flex-wrap: wrap; }
+        .hint { font-size: 12px; color: #767676; margin-bottom: 14px; }
+
+        .title { font-size: 19px; font-weight: 700; color: #222; margin: 6px 0 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .meta { font-size: 13px; color: #666; margin-bottom: 14px; line-height: 1.7; }
+        .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+        .b-active { background: #e6f7ec; color: #1f7a45; }
+        .b-ended { background: #fff3c4; color: #8a6200; }
+        .b-settled { background: #f1f1f1; color: #555; }
+        .b-bday { background: #ffe3ec; color: #b02a5b; }
+
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid #eee; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+        .stat { padding: 12px 8px; text-align: center; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
+        .stat:nth-child(3n) { border-right: none; }
+        .stat:nth-last-child(-n+3) { border-bottom: none; }
+        .stat b { display: block; font-size: 17px; font-weight: 700; color: #222; }
+        .stat span { font-size: 11.5px; color: #767676; }
+
+        .sec { font-size: 15px; font-weight: 700; color: #222; margin: 22px 0 8px; display: flex; justify-content: space-between; align-items: center; }
+        .sec small { font-weight: 400; color: #767676; font-size: 12px; }
+        .s-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f3f3f3; }
+        .s-info { flex: 1; min-width: 0; }
+        .s-name { font-size: 14px; font-weight: 600; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .s-sub { font-size: 12px; color: #767676; }
+        .s-amt { text-align: right; font-size: 13px; font-weight: 700; color: #222; white-space: nowrap; }
+        .btn { border: none; border-radius: 10px; padding: 9px 14px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; background: #ffd43b; color: #222; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+        .btn.ghost { background: #f3f3f3; color: #444; }
+        .btn.danger { background: #fff0f0; color: #c92a2a; }
+        .btn.danger.confirm { background: #e03131; color: #fff; }
+        .btn:disabled { opacity: .55; cursor: default; }
+        .danger-zone { margin-top: 28px; padding-top: 16px; border-top: 1px solid #eee; }
+        .danger-zone p { font-size: 12.5px; color: #767676; line-height: 1.7; margin: 0 0 10px; }
+        .toast-msg { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #222; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 300; display: none; max-width: 90vw; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="blm48Back('admin_campaigns')" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title" id="page-title">Campaign</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div id="view"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+    </div>
+</div>
+<input type="file" id="file-input" accept="image/*" style="display:none">
+<div class="toast-msg" id="toast"></div>
+
+<script>
+  let user = null;
+  let data = null;
+  const campaignId = parseInt(new URLSearchParams(location.search).get('id') || '0', 10);
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = 'none'; }, 2600);
+  }
+  function monthText(ym) {
+    const m = String(ym || '').match(/^(\d{4})-(\d{2})$/);
+    return m ? `${MONTHS[parseInt(m[2], 10) - 1]} ${m[1]}` : ym;
+  }
+  function dt(s) {
+    return s ? new Date(s).toLocaleString('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+  }
+  const n = v => Number(v || 0).toLocaleString();
+
+  function render() {
+    const c = data.campaign;
+    const settled = !!c.settledAt;
+    const ended = isCampaignEnded(c);
+    const badge = settled ? '<span class="badge b-settled">Settled</span>' : ended ? '<span class="badge b-ended">Ended · waiting refund</span>' : '<span class="badge b-active">Active</span>';
+    const sups = data.supporters || [];
+    const cookieBasis = sups.reduce((s, x) => s + Number(x.cookie || 0), 0);
+    const refundPaid = (data.refunds || []).reduce((s, r) => s + Number(r.refund || 0), 0);
+    const estRefund = Math.floor(cookieBasis * Number(c.refundPct || 0) / 100);
+    document.getElementById('page-title').textContent = campaignMemberLabel(c);
+
+    document.getElementById('view').innerHTML = `
+      <div class="cover">
+        ${renderCampaignCoverArt(c)}
+        <span class="cover-tag">${campaignBannerTheme(c) ? 'Monthly theme banner (auto)' : (c.customCover ? 'Campaign cover' : 'No cover - showing profile photo')}</span>
+      </div>
+      <div class="cover-actions">
+        <button type="button" class="btn" id="btn-up" onclick="pickFile()"><i class="fa-solid fa-upload"></i> ${c.customCover ? 'Change cover' : 'Upload cover'}</button>
+        ${c.customCover ? `<button type="button" class="btn ghost" onclick="askRemoveCover(this)"><i class="fa-solid fa-trash"></i> Remove cover</button>` : ''}
+        <a class="btn ghost" href="campaign_detail?id=${encodeURIComponent(c.id)}"><i class="fa-solid fa-eye"></i> View public page</a>
+      </div>
+      <div class="hint">${campaignBannerTheme(c)
+        ? 'เดือนนี้ใช้ Banner ธีมประจำเดือนอัตโนมัติ (รูปเมมเบอร์ล่าสุดจากเว็บ BLM48) รูปปกที่อัปโหลดจะไม่แสดงในเดือนนี้'
+        : 'รูปปกขนาด 2048 x 1427 px (แสดงบนการ์ด Campaign หน้า Home / Campaign / Detail)'}</div>
+
+      <div class="title">${escapeHtml(campaignMemberLabel(c))} ${badge}${c.isBirthMonth ? '<span class="badge b-bday"><i class="fa-solid fa-cake-candles"></i> Birth month</span>' : ''}</div>
+      <div class="meta">
+        ${escapeHtml(monthText(c.yearMonth))} · Opened by ${escapeHtml(c.memberUsername || '-')}<br>
+        Started ${escapeHtml(dt(c.startedAt))} · Ends ${escapeHtml(dt(c.endAt))}${!ended ? ` (${escapeHtml(campaignTimeLeft(c.endAt).text)} left)` : ''}
+        ${settled ? `<br>Settled ${escapeHtml(dt(c.settledAt))}` : ''}
+        ${c.champBonusUsername ? `<br><i class="fa-solid fa-trophy" style="color:#fcc419"></i> Champ bonus 100% → ${escapeHtml(c.champBonusUsername)}` : ''}
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b>${n(c.totalCookies)}</b><span>Total (= Ranking)</span></div>
+        <div class="stat"><b>${campaignFundedPct(c)}%</b><span>Funded</span></div>
+        <div class="stat"><b>Tier ${Number(c.tier) || 0}</b><span>Refund ${Number(c.refundPct) || 0}%</span></div>
+        <div class="stat"><b>${n(c.supporters)}</b><span>Supporters</span></div>
+        <div class="stat"><b>${n(cookieBasis)}</b><span>Refund basis (cookies)</span></div>
+        <div class="stat"><b>${settled ? n(refundPaid) : n(estRefund)}</b><span>${settled ? 'Refund paid' : 'Est. refund'}</span></div>
+      </div>
+      ${renderCampaignProgress(c)}
+
+      ${settled ? `<div class="sec">Refunds <small>${(data.refunds || []).length} accounts</small></div><div id="ref-list">${renderRefunds()}</div>` : ''}
+
+      ${settled ? '' : `
+      <div class="danger-zone">
+        <div class="sec" style="margin-top:0">Delete campaign</div>
+        <p>ใช้เมื่อเปิด Campaign ผิด: ลบ Campaign และรายการซัพพอร์ตของ Campaign นี้ (คุกกี้ที่ปาไปแล้วยังอยู่ใน Ranking ตามปกติ, ไม่มีการคืนคุกกี้) ลบได้เฉพาะ Campaign ที่ยังไม่คืนคุกกี้</p>
+        <button type="button" class="btn danger" onclick="askDelete(this)"><i class="fa-solid fa-trash"></i> Delete campaign</button>
+      </div>`}`;
+  }
+
+  function renderRefunds() {
+    const rows = data.refunds || [];
+    if (!rows.length) return '<div class="empty-state">ไม่มีการคืนคุกกี้ (Campaign ไม่ถึง Tier 1)</div>';
+    return rows.map(r => `
+      <div class="s-row">
+        <div class="s-info">
+          <div class="s-name">${escapeHtml(r.name || r.username || '-')}${r.isChampBonus ? ' <span class="badge b-ended"><i class="fa-solid fa-trophy"></i> Champ 100%</span>' : ''}</div>
+          <div class="s-sub">${escapeHtml(r.username || '')} · supported ${n(r.supported)} × ${Number(r.refundPct) || 0}%</div>
+        </div>
+        <div class="s-amt">+${n(r.refund)}</div>
+      </div>`).join('');
+  }
+
+  // ===== รูปปก =====
+  function pickFile() {
+    const inp = document.getElementById('file-input');
+    inp.value = '';
+    inp.click();
+  }
+  // ย่อด้านยาวสุดเหลือ 2048px (ขนาดปกที่กำหนด) ก่อนอัปโหลด
+  function shrinkPhoto(file) {
+    return new Promise(resolve => {
+      if (!/jpe?g|webp|heic|png/i.test(file.type)) return resolve(file);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 2048 / Math.max(img.naturalWidth, img.naturalHeight));
+        if (scale >= 1 && file.size < 1500 * 1024) return resolve(file);
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.naturalWidth * scale); cv.height = Math.round(img.naturalHeight * scale);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        cv.toBlob(b => resolve(b || file), 'image/jpeg', 0.9);
+      };
+      img.onerror = () => resolve(file);
+      img.src = URL.createObjectURL(file);
+    });
+  }
+  document.getElementById('file-input').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('กรุณาเลือกไฟล์รูปภาพ'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast('ไฟล์ใหญ่เกิน 10MB'); return; }
+    const btn = document.getElementById('btn-up');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...'; }
+    try {
+      const blob = await shrinkPhoto(file);
+      const url = await blm48UploadImageToBucket('app-assets', `campaign-${campaignId}-cover`, blob);
+      await saveCover(url, 'บันทึกรูปปกแล้ว');
+    } catch (err) {
+      console.error('upload error', err);
+      toast('อัปโหลดไม่สำเร็จ ลองใหม่อีกครั้ง');
+      render();
+    }
+  });
+  async function saveCover(url, okMsg) {
+    const res = await blm48AdminSetCampaignCover(user.username, campaignId, url);
+    if (!res || res.status !== 'success') { toast((res && res.message) || 'บันทึกไม่สำเร็จ'); render(); return; }
+    toast(okMsg);
+    load();
+  }
+  // กดครั้งแรก = เปลี่ยนเป็นปุ่มยืนยัน (ไม่ใช้ป๊อปอัป) กดซ้ำภายใน 4 วินาทีถึงทำจริง
+  function armConfirm(btn, label) {
+    if (btn.classList.contains('confirm')) return true;
+    const old = btn.innerHTML;
+    btn.classList.add('confirm');
+    btn.innerHTML = label;
+    setTimeout(() => { if (btn.isConnected && !btn.disabled) { btn.classList.remove('confirm'); btn.innerHTML = old; } }, 4000);
+    return false;
+  }
+  function askRemoveCover(btn) {
+    if (!armConfirm(btn, '<i class="fa-solid fa-check"></i> Confirm remove')) return;
+    btn.disabled = true;
+    saveCover(null, 'ลบรูปปกแล้ว');
+  }
+  async function askDelete(btn) {
+    if (!armConfirm(btn, '<i class="fa-solid fa-triangle-exclamation"></i> Tap again to delete')) return;
+    btn.disabled = true;
+    const res = await blm48AdminDeleteMemberCampaign(user.username, campaignId);
+    if (!res || res.status !== 'success') { btn.disabled = false; btn.classList.remove('confirm'); toast((res && res.message) || 'ลบไม่สำเร็จ'); return; }
+    toast('ลบ Campaign แล้ว');
+    setTimeout(() => blm48Replace('admin_campaigns'), 900);
+  }
+
+  async function load() {
+    const res = await campaignFetchWithRetry(() => blm48AdminGetMemberCampaign(user.username, campaignId));
+    if (!res || res.status !== 'success') {
+      if (!data) document.getElementById('view').innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดไม่สำเร็จ')}</div>`;
+      else toast('รีเฟรชไม่สำเร็จ');
+      return;
+    }
+    data = res;
+    render();
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && ['admin','ceo'].includes(user.role.toLowerCase())))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    if (!campaignId) { document.getElementById('view').innerHTML = '<div class="empty-state">ไม่พบ Campaign</div>'; return; }
+    load();
+  });
+</script>
+</body>
+</html>

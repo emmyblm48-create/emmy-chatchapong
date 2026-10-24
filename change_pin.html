@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+    <script src="assets/js/back-nav.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BLM48 Membership | Change PIN</title>
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+  <meta name="apple-mobile-web-app-title" content="BLM48">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/glassmorphism.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/admin-pin.js"></script>
+
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { height: 100%; }
+    body { margin: 0; font-family: 'Quicksand', 'Kanit', sans-serif; background: #ffffff; color: #222; }
+
+    /* หน้าปุ่มตัวเลข: ใช้สไตล์ .pin-* ชุดเดียวกับหน้าล็อก PIN (admin-pin.js) */
+    .pin-key.forgot { border: none; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 14px; font-weight: 700; line-height: 1.2; }
+    .pin-key.forgot:active { background: none; opacity: 0.6; }
+    /* ล็อกอยู่ก็ยังกด Forgot PIN ได้ */
+    .pin-pad.disabled .pin-key.forgot { opacity: 1; pointer-events: auto; }
+
+    /* หน้า Forgot PIN: แถบบน + ไอคอน i + ช่องรหัสผ่าน + ปุ่มเหลืองชิดล่าง */
+    .fp-screen { position: fixed; inset: 0; z-index: 5100; background: #fff; display: none; flex-direction: column; }
+    .fp-screen.show { display: flex; }
+    .fp-top { position: relative; height: 56px; padding-top: env(safe-area-inset-top); display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04); flex-shrink: 0; box-sizing: content-box; }
+    .fp-title { font-size: 17px; font-weight: 600; }
+    .fp-cancel { position: absolute; right: 8px; bottom: 6px; background: none; border: none; color: #222; font-family: inherit; font-size: 16px; padding: 8px; cursor: pointer; }
+    .fp-body { flex: 1; overflow-y: auto; width: 100%; max-width: 560px; margin: 0 auto; padding: 32px 12px 24px; display: flex; flex-direction: column; }
+    .fp-info { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .fp-icon { width: 64px; height: 64px; border-radius: 50%; background: #111; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 14px; }
+    .fp-head { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .fp-text { font-size: 13px; color: #777; line-height: 1.6; max-width: 340px; }
+    .fp-label { font-size: 14px; font-weight: 700; margin: 34px 0 6px; }
+    .fp-input-wrap { position: relative; border-bottom: 1px solid #e5e5e5; }
+    .fp-input { width: 100%; height: 46px; border: none; outline: none; background: none; font-family: inherit; font-size: 16px; color: #222; padding: 0 40px 0 0; }
+    .fp-eye { position: absolute; right: 0; top: 0; height: 46px; width: 40px; border: none; background: none; color: #999; font-size: 16px; cursor: pointer; }
+    .fp-error { color: #ff4d6d; font-size: 12.5px; min-height: 18px; margin-top: 8px; }
+    .fp-spacer { flex: 1; min-height: 32px; }
+    .fp-submit { display: block; width: 100%; height: 52px; border: none; border-radius: 26px; background: #ffd966; color: #222;
+      font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; margin-bottom: env(safe-area-inset-bottom); }
+    .fp-submit:disabled { opacity: 0.55; cursor: default; }
+
+    /* เปลี่ยนสำเร็จ */
+    .done-screen { position: fixed; inset: 0; z-index: 5200; background: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px 12px; text-align: center; }
+    .done-screen.show { display: flex; }
+    .done-icon { width: 72px; height: 72px; border-radius: 50%; background: #2ecc71; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 34px; margin-bottom: 18px; }
+    .done-title { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+    .done-text { font-size: 13px; color: #777; margin-bottom: 30px; }
+    .done-btn { width: 100%; max-width: 320px; height: 52px; border: none; border-radius: 26px; background: #ffd966; color: #222; font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body class="force-white-bg">
+  <!-- 🔢 ปุ่มตัวเลข: PIN เดิม → PIN ใหม่ → ยืนยัน PIN ใหม่ -->
+  <div class="pin-screen" id="pin-screen">
+    <button type="button" class="pin-cancel" id="pin-cancel">Cancel</button>
+    <div class="pin-body">
+      <div class="pin-title" id="pin-title">Change PIN</div>
+      <div class="pin-title" id="pin-step" style="font-weight:400; font-size:15px;"></div>
+      <div class="pin-sub" id="pin-sub"></div>
+      <div class="pin-dots" id="pin-dots"></div>
+      <div class="pin-pad disabled" id="pin-pad"></div>
+    </div>
+  </div>
+
+  <!-- ❓ Forgot PIN: ยืนยันตัวตนด้วยรหัสผ่านที่ใช้ล็อกอิน แล้วตั้ง PIN ใหม่ -->
+  <div class="fp-screen" id="fp-screen">
+    <div class="fp-top">
+      <div class="fp-title">Forgot PIN</div>
+      <button type="button" class="fp-cancel" id="fp-cancel">Cancel</button>
+    </div>
+    <form class="fp-body" id="fp-form" autocomplete="off">
+      <div class="fp-info">
+        <div class="fp-icon"><i class="fas fa-info"></i></div>
+        <div class="fp-head">Request Reset PIN</div>
+        <div class="fp-text">ยืนยันตัวตนด้วยรหัสผ่านที่ใช้เข้าสู่ระบบ<br>เมื่อรหัสผ่านถูกต้อง จะตั้ง PIN ใหม่ได้ทันที</div>
+      </div>
+      <div class="fp-label">Enter your password</div>
+      <div class="fp-input-wrap">
+        <input type="password" id="fp-password" class="fp-input" placeholder="รหัสผ่าน" autocomplete="current-password" enterkeyhint="done">
+        <button type="button" class="fp-eye" id="fp-eye" aria-label="แสดงรหัสผ่าน"><i class="fa-regular fa-eye"></i></button>
+      </div>
+      <div class="fp-error" id="fp-error"></div>
+      <div class="fp-spacer"></div>
+      <button type="submit" class="fp-submit" id="fp-submit" disabled>Submit</button>
+    </form>
+  </div>
+
+  <div class="done-screen" id="done-screen">
+    <div class="done-icon"><i class="fas fa-check"></i></div>
+    <div class="done-title" id="done-title">PIN Changed</div>
+    <div class="done-text">ครั้งต่อไปใช้ PIN ใหม่ในการยืนยันตัวตน</div>
+    <button type="button" class="done-btn" id="done-btn">Done</button>
+  </div>
+
+  <script>
+    const sessionUser = getUserSession();
+    if (!sessionUser || !sessionUser.username) blm48Replace('login');
+    const username = sessionUser && sessionUser.username;
+
+    const PIN_LENGTH = 6;
+    blm48PinInjectStyles();
+
+    const titleEl = document.getElementById('pin-title');
+    const stepEl = document.getElementById('pin-step');
+    const subEl = document.getElementById('pin-sub');
+    const dotsEl = document.getElementById('pin-dots');
+    const padEl = document.getElementById('pin-pad');
+    dotsEl.innerHTML = '<span class="pin-dot"></span>'.repeat(PIN_LENGTH);
+    padEl.innerHTML = [1,2,3,4,5,6,7,8,9].map(n => `<button type="button" class="pin-key" data-k="${n}">${n}</button>`).join('')
+      + '<button type="button" class="pin-key forgot" id="btn-forgot">Forgot<br>PIN</button>'
+      + '<button type="button" class="pin-key" data-k="0">0</button>'
+      + '<button type="button" class="pin-key back" data-k="back" aria-label="ลบ"><i class="fa-solid fa-delete-left"></i></button>';
+    const forgotBtn = document.getElementById('btn-forgot');
+
+    // step: 'old' | 'new' | 'confirm'
+    // via: 'change' (รู้ PIN เดิม) | 'reset' (ลืม PIN ยืนยันด้วยรหัสผ่าน) | 'create' (ยังไม่เคยตั้ง PIN)
+    let step = 'old';
+    let via = 'change';
+    let entered = '';
+    let oldPin = '';
+    let newPin = '';
+    let resetPassword = '';
+    let busy = true;
+
+    function setSub(text, isError) { subEl.textContent = text || ''; subEl.classList.toggle('error', !!isError); }
+    function renderDots() { dotsEl.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('filled', i < entered.length)); }
+    function shake() { dotsEl.classList.remove('shake'); void dotsEl.offsetWidth; dotsEl.classList.add('shake'); }
+    function setBusy(b) { busy = b; padEl.classList.toggle('disabled', b); }
+    function setStep(s) {
+      step = s; entered = ''; renderDots();
+      titleEl.textContent = via === 'create' ? 'Create PIN' : via === 'reset' ? 'Reset PIN' : 'Change PIN';
+      stepEl.textContent = s === 'old' ? 'Please enter your old PIN' : s === 'new' ? 'Please enter your new PIN' : 'Please confirm your new PIN';
+      // Forgot PIN ใช้ได้เฉพาะตอนใส่ PIN เดิม (ช่องว่างซ้ายล่างตอนขั้นอื่น)
+      forgotBtn.style.visibility = s === 'old' ? 'visible' : 'hidden';
+    }
+    function lockedMessage(until) {
+      const t = new Date(until);
+      return 'ลองผิดหลายครั้ง ลองใหม่ได้เวลา ' + t.toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' }) + ' น.';
+    }
+
+    function goBack() { blm48Back('profile'); }
+
+    function showDone() {
+      // PIN เปลี่ยนแล้ว: ให้หน้า Major Vote ถาม PIN ใหม่รอบหน้า
+      try { sessionStorage.removeItem('blm48_majorvote_pin_unlock'); } catch (e) { /* ไม่มี storage */ }
+      document.getElementById('done-title').textContent = via === 'create' ? 'PIN Created' : 'PIN Changed';
+      document.getElementById('done-screen').classList.add('show');
+      document.removeEventListener('keydown', onKey);
+    }
+
+    async function submit() {
+      const pin = entered;
+      const device = blm48PinDeviceLabel();
+
+      if (step === 'old') {
+        setBusy(true);
+        try {
+          const res = await blm48UserVerifyPin(username, pin, 'change_pin', device);
+          if (res && res.status === 'success') { oldPin = pin; setStep('new'); setSub(''); setBusy(false); return; }
+          shake(); setStep('old');
+          if (res && res.code === 'locked') { setSub(lockedMessage(res.lockedUntil), true); forgotBtn.style.visibility = 'visible'; return; }
+          if (res && res.code === 'no_pin') { via = 'create'; setStep('new'); setSub('ยังไม่เคยตั้ง PIN ตั้ง PIN 6 หลักได้เลย'); }
+          else setSub((res && res.message) || 'PIN ไม่ถูกต้อง', true);
+        } catch (e) { setStep('old'); setSub('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', true); }
+        setBusy(false);
+        return;
+      }
+
+      if (step === 'new') {
+        if (via === 'change' && pin === oldPin) { shake(); setStep('new'); setSub('PIN ใหม่ต้องไม่ซ้ำกับ PIN เดิม', true); return; }
+        newPin = pin; setStep('confirm'); setSub('');
+        return;
+      }
+
+      // step === 'confirm'
+      if (pin !== newPin) { shake(); setStep('new'); setSub('PIN ไม่ตรงกัน กรุณาตั้งใหม่อีกครั้ง', true); return; }
+      setBusy(true);
+      try {
+        const res = via === 'create' ? await blm48UserSetPin(username, newPin, 'change_pin', device)
+          : via === 'reset' ? await blm48UserResetPin(username, resetPassword, newPin, device)
+          : await blm48UserChangePin(username, oldPin, newPin, device);
+        if (res && res.status === 'success') { resetPassword = ''; return showDone(); }
+        setStep('new');
+        setSub(res && res.code === 'locked' ? lockedMessage(res.lockedUntil) : ((res && res.message) || 'เปลี่ยน PIN ไม่สำเร็จ'), true);
+      } catch (e) { setStep('new'); setSub('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', true); }
+      setBusy(false);
+    }
+
+    function press(k) {
+      if (busy) return;
+      if (k === 'back') { entered = entered.slice(0, -1); renderDots(); return; }
+      if (entered.length >= PIN_LENGTH) return;
+      entered += k; renderDots();
+      if (entered.length === PIN_LENGTH) setTimeout(submit, 120); // ให้เห็นจุดที่ 6 เต็มก่อน
+    }
+    function onKey(e) {
+      if (document.getElementById('fp-screen').classList.contains('show')) return;
+      if (/^[0-9]$/.test(e.key)) { press(e.key); e.preventDefault(); }
+      else if (e.key === 'Backspace') { press('back'); e.preventDefault(); }
+    }
+
+    padEl.addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) press(b.dataset.k); });
+    document.addEventListener('keydown', onKey);
+    document.getElementById('pin-cancel').addEventListener('click', goBack);
+    document.getElementById('done-btn').addEventListener('click', goBack);
+
+    // ---------- Forgot PIN ----------
+    const fpScreen = document.getElementById('fp-screen');
+    const fpInput = document.getElementById('fp-password');
+    const fpSubmit = document.getElementById('fp-submit');
+    const fpError = document.getElementById('fp-error');
+
+    forgotBtn.addEventListener('click', () => {
+      fpInput.value = ''; fpError.textContent = ''; fpSubmit.disabled = true;
+      fpScreen.classList.add('show');
+      setTimeout(() => fpInput.focus(), 50);
+    });
+    document.getElementById('fp-cancel').addEventListener('click', () => { fpScreen.classList.remove('show'); fpInput.blur(); });
+    document.getElementById('fp-eye').addEventListener('click', (e) => {
+      const show = fpInput.type === 'password';
+      fpInput.type = show ? 'text' : 'password';
+      e.currentTarget.innerHTML = show ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+    });
+    fpInput.addEventListener('input', () => { fpSubmit.disabled = !fpInput.value; fpError.textContent = ''; });
+
+    document.getElementById('fp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!fpInput.value || fpSubmit.disabled) return;
+      fpSubmit.disabled = true;
+      fpSubmit.textContent = 'Checking...';
+      try {
+        const res = await blm48UserResetPin(username, fpInput.value, null, blm48PinDeviceLabel());
+        if (res && res.status === 'success') {
+          resetPassword = fpInput.value;
+          fpInput.value = ''; fpInput.blur();
+          fpScreen.classList.remove('show');
+          via = 'reset'; setStep('new'); setSub('ตั้ง PIN ใหม่ 6 หลัก'); setBusy(false);
+        } else {
+          fpError.textContent = res && res.code === 'locked' ? lockedMessage(res.lockedUntil) : ((res && res.message) || 'รหัสผ่านไม่ถูกต้อง');
+        }
+      } catch (err) {
+        fpError.textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้';
+      }
+      fpSubmit.textContent = 'Submit';
+      fpSubmit.disabled = !fpInput.value;
+    });
+
+    // เริ่ม: ยังไม่เคยตั้ง PIN → ตั้งใหม่เลย / ถูกล็อกอยู่ → แจ้งเวลา (ยังกด Forgot PIN ได้)
+    (async () => {
+      setStep('old');
+      if (!username) return;
+      try {
+        const st = await blm48UserPinStatus(username);
+        if (!st || st.status !== 'success') { setSub((st && st.message) || 'ตรวจสอบบัญชีไม่สำเร็จ', true); return; }
+        if (!st.hasPin) { via = 'create'; setStep('new'); setSub('ยังไม่เคยตั้ง PIN ตั้ง PIN 6 หลักได้เลย'); setBusy(false); return; }
+        if (st.lockedUntil) { setSub(lockedMessage(st.lockedUntil), true); return; }
+        setBusy(false);
+      } catch (e) { setSub('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', true); }
+    })();
+  </script>
+</body>
+</html>

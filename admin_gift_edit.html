@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Edit Gift</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/member-gift-stickers.js"></script>
+    <script src="assets/js/admin-gift-form.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 16px 12px 60px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
+        #page-content { display: none; }
+        .loading-state, .empty-state { text-align: center; color: #767676; font-size: 13px; padding: 40px 20px; }
+
+        .g-meta { font-size: 12.5px; color: #767676; margin-bottom: 14px; line-height: 1.7; }
+        .del-zone { margin-top: 22px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+        .btn-danger { width: 100%; border: 1px solid #ffc2cc; background: #fff1f3; color: #d6304f; border-radius: 20px; padding: 11px;
+            font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .confirm-box { background: #fff1f3; border: 1px solid #ffc2cc; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #b3243f; line-height: 1.7; }
+        .confirm-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .confirm-actions button { flex: 1; border: none; border-radius: 20px; padding: 10px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-cancel { background: #f1f1f1; color: #666; }
+        .btn-confirm-del { background: #ff5c7a; color: #fff; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-gift-form.css">
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">Edit Gift</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div id="gift-root"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let gift = null;
+  let changed = false; // บันทึก/ลบแล้ว -> ย้อนกลับไปหน้ารายการให้โหลดใหม่
+  const params = new URLSearchParams(location.search);
+  const giftId = params.get('id');
+
+  function fmt(n) { return Number(n || 0).toLocaleString(); }
+  function listUrl() { return 'admin_gifts' + (gift ? '?tier=' + encodeURIComponent(gift.tier) : ''); }
+  function goBack() { blm48Back(listUrl(), { refresh: changed || params.has('created') }); }
+
+  async function loadGift() {
+    const root = document.getElementById('gift-root');
+    try {
+      const res = await blm48AdminListGifts(user.username);
+      if (!res || res.status !== 'success') { root.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
+      gift = (res.data || []).find(g => g.giftId === giftId);
+      if (!gift) { root.innerHTML = '<div class="empty-state">ไม่พบของขวัญชิ้นนี้</div>'; return; }
+      render();
+    } catch (e) {
+      root.innerHTML = '<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>';
+    }
+  }
+
+  function render() {
+    const used = Number(gift.sentQty) > 0 || Number(gift.walletQty) > 0;
+    document.getElementById('gift-root').innerHTML = `
+      <div class="g-meta">${escapeHtml(gift.giftId)} · ส่งแล้ว ${fmt(gift.sentQty)} ชิ้น · อยู่ในกระเป๋าผู้ใช้ ${fmt(gift.walletQty)} ชิ้น</div>
+      <div id="gift-form"></div>
+      <div class="del-zone" id="del-zone">
+        ${used
+          ? '<div class="note">มีคนซื้อหรือส่งชิ้นนี้แล้ว ลบไม่ได้ · ถ้าไม่อยากให้ขายต่อ ให้เอาติ๊ก "เปิดขาย" ออกแล้วกด Save</div>'
+          : '<button type="button" class="btn-danger" onclick="askDelete()"><i class="fa-solid fa-trash"></i> Delete Gift</button>'}
+      </div>`;
+    const form = blm48AdminGiftForm(document.getElementById('gift-form'), gift, {
+      username: user.username,
+      onSaved: (res, f) => { changed = true; Object.assign(gift, f); }
+    });
+    if (params.has('created')) form.setMsg('เพิ่มของขวัญเรียบร้อยแล้วค่ะ', 'ok');
+  }
+
+  function askDelete() {
+    document.getElementById('del-zone').innerHTML = `
+      <div id="del-msg" class="msg"></div>
+      <div class="confirm-box"><b>ลบ “${escapeHtml(gift.giftName || gift.giftId)}” ถาวร?</b> ย้อนกลับไม่ได้
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancel" onclick="render()">Cancel</button>
+          <button type="button" class="btn-confirm-del" id="del-btn" onclick="deleteGift()">Delete</button>
+        </div>
+      </div>`;
+  }
+
+  async function deleteGift() {
+    const btn = document.getElementById('del-btn');
+    const msg = document.getElementById('del-msg');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    try {
+      const res = await blm48AdminDeleteGift(user.username, gift.giftId);
+      if (res && res.status === 'success') { changed = true; goBack(); return; }
+      msg.className = 'msg error';
+      msg.textContent = (res && res.message) || 'ลบไม่สำเร็จ';
+    } catch (e) {
+      msg.className = 'msg error';
+      msg.textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Delete';
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    if (!giftId) { blm48Replace('admin_gifts'); return; }
+    document.getElementById('page-content').style.display = 'block';
+    loadGift();
+  });
+</script>
+</body>
+</html>
