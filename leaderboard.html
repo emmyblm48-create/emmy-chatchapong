@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Ranking</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0; min-height: 100vh; color: #222; background: #ffffff; }
+
+        /* ส่วนหัวไล่สีมิ้นต์ → ม่วง → ชมพู (แท็บ + อันดับ 1) แบบหน้าอันดับของ iAM48 */
+        .lb-head { background: linear-gradient(100deg, #d9f6f2 0%, #ece9f8 45%, #fbe3f3 100%); }
+        .lb-head-inner { max-width: 640px; margin: 0 auto; padding: 0 12px; }
+        .lb-tabs-row { position: relative; display: flex; align-items: center; justify-content: center; height: 58px; border-bottom: 1px solid rgba(0,0,0,0.07); }
+        .lb-back { position: absolute; left: -4px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: none; background: none; color: #222; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .lb-tabs { display: flex; gap: 34px; }
+        .lb-periods { display: flex; justify-content: center; gap: 26px; height: 50px; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.07); }
+        .lb-tab { position: relative; border: none; background: none; padding: 4px 0; font-family: inherit; font-weight: 600; color: #6f7580; cursor: pointer; white-space: nowrap; isolation: isolate; }
+        .lb-tabs .lb-tab { font-size: 17px; }
+        .lb-periods .lb-tab { font-size: 15.5px; }
+        .lb-tab.active { color: #222; font-weight: 700; }
+        .lb-tab.active::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: 3px; height: 5px; border-radius: 3px; background: #ffde5b; z-index: -1; }
+
+        /* อันดับ 1 */
+        .lb-hero { display: flex; flex-direction: column; align-items: center; padding: 30px 0 26px; min-height: 290px; }
+        .lb-hero-avatar { position: relative; width: 140px; height: 140px; border-radius: 50%; padding: 5px; background: var(--frame, #fff); box-shadow: 0 0 0 7px rgba(255,255,255,0.55); cursor: pointer; }
+        .lb-hero-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #f3f3f3; }
+        .lb-hero-avatar .lb-medal { position: absolute; top: -6px; right: -18px; width: 50px; height: 50px; font-size: 26px; border-width: 3px; }
+        .lb-hero-name { margin-top: 18px; font-size: 17px; font-weight: 600; letter-spacing: 0.3px; max-width: 90%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lb-hero-total { margin-top: 10px; display: inline-flex; align-items: center; gap: 8px; background: #fff; border-radius: 999px; padding: 6px 18px; font-size: 17px; font-weight: 700; }
+
+        /* เหรียญอันดับ 1-3 (ทอง เงิน ทองแดง) */
+        .lb-medal { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 700; color: #fff; border: 2px solid rgba(255,255,255,0.75); text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
+        .lb-medal.r1 { background: radial-gradient(circle at 35% 30%, #ffe48a, #f5b400 60%, #d18f00); }
+        .lb-medal.r2 { background: radial-gradient(circle at 35% 30%, #f4f5f7, #c4c8cf 60%, #9ea3ab); }
+        .lb-medal.r3 { background: radial-gradient(circle at 35% 30%, #ffc98c, #f0902e 60%, #c76a14); }
+
+        /* รายการอันดับ 2 เป็นต้นไป */
+        .lb-list { max-width: 640px; margin: 0 auto; padding: 0 12px 40px; }
+        .lb-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #ececec; cursor: pointer; }
+        .lb-rank { flex-shrink: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+        .lb-rank .lb-medal { width: 30px; height: 30px; font-size: 14px; }
+        .lb-rank-num { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid #222; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+        .lb-avatar { position: relative; flex-shrink: 0; width: 56px; height: 56px; border-radius: 50%; padding: 3px; background: var(--frame, #eee); }
+        .lb-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #f3f3f3; }
+        .lb-grad { position: absolute; right: -4px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%; background: #555; color: #fff; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+        .lb-name { flex: 1; min-width: 0; font-size: 16px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lb-total { flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px; font-size: 16px; font-weight: 700; color: #333; }
+        .lb-total i, .lb-hero-total i { color: #555; font-size: 0.95em; }
+        .lb-note { text-align: center; color: #8a8a8a; font-size: 12.5px; padding: 14px 12px 0; }
+        .lb-empty { text-align: center; color: #767676; padding: 50px 20px; font-size: 14px; }
+        .lb-empty i { display: block; font-size: 30px; color: #d9d9d9; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="lb-head">
+    <div class="lb-head-inner">
+        <div class="lb-tabs-row">
+            <button type="button" class="lb-back" onclick="blm48Back('fanpost')" aria-label="ย้อนกลับ"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="lb-tabs" id="lb-boards"></div>
+        </div>
+        <div class="lb-periods" id="lb-periods"></div>
+        <div class="lb-hero" id="lb-hero"></div>
+    </div>
+</div>
+<div class="lb-list" id="lb-list"></div>
+
+<script>
+  // หน้าอันดับ (ไอคอนเหรียญตราบนแท็บ Fan Post / Video) — ข้อมูลจาก RPC get_leaderboard
+  const LB_BOARDS = [
+    { key: 'cookies', label: 'Cookies', icon: 'fa-solid fa-cookie-bite', member: true },
+    { key: 'fans', label: 'Fans', icon: 'fa-solid fa-cookie-bite', member: false },
+    { key: 'likes', label: 'Likes', icon: 'fa-regular fa-heart', member: true, overallOnly: true }
+  ];
+  const LB_PERIODS = [
+    { key: 'today', label: 'Today' },
+    { key: '7d', label: '7 Days' },
+    { key: '30d', label: '30 Days' },
+    { key: 'overall', label: 'Overall' }
+  ];
+  const LB_DEFAULT_AVATAR = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
+  const lbCache = {};
+
+  const params = new URLSearchParams(location.search);
+  let board = LB_BOARDS.find(b => b.key === params.get('board')) || LB_BOARDS[0];
+  let period = LB_PERIODS.some(p => p.key === params.get('period')) ? params.get('period') : 'today';
+
+  function lbImg(url) {
+    if (!url || !String(url).trim()) return LB_DEFAULT_AVATAR;
+    return /googleusercontent\.com\/d\/[^=]+$/.test(url) ? url + '=s300' : url;
+  }
+
+  function lbNum(n) {
+    return Number(n || 0).toLocaleString('en-US');
+  }
+
+  function lbLinkAttr(row) {
+    return board.member ? memberLinkAttr(row.name) : profileLinkAttr(row.username);
+  }
+
+  function lbDisplayName(row) {
+    return board.member ? String(row.name || '').toUpperCase() : (row.name || row.username || '');
+  }
+
+  function lbFrame() {
+    return board.member ? groupFrameColor('BLM48') : '#ffffff';
+  }
+
+  function renderTabs() {
+    document.getElementById('lb-boards').innerHTML = LB_BOARDS.map(b =>
+      `<button type="button" class="lb-tab${b.key === board.key ? ' active' : ''}" onclick="selectBoard('${b.key}')">${b.label}</button>`
+    ).join('');
+    // Likes ไม่มีข้อมูลรายวัน (ตารางไลก์ไม่เก็บเวลา) -> มีแค่ Overall
+    const periods = board.overallOnly ? LB_PERIODS.filter(p => p.key === 'overall') : LB_PERIODS;
+    const active = board.overallOnly ? 'overall' : period;
+    document.getElementById('lb-periods').innerHTML = periods.map(p =>
+      `<button type="button" class="lb-tab${p.key === active ? ' active' : ''}" onclick="selectPeriod('${p.key}')">${p.label}</button>`
+    ).join('');
+  }
+
+  function renderBoard(rows) {
+    const hero = document.getElementById('lb-hero');
+    const list = document.getElementById('lb-list');
+    if (!rows.length) {
+      hero.innerHTML = '';
+      list.innerHTML = `<div class="lb-empty"><i class="fa-solid fa-medal"></i>ยังไม่มีอันดับในช่วงนี้</div>`;
+      return;
+    }
+    const top = rows[0];
+    hero.innerHTML = `
+      <div class="lb-hero-avatar" style="--frame:${lbFrame()}"${lbLinkAttr(top)}>
+        <img src="${escapeHtml(lbImg(top.img))}" alt="${escapeHtml(lbDisplayName(top))}" onerror="this.src='${LB_DEFAULT_AVATAR}'">
+        <span class="lb-medal r1">1</span>
+      </div>
+      <div class="lb-hero-name"${lbLinkAttr(top)}>${escapeHtml(lbDisplayName(top))}</div>
+      <div class="lb-hero-total"><i class="${board.icon}"></i>${lbNum(top.total)}</div>
+    `;
+    list.innerHTML = rows.slice(1).map(r => {
+      const rank = r.rank <= 3
+        ? `<span class="lb-medal r${r.rank}">${r.rank}</span>`
+        : `<span class="lb-rank-num">${r.rank}</span>`;
+      return `
+        <div class="lb-row"${lbLinkAttr(r)}>
+          <div class="lb-rank">${rank}</div>
+          <div class="lb-avatar" style="--frame:${lbFrame()}">
+            <img src="${escapeHtml(lbImg(r.img))}" alt="" loading="lazy" onerror="this.src='${LB_DEFAULT_AVATAR}'">
+            ${r.graduated ? '<span class="lb-grad" title="Graduated"><i class="fa-solid fa-graduation-cap"></i></span>' : ''}
+          </div>
+          <div class="lb-name">${escapeHtml(lbDisplayName(r))}</div>
+          <div class="lb-total"><i class="${board.icon}"></i>${lbNum(r.total)}</div>
+        </div>`;
+    }).join('') + (board.overallOnly ? '<div class="lb-note">ไลก์สะสมทั้งหมดของเมมเบอร์</div>' : '');
+  }
+
+  async function loadBoard() {
+    renderTabs();
+    const p = board.overallOnly ? 'overall' : period;
+    const key = board.key + ':' + p;
+    try { history.replaceState(history.state, '', `leaderboard?board=${board.key}&period=${period}`); } catch (e) {}
+
+    if (lbCache[key]) { renderBoard(lbCache[key]); return; }
+    document.getElementById('lb-hero').innerHTML = '';
+    document.getElementById('lb-list').innerHTML = '<div class="lb-empty"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div>';
+
+    const { data, error } = await blm48Supabase.rpc('get_leaderboard', { p_board: board.key, p_period: p });
+    if (key !== board.key + ':' + (board.overallOnly ? 'overall' : period)) return; // เปลี่ยนแท็บไปแล้วระหว่างรอ
+    if (error || !Array.isArray(data)) {
+      document.getElementById('lb-list').innerHTML = '<div class="lb-empty">โหลดอันดับไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</div>';
+      return;
+    }
+    lbCache[key] = data;
+    renderBoard(data);
+  }
+
+  function selectBoard(key) {
+    board = LB_BOARDS.find(b => b.key === key) || board;
+    loadBoard();
+  }
+
+  function selectPeriod(key) {
+    if (board.overallOnly) return;
+    period = key;
+    loadBoard();
+  }
+
+  window.addEventListener('DOMContentLoaded', loadBoard);
+</script>
+</body>
+</html>

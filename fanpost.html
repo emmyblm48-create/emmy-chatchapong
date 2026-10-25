@@ -18,6 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <link rel="stylesheet" href="assets/css/media-topbar.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
@@ -34,20 +35,8 @@
 
         .app-wrapper { width: 100%; min-height: 100vh; padding: 16px 12px; max-width: 560px; margin: 0 auto; }
 
-        .top-navigation-bar {
-            display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            background: var(--glass-bg-strong);
-            backdrop-filter: blur(var(--glass-blur-lg));
-            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
-            border-radius: 20px; padding: 12px 18px; margin-bottom: 18px;
-            border: 1px solid var(--glass-border);
-        }
-        .top-bar-page-title { display: flex; align-items: center; gap: 8px; font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; font-size: 16px; color: var(--primary-pink); }
-        .fanpost-add-btn {
-            display: none;
-            background: none; border: none; color: var(--primary-pink); font-size: 1.6rem; cursor: pointer;
-            line-height: 1; padding: 0;
-        }
+        /* ปุ่มสร้างโพสต์ในแถบบน (แสดงเฉพาะบัญชีแฟนคลับ) */
+        .fanpost-add-btn { display: none; transition: transform 0.2s ease; }
         .fanpost-add-btn.open { transform: rotate(45deg); }
 
         .fanpost-composer-header {
@@ -150,13 +139,28 @@
 </head>
 <body class="glass-mesh-bg">
 
-<div class="app-wrapper">
-    <div class="top-navigation-bar">
-        <div class="top-bar-page-title"><i class="fa-solid fa-star"></i> Fan Post</div>
-        <button type="button" class="fanpost-add-btn" id="fanpost-add-btn" onclick="toggleFanPostComposer()" title="สร้างโพสต์แฟนคลับ" aria-label="สร้างโพสต์แฟนคลับ">
-            <i class="fa-solid fa-circle-plus"></i>
-        </button>
+<!-- แถบบนร่วมกับหน้า Video (assets/css/media-topbar.css) -->
+<header class="media-topbar">
+    <div class="media-topbar-inner">
+        <nav class="media-tabs">
+            <span class="media-tab active" aria-current="page">Fan Post</span>
+            <button type="button" class="media-tab" onclick="blm48Replace('musicvideo')">Video</button>
+        </nav>
+        <div class="media-actions">
+            <button type="button" class="media-icon-btn fanpost-add-btn" id="fanpost-add-btn" onclick="toggleFanPostComposer()" title="สร้างโพสต์แฟนคลับ" aria-label="สร้างโพสต์แฟนคลับ">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v9M7.5 12h9"/></svg>
+            </button>
+            <a href="leaderboard" class="media-icon-btn" title="อันดับ" aria-label="อันดับ">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M7.5 2.8h9v6.8L12 12.3 7.5 9.6z"/><path d="M10.5 2.8v8M13.5 2.8v8"/><path transform="translate(12 17)" d="M0,-5 L1.29,-1.78 4.76,-1.55 2.09,.68 2.94,4.05 0,2.2 -2.94,4.05 -2.09,.68 -4.76,-1.55 -1.29,-1.78Z"/></svg>
+            </a>
+            <a href="search" class="media-icon-btn" title="ค้นหา" aria-label="ค้นหา">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="7"/><path d="m15.8 15.8 5.2 5.2"/></svg>
+            </a>
+        </div>
     </div>
+</header>
+
+<div class="app-wrapper">
 
     <div class="fanpost-composer" id="fanpost-composer">
         <div class="fanpost-composer-header">
@@ -986,7 +990,7 @@
     const role = (user.role || '').toLowerCase();
     isMemberRole = role === 'member';
     if (role === 'user') {
-      document.getElementById('fanpost-add-btn').style.display = 'block';
+      document.getElementById('fanpost-add-btn').style.display = 'inline-flex';
       initFanPostComposer();
     }
 
