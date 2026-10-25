@@ -48,6 +48,8 @@ function renderCampaignTierList(total) {
   .mc-progress-labels { display: flex; justify-content: space-between; font-size: 13px; color: #222; margin-top: 4px; }
   .mc-marker.reached i { font-size: 11px; color: #222; }
   .mc-heart.full { color: #fcc419; -webkit-text-stroke: 1.5px #222; }
+  /* ยังไม่เต็มหลอด: หัวใจพื้นขาว ขอบดำ (ไม่ให้หลอดสีเทาโผล่ทะลุตรงกลาง) */
+  .mc-heart.empty { color: #fff; -webkit-text-stroke: 1.5px #222; }
   .mc-stamp { position: absolute; left: 6%; bottom: 6%; width: 30%; max-width: 120px; transform: rotate(-14deg); pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.18)); }
   .mc-stamp svg { width: 100%; height: auto; display: block; }
   `;
@@ -96,7 +98,7 @@ function renderCampaignProgress(c) {
     <div class="mc-progress">
       <div class="mc-track"><div class="mc-fill" style="width: ${fill}%;"></div></div>
       ${markers}
-      <i class="${total >= goal ? 'fa-solid full' : 'fa-regular'} fa-heart mc-heart"></i>
+      <i class="fa-solid ${total >= goal ? 'full' : 'empty'} fa-heart mc-heart"></i>
     </div>
     <div class="mc-progress-labels">
       <span>${total.toLocaleString()} Funded</span>

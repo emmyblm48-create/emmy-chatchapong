@@ -24,6 +24,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/common.js"></script>
+  <script src="assets/js/music-videos.js"></script>
+  <link rel="stylesheet" href="assets/css/music-video.css">
   <script src="assets/js/campaign.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script> 
@@ -681,6 +683,11 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 .fan-ticker { height: 32px; overflow: hidden; padding-right: 0; user-select: none; }
 .fan-ticker-track { will-change: transform; }
 .fan-ticker-item { height: 32px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+/* ไอคอนเส้นหน้าหัวข้อ Top Fans / Top Today VIP (ตามไฟล์ Home icons: เส้นหนา 1.5) */
+.fan-ticker-label { display: inline-flex; align-items: center; gap: 6px; }
+.fan-ticker-icon { width: 22px; height: 22px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+/* ไอคอนเส้น Theaters & Concerts / Shop / Search บนแถบด้านบน (ตามไฟล์ App icon set: เส้นหนา 1.15) */
+.nav-icon .home-line-icon { width: 1.35em; height: 1.35em; vertical-align: -0.3em; fill: none; stroke: currentColor; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; }
 
     /* =========================================
        🌟 RANKING WRAPPER (เวอร์ชัน: พื้นหลังใสเคลียร์)
@@ -790,6 +797,9 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     #mv-scroller.horizontal-list {
       align-items: flex-start !important;
       padding: 4px 12px 4px 12px !important;
+      gap: 14px !important;
+      scroll-snap-type: x mandatory;
+      scroll-padding-left: 12px;
     }
 
     /* ซ่อนแถบเลื่อน (Scrollbar) ทุกเบราว์เซอร์ */
@@ -1496,108 +1506,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     display: none; /* Chrome, Safari, Opera */
   }
 
-  /* =========================================
-     ✨ TRENDING MV STYLES (สไตล์กะทัดรัดแบบ Peek เลื่อนขวา)
-     ========================================= */
-  .mv-card {
-    position: relative;
-    width: 78vw;
-    max-width: 300px;
-    background: #ffffff;
-    border-radius: 18px;
-    overflow: hidden;
-    text-align: left;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    scroll-snap-align: start;
-  }
-
-  .mv-card:active {
-    transform: scale(0.98);
-  }
-
-  /* รูปปก MV เต็มขอบการ์ด อัตราส่วน 16:9 + ป้ายมุมขวาล่าง */
-  .mv-thumb-wrap {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: #f1f3f5;
-  }
-
-  .mv-thumbnail {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .mv-badge {
-    position: absolute;
-    right: 10px;
-    bottom: 8px;
-    color: #fff;
-    font-family: 'Quicksand', 'Kanit', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  }
-
-  .mv-body {
-    padding: 14px 16px 16px;
-  }
-
-  /* แถวช่อง: โลโก้ BLM48 + ชื่อช่อง + วันที่ */
-  .mv-channel {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .mv-channel-logo {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    background: #fff;
-    border: 1.5px solid #ffde5b;
-  }
-
-  .mv-channel-name {
-    font-family: 'Quicksand', 'Kanit', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: #222;
-    line-height: 1.2;
-  }
-
-  .mv-date {
-    font-family: 'Quicksand', 'Kanit', sans-serif;
-    font-size: 12px;
-    color: #9e9e9e;
-    margin-top: 1px;
-  }
-
-  /* ชื่อคลิป (สูงคงที่ 3 บรรทัด ยาวเกินตัด ...) */
-  .mv-title {
-    font-family: 'Quicksand', 'Kanit', sans-serif;
-    font-weight: 500;
-    font-size: 13px;
-    color: #222;
-    margin-top: 12px;
-    line-height: 1.45;
-    height: calc(13px * 1.45 * 3);
-    white-space: normal;
-    word-wrap: break-word;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  /* การ์ด Music Video ย้ายไปไว้ที่ assets/css/music-video.css (ใช้ร่วมกับหน้า musicvideo.html) */
 
   /* --- Gallery Layout (เน้นสี่เหลี่ยมจัตุรัส) --- */
   .post-gallery {
@@ -2081,13 +1990,14 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         <span class="noti-badge" id="streak-badge" style="display: none;"></span>
     </a>
     <a href="theaters" class="nav-icon" title="Theaters &amp; Concerts">
-        <svg class="icon-theater" viewBox="80 60 920 920" width="1.15em" height="1.15em" fill="currentColor" aria-hidden="true" style="vertical-align:-0.2em"><defs><mask id="thMicBand"><rect x="0" y="0" width="1000" height="1000" fill="#fff"/><path d="M505 205 L740 425" stroke="#000" stroke-width="32"/></mask></defs><circle cx="632" cy="300" r="148" mask="url(#thMicBand)"/><g transform="translate(-30 0)"><path d="M490 360 L603 472 L300 722 Q262 738 238 702 Q226 680 240 660 Z"/><path d="M268 726 C205 752 188 805 245 812 C380 830 425 645 545 668 C645 688 715 755 760 818" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round"/></g><path d="M238 100 Q254 242 375 257 Q254 272 238 413 Q222 272 100 257 Q222 242 238 100 Z"/><path d="M826 525 L860 637 L972 673 L860 710 L826 822 L792 710 L680 673 L792 637 Z" fill="none" stroke="currentColor" stroke-width="26" stroke-linejoin="miter"/></svg>
+        <svg class="home-line-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="15" cy="9" r="3.3"/><path d="M11.82 10.48 6.37 15.93a1.2 1.2 0 0 0 1.7 1.7l5.45-5.45"/><path d="M7.22 17.98V21"/><path transform="translate(6.5 7) scale(0.17)" d="M0,-18 C2,-6 6,-2 18,0 C6,2 2,6 0,18 C-2,6 -6,2 -18,0 C-6,-2 -2,-6 0,-18 Z" stroke-width="6.8"/><path transform="translate(17 17.5) scale(0.17)" d="M0,-18 C2,-6 6,-2 18,0 C6,2 2,6 0,18 C-2,6 -6,2 -18,0 C-6,-2 -2,-6 0,-18 Z" stroke-width="6.8"/><path d="m3.6 3.6.9.9M20.4 20.4l-.9-.9"/></svg>
     </a>
     <a href="shop" class="nav-icon" title="Shop">
-        <i class="fas fa-store"></i>
+        <svg class="home-line-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12l2 5.5a2.667 2.667 0 0 1-5.333 0 2.667 2.667 0 0 1-5.334 0 2.667 2.667 0 0 1-5.333 0z"/><path d="M10 4 9.333 9.5M14 4l.667 5.5"/><path d="M5.5 11.4V18a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-6.6"/><path d="M9.5 20v-3a2.5 2.5 0 0 1 5 0v3"/></svg>
     </a>
-    <a href="search" class="nav-icon" title="Profile">
-    <i class="fas fa-search"></i> </a>
+    <a href="search" class="nav-icon" title="Search">
+        <svg class="home-line-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5"/><path d="M7.5 9a3.3 3.3 0 0 1 2.4-1.9"/><path transform="translate(19.5 4.5) scale(0.14)" d="M0,-18 C2,-6 6,-2 18,0 C6,2 2,6 0,18 C-2,6 -6,2 -18,0 C-6,-2 -2,-6 0,-18 Z" stroke-width="8.2"/></svg>
+    </a>
     </div>
 </nav>
 <script>
@@ -2175,14 +2085,14 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="section-title fan-ticker">
   <div class="fan-ticker-track" id="fan-ticker-track">
     <div class="fan-ticker-item" onclick="goToGlobalTopFans()">
-      <span>Top Fans</span>
+      <span class="fan-ticker-label"><svg class="fan-ticker-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 2.8h9v6.8L12 12.3 7.5 9.6z"/><path d="M10.5 2.8v8M13.5 2.8v8"/><path transform="translate(12 17)" d="M0,-5 L1.29,-1.78 4.76,-1.55 2.09,.68 2.94,4.05 0,2.2 -2.94,4.05 -2.09,.68 -4.76,-1.55 -1.29,-1.78Z"/></svg>Top Fans</span>
       <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
         <div id="top-fans-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
       </div>
       <i id="top-fans-arrow" class="fas fa-chevron-right" style="font-size: 14px; color: #888;"></i>
     </div>
     <div class="fan-ticker-item" onclick="goToTodayVip()">
-      <span>Top Today VIP</span>
+      <span class="fan-ticker-label"><svg class="fan-ticker-icon" viewBox="0 0 24 24" aria-hidden="true"><path transform="translate(12 12.8)" d="M0,-10.5 L3.29,-4.53 9.99,-3.24 5.33,1.73 6.17,8.49 0,5.6 -6.17,8.49 -5.33,1.73 -9.99,-3.24 -3.29,-4.53Z"/><text x="12" y="15.1" text-anchor="middle" font-family="Inter, 'Quicksand', sans-serif" font-weight="800" font-size="5.4" letter-spacing="0.1" fill="currentColor" stroke="none">VIP</text></svg>Top Today VIP</span>
       <div style="display: flex; align-items: center; gap: 10px; margin-left: auto; padding-right: 10px;">
         <div id="today-vip-preview-zone" style="display: flex; align-items: center; direction: rtl; opacity: 1; transition: opacity 0.3s ease;"></div>
       </div>
@@ -2238,7 +2148,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   </div>
 </div>
   
-<div class="section-title"> Trending Video</div>
+<div class="section-title" onclick="window.location.href='musicvideo'" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 0; user-select: none;">
+  <span>Music Video</span>
+  <span style="font-size: 13px; font-weight: 500; color: #555;">View All <i class="fas fa-chevron-right" style="font-size: 12px; margin-left: 4px;"></i></span>
+</div>
 <div class="ranking-wrapper">
   <div id="mv-scroller" class="horizontal-list" style="align-items: flex-start;">
     </div>
@@ -3052,133 +2965,30 @@ function updateUI() {
   }
 }
   
-// ข้อมูล MV ของ BLM48 (ใส่รูปปก ชื่อเพลง และลิงก์ YouTube ได้เลย)
-const blm48MVs = [
-   { 
-    title: "【Cover】มปร. (It’s OK.) - BLM48", 
-    date: "4 October 2026",
-    image: "https://lh3.googleusercontent.com/d/1_YU62p83JdEfJtzyMEnF_0iCWyHmQbVq=s1000",
-    link: "https://youtu.be/gxRNWB1iBJA?si=jp7Be1TwkQ7HBA1t"
-  },   
-   { 
-    title: "【Thai ver.】Rapsodi - BLM48", 
-    date: "26 September 2026",
-    image: "https://lh3.googleusercontent.com/d/1w76J_EDRQBmuxedSm7NkJ6kLL4WCn6J9=s1000",
-    link: "https://youtu.be/g-IiXvDfBRg?si=INlaVJN0wNOd_kzz"
-  },  
-   { 
-    title: "【Thai ver.】NEW SHIP / BLM48", 
-    date: "5 September 2026",
-    image: "https://lh3.googleusercontent.com/d/17_oA1gsb5v8B3OdnAqhy_RWaGrrYh-QK=s1000",
-    link: "https://youtube.com/watch?v=z8E1PEdRCac"
-  },
-   { 
-    title: "【Thai ver.】Suki-ish ( 好きish ) - BLM48", 
-    date: "16 August 2026",
-    image: "https://lh3.googleusercontent.com/d/1cVLuEr53ofCWXbE-A97t0bZ5MFDWHv__=s1000",
-    link: "https://youtu.be/euoIySADf2c?si=a3zjAkdLnbDsNZNg"
-  },
-   { 
-    title: "【Thai ver.】Kimi wa Motto Dekiru / BLM48", 
-    date: "10 August 2026",
-    image: "https://lh3.googleusercontent.com/d/1APdcxbFMY2NVg73HxvGiwx6DvLiapGSo=s1000",
-    link: "https://youtu.be/EDNEaF8ujLw?si=K_L20wJs3WVlqgVo"
-  },     
-   { 
-    title: "【Cover】Nagiichi (Thai ver.) / BLM48 ", 
-    date: "25 June 2026",
-    image: "https://lh3.googleusercontent.com/d/1yx9L-d9mNZlxuVJ-RMH93sLW0OtYY5mK=s1000",
-    link: "https://youtu.be/bhbjo1UWOwU?si=aPsCrkof5edM5C-V"
-  },
-   { 
-    title: "【Cover】Dakishimecha Ikenai - กอดเธอไม่ได้หรอก ( Thai Version ) / BLM48 ", 
-    date: "20 June 2026",
-    image: "https://lh3.googleusercontent.com/d/12oY6a47NtLHsAyqsavAPUw6TSPbYYwRa=s1000",
-    link: "https://youtu.be/f9t5C4K3Wk0?si=E29cE4T9qSV7BZ9u"
-  },
-  { 
-    title: "【Cover】Sustainable ( Thai Version ) / BLM48 ", 
-    date: "25 April 2026",
-    image: "https://lh3.googleusercontent.com/d/1WXp1ZbzQ8ib1gb3imrDGQ7KjnFJZUaOO=s1000",
-    link: "https://youtu.be/1Vwg1iQUDtc?si=kVNFI4TQdqiNF-Zs"
-  },
-  { 
-    title: "【Cover】Celebration / BLM48 ", 
-    date: "4 April 2026",
-    image: "https://lh3.googleusercontent.com/d/11zU0OJFxJ9WFzqQvfrqPJrCUUyG-KJZJ=s1000",
-    link: "https://youtu.be/TAPlWWZMGFQ?si=v7ikM7O89ftDQ2S8"
-  },
-  { 
-    title: "【Cover】Sekai no Hito e - ถึงบรรเลง..ถ้อยเพลงของเรา ( Thai ver. ) / BLM48 ", 
-    date: "21 March 2026",
-    image: "https://lh3.googleusercontent.com/d/1wD34e9W6bHHuf9SJ_qBf6I_4e-c_oLen=s1000",
-    link: "https://youtu.be/tqFr0QPgqR0?si=31bFJP2MmgCRiFre"
-  },
-  { 
-    title: "【Male Cover】Eien Pressure – ผูกพันนิรันดร์ / BLM48 ", 
-    date: "28 February 2026",
-    image: "https://lh3.googleusercontent.com/d/1-GMwAgsjKBORWgEHNKPUyecvDRo1w-Gc=s1000",
-    link: "https://www.youtube.com/watch?v=-rhmBTZoZk0"
-  },
-  { 
-    title: "【Cover】Oh my pumpkin! ( CGM48 Version ) / BLM48 ", 
-    date: "15 February 2026",
-    image: "https://lh3.googleusercontent.com/d/1RUXDQSqKG43mWcJ01uNmwDMj8ARugdwS=s1000",
-    link: "https://youtu.be/03UW5ok6de4?si=c5vM4PtXGipCbO1O"
-  },
-  { 
-    title: "【Cover】Bingo! ( Thai ver. ) / BLM48 ", 
-    date: "31 January 2026",
-    image: "https://lh3.googleusercontent.com/d/1UY2KxZBjcAQQJc2XHUvmtsGNG9rSFn5A=s1000",
-    link: "https://youtu.be/QaxSjLIxcSE?si=8G7rfyE3_mxaQ6sH"
-  }
-];
-
-// "4 April 2026" -> "Apr 4, 2026" (แบบการ์ดวิดีโอในรูปอ้างอิง) ถ้าแปลงไม่ได้ใช้ข้อความเดิม
-function formatMvDate(raw) {
-  const d = new Date(raw);
-  if (isNaN(d)) return escapeHtml(raw || '');
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+// 🎵 Music Video (รายการมาจาก Discography ของ BLM48 Official Website ผ่าน assets/js/music-videos.js)
+function renderTrendingMVs() {
+  const scroller = document.getElementById("mv-scroller");
+  if (!scroller || typeof onMusicVideos !== "function") return;
+  onMusicVideos(list => drawTrendingMVs(scroller, list));
 }
 
-function renderTrendingMVs() {
-  const scroller = document.getElementById('mv-scroller');
-  if (!scroller) return;
-
-  // จำกัดให้ดึงข้อมูลมาสูงสุดแค่ 7 อัน
-  const displayMVs = blm48MVs.slice(0, 8);
-
-  displayMVs.forEach(mv => {
-    // สร้างโครงสร้างการ์ด
-    const card = document.createElement('div');
-    card.className = 'mv-card';
-    
-    // ป้ายมุมรูป: ใช้ความยาวคลิปถ้าใส่ไว้ใน blm48MVs (duration: "03:45") ไม่งั้นโชว์ไอคอนเล่น
-    const badge = mv.duration ? escapeHtml(mv.duration) : '<i class="fas fa-play"></i>';
+function drawTrendingMVs(scroller, list) {
+  scroller.innerHTML = "";
+  list.slice(0, 8).forEach(mv => {
+    const card = document.createElement("div");
+    card.className = "mv-card";
     card.innerHTML = `
       <div class="mv-thumb-wrap">
-        <img src="${mv.image}" alt="MV Cover" class="mv-thumbnail" loading="lazy">
-        <div class="mv-badge">${badge}</div>
+        <img src="${mvEsc(mv.image)}" alt="MV Cover" class="mv-thumbnail" loading="lazy">
+        ${MV_RIBBON_HTML}
       </div>
-      <div class="mv-body">
-        <div class="mv-channel">
-          <img class="mv-channel-logo" src="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180" alt="BLM48">
-          <div>
-            <div class="mv-channel-name">BLM48</div>
-            <div class="mv-date">${formatMvDate(mv.date)}</div>
-          </div>
-        </div>
-        <div class="mv-title">${escapeHtml(mv.title.trim())}</div>
-      </div>
+      <div class="mv-title">${mvEsc(mv.title.trim())}</div>
+      <div class="mv-meta"><i class="fa-regular fa-calendar"></i><span>${formatMvDate(mv.date)}</span>${mvViewsHtml(mv)}</div>
     `;
-    
-    // คำสั่งตั้งค่าให้กดที่การ์ดแล้วเปิดหน้าต่างใหม่ไปยังลิงก์ที่ตั้งไว้
-    if(mv.link) {
-      card.onclick = () => window.open(mv.link, '_blank');
-    }
-
+    card.onclick = () => openMv(mv);
     scroller.appendChild(card);
   });
+  loadMvViews();
 }
   
 // 🔼🔽 เทียบอันดับปัจจุบันกับอันดับล่าสุด เพื่อโชว์ไอคอนขึ้น/ลง/เท่าเดิม

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Music Video</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffc0cb">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <link rel="icon" sizes="192x192" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s192">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <script src="assets/js/music-videos.js"></script>
+    <link rel="stylesheet" href="assets/css/music-video.css">
+    <link rel="stylesheet" href="assets/css/media-topbar.css">
+
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; padding: 0 0 110px; min-height: 100vh; color: #444; background: #ffffff; }
+        .page-wrapper { max-width: 640px; margin: 0 auto; padding: 16px 0 30px; }
+        .mv-section-title { font-weight: 700; font-size: 18px; color: #222; margin: 0 12px 12px; }
+
+        /* Popular video: แถวเลื่อนแนวนอน การ์ดเล็กลง เห็นการ์ดถัดไปโผล่ขวา */
+        .mv-rec-row { display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden; padding: 0 12px 4px; scroll-snap-type: x mandatory; scroll-padding-left: 12px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .mv-rec-row::-webkit-scrollbar { display: none; }
+        .mv-rec-row .mv-card { width: 52vw; max-width: 260px; }
+        .mv-rec-row .mv-title { font-size: 13.5px; min-height: calc(13.5px * 1.4 * 2); }
+        .mv-rec-row .mv-ribbon { width: 28px; font-size: 8px; padding: 4px 0 9px; }
+        .mv-rec-row .mv-ribbon i { font-size: 12px; }
+        .mv-rec-row .mv-meta { font-size: 12px; }
+
+        /* รายการทั้งหมด: การ์ดเต็มความกว้าง + ปุ่ม Watch Now */
+        #mv-list { display: flex; flex-direction: column; gap: 28px; padding: 0 12px; margin-top: 30px; }
+        #mv-list .mv-card { width: 100%; max-width: none; }
+        #mv-list .mv-thumb-wrap { border-radius: 14px; }
+        #mv-list .mv-title { font-size: 16px; min-height: 0; }
+        .mv-action-row { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 12px; }
+        .mv-watch-btn { border: none; border-radius: 999px; background: #ffde5b; color: #222; font-family: inherit; font-size: 15px; font-weight: 600; padding: 9px 26px; cursor: pointer; white-space: nowrap; }
+        .mv-watch-btn:active { background: #f5cf3a; }
+        .empty-state { text-align: center; color: #767676; padding: 50px 20px; font-size: 14px; }
+
+        /* แถบเมนูล่าง (ชุดเดียวกับ fanpost.html — หน้า Video อยู่ใต้แท็บ Fan Post) */
+        .icon-wrapper { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+        .noti-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background-color: #ff4d6d; border-radius: 50%; border: 1px solid white; z-index: 10; }
+
+        .comment-block-note { text-align: center; color: #bbb; font-size: 0.75rem; padding: 8px 0 2px; }
+
+        .bottom-tab-bar {
+            height: calc(110px + env(safe-area-inset-bottom, 0px));
+            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 999; background: transparent;
+            display: flex; justify-content: space-around; align-items: flex-end;
+            padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box;
+            -webkit-transform: translateZ(0); transform: translateZ(0);
+            -webkit-backface-visibility: hidden; backface-visibility: hidden;
+        }
+        .bottom-tab-bar::before {
+            content: ""; position: absolute; top: 60px; left: 0; right: 0; bottom: 0;
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(var(--glass-blur-lg));
+            -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+            border-top: 1px solid var(--glass-border);
+            border-radius: 28px 28px 0 0;
+            box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.08);
+            z-index: 1;
+        }
+        .tab-item {
+            display: flex; justify-content: center; align-items: center; width: 20%; height: 50px;
+            position: relative; z-index: 2; text-decoration: none; color: #8e8e93;
+            transform: translateY(-30px);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .tab-item:active { transform: translateY(-30px) scale(0.85); opacity: 0.8; }
+        .tab-item.active { color: #ffb3c1; transform: translateY(-45px); }
+        .tab-item.active:active { transform: translateY(-45px) scale(0.85); }
+        .tab-item.active i { font-size: 45px; }
+        .tab-item.active img { width: 58px; height: 58px; }
+        .tab-item.active #tab-profile-img { width: 50px !important; height: 50px !important; }
+        .tab-item i { font-size: 34px; transition: font-size 0.2s ease; }
+        .tab-item img { width: 44px; height: 44px; object-fit: contain; transition: width 0.2s ease, height 0.2s ease; }
+        #tab-profile-img { width: 38px !important; height: 38px !important; border-radius: 50%; border: 2px solid #ffb3c1; box-sizing: border-box; transition: width 0.2s ease, height 0.2s ease; }
+
+    </style>
+  <!-- 🎉 ธีมเทศกาล (เปิด/ปิดเองตามวันที่ ดูรายการเทศกาลใน assets/js/festivals.js) -->
+  <link rel="stylesheet" href="assets/css/festivals.css">
+  <script src="assets/js/festivals.js"></script>
+</head>
+<body>
+
+<!-- แถบบนร่วมกับหน้า Fan Post (assets/css/media-topbar.css) -->
+<header class="media-topbar">
+    <div class="media-topbar-inner">
+        <nav class="media-tabs">
+            <button type="button" class="media-tab" onclick="blm48Replace('fanpost')">Fan Post</button>
+            <span class="media-tab active" aria-current="page">Video</span>
+        </nav>
+        <div class="media-actions">
+            <a href="leaderboard" class="media-icon-btn" title="อันดับ" aria-label="อันดับ">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M7.5 2.8h9v6.8L12 12.3 7.5 9.6z"/><path d="M10.5 2.8v8M13.5 2.8v8"/><path transform="translate(12 17)" d="M0,-5 L1.29,-1.78 4.76,-1.55 2.09,.68 2.94,4.05 0,2.2 -2.94,4.05 -2.09,.68 -4.76,-1.55 -1.29,-1.78Z"/></svg>
+            </a>
+            <a href="search" class="media-icon-btn" title="ค้นหา" aria-label="ค้นหา">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="7"/><path d="m15.8 15.8 5.2 5.2"/></svg>
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="page-wrapper">
+    <div class="mv-section-title">Popular video</div>
+    <div class="mv-rec-row" id="mv-rec-row"></div>
+    <div id="mv-list"></div>
+</div>
+
+<div class="bottom-tab-bar">
+  <a href="index" class="tab-item">
+    <i id="nav-home-fallback" class="fa-solid fa-house"></i>
+    <img id="nav-home" src="" alt="Home" style="display: none;">
+  </a>
+  <a href="fanpost" class="tab-item active">
+    <i id="nav-kami-fallback" class="fa-solid fa-star"></i>
+    <img id="nav-kami" src="" alt="Fan Post" style="display: none;">
+  </a>
+  <a href="majorvote" class="tab-item">
+    <i id="nav-cart-fallback" class="fa-solid fa-crown"></i>
+    <img id="nav-cart" src="" alt="Major Vote" style="display: none;">
+  </a>
+  <a href="notification" class="tab-item">
+    <div class="icon-wrapper">
+      <i id="nav-noti-fallback" class="fa-solid fa-bell"></i>
+      <img id="nav-noti" src="" alt="Notification" style="display: none;">
+      <span class="noti-badge" id="noti-badge" style="display: none;"></span>
+    </div>
+  </a>
+  <a href="profile" class="tab-item">
+    <img id="tab-profile-img" src="https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000" style="border-radius: 50%; object-fit: cover; border: 2px solid #ffb3c1;">
+  </a>
+</div>
+
+
+<script>
+  // การ์ดวิดีโอ 1 ใบ (ใช้ทั้งแถว Recommended และรายการทั้งหมด)
+  function mvCardHtml(mv, withAction) {
+    return `
+      <div class="mv-thumb-wrap">
+        <img src="${mvEsc(mv.image)}" alt="MV Cover" class="mv-thumbnail" loading="lazy">
+        ${MV_RIBBON_HTML}
+      </div>
+      <div class="mv-title">${mvEsc(mv.title.trim())}</div>
+      <div class="mv-meta"><i class="fa-regular fa-calendar"></i><span>${formatMvDate(mv.date)}</span>${mvViewsHtml(mv)}</div>
+      ${withAction ? `
+      <div class="mv-action-row">
+        <button type="button" class="mv-watch-btn">Watch Now</button>
+      </div>` : ''}
+    `;
+  }
+
+  // รายการมาจาก Discography ของ BLM48 Official Website (onMusicVideos อาจเรียกซ้ำเมื่อได้ข้อมูลใหม่)
+  function renderMusicVideos(mvs) {
+    const rec = document.getElementById('mv-rec-row');
+    const list = document.getElementById('mv-list');
+    rec.innerHTML = '';
+    delete rec.dataset.key;
+    list.innerHTML = '';
+    if (!mvs.length) {
+      list.innerHTML = '<div class="empty-state">ยังไม่มี Music Video</div>';
+      return;
+    }
+
+    // รายการด้านล่าง = ทั้งหมด (ใหม่ → เก่า), Recommended = 5 คลิปยอดวิวสูงสุด (เรียงใหม่เมื่อได้ยอดวิว)
+    mvs.forEach(mv => {
+      const card = document.createElement('div');
+      card.className = 'mv-card';
+      card.innerHTML = mvCardHtml(mv, true);
+      card.onclick = () => openMv(mv);
+      list.appendChild(card);
+    });
+    renderRecommended(mvs, {});
+    loadMvViews(views => renderRecommended(mvs, views));
+  }
+
+  // Popular video: 5 คลิปที่ยอดวิวสูงสุด (คลิปที่ยังไม่มียอดวิวไว้ท้าย ตามลำดับเดิม)
+  // วาดใหม่เฉพาะตอนที่ 5 อันดับเปลี่ยน กันการ์ดกระพริบ
+  function renderRecommended(mvs, views) {
+    const rec = document.getElementById('mv-rec-row');
+    const viewsOf = mv => {
+      const n = views[mvYoutubeId(mv.link)];
+      return n == null ? -1 : n;
+    };
+    const top = mvs
+      .map((mv, i) => ({ mv, i, n: viewsOf(mv) }))
+      .sort((a, b) => b.n - a.n || a.i - b.i)
+      .slice(0, 5)
+      .map(x => x.mv);
+    const key = top.map(mv => mv.link).join('|');
+    if (rec.dataset.key !== key) {
+      rec.dataset.key = key;
+      rec.innerHTML = '';
+      top.forEach(mv => {
+        const card = document.createElement('div');
+        card.className = 'mv-card';
+        card.innerHTML = mvCardHtml(mv, false);
+        card.onclick = () => openMv(mv);
+        rec.appendChild(card);
+      });
+      rec.scrollLeft = 0;
+    }
+    fillMvViews(views);
+  }
+
+  /* ==========================================
+     🎨 Sub-page nav icon theming (custom uploaded icons, no splash)
+     ========================================== */
+  function loadChampThemeSubPage() {
+    const CACHE_KEY = "bnl_winner_theme_cache";
+    const cachedDataStr = localStorage.getItem(CACHE_KEY);
+    if (cachedDataStr) {
+      try {
+        const cachedObj = JSON.parse(cachedDataStr);
+        applySubPageTheme(cachedObj.champ ? cachedObj.champ : cachedObj);
+      } catch (e) {}
+    }
+    blm48GetWinnerTheme().then(newData => {
+      const newChampData = newData.champ ? newData.champ : newData;
+      if (newChampData && newChampData.name) {
+        let cacheChampStr = "";
+        if (cachedDataStr) {
+          try {
+            const parsed = JSON.parse(cachedDataStr);
+            cacheChampStr = JSON.stringify(parsed.champ ? parsed.champ : parsed);
+          } catch (e) {}
+        }
+        if (cacheChampStr !== JSON.stringify(newChampData)) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(newData));
+          applySubPageTheme(newChampData);
+        }
+      }
+    }).catch(e => console.error(e));
+  }
+  function applySubPageTheme(champData) {
+    if (!champData) return;
+    updateSubPageIcon('nav-home', 'nav-home-fallback', champData.homeIcon);
+    updateSubPageIcon('nav-kami', 'nav-kami-fallback', champData.kamiIcon);
+    updateSubPageIcon('nav-cart', 'nav-cart-fallback', champData.cartIcon);
+    updateSubPageIcon('nav-noti', 'nav-noti-fallback', champData.notiIcon);
+  }
+  function updateSubPageIcon(imgId, fallbackId, iconUrl) {
+    const imgElement = document.getElementById(imgId);
+    const fallbackElement = document.getElementById(fallbackId);
+    if (imgElement && fallbackElement) {
+      if (iconUrl && iconUrl.trim() !== "") {
+        imgElement.src = iconUrl; imgElement.style.display = 'block'; fallbackElement.style.display = 'none';
+      } else {
+        imgElement.style.display = 'none'; fallbackElement.style.display = 'block';
+      }
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const user = getUserSession();
+    if (!user || !user.username) {
+      blm48Replace('login');
+      return;
+    }
+    const tabProfileImg = document.getElementById('tab-profile-img');
+    if (tabProfileImg && user.profile_img) tabProfileImg.src = user.profile_img;
+    if (typeof checkNotificationBadge === 'function') checkNotificationBadge();
+    loadChampThemeSubPage();
+
+    onMusicVideos(renderMusicVideos);
+  });
+</script>
+</body>
+</html>
