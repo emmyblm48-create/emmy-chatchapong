@@ -529,7 +529,7 @@
 
 <div class="compose-topbar">
   <i class="fa-solid fa-chevron-left back-icon" onclick="blm48Back('index')"></i>
-  New post
+  <span id="compose-title">New post</span>
 </div>
 
 <div id="champ-thanks-card">
@@ -584,7 +584,7 @@
   <div class="compose-note">ใส่ #แฮชแท็ก หรือวางลิงก์ในแคปชันได้เลย</div>
 
   <div class="compose-share-bar">
-    <button class="btn-submit-full" onclick="submitPost()">Share</button>
+    <button class="btn-submit-full" id="submit-post-btn" onclick="submitPost()">Share</button>
   </div>
 </div>
 
@@ -610,8 +610,43 @@
   // จะโชว์การ์ดสีทองด้านบนให้พิมพ์โพสขอบคุณพิเศษนี้ได้ (โพสได้แค่ครั้งเดียว เช็คสถานะจากฝั่งเซิร์ฟเวอร์)
   let champThanksImageFile = null;
 
+  // ✏️ โหมดแก้ไขโพสต์ (post?edit=POST_xxx): ปุ่ม "แก้ไขโพสต์" ของโพสต์เมมเบอร์ทุกหน้าพามาที่นี่แทนป๊อปอัป
+  // รูปเดิมของโพสต์อยู่ใน selectedImageFiles เป็น { file: null, url, preview: url } - ตอนบันทึกอัปโหลดเฉพาะรูปใหม่
+  const editPostId = new URLSearchParams(window.location.search).get('edit');
+  let editOriginalImageUrl = '';
+  let editOriginalContent = '';
+
+  (async function initEditMode() {
+    if (!editPostId) return;
+    document.getElementById('compose-title').textContent = 'Edit post';
+    document.title = 'Edit Post | BLM48';
+    document.getElementById('submit-post-btn').textContent = 'Save';
+    const btn = document.getElementById('submit-post-btn');
+    btn.disabled = true;
+    const currentUser = getUserSession();
+    let post = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      post = await blm48GetPost(currentUser ? currentUser.username : '', editPostId);
+      if (!(post && post.networkError)) break;
+      await new Promise(r => setTimeout(r, 700 * (attempt + 1)));
+    }
+    if (!post || !post.id) {
+      Swal.fire('ไม่พบโพสต์', 'โพสต์นี้อาจถูกลบไปแล้วค่ะ', 'error').then(() => blm48Back('index'));
+      return;
+    }
+    editOriginalContent = post.content || '';
+    editOriginalImageUrl = post.imageURL || '';
+    postContentEl.value = editOriginalContent;
+    selectedImageFiles = editOriginalImageUrl.split(',').map(u => u.trim()).filter(Boolean)
+      .map(url => ({ file: null, url: url, preview: url }));
+    renderImagePreviews();
+    updateTaggedChips();
+    btn.disabled = false;
+  })();
+
   (async function initChampThanks() {
     const currentUser = getUserSession();
+    if (editPostId) return; // แก้ไขโพสต์อยู่ ไม่ต้องโชว์การ์ดโพสขอบคุณ
     if (!currentUser || !currentUser.username) return;
     try {
       const status = await blm48GetChampThanksStatus(currentUser.username);
@@ -1048,7 +1083,7 @@
     }
 
     Swal.fire({
-      title: 'Publishing Post',
+      title: editPostId ? 'Saving Post' : 'Publishing Post',
       text: 'Uploading media assets and updating timeline. Please wait...',
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
@@ -1063,7 +1098,8 @@
         let failedCount = 0;
         for (let i = 0; i < selectedImageFiles.length; i++) {
           try {
-            const url = await blm48UploadPostImage(activeUsername, selectedImageFiles[i].file);
+            // รูปเดิมของโพสต์ (โหมดแก้ไข) ใช้ URL เดิม ไม่ต้องอัปโหลดซ้ำ
+            const url = selectedImageFiles[i].url || await blm48UploadPostImage(activeUsername, selectedImageFiles[i].file);
             if (url) uploadedUrls.push(url);
           } catch (err) {
             failedCount++;
@@ -1090,6 +1126,28 @@
       }
 
       // 2. ส่งข้อมูลชุดสุดท้ายไปบันทึกที่ Supabase โดยตรง
+      if (editPostId) {
+        if (content === editOriginalContent.trim() && imageUrlString === editOriginalImageUrl) {
+          Swal.close();
+          blm48Back('index');
+          return;
+        }
+        // role จริงเช็กที่ฝั่งเซิร์ฟเวอร์ (แก้ได้เฉพาะเจ้าของโพสต์ / แอดมิน)
+        const res = await blm48EditPost(activeUsername, editPostId, content, imageUrlString);
+        if (res.status === 'success') {
+          // 🧹 ล้างเฉพาะรูปที่ถูกลบออกจากโพสต์ตอนแก้ไข
+          const kept = imageUrlString.split(',');
+          blm48DeleteStorageFiles(editOriginalImageUrl.split(',').map(u => u.trim()).filter(u => u && !kept.includes(u)));
+          // หน้าที่ย้อนกลับไปต้องดึงโพสต์ใหม่ (ฟีดหน้าแรกโชว์จากแคชก่อน - ล้างทิ้งกันเห็นข้อความเก่า)
+          try { localStorage.removeItem('blm48_posts_cache'); } catch (e) {}
+          await Swal.fire({ title: 'Saved', text: 'Your post has been updated.', icon: 'success', confirmButtonColor: 'var(--blm-pink)' });
+          blm48Back('index', { refresh: true });
+        } else {
+          Swal.fire('เอ๊ะ!', 'เกิดข้อผิดพลาด หรือคุณไม่มีสิทธิ์ในการแก้ไขโพสต์นี้', 'error');
+        }
+        return;
+      }
+
       const data = await blm48CreatePost(activeUsername, content, imageUrlString, '', '');
 
       if (data.status === "success") {

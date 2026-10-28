@@ -235,9 +235,10 @@
     const day = parseInt(parts[2]);
     const hour = parts[3];
     const min = parts[4];
-    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-    const thaiYear = year + 543;
-    return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
+    const engMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // วันที่เวลาภาษาอังกฤษ เช่น "Oct 26, 2026 5:58 PM"
+    const h = parseInt(hour, 10);
+    return `${engMonths[month - 1]} ${day}, ${year} ${h % 12 || 12}:${min} ${h < 12 ? 'AM' : 'PM'}`;
   }
 
   function buildImagesHtml(displayImage) {
@@ -286,7 +287,7 @@
     const authorName = escapeHtml(post.authorName || 'Anonymous');
 
     const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
-    const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
+    const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : 'Just now');
 
     const postContent = formatPostContent(post.content || '');
     const postLikes = post.likes || 0;

@@ -50,10 +50,11 @@
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border-bottom: 1px solid #ffe4e8;
-      font-size: 1.05rem;
+      border-bottom: 1px solid #eee;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      font-size: 1.1rem;
       font-weight: 700;
-      color: var(--primary-pink);
+      color: #111;
     }
     .pd-back-icon {
       position: absolute;
@@ -61,15 +62,15 @@
       top: 50%;
       transform: translateY(-50%);
       font-size: 1.2rem;
-      color: var(--primary-pink);
+      color: #111;
       cursor: pointer;
       transition: opacity 0.2s;
     }
     .pd-back-icon:hover { opacity: 0.6; }
 
     .post-detail-container {
-      max-width: 500px;
-      margin: 20px auto;
+      max-width: 560px;
+      margin: 0 auto;
       padding: 0 12px calc(98px + env(safe-area-inset-bottom, 0px));
     }
 
@@ -107,6 +108,15 @@
       outline: none;
       font-family: inherit;
     }
+    .pd-sort { position: relative; margin-bottom: 10px; }
+    .pd-sort-btn { background: none; border: none; padding: 4px 0; font-family: inherit; font-size: 1rem; font-weight: 600; color: #111; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .pd-sort-btn i { font-size: 0.8rem; }
+    .pd-sort-menu { display: none; position: absolute; top: 100%; left: 0; z-index: 20; background: #fff; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); overflow: hidden; min-width: 170px; }
+    .pd-sort-menu.open { display: block; }
+    .pd-sort-menu button { display: block; width: 100%; text-align: left; background: none; border: none; padding: 12px 16px; font-family: inherit; font-size: 0.95rem; color: #222; cursor: pointer; }
+    .pd-sort-menu button:active { background: #f6f6f6; }
+    .pd-comment-bar { border-top: 1px solid #eee !important; background: #fff !important; }
+    .pd-comment-bar .pf-input-wrap { border-color: #ccc; }
     /* ปุ่มส่งใช้ .cmt-send-btn (glassmorphism.css) เหมือนหน้า Home */
     /* กด Reply: แถบ "Replying to ชื่อ ×" ขึ้นเหนือช่องพิมพ์ในกล่องล่างสุดนี้ (ไม่มีช่องตอบกลับในการ์ดแล้ว) */
     .pd-comment-bar .cmt-replying-bar {
@@ -202,7 +212,7 @@
 
   <div class="pd-header">
     <i class="fa-solid fa-chevron-left pd-back-icon" onclick="goBackFromPostDetail()"></i>
-    <span>Post</span>
+    <span id="pd-title">Timeline</span>
   </div>
 
   <div class="post-detail-container" id="post-detail-content">
@@ -239,7 +249,7 @@
     window.location.href = `member?name=${encodeURIComponent(name)}`;
   }
 
-  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
+  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นวันที่เวลาภาษาอังกฤษ
   function formatThaiDate(dateStr) {
     if (!dateStr) return '';
     const parts = dateStr.trim().split(/[- :]/);
@@ -249,9 +259,10 @@
     const day = parseInt(parts[2]);
     const hour = parts[3];
     const min = parts[4];
-    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-    const thaiYear = year + 543;
-    return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
+    const engMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // วันที่เวลาภาษาอังกฤษ เช่น "Oct 26, 2026 5:58 PM"
+    const h = parseInt(hour, 10);
+    return `${engMonths[month - 1]} ${day}, ${year} ${h % 12 || 12}:${min} ${h < 12 ? 'AM' : 'PM'}`;
   }
 
   function hasManagementPermission(postAuthorUsername) {
@@ -301,7 +312,34 @@
         repliesByParent[topId].push(c);
       }
     });
-    return topLevel.map(cmt => buildSingleCommentHtml(cmt, postId, false, repliesByParent[cmt.commentId] || [])).join('');
+    return blm48SortComments(topLevel, pdCommentSort).map(cmt => buildSingleCommentHtml(cmt, postId, false, repliesByParent[cmt.commentId] || [])).join('');
+  }
+
+  // ↕️ เรียงคอมเมนต์: Top Comments (ไลก์เยอะสุด) / Newest — เลือกจากปุ่มหัวรายการคอมเมนต์
+  let pdCommentSort = 'top';
+  function pdSortLabel() { return pdCommentSort === 'new' ? 'Newest Comments' : 'Top Comments'; }
+  function togglePdSortMenu(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('pd-sort-menu');
+    if (menu) menu.classList.toggle('open');
+  }
+  document.addEventListener('click', () => {
+    const menu = document.getElementById('pd-sort-menu');
+    if (menu) menu.classList.remove('open');
+  });
+  function setPdCommentSort(mode) {
+    pdCommentSort = mode;
+    const label = document.getElementById('pd-sort-label');
+    if (label) label.textContent = pdSortLabel();
+    const list = document.getElementById(`comment-list-${currentPostId}`);
+    if (list) {
+      list.dataset.sort = mode;
+      const items = Array.from(list.querySelectorAll(':scope > .comment-item.cmt-top'));
+      const meta = new Map((window.__pdLastComments || []).map(c => [String(c.commentId), c]));
+      const fallback = (el) => ({ likes: Number((el.querySelector('[id^="cmt-like-count-"]') || {}).dataset?.n) || 0, timestamp: 0 });
+      blm48SortComments(items.map(el => Object.assign({ el }, meta.get(el.dataset.commentId) || fallback(el))), mode)
+        .forEach(x => list.appendChild(x.el));
+    }
   }
 
   function renderPost(post) {
@@ -312,7 +350,7 @@
     const authorName = escapeHtml(post.authorName || 'Anonymous Member');
 
     const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
-    const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
+    const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : 'Just now');
 
     const postContent = formatPostContent(post.content || '');
     const postLikes = post.likes || 0;
@@ -348,7 +386,7 @@
     } else if (isGraduated) {
       champCardStyle = `background: #fafafa; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);`;
     } else {
-      champCardStyle = `background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);`;
+      champCardStyle = `background: white; box-shadow: none; border-radius: 0;`;
     }
 
     const specialBadge = isChampPost ? `
@@ -404,21 +442,27 @@
 
     const imagesHtml = buildImagesHtml(displayImage);
 
-    const actionMenu = canManage ? `
+    // เมนู ⋯ : แชร์ได้ทุกคน (ย้ายมาจากแถบปุ่มเดิม) / แก้ไข-ลบเฉพาะคนที่มีสิทธิ์
+    const actionMenu = `
       <div class="post-menu-container">
         <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
           <i class="fa-solid fa-ellipsis-vertical"></i>
         </button>
         <div class="post-dropdown-menu" id="dropdown-${postId}">
+          <button class="post-dropdown-item" onclick="actionSharePost('${postId}', '${post.postType === 'fan' ? 'fanpost' : 'index'}')">
+            <i class="fa-solid fa-share-nodes"></i> แชร์โพสต์
+          </button>
+          ${canManage ? `
           <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(post.content || '')}')">
             <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
           </button>
           <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
             <i class="fa-solid fa-trash"></i> ลบโพสต์
           </button>
+          ` : ''}
         </div>
       </div>
-    ` : '';
+    `;
 
     return `
       <div class="${postContainerClass}" id="post-${postId}" data-images="${escapeAttr(displayImage)}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
@@ -443,7 +487,9 @@
           ${mediaHtml}
         </div>
 
-        <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px;">
+        ${post.postType !== 'fan'
+          ? blm48PostStatsActionsHtml(post, { memberName: post.authorName || '', onCommentsClick: "document.getElementById('comment-section-" + postId + "').scrollIntoView({ behavior: 'smooth' })" })
+          : `        <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px;">
           <button onclick="likePost('${postId}')" style="background: none; border: none; color: var(--primary-pink); cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
           </button>
@@ -456,10 +502,17 @@
           <div id="post-cookies-${postId}" style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #d2691e; font-weight: 600;" title="โพสต์นี้ทำคุกกี้สะสมได้">
             <i class="fa-solid fa-cookie-bite"></i> <span id="post-cookies-count-${postId}">${postCookies}</span>
           </div>
-        </div>
+        </div>`}
 
-        <div id="comment-section-${postId}" style="display: block; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-          <div id="comment-list-${postId}">
+        <div id="comment-section-${postId}" style="display: block; margin: 0 -15px; padding: 14px 15px 0; border-top: 8px solid #f3f3f3;">
+          <div class="pd-sort">
+            <button type="button" class="pd-sort-btn" onclick="togglePdSortMenu(event)"><span id="pd-sort-label">${pdSortLabel()}</span> <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="pd-sort-menu" id="pd-sort-menu">
+              <button type="button" onclick="setPdCommentSort('top')">Top Comments</button>
+              <button type="button" onclick="setPdCommentSort('new')">Newest</button>
+            </div>
+          </div>
+          <div id="comment-list-${postId}" data-sort="${pdCommentSort}">
             ${commentsHtml}
           </div>
         </div>
@@ -480,8 +533,11 @@
       `;
     } else {
       bar.innerHTML = `
-        <div class="pd-comment-bar-inner">
-          <input type="text" id="comment-input-${postId}" class="pd-comment-input" placeholder="Write a comment...">
+        <div class="pd-comment-bar-inner comment-input-box">
+          <div class="pf-input-wrap">
+            <input type="text" id="comment-input-${postId}" class="pd-comment-input" placeholder="Write a comment...">
+            ${currentPostType !== 'fan' ? `<button type="button" class="pf-input-gift" onclick="blm48OpenPostGift('${postId}')" aria-label="Send Gift"><i class="fa-solid fa-gift"></i></button>` : ''}
+          </div>
           <button type="button" class="cmt-send-btn" onclick="submitComment('${postId}', this)" aria-label="ส่งคอมเมนต์"><i class="fa-regular fa-paper-plane"></i></button>
         </div>
       `;
@@ -521,8 +577,11 @@
       }
 
       currentPostType = post.postType || 'member';
+      const titleEl = document.getElementById('pd-title');
+      if (titleEl) titleEl.textContent = currentPostType === 'fan' ? 'Fan Post' : 'Timeline';
 
       const existingCard = document.getElementById(`post-${post.id}`);
+      window.__pdLastComments = Array.isArray(post.comments) ? post.comments : [];
       if (existingCard) {
         // อัปเดตค่าที่เปลี่ยนแบบเงียบๆ แทนการรีเรนเดอร์ทั้งการ์ด (กันคอมเมนต์ที่กำลังพิมพ์อยู่หาย)
         patchPostLive(post);
@@ -620,6 +679,8 @@
   };
 
   async function editPostUi(postId, encodedContent) {
+    // ✏️ โพสต์เมมเบอร์แก้ไขที่หน้า post (โหมดแก้ไข) - โพสต์แฟนคลับยังใช้ป๊อปอัปเดิม
+    if (currentPostType !== 'fan') { window.location.href = `post?edit=${encodeURIComponent(postId)}`; return; }
     const oldContent = decodeURIComponent(encodedContent);
     const postEl = document.getElementById(`post-${postId}`);
     const oldImageUrl = postEl ? (postEl.dataset.images || '') : '';

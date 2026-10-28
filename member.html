@@ -21,6 +21,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/common.js"></script>
+  <script src="assets/js/member-gift-stickers.js"></script>
+  <script src="assets/js/member-gift-sheet.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/glassmorphism.css">
@@ -51,8 +53,8 @@
     }
     .avatar-overlap-wrap .grad-profile-badge {
       top: auto;
-      bottom: 2px;
-      right: calc(50% - 60px);
+      bottom: 22px; /* ยกขึ้นตำแหน่ง ~4 นาฬิกา ไม่ให้ถูกปุ่ม Kami-Oshi ที่คาบขอบล่างทับ */
+      right: calc(50% - 66px);
     }
 
     *, *::before, *::after {
@@ -256,11 +258,11 @@
       gap: 5px;
       background-color: #a0a5ab;
       color: #ffffff;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: bold;
-      padding: 4px 14px;
+      padding: 3px 12px;
       border-radius: 20px;
-      margin-top: 8px;
+      margin-top: 6px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
@@ -290,14 +292,16 @@
     .swal2-popup.ks-popup .ks-btn.ks-cancel { background: #fff !important; color: #111 !important; border: 1.5px solid #111 !important; }
     .swal2-popup.ks-popup .ks-btn.ks-confirm { background: #fbd96b !important; color: #111 !important; border: none !important; }
 
-    .kami-days-badge {
-      display: none;
+    .kami-pill {
+      display: flex;
       align-items: center;
       gap: 5px;
-      background: linear-gradient(135deg, #ffe08a, #ffc107);
-      color: #6b4a00;
-      font-size: 11px;
-      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      background: var(--member-group-color, #ffde5b); /* สีประจำวงของเมมเบอร์ (groupFrameColor) */
+      color: #3a3a3a;
+      font-size: 13px;
+      font-weight: 600;
       padding: 4px 14px;
       border-radius: 20px;
       letter-spacing: 0.3px;
@@ -308,6 +312,10 @@
       position: relative;
       z-index: 4;
       white-space: nowrap;
+    }
+    .kami-pill.is-kami {
+      background: linear-gradient(135deg, #ffe08a, #ffc107);
+      color: #6b4a00;
     }
 
 
@@ -380,8 +388,9 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.06);
       transition: all 0.2s ease;
     }
-    .btn-kami .icon-circle { background: #fff9db; color: #f59f00; }
     .btn-oshi .icon-circle { background: #e3faf2; color: #0ca678; }
+    .btn-gift .icon-circle { background: #fff4e6; color: #e8590c; }
+
     .btn-cookie .icon-circle { background: var(--blmem-pink-light); color: var(--blmem-pink); }
     .btn-more .icon-circle { background: #f1eff5; color: #8a8698; }
 
@@ -476,8 +485,9 @@
     .top-fans-avatar-stack {
       display: flex;
       align-items: center;
+      gap: 3px; /* รูปในกรอบเหรียญ (blm48MedalAvatarHtml) วางเรียงกัน ไม่ซ้อน */
     }
-    .top-fans-avatar-stack img {
+    .top-fans-avatar-stack > img {
       width: 28px;
       height: 28px;
       border-radius: 50%;
@@ -486,7 +496,7 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.08);
       margin-left: -8px;
     }
-    .top-fans-avatar-stack img:first-child { margin-left: 0; }
+    .top-fans-avatar-stack > img:first-child { margin-left: 0; }
     .top-fans-preview i.fa-chevron-right { color: #ccc; font-size: 12px; margin-left: 6px; }
 
     /* 🏅👑 Top Fans / Top Today VIP ใช้ช่องเดียวกัน สลับกันเลื่อนขึ้นทีละอัน (แบบเดียวกับหน้า Home) */
@@ -629,6 +639,8 @@
         text-overflow: ellipsis;
         text-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
+    .member-thanks-grad { display: none; margin-left: 6px; font-size: 0.8em; }
+    .is-graduated .member-thanks-grad { display: inline; }
     .member-thanks-pill {
         flex-shrink: 0;
         background: rgba(0,0,0,0.38);
@@ -772,12 +784,13 @@
       <img id="mb-avatar-circle" src="assets/images/default-profile.png" class="member-profile-img">
       <div id="avatar-grad-icon" class="grad-profile-badge" style="display: none;"><i class="fas fa-graduation-cap"></i></div>
     </div>
-    <div id="mb-kami-days-badge" class="kami-days-badge"><i class="fas fa-crown"></i> Kami-Oshi <span id="mb-kami-days-num">1</span> Days</div>
+    <!-- 👑 ปุ่ม Kami-Oshi คาบขอบล่างกรอบโปรไฟล์ (แบบ iAM): ยังไม่ใช่ = "+ Kami-Oshi", เป็นแล้ว = "Kami-Oshi N Days" -->
+    <button id="mb-kami-pill" class="kami-pill" onclick="actionKami()">+ Kami-Oshi</button>
 
     <div class="member-header-block">
       <div id="mb-name" class="member-name">กำลังโหลด...</div>
-      <!-- 🎓 ป้ายกำกับสีเทา GRADUATED ใต้ชื่อ -->
-      <div id="mb-grad-badge" class="graduated-badge"><i class="fas fa-graduation-cap"></i> Graduated</div>
+      <!-- 🎓 เมมเบอร์จบการศึกษา: ป้าย GRADUATED แทนชื่อวง -->
+      <div id="mb-grad-badge" class="graduated-badge">Graduated</div>
       <div id="mb-sub" class="member-sub">BLM48</div>
     </div>
 
@@ -801,9 +814,9 @@
       </div>
 
       <div class="interaction-grid">
-        <button id="btn-kami-trigger" class="btn-interact btn-kami" onclick="actionKami()">
-          <span class="icon-circle"><i class="fas fa-crown"></i></span>
-          <span class="btn-label">+ Kami-Oshi</span>
+        <button id="btn-gift-trigger" class="btn-interact btn-gift" onclick="actionGift()">
+          <span class="icon-circle"><i class="fas fa-gift"></i></span>
+          <span class="btn-label">Gift</span>
         </button>
         <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
           <span class="icon-circle"><i class="fas fa-heart"></i></span>
@@ -913,15 +926,16 @@ function renderMemberStatsAndFans() {
     
     if (nameEl) nameEl.innerText = m.name || memberName;
 
-    if (m.status === 'Graduated' || m.status === 'graduated') {
-      if (gradBadge) gradBadge.style.display = 'inline-flex';
-      if (gradAvatarIcon) gradAvatarIcon.style.display = 'flex';
-      if (btnCookie) btnCookie.setAttribute('data-graduated', 'true');
-    } else {
-      if (gradBadge) gradBadge.style.display = 'none';
-      if (gradAvatarIcon) gradAvatarIcon.style.display = 'none';
-      if (btnCookie) btnCookie.setAttribute('data-graduated', 'false');
-    }
+    const isGrad = String(m.status || '').toLowerCase() === 'graduated';
+    const subEl = document.getElementById('mb-sub');
+    const kamiPill = document.getElementById('mb-kami-pill');
+    if (kamiPill) kamiPill.style.setProperty('--member-group-color', groupFrameColor(m.group_name || m.group));
+    if (gradBadge) gradBadge.style.display = isGrad ? 'inline-flex' : 'none';
+    if (subEl) subEl.style.display = isGrad ? 'none' : ''; // ป้าย GRADUATED แทนชื่อวง
+    if (gradAvatarIcon) gradAvatarIcon.style.display = isGrad ? 'flex' : 'none';
+    if (btnCookie) btnCookie.setAttribute('data-graduated', isGrad ? 'true' : 'false');
+    const thanksBox = document.getElementById('champ-thanks-container');
+    if (thanksBox) thanksBox.classList.toggle('is-graduated', isGrad); // ไอคอนหมวกหลังชื่อในการ์ด Special Fans Day
 
     const avatarEl = document.getElementById('mb-avatar');
     if (avatarEl) avatarEl.src = getImg(m.cover_image || m.profile_img);
@@ -963,8 +977,8 @@ function renderMemberStatsAndFans() {
 
   if (savedFans && fanAvatarStack) {
     const fans = JSON.parse(savedFans);
-    fanAvatarStack.innerHTML = fans.slice(0, 3).map(f =>
-      `<img src="${getImg(f.img)}" alt="${f.name || f.username}" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'">`
+    fanAvatarStack.innerHTML = fans.slice(0, 3).map((f, rank) =>
+      blm48MedalAvatarHtml(getImg(f.img), rank, 24, f.name || f.username)
     ).join('');
   }
 }
@@ -1099,10 +1113,10 @@ function renderMemberStatsAndFans() {
 }
 
     function updateButtonStyles() {
-      const btnKami = document.getElementById('btn-kami-trigger');
+      const kamiPill = document.getElementById('mb-kami-pill');
       const btnOshi = document.getElementById('btn-oshi-trigger');
 
-      if (!btnKami || !btnOshi) return;
+      if (!kamiPill || !btnOshi) return;
       if (!user) return;
 
       const searchName = memberName.toLowerCase();
@@ -1110,23 +1124,11 @@ function renderMemberStatsAndFans() {
       const oshiArray = Array.isArray(user.oshi) ? user.oshi.filter(Boolean).map(s => s.toString().toLowerCase()) : [];
       const isKami = currentKamioshi === searchName;
 
-      const kamiDaysBadge = document.getElementById('mb-kami-days-badge');
-      const kamiDaysNum = document.getElementById('mb-kami-days-num');
-      const kamiCircle = btnKami.querySelector('.icon-circle');
-      const kamiLabel = btnKami.querySelector('.btn-label');
-
-      if (isKami) {
-        if (kamiCircle) { kamiCircle.innerHTML = '<i class="fas fa-heart-broken"></i>'; kamiCircle.style.background = '#ffe3e3'; kamiCircle.style.color = '#e03131'; }
-        if (kamiLabel) kamiLabel.textContent = 'REMOVE KAMI';
-        if (kamiDaysBadge && kamiDaysNum) {
-          kamiDaysNum.textContent = user.kamioshiDays || 1;
-          kamiDaysBadge.style.display = "flex";
-        }
-      } else {
-        if (kamiCircle) { kamiCircle.innerHTML = '<i class="fas fa-crown"></i>'; kamiCircle.style.background = ''; kamiCircle.style.color = ''; }
-        if (kamiLabel) kamiLabel.textContent = '+ KAMI';
-        if (kamiDaysBadge) kamiDaysBadge.style.display = "none";
-      }
+      // ปุ่มบนกรอบโปรไฟล์: กดซ้ำตอนเป็นคามิอยู่แล้ว = ยกเลิก (ผ่านป๊อปอัปยืนยันเดิม)
+      kamiPill.classList.toggle('is-kami', isKami);
+      kamiPill.innerHTML = isKami
+        ? `<i class="fas fa-crown"></i> Kami-Oshi ${Number(user.kamioshiDays || 1).toLocaleString()} Days`
+        : '+ Kami-Oshi';
 
       const oshiCircle = btnOshi.querySelector('.icon-circle');
       const oshiLabel = btnOshi.querySelector('.btn-label');
@@ -1184,7 +1186,7 @@ function renderMemberStatsAndFans() {
                     <div class="member-thanks-card" onclick="location.href='specialthanks?index=${champ._fullIndex}'">
                         ${bg ? `<img src="${escapeHtml(bg)}" class="member-thanks-img" alt="" loading="lazy" onerror="this.remove()">` : ''}
                         <div class="member-thanks-top">
-                            <span class="member-thanks-name">${escapeHtml(champ.name || '')}</span>
+                            <span class="member-thanks-name">${escapeHtml(champ.name || '')}<i class="fas fa-graduation-cap member-thanks-grad"></i></span>
                             <span class="member-thanks-pill">${escapeHtml(shortMonth)}</span>
                         </div>
                         <div class="member-thanks-bottom">
@@ -1399,6 +1401,33 @@ function renderMemberStatsAndFans() {
     }
 
     function actionKami() { setOshi('kami'); }
+
+    // 🎁 Gift: แผงส่งของขวัญ (assets/js/member-gift-sheet.js ใช้ร่วมกับหน้า Home)
+    function actionGift() {
+      if (!checkLoginStatus()) return;
+      if (document.getElementById('btn-cookie-trigger').getAttribute('data-graduated') === 'true') {
+        Swal.fire({ title: 'ส่งของขวัญไม่ได้', text: 'เมมเบอร์ท่านนี้จบการศึกษาแล้วค่ะ', confirmButtonColor: '#ffd75e' });
+        return;
+      }
+      blm48OpenMemberGift({
+        name: document.getElementById('mb-name').innerText || memberName,
+        img: document.getElementById('mb-avatar-circle').src,
+        onAvatarClick: () => blm48Gift.close(), // อยู่หน้าโปรไฟล์อยู่แล้ว กดรูป = ปิดแผง
+        onSent: (res) => {
+          user = getUserSession() || user; // ยอด Cookie ใหม่ที่แผงบันทึกไว้
+          // ยอด Total Cookies ของเมมเบอร์บนหน้านี้ขึ้นทันที
+          try {
+            const m = JSON.parse(localStorage.getItem('current_member_stats') || 'null');
+            if (m && Number(res.cost) > 0) {
+              m.all_time_total = Number(m.all_time_total || 0) + Number(res.cost);
+              localStorage.setItem('current_member_stats', JSON.stringify(m));
+              const scoreEl = document.getElementById('mb-score');
+              if (scoreEl) scoreEl.innerText = formatMemberScore(m.all_time_total);
+            }
+          } catch (e) { console.error(e); }
+        }
+      });
+    }
     function actionOshi() { setOshi('oshi'); }
 
     function goToTopFans() {
@@ -1417,8 +1446,8 @@ function renderMemberStatsAndFans() {
       try {
         const fans = await blm48GetMemberFansPeriod(memberName, 'today');
         if (!Array.isArray(fans)) return;
-        stack.innerHTML = fans.slice(0, 3).map(f =>
-          `<img src="${getImg(f.img)}" alt="${escapeHtml(f.name || f.username || '')}" onerror="this.src='https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png'">`
+        stack.innerHTML = fans.slice(0, 3).map((f, rank) =>
+          blm48MedalAvatarHtml(getImg(f.img), rank, 24, f.name || f.username)
         ).join('');
       } catch (e) { console.error('Today VIP preview error:', e); }
     }
@@ -1591,7 +1620,7 @@ function renderMemberStatsAndFans() {
       });
     }
 
-  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ.
+  // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นวันที่เวลาภาษาอังกฤษ
 function formatThaiDate(dateStr) {
   if (!dateStr) return '';
   
@@ -1605,14 +1634,11 @@ function formatThaiDate(dateStr) {
   const hour = parts[3];
   const min = parts[4];
   
-  const thaiMonths = [
-    'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
-    'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-  ];
+  const engMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
-  const thaiYear = year + 543; // แปลง ค.ศ. เป็น พ.ศ.
-  
-  return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
+  // วันที่เวลาภาษาอังกฤษ เช่น "Oct 26, 2026 5:58 PM"
+  const h = parseInt(hour, 10);
+  return `${engMonths[month - 1]} ${day}, ${year} ${h % 12 || 12}:${min} ${h < 12 ? 'AM' : 'PM'}`;
 }
   
     function hasManagementPermission(postAuthorUsername) {
@@ -1681,7 +1707,7 @@ function renderPost(post) {
 
   // [ข้อที่ 1] แปลงวันที่ให้เป็นภาษาไทยสวยงาม
   const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
-  const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
+  const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : 'Just now');
   
   const postContent = formatPostContent(post.content || '');
   const postLikes = post.likes || 0;
@@ -1743,8 +1769,6 @@ function renderPost(post) {
   // ตัดตัวอักษรคำว่า Graduated ออกไปแล้ว (ปล่อยเป็นค่าว่างไว้) เพื่อความคลีน
   const graduatedSubtext = ''; 
 
-  const postComments = Array.isArray(post.comments) ? post.comments : [];
-  const commentsHtml = buildCommentsHtml(postComments, postId);
 
   let mediaHtml = '';
 
@@ -1758,21 +1782,27 @@ function renderPost(post) {
 
   const imagesHtml = buildImagesHtml(displayImage);
 
-  const actionMenu = canManage ? `
+  // เมนู ⋯ : แชร์ได้ทุกคน (ย้ายมาจากแถบปุ่มเดิม) / แก้ไข-ลบเฉพาะคนที่มีสิทธิ์
+  const actionMenu = `
     <div class="post-menu-container">
       <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
         <i class="fa-solid fa-ellipsis-vertical"></i>
       </button>
       <div class="post-dropdown-menu" id="dropdown-${postId}">
+        <button class="post-dropdown-item" onclick="actionSharePost('${postId}', 'index')">
+          <i class="fa-solid fa-share-nodes"></i> แชร์โพสต์
+        </button>
+        ${canManage ? `
         <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(post.content || '')}')">
           <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
         </button>
         <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
           <i class="fa-solid fa-trash"></i> ลบโพสต์
         </button>
+        ` : ''}
       </div>
     </div>
-  ` : '';
+  `;
       
   return `
     <div class="${postContainerClass}" id="post-${postId}" data-images="${escapeAttr(displayImage)}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
@@ -1795,30 +1825,9 @@ function renderPost(post) {
         ${mediaHtml}
       </div>
       
-      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: var(--blmem-pink); cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
-        </button>
-        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${postComments.length}</span>
-        </button>
-        <button onclick="actionSharePost('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="แชร์โพสต์เป็นลิงก์">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-        <div id="post-cookies-${postId}" style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #d2691e; font-weight: 600;" title="โพสต์นี้ทำคุกกี้สะสมได้">
-          <i class="fa-solid fa-cookie-bite"></i> <span id="post-cookies-count-${postId}">${postCookies}</span>
-        </div>
-      </div>
-
-      <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-        <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
-          ${commentsHtml}
-        </div>
-        <div class="comment-input-box" style="display: flex; gap: 8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-          <button class="cmt-send-btn" onclick="submitComment('${postId}', this)" aria-label="ส่งคอมเมนต์"><i class="fa-regular fa-paper-plane"></i></button>
-        </div>
-      </div>
+      <!-- 🧾 ส่วนล่างโพสต์แบบ iAM (common.js): Gifts/Comments, 9 Cookies | Send Gift, คอมเมนต์ยอดนิยม + ช่องพิมพ์ -->
+      ${blm48PostStatsActionsHtml(post, { memberName: post.authorName || '', canGift: post.postType !== 'fan' })}
+      ${blm48PostCommentPreviewHtml(post, { canGift: post.postType !== 'fan' })}
     </div>
   `;
 }
@@ -2112,7 +2121,11 @@ document.addEventListener('click', function() {
       __renderEditPostImages();
     };
 
-    async function editPostUi(postId, encodedContent) {
+    // ✏️ แก้ไขโพสต์ = ไปหน้า post (โหมดแก้ไข) แทนป๊อปอัป
+    function editPostUi(postId) {
+      window.location.href = `post?edit=${encodeURIComponent(postId)}`;
+    }
+    async function editPostUiPopup(postId, encodedContent) {
       const oldContent = decodeURIComponent(encodedContent);
       const postEl = document.getElementById(`post-${postId}`);
       const oldImageUrl = postEl ? (postEl.dataset.images || '') : '';

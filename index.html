@@ -231,6 +231,46 @@
       letter-spacing: 0.5px;
     }
 
+    /* 🔘 จุดบอกหน้าแบนเนอร์หน้า Home (กลางล่างของแบนเนอร์) */
+    #bannerCounterContainer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 8px;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+    #bannerCounterContainer .bn-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.25);
+      transition: background 0.3s;
+    }
+    #bannerCounterContainer .bn-dot.active { background: #ffffff; }
+
+    /* ✕ ปุ่มปิด Splash */
+    #splash-close-btn {
+      position: absolute;
+      top: calc(env(safe-area-inset-top, 0px) + 14px);
+      right: 14px;
+      z-index: 2;
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: transparent;
+      color: #ffffff;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+      -webkit-tap-highlight-color: transparent;
+    }
+
     /* 🔘 จุดระบุหน้า (Dots Indicator) */
     .nav-dots {
       position: absolute;
@@ -1957,6 +1997,31 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
       }
     }
 
+/* 🔎 Timeline: ปุ่มฟิลเตอร์เมมเบอร์ + หน้า Choose Member เต็มจอ (แบบเดียวกับ campaign.html) */
+.tl-filter-btn { border: none; background: none; font-family: inherit; color: #222; padding: 4px 2px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.tl-filter-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.tl-filter-count { display: none; background: #222; color: #fff; border-radius: 999px; font-size: 12px; font-weight: 600; padding: 2px 9px; white-space: nowrap; }
+.tl-filter-btn.active .tl-filter-count { display: inline-block; }
+.picker { position: fixed; inset: 0; z-index: 3000; background: #fff; display: flex; flex-direction: column; transform: translateY(100%); transition: transform .25s ease; visibility: hidden; }
+.picker.open { transform: translateY(0); visibility: visible; }
+.picker-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: calc(12px + env(safe-area-inset-top)) 12px 12px; border-bottom: 1px solid #e5e5e5; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.picker-head button { border: none; background: none; font-family: inherit; font-size: 16px; font-weight: 600; color: #222; cursor: pointer; padding: 6px 4px; justify-self: start; }
+.picker-title { font-weight: 600; font-size: 17px; color: #222; }
+.picker-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.picker-inner { max-width: 640px; margin: 0 auto; padding: 0 12px 30px; }
+.picker-search { width: 100%; border: none; border-bottom: 1px solid #e5e5e5; padding: 18px 0 14px; font-family: inherit; font-size: 16px; color: #222; outline: none; background: transparent; }
+.pm-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid #efefef; cursor: pointer; user-select: none; }
+.pm-avatar { position: relative; width: 54px; height: 54px; flex-shrink: 0; }
+.pm-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #ffde5b; background: #f4f4f4; display: block; }
+.pm-kami { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 3px; background: linear-gradient(135deg, #ffe08a, #ffc107); color: #6b4a00; font-size: 9px; font-weight: bold; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px; box-shadow: 0 2px 5px rgba(0,0,0,0.08); white-space: nowrap; }
+.pm-kami i { font-size: 8px; }
+.pm-info { flex: 1; min-width: 0; }
+.pm-name { font-weight: 700; font-size: 15px; color: #222; text-transform: uppercase; letter-spacing: .2px; }
+.pm-full { font-size: 13.5px; color: #666; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-check { width: 22px; height: 22px; border: 2px solid #f5b041; border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; }
+.pm-row.on .pm-check { background: #f5b041; }
+.pm-row:not(.on) .pm-check i { display: none; }
+.pm-empty { text-align: center; color: #767676; padding: 50px 20px; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -1969,6 +2034,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     <img id="main-splash" src="https://lh3.googleusercontent.com/d/1nvKkrs0bjgR8YAL8VKLDIxooRUtSekcb=s1000" style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.4s ease;">
     <!-- 🏆 Splash Champ of the Month แบบแอนิเมชัน (assets/js/champ-splash.js) วาดทับรูปด้านบน -->
     <div id="champ-splash-stage" style="display: none; position: absolute; inset: 0;"></div>
+    <button type="button" id="splash-close-btn" aria-label="ปิด" onclick="closeChampSplash()"><i class="fas fa-times"></i></button>
 </div>
 <script src="assets/js/champ-splash.js"></script>
 <script src="assets/js/bday-splash.js"></script>
@@ -2115,9 +2181,8 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
     </div>
     
-    <div id="bannerCounterContainer" style="position: absolute; bottom: 12px; right: 15px; z-index: 10; background: rgba(0, 0, 0, 0.45); color: #ffffff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; font-family: sans-serif; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); letter-spacing: 0.5px;">
-        01|03
-    </div>
+    <!-- 🔘 จุดบอกหน้าแบนเนอร์ (กลางล่าง) - initBannerFeatures() สร้างจุดตามจำนวนแบนเนอร์จริง -->
+    <div id="bannerCounterContainer" aria-hidden="true"></div>
 </div>
 
     <div class="public-member-widget" style="background: linear-gradient(135deg, #fffcfd 0%, #ffeef2 100%); border: 1px solid #ffe1e7; padding: 12px 15px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; margin-top: 14px; box-shadow: 0 4px 12px rgba(255,133,162,0.03);">
@@ -2157,11 +2222,27 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </div>
 </div>
 
-<div class="section-title"> Latest Top Posts</div>
+<div class="section-title" style="display: flex; align-items: center; justify-content: space-between; padding-right: 0;">
+  <span>Timeline</span>
+  <button type="button" id="tl-filter-btn" class="tl-filter-btn" onclick="openMemberPicker()" aria-label="Filter members"><span class="tl-filter-count" id="tl-filter-label"></span><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><circle cx="8" cy="6" r="2.2" fill="#fff"/><circle cx="15" cy="12" r="2.2" fill="#fff"/><circle cx="10" cy="18" r="2.2" fill="#fff"/></svg></button>
+</div>
 <div class="feed-section" id="blm48-feed">
    <div id="posts-container">
        </div>
 </div>
+</div>
+<div id="member-picker" class="picker" aria-hidden="true">
+    <div class="picker-head">
+        <button type="button" onclick="applyMemberPicker()">Done</button>
+        <div class="picker-title">Choose Member</div>
+        <span></span>
+    </div>
+    <div class="picker-body">
+        <div class="picker-inner">
+            <input id="picker-search" class="picker-search" type="search" placeholder="Search Members" oninput="renderMemberPicker()" autocomplete="off">
+            <div id="picker-list"></div>
+        </div>
+    </div>
 </div>
 <i class="fas fa-pencil-alt edit-icon" id="edit-name-btn" onclick="updateDisplayName()" style="display: none;"></i>
 
@@ -2567,23 +2648,24 @@ function initBannerFeatures() {
     if (counter) counter.style.display = "none";
     return;
   } else {
-    if (counter) counter.style.display = "block";
+    if (counter) counter.style.display = totalItems > 1 ? "flex" : "none"; // แบนเนอร์เดียวไม่ต้องมีจุด
   }
 
-  // ระบบคำนวณตัวเลข (01/03)
+  // จุดบอกหน้า (กลางล่าง) - จุดขาวทึบ = แบนเนอร์ที่โชว์อยู่
   function updateCounterText() {
     if (!counter) return;
     const width = container.clientWidth;
     if (width === 0) return;
-    
+
     // นับสดทุกครั้ง เพราะแบนเนอร์ (วันเกิด / Campaign) อาจถูกแทรกเพิ่มทีหลัง
     const liveTotal = container.querySelectorAll(".auto-banner-item").length;
-    let currentIndex = Math.round(container.scrollLeft / width) + 1;
-    if (currentIndex > liveTotal) currentIndex = liveTotal;
+    let currentIndex = Math.round(container.scrollLeft / width);
+    if (currentIndex > liveTotal - 1) currentIndex = liveTotal - 1;
 
-    const currentStr = String(currentIndex).padStart(2, '0');
-    const totalStr = String(liveTotal).padStart(2, '0');
-    counter.innerText = `${currentStr}/${totalStr}`;
+    if (counter.children.length !== liveTotal) {
+      counter.innerHTML = '<span class="bn-dot"></span>'.repeat(liveTotal);
+    }
+    Array.from(counter.children).forEach((d, i) => d.classList.toggle('active', i === currentIndex));
   }
 
   // ฟังก์ชันนี้ถูกเรียกซ้ำได้หลายครั้ง (DOMContentLoaded / ธีมวันเกิด / แบนเนอร์ Campaign)
@@ -2719,50 +2801,7 @@ window.addEventListener('pageshow', function(event) {
   }
 });
   
-function initBannerCounter() {
-  const container = document.getElementById("autoBannerContainer");
-  const counter = document.getElementById("bannerCounterContainer");
-  if (!container || !counter) return;
-
-  // ค้นหาแบนเนอร์ทั้งหมดที่มีอยู่ในตอนนั้น
-  const items = container.querySelectorAll(".auto-banner-item");
-  const totalItems = items.length;
-
-  // ถ้าไม่มีรูปเลย ให้ซ่อนกล่องตัวเลขไปเลย
-  if (totalItems === 0) {
-    counter.style.display = "none";
-    return;
-  } else {
-    counter.style.display = "block";
-  }
-
-  // ฟังก์ชันคำนวณหน้าปัจจุบันจากการ Scroll
-  function updateCounterText() {
-    const width = container.clientWidth;
-    if (width === 0) return;
-    
-    // คำนวณว่าตอนนี้สไลด์อยู่ที่หน้ารูปที่เท่าไหร่
-    const currentIndex = Math.round(container.scrollLeft / width) + 1;
-    // นับสด เพราะแบนเนอร์วันเกิด / Campaign ถูกแทรกเข้ามาทีหลังตอนโหลดหน้า
-    const liveTotal = container.querySelectorAll(".auto-banner-item").length;
-
-    // แปลงเลขให้เป็นสไตล์ 01, 02 (ใส่ padStart เผื่อเลขหลักเดียว)
-    const currentStr = String(currentIndex).padStart(2, '0');
-    const totalStr = String(liveTotal).padStart(2, '0');
-    
-    counter.innerText = `${currentStr}/${totalStr}`;
-  }
-
-  // ให้ทำงานครั้งแรกทันทีที่โหลดหน้าเว็บ
-  updateCounterText();
-
-  // ดักจับเหตุการณ์ตอนผู้ใช้ปัดสไลด์ ให้เปลี่ยนเลขตาม
-  container.removeEventListener("scroll", updateCounterText); // ลบอันเก่าออกก่อนกันเบิ้ล
-  container.addEventListener("scroll", updateCounterText);
-}
-
-// 🚀 สั่งให้ทำงานตอนเปิดหน้าเว็บครั้งแรก
-document.addEventListener("DOMContentLoaded", initBannerCounter);
+// (initBannerCounter ตัวเลข 01/03 แบบเก่าถอดออกแล้ว - จุดบอกหน้าทำใน initBannerFeatures ที่เดียว)
 
 // =========================================================================
 // 👑 6. APP LIFECYCLE LISTENERS (ระบบควบคุมการโหลดหน้าจอและเซสชันเวอร์ชันเคลียร์บั๊ก)
@@ -3075,7 +3114,7 @@ function renderRanking(data) {
     card.style.minHeight = `${barHeight}px`;
 
     card.innerHTML = `
-     <div class="img-wrapper" onclick="openMemberProfile('${escapeAttr(m.name)}')">
+     <div class="img-wrapper" onclick="onRankingAvatarClick('${escapeAttr(m.name)}')">
         <img src="${getImg(m.profile_img)}" loading="lazy">
         <div class="rank-badge">${badgeContent}</div>
       </div>
@@ -3123,22 +3162,10 @@ function goToTodayVip() {
 function renderFanPreview(zoneId, rankedFans) {
   const previewZone = document.getElementById(zoneId);
   if (!previewZone) return;
-  previewZone.innerHTML = '';
-  const top3Preview = rankedFans.slice(0, 3).reverse();
-  top3Preview.forEach((f, index) => {
-    const actualRank = top3Preview.length - 1 - index;
-    const miniBorderColor = actualRank === 0 ? '#ffd700' : actualRank === 1 ? '#c0c0c0' : '#cd7f32';
-    const miniAvatar = document.createElement('img');
-    miniAvatar.src = getImg(f.img);
-    miniAvatar.style = `
-      width: 26px; height: 26px; border-radius: 50%;
-      border: 2px solid ${miniBorderColor}; object-fit: cover;
-      margin-left: -6px; background: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    `;
-    miniAvatar.onerror = function() { this.src = 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000'; };
-    previewZone.appendChild(miniAvatar);
-  });
+  // กรอบเหรียญขอบหยัก + มงกุฎ ทอง/เงิน/ทองแดง (blm48MedalAvatarHtml ใน common.js); โซนเป็น rtl จึงกลับลำดับให้อันดับ 1 อยู่ซ้าย
+  const top3 = rankedFans.slice(0, 3);
+  previewZone.style.gap = '3px';
+  previewZone.innerHTML = top3.map((f, rank) => blm48MedalAvatarHtml(getImg(f.img), rank, 24, f.name || f.username)).reverse().join('');
 }
 
 // Top Today VIP preview = รวมยอดของวันนี้ข้ามทุกเมมเบอร์ แล้วเอา 3 คนแรก
@@ -3176,6 +3203,33 @@ function renderGlobalFans(rawData) {
 
   // --- รูปมินิ 3 อันดับแรกตรงหัวข้อ (พรีวิวก่อนกดเข้าไปดูหน้าเต็ม) ---
   renderFanPreview('top-fans-preview-zone', finalFans);
+}
+
+// 🎁 กดรูปเมมเบอร์ใน Ranking Member: ล็อกอินแล้ว = เปิดแผงส่งของขวัญ (กดรูปบนแผงไปหน้าโปรไฟล์)
+// ยังไม่ล็อกอิน = ไปหน้าโปรไฟล์เหมือนเดิม
+function onRankingAvatarClick(name) {
+  const u = getUserSession();
+  if (!u || !u.username) { openMemberProfile(name); return; }
+  const m = (currentRankingData || []).find(x => x.name === name) || {};
+  // โหลดไฟล์แผงของขวัญเฉพาะตอนกดครั้งแรก (หน้า Home ไม่ต้องโหลดเพิ่มถ้าไม่ได้กด)
+  loadGiftSheetScripts().then(() => blm48OpenMemberGift({
+    name,
+    img: getImg(m.profile_img),
+    onAvatarClick: () => { blm48Gift.close(); openMemberProfile(name); }
+  })).catch(e => { console.error('Gift sheet load error:', e); openMemberProfile(name); });
+}
+let giftSheetScriptsPromise = null;
+function loadGiftSheetScripts() {
+  const load = src => new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  if (!giftSheetScriptsPromise) {
+    giftSheetScriptsPromise = load('assets/js/member-gift-stickers.js').then(() => load('assets/js/member-gift-sheet.js'));
+    giftSheetScriptsPromise.catch(() => { giftSheetScriptsPromise = null; });
+  }
+  return giftSheetScriptsPromise;
 }
 
 function openMemberProfile(name) {
@@ -3312,7 +3366,7 @@ function startFinaleCountdown(year, month, lastDay) {
 
 document.addEventListener('DOMContentLoaded', renderTracker);
   
-    // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นรูปแบบไทยปฏิทิน พ.ศ. (ถอดแบบมาจากหน้า member)
+    // ฟังก์ชันแปลงวันที่จากหลังบ้านเป็นวันที่เวลาภาษาอังกฤษ (ถอดแบบมาจากหน้า member)
     function formatThaiDate(dateStr) {
       if (!dateStr) return '';
 
@@ -3326,14 +3380,11 @@ document.addEventListener('DOMContentLoaded', renderTracker);
       const hour = parts[3];
       const min = parts[4];
 
-      const thaiMonths = [
-        'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 
-        'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
-      ];
+      const engMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-      const thaiYear = year + 543; // แปลง ค.ศ. เป็น พ.ศ.
-
-      return `${day} ${thaiMonths[month - 1]} ${thaiYear} ${hour}:${min} น.`;
+      // วันที่เวลาภาษาอังกฤษ เช่น "Oct 26, 2026 5:58 PM"
+      const h = parseInt(hour, 10);
+      return `${engMonths[month - 1]} ${day}, ${year} ${h % 12 || 12}:${min} ${h < 12 ? 'AM' : 'PM'}`;
     }
   
 
@@ -3408,7 +3459,7 @@ function renderPost(post) {
 
   // แปลงวันที่ให้เป็นภาษาไทย
   const rawDate = post.timestamp || post.date || 'เมื่อสักครู่';
-  const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : rawDate);
+  const postTimestamp = escapeHtml(rawDate !== 'เมื่อสักครู่' ? formatThaiDate(rawDate) : 'Just now');
 
   const postContent = formatPostContent(post.content || '');
   const postLikes = post.likes || 0;
@@ -3494,8 +3545,6 @@ function renderPost(post) {
 
   const graduatedSubtext = isGraduated ? ' <span style="color: #718096; font-weight: bold;"></span>' : '';
 
-  const postComments = Array.isArray(post.comments) ? post.comments : [];
-  const commentsHtml = buildCommentsHtml(postComments, postId);
 
   // ... (โค้ดส่วน MediaHtml Video และรูปภาพเหมือนเดิม) ...
   let mediaHtml = '';
@@ -3510,21 +3559,27 @@ function renderPost(post) {
 
   const imagesHtml = buildImagesHtml(displayImage);
 
-  const actionMenu = canManage ? `
+  // เมนู ⋯ : แชร์ได้ทุกคน (ย้ายมาจากแถบปุ่มเดิม) / แก้ไข-ลบเฉพาะคนที่มีสิทธิ์
+  const actionMenu = `
     <div class="post-menu-container">
       <button class="post-menu-btn" onclick="togglePostMenu(event, '${postId}')">
         <i class="fa-solid fa-ellipsis-vertical"></i>
       </button>
       <div class="post-dropdown-menu" id="dropdown-${postId}">
+        <button class="post-dropdown-item" onclick="actionSharePost('${postId}', 'index')">
+          <i class="fa-solid fa-share-nodes"></i> แชร์โพสต์
+        </button>
+        ${canManage ? `
         <button class="post-dropdown-item" onclick="editPostUi('${postId}', '${encodeURIComponent(post.content || '')}')">
           <i class="fa-solid fa-pen"></i> แก้ไขโพสต์
         </button>
         <button class="post-dropdown-item delete-item" onclick="deletePostUi('${postId}')">
           <i class="fa-solid fa-trash"></i> ลบโพสต์
         </button>
+        ` : ''}
       </div>
     </div>
-  ` : '';
+  `;
 
   return `
     <div class="${postContainerClass}" id="post-${postId}" data-images="${escapeAttr(displayImage)}" style="position: relative; border-radius: 15px; padding: 15px; margin-bottom: 20px; ${champCardStyle}">
@@ -3549,30 +3604,9 @@ function renderPost(post) {
         ${mediaHtml}
       </div>
 
-      <div class="post-actions" style="border-top: 1px solid #eee; padding-top: 10px; display: flex; align-items: center; gap: 15px;">
-        <button onclick="likePost('${postId}')" style="background: none; border: none; color: var(--primary-pink); cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="${heartClass} fa-heart" id="heart-${postId}"></i> <span id="like-count-${postId}">${postLikes}</span>
-        </button>
-        <button onclick="toggleCommentSection('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <i class="fa-regular fa-comment"></i> <span id="comment-count-${postId}">${postComments.length}</span>
-        </button>
-        <button onclick="actionSharePost('${postId}')" style="background: none; border: none; color: #555; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="แชร์โพสต์เป็นลิงก์">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-        <div id="post-cookies-${postId}" style="margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #d2691e; font-weight: 600;" title="โพสต์นี้ทำคุกกี้สะสมได้">
-          <i class="fa-solid fa-cookie-bite"></i> <span id="post-cookies-count-${postId}">${postCookies}</span>
-        </div>
-      </div>
-
-      <div id="comment-section-${postId}" style="display: none; margin-top: 15px; border-top: 1px dashed #ffd1dc; padding-top: 12px;">
-        <div id="comment-list-${postId}" style="max-height: 180px; overflow-y: auto; margin-bottom: 10px; padding-right: 5px;">
-          ${commentsHtml}
-        </div>
-        <div class="comment-input-box" style="display: flex; gap: 8px;">
-          <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." style="flex: 1; border: 1px solid #ffccd7; border-radius: 20px; padding: 6px 14px; font-size: 0.85rem; outline: none;">
-          <button class="cmt-send-btn" onclick="submitComment('${postId}', this)" aria-label="ส่งคอมเมนต์"><i class="fa-regular fa-paper-plane"></i></button>
-        </div>
-      </div>
+      <!-- 🧾 ส่วนล่างโพสต์แบบ iAM (common.js): Gifts/Comments, 9 Cookies | Send Gift, คอมเมนต์ยอดนิยม + ช่องพิมพ์ -->
+      ${blm48PostStatsActionsHtml(post, { memberName: post.authorName || '', canGift: post.postType !== 'fan' })}
+      ${blm48PostCommentPreviewHtml(post, { canGift: post.postType !== 'fan' })}
     </div>
   `;
 }
@@ -3593,6 +3627,108 @@ let feedLoadingMore = false;
 let feedObserver = null;
 let feedIncludedSharedPost = false;
 
+// 🔎 Timeline ฟิลเตอร์เมมเบอร์ (Choose Member): เลือกได้หลายคน (ชื่อตัวเล็ก) ว่าง = All members
+// จำไว้ในเครื่องผู้ใช้ กรองฝั่งเซิร์ฟเวอร์ผ่าน get_timeline_posts_page (infinite scroll ยังทำงานปกติ)
+const TIMELINE_FILTER_KEY = 'bnl_timeline_member_filter';
+let timelineMembers = new Set();
+let timelineGen = 0; // เพิ่มทุกครั้งที่เปลี่ยนฟิลเตอร์ - ผลโหลดของฟิลเตอร์เก่าที่ค้างอยู่จะถูกทิ้ง
+let pickerDraft = new Set();
+let pickerMembers = null;
+try { timelineMembers = new Set(JSON.parse(localStorage.getItem(TIMELINE_FILTER_KEY) || '[]').map(s => String(s).toLowerCase())); } catch (e) {}
+
+function updateTimelineFilterButton() {
+  const btn = document.getElementById('tl-filter-btn');
+  if (!btn) return;
+  const n = timelineMembers.size;
+  btn.classList.toggle('active', n > 0);
+  document.getElementById('tl-filter-label').textContent = n ? `${n} Filters` : '';
+}
+document.addEventListener('DOMContentLoaded', updateTimelineFilterButton);
+
+async function openMemberPicker() {
+  pickerDraft = new Set(timelineMembers);
+  document.getElementById('picker-search').value = '';
+  const picker = document.getElementById('member-picker');
+  picker.classList.add('open');
+  picker.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  if (!pickerMembers) {
+    document.getElementById('picker-list').innerHTML = `<div class="pm-empty"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>`;
+    const me = getUserSession();
+    let kamiName = me && me.kamioshi ? String(me.kamioshi).trim() : '';
+    const [res] = await Promise.all([
+      blm48GetAllMembers(),
+      me && me.username ? blm48GetUserInfo(me.username).then(r => {
+        if (r && r.status === 'success' && r.data) kamiName = r.data.kamioshi ? String(r.data.kamioshi).trim() : '';
+      }).catch(() => {}) : null
+    ]);
+    const data = res && Array.isArray(res.data) ? res.data : null;
+    if (!data) {
+      document.getElementById('picker-list').innerHTML = `<div class="pm-empty">โหลดรายชื่อเมมเบอร์ไม่ได้</div>`;
+      return;
+    }
+    const kami = kamiName.toLowerCase();
+    pickerMembers = data
+      .filter(m => String(m.status || '').toLowerCase() !== 'graduated' && String(m.group_name || 'BLM48').toUpperCase() !== 'NPT48')
+      .map(m => ({ name: m.name, full: m['Full Name(EN)'] || m.full_name || '', img: m.profile || '', group: m.group_name, kami: !!kami && String(m.name).toLowerCase() === kami }))
+      .sort((a, b) => (b.kami - a.kami) || a.name.localeCompare(b.name));
+  }
+  renderMemberPicker();
+}
+function renderMemberPicker() {
+  if (!pickerMembers) return;
+  const q = document.getElementById('picker-search').value.trim().toLowerCase();
+  const list = pickerMembers.filter(m => !q || m.name.toLowerCase().includes(q) || m.full.toLowerCase().includes(q));
+  const allRow = q ? '' : `<div class="pm-row ${pickerDraft.size === 0 ? 'on' : ''}" onclick="selectAllPickerMembers()" role="checkbox" aria-checked="${pickerDraft.size === 0}">
+      <div class="pm-avatar"><img src="assets/images/blm48-members.png" alt="BLM48" draggable="false" oncontextmenu="return false"></div>
+      <div class="pm-info"><div class="pm-name">BLM48 Members</div><div class="pm-full">All members</div></div>
+      <div class="pm-check"><i class="fa-solid fa-check"></i></div>
+    </div>`;
+  document.getElementById('picker-list').innerHTML = allRow + (list.length ? list.map(m => {
+    const key = m.name.toLowerCase();
+    return `<div class="pm-row ${pickerDraft.has(key) ? 'on' : ''}" data-key="${escapeAttr(key)}" onclick="togglePickerMember(this)" role="checkbox" aria-checked="${pickerDraft.has(key)}">
+      <div class="pm-avatar"><img src="${escapeAttr(m.img || 'assets/images/default-profile.png')}" alt="" loading="lazy" style="border-color:${groupFrameColor(m.group)}" draggable="false" oncontextmenu="return false">${m.kami ? '<span class="pm-kami"><i class="fas fa-crown"></i> Kami-Oshi</span>' : ''}</div>
+      <div class="pm-info"><div class="pm-name">${escapeHtml(m.name)}</div>${m.full ? `<div class="pm-full">${escapeHtml(m.full)}</div>` : ''}</div>
+      <div class="pm-check"><i class="fa-solid fa-check"></i></div>
+    </div>`;
+  }).join('') : `<div class="pm-empty">ไม่พบเมมเบอร์</div>`);
+}
+function togglePickerMember(row) {
+  const key = row.dataset.key;
+  if (pickerDraft.has(key)) pickerDraft.delete(key); else pickerDraft.add(key);
+  renderMemberPicker();
+}
+function selectAllPickerMembers() {
+  pickerDraft.clear();
+  renderMemberPicker();
+}
+function applyMemberPicker() {
+  const picker = document.getElementById('member-picker');
+  picker.classList.remove('open');
+  picker.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  const next = [...pickerDraft].sort();
+  if (next.join('|') === [...timelineMembers].sort().join('|')) return;
+  timelineMembers = new Set(next);
+  try { localStorage.setItem(TIMELINE_FILTER_KEY, JSON.stringify(next)); } catch (e) {}
+  updateTimelineFilterButton();
+  resetTimelineFeed();
+}
+// เปลี่ยนฟิลเตอร์ -> ล้างฟีด + cursor แล้วโหลดหน้าแรกใหม่ตามเมมเบอร์ที่เลือก
+function resetTimelineFeed() {
+  const container = document.getElementById('posts-container');
+  if (container) container.innerHTML = '';
+  feedCursor = null;
+  feedHasMore = true;
+  feedPaginated = false;
+  timelineGen++;
+  if (feedObserver) { feedObserver.disconnect(); feedObserver = null; }
+  const sentinel = document.getElementById('feed-scroll-sentinel');
+  if (sentinel) sentinel.innerHTML = '';
+  window.isTimelineLoading = false;
+  loadTimelinePosts();
+}
+
 async function loadTimelinePosts() {
   // 🛡️ ป้องกันการโหลดซ้อน (ถ้ากดสลับแท็บรัวๆ แล้วตัวเก่ากำลัง Fetch อยู่ ให้ข้ามฟังก์ชันนี้ไปเลย)
   if (window.isTimelineLoading) return;
@@ -3604,7 +3740,7 @@ async function loadTimelinePosts() {
   const cachedPosts = localStorage.getItem('blm48_posts_cache');
   const isContainerEmpty = container.querySelectorAll('.post-card').length === 0;
 
-  if (cachedPosts && isContainerEmpty) {
+  if (cachedPosts && isContainerEmpty && timelineMembers.size === 0) {
     try {
       let posts = JSON.parse(cachedPosts).filter(p => p.postType !== 'fan');
       // ใช้กลไกการกลับด้านข้อมูลเพื่อให้ของใหม่กว่าอยู่ด้านบนเหมือนเดิม
@@ -3634,6 +3770,7 @@ async function loadTimelinePosts() {
   }
 
   try {
+    const gen = timelineGen;
     window.isTimelineLoading = true; // เปิดสถานะล็อกป้องกันการดึงข้อมูลซ้อนกัน
 
     const currentUser = getUserSession();
@@ -3641,7 +3778,8 @@ async function loadTimelinePosts() {
     // ดึงเฉพาะหน้าแรกเสมอ (ไล่จับโพสต์/ไลก์/คอมเมนต์ใหม่สุด) - ถ้ามีลิงก์แชร์โพสต์เก่าที่ตกหน้าแรกไป
     // ให้แนบ post id นั้นไปด้วยครั้งเดียวตอนเปิดหน้า เพื่อให้ RPC แถมโพสต์นั้นมาด้วยแม้จะอยู่นอกหน้าแรก
     const sharedPostId = !feedIncludedSharedPost ? new URLSearchParams(window.location.search).get('post') : null;
-    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, null, sharedPostId);
+    const res = await blm48GetTimelinePostsPage(username, FEED_PAGE_SIZE, null, sharedPostId, [...timelineMembers]);
+    if (gen !== timelineGen) return;
     feedIncludedSharedPost = true;
 
     // 🛡️ blm48Rpc คืน object { status:'error', ... } เวลาเน็ตเวิร์คมีปัญหา ต้องเช็คทิ้งตรงนี้
@@ -3667,7 +3805,8 @@ async function loadTimelinePosts() {
     }
 
     // 🌸 ขั้นตอนที่ B: ข้อมูลหน้าแรกอัปเดตล่าสุดส่งมาถึงแล้ว บันทึกทับลงแคชเพื่อไว้ใช้ในรอบหน้า
-    localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
+    // (แคชเก็บเฉพาะฟีดแบบไม่ฟิลเตอร์ - ฟีดที่เลือกเมมเบอร์ไว้ไม่ทับแคชหลัก)
+    if (timelineMembers.size === 0) localStorage.setItem('blm48_posts_cache', JSON.stringify(posts));
 
     // ลบข้อความ "กำลังโหลด" ออกไป (ถ้ามีอยู่บนจอ)
     const loadingMsg = document.getElementById('loading-msg');
@@ -3746,7 +3885,9 @@ async function loadMoreFeedPosts() {
   try {
     const currentUser = getUserSession();
     const username = currentUser ? currentUser.username : "";
-    const res = await blm48GetPostsPage(username, FEED_PAGE_SIZE, feedCursor);
+    const gen = timelineGen;
+    const res = await blm48GetTimelinePostsPage(username, FEED_PAGE_SIZE, feedCursor, null, [...timelineMembers]);
+    if (gen !== timelineGen) return;
 
     if (!res || res.status !== 'success' || !Array.isArray(res.data)) {
       throw new Error((res && res.message) || 'โหลดโพสต์เพิ่มเติมไม่สำเร็จ');
@@ -3899,7 +4040,11 @@ window.__editPostMoveImg = function(index, direction) {
   __renderEditPostImages();
 };
 
-async function editPostUi(postId, encodedContent) {
+// ✏️ แก้ไขโพสต์ = ไปหน้า post (โหมดแก้ไข) แทนป๊อปอัป
+function editPostUi(postId) {
+  window.location.href = `post?edit=${encodeURIComponent(postId)}`;
+}
+async function editPostUiPopup(postId, encodedContent) {
   const oldContent = decodeURIComponent(encodedContent);
   const postEl = document.getElementById(`post-${postId}`);
   const oldImageUrl = postEl ? (postEl.dataset.images || '') : '';
@@ -4098,6 +4243,7 @@ function setupUserProfile(user) {
   
   function closeChampSplash() {
   const splash = document.getElementById('splash-screen');
+  window.__champSplashActive = false; // ปุ่ม ✕: หยุดคิว Splash (วันเกิด -> Champ) ที่เหลือด้วย
   if (splash) {
     splash.style.opacity = '0'; // ค่อยๆ เฟดจางลงมา
     setTimeout(() => {
