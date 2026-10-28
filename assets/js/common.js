@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
 function updatePostCookiesUI(postId, postCookies) {
   if (!postId || postCookies === undefined || postCookies === null) return;
   const el = document.getElementById(`post-cookies-count-${postId}`);
-  if (el) el.innerText = postCookies;
+  if (el) el.innerText = blm48ShortCount(postCookies);
 }
 
 // หา postId จากคอมเมนต์/reply (ใช้ตอนกดใจคอมเมนต์ ซึ่งมีแค่ commentId ไม่มี postId ส่งมาตรงๆ)
@@ -180,7 +180,7 @@ function patchPostLive(post) {
   }
 
   const cookieCountEl = document.getElementById(`post-cookies-count-${id}`);
-  if (cookieCountEl) cookieCountEl.innerText = post.cookies || 0;
+  if (cookieCountEl) cookieCountEl.innerText = blm48ShortCount(post.cookies || 0);
 
   const comments = Array.isArray(post.comments) ? post.comments : [];
   const commentCountEl = document.getElementById(`comment-count-${id}`);
@@ -240,10 +240,27 @@ function reconcileComments(postId, comments) {
     if (!(textEl && textEl.dataset.editing === 'true')) window.__commentTextCache[cid] = cmt.text || '';
   };
 
+  // ฟีด (data-preview): โชว์แค่คอมเมนต์ยอดนิยม 2 อันดับ — วาดใหม่เมื่ออันดับเปลี่ยน ไม่งั้นแค่อัปเดตยอดไลก์/ข้อความ
+  if (listEl.dataset.preview === '1') {
+    const top = blm48TopComments(topLevel, 2);
+    const onScreen = Array.from(listEl.querySelectorAll(':scope > .comment-item.cmt-top')).map(el => el.dataset.commentId);
+    const busy = blm48IsReplying(postId) || !!listEl.querySelector('[data-editing="true"]');
+    const same = onScreen.length === top.length && top.every((c, i) => String(c.commentId) === onScreen[i]);
+    if (same || busy) {
+      top.forEach(patchItem);
+    } else {
+      listEl.innerHTML = top.map(c => blm48CommentHtml(c, postId, false, [], { canReply: true })).join('');
+    }
+    return;
+  }
+
   if (topLevel.length === 0) {
     if (!listEl.querySelector('.no-comment-placeholder')) listEl.innerHTML = buildCommentsHtml([], postId);
     return;
   }
+  // หน้าโพสต์เต็ม: เรียงตามโหมดที่เลือก (Top / Newest) — ใส่ data-sort ไว้ที่ลิสต์
+  const sortMode = listEl.dataset.sort;
+  if (sortMode) topLevel.splice(0, topLevel.length, ...blm48SortComments(topLevel, sortMode));
   const placeholder = listEl.querySelector('.no-comment-placeholder');
   if (placeholder) placeholder.remove();
 
@@ -294,6 +311,14 @@ function reconcileComments(postId, comments) {
     }
     if (el) prevEl = el;
   });
+
+  // จัดลำดับคอมเมนต์ที่อยู่บนจอแล้วให้ตรงโหมดเรียง (ไม่ทำตอนกำลังตอบกลับ/แก้ไข กันช่องที่พิมพ์อยู่กระโดด)
+  if (sortMode && !blm48IsReplying(postId) && !listEl.querySelector('[data-editing="true"]')) {
+    topLevel.forEach(c => {
+      const item = c.commentId ? findItem(listEl, c.commentId) : null;
+      if (item) listEl.appendChild(item);
+    });
+  }
 }
 
 // แชร์โพสต์เป็นลิงก์ (เปิด native share sheet ถ้ามี ไม่งั้น copy ลิงก์ไปคลิปบอร์ด)
@@ -627,6 +652,216 @@ async function blm48ToggleCommentLike(commentId) {
   }
 }
 
+// =========================================================================
+// 🧾 ส่วนล่างของโพสต์เมมเบอร์ (Home / Member / postdetail) แบบ iAM:
+//   แถว [รูป 3 คนส่งของขวัญเยอะสุด + ยอดคุกกี้ทั้งหมดของโพสต์ (posts.cookies รวมของขวัญ)]  ...  [N Comments] (ไม่มีเส้นด้านบน)
+//   ปุ่ม [♥ N Likes] | [🎁 Send Gift]   (กดใจโพสต์ เมมเบอร์ได้ 9 คุกกี้เหมือนเดิม)
+//   คอมเมนต์ยอดนิยม 2 อันดับ + ช่องพิมพ์ (มีปุ่มของขวัญในช่อง) — ไม่มีคอมเมนต์ = มีแค่ช่องพิมพ์
+// id ของหัวใจ/ยอดไลก์/ยอดคอมเมนต์ยังเหมือนเดิม (heart- / like-count- / comment-count-) ให้ likePost,
+// patchPostLive และ submitComment ของแต่ละหน้าทำงานต่อได้
+// =========================================================================
+// ตัวเลขสั้นแบบ 4K / 1.2M
+function blm48ShortCount(n) {
+  const x = Number(n) || 0;
+  if (x >= 1e6) return (x / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (x >= 1e3) return (x / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  return x.toLocaleString();
+}
+
+// opts.memberName = ชื่อเมมเบอร์เจ้าของโพสต์ (โชว์ในกล่องยืนยันของขวัญ)
+// opts.canGift = false -> ไม่มีแถว Gifts/ปุ่ม Send Gift (เช่นโพสต์แฟนคลับ)
+// opts.onCommentsClick = JS ตอนกด "N Comments" (ค่าเริ่มต้น: เปิดหน้าโพสต์เต็ม)
+function blm48PostStatsActionsHtml(post, opts) {
+  opts = opts || {};
+  const id = escapeAttr(post.id || '');
+  const comments = Array.isArray(post.comments) ? post.comments : [];
+  const canGift = opts.canGift !== false;
+  const liked = !!post.isLiked;
+  const commentsClick = opts.onCommentsClick || `window.location.href='postdetail?id=${encodeURIComponent(post.id || '')}'`;
+  return `
+    <div class="pf-stats">
+      ${canGift ? `<div class="pf-gifts" id="post-gifts-${id}" data-post-id="${id}" data-member="${escapeAttr(opts.memberName || '')}">
+        <span class="pf-gifters" id="post-gifters-${id}"></span><span class="pf-gift-total"><span id="post-cookies-count-${id}">${blm48ShortCount(post.cookies || 0)}</span> Cookies</span>
+      </div>` : '<div></div>'}
+      <button type="button" class="pf-comment-count" onclick="${commentsClick}"><span id="comment-count-${id}">${comments.length}</span> Comments</button>
+    </div>
+    <div class="pf-actions">
+      <button type="button" class="pf-act pf-like" onclick="likePost('${id}')" aria-label="Like">
+        <i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart" id="heart-${id}"></i><span id="like-count-${id}">${post.likes || 0}</span><span>Likes</span>
+      </button>
+      ${canGift ? `<span class="pf-act-divider"></span>
+      <button type="button" class="pf-act pf-gift" onclick="blm48OpenPostGift('${id}')"><i class="fa-solid fa-gift pf-act-icon"></i><span>Send Gift</span></button>` : ''}
+    </div>`;
+}
+
+// เรียงคอมเมนต์: 'top' = ไลก์เยอะสุดก่อน (เท่ากันเอาอันใหม่กว่า) / 'new' = ใหม่สุดก่อน
+function blm48CommentTime(c) {
+  const t = c && c.timestamp;
+  return Number(t) || Date.parse(t) || 0;
+}
+function blm48SortComments(list, mode) {
+  return list.slice().sort((a, b) => mode === 'new'
+    ? blm48CommentTime(b) - blm48CommentTime(a)
+    : (Number(b.likes) || 0) - (Number(a.likes) || 0) || blm48CommentTime(b) - blm48CommentTime(a));
+}
+// คอมเมนต์ยอดนิยม n อันดับ — เฉพาะคอมเมนต์บนสุด ไม่รวม reply
+function blm48TopComments(topLevel, n) {
+  return blm48SortComments(topLevel, 'top').slice(0, n);
+}
+function blm48TopLevelComments(comments) {
+  const byId = {};
+  (comments || []).forEach(c => { if (c.commentId) byId[c.commentId] = c; });
+  return (comments || []).filter(c => !c.parentCommentId || !byId[c.parentCommentId]);
+}
+
+// คอมเมนต์ยอดนิยม 2 อันดับ + ช่องพิมพ์ (ใช้ในฟีด Home/Member) — กด "N Comments" ไปดูทั้งหมดที่หน้าโพสต์
+function blm48PostCommentPreviewHtml(post, opts) {
+  opts = opts || {};
+  const id = escapeAttr(post.id || '');
+  const canGift = opts.canGift !== false;
+  const top = blm48TopComments(blm48TopLevelComments(post.comments), 2);
+  const me = typeof getUserSession === 'function' ? getUserSession() : null;
+  const myImg = (me && me.profile_img) || BLM48_CMT_DEFAULT_AVATAR;
+  return `
+    <div id="comment-section-${id}" class="pf-cmt-section">
+      <div id="comment-list-${id}" class="pf-cmt-list" data-preview="1">${top.map(c => blm48CommentHtml(c, post.id || '', false, [], { canReply: true })).join('')}</div>
+      <div class="comment-input-box pf-input-row">
+        <img class="pf-my-avatar" src="${escapeAttr(myImg)}" alt="">
+        <div class="pf-input-wrap">
+          <input type="text" id="comment-input-${id}" placeholder="Write a comment...">
+          ${canGift ? `<button type="button" class="pf-input-gift" onclick="blm48OpenPostGift('${id}')" aria-label="Send Gift"><i class="fa-solid fa-gift"></i></button>` : ''}
+        </div>
+        <button type="button" class="cmt-send-btn pf-send" onclick="submitComment('${id}', this)" aria-label="ส่งคอมเมนต์"><i class="fa-regular fa-paper-plane"></i></button>
+      </div>
+    </div>`;
+}
+
+// 🎁 กด Send Gift ในโพสต์: เปิดแผงของขวัญ (ไม่โชว์โปรไฟล์เมมเบอร์) — ทุกบัญชีที่ล็อกอินแล้ว
+let blm48GiftSheetLoading = null;
+function blm48LoadGiftSheet() {
+  if (window.blm48OpenMemberGift) return Promise.resolve();
+  const load = src => new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  if (!blm48GiftSheetLoading) {
+    blm48GiftSheetLoading = (window.blm48GiftImageHtml ? Promise.resolve() : load('assets/js/member-gift-stickers.js'))
+      .then(() => load('assets/js/member-gift-sheet.js'));
+    blm48GiftSheetLoading.catch(() => { blm48GiftSheetLoading = null; });
+  }
+  return blm48GiftSheetLoading;
+}
+
+async function blm48OpenPostGift(postId) {
+  const u = typeof getUserSession === 'function' ? getUserSession() : null;
+  if (!u || !u.username) {
+    Swal.fire({ title: 'กรุณาเข้าสู่ระบบ', text: 'เข้าสู่ระบบก่อนส่งของขวัญให้เมมเบอร์นะคะ', confirmButtonText: 'OK' });
+    return;
+  }
+  const holder = document.getElementById(`post-gifts-${postId}`);
+  try {
+    await blm48LoadGiftSheet();
+  } catch (e) {
+    console.error('Gift sheet load error:', e);
+    return;
+  }
+  blm48OpenMemberGift({
+    name: (holder && holder.dataset.member) || '',
+    postId,
+    hideRecipient: true,
+    onSent: (res) => { updatePostCookiesUI(postId, res && res.postCookies); blm48QueuePostGifts([postId]); }
+  });
+}
+
+// 📊 รูป 3 คนส่งของขวัญเยอะสุดใต้โพสต์: เก็บ id ของโพสต์ที่เพิ่งขึ้นจอ แล้วดึงทีเดียว (ทุกหน้า ทุกจังหวะที่วาดโพสต์ใหม่)
+const blm48PendingGiftPosts = new Set();
+let blm48GiftSummaryTimer = null;
+function blm48QueuePostGifts(ids) {
+  (ids || []).forEach(id => id && blm48PendingGiftPosts.add(String(id)));
+  clearTimeout(blm48GiftSummaryTimer);
+  blm48GiftSummaryTimer = setTimeout(blm48FlushPostGifts, 150);
+}
+async function blm48FlushPostGifts() {
+  const ids = Array.from(blm48PendingGiftPosts);
+  blm48PendingGiftPosts.clear();
+  if (!ids.length || typeof blm48GetPostGiftSummaries !== 'function') return;
+  try {
+    const res = await blm48GetPostGiftSummaries(ids);
+    const map = {};
+    (Array.isArray(res) ? res : []).forEach(s => { map[s.postId] = s; });
+    ids.forEach(id => {
+      const s = map[id] || { gifts: 0, gifters: [] };
+      const giftersEl = document.getElementById(`post-gifters-${id}`);
+      if (giftersEl) giftersEl.innerHTML = (s.gifters || []).map((g, i) =>
+        `<span class="pf-gifter" data-fan="${escapeAttr(g.username || '')}">${blm48MedalAvatarHtml(g.img, i, 26, g.name)}</span>`
+      ).join('');
+    });
+  } catch (e) { console.error('Post gift summary error:', e); }
+}
+(function watchPostGifts() {
+  const scan = (root) => {
+    const ids = [];
+    (root.querySelectorAll ? root.querySelectorAll('.pf-gifts[data-post-id]:not([data-gift-loaded])') : []).forEach(el => {
+      el.dataset.giftLoaded = '1';
+      ids.push(el.dataset.postId);
+    });
+    if (ids.length) blm48QueuePostGifts(ids);
+  };
+  const start = () => {
+    scan(document);
+    new MutationObserver(muts => {
+      for (const m of muts) m.addedNodes.forEach(n => { if (n.nodeType === 1) scan(n.matches && n.matches('.pf-gifts') ? n.parentNode : n); });
+    }).observe(document.body, { childList: true, subtree: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+
+// 🎨 สไตล์ส่วนล่างโพสต์ + ป๊อปอัปแจ้งเตือน (SweetAlert) ทุกหน้า แบบเดียวกัน:
+// การ์ดขาว หัวข้อตัวหนา ไม่มีไอคอนใหญ่ ปุ่ม Cancel ขอบดำ + ปุ่มหลักสีเหลืองทรงแคปซูล
+(function injectPostFooterAndAlertCss() {
+  if (document.getElementById('blm48-post-footer-css')) return;
+  const st = document.createElement('style');
+  st.id = 'blm48-post-footer-css';
+  st.textContent = `
+    .pf-stats { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0 8px; min-height: 40px; }
+    .pf-gifts { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 0.92rem; color: #555; }
+    .pf-gifters { display: inline-flex; align-items: center; }
+    .pf-gifter { display: inline-flex; margin-right: -4px; cursor: pointer; }
+    .pf-gifters:not(:empty) { margin-right: 6px; }
+    .pf-comment-count { background: none; border: none; padding: 0; font-family: inherit; font-size: 0.92rem; color: #555; cursor: pointer; white-space: nowrap; }
+    .pf-actions { display: flex; align-items: center; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin: 0 -15px; }
+    .pf-act { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: none; border: none; padding: 11px 6px; font-family: inherit; font-size: 1rem; font-weight: 500; color: #222; cursor: pointer; }
+    .pf-act:active { background: #fafafa; }
+    .pf-act-icon { font-size: 1.15rem; }
+    .pf-like > .fa-heart { font-size: 1.15rem; color: var(--primary-pink, #ff85a2); }
+    .pf-like > [id^="like-count-"] { font-weight: 600; margin-right: -4px; }
+    .pf-gift .pf-act-icon { color: #e8590c; }
+    .pf-act-divider { width: 1px; align-self: stretch; margin: 8px 0; background: #e6e6e6; }
+    .pf-cmt-section { margin-top: 12px; }
+    .pf-cmt-list:empty { display: none; }
+    .pf-cmt-list .cmt-replies-toggle { display: none !important; }
+    .pf-input-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .pf-my-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #f2f2f2; }
+    .pf-input-wrap { flex: 1; min-width: 0; display: flex; align-items: center; border: 1px solid #d9d9d9; border-radius: 22px; padding: 0 6px 0 14px; background: #fff; }
+    .pf-input-wrap input, .comment-input-box .pf-input-wrap input, .comment-input-box .pf-input-wrap input:focus { flex: 1; min-width: 0; width: auto !important; height: auto !important; border: none !important; border-radius: 0 !important; outline: none !important; box-shadow: none !important; background: none !important; font-family: inherit; font-size: 0.9rem; padding: 9px 0 !important; margin: 0 !important; }
+    .pf-input-gift { background: none; border: none; color: #e8590c; font-size: 1.05rem; padding: 6px; cursor: pointer; flex-shrink: 0; }
+
+    .swal2-container .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup):not([style*="width"]) { width: min(340px, calc(100vw - 48px)) !important; }
+    .swal2-container .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) { padding: 22px 20px 20px !important; border-radius: 18px !important; background: #fff !important; border: none !important; box-shadow: 0 10px 30px rgba(0,0,0,0.12) !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast) > .swal2-icon { display: none !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-title { font-family: 'Quicksand','Kanit',sans-serif !important; font-size: 18px !important; font-weight: 700 !important; color: #111 !important; padding: 0 !important; margin: 0 0 10px !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-html-container { font-family: 'Quicksand','Kanit',sans-serif !important; font-size: 15px !important; color: #222 !important; line-height: 1.5 !important; margin: 4px 0 0 !important; padding: 0 !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-actions { width: 100% !important; flex-wrap: nowrap !important; gap: 12px !important; margin: 22px 0 0 !important; padding: 0 !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-actions:not([style*="display: none"]) > button { flex: 1 1 0 !important; min-width: 0 !important; height: 46px !important; margin: 0 !important; border-radius: 23px !important; font-family: 'Quicksand','Kanit',sans-serif !important; font-size: 16px !important; box-shadow: none !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-confirm { order: 2 !important; background: #fbd96b !important; background-image: none !important; color: #111 !important; border: none !important; font-weight: 600 !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-deny { order: 1 !important; background: #fff !important; color: #111 !important; border: 1.5px solid #111 !important; font-weight: 500 !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-cancel { order: 0 !important; background: #fff !important; background-image: none !important; color: #111 !important; border: 1.5px solid #111 !important; font-weight: 500 !important; }
+    .swal2-popup.swal2-modal:not(.swal2-toast):not(.ks-popup) .swal2-styled:focus { box-shadow: none !important; }
+  `;
+  (document.head || document.documentElement).appendChild(st);
+})();
+
 // ↩️ กด Reply: ใช้ช่องพิมพ์คอมเมนต์หลักของโพสต์นั้น + แถบ "Replying to ชื่อ ×" + เติม @ชื่อ ให้
 function blm48StartReply(postId, commentId) {
   const input = document.getElementById(`comment-input-${postId}`);
@@ -643,7 +878,7 @@ function blm48StartReply(postId, commentId) {
     bar = document.createElement('div');
     bar.className = 'cmt-replying-bar';
     bar.id = `reply-bar-${postId}`;
-    input.parentElement.insertAdjacentElement('beforebegin', bar);
+    (input.closest('.comment-input-box') || input.parentElement).insertAdjacentElement('beforebegin', bar);
   }
   bar.innerHTML = `<span>Replying to <b>${escapeHtml(name)}</b></span><button type="button" onclick="blm48CancelReply('${escapeAttr(postId)}')" aria-label="Cancel reply"><i class="fa-solid fa-xmark"></i></button>`;
 
@@ -1422,6 +1657,41 @@ function groupFrameColor(groupOrName) {
   const s = String(groupOrName || '').trim().toUpperCase();
   const key = Object.keys(GROUP_FRAME_COLORS).find(g => s === g || s.endsWith(' ' + g));
   return GROUP_FRAME_COLORS[key || 'BLM48'];
+}
+
+// 🏅 รูปมินิอันดับ 1-3 ในกรอบเหรียญขอบหยัก + มงกุฎ (ทอง/เงิน/ทองแดง) — แบบเดียวกับหน้า topfans.html
+// ใช้กับแถว Top Fans / Top Today VIP ในหน้า Home และหน้า Member; rank เป็น 0-based
+const MEDAL_COLORS = [
+  { main: '#f5b400', light: '#ffe17a', dark: '#c98a00' },
+  { main: '#a9aeb8', light: '#eef0f4', dark: '#7d828c' },
+  { main: '#c8793a', light: '#f3bf8f', dark: '#9a5524' }
+];
+let medalUid = 0;
+function blm48MedalAvatarHtml(img, rank, size, alt) {
+  if (!document.getElementById('blm48-medal-css')) {
+    const st = document.createElement('style');
+    st.id = 'blm48-medal-css';
+    st.textContent = `
+      .medal-mini { position: relative; display: inline-block; flex-shrink: 0; direction: ltr; }
+      .medal-mini > svg.mm-badge { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .medal-mini > img { position: absolute; inset: 15%; width: 70%; height: 70%; border-radius: 50%; object-fit: cover; background: #fff; border: 1px solid #fff; }
+      .medal-mini > svg.mm-crown { position: absolute; left: 50%; transform: translateX(-50%); top: -24%; width: 70%; pointer-events: none; }`;
+    document.head.appendChild(st);
+  }
+  const c = MEDAL_COLORS[rank] || MEDAL_COLORS[2];
+  const uid = ++medalUid;
+  let bumps = '';
+  for (let i = 0; i < 14; i++) {
+    const a = (Math.PI * 2 * i) / 14;
+    bumps += `<circle cx="${(50 + 44 * Math.cos(a)).toFixed(2)}" cy="${(50 + 44 * Math.sin(a)).toFixed(2)}" r="9"/>`;
+  }
+  const fallback = 'https://raw.githubusercontent.com/Chatchapong-Sing/stockManagement/main/default-profile.png';
+  const src = img && String(img).trim() ? String(img) : fallback;
+  return `<span class="medal-mini" style="width:${size}px;height:${size}px;margin-top:${Math.round(size * 0.24)}px;">
+    <svg class="mm-badge" viewBox="-6 -6 112 112"><defs><linearGradient id="mmb${uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c.light}"/><stop offset="1" stop-color="${c.main}"/></linearGradient></defs><g fill="url(#mmb${uid})" stroke="${c.dark}" stroke-width="1">${bumps}<circle cx="50" cy="50" r="44"/></g></svg>
+    <img src="${escapeHtml(src)}" alt="${escapeHtml(alt || '')}" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'">
+    <svg class="mm-crown" viewBox="0 0 64 34"><defs><linearGradient id="mmc${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c.light}"/><stop offset="1" stop-color="${c.main}"/></linearGradient></defs><path d="M6 30 L3 11 L17 20 L24 7 L32 17 L40 7 L47 20 L61 11 L58 30 Z" fill="url(#mmc${uid})" stroke="${c.dark}" stroke-width="1.6" stroke-linejoin="round"/><path d="M32 0.5 L34.2 5.3 L39.3 5.8 L35.5 9.2 L36.6 14.2 L32 11.6 L27.4 14.2 L28.5 9.2 L24.7 5.8 L29.8 5.3 Z" fill="${c.light}" stroke="${c.dark}" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </span>`;
 }
 
 // เขียนค่าตัวแปรสี CSS ทุกชื่อ (ทุกหน้า) ให้ตรงกับวงที่ระบุ ("BLM48" คือค่าปกติ)

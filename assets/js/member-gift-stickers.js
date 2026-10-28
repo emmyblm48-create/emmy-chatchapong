@@ -151,5 +151,6 @@
     return imgHtml;
   };
   window.blm48GiftStickerHtml = giftStickerHtml;
+  window.blm48GiftMemberName = giftStickerMember; // gift_id -> ชื่อเมมเบอร์ (ใช้เรียงแท็บ BLM48 ตามรุ่น)
   window.BLM48_GIFT_STICKER_MEMBERS = Object.keys(STICKERS);
 })();

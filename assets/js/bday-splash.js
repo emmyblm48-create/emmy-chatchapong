@@ -50,9 +50,10 @@
     '.bs-root .bs-photo{position:absolute;left:6px;right:6.9px;top:85.7px;bottom:5px;border-radius:2px 2px 17px 17px;overflow:hidden;background:#C9CCBE}' +
     '.bs-root .bs-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block}' +
     ".bs-root .bs-t1,.bs-root .bs-t2{position:absolute;left:0;width:325px;text-align:center;color:#fff;white-space:nowrap;font-family:'Quicksand','Kanit',sans-serif;line-height:1}" +
-    ".bs-root .bs-t1{top:27px;font-family:'Avenir Next','Avenir','Nunito Sans','Kanit',sans-serif;font-size:24px;font-weight:700;letter-spacing:.02em}" +
-    // ชื่อเมมเบอร์: ฟอนต์ Comfortaa (ผู้ใช้เลือกเอง 2026-10-23) สีตามโทนรองของรูป - ข้อยกเว้นของกฎ Quicksand/Kanit เฉพาะชื่อบน Splash
-    ".bs-root .bs-t2{top:57px;font-family:'Comfortaa','Kanit',sans-serif;font-weight:700;color:var(--bs-name);letter-spacing:.06em}" +
+    ".bs-root .bs-t1{top:27px;font-family:'Archivo','Kanit',sans-serif;font-stretch:125%;font-size:24px;font-weight:800;letter-spacing:.02em}" +
+    // HAPPY BIRTHDAY + ชื่อเมมเบอร์: Archivo ตัวกว้าง พิมพ์ใหญ่ (ผู้ใช้เลือกจากดีไซน์อ้างอิง 2026-10-26 แทน Comfortaa) สีตามโทนรองของรูป
+    // ข้อยกเว้นของกฎ Quicksand/Kanit เฉพาะ Splash/Banner วันเกิด - ถ้าแอดมินเลือกฟอนต์ไว้ (bday_font) ชื่อใช้ฟอนต์นั้นแทน
+    ".bs-root .bs-t2{top:57px;font-family:'Archivo','Kanit',sans-serif;font-stretch:125%;font-weight:800;text-transform:uppercase;color:var(--bs-name);letter-spacing:.02em}" +
     '.bs-root .bs-cake{position:absolute;left:27px;top:106px;width:24px;height:24px;border-radius:50%;border:1.5px solid #fff;background:url(assets/img/bday-splash/cake.webp) 50% 50% / 25.8px 56.1px no-repeat,var(--bs-cake);box-sizing:border-box}' +
     ".bs-root .bs-pill{position:absolute;left:107.9px;top:403.8px;width:108px;height:14px;border-radius:999px;background:var(--bs-pill);color:#fff;font-family:'Avenir Next','Avenir','Nunito Sans','Kanit',sans-serif;font-size:9.5px;font-weight:600;line-height:14px;text-align:center;overflow:hidden;letter-spacing:.02em}" +
     '@keyframes bVeil{0%{opacity:1}6%{opacity:0}93%{opacity:0}100%{opacity:1}}' +
@@ -69,7 +70,10 @@
     '@keyframes bRise{0%{transform:translateY(0);opacity:0}15%{opacity:.7}85%{opacity:.5}100%{transform:translateY(-760px);opacity:0}}' +
     '@keyframes bDrift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,-30px) scale(1.15)}}';
 
-  var STAR = 'M12 0 C13 8 16 11 24 12 C16 13 13 16 12 24 C11 16 8 13 0 12 C8 11 11 8 12 0 Z';
+  // ตัวอักษรเด่นฟอนต์พิกเซลในชื่อ (Splash + Banner) - ใช้ร่วมกันทั้งสองแบบ
+  CSS += ".bs-root .b-px,.bb-root .b-px{font-family:'Pixelify Sans',monospace;font-weight:400;font-stretch:normal;font-style:italic;font-size:1.22em;line-height:0;letter-spacing:0;margin:0 .02em}";
+
+  var STAR ='M12 0 C13 8 16 11 24 12 C16 13 13 16 12 24 C11 16 8 13 0 12 C8 11 11 8 12 0 Z';
 
   function injectCss() {
     if (document.getElementById('bday-splash-css')) return;
@@ -78,7 +82,7 @@
       ln.id = 'bday-splash-font';
       ln.rel = 'stylesheet';
       // Avenir Next มีเฉพาะเครื่อง Apple (ไม่มีเว็บฟอนต์) -> เครื่องอื่นใช้ Nunito Sans ซึ่งหน้าตาใกล้เคียงแทน
-      ln.href = 'https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito+Sans:wght@500;700&display=swap';
+      ln.href = 'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,800&family=Pixelify+Sans:wght@400&family=Nunito+Sans:wght@500;700&display=swap';
       (document.head || document.documentElement).appendChild(ln);
     }
     var st = document.createElement('style');
@@ -275,7 +279,7 @@
   }
 
   function fontStyle(f) {
-    return f ? "font-family:'" + f.name + "','Kanit',sans-serif;font-weight:" + f.weight + ';letter-spacing:.02em;' : '';
+    return f ? "font-family:'" + f.name + "','Kanit',sans-serif;font-weight:" + f.weight + ';font-stretch:normal;text-transform:none;letter-spacing:.02em;' : '';
   }
 
   // ===== ปรับขนาด/ตำแหน่งรูปเมมเบอร์ (หน้า Theme Application -> members.bday_photo_adjust) =====
@@ -304,13 +308,24 @@
     } catch (e) { return base; }
   }
 
-  // ชื่อยาว -> ลดขนาดตัวอักษรให้อยู่ในความกว้างของหัวการ์ด (~262px) ตามดีไซน์
+  // ชื่อเมมเบอร์ + ตัวอักษรเด่น 1 ตัวเป็นฟอนต์พิกเซล (Pixelify Sans) แบบตัว P ใน "SATANG POUND" ของดีไซน์อ้างอิง
+  // หลายคำ -> ตัวแรกของคำสุดท้าย, คำเดียว -> ตัวกลางชื่อ / ใช้เฉพาะตัวอังกฤษ และเฉพาะตอนแอดมินไม่ได้เลือกฟอนต์เอง
+  function accentPos(name) {
+    var s = String(name || '');
+    var sp = s.lastIndexOf(' ');
+    var i = sp > 0 ? sp + 1 : Math.floor(s.length / 2);
+    return /[A-Za-z]/.test(s.charAt(i)) ? i : -1;
+  }
+  function nameHtml(name, f) {
+    var s = String(name || ''), i = f ? -1 : accentPos(s);
+    if (i < 0) return esc(s);
+    return esc(s.slice(0, i)) + '<span class="b-px">' + esc(s.charAt(i)) + '</span>' + esc(s.slice(i + 1));
+  }
+
+  // ชื่อยาว -> ลดขนาดตัวอักษรให้อยู่ในความกว้างของหัวการ์ด (~280px) / Archivo ตัวกว้างพิมพ์ใหญ่ ~0.95em ต่อตัวอักษร (รวมตัวพิกเซล)
   function nameFontSize(name) {
-    var n = String(name || '').length;
-    if (n <= 6) return 34;
-    if (n <= 9) return 30;
-    if (n <= 12) return 25;
-    return 20;
+    var n = Math.max(1, String(name || '').length);
+    return Math.min(34, 270 / (n * 0.95));
   }
 
   function markup(o) {
@@ -358,7 +373,7 @@
           // ไอคอนเค้กเป็นรูป (ไอคอน Font Awesome รุ่นที่แอปใช้ไม่มี fa-cake-candles) - cake.webp พื้นใส 921x2000 เค้กอยู่กลางภาพ สูง 428px -> ย่อให้สูง ~12px
           '<div class="bs-cake" aria-hidden="true"></div>' +
           '<div class="ba b-t1 bs-t1">HAPPY BIRTHDAY</div>' +
-          '<div class="ba b-t2 bs-t2" style="' + fontStyle(o.f) + 'font-size:' + (o.f ? fitSize(o.f, String(o.name || ''), 34, 280).toFixed(1) : nameFontSize(o.name)) + 'px">' + esc(o.name) + '</div>' +
+          '<div class="ba b-t2 bs-t2" style="' + fontStyle(o.f) + 'font-size:' + (o.f ? fitSize(o.f, String(o.name || ''), 34, 280) : nameFontSize(o.name)).toFixed(1) + 'px">' + nameHtml(o.name, o.f) + '</div>' +
           (dateText ? '<div class="bs-pill">' + esc(dateText) +
             '<div class="ba b-sweepC" aria-hidden="true" style="position:absolute;top:-50%;left:0;width:26px;height:200%;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.8) 50%,rgba(255,255,255,0) 100%)"></div></div>' : '') +
         '</div>' +
@@ -376,12 +391,12 @@
     stage.style.transform = 'scale(' + Math.min(w / W, h / H) + ')';
   }
 
-  // รอฟอนต์ชื่อ (Comfortaa) โหลดก่อนวาด ไม่งั้นชื่อจะกระพริบเป็นฟอนต์สำรอง - รอไม่เกิน 1.5 วินาที
+  // รอฟอนต์ชื่อ (Archivo) โหลดก่อนวาด ไม่งั้นชื่อจะกระพริบเป็นฟอนต์สำรอง - รอไม่เกิน 1.5 วินาที
   // f = ฟอนต์ที่แอดมินเลือก (ถ้ามี) ต้องโหลดเสร็จก่อนวัดความกว้างชื่อ
   function fontReady(f) {
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
     loadFont(f);
-    var loads = [document.fonts.load("700 30px Comfortaa"), document.fonts.load("700 24px \"Nunito Sans\"")];
+    var loads = [document.fonts.load("800 30px Archivo"), document.fonts.load("400 30px \"Pixelify Sans\""),document.fonts.load("700 24px \"Nunito Sans\"")];
     if (f) loads.push(document.fonts.load(f.weight + ' 30px "' + f.name + '"'));
     return Promise.race([
       Promise.all(loads).catch(function () {}),
@@ -442,19 +457,19 @@
     ".bb-root .bb-text{position:absolute;left:41.55cqw;right:0;top:0;bottom:0;text-align:center;color:#fff;font-family:'Quicksand','Kanit',sans-serif;text-shadow:0 .1cqw .5cqw rgba(0,0,0,.08)}" +
     ".bb-root .bb-date{position:absolute;left:0;right:0;top:7.4cqw;font-family:'Avenir Next','Avenir','Nunito Sans','Kanit',sans-serif;font-size:2.3cqw;font-weight:500;letter-spacing:.04em;line-height:1}" +
     '.bb-root .bb-date i{display:inline-block;width:1.3cqw;height:1.3cqw;border-radius:50%;background:#fff;margin-right:2.2cqw;vertical-align:.15cqw}' +
-    ".bb-root .bb-hbd{position:absolute;left:0;right:0;top:12cqw;font-family:'Avenir Next','Avenir','Nunito Sans','Kanit',sans-serif;font-size:4.3cqw;font-weight:700;letter-spacing:.02em;line-height:1}" +
-    ".bb-root .bb-name{position:absolute;left:0;right:0;top:17.6cqw;font-family:'Comfortaa','Kanit',sans-serif;font-weight:700;line-height:1;white-space:nowrap;letter-spacing:.04em}" +
+    ".bb-root .bb-hbd{position:absolute;left:0;right:0;top:12cqw;font-family:'Archivo','Kanit',sans-serif;font-stretch:125%;font-size:4.3cqw;font-weight:800;letter-spacing:.02em;line-height:1}" +
+    ".bb-root .bb-name{position:absolute;left:0;right:0;top:17.6cqw;font-family:'Archivo','Kanit',sans-serif;font-stretch:125%;font-weight:800;text-transform:uppercase;line-height:1;white-space:nowrap;letter-spacing:.02em}" +
     '.bb-root .bb-cake{position:absolute;right:2.75cqw;top:2.1cqw;width:5.2cqw;height:5.2cqw;border-radius:50%;border:.15cqw solid #fff;box-sizing:border-box;' +
       'background:url(assets/img/bday-splash/cake.webp) 50% 50% / 6.2cqw 13.5cqw no-repeat,var(--bs-cake)}';
 
-  // ความกว้างที่ชื่อใช้ได้ ~52cqw / Comfortaa กว้างราว 0.68em ต่อตัวอักษร
+  // ความกว้างที่ชื่อใช้ได้ ~52cqw / Archivo ตัวกว้างพิมพ์ใหญ่ราว 0.95em ต่อตัวอักษร (รวมตัวพิกเซล) (ไม่เกินขนาดใกล้ๆ HAPPY BIRTHDAY ตามดีไซน์อ้างอิง)
   function bannerNameSize(name) {
     var n = Math.max(1, String(name || '').length);
-    return Math.min(7.8, 52 / (n * 0.68));
+    return Math.min(6.2, 52 / (n * 0.95));
   }
 
   function injectBannerCss() {
-    injectCss(); // ฟอนต์ Comfortaa
+    injectCss(); // ฟอนต์ Archivo
     if (document.getElementById('bday-banner-css')) return;
     var st = document.createElement('style');
     st.id = 'bday-banner-css';
@@ -490,7 +505,7 @@
         '<div class="bb-text">' +
           (date ? '<div class="bb-date"><i></i>' + esc(date) + '</div>' : '') +
           '<div class="bb-hbd">HAPPY BIRTHDAY</div>' +
-          '<div class="bb-name" style="' + fontStyle(f) + 'font-size:' + (f ? fitSize(f, String(opts.name || ''), 7.8, 52) : bannerNameSize(opts.name)).toFixed(2) + 'cqw">' + esc(opts.name) + '</div>' +
+          '<div class="bb-name" style="' + fontStyle(f) + 'font-size:' + (f ? fitSize(f, String(opts.name || ''), 7.8, 52) : bannerNameSize(opts.name)).toFixed(2) + 'cqw">' + nameHtml(opts.name, f) + '</div>' +
         '</div>' +
         '<div class="bb-cake" aria-hidden="true"></div>';
       container.innerHTML = '';

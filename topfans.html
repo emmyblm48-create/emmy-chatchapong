@@ -363,6 +363,59 @@
             display: block;
         }
 
+        /* 👑 Top Today VIP ว่าง: การ์ดขาวขอบเหลืองหนา + เหรียญ 1-2-3 คาบขอบบน */
+        .vip-empty-card {
+            position: relative;
+            z-index: 2;
+            max-width: 320px;
+            margin: 110px auto 0;
+            background: #fff;
+            border: 6px solid #ffde5b;
+            border-top-width: 0;
+            border-bottom-width: 22px;
+            border-radius: 24px;
+            box-shadow: inset 0 -3px 8px rgba(0,0,0,0.06);
+            padding: 0 20px 26px;
+            text-align: center;
+            animation: fadeInCard 0.4s ease-out;
+        }
+        .vip-empty-podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 6px;
+            margin-top: -70px;
+        }
+        .vip-empty-podium .crown-avatar { margin-top: 0 !important; }
+        .vip-empty-side { margin-bottom: 4px; }
+        .vip-empty-num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.6rem;
+        }
+        .vip-empty-text {
+            margin-top: 22px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            line-height: 1.4;
+            color: var(--text-dark);
+        }
+        .vip-empty-btn {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 9px 30px;
+            border-radius: 22px;
+            background: #ffde5b;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+
         @media (max-width: 360px) {
             .board-fans { gap: 4px; }
             .board-member-img { width: 40px; height: 40px; }
@@ -432,7 +485,7 @@
             </svg>`;
         }
 
-        // กรอบหยักแบบเหรียญตรา (ใช้กับ Top Today VIP ให้ต่างจาก Top Fans ที่เป็นวงแหวนเรียบ)
+        // กรอบหยักแบบเหรียญตรา (อันดับ 1-3 ทั้ง Top Fans และ Top Today VIP)
         function badgeSvg(c, uid) {
             const n = 14, cx = 50, cy = 50, R = 44, r = 9;
             let bumps = '';
@@ -453,13 +506,10 @@
         function crownAvatarHtml(img, rank, size, altText, username) {
             const c = RANK_COLORS[rank];
             const uid = ++svgUid;
-            const ring = MODE === 'vip'
-                ? badgeSvg(c, uid)
-                : '';
-            const ringStyle = MODE === 'vip' ? '' : `background: linear-gradient(135deg, ${c.light}, ${c.main} 60%, ${c.dark});`;
-            return `<div class="crown-avatar ${MODE === 'vip' ? 'vip' : ''}"${profileLinkAttr(username)} style="width:${size}px; height:${size}px; margin-top:${Math.round(size * 0.28)}px;">
-                ${ring}
-                <div class="ca-ring" style="${ringStyle}">
+            // กรอบหยักแบบเหรียญตรา ใช้ทั้ง Top Fans และ Top Today VIP
+            return `<div class="crown-avatar vip"${profileLinkAttr(username)} style="width:${size}px; height:${size}px; margin-top:${Math.round(size * 0.28)}px;">
+                ${badgeSvg(c, uid)}
+                <div class="ca-ring">
                     <img src="${getImg(img)}" alt="${escapeHtml(altText || '')}" loading="lazy" onerror="this.src='${DEFAULT_AVATAR}'">
                 </div>
                 ${crownSvg(c, uid)}
@@ -512,8 +562,37 @@
             right.outerHTML = `<a href="topvip_reward" class="nav-action-btn" aria-label="Reward for Top Today VIP"><i class="fa-solid fa-crown"></i></a>`;
         }
 
+        // 👑 Top Today VIP ว่าง (ยังไม่มีใครปาคุกกี้/กดใจ/คอมเมนต์ให้เมมเบอร์คนไหนเลยวันนี้)
+        function renderVipEmpty() {
+            const me = typeof getUserSession === 'function' ? getUserSession() : null;
+            const numberMedal = (rank, size) => {
+                const c = RANK_COLORS[rank];
+                const uid = ++svgUid;
+                return `<div class="crown-avatar vip vip-empty-side" style="width:${size}px; height:${size}px;">
+                    ${badgeSvg(c, uid)}
+                    <div class="ca-ring vip-empty-num" style="background:${c.main};">${rank + 1}</div>
+                    ${crownSvg(c, uid)}
+                </div>`;
+            };
+            document.getElementById('ranking-page-wrapper').innerHTML = `
+                <div class="vip-empty-card">
+                    <div class="vip-empty-podium">
+                        ${numberMedal(1, 74)}
+                        ${crownAvatarHtml(me && me.profile_img, 0, 116, '')}
+                        ${numberMedal(2, 74)}
+                    </div>
+                    <div class="vip-empty-text">Become a VIP Today<br>to get special reward.</div>
+                    <a href="topvip_reward" class="vip-empty-btn">View Detail</a>
+                </div>`;
+        }
+
         function renderBoard(boards) {
             const wrapper = document.getElementById('ranking-page-wrapper');
+            // VIP: โชว์เฉพาะเมมเบอร์ที่วันนี้มีคนซัพพอร์ต (ปาคุกกี้ / กดใจ / คอมเมนต์ — นับรวมใน fan_logs)
+            if (MODE === 'vip') {
+                boards = boards.filter(b => Array.isArray(b.fans) && b.fans.length > 0);
+                if (boards.length === 0) { renderVipEmpty(); return; }
+            }
             if (boards.length === 0) {
                 wrapper.innerHTML = `<div class="ranking-card"><div class="empty-state">ยังไม่มีข้อมูลค่ะ</div></div>`;
                 return;

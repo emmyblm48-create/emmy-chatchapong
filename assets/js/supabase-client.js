@@ -178,6 +178,16 @@ function blm48BuyGiftWallet(username, giftId, quantity) {
 function blm48GiveGiftWallet(username, collectionId, candidateName, giftId, quantity) {
   return blm48Rpc('give_gift_wallet', { p_username: username, p_collection_id: collectionId, p_candidate_name: candidateName, p_gift_id: giftId, p_quantity: quantity });
 }
+// 🎁 ส่งของขวัญให้เมมเบอร์ (แผงของขวัญใน member.html) — ตอนนี้เซิร์ฟเวอร์รับเฉพาะแอดมิน, นับเหมือนการปาคุกกี้
+// fromBackpack = ใช้ของใน Backpack (จ่ายไปตอนซื้อแล้ว ไม่หัก Cookie ซ้ำ)
+// postId = ส่งในโพสต์ของเมมเบอร์ (server ใช้เจ้าของโพสต์เป็นผู้รับเสมอ)
+function blm48SendMemberGift(username, memberName, giftId, quantity, fromBackpack, postId) {
+  return blm48Rpc('send_member_gift', { p_username: username, p_member_name: memberName || null, p_gift_id: giftId, p_quantity: quantity, p_from_backpack: !!fromBackpack, p_post_id: postId || null });
+}
+// ยอดของขวัญต่อโพสต์: [{ postId, gifts, gifters: [{ username, name, img }] (3 อันดับ) }]
+function blm48GetPostGiftSummaries(postIds) {
+  return blm48Rpc('get_post_gift_summaries', { p_post_ids: postIds });
+}
 function blm48GetGiftWallet(username) {
   return blm48Rpc('get_gift_wallet', { p_username: username });
 }
@@ -304,6 +314,17 @@ function blm48GetPostsPage(username, limit, beforeEpochMs, includePostId, author
     p_before_epoch_ms: beforeEpochMs || null,
     p_include_post_id: includePostId || null,
     p_author_filter: authorFilter || null
+  });
+}
+// Home "Timeline" feed: same shape as blm48GetPostsPage, but authors (array of member names,
+// any case) limits to several members at once - used by index.html's Choose Member filter.
+function blm48GetTimelinePostsPage(username, limit, beforeEpochMs, includePostId, authors) {
+  return blm48Rpc('get_timeline_posts_page', {
+    p_username: username || null,
+    p_limit: limit || 20,
+    p_before_epoch_ms: beforeEpochMs || null,
+    p_include_post_id: includePostId || null,
+    p_authors: authors && authors.length ? authors : null
   });
 }
 function blm48CreatePost(username, content, imageUrl, audioUrl, videoUrl, postType) {
