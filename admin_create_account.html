@@ -58,7 +58,7 @@
 
         .header-title-zone { text-align: center; margin-bottom: 20px; }
         .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
         .form-card {
             background: var(--glass-bg-strong);
@@ -75,7 +75,7 @@
             color: var(--text-dark); background: rgba(255, 255, 255, 0.7);
         }
         .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--primary-pink); }
-        .form-hint { font-size: 11.5px; color: #999; margin-top: -6px; margin-bottom: 14px; line-height: 1.6; }
+        .form-hint { font-size: 11.5px; color: #767676; margin-top: -6px; margin-bottom: 14px; line-height: 1.6; }
 
         .btn-primary {
             width: 100%; border: none; border-radius: 20px; padding: 13px;
@@ -93,13 +93,21 @@
             background: #fff0f3; border-radius: 16px; padding: 16px; margin-top: 18px;
         }
         .result-card.show { display: block; }
+        /* ช่องรหัสผ่าน + ปุ่มสุ่ม / ปุ่มคัดลอกข้อมูลบัญชี */
+        .input-row { display: flex; gap: 8px; }
+        .input-row input { flex: 1; min-width: 0; }
+        .btn-side { flex-shrink: 0; border: 1px solid #eee; background: #fff; border-radius: 12px; padding: 0 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #555; cursor: pointer; white-space: nowrap; }
+        .r-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .r-actions button, .r-actions a { border: none; border-radius: 20px; padding: 8px 14px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-copy { background: #222; color: #fff; }
+        .btn-link { background: #fff; color: #333; border: 1px solid #eee !important; }
         .result-card .r-title { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; color: var(--primary-pink); font-size: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         .result-card .r-row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 6px 0; border-top: 1px dashed #ffd7e1; }
         .result-card .r-row:first-of-type { border-top: none; }
         .result-card .r-row b { color: #333; }
-        .result-card .r-note { font-size: 11.5px; color: #c77; margin-top: 10px; line-height: 1.6; }
+        .result-card .r-note { font-size: 12.5px; color: #a33f3f; margin-top: 10px; line-height: 1.6; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
     </style>
@@ -135,7 +143,10 @@
             </div>
             <div class="form-field">
                 <label>Password</label>
-                <input id="new-password" type="text" placeholder="กำหนดรหัสผ่าน">
+                <div class="input-row">
+                    <input id="new-password" type="text" placeholder="กำหนดรหัสผ่าน" autocomplete="off">
+                    <button type="button" class="btn-side" onclick="randomPassword()"><i class="fa-solid fa-shuffle"></i> สุ่ม</button>
+                </div>
             </div>
             <div class="form-field">
                 <label>Role</label>
@@ -146,7 +157,7 @@
             </div>
             <div class="form-hint">
                 บัญชีใหม่จะได้รับ 10 Tokens, 100 Cookies, 0 GEToken และรูปโปรไฟล์เริ่มต้นให้อัตโนมัติ<br>
-                สถานะเริ่มต้นจะเป็น "รออนุมัติ" — ต้องกดอนุมัติในหน้า Admin Dashboard ก่อน สมาชิกถึงจะล็อกอินได้ (ให้เข้ากลุ่ม Line ก่อน)
+                สถานะเริ่มต้นจะเป็น "รออนุมัติ" — ต้องกดอนุมัติในหน้า บัญชีรออนุมัติ ก่อน สมาชิกถึงจะล็อกอินได้ (ให้เข้ากลุ่ม Line ก่อน)
             </div>
 
             <button class="btn-primary" id="submit-btn" onclick="submitCreateAccount()">
@@ -158,7 +169,11 @@
                 <div class="r-row"><span>Username</span><b id="result-username"></b></div>
                 <div class="r-row"><span>Password</span><b id="result-password"></b></div>
                 <div class="r-row"><span>Role</span><b id="result-role"></b></div>
-                <div class="r-note">กรุณาจดบันทึกและส่งต่อข้อมูลนี้ให้สมาชิกอย่างปลอดภัย (จะไม่แสดงซ้ำอีก) — บัญชีนี้อยู่ในสถานะ "รออนุมัติ" กดอนุมัติในหน้า Admin Dashboard ได้เมื่อสมาชิกเข้ากลุ่ม Line แล้ว</div>
+                <div class="r-note">กรุณาจดบันทึกและส่งต่อข้อมูลนี้ให้สมาชิกอย่างปลอดภัย (จะไม่แสดงซ้ำอีก) — บัญชีนี้อยู่ในสถานะ "รออนุมัติ" กดอนุมัติได้เมื่อสมาชิกเข้ากลุ่ม Line แล้ว</div>
+                <div class="r-actions">
+                    <button type="button" class="btn-copy" id="copy-btn" onclick="copyAccount()"><i class="fa-regular fa-copy"></i> คัดลอกข้อมูลบัญชี</button>
+                    <a class="btn-link" href="admin_pending_accounts"><i class="fa-solid fa-user-clock"></i> ไปหน้าอนุมัติ</a>
+                </div>
             </div>
         </div>
     </div>
@@ -180,6 +195,27 @@
     const el = document.getElementById('form-msg');
     el.textContent = '';
     el.classList.remove('error');
+  }
+
+  // สุ่มรหัสผ่าน 8 ตัว ไม่มีตัวที่สับสนง่าย (0/O, 1/l/I) - ส่งต่อให้สมาชิกพิมพ์ตามได้
+  function randomPassword() {
+    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    const buf = new Uint32Array(8);
+    crypto.getRandomValues(buf);
+    document.getElementById('new-password').value = Array.from(buf, n => chars[n % chars.length]).join('');
+  }
+
+  // คัดลอกข้อความพร้อมส่งใน Line
+  async function copyAccount() {
+    const txt = `BLM48 Membership\nUsername: ${document.getElementById('result-username').textContent}\nPassword: ${document.getElementById('result-password').textContent}`;
+    const btn = document.getElementById('copy-btn');
+    try {
+      await navigator.clipboard.writeText(txt);
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> คัดลอกแล้ว';
+    } catch (e) {
+      btn.innerHTML = '<i class="fa-solid fa-xmark"></i> คัดลอกไม่ได้ จดเองนะคะ';
+    }
+    setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i> คัดลอกข้อมูลบัญชี'; }, 2000);
   }
 
   async function prefillSuggestedUsername() {

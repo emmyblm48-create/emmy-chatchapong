@@ -58,7 +58,7 @@
 
         .header-title-zone { text-align: center; margin-bottom: 20px; }
         .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
         .form-card {
             background: var(--glass-bg-strong);
@@ -85,7 +85,7 @@
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-secondary {
             width: 100%; border: 1px solid var(--glass-border); border-radius: 20px; padding: 12px; margin-top: 8px;
-            background: transparent; color: #999; font-weight: 600; font-size: 13px;
+            background: transparent; color: #767676; font-weight: 600; font-size: 13px;
             font-family: 'Quicksand', 'Kanit', sans-serif; cursor: pointer;
         }
 
@@ -97,16 +97,26 @@
         .target-preview { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff0f3; border-radius: 14px; margin-bottom: 12px; }
         .target-preview img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #fff; flex: 0 0 auto; }
         .target-preview .t-name { font-weight: 700; font-size: 14px; color: #333; }
-        .target-preview .t-sub { font-size: 12px; color: #999; }
+        .target-preview .t-sub { font-size: 12px; color: #767676; }
         .balance-line { font-size: 12.5px; color: #666; margin-bottom: 12px; display: flex; gap: 14px; flex-wrap: wrap; }
         .balance-line i { margin-right: 3px; }
         .transfer-list { border-top: 1px dashed #ffd7e1; padding-top: 10px; font-size: 14px; }
-        .transfer-list .t-label { color: #999; margin-bottom: 4px; font-size: 12.5px; }
+        .transfer-list .t-label { color: #767676; margin-bottom: 4px; font-size: 12.5px; }
         .transfer-list div.item { padding: 2px 0; color: #333; font-weight: 600; }
+        /* ปุ่มเติมจำนวนเร็ว */
+        .quick { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+        .quick button { border: 1px solid #eee; background: #fff; border-radius: 20px; padding: 4px 10px; font-family: inherit; font-size: 12px; font-weight: 700; color: #555; cursor: pointer; }
+        /* ยอดหลังโอน */
+        .after-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        .after-table th, .after-table td { padding: 6px 4px; text-align: right; border-bottom: 1px solid #f3f3f3; white-space: nowrap; }
+        .after-table th:first-child, .after-table td:first-child { text-align: left; color: #555; }
+        .after-table th { font-size: 11.5px; color: #767676; font-weight: 600; }
+        .after-table .plus { color: #1f7a45; font-weight: 700; }
+        .after-table .minus { color: #c43d58; font-weight: 700; }
 
         .my-balance { background: #fffbea; border: 1px solid #ffe8a3; border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; }
-        .my-balance .t-label { color: #b8860b; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        .my-balance .t-label { color: #7a5a00; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
     </style>
@@ -151,15 +161,18 @@
             </div>
             <div class="form-field">
                 <label>Token</label>
-                <input id="tr-token" type="number" min="0" value="0">
+                <input id="tr-token" type="number" inputmode="numeric" min="0" value="0">
+                <div class="quick" data-for="tr-token"></div>
             </div>
             <div class="form-field">
                 <label>Cookie</label>
-                <input id="tr-cookie" type="number" min="0" value="0">
+                <input id="tr-cookie" type="number" inputmode="numeric" min="0" value="0">
+                <div class="quick" data-for="tr-cookie"></div>
             </div>
             <div class="form-field">
                 <label>GEToken</label>
-                <input id="tr-getoken" type="number" min="0" value="0">
+                <input id="tr-getoken" type="number" inputmode="numeric" min="0" value="0">
+                <div class="quick" data-for="tr-getoken"></div>
             </div>
 
             <button class="btn-primary" id="lookup-btn" onclick="lookupTransferTarget()">
@@ -175,24 +188,13 @@
                     <div class="t-sub" id="cf-sub"></div>
                 </div>
             </div>
-            <div class="balance-line">
-                ยอดคงเหลือปัจจุบัน:
-                <span><i class="fas fa-coins" style="color:#f59f00;"></i> <span id="cf-cur-token"></span></span>
-                <span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> <span id="cf-cur-cookie"></span></span>
-                <span><i class="fas fa-gem" style="color:#4dabf7;"></i> <span id="cf-cur-getoken"></span></span>
-            </div>
-            <div class="my-balance">
-                <div class="t-label">ยอดของคุณก่อนโอน (จะถูกหักตามรายการด้านล่าง)</div>
-                <div class="balance-line" style="margin-bottom:0;">
-                    <span><i class="fas fa-coins" style="color:#f59f00;"></i> <span class="my-token">-</span></span>
-                    <span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i> <span class="my-cookie">-</span></span>
-                    <span><i class="fas fa-gem" style="color:#4dabf7;"></i> <span class="my-getoken">-</span></span>
-                </div>
-            </div>
             <div class="transfer-list">
-                <div class="t-label">จะโอนให้เพิ่ม (หักจากบัญชีคุณ):</div>
+                <div class="t-label">จะโอนให้ (หักจากบัญชีคุณ):</div>
                 <div id="cf-transfer-items"></div>
+                <!-- ยอดก่อน -> หลังโอน ของทั้งผู้รับและผู้โอน -->
+                <table class="after-table" id="cf-after"></table>
             </div>
+            <div id="confirm-msg" class="form-msg"></div>
             <button class="btn-primary" id="confirm-btn" onclick="confirmTransfer()" style="margin-top:14px;">
                 <i class="fas fa-check"></i> ยืนยันการโอน
             </button>
@@ -296,9 +298,6 @@
     document.getElementById('cf-avatar').src = resolveDriveImage(target.profile_img);
     document.getElementById('cf-name').textContent = target.name || target.username;
     document.getElementById('cf-sub').textContent = `@${target.username} · ${(target.role || '').toUpperCase()}`;
-    document.getElementById('cf-cur-token').textContent = Number(target.token || 0).toLocaleString();
-    document.getElementById('cf-cur-cookie').textContent = Number(target.cookie || 0).toLocaleString();
-    document.getElementById('cf-cur-getoken').textContent = Number(target.geToken || 0).toLocaleString();
 
     const items = [];
     if (token > 0) items.push(`<div class="item">+ ${Number(token).toLocaleString()} Token</div>`);
@@ -306,26 +305,32 @@
     if (getoken > 0) items.push(`<div class="item">+ ${Number(getoken).toLocaleString()} GEToken</div>`);
     document.getElementById('cf-transfer-items').innerHTML = items.join('');
 
+    // ตารางยอดก่อน -> หลังโอน (เฉพาะสกุลที่โอน) ของผู้รับ และของแอดมินผู้โอน
+    const f = v => Number(v || 0).toLocaleString();
+    const cur = [['Token', token, target.token, myBalance && myBalance.token], ['Cookie', cookie, target.cookie, myBalance && myBalance.cookie], ['GEToken', getoken, target.geToken, myBalance && myBalance.geToken]].filter(r => r[1] > 0);
+    document.getElementById('cf-after').innerHTML = `
+      <tr><th></th><th>ผู้รับ: ก่อน → หลัง</th><th>คุณ: ก่อน → หลัง</th></tr>
+      ${cur.map(([label, amt, theirs, mine]) => `<tr>
+        <td>${label}</td>
+        <td>${f(theirs)} → <span class="plus">${f(Number(theirs || 0) + amt)}</span></td>
+        <td>${mine == null ? '-' : `${f(mine)} → <span class="minus">${f(mine - amt)}</span>`}</td>
+      </tr>`).join('')}`;
+
+    document.getElementById('confirm-msg').textContent = '';
+    document.getElementById('confirm-msg').classList.remove('error');
     document.getElementById('form-step').style.display = 'none';
     document.getElementById('confirm-step').classList.add('show');
   }
 
+  // หน้ายืนยันนี้คือการยืนยันแล้ว กดปุ่มเดียวโอนเลย (ไม่ซ้อนป๊อปอัปยืนยันอีกชั้น)
   async function confirmTransfer() {
     if (!pendingTransfer) return;
     const { target, token, cookie, getoken } = pendingTransfer;
-
-    const confirmResult = await Swal.fire({
-      title: 'ยืนยันการโอน',
-      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) จะได้รับตามรายการที่ระบุ และยอดจะถูกหักจากบัญชีของคุณค่ะ`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: 'var(--primary-pink)',
-      confirmButtonText: 'ยืนยันการโอน',
-      cancelButtonText: 'ยกเลิก'
-    });
-    if (!confirmResult.isConfirmed) return;
-
-    Swal.fire({ title: 'กำลังโอน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    const btn = document.getElementById('confirm-btn');
+    const msg = document.getElementById('confirm-msg');
+    const fail = (t) => { msg.textContent = t; msg.classList.add('error'); };
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโอน...';
     try {
       const res = await blm48AdminTransferWallet(user.username, target.username, token, cookie, getoken);
       if (res.status === 'success') {
@@ -337,11 +342,30 @@
         document.getElementById('tr-getoken').value = 0;
         resetTransferForm();
       } else {
-        Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถโอนได้', 'error');
+        fail(res.message || 'ไม่สามารถโอนได้');
       }
     } catch (e) {
-      Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+      fail('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
     }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> ยืนยันการโอน';
+  }
+
+  // ปุ่มเติมจำนวนเร็ว: กดแล้วบวกเพิ่มจากที่กรอกอยู่
+  const QUICK = { 'tr-token': [1, 5, 10, 50], 'tr-cookie': [10, 100, 500, 1000], 'tr-getoken': [1, 5, 10, 50] };
+  function setupQuick() {
+    document.querySelectorAll('.quick').forEach(box => {
+      const id = box.dataset.for;
+      box.innerHTML = QUICK[id].map(n => `<button type="button" data-n="${n}">+${n.toLocaleString()}</button>`).join('') + '<button type="button" data-n="0">ล้าง</button>';
+      box.addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        const inp = document.getElementById(id);
+        inp.value = b.dataset.n === '0' ? 0 : (parseFloat(inp.value) || 0) + Number(b.dataset.n);
+      });
+    });
+    // กด Enter ในฟอร์ม = ตรวจสอบข้อมูล
+    document.getElementById('form-step').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); lookupTransferTarget(); } });
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -355,6 +379,7 @@
       return;
     }
     document.getElementById('page-content').style.display = 'block';
+    setupQuick();
     loadMyBalance();
   });
 </script>

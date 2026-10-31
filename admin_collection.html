@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer"><!-- รูปปก/การ์ดเดิมอยู่บน lh3.googleusercontent.com ซึ่งปฏิเสธบาง referrer -->
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | Edit Collection</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 120px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
+        #page-content { display: none; }
+        .loading-state, .empty-state { text-align: center; color: #767676; font-size: 13px; padding: 40px 20px; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+        .filter-tab { flex: 1; border-radius: 20px; padding: 9px 6px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .form-field { margin-bottom: 12px; }
+        .form-field label, .field-label { display: block; font-size: 12.5px; color: #666; font-weight: 600; margin-bottom: 5px; }
+        .form-field input, .form-field select, .form-field textarea { width: 100%; padding: 10px 12px; border: 1px solid #e6e6e6; border-radius: 10px; font-family: inherit; font-size: 14px; background: #fff; color: #333; }
+        .form-field textarea { min-height: 76px; resize: vertical; }
+        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .note { font-size: 11.5px; color: #767676; line-height: 1.6; }
+        .msg { border-radius: 12px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 12px; display: none; line-height: 1.6; }
+        .msg.error { display: block; background: #ffeef0; color: #d6304f; }
+        .msg.ok { display: block; background: #e6f9ee; color: #1a7f45; }
+        .btn { border: none; border-radius: 20px; padding: 7px 14px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+        .btn-up { background: #ffc107; color: #222; }
+        .btn-del { background: #fff; color: #d64545; border: 1px solid #f3c6c6; }
+        .btn-mini { border: 1px solid #e6e6e6; background: #fff; color: #555; border-radius: 16px; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .btn-mini:disabled { opacity: .5; cursor: default; }
+        .section-title { font-size: 14px; font-weight: 700; color: #333; margin: 18px 0 8px; }
+        .section-title:first-child { margin-top: 0; }
+
+        /* สวิตช์เปิดขาย */
+        .sale-switch { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #eee; border-radius: 14px; margin-bottom: 14px; }
+        .sale-switch .txt { flex: 1; min-width: 0; }
+        .sale-switch b { font-size: 14px; color: #333; }
+        .switch { position: relative; flex-shrink: 0; width: 46px; height: 26px; border: none; border-radius: 20px; background: #ddd; cursor: pointer; padding: 0; transition: background .15s; }
+        .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .15s; }
+        .switch.on { background: #1f9d55; }
+        .switch.on::after { transform: translateX(20px); }
+        .pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+        .pill.open { background: #e6f9ee; color: #1a7f45; }
+        .pill.scheduled { background: #e8f0ff; color: #2d5bd1; }
+        .pill.soldout { background: #fff1f3; color: #d6304f; }
+        .pill.off, .pill.ended { background: #f1f1f1; color: #666; }
+
+        /* รูปปก + ตัวอย่างการ์ดใน Shop */
+        .cover-edit { display: flex; gap: 12px; align-items: center; }
+        .cover-box { width: 96px; height: 96px; flex: 0 0 96px; border-radius: 14px; background: #fafafa center/cover no-repeat; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 26px; border: 1px dashed #e0e0e0; }
+        .cover-box.has { border: none; }
+        .preview { border: 1px solid #f0f0f0; border-radius: 16px; overflow: hidden; max-width: 260px; }
+        .preview-img { aspect-ratio: 1 / 1; background: #fafafa center/cover no-repeat; }
+        .preview-body { padding: 10px 12px 12px; }
+        .preview-name { font-weight: 700; font-size: 14px; color: #333; }
+        .preview-desc { font-size: 12px; color: #767676; margin: 4px 0 8px; }
+        .preview-btns { display: flex; gap: 6px; }
+        .preview-btns span { flex: 1; text-align: center; background: #ffd76e; color: #222; border-radius: 20px; padding: 7px 4px; font-size: 12px; font-weight: 700; }
+
+        /* การ์ดในคอลเลกชัน */
+        .rate-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 12px; border-radius: 12px; background: #fafafa; font-size: 12.5px; margin-bottom: 10px; }
+        .rate-sum b { color: #333; }
+        .rate-sum .bad { color: #d6304f; }
+        .rate-sum .good { color: #1a7f45; }
+        .tools-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .auto-box, .bulk-box { display: none; border: 1px solid #eee; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+        .auto-box.show, .bulk-box.show { display: block; }
+        .inline-row { display: flex; gap: 8px; align-items: center; }
+        .inline-row input { width: 110px; padding: 8px 10px; border: 1px solid #e6e6e6; border-radius: 10px; font-family: inherit; font-size: 14px; }
+
+        .card-row { display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .card-thumb { width: 64px; height: 64px; border-radius: 10px; background: #fafafa center/contain no-repeat; display: flex; align-items: center; justify-content: center; color: #ccc; cursor: pointer; border: 1px dashed #e0e0e0; position: relative; }
+        .card-thumb.has { border: none; }
+        .card-thumb .ssr-badge { position: absolute; top: -5px; left: -5px; background: linear-gradient(135deg, #ffd700, #ff9f1a); color: #fff; font-size: 9.5px; font-weight: 800; padding: 1px 6px; border-radius: 10px; }
+        .card-main { min-width: 0; }
+        .card-top { display: flex; gap: 6px; align-items: center; }
+        .card-top input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #e6e6e6; border-radius: 10px; font-family: inherit; font-size: 14px; }
+        .ssr-toggle { flex-shrink: 0; border: 1px solid #e6e6e6; background: #fff; color: #999; border-radius: 16px; padding: 6px 10px; font-family: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer; }
+        .ssr-toggle.on { background: linear-gradient(135deg, #ffd700, #ff9f1a); border-color: transparent; color: #fff; }
+        .icon-btn { flex-shrink: 0; border: none; background: none; color: #bbb; font-size: 15px; cursor: pointer; padding: 6px; }
+        .icon-btn:disabled { opacity: .3; cursor: default; }
+        .card-fields { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; font-size: 12px; color: #767676; align-items: center; }
+        .card-fields label { display: inline-flex; align-items: center; gap: 5px; }
+        .card-fields input { width: 76px; padding: 6px 8px; border: 1px solid #e6e6e6; border-radius: 8px; font-family: inherit; font-size: 13px; }
+        .stock-now b { color: #333; }
+        .stock-add.changed { border-color: #1f9d55 !important; background: #f2fbf6; }
+        .card-row.dup input[data-f="name"] { border-color: #ff9fb0; }
+
+        .log-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f4f4f4; font-size: 12.5px; }
+        .log-row .d-plus { color: #1a7f45; font-weight: 700; }
+        .log-row .d-minus { color: #d6304f; font-weight: 700; }
+        .log-meta { font-size: 11px; color: #767676; }
+
+        .del-zone { margin-top: 26px; padding-top: 16px; border-top: 1px solid #f0f0f0; }
+        .btn-danger { width: 100%; border: 1px solid #ffc2cc; background: #fff1f3; color: #d6304f; border-radius: 20px; padding: 11px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .confirm-box { background: #fff1f3; border: 1px solid #ffc2cc; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #b3243f; line-height: 1.7; }
+        .confirm-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .confirm-actions button { flex: 1; border: none; border-radius: 20px; padding: 10px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+        .btn-cancel { background: #f1f1f1; color: #666; }
+        .btn-confirm-del { background: #ff5c7a; color: #fff; }
+
+        /* แถบบันทึกด้านล่าง (แบบหน้า Theme Application) */
+        .save-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 200; background: #fff; border-top: 1px solid #ffe08a; box-shadow: 0 -4px 16px rgba(0,0,0,.06); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: none; }
+        .save-bar.show { display: block; }
+        .save-bar-in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+        .save-bar-txt { flex: 1; min-width: 0; font-size: 12.5px; color: #555; line-height: 1.4; }
+        .save-bar-txt b { color: #b06a00; }
+        .save-bar-txt .err { color: #d6304f; }
+        .toast-msg { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #222; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 300; display: none; max-width: 90vw; }
+        .toast-msg.up { bottom: calc(84px + env(safe-area-inset-bottom)); }
+        .toast-msg { align-items: center; gap: 12px; }
+        .toast-act { border: none; background: none; color: #ffd76e; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; padding: 4px 2px; }
+
+        /* หัวหน้า: ปก + ชื่อ + สถานะ + เช็กลิสต์พร้อมเปิดขาย */
+        .col-head { margin-bottom: 14px; }
+        .ch-row { display: flex; align-items: center; gap: 12px; }
+        .ch-cover { width: 52px; height: 52px; flex: 0 0 52px; border-radius: 12px; background: #fafafa center/cover no-repeat; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 18px; border: 1px dashed #e0e0e0; }
+        .ch-cover.has { border: none; }
+        .ch-info { min-width: 0; flex: 1; }
+        .ch-name { font-size: 16px; font-weight: 700; color: #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ch-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12.5px; color: #767676; margin-top: 3px; }
+        .ready { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #fffaf0; border: 1px solid #ffe8b0; }
+        .ready-title { font-size: 12.5px; font-weight: 700; color: #8a6100; margin-right: 2px; }
+        .ready-title .fa-circle-check { color: #1f9d55; }
+        .ready-item { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; border: 1px solid #f0dca8; background: #fff; color: #8a6100; border-radius: 16px; padding: 4px 10px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .ready-item.ok { border-color: #cdeedb; color: #1a7f45; background: #f2fbf6; }
+
+        /* จุดแดงบนแท็บที่มีข้อผิดพลาด */
+        .filter-tab { position: relative; }
+        .t-dot { display: none; position: absolute; top: 6px; right: 10px; width: 7px; height: 7px; border-radius: 50%; background: #e0284f; box-shadow: 0 0 0 2px #fff; }
+        .filter-tab.has-err .t-dot { display: block; }
+
+        .pill.draft { background: #fff3c4; color: #7a5a00; }
+        .err-link { border: none; background: none; padding: 4px 0; text-align: left; color: #d6304f; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; line-height: 1.4; }
+        .err-link .fa-arrow-right { font-size: 10px; margin-left: 2px; }
+        .btn-ghost { background: #f1f1f1; color: #555; }
+        .btn-up:disabled { opacity: .45; cursor: default; }
+        .label-row { display: flex !important; justify-content: space-between; align-items: center; }
+        .link-btn { border: none; background: none; padding: 2px 4px; color: #b06a00; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+        /* ตัวกรองการ์ด ทั้งหมด / ปกติ / SSR */
+        .seg { display: inline-flex; background: #f4f4f4; border-radius: 20px; padding: 3px; margin-bottom: 4px; }
+        .seg button { border: none; background: none; border-radius: 16px; padding: 6px 14px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #767676; cursor: pointer; }
+        .seg button span { font-weight: 600; opacity: .7; }
+        .seg button.active { background: #fff; color: #222; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+        .empty-cards { text-align: center; padding: 32px 16px; font-size: 12.5px; color: #767676; line-height: 1.7; border: 1px dashed #e6e6e6; border-radius: 14px; }
+        .empty-cards i { display: block; font-size: 28px; color: #d0d0d0; margin-bottom: 6px; }
+        .empty-cards b { display: block; color: #444; font-size: 14px; }
+
+        .stock-list { border: 1px solid #f0f0f0; border-radius: 12px; max-height: 280px; overflow-y: auto; }
+        .stock-item { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; font-size: 12.5px; border-bottom: 1px solid #f6f6f6; }
+        .stock-item:last-child { border-bottom: none; }
+        .stock-item.zero .si-num { color: #d6304f; }
+        .si-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #444; }
+        .si-num { font-weight: 700; color: #222; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .si-num s { color: #aaa; font-weight: 500; }
+        .ssr-tag { color: #b8860b; font-size: 11px; }
+
+        /* โฟกัสชัดเจน + ปุ่มแตะง่ายบนมือถือ */
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #ffc107 !important; box-shadow: 0 0 0 3px rgba(255, 193, 7, .22); }
+        button:focus-visible, a:focus-visible { outline: 2px solid #ffc107; outline-offset: 2px; }
+        .icon-btn { width: 36px; height: 36px; padding: 0; }
+        .ssr-toggle { min-height: 34px; }
+        .card-fields input, .card-top input { font-variant-numeric: tabular-nums; }
+        .preview { max-width: 200px; }
+        ::selection { background: #ffe08a; }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="goBack()" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title" id="page-title">Collection</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div id="root"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+    </div>
+</div>
+<input type="file" id="file-one" accept="image/*" style="display:none;">
+<input type="file" id="file-many" accept="image/*" multiple style="display:none;">
+<div class="save-bar" id="save-bar"></div>
+<div class="toast-msg" id="toast"></div>
+
+<script>
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+  const STATES = { open: 'เปิดขายอยู่', scheduled: 'ตั้งเวลาไว้', soldout: 'สต็อกหมด', off: 'ปิดขาย', draft: 'ร่าง', ended: 'หมดเวลาขาย' };
+  const TABS = [['info', 'Info'], ['sale', 'Sale'], ['cards', 'Cards'], ['stock', 'Stock']];
+  const params = new URLSearchParams(location.search);
+  let collectionId = params.get('id');
+  let user = null;
+  let saved = null;   // ข้อมูลล่าสุดจากเซิร์ฟเวอร์
+  let draft = null;   // ค่าที่กำลังแก้ { ...collection, items: [{ key, id, name, imageUrl, pct, tag, stock, sold, add }] }
+  let categories = ['Coaster', 'BLM48 PhotoCard'];
+  let tab = TABS.some(([k]) => k === params.get('tab')) ? params.get('tab') : 'info';
+  let changed = false;
+  let saving = false;
+  let uploadTarget = null; // 'cover' | key ของการ์ด
+  let keySeq = 0;
+
+  function fmt(n) { return Number(n || 0).toLocaleString(); }
+  function fmtDate(s) {
+    return s ? new Date(s).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+  }
+  // ISO <-> ช่อง datetime-local (เวลาเครื่อง)
+  function toLocalInput(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function fromLocalInput(v) { return v ? new Date(v).toISOString() : null; }
+  // อัตราออกเก็บเป็นสัดส่วน (0.05) -> หน้าเว็บแสดงเป็น % (5)
+  function rateToPct(r) { return Math.round(Number(r || 0) * 100 * 10000) / 10000; }
+  function round4(n) { return Math.round(n * 10000) / 10000; }
+
+  function listUrl() { return 'admin_collections'; }
+  function goBack() {
+    if (isDirty()) { leaving = true; renderSaveBar(); return; }
+    leaveNow();
+  }
+  // actionLabel/onAction = ปุ่มในตัว toast เช่น "เอากลับ" (อยู่นานขึ้นให้กดทัน)
+  function toast(msg, actionLabel, onAction) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    if (actionLabel) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'toast-act'; b.textContent = actionLabel;
+      b.onclick = () => { t.style.display = 'none'; onAction(); };
+      t.appendChild(b);
+    }
+    t.style.display = 'flex';
+    clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = 'none'; }, actionLabel ? 5000 : 2400);
+  }
+
+  function emptyCollection() {
+    return { collectionId: null, name: '', description: '', coverImage: '', category: 'Coaster', on: false, state: 'off',
+      costTokens: 10, costTokensX5: 45, allowX5: true, maxDrawsPerAccount: null, saleStartAt: null, saleEndAt: null,
+      isLucky: false, sold: 0, items: [], logs: [] };
+  }
+
+  function toDraft(c) {
+    return {
+      name: c.name || '', description: c.description || '', coverImage: c.coverImage || '', category: c.category || 'Coaster',
+      on: !!c.on, costTokens: c.costTokens ?? '', costTokensX5: c.costTokensX5 ?? '', allowX5: c.allowX5 !== false,
+      maxDrawsPerAccount: c.maxDrawsPerAccount ?? '', saleStartAt: toLocalInput(c.saleStartAt), saleEndAt: toLocalInput(c.saleEndAt),
+      items: (c.items || []).map(i => ({ key: 'k' + (++keySeq), id: i.id, name: i.name || '', imageUrl: i.imageUrl || '',
+        pct: rateToPct(i.rate), tag: i.tag === 'SSR' ? 'SSR' : null, stock: Number(i.stock || 0), sold: Number(i.sold || 0), add: '' }))
+    };
+  }
+
+  async function load() {
+    if (!collectionId) {
+      saved = emptyCollection();
+      draft = toDraft(saved);
+      render();
+      return;
+    }
+    const root = document.getElementById('root');
+    try {
+      const res = await blm48AdminGetCollection(user.username, collectionId);
+      if (!res || res.status !== 'success') { root.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
+      saved = res.data;
+      if (Array.isArray(res.categories) && res.categories.length) categories = res.categories;
+      draft = toDraft(saved);
+      render();
+    } catch (e) {
+      root.innerHTML = '<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>';
+    }
+  }
+
+  // ===== เปลี่ยนแปลงที่ยังไม่บันทึก =====
+  function snapshot(d) {
+    // ตัวเลขเทียบเป็นข้อความ (ช่อง input คืนค่าเป็นสตริง)
+    return JSON.stringify({ ...d, items: d.items.map(i => ({ id: i.id, name: i.name.trim(), imageUrl: i.imageUrl, pct: Number(i.pct) || 0, tag: i.tag, add: Number(i.add) || 0 })) },
+      (k, v) => typeof v === 'number' && k !== 'id' ? String(v) : v);
+  }
+  function isDirty() { return !!draft && !!saved && (!saved.collectionId || snapshot(draft) !== snapshot(toDraft(saved))); }
+
+  function totals() {
+    const items = draft.items;
+    const pct = round4(items.reduce((s, i) => s + (Number(i.pct) || 0), 0));
+    const ssrPct = round4(items.filter(i => i.tag === 'SSR').reduce((s, i) => s + (Number(i.pct) || 0), 0));
+    const stock = items.reduce((s, i) => s + Math.max(i.stock + (Number(i.add) || 0), 0), 0);
+    return { pct, ssrPct, stock, ssr: items.filter(i => i.tag === 'SSR').length };
+  }
+
+  // ตรวจก่อนบันทึก -> { msg, tab } ข้อแรกที่ผิด (ตรงกับที่เซิร์ฟเวอร์ตรวจ) / tab = แท็บที่ต้องไปแก้
+  function validate() {
+    const e = (msg, tab) => ({ msg, tab });
+    if (!draft.name.trim()) return e('กรุณากรอกชื่อคอลเลกชัน', 'info');
+    const cost = Number(draft.costTokens);
+    if (draft.costTokens === '' || !Number.isInteger(cost) || cost < 0) return e('ราคาสุ่ม 1 ครั้งต้องเป็นจำนวนเต็ม', 'sale');
+    if (draft.allowX5) {
+      const c5 = Number(draft.costTokensX5);
+      if (draft.costTokensX5 === '' || !Number.isInteger(c5) || c5 < 0) return e('ราคาสุ่ม x5 ต้องเป็นจำนวนเต็ม', 'sale');
+    }
+    if (draft.maxDrawsPerAccount !== '' && !(Number.isInteger(Number(draft.maxDrawsPerAccount)) && Number(draft.maxDrawsPerAccount) >= 1)) return e('จำกัดครั้งต่อบัญชีต้องตั้งแต่ 1 ขึ้นไป หรือเว้นว่าง', 'sale');
+    if (draft.saleStartAt && draft.saleEndAt && new Date(draft.saleEndAt) <= new Date(draft.saleStartAt)) return e('เวลาปิดขายต้องหลังเวลาเปิดขาย', 'sale');
+    if (!saved.isLucky) {
+      const names = new Set();
+      for (const i of draft.items) {
+        if (!i.name.trim()) return e('การ์ดทุกใบต้องมีชื่อ', 'cards');
+        if (!i.imageUrl) return e(`การ์ด "${i.name}" ยังไม่มีรูป`, 'cards');
+        if (!(Number(i.pct) >= 0)) return e(`อัตราออกของ "${i.name}" ไม่ถูกต้อง`, 'cards');
+        if (i.add !== '' && !Number.isInteger(Number(i.add))) return e(`จำนวนเติมสต็อกของ "${i.name}" ต้องเป็นจำนวนเต็ม`, 'cards');
+        const n = i.name.trim().toLowerCase();
+        if (names.has(n)) return e(`มีการ์ดชื่อ "${i.name}" ซ้ำกัน`, 'cards');
+        names.add(n);
+      }
+    }
+    if (draft.on && !saved.isLucky) {
+      if (!draft.coverImage) return e('ต้องมีรูปปกก่อนเปิดขาย', 'info');
+      if (!draft.items.length) return e('ต้องมีการ์ดอย่างน้อย 1 ใบก่อนเปิดขาย', 'cards');
+      if (!draft.items.some(i => i.stock + (Number(i.add) || 0) > 0 && Number(i.pct) > 0)) return e('ต้องมีการ์ดที่มีสต็อกและอัตราออกมากกว่า 0 ก่อนเปิดขาย', 'stock');
+    }
+    return null;
+  }
+
+  // เช็กลิสต์ "พร้อมเปิดขาย" (แสดงตอนยังไม่เปิด) แต่ละข้อกดแล้วไปแท็บนั้น
+  function readiness() {
+    const t = totals();
+    return [
+      { label: 'ชื่อ', ok: !!draft.name.trim(), tab: 'info' },
+      { label: 'รูปปก', ok: !!draft.coverImage, tab: 'info' },
+      { label: 'ราคา', ok: draft.costTokens !== '' && Number(draft.costTokens) >= 0, tab: 'sale' },
+      { label: 'การ์ด', ok: draft.items.length > 0 && draft.items.every(i => i.name.trim() && i.imageUrl), tab: 'cards' },
+      { label: 'อัตรา 100%', ok: draft.items.length > 0 && Math.abs(t.pct - 100) < 0.01, tab: 'cards' },
+      { label: 'สต็อก', ok: t.stock > 0, tab: 'stock' }
+    ];
+  }
+
+  // หัวหน้า: ปก + ชื่อ + สถานะ + เช็กลิสต์ (อัปเดตตามที่แก้ ไม่ต้องวาดทั้งหน้า)
+  function renderHead() {
+    const el = document.getElementById('col-head');
+    if (!el) return;
+    const t = totals();
+    const isNew = !saved.collectionId;
+    const state = isNew ? 'draft' : (saved.state === 'off' && !saved.sold ? 'draft' : saved.state);
+    const cover = draft.coverImage ? `style="background-image:url('${escapeAttr(draft.coverImage)}')"` : '';
+    const ready = !draft.on && !saved.isLucky ? readiness() : [];
+    el.innerHTML = `
+      <div class="ch-row">
+        <div class="ch-cover ${draft.coverImage ? 'has' : ''}" ${cover}>${draft.coverImage ? '' : '<i class="fa-regular fa-image"></i>'}</div>
+        <div class="ch-info">
+          <div class="ch-name">${escapeHtml(draft.name.trim() || 'ยังไม่มีชื่อ')}</div>
+          <div class="ch-sub"><span class="pill ${state}">${STATES[state] || state}</span>
+            ${saved.isLucky ? 'Lucky Box' : `${fmt(draft.items.length)} การ์ด · เหลือ ${fmt(t.stock)}${saved.sold ? ` · ขายแล้ว ${fmt(saved.sold)}` : ''}`}</div>
+        </div>
+      </div>
+      ${ready.length ? `<div class="ready">
+        <span class="ready-title">${ready.every(r => r.ok) ? '<i class="fa-solid fa-circle-check"></i> พร้อมเปิดขาย · เปิดสวิตช์ในแท็บ Sale' : 'ก่อนเปิดขาย'}</span>
+        ${ready.every(r => r.ok) ? '' : ready.map(r => `<button type="button" class="ready-item ${r.ok ? 'ok' : ''}" onclick="setTab('${r.tab}')"><i class="fa-${r.ok ? 'solid fa-circle-check' : 'regular fa-circle'}"></i> ${r.label}</button>`).join('')}
+      </div>` : ''}`;
+  }
+
+  // จุดแดงบนแท็บที่มีข้อผิดพลาด
+  function refreshTabDots(err) {
+    document.querySelectorAll('.tabs .filter-tab').forEach(b => b.classList.toggle('has-err', !!err && b.dataset.tab === err.tab));
+  }
+
+  let leaving = false; // กดย้อนกลับตอนยังไม่บันทึก -> ถามในแถบด้านล่าง (ไม่ใช้ popup)
+
+  function renderSaveBar() {
+    const bar = document.getElementById('save-bar');
+    const show = isDirty();
+    if (!show) leaving = false;
+    bar.classList.toggle('show', show);
+    document.getElementById('toast').classList.toggle('up', show);
+    window.onbeforeunload = show ? () => true : null;
+    renderHead();
+    const err = show ? validate() : null;
+    refreshTabDots(err);
+    if (!show) { bar.innerHTML = ''; return; }
+    if (saving) return;
+    const isNew = !saved.collectionId;
+    if (leaving) {
+      bar.innerHTML = `<div class="save-bar-in">
+          <div class="save-bar-txt"><b>ยังไม่ได้บันทึก</b> · ออกจากหน้านี้เลยไหม?</div>
+          <button class="btn btn-del" onclick="leaveNow()">ออกไม่บันทึก</button>
+          <button class="btn btn-ghost" onclick="leaving = false; renderSaveBar();">อยู่ต่อ</button>
+        </div>`;
+      return;
+    }
+    bar.innerHTML = `<div class="save-bar-in">
+        <div class="save-bar-txt">${err
+          ? `<button type="button" class="err-link" onclick="setTab('${err.tab}')"><i class="fa-solid fa-circle-exclamation"></i> ${escapeHtml(err.msg)} <i class="fa-solid fa-arrow-right"></i></button>`
+          : (isNew ? `<b>New collection</b> · ${draft.on ? 'เปิดขายทันที' : 'บันทึกเป็นร่าง (ยังไม่ขาย)'}` : 'มีการแก้ไขที่ยังไม่บันทึก')}</div>
+        ${isNew ? '' : '<button class="btn btn-del" onclick="cancelAll()">Cancel</button>'}
+        <button class="btn btn-up" id="save-btn" onclick="saveAll()" ${err ? 'disabled' : ''} style="white-space:nowrap;"><i class="fa-solid fa-check"></i> ${isNew ? 'Create' : 'Save'}</button>
+      </div>`;
+  }
+
+  function cancelAll() {
+    draft = toDraft(saved);
+    render();
+  }
+  function leaveNow() {
+    window.onbeforeunload = null;
+    blm48Back(listUrl(), { refresh: changed });
+  }
+
+  async function saveAll() {
+    const err = validate();
+    if (err) { renderSaveBar(); return; }
+    saving = true;
+    const btn = document.getElementById('save-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    const col = {
+      name: draft.name.trim(), description: draft.description.trim(), coverImage: draft.coverImage || null, category: draft.category,
+      costTokens: Number(draft.costTokens), costTokensX5: draft.costTokensX5 === '' ? null : Number(draft.costTokensX5), allowX5: draft.allowX5,
+      maxDrawsPerAccount: draft.maxDrawsPerAccount === '' ? null : Number(draft.maxDrawsPerAccount),
+      saleStartAt: fromLocalInput(draft.saleStartAt), saleEndAt: fromLocalInput(draft.saleEndAt), on: draft.on
+    };
+    const items = saved.isLucky ? null : draft.items.map(i => ({
+      id: i.id || null, name: i.name.trim(), imageUrl: i.imageUrl, rate: round4(Number(i.pct) || 0) / 100,
+      tag: i.tag, addStock: Number(i.add) || 0
+    }));
+    try {
+      const res = await blm48AdminSaveCollection(user.username, saved.collectionId, col, items);
+      saving = false;
+      if (!res || res.status !== 'success') {
+        renderSaveBar();
+        const b = document.getElementById('save-bar');
+        b.querySelector('.save-bar-txt').innerHTML = `<span class="err"><i class="fa-solid fa-circle-exclamation"></i> ${escapeHtml((res && res.message) || 'บันทึกไม่สำเร็จ')}</span>`;
+        return;
+      }
+      changed = true;
+      if (!saved.collectionId) {
+        collectionId = res.collectionId;
+        history.replaceState(history.state, '', 'admin_collection?id=' + encodeURIComponent(collectionId) + '&tab=' + tab);
+      }
+      window.onbeforeunload = null;
+      await load();
+      toast(res.message || 'บันทึกแล้ว');
+    } catch (e) {
+      saving = false;
+      renderSaveBar();
+      toast('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง');
+    }
+  }
+
+  // ===== แท็บ =====
+  function setTab(k) {
+    tab = k;
+    if (saved.collectionId) history.replaceState(history.state, '', 'admin_collection?id=' + encodeURIComponent(saved.collectionId) + '&tab=' + k);
+    document.querySelectorAll('.tabs .filter-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === k));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + k));
+    const tabs = document.querySelector('.tabs');
+    if (tabs && tabs.getBoundingClientRect().top < 0) window.scrollTo({ top: tabs.offsetTop - 70 });
+  }
+
+  function render() {
+    const isNew = !saved.collectionId;
+    document.getElementById('page-title').textContent = isNew ? 'New Collection' : 'Edit Collection';
+    document.title = 'BLM48 Membership | ' + (isNew ? 'New Collection' : (saved.name || 'Collection'));
+    const tabs = saved.isLucky ? TABS.filter(([k]) => k === 'info' || k === 'sale') : TABS;
+    if (!tabs.some(([k]) => k === tab)) tab = 'info';
+    document.getElementById('root').innerHTML = `
+      <div class="col-head" id="col-head"></div>
+      <div class="tabs">${tabs.map(([k, label]) => `<button type="button" class="filter-tab ${k === tab ? 'active' : ''}" data-tab="${k}" onclick="setTab('${k}')">${label}<span class="t-dot" aria-hidden="true"></span></button>`).join('')}</div>
+      <div class="tab-pane ${tab === 'info' ? 'active' : ''}" id="pane-info"></div>
+      <div class="tab-pane ${tab === 'sale' ? 'active' : ''}" id="pane-sale"></div>
+      <div class="tab-pane ${tab === 'cards' ? 'active' : ''}" id="pane-cards"></div>
+      <div class="tab-pane ${tab === 'stock' ? 'active' : ''}" id="pane-stock"></div>`;
+    renderInfo();
+    renderSale();
+    if (!saved.isLucky) { renderCards(); renderStock(); }
+    renderSaveBar();
+  }
+
+  // ----- Info -----
+  function renderInfo() {
+    const isNew = !saved.collectionId;
+    const coverStyle = draft.coverImage ? `style="background-image:url('${escapeAttr(draft.coverImage)}')"` : '';
+    document.getElementById('pane-info').innerHTML = `
+      ${saved.isLucky ? '<div class="msg ok">Lucky Box สุ่มจากสต็อกของคอลเลกชันเก่า · แก้ได้เฉพาะข้อมูล ราคา และเวลาขาย</div>' : ''}
+      <div class="form-field">
+        <label>รูปปก (แสดงใน Shop)</label>
+        <div class="cover-edit">
+          <div class="cover-box ${draft.coverImage ? 'has' : ''}" ${coverStyle}>${draft.coverImage ? '' : '<i class="fa-regular fa-image"></i>'}</div>
+          <div>
+            <button type="button" class="btn-mini" onclick="pickImage('cover')"><i class="fa-solid fa-upload"></i> ${draft.coverImage ? 'Change' : 'Upload'}</button>
+            <div class="note" style="margin-top:6px;">รูปสี่เหลี่ยมจัตุรัส ไม่เกิน 5MB</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-field"><label>ชื่อคอลเลกชัน</label><input type="text" maxlength="120" value="${escapeAttr(draft.name)}" oninput="setField('name', this.value, true)"></div>
+      <div class="form-field"><label>คำอธิบาย</label><textarea maxlength="400" oninput="setField('description', this.value, true)">${escapeHtml(draft.description)}</textarea></div>
+      <div class="form-field"><label>หมวดในกระเป๋า (Inventory)</label>
+        <input type="text" list="cat-list" value="${escapeAttr(draft.category)}" oninput="setField('category', this.value)">
+        <datalist id="cat-list">${categories.map(c => `<option value="${escapeAttr(c)}">`).join('')}</datalist>
+      </div>
+      <div class="field-label">ตัวอย่างใน Shop</div>
+      <div id="preview"></div>
+      ${!isNew && !saved.isLucky ? `<div class="del-zone" id="del-zone">${delZoneHtml()}</div>` : ''}`;
+    renderPreview();
+  }
+
+  function renderPreview() {
+    const el = document.getElementById('preview');
+    if (!el) return;
+    const img = draft.coverImage ? `style="background-image:url('${escapeAttr(draft.coverImage)}')"` : '';
+    el.innerHTML = `<div class="preview">
+        <div class="preview-img" ${img}></div>
+        <div class="preview-body">
+          <div class="preview-name">${escapeHtml(draft.name || 'ชื่อคอลเลกชัน')}</div>
+          <div class="preview-desc">${escapeHtml(draft.description || 'Limited collection - draw for a chance at rare members')}</div>
+          <div class="preview-btns"><span><i class="fa-solid fa-coins"></i> ${fmt(draft.costTokens)} · x1</span>${draft.allowX5 ? `<span><i class="fa-solid fa-coins"></i> ${fmt(draft.costTokensX5)} · x5</span>` : ''}</div>
+        </div>
+      </div>`;
+  }
+
+  function delZoneHtml() {
+    return saved.sold > 0
+      ? `<div class="note">ขายไปแล้ว ${fmt(saved.sold)} ครั้ง ลบไม่ได้ · ถ้าไม่อยากขายต่อ ให้ปิดสวิตช์ "เปิดขาย" ในแท็บ Sale</div>`
+      : '<button type="button" class="btn-danger" onclick="askDelete()"><i class="fa-solid fa-trash"></i> Delete Collection</button>';
+  }
+
+  function setField(k, v, preview) {
+    draft[k] = v;
+    if (preview) renderPreview();
+    renderSaveBar();
+  }
+
+  // ----- Price & Time -----
+  function renderSale() {
+    const startPast = draft.saleStartAt && new Date(draft.saleStartAt) <= new Date();
+    let hint;
+    if (!draft.on) hint = 'ปิดอยู่ · แฟนยังไม่เห็นคอลเลกชันนี้ใน Shop';
+    else if (draft.saleStartAt && !startPast) hint = `จะขึ้นใน Shop เป็น "Coming Soon" และเปิดให้สุ่มตอน ${fmtDate(fromLocalInput(draft.saleStartAt))}`;
+    else hint = 'แฟนเห็นและสุ่มได้ทันทีหลังบันทึก' + (draft.saleStartAt ? '' : ' (ระบบจะตั้งเวลาเปิดเป็นตอนนี้ และส่งแจ้งเตือน "เปิดขายแล้ว")');
+    document.getElementById('pane-sale').innerHTML = `
+      <div class="sale-switch">
+        <div class="txt">
+          <b>เปิดขาย</b>
+          <div class="note" style="margin-top:3px;">${escapeHtml(hint)}</div>
+        </div>
+        <button type="button" class="switch ${draft.on ? 'on' : ''}" role="switch" aria-checked="${draft.on}" aria-label="เปิดขาย" onclick="toggleOn()"></button>
+      </div>
+      <div class="section-title">ราคา (Token)</div>
+      <div class="row2">
+        <div class="form-field"><label>สุ่ม 1 ครั้ง</label><input type="number" inputmode="numeric" min="0" step="1" value="${escapeAttr(draft.costTokens)}" oninput="setField('costTokens', this.value, true)"></div>
+        <div class="form-field"><label>สุ่ม x5</label><input type="number" inputmode="numeric" min="0" step="1" value="${escapeAttr(draft.costTokensX5)}" ${draft.allowX5 ? '' : 'disabled'} oninput="setField('costTokensX5', this.value, true)"></div>
+      </div>
+      <label class="note" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#444;margin:-2px 0 12px;">
+        <input type="checkbox" ${draft.allowX5 ? 'checked' : ''} onchange="draft.allowX5 = this.checked; renderSale(); renderPreview(); renderSaveBar();"> เปิดให้สุ่ม x5
+        ${draft.allowX5 && draft.costTokens !== '' ? `<span class="note">(ปกติ 5 ครั้ง = ${fmt(Number(draft.costTokens) * 5)})</span>` : ''}
+      </label>
+      <div class="form-field"><label>จำกัดจำนวนครั้งต่อบัญชี</label><input type="number" inputmode="numeric" min="1" step="1" placeholder="ไม่จำกัด" value="${escapeAttr(draft.maxDrawsPerAccount)}" oninput="setField('maxDrawsPerAccount', this.value)"></div>
+      <div class="section-title">เวลาขาย</div>
+      ${['saleStartAt', 'saleEndAt'].map(k => `
+      <div class="form-field">
+        <label class="label-row">${k === 'saleStartAt' ? 'เปิดขาย' : 'ปิดขาย'}${draft[k] ? `<button type="button" class="link-btn" onclick="setField('${k}', ''); renderSale();">ล้าง</button>` : ''}</label>
+        <input type="datetime-local" value="${escapeAttr(draft[k])}" onchange="setField('${k}', this.value); renderSale();">
+      </div>`).join('')}
+      <div class="note">เว้นว่าง "ปิดขาย" = ขายไปจนกว่าจะปิดเองหรือสต็อกหมด · เวลาเป็นเวลาของเครื่องนี้</div>`;
+  }
+
+  function toggleOn() {
+    draft.on = !draft.on;
+    renderSale();
+    renderSaveBar();
+  }
+
+  // ----- Cards -----
+  let cardFilter = 'all'; // all | normal | ssr
+  function rateSumHtml() {
+    const t = totals();
+    const pctOk = Math.abs(t.pct - 100) < 0.01;
+    return `<span>${fmt(draft.items.length)} การ์ด · SSR ${fmt(t.ssr)}</span>
+        <span>อัตรารวม <b class="${pctOk ? 'good' : 'bad'}">${t.pct}%</b>${pctOk || !draft.items.length ? '' : ' · ควรรวมได้ 100%'}</span>
+        <span>SSR รวม <b>${t.ssrPct}%</b></span>`;
+  }
+  function setCardFilter(k) { cardFilter = k; renderCards(); }
+
+  function renderCards() {
+    const t = totals();
+    const names = draft.items.map(i => i.name.trim().toLowerCase());
+    const FILTERS = [['all', 'ทั้งหมด', () => true], ['normal', 'ปกติ', i => i.tag !== 'SSR'], ['ssr', 'SSR', i => i.tag === 'SSR']];
+    if (!t.ssr) cardFilter = 'all';
+    const shown = draft.items.filter(FILTERS.find(([k]) => k === cardFilter)[2]);
+    document.getElementById('pane-cards').innerHTML = `
+      <div class="rate-sum">${rateSumHtml()}</div>
+      <div class="tools-row">
+        <button type="button" class="${draft.items.length ? 'btn-mini' : 'btn btn-up'}" onclick="document.getElementById('file-many').click()"><i class="fa-solid fa-images"></i> Upload หลายรูป</button>
+        <button type="button" class="btn-mini" onclick="addCardRow()"><i class="fa-solid fa-plus"></i> เพิ่มการ์ด</button>
+        <button type="button" class="btn-mini" onclick="toggleBox('auto-box')" ${draft.items.length ? '' : 'disabled'}><i class="fa-solid fa-percent"></i> ตั้งอัตราอัตโนมัติ</button>
+      </div>
+      <div class="auto-box" id="auto-box">
+        <div class="note" style="margin-bottom:8px;">ใส่อัตราออก SSR รวมทั้งหมด ระบบจะแบ่งให้ SSR แต่ละใบเท่ากัน และแบ่งที่เหลือให้การ์ดปกติเท่ากัน</div>
+        <div class="inline-row"><input type="number" id="auto-ssr" min="0" max="100" step="0.01" value="${t.ssr ? (t.ssrPct || 2) : 0}" ${t.ssr ? '' : 'disabled'}><span class="note">% SSR รวม</span>
+          <button type="button" class="btn btn-up" onclick="autoRates()">Apply</button></div>
+        ${t.ssr ? '' : '<div class="note" style="margin-top:6px;">ยังไม่มีการ์ด SSR · กดปุ่ม SSR ที่การ์ดก่อน ถ้าต้องการ</div>'}
+      </div>
+      ${t.ssr ? `<div class="seg">${FILTERS.map(([k, label, fn]) => `<button type="button" class="${k === cardFilter ? 'active' : ''}" onclick="setCardFilter('${k}')">${label} <span>${draft.items.filter(fn).length}</span></button>`).join('')}</div>` : ''}
+      <div id="card-list">${draft.items.length ? shown.map(i => cardHtml(i, names)).join('')
+        : `<div class="empty-cards"><i class="fa-regular fa-images"></i><b>ยังไม่มีการ์ด</b>
+             เลือกรูปการ์ดทั้งหมดทีเดียวด้วย "Upload หลายรูป" · ชื่อการ์ดจะตั้งจากชื่อไฟล์ และไฟล์ที่ขึ้นต้นด้วย SSR จะติดป้าย SSR ให้</div>`}</div>
+      <div class="note" style="margin-top:10px;">อัตราออกจริงคิดเฉพาะการ์ดที่ยังมีสต็อก ถ้าใบไหนหมด โอกาสของใบที่เหลือจะเพิ่มขึ้นตามสัดส่วน · การ์ดที่ขายไปแล้วลบหรือเปลี่ยนชื่อไม่ได้</div>`;
+  }
+
+  function cardHtml(i, names) {
+    const dup = i.name.trim() && names.filter(n => n === i.name.trim().toLowerCase()).length > 1;
+    const add = Number(i.add) || 0;
+    const img = i.imageUrl ? `style="background-image:url('${escapeAttr(i.imageUrl)}')"` : '';
+    return `
+      <div class="card-row ${dup ? 'dup' : ''}" data-key="${i.key}">
+        <div class="card-thumb ${i.imageUrl ? 'has' : ''}" ${img} onclick="pickImage('${i.key}')" title="เปลี่ยนรูป">
+          ${i.imageUrl ? '' : '<i class="fa-regular fa-image"></i>'}${i.tag === 'SSR' ? '<span class="ssr-badge">SSR</span>' : ''}
+        </div>
+        <div class="card-main">
+          <div class="card-top">
+            <input type="text" data-f="name" maxlength="120" placeholder="ชื่อการ์ด เช่น Bumblebee - New Ship" value="${escapeAttr(i.name)}" ${i.sold > 0 ? 'readonly title="ขายไปแล้ว เปลี่ยนชื่อไม่ได้"' : ''} oninput="setCard('${i.key}', 'name', this.value)">
+            <button type="button" class="ssr-toggle ${i.tag === 'SSR' ? 'on' : ''}" onclick="toggleSsr('${i.key}')">SSR</button>
+            <button type="button" class="icon-btn" onclick="removeCard('${i.key}')" ${i.sold > 0 ? 'disabled title="ขายไปแล้ว ลบไม่ได้"' : 'title="ลบการ์ด"'} aria-label="ลบการ์ด"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div class="card-fields">
+            <label>อัตรา <input type="number" min="0" step="0.01" inputmode="decimal" value="${escapeAttr(i.pct)}" oninput="setCard('${i.key}', 'pct', this.value)"> %</label>
+            <label>${i.id ? 'เติม' : 'สต็อก'} <input type="number" step="1" inputmode="numeric" class="stock-add ${add ? 'changed' : ''}" placeholder="${i.id ? '+0' : '0'}" value="${escapeAttr(i.add)}" oninput="setCard('${i.key}', 'add', this.value)"></label>
+            ${i.id ? `<span class="stock-now">เหลือ <b>${fmt(i.stock)}</b>${add ? ` → <b>${fmt(Math.max(i.stock + add, 0))}</b>` : ''} · ขายแล้ว ${fmt(i.sold)}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function findCard(key) { return draft.items.find(i => i.key === key); }
+  // พิมพ์ในช่อง -> ไม่วาดใหม่ทั้งรายการ (โฟกัสไม่หลุด) อัปเดตแค่สรุป/แถบบันทึก
+  function setCard(key, f, v) {
+    const c = findCard(key);
+    if (!c) return;
+    c[f] = v;
+    if (f === 'add') {
+      const row = document.querySelector(`.card-row[data-key="${key}"]`);
+      const add = Number(v) || 0;
+      row.querySelector('.stock-add').classList.toggle('changed', !!add);
+      const now = row.querySelector('.stock-now');
+      if (now) now.innerHTML = `เหลือ <b>${fmt(c.stock)}</b>${add ? ` → <b>${fmt(Math.max(c.stock + add, 0))}</b>` : ''} · ขายแล้ว ${fmt(c.sold)}`;
+    }
+    refreshCardSummary();
+    renderSaveBar();
+  }
+  function refreshCardSummary() {
+    const el = document.querySelector('#pane-cards .rate-sum');
+    if (el) el.innerHTML = rateSumHtml();
+    const names = draft.items.map(i => i.name.trim().toLowerCase());
+    draft.items.forEach(i => {
+      const row = document.querySelector(`.card-row[data-key="${i.key}"]`);
+      if (row) row.classList.toggle('dup', !!i.name.trim() && names.filter(n => n === i.name.trim().toLowerCase()).length > 1);
+    });
+  }
+  function toggleSsr(key) {
+    const c = findCard(key);
+    c.tag = c.tag === 'SSR' ? null : 'SSR';
+    renderCards(); renderSaveBar();
+  }
+  function addCard(name, imageUrl) {
+    draft.items.push({ key: 'k' + (++keySeq), id: null, name: name || '', imageUrl: imageUrl || '', pct: 0, tag: null, stock: 0, sold: 0, add: '' });
+  }
+  // ปุ่ม "เพิ่มการ์ด" -> แถวใหม่ท้ายรายการ เลื่อนไปหาและโฟกัสช่องชื่อ
+  function addCardRow() {
+    addCard();
+    cardFilter = 'all';
+    renderCards(); renderSaveBar();
+    const row = document.querySelector(`.card-row[data-key="${draft.items[draft.items.length - 1].key}"]`);
+    row.scrollIntoView({ block: 'center' });
+    row.querySelector('input[data-f="name"]').focus({ preventScroll: true });
+  }
+  // ลบทันที (มีผลตอน Save) + ปุ่ม "เอากลับ" ใน toast แทน popup ยืนยัน
+  let removed = null;
+  function removeCard(key) {
+    const idx = draft.items.findIndex(i => i.key === key);
+    const c = draft.items[idx];
+    if (!c || c.sold > 0) return;
+    removed = { item: c, idx };
+    draft.items.splice(idx, 1);
+    renderCards(); renderSaveBar();
+    toast(`ลบ "${c.name || 'การ์ด'}" แล้ว`, 'เอากลับ', undoRemove);
+  }
+  function undoRemove() {
+    if (!removed) return;
+    draft.items.splice(Math.min(removed.idx, draft.items.length), 0, removed.item);
+    removed = null;
+    renderCards(); renderSaveBar();
+  }
+  function toggleBox(id) { document.getElementById(id).classList.toggle('show'); }
+  function autoRates() {
+    const ssr = draft.items.filter(i => i.tag === 'SSR');
+    const normal = draft.items.filter(i => i.tag !== 'SSR');
+    let ssrTotal = ssr.length ? Number(document.getElementById('auto-ssr').value) : 0;
+    if (!(ssrTotal >= 0 && ssrTotal <= 100)) { toast('% SSR ต้องอยู่ระหว่าง 0 - 100'); return; }
+    if (!normal.length) ssrTotal = 100;
+    ssr.forEach(i => { i.pct = round4(ssrTotal / ssr.length); });
+    normal.forEach(i => { i.pct = round4((100 - ssrTotal) / normal.length); });
+    renderCards(); renderSaveBar();
+    toast('ตั้งอัตราออกแล้ว · กด Save เพื่อบันทึก');
+  }
+
+  // ----- Stock -----
+  function renderStock() {
+    const t = totals();
+    const pending = draft.items.filter(i => i.id && Number(i.add));
+    document.getElementById('pane-stock').innerHTML = `
+      <div class="rate-sum">
+        <span>เหลือรวม <b>${fmt(draft.items.reduce((s, i) => s + i.stock, 0))}</b></span>
+        <span>ขายแล้ว <b>${fmt(saved.sold)}</b></span>
+        ${pending.length ? `<span>หลังบันทึก <b class="good">${fmt(t.stock)}</b></span>` : ''}
+      </div>
+      <div class="section-title">เติมสต็อกทุกใบ</div>
+      <div class="inline-row" style="margin-bottom:6px;">
+        <input type="number" id="bulk-add" step="1" inputmode="numeric" placeholder="+50">
+        <button type="button" class="btn btn-up" onclick="bulkAdd(false)" ${draft.items.length ? '' : 'disabled'}>ทุกใบ</button>
+        <button type="button" class="btn-mini" onclick="bulkAdd(true)" ${draft.items.some(i => i.tag !== 'SSR') ? '' : 'disabled'}>เฉพาะการ์ดปกติ</button>
+      </div>
+      <div class="note">ใส่จำนวนติดลบเพื่อลดสต็อกได้ · เติมรายใบได้ที่แท็บ Cards · มีผลตอนกด Save</div>
+      ${draft.items.length ? `<div class="section-title">คงเหลือรายใบ <span class="note">น้อยไปมาก</span></div>
+      <div class="stock-list">${draft.items.slice().sort((a, b) => (a.stock + (Number(a.add) || 0)) - (b.stock + (Number(b.add) || 0))).map(i => {
+        const after = Math.max(i.stock + (Number(i.add) || 0), 0);
+        return `<div class="stock-item ${after === 0 ? 'zero' : ''}">
+          <span class="si-name">${i.tag === 'SSR' ? '<b class="ssr-tag">SSR</b> ' : ''}${escapeHtml(i.name || '(ไม่มีชื่อ)')}</span>
+          <span class="si-num">${Number(i.add) ? `<s>${fmt(i.stock)}</s> ` : ''}${fmt(after)}</span>
+        </div>`; }).join('')}</div>` : ''}
+      <div class="section-title">ประวัติสต็อก</div>
+      ${(saved.logs || []).length ? saved.logs.map(l => `
+        <div class="log-row">
+          <div>${escapeHtml(l.itemName || '-')}<div class="log-meta">${escapeHtml(l.by || '')} · ${fmtDate(l.at)}</div></div>
+          <div style="text-align:right;"><span class="${l.delta > 0 ? 'd-plus' : 'd-minus'}">${l.delta > 0 ? '+' : ''}${fmt(l.delta)}</span><div class="log-meta">เหลือ ${fmt(l.stockAfter)}</div></div>
+        </div>`).join('') : '<div class="note">ยังไม่มีประวัติ</div>'}`;
+  }
+  function bulkAdd(normalOnly) {
+    const n = Number(document.getElementById('bulk-add').value);
+    if (!Number.isInteger(n) || n === 0) { toast('ใส่จำนวนเป็นจำนวนเต็ม เช่น 50'); return; }
+    draft.items.filter(i => !normalOnly || i.tag !== 'SSR').forEach(i => { i.add = String((Number(i.add) || 0) + n); });
+    renderCards(); renderStock(); renderSaveBar();
+    toast(`${n > 0 ? '+' : ''}${n} ให้ ${normalOnly ? 'การ์ดปกติ' : 'ทุกใบ'} · กด Save เพื่อบันทึก`);
+  }
+
+  // ===== อัปโหลดรูป =====
+  function pickImage(target) {
+    uploadTarget = target;
+    document.getElementById('file-one').click();
+  }
+  function prefix() { return 'collection-' + (saved.collectionId || 'new'); }
+
+  document.getElementById('file-one').addEventListener('change', async e => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/') || file.size > MAX_IMAGE_BYTES) { toast('กรุณาเลือกไฟล์รูปภาพขนาดไม่เกิน 5MB'); return; }
+    toast('Uploading...');
+    try {
+      const url = await blm48UploadImageToBucket('app-assets', prefix(), file);
+      if (uploadTarget === 'cover') { draft.coverImage = url; renderInfo(); }
+      else { const c = findCard(uploadTarget); if (c) c.imageUrl = url; renderCards(); }
+      renderSale();
+      renderSaveBar();
+      toast('อัปโหลดแล้ว · กด Save เพื่อบันทึก');
+    } catch (err) {
+      console.error('Collection image upload error:', err);
+      toast('อัปโหลดรูปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    }
+  });
+
+  // หลายรูป -> การ์ดใหม่ทีละใบ ชื่อจากชื่อไฟล์ (ชื่อที่ขึ้นต้นด้วย SSR = ติด SSR ให้)
+  document.getElementById('file-many').addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
+    e.target.value = '';
+    if (!files.length) return;
+    const big = files.filter(f => f.size > MAX_IMAGE_BYTES).length;
+    const ok = files.filter(f => f.size <= MAX_IMAGE_BYTES).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    let done = 0, failed = 0;
+    for (const f of ok) {
+      toast(`Uploading ${done + failed + 1}/${ok.length}...`);
+      try {
+        const url = await blm48UploadImageToBucket('app-assets', prefix(), f);
+        const name = f.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
+        addCard(name, url);
+        if (/^ssr\b/i.test(name)) draft.items[draft.items.length - 1].tag = 'SSR';
+        done++;
+      } catch (err) {
+        console.error('Collection image upload error:', err);
+        failed++;
+      }
+    }
+    renderCards(); renderStock(); renderSaveBar();
+    toast(`เพิ่ม ${done} การ์ด${failed ? ` · ไม่สำเร็จ ${failed}` : ''}${big ? ` · ข้าม ${big} รูปที่ใหญ่เกิน 5MB` : ''}`);
+  });
+
+  // ===== ลบคอลเลกชัน (เฉพาะที่ยังไม่มีคนซื้อ) =====
+  function askDelete() {
+    document.getElementById('del-zone').innerHTML = `
+      <div class="confirm-box"><b>ลบ “${escapeHtml(saved.name || saved.collectionId)}” และการ์ดทั้งหมดถาวร?</b> ย้อนกลับไม่ได้
+        <div id="del-msg" style="margin-top:6px;"></div>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancel" onclick="document.getElementById('del-zone').innerHTML = delZoneHtml()">Cancel</button>
+          <button type="button" class="btn-confirm-del" id="del-btn" onclick="deleteCollection()">Delete</button>
+        </div>
+      </div>`;
+  }
+  async function deleteCollection() {
+    const btn = document.getElementById('del-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    try {
+      const res = await blm48AdminDeleteCollection(user.username, saved.collectionId);
+      if (res && res.status === 'success') {
+        changed = true; window.onbeforeunload = null; draft = toDraft(saved);
+        blm48Back(listUrl(), { refresh: true });
+        return;
+      }
+      document.getElementById('del-msg').textContent = (res && res.message) || 'ลบไม่สำเร็จ';
+    } catch (e) {
+      document.getElementById('del-msg').textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง';
+    }
+    btn.disabled = false;
+    btn.textContent = 'Delete';
+  }
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    load();
+  });
+</script>
+</body>
+</html>

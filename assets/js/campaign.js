@@ -135,7 +135,9 @@ function renderCampaignStamp(c) {
 // ค่าในตาราง = ชื่อธีม หรือฟังก์ชันเลือกธีมรายเมมเบอร์ (ธีมที่มี: magichour / sakura / ocean)
 const CAMPAIGN_BANNER_THEMES = {
   // ตุลาคม 2026: BLM48 รุ่น 5 = Ocean, รุ่นอื่น = Sakura
-  '2026-10': c => String(c.generation || '').trim() === '5' ? 'ocean' : 'sakura'
+  '2026-10': c => String(c.generation || '').trim() === '5' ? 'ocean' : 'sakura',
+  // พฤศจิกายน 2026: ทุกรุ่นใช้ Magic Hour (ตรงกับธีมแอปที่เปลี่ยนเป็น Magic Hour ตั้งแต่ 1 พ.ย.)
+  '2026-11': 'magichour'
 };
 // ชื่อที่ต้องตัดบรรทัดตามแบบที่ออกแบบไว้ (ธีม Magic Hour, ชื่ออื่นแสดงบรรทัดเดียว ย่อขนาดตามความยาว)
 const CAMPAIGN_BANNER_NAME_LINES = { bumblebee: ['Bum', 'BleBee'] };

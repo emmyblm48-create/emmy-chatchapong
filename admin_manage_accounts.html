@@ -58,7 +58,7 @@
 
         .header-title-zone { text-align: center; margin-bottom: 20px; }
         .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
         .search-input {
             width: 100%; border: 1px solid var(--glass-border); border-radius: 12px;
@@ -67,6 +67,25 @@
             margin-bottom: 16px;
         }
         .search-input:focus { outline: none; border-color: var(--primary-pink); }
+
+        /* ตัวกรองสถานะ */
+        .chips { display: flex; gap: 6px; margin: -6px 0 12px; flex-wrap: wrap; }
+        .chip { border: 1px solid #eee; background: #fff; border-radius: 20px; padding: 6px 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #666; cursor: pointer; }
+        .chip.active { background: #222; border-color: #222; color: #fff; }
+        .chip .n { font-weight: 600; opacity: .7; margin-left: 3px; }
+        /* ยืนยันในแถว (ไม่ใช้ป๊อปอัป) */
+        .entry-wrap { display: flex; flex-direction: column; }
+        .confirm-box { margin: -6px 0 0; padding: 14px 14px 12px; border: 1px solid #f3c6c6; border-top: none; border-radius: 0 0 16px 16px; background: #fff6f6; font-size: 12.5px; color: #555; line-height: 1.6; }
+        .confirm-box.unsuspend { border-color: #bfe6cf; background: #f2fbf6; }
+        .confirm-btns { display: flex; gap: 8px; margin-top: 10px; }
+        .confirm-btns button { border: none; border-radius: 20px; padding: 8px 16px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+        .btn-go-suspend { background: #d63355; color: #fff; }
+        .btn-go-unsuspend { background: #1f7a45; color: #fff; }
+        .btn-cancel { background: #fff; color: #555; border: 1px solid #ddd !important; }
+        .confirm-btns button:disabled { opacity: .6; cursor: default; }
+        .row-msg { font-size: 12px; font-weight: 600; margin-top: 4px; }
+        .row-msg.ok { color: #1f7a45; }
+        .row-msg.err { color: #d63355; }
 
         .entry-list { display: flex; flex-direction: column; gap: 10px; }
         .entry-row {
@@ -81,21 +100,21 @@
         .entry-avatar { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #f3f3f3; }
         .entry-body { flex: 1; min-width: 0; }
         .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; }
-        .entry-subtitle .tag-suspended { color: #ff5c7a; font-weight: 600; }
-        .entry-subtitle .tag-pending { color: #f59f00; font-weight: 600; }
+        .entry-subtitle { font-size: 11.5px; color: #767676; margin-top: 1px; }
+        .entry-subtitle .tag-suspended { color: #d63355; font-weight: 600; }
+        .entry-subtitle .tag-pending { color: #b06a00; font-weight: 600; }
         .btn-pill {
             flex: 0 0 auto; border: none; border-radius: 20px; font-size: 12px; font-weight: 600;
             padding: 8px 14px; cursor: pointer; white-space: nowrap;
         }
-        .btn-suspend { background: #ffeef0; color: #ff5c7a; }
-        .btn-unsuspend { background: #e6f9ee; color: #2ecc71; }
+        .btn-suspend { background: #ffeef0; color: #d63355; }
+        .btn-unsuspend { background: #e6f9ee; color: #1f7a45; }
 
-        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state { text-align: center; color: #767676; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
         .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
-        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
     </style>
@@ -122,7 +141,8 @@
             <p>ค้นหาและระงับ/ปลดระงับบัญชี User หรือ Member</p>
         </div>
 
-        <input id="manage-search" class="search-input" type="text" placeholder="ค้นหาชื่อหรือ Username...">
+        <input id="manage-search" class="search-input" type="search" placeholder="ค้นหาชื่อหรือ Username...">
+        <div class="chips" id="chips"></div>
 
         <div class="entry-list" id="manage-list">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
@@ -161,61 +181,94 @@
     }
   }
 
+  // ตัวกรองสถานะ (จำไว้ในแท็บนี้)
+  const FILTERS = [
+    ['all', 'ทั้งหมด', u => true],
+    ['active', 'ใช้งานได้', u => u.status !== 'suspended' && u.status !== 'pending'],
+    ['suspended', 'ถูกระงับ', u => u.status === 'suspended']
+  ];
+  let filterKey = 'all';
+  try { filterKey = sessionStorage.getItem('adminManageFilter') || 'all'; } catch (e) {}
+  if (!FILTERS.some(([k]) => k === filterKey)) filterKey = 'all';
+  let confirmUser = null;           // username ที่กำลังเปิดกล่องยืนยันอยู่
+  const rowMsg = {};                // username -> { ok, text } ผลการทำรายการล่าสุด โชว์ใต้ชื่อ
+
+  function setFilter(k) {
+    filterKey = k;
+    try { sessionStorage.setItem('adminManageFilter', k); } catch (e) {}
+    renderList();
+  }
+
   function renderList() {
     const list = document.getElementById('manage-list');
-    if (manageCache.length === 0) {
+    document.getElementById('chips').innerHTML = FILTERS.map(([k, label, fn]) =>
+      `<button type="button" class="chip ${k === filterKey ? 'active' : ''}" onclick="setFilter('${k}')">${label}<span class="n">${manageCache.filter(fn).length}</span></button>`).join('');
+    const rows = manageCache.filter(FILTERS.find(([k]) => k === filterKey)[2]);
+    if (rows.length === 0) {
       list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบผู้ใช้งาน</div>`;
       return;
     }
-    list.innerHTML = manageCache.map((u, i) => {
+    list.innerHTML = rows.map(u => {
       const suspended = u.status === 'suspended';
       const pending = u.status === 'pending';
+      const uname = escapeAttr(u.username);
+      const msg = rowMsg[u.username];
+      const open = confirmUser === u.username;
       return `
-        <div class="entry-row">
-          <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(u.profile_img))}">
-          <div class="entry-body">
-            <div class="entry-title">${escapeHtml(u.name || u.username)} <span style="color:#999; font-weight:400;">@${escapeHtml(u.username)}</span></div>
-            <div class="entry-subtitle">
-              ${escapeHtml((u.role || '').toUpperCase())}${suspended ? ' · <span class="tag-suspended">ถูกระงับ</span>' : pending ? ' · <span class="tag-pending">รออนุมัติ</span>' : ''}
+        <div class="entry-wrap">
+          <div class="entry-row">
+            <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(u.profile_img))}">
+            <div class="entry-body">
+              <div class="entry-title">${escapeHtml(u.name || u.username)} <span style="color:#767676; font-weight:400;">@${escapeHtml(u.username)}</span></div>
+              <div class="entry-subtitle">
+                ${escapeHtml((u.role || '').toUpperCase())}${suspended ? ' · <span class="tag-suspended">ถูกระงับ</span>' : pending ? ' · <span class="tag-pending">รออนุมัติ</span>' : ''}
+              </div>
+              ${msg ? `<div class="row-msg ${msg.ok ? 'ok' : 'err'}">${escapeHtml(msg.text)}</div>` : ''}
             </div>
+            ${pending || open ? '' : `
+            <button class="btn-pill ${suspended ? 'btn-unsuspend' : 'btn-suspend'}" onclick="askSuspend('${uname}')">
+              ${suspended ? '<i class="fas fa-unlock"></i> ปลดระงับ' : '<i class="fas fa-ban"></i> ระงับ'}
+            </button>`}
           </div>
-          ${pending ? '' : `
-          <button class="btn-pill ${suspended ? 'btn-unsuspend' : 'btn-suspend'}" onclick="toggleSuspend(${i})">
-            ${suspended ? '<i class="fas fa-unlock"></i> ปลดระงับ' : '<i class="fas fa-ban"></i> ระงับ'}
-          </button>`}
+          ${open ? `
+          <div class="confirm-box ${suspended ? 'unsuspend' : ''}">
+            ${suspended
+              ? `ปลดระงับ <b>${escapeHtml(u.name || u.username)}</b>? บัญชีจะกลับมาเข้าสู่ระบบและใช้งานได้ตามปกติ`
+              : `ระงับ <b>${escapeHtml(u.name || u.username)}</b>? บัญชีนี้จะเข้าสู่ระบบไม่ได้จนกว่าจะปลดระงับ`}
+            <div class="confirm-btns">
+              <button class="${suspended ? 'btn-go-unsuspend' : 'btn-go-suspend'}" id="confirm-go" onclick="doSuspend('${uname}')">${suspended ? '<i class="fas fa-unlock"></i> ยืนยันปลดระงับ' : '<i class="fas fa-ban"></i> ยืนยันระงับ'}</button>
+              <button class="btn-cancel" onclick="askSuspend(null)">ยกเลิก</button>
+            </div>
+          </div>` : ''}
         </div>
       `;
     }).join('');
   }
 
-  async function toggleSuspend(index) {
-    const target = manageCache[index];
+  function askSuspend(username) {
+    confirmUser = username;
+    renderList();
+  }
+
+  async function doSuspend(username) {
+    const target = manageCache.find(u => u.username === username);
     if (!target) return;
     const suspend = target.status !== 'suspended';
-
-    const confirmResult = await Swal.fire({
-      title: suspend ? 'ระงับบัญชีนี้?' : 'ปลดระงับบัญชีนี้?',
-      html: `<b>${escapeHtml(target.name || target.username)}</b> (@${escapeHtml(target.username)}) ${suspend ? 'จะไม่สามารถเข้าสู่ระบบได้จนกว่าจะปลดระงับค่ะ' : 'จะกลับมาใช้งานได้ตามปกติค่ะ'}`,
-      icon: suspend ? 'warning' : 'question',
-      showCancelButton: true,
-      confirmButtonColor: suspend ? '#ff5c7a' : 'var(--primary-pink)',
-      confirmButtonText: suspend ? 'ระงับบัญชี' : 'ปลดระงับ',
-      cancelButtonText: 'ยกเลิก'
-    });
-    if (!confirmResult.isConfirmed) return;
-
-    Swal.fire({ title: 'กำลังทำรายการ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    const btn = document.getElementById('confirm-go');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังทำรายการ...'; }
     try {
       const res = await blm48AdminSuspendUser(user.username, target.username, suspend);
       if (res.status === 'success') {
-        await Swal.fire({ icon: 'success', title: 'ทำรายการสำเร็จ', text: res.message, timer: 1300, showConfirmButton: false });
+        target.status = suspend ? 'suspended' : 'active';
+        rowMsg[username] = { ok: true, text: suspend ? 'ระงับบัญชีแล้ว' : 'ปลดระงับแล้ว' };
       } else {
-        await Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถทำรายการได้', 'error');
+        rowMsg[username] = { ok: false, text: res.message || 'ไม่สามารถทำรายการได้' };
       }
     } catch (e) {
-      await Swal.fire('การเชื่อมต่อขัดข้อง', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้งในภายหลัง', 'error');
+      rowMsg[username] = { ok: false, text: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง' };
     }
-    runSearch(document.getElementById('manage-search').value);
+    confirmUser = null;
+    renderList();
   }
 
   window.addEventListener('DOMContentLoaded', () => {

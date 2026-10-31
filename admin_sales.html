@@ -82,7 +82,7 @@
             font-weight: 700;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
         @media (min-width: 1024px) {
             .header-title-zone h1 { font-size: 30px; }
             .header-title-zone p { font-size: 14px; }
@@ -123,12 +123,19 @@
 
         .sales-item-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px dashed #f0e6e9; }
         .sales-item-row:first-of-type { border-top: none; }
+        .sales-item-row.extra { display: none; }
+        .sales-card.expanded .sales-item-row.extra { display: flex; }
+        /* แถบสัดส่วนยอดขายของแต่ละรายการในการ์ด */
+        .share { height: 4px; border-radius: 4px; background: #f3f3f3; margin-top: 5px; overflow: hidden; }
+        .share span { display: block; height: 100%; background: #ffc107; }
+        .rank { flex: 0 0 18px; font-size: 11.5px; font-weight: 700; color: #767676; text-align: center; }
+        .btn-more { display: block; width: 100%; margin-top: 6px; border: none; background: #f7f7f7; border-radius: 10px; padding: 8px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #555; cursor: pointer; }
         .sales-item-thumb { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
         .sales-item-info { flex: 1; min-width: 0; }
         .sales-item-name { font-weight: 700; font-size: 12.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sales-item-sub { font-size: 10.5px; color: #999; }
+        .sales-item-sub { font-size: 10.5px; color: #767676; }
         .sales-item-numbers { flex: 0 0 auto; text-align: right; }
-        .sales-item-count { font-size: 10.5px; color: #999; }
+        .sales-item-count { font-size: 10.5px; color: #767676; }
         .sales-item-revenue { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; font-size: 13.5px; color: #333; }
 
         .sales-card-totals {
@@ -138,11 +145,11 @@
         }
         .sales-card-totals span.t-value { color: var(--primary-pink); }
 
-        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 30px 20px; }
+        .empty-state { text-align: center; color: #767676; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 30px 20px; }
         .empty-state i { font-size: 26px; color: #ffd7e1; display: block; margin-bottom: 8px; }
-        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #sales-content { display: none; }
     </style>
@@ -202,13 +209,20 @@
     return url;
   }
 
-  function renderSalesItemRow(name, sub, thumb, count, countLabel, revenue, revenueUnit) {
+  // แสดง 5 อันดับแรก ที่เหลือซ่อนไว้ กด "ดูทั้งหมด"
+  const TOP_N = 5;
+
+  // rank/share/extra ใส่ทีหลังผ่าน rankRows (ต้องรู้ยอดรวมของการ์ดก่อน)
+  function renderSalesItemRow(name, sub, thumb, count, countLabel, revenue, revenueUnit, extra) {
+    extra = extra || {};
     return `
-      <div class="sales-item-row">
+      <div class="sales-item-row ${extra.hidden ? 'extra' : ''}">
+        ${extra.rank ? `<div class="rank">${extra.rank}</div>` : ''}
         <img class="sales-item-thumb" src="${escapeAttr(resolveDriveImage(thumb))}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';">
         <div class="sales-item-info">
           <div class="sales-item-name">${escapeHtml(name || '-')}</div>
           ${sub ? `<div class="sales-item-sub">${escapeHtml(sub)}</div>` : ''}
+          ${extra.share != null ? `<div class="share"><span style="width:${extra.share}%"></span></div>` : ''}
         </div>
         <div class="sales-item-numbers">
           <div class="sales-item-count">${countLabel}: ${Number(count || 0).toLocaleString()}</div>
@@ -216,6 +230,21 @@
         </div>
       </div>
     `;
+  }
+
+  // เรียงรายการตามยอดขายมากสุด + ใส่อันดับ/สัดส่วน + ซ่อนเกิน 5 อันดับ
+  // rows = [{ args: [...ของ renderSalesItemRow 7 ตัวแรก], revenue }]
+  function rankRows(rows) {
+    const total = rows.reduce((t, r) => t + Number(r.revenue || 0), 0);
+    return rows.slice().sort((a, b) => Number(b.revenue || 0) - Number(a.revenue || 0))
+      .map((r, i) => renderSalesItemRow(...r.args, { rank: i + 1, share: total ? Math.round(Number(r.revenue || 0) / total * 100) : 0, hidden: i >= TOP_N }))
+      .join('') + (rows.length > TOP_N ? `<button type="button" class="btn-more" onclick="toggleMore(this, ${rows.length})">ดูทั้งหมด (${rows.length})</button>` : '');
+  }
+
+  function toggleMore(btn, n) {
+    const card = btn.closest('.sales-card');
+    card.classList.toggle('expanded');
+    btn.textContent = card.classList.contains('expanded') ? 'ย่อ' : `ดูทั้งหมด (${n})`;
   }
 
   function renderSalesCard(iconClass, title, note, itemsHtml, emptyText, totalsLabel, totalsValue) {
@@ -261,29 +290,25 @@
         </div>
       `;
 
-      const cafeItems = (d.cafe?.items || []).map(it =>
-        renderSalesItemRow(it.name, null, it.imageUrl, it.salesCount, 'ขายแล้ว', it.tokenRevenue, 'Token')
-      ).join('');
+      const cafeItems = rankRows((d.cafe?.items || []).map(it =>
+        ({ args: [it.name, null, it.imageUrl, it.salesCount, 'ขายแล้ว', it.tokenRevenue, 'Token'], revenue: it.tokenRevenue })));
       const cafeCard = renderSalesCard('fa-mug-hot', 'BLM48 Cafe', '', cafeItems,
         'ยังไม่มีคำสั่งซื้อ', 'รวมทั้งหมด', `${Number(d.cafe?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
 
-      const gachaItems = (d.gacha?.items || []).map(it =>
-        renderSalesItemRow(it.name + (it.status ? ` (${it.status})` : ''), null, it.coverImage, it.salesCount, 'สุ่มแล้ว', it.tokenRevenue, 'Token')
-      ).join('');
+      const gachaItems = rankRows((d.gacha?.items || []).map(it =>
+        ({ args: [it.name + (it.status ? ` (${it.status})` : ''), null, it.coverImage, it.salesCount, 'สุ่มแล้ว', it.tokenRevenue, 'Token'], revenue: it.tokenRevenue })));
       const gachaCard = renderSalesCard('fa-gift', 'Official Merchandise', '', gachaItems,
         'ยังไม่มีการสุ่ม', 'รวมทั้งหมด', `${Number(d.gacha?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
 
-      const preorderItems = (d.preorder?.items || []).map(it =>
-        renderSalesItemRow(it.name, null, it.coverImage, it.salesCount, 'สั่งแล้ว', it.tokenRevenue, 'Token')
-      ).join('');
+      const preorderItems = rankRows((d.preorder?.items || []).map(it =>
+        ({ args: [it.name, null, it.coverImage, it.salesCount, 'สั่งแล้ว', it.tokenRevenue, 'Token'], revenue: it.tokenRevenue })));
       const preorderCard = renderSalesCard('fa-box', 'Pre-order', '', preorderItems,
         'ยังไม่มีคำสั่งซื้อ', 'รวมทั้งหมด', `${Number(d.preorder?.totals?.tokenRevenue || 0).toLocaleString()} Token`);
 
       tokenGrid.innerHTML = cafeCard + gachaCard + preorderCard;
 
-      const giftWalletItems = (d.giftsWallet?.items || []).map(it =>
-        renderSalesItemRow(it.name, it.tier, it.imageUrl, it.qtySold, 'ชิ้น', it.cookieRevenue, 'Cookie')
-      ).join('');
+      const giftWalletItems = rankRows((d.giftsWallet?.items || []).map(it =>
+        ({ args: [it.name, it.tier, it.imageUrl, it.qtySold, 'ชิ้น', it.cookieRevenue, 'Cookie'], revenue: it.cookieRevenue })));
       const giftWalletCard = renderSalesCard('fa-gifts', 'Gift Shop', '', giftWalletItems,
         'ยังไม่มีการซื้อ', 'รวมทั้งหมด', `${Number(d.giftsWallet?.totals?.cookieRevenue || 0).toLocaleString()} Cookie`);
 

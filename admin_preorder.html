@@ -82,7 +82,7 @@
             font-weight: 700;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
         .stats-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
         .stat-card {
@@ -103,10 +103,10 @@
             border-radius: 999px;
             border: 1px solid var(--glass-border);
             background: var(--glass-bg-strong);
-            color: #888;
+            color: #767676;
             cursor: pointer;
         }
-        .status-filter-btn.active { background: var(--primary-pink); color: #fff; border-color: var(--primary-pink); }
+        .status-filter-btn.active { background: var(--primary-pink); color: #222; border-color: var(--primary-pink); }
 
         .order-card {
             background: var(--glass-bg-strong);
@@ -122,7 +122,7 @@
         .order-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #f3f3f3; flex: 0 0 auto; }
         .order-user-info { flex: 1; min-width: 0; }
         .order-user-name { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .order-user-sub { font-size: 11px; color: #999; }
+        .order-user-sub { font-size: 11px; color: #767676; }
         .status-pill { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
         .status-pending { background: #fff3e0; color: #e08e2e; }
         .status-shipped { background: #e6f7ee; color: #2e9e5b; }
@@ -130,10 +130,21 @@
         .order-body { font-size: 13px; color: #555; margin-bottom: 10px; }
         .order-product { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; color: #c53f5a; margin-bottom: 3px; }
         .resolved-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: #c53f5a; background: #fff0f3; border-radius: 999px; padding: 3px 10px; margin-bottom: 6px; }
-        .order-items { font-size: 12px; color: #888; line-height: 1.6; }
-        .order-meta { font-size: 11.5px; color: #aaa; margin-top: 6px; }
+        .order-items { font-size: 12px; color: #767676; line-height: 1.6; }
+        .order-meta { font-size: 11.5px; color: #767676; margin-top: 6px; }
 
-        .order-actions { display: flex; gap: 8px; }
+        .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        /* ยืนยันในการ์ด (ไม่ใช้ป๊อปอัป) */
+        .inline-confirm { width: 100%; padding: 12px; border-radius: 12px; background: #fffaf0; border: 1px solid #ffe6ae; font-size: 12.5px; color: #5a4a2a; line-height: 1.6; }
+        .inline-confirm .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .inline-confirm button { border: none; border-radius: 20px; padding: 8px 14px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+        .inline-confirm .go { background: #222; color: #fff; }
+        .inline-confirm .no { background: #fff; color: #555; border: 1px solid #ddd; }
+        .inline-confirm button:disabled { opacity: .6; cursor: default; }
+        .order-err { width: 100%; font-size: 12px; font-weight: 600; color: #c43d58; }
+        .tools { display: flex; gap: 8px; }
+        .tools .adm-search { flex: 1; min-width: 0; }
+        .tools select { border: 1px solid #eee; border-radius: 10px; padding: 0 10px; font-family: inherit; font-size: 13px; color: #444; background: #fff; max-width: 45%; margin-bottom: 8px; }
         .order-action-btn {
             flex: 1;
             font-family: 'Quicksand', 'Kanit', sans-serif;
@@ -145,14 +156,14 @@
             cursor: pointer;
         }
         .btn-mark-shipped { background: var(--primary-pink); color: #fff; }
-        .btn-mark-pending { background: #f0f1f3; color: #888; }
+        .btn-mark-pending { background: #f0f1f3; color: #767676; }
         .btn-reveal { background: #fff0f3; color: var(--primary-pink); border: 1px solid var(--primary-pink); }
 
-        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 30px 20px; }
+        .empty-state { text-align: center; color: #767676; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 30px 20px; }
         .empty-state i { font-size: 26px; color: #ffd7e1; display: block; margin-bottom: 8px; }
-        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #preorder-content { display: none; }
     </style>
@@ -190,6 +201,10 @@
             </div>
         </div>
 
+        <div class="tools">
+            <input id="search" class="adm-search" type="search" placeholder="ค้นหาผู้ซื้อ หรือ #เลขออเดอร์..." oninput="renderOrders()">
+            <select id="product-filter" onchange="renderOrders()" aria-label="สินค้า"><option value="">ทุกสินค้า</option></select>
+        </div>
         <div class="status-filter-row">
             <button type="button" class="status-filter-btn active" data-filter="" onclick="setOrderFilter('')">ทั้งหมด</button>
             <button type="button" class="status-filter-btn" data-filter="pending" onclick="setOrderFilter('pending')">รอจัดส่ง</button>
@@ -215,12 +230,38 @@
     return url && url.trim() !== '' ? url : 'https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';
   }
 
+  // ยืนยันในการ์ด: { orderId, action: 'shipped' | 'pending' | 'reveal', busy, error }
+  let confirmFor = null;
+
+  // ข้อความอธิบายก่อนยืนยัน (เหมือนที่เคยอยู่ในป๊อปอัป)
+  function confirmText(o, action) {
+    if (action === 'reveal') return '<b>เผยผลสุ่มลายการ์ด?</b> ระบบจะสุ่มลายการ์ดของออเดอร์นี้และตัดสต๊อกทันที (กันไม่ให้ออเดอร์อื่นสุ่มซ้ำ) แต่ <b>ยังไม่มอบไอเทม/GE Token</b> จนกว่าจะกดจัดส่งแล้ว · ทำครั้งเดียวเท่านั้น';
+    if (action === 'shipped') return o.resolved
+      ? '<b>ยืนยันว่าจัดส่งแล้ว?</b> เปลี่ยนสถานะเป็น "จัดส่งแล้ว" ผู้ซื้อกด Redeem ในหน้า My Order เพื่อรับไอเทม/GE Token ตามผลที่สุ่มไว้ · ทำครั้งเดียวเท่านั้น'
+      : '<b>ยืนยันว่าจัดส่งแล้ว?</b> ระบบจะสุ่มลายการ์ดที่ต้องส่งจริงและตัดสต๊อก จากนั้นผู้ซื้อกด Redeem ในหน้า My Order เพื่อรับไอเทมเข้า My Inventory และ GE Token · ทำครั้งเดียวเท่านั้น';
+    return '<b>ย้อนกลับเป็นรอจัดส่ง?</b> การ์ด/Token ที่มอบไปแล้วจะไม่ถูกเรียกคืน แค่เปลี่ยนป้ายสถานะเท่านั้น';
+  }
+
+  function askAction(orderId, action) {
+    confirmFor = action ? { orderId, action } : null;
+    renderOrders();
+  }
+
   function renderOrders() {
     const list = document.getElementById('orders-list');
-    const orders = currentFilter ? allOrders.filter(o => o.status === currentFilter) : allOrders;
+    // ค้นหา (ผู้ซื้อ / #เลขออเดอร์) + สินค้า -> จำนวนบนปุ่มสถานะนับตามนี้
+    const q = document.getElementById('search').value.trim().toLowerCase().replace(/^#/, '');
+    const prod = document.getElementById('product-filter').value;
+    const base = allOrders.filter(o => (!prod || o.productName === prod) &&
+      (!q || String(o.userName || '').toLowerCase().includes(q) || String(o.username || '').toLowerCase().includes(q) || String(o.orderId) === q));
+    document.querySelectorAll('.status-filter-btn').forEach(btn => {
+      const n = btn.dataset.filter ? base.filter(o => o.status === btn.dataset.filter).length : base.length;
+      btn.textContent = `${btn.dataset.filter === 'pending' ? 'รอจัดส่ง' : btn.dataset.filter === 'shipped' ? 'จัดส่งแล้ว' : 'ทั้งหมด'} (${n})`;
+    });
+    const orders = currentFilter ? base.filter(o => o.status === currentFilter) : base;
 
     if (orders.length === 0) {
-      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i>ยังไม่มีคำสั่งซื้อในหมวดนี้ค่ะ</div>`;
+      list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open"></i>${q || prod ? 'ไม่พบคำสั่งซื้อ' : 'ยังไม่มีคำสั่งซื้อในหมวดนี้ค่ะ'}</div>`;
       return;
     }
 
@@ -241,15 +282,25 @@
       }).join(' · ');
 
       let actionHTML;
-      if (isShipped) {
-        actionHTML = `<button type="button" class="order-action-btn btn-mark-pending" onclick="updateOrderStatus(${o.orderId}, 'pending')"><i class="fa-solid fa-rotate-left"></i> ย้อนเป็นรอจัดส่ง</button>`;
+      const cf = confirmFor && confirmFor.orderId === o.orderId ? confirmFor : null;
+      if (cf) {
+        actionHTML = `
+          <div class="inline-confirm">${confirmText(o, cf.action)}
+            ${cf.error ? `<div class="order-err" style="margin-top:6px">${escapeHtml(cf.error)}</div>` : ''}
+            <div class="row">
+              <button type="button" class="go" onclick="runAction(${o.orderId})" ${cf.busy ? 'disabled' : ''}>${cf.busy ? '<i class="fa-solid fa-spinner fa-spin"></i> กำลังทำรายการ...' : '<i class="fa-solid fa-check"></i> ยืนยัน'}</button>
+              <button type="button" class="no" onclick="askAction(${o.orderId}, null)" ${cf.busy ? 'disabled' : ''}>ยกเลิก</button>
+            </div>
+          </div>`;
+      } else if (isShipped) {
+        actionHTML = `<button type="button" class="order-action-btn btn-mark-pending" onclick="askAction(${o.orderId}, 'pending')"><i class="fa-solid fa-rotate-left"></i> ย้อนเป็นรอจัดส่ง</button>`;
       } else if (!o.resolved) {
         actionHTML = `
-          <button type="button" class="order-action-btn btn-reveal" onclick="revealOrderRandom(${o.orderId})"><i class="fa-solid fa-shuffle"></i> เผยผลสุ่มลาย</button>
-          <button type="button" class="order-action-btn btn-mark-shipped" onclick="updateOrderStatus(${o.orderId}, 'shipped')"><i class="fa-solid fa-truck"></i> ทำเครื่องหมายว่าจัดส่งแล้ว</button>
+          <button type="button" class="order-action-btn btn-reveal" onclick="askAction(${o.orderId}, 'reveal')"><i class="fa-solid fa-shuffle"></i> เผยผลสุ่มลาย</button>
+          <button type="button" class="order-action-btn btn-mark-shipped" onclick="askAction(${o.orderId}, 'shipped')"><i class="fa-solid fa-truck"></i> ทำเครื่องหมายว่าจัดส่งแล้ว</button>
         `;
       } else {
-        actionHTML = `<button type="button" class="order-action-btn btn-mark-shipped" onclick="updateOrderStatus(${o.orderId}, 'shipped')"><i class="fa-solid fa-truck"></i> ทำเครื่องหมายว่าจัดส่งแล้ว</button>`;
+        actionHTML = `<button type="button" class="order-action-btn btn-mark-shipped" onclick="askAction(${o.orderId}, 'shipped')"><i class="fa-solid fa-truck"></i> ทำเครื่องหมายว่าจัดส่งแล้ว</button>`;
       }
 
       return `
@@ -258,7 +309,7 @@
             <img class="order-avatar" src="${fallbackAvatar(o.userAvatar)}" onerror="this.onerror=null;this.src='https://lh3.googleusercontent.com/d/1rebp2F8vyP0nyvsEOFD9Nw2mPcRtVqtG=s1000';">
             <div class="order-user-info">
               <div class="order-user-name">${escapeHtml(o.userName || o.username)}</div>
-              <div class="order-user-sub">@${escapeHtml(o.username)}</div>
+              <div class="order-user-sub">@${escapeHtml(o.username)} · #${o.orderId}</div>
             </div>
             ${statusHTML}
           </div>
@@ -281,9 +332,43 @@
 
   function setOrderFilter(filter) {
     currentFilter = filter;
+    try { sessionStorage.setItem('adminPreorderFilter', filter); } catch (e) {}
     document.querySelectorAll('.status-filter-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.filter === filter);
     });
+    renderOrders();
+  }
+
+  // ตัวเลือกสินค้า จากรายการสั่งซื้อที่มี
+  function fillProducts() {
+    const sel = document.getElementById('product-filter');
+    const cur = sel.value;
+    const names = [...new Set(allOrders.map(o => o.productName).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">ทุกสินค้า</option>' + names.map(n => `<option value="${escapeAttr(n)}">${escapeHtml(n)}</option>`).join('');
+    if (names.includes(cur)) sel.value = cur;
+  }
+
+  async function runAction(orderId) {
+    if (!confirmFor || confirmFor.orderId !== orderId) return;
+    const action = confirmFor.action;
+    const order = allOrders.find(o => o.orderId === orderId);
+    confirmFor.busy = true; confirmFor.error = null;
+    renderOrders();
+    try {
+      const res = action === 'reveal'
+        ? await blm48AdminRevealPreorderRandom(user.username, orderId)
+        : await blm48AdminSetPreorderOrderStatus(user.username, orderId, action);
+      if (res.status !== 'success') throw new Error(res.message || 'ทำรายการไม่สำเร็จ');
+      if (order) {
+        if (action === 'reveal') order.resolved = true;
+        else { order.status = action; if (action === 'shipped') order.resolved = true; }
+        if (res.items) order.items = res.items;
+      }
+      confirmFor = null;
+      updateStats();
+    } catch (e) {
+      confirmFor = { orderId, action, error: e.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' };
+    }
     renderOrders();
   }
 
@@ -297,82 +382,16 @@
       }
       allOrders = res.data || [];
       updateStats();
+      fillProducts();
+      let saved = '';
+      try { saved = sessionStorage.getItem('adminPreorderFilter') || ''; } catch (e) {}
+      if (['', 'pending', 'shipped'].includes(saved)) { setOrderFilter(saved); return; }
       renderOrders();
     } catch (e) {
       list.innerHTML = `<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>`;
     }
   }
 
-  async function updateOrderStatus(orderId, newStatus) {
-    const order = allOrders.find(o => o.orderId === orderId);
-    let html;
-    if (newStatus === 'shipped') {
-      html = (order && order.resolved)
-        ? '<div style="font-size:13px;color:#777;text-align:left;">ออเดอร์นี้เผยผลสุ่มไว้แล้ว คำสั่งนี้จะเปลี่ยนป้ายสถานะเป็น "จัดส่งแล้ว" และให้ผู้ซื้อกด Redeem ในหน้า My Order เพื่อรับไอเทม/GE Token ตามผลที่สุ่มไว้ (ทำครั้งเดียวเท่านั้น)</div>'
-        : '<div style="font-size:13px;color:#777;text-align:left;">ระบบจะสุ่มลายการ์ดที่ต้องส่งจริงและตัดสต๊อกการ์ดนั้น จากนั้นผู้ซื้อกด Redeem ในหน้า My Order เพื่อรับไอเทมเข้า My Inventory และ GE Token (ทำครั้งเดียวเท่านั้น)</div>';
-    } else {
-      html = '<div style="font-size:13px;color:#777;text-align:left;">การ์ด/Token ที่มอบให้ไปแล้วจะไม่ถูกเรียกคืน คำสั่งนี้แค่เปลี่ยนป้ายสถานะกลับเป็นรอจัดส่งเท่านั้น</div>';
-    }
-
-    const confirmResult = await Swal.fire({
-      title: newStatus === 'shipped' ? 'ยืนยันว่าจัดส่งแล้ว?' : 'ย้อนกลับเป็นรอจัดส่ง?',
-      html,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'ยืนยัน',
-      cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#ff85a2'
-    });
-    if (!confirmResult.isConfirmed) return;
-
-    try {
-      const res = await blm48AdminSetPreorderOrderStatus(user.username, orderId, newStatus);
-      if (res.status === 'success') {
-        if (order) {
-          order.status = newStatus;
-          if (newStatus === 'shipped') {
-            order.resolved = true;
-          }
-          if (res.items) order.items = res.items;
-        }
-        updateStats();
-        renderOrders();
-      } else {
-        Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
-      }
-    } catch (e) {
-      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
-    }
-  }
-
-  async function revealOrderRandom(orderId) {
-    const order = allOrders.find(o => o.orderId === orderId);
-    const confirmResult = await Swal.fire({
-      title: 'เผยผลสุ่มลายการ์ด?',
-      html: '<div style="font-size:13px;color:#777;text-align:left;">ระบบจะสุ่มลายการ์ดของออเดอร์นี้และตัดสต๊อกการ์ดนั้นทันที (กันไม่ให้ออเดอร์อื่นสุ่มไปซ้ำ) ให้ดูผลได้เลย แต่ <b>ยังไม่มอบไอเทม/GE Token ให้ผู้ซื้อ</b> จนกว่าจะกดจัดส่งแล้ว (ทำครั้งเดียวเท่านั้น)</div>',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'เผยผลสุ่ม',
-      cancelButtonText: 'ยกเลิก',
-      confirmButtonColor: '#ff85a2'
-    });
-    if (!confirmResult.isConfirmed) return;
-
-    try {
-      const res = await blm48AdminRevealPreorderRandom(user.username, orderId);
-      if (res.status === 'success') {
-        if (order) {
-          order.resolved = true;
-          if (res.items) order.items = res.items;
-        }
-        renderOrders();
-      } else {
-        Swal.fire('เกิดข้อผิดพลาด', res.message, 'error');
-      }
-    } catch (e) {
-      Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
-    }
-  }
 
   window.addEventListener('DOMContentLoaded', () => {
     user = getUserSession();

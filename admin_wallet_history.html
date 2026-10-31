@@ -58,7 +58,7 @@
 
         .header-title-zone { text-align: center; margin-bottom: 18px; }
         .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 22px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
         .search-box {
             display: flex; align-items: center; gap: 8px;
@@ -80,7 +80,7 @@
             flex: 0 0 auto; background: var(--glass-bg-strong);
             -webkit-backdrop-filter: blur(var(--glass-blur-sm));
             backdrop-filter: blur(var(--glass-blur-sm));
-            color: #888; border: 1px solid var(--glass-border);
+            color: #767676; border: 1px solid var(--glass-border);
             padding: 8px 16px; border-radius: 14px;
             font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12.5px; font-weight: 500;
             cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
@@ -113,10 +113,10 @@
         .entry-icon.coin { background: #fff !important; border-width: 1px; }
         .entry-icon.coin > i, .entry-icon.coin > i::before { display: block; width: 100%; height: 100%; vertical-align: 0; }
         .entry-body { flex: 1; min-width: 0; }
-        .entry-user { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-user { font-size: 11px; color: #767676; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry-timestamp { font-size: 10px; color: #ccc; margin-top: 2px; }
+        .entry-subtitle { font-size: 11.5px; color: #767676; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-timestamp { font-size: 11px; color: #767676; margin-top: 2px; }
         .entry-amount { flex: 0 0 auto; text-align: right; }
         .entry-amount-main { font-weight: 800; font-size: 14px; white-space: nowrap; }
 
@@ -129,11 +129,11 @@
         .btn-load-more:hover { background: #fff0f3; }
         .btn-load-more:disabled { color: #ccc; cursor: not-allowed; }
 
-        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state { text-align: center; color: #767676; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
         .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
-        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
     </style>
@@ -176,6 +176,7 @@
             <button type="button" class="filter-tab" data-type="Buy Preorder"><i class="fa-solid fa-box"></i> Buy Preorder</button>
         </div>
 
+        <div id="result-line" class="adm-day" style="margin:4px 2px 8px"></div>
         <div id="history-content">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
@@ -278,10 +279,17 @@
             return;
         }
 
+        document.getElementById('result-line').textContent = `${currentTotal.toLocaleString()} รายการ`;
+        const thDay = ts => { const d = safeDate(ts); return d ? d.toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' }) : ''; };
+        let lastDay = '';
         const rows = entries.map(row => {
             const currency = guessCurrency(row);
             const sign = guessSign(row, currency);
             const amountText = `${sign}${Number(row.amount || 0).toLocaleString()} ${currency.label}`;
+            // หัววันที่ทุกครั้งที่ขึ้นวันใหม่
+            const day = thDay(row.timestamp);
+            const head = day && day !== lastDay ? `<div class="adm-day">${safeDate(row.timestamp).toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</div>` : '';
+            lastDay = day || lastDay;
 
             // 'แลกซื้อคุกกี้'/'Exchange Cookies' เก็บฝั่ง Token ที่หักไปไว้ใน subtitle เป็นเลขติดลบดิบๆ
             // (เช่น '-10') แปลงให้อ่านง่ายขึ้นแทนการโชว์ตัวเลขดิบ
@@ -291,20 +299,20 @@
                 subtitleText = `ใช้ ${tokenSpent.toLocaleString()} Token แลก`;
             }
 
-            return `
+            return head + `
                 <div class="entry-row">
                     <div style="position:relative;flex:0 0 auto;width:40px;height:40px;">
                         <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(row.avatar))}" alt="">
                         <div class="entry-icon${/fa-coins|fa-gem/.test(currency.icon) ? ' coin' : ''}" style="background:${currency.color};color:#fff;"><i class="fa-solid ${currency.icon}"></i></div>
                     </div>
                     <div class="entry-body">
-                        <div class="entry-user">${escapeHtml(row.name || row.username)} <span style="color:#ccc;">@${escapeHtml(row.username)}</span>${row.walletCode ? ` <span style="color:#999;">· <i class="fas fa-wallet" style="color:#ffc107;"></i> BLM-${escapeHtml(row.walletCode)}</span>` : ''}</div>
+                        <div class="entry-user">${escapeHtml(row.name || row.username)} <span style="color:#767676;">@${escapeHtml(row.username)}</span>${row.walletCode ? ` <span style="color:#767676;">· <i class="fas fa-wallet" style="color:#ffc107;"></i> BLM-${escapeHtml(row.walletCode)}</span>` : ''}</div>
                         <div class="entry-title">${escapeHtml(row.title || '')}</div>
                         <div class="entry-subtitle">${escapeHtml(subtitleText)}</div>
                         <div class="entry-timestamp">${formatTime(row.timestamp)}</div>
                     </div>
                     <div class="entry-amount">
-                        <div class="entry-amount-main" style="color:${currency.color};">${amountText}</div>
+                        <div class="entry-amount-main" style="color:${sign === '-' ? '#c43d58' : '#1f7a45'};">${amountText}</div>
                     </div>
                 </div>
             `;
@@ -318,20 +326,32 @@
 
         const btnMore = document.getElementById('btn-load-more');
         if (btnMore) {
-            btnMore.addEventListener('click', async () => {
+            const more = async () => {
+                if (btnMore.disabled) return;
                 btnMore.disabled = true;
                 btnMore.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...';
                 await loadHistory(false);
-            });
+            };
+            btnMore.addEventListener('click', more);
+            // เลื่อนถึงปุ่มแล้วโหลดหน้าถัดไปเอง ไม่ต้องกด
+            if ('IntersectionObserver' in window) {
+                const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { io.disconnect(); more(); } }, { rootMargin: '200px' });
+                io.observe(btnMore);
+            }
         }
+    }
+
+    // แท็บที่เลือกจำไว้ในแท็บเบราว์เซอร์นี้
+    function selectType(type) {
+        currentType = type;
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+        try { sessionStorage.setItem('adminWalletHistType', type); } catch (e) {}
     }
 
     document.getElementById('filter-tabs').addEventListener('click', (e) => {
         const btn = e.target.closest('.filter-tab');
         if (!btn) return;
-        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-        btn.classList.add('active');
-        currentType = btn.dataset.type;
+        selectType(btn.dataset.type);
         loadHistory(true);
     });
 
@@ -355,6 +375,9 @@
             return;
         }
         document.getElementById('page-content').style.display = 'block';
+        let saved = '';
+        try { saved = sessionStorage.getItem('adminWalletHistType') || ''; } catch (e) {}
+        if ([...document.querySelectorAll('.filter-tab')].some(t => t.dataset.type === saved)) selectType(saved);
         loadHistory(true);
     });
 </script>

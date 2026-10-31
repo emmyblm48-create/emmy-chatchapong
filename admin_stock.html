@@ -81,7 +81,7 @@
             font-weight: 700;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
         /* --- Compact KPI strip --- */
         .kpi-strip { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -93,7 +93,7 @@
             border: 1px solid var(--glass-border); border-radius: 14px;
             padding: 12px 14px; box-shadow: var(--glass-shadow-sm);
         }
-        .kpi-chip .k-label { font-size: 11px; color: #999; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .kpi-chip .k-label { font-size: 11px; color: #767676; font-weight: 600; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .kpi-chip .k-value { font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 22px; font-weight: 700; color: #333; margin-top: 2px; }
         .kpi-chip.warn .k-value { color: #d98c00; }
         .kpi-chip.danger .k-value { color: #e8395f; }
@@ -113,7 +113,10 @@
             color: var(--text-dark); background: rgba(255, 255, 255, 0.7); max-width: 220px;
         }
         .collection-select:focus { outline: none; border-color: var(--primary-pink); }
-        .result-count { font-size: 12px; color: #999; white-space: nowrap; }
+        .result-count { font-size: 12px; color: #767676; white-space: nowrap; }
+        .kpi-chip[data-go] { cursor: pointer; }
+        .kpi-chip[data-go]:active { transform: scale(.98); }
+        .btn-export { border: 1px solid #d7dbe0; background: #fff; border-radius: 12px; padding: 10px 14px; font-family: inherit; font-size: 13px; font-weight: 700; color: #1f7a45; cursor: pointer; white-space: nowrap; }
 
         .filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
         .filter-tabs::-webkit-scrollbar { display: none; }
@@ -121,7 +124,7 @@
             flex: 0 0 auto; background: var(--glass-bg-strong);
             -webkit-backdrop-filter: blur(var(--glass-blur-sm));
             backdrop-filter: blur(var(--glass-blur-sm));
-            color: #888; border: 1px solid var(--glass-border);
+            color: #767676; border: 1px solid var(--glass-border);
             padding: 8px 16px; border-radius: 14px;
             font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 12.5px; font-weight: 500;
             cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
@@ -173,7 +176,7 @@
 
         .status-pill { font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; font-size: 10px; padding: 2px 9px; border-radius: 20px; white-space: nowrap; display: inline-block; margin-top: 2px; }
         .status-pill.st-open { background: #e5f9ee; color: #1fa864; }
-        .status-pill.st-closed { background: #f2f2f2; color: #999; }
+        .status-pill.st-closed { background: #f2f2f2; color: #767676; }
         .status-pill.st-soon { background: #fff4e0; color: #d98c00; }
         .status-pill.st-soldout { background: #ffe6ea; color: #e8395f; }
         .status-pill.st-preorder { background: #eee5ff; color: #7c4dff; }
@@ -187,11 +190,11 @@
         .mini-bar-fill.low { background: #d98c00; }
         .mini-bar-fill.out { background: #e8395f; }
 
-        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state { text-align: center; color: #767676; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
         .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
-        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #stock-content { display: none; }
     </style>
@@ -228,6 +231,7 @@
                 <option value="">ทุกคอลเลกชัน</option>
             </select>
             <div class="result-count" id="result-count"></div>
+            <button type="button" class="btn-export" onclick="exportCsv()"><i class="fa-solid fa-file-excel"></i> Export</button>
         </div>
 
         <div class="filter-tabs" id="filter-tabs">
@@ -340,11 +344,11 @@
           <div class="k-label"><i class="fas fa-layer-group"></i> คอลเลกชันทั้งหมด</div>
           <div class="k-value">${collections.length.toLocaleString()}</div>
         </div>
-        <div class="kpi-chip warn">
+        <div class="kpi-chip warn" data-go="low" onclick="setStatusFilter('low')">
           <div class="k-label"><i class="fas fa-triangle-exclamation"></i> ใกล้หมด</div>
           <div class="k-value">${lowCount.toLocaleString()}</div>
         </div>
-        <div class="kpi-chip danger">
+        <div class="kpi-chip danger" data-go="out" onclick="setStatusFilter('out')">
           <div class="k-label"><i class="fas fa-ban"></i> หมดแล้ว</div>
           <div class="k-value">${outCount.toLocaleString()}</div>
         </div>
@@ -381,6 +385,13 @@
     if (collectionId) {
       rows = rows.filter(it => it.collectionId === collectionId);
     }
+    // จำนวนบนแท็บ นับตามคำค้นหา + คอลเลกชันที่เลือก
+    const cnt = { '': rows.length, low: rows.filter(it => it.remaining > 0 && it.remaining <= LOW_STOCK_THRESHOLD).length, out: rows.filter(it => it.remaining <= 0).length };
+    document.querySelectorAll('#filter-tabs .filter-tab').forEach(t => {
+      let n = t.querySelector('.n');
+      if (!n) { n = document.createElement('span'); n.className = 'n'; n.style.cssText = 'margin-left:4px;opacity:.75'; t.appendChild(n); }
+      n.textContent = cnt[t.dataset.status].toLocaleString();
+    });
     if (currentStatusFilter === 'low') {
       rows = rows.filter(it => it.remaining > 0 && it.remaining <= LOW_STOCK_THRESHOLD);
     } else if (currentStatusFilter === 'out') {
@@ -398,6 +409,7 @@
     });
 
     resultCount.textContent = `${rows.length.toLocaleString()} / ${itemsCache.length.toLocaleString()} สินค้า`;
+    shownRows = rows;
 
     if (rows.length === 0) {
       tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบสินค้าที่ตรงเงื่อนไข</div></td></tr>`;
@@ -434,6 +446,29 @@
         </tr>
       `;
     }).join('');
+  }
+
+  let shownRows = [];
+
+  // เลือกแท็บสถานะจากโค้ด (กดการ์ด KPI ใกล้หมด/หมดแล้ว)
+  function setStatusFilter(status) {
+    currentStatusFilter = status;
+    document.querySelectorAll('#filter-tabs .filter-tab').forEach(t => t.classList.toggle('active', t.dataset.status === status));
+    renderTable();
+    document.getElementById('filter-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ดาวน์โหลดแถวที่เห็นอยู่เป็น CSV (เปิดใน Excel ได้ ภาษาไทยไม่เพี้ยน)
+  function exportCsv() {
+    const cell = v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const lines = [['Item', 'Collection', 'Collection Status', 'Sold', 'Remaining', 'Initial']]
+      .concat(shownRows.map(it => [it.name, it.collectionName, it.collectionStatus || '', it.sold, it.remaining, it.initial]))
+      .map(r => r.map(cell).join(','));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+    a.download = `blm48-stock-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
 
   function setupSortHeaders() {

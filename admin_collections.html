@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer"><!-- รูปปกเดิมอยู่บน lh3.googleusercontent.com ซึ่งปฏิเสธบาง referrer -->
+        <script src="assets/js/back-nav.js"></script>
+<title>BLM48 Membership | New Collection</title>
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s32">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1p6lV8bD6VVjR-Ys2EnpcQH1AOsnahQSp=s180">
+    <meta name="apple-mobile-web-app-title" content="BLM48">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/glassmorphism.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/common.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
+        .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+        .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
+        #page-content { display: none; }
+        .empty-state, .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 40px 20px; }
+
+        .tools { display: flex; gap: 8px; margin: 0 0 6px; }
+        .search { flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid #eee; border-radius: 10px; font-family: inherit; font-size: 14px; }
+        .chips { display: flex; gap: 6px; margin-bottom: 6px; overflow-x: auto; scrollbar-width: none; margin-right: -12px; padding-right: 12px; }
+        .chips::-webkit-scrollbar { display: none; }
+        .chip { flex-shrink: 0; border: 1px solid #eee; background: #fff; border-radius: 20px; padding: 5px 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #666; cursor: pointer; }
+        .chip.active { background: #222; border-color: #222; color: #fff; }
+        .chip .n { font-weight: 600; opacity: .7; margin-left: 3px; }
+
+        /* แถวคอลเลกชัน -> กดแล้วไปหน้าแก้ไข */
+        a.c-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; }
+        .c-cover { width: 64px; height: 64px; flex: 0 0 64px; border-radius: 12px; background: #fafafa center/cover no-repeat; display: flex; align-items: center; justify-content: center; color: #ddd; font-size: 22px; }
+        .c-row.off .c-cover, .c-row.ended .c-cover { opacity: .55; }
+        .c-info { flex: 1; min-width: 0; }
+        .c-name { font-weight: 700; font-size: 15px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .c-sub { font-size: 12.5px; color: #767676; margin-top: 3px; display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+        .c-price { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #7a5a00; background: #fff3c4; padding: 1px 8px; border-radius: 20px; font-size: 12px; }
+        .c-when { font-size: 11.5px; color: #767676; margin-top: 3px; }
+        .c-arrow { color: #ccc; }
+        .pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+        .pill.open { background: #e6f9ee; color: #1a7f45; }
+        .pill.scheduled { background: #e8f0ff; color: #2d5bd1; }
+        .pill.soldout { background: #fff1f3; color: #d6304f; }
+        .pill.off, .pill.ended { background: #f1f1f1; color: #666; }
+        .pill.draft { background: #fff3c4; color: #7a5a00; }
+        .pill.low { background: #fff1f3; color: #d6304f; }
+        .c-row.draft .c-when { color: #8a6100; }
+        a.c-row:active { background: #fafafa; }
+        a.c-row:focus-visible, .chip:focus-visible, .fab-create:focus-visible { outline: 2px solid #ffc107; outline-offset: 2px; }
+        .search:focus { outline: none; border-color: #ffc107; box-shadow: 0 0 0 3px rgba(255, 193, 7, .22); }
+        .c-when .fa-clock { margin-right: 2px; }
+        .ssr { font-weight: 700; color: #b8860b; }
+
+        .fab-create {
+            position: fixed; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom)); z-index: 200;
+            width: 58px; height: 58px; border-radius: 50%;
+            background: #ffc107; color: #222; font-size: 24px;
+            display: flex; align-items: center; justify-content: center; text-decoration: none;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); transition: transform 0.15s;
+        }
+        .fab-create:active { transform: scale(0.94); }
+    </style>
+    <link rel="stylesheet" href="assets/css/admin-theme.css">
+</head>
+<body>
+
+<div class="top-navigation-bar">
+    <button type="button" class="back-circle-btn" onclick="blm48Back('admin')" aria-label="Back"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="top-bar-title">New Collection</div>
+</div>
+
+<div class="page-wrapper">
+    <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
+    <div id="page-content">
+        <div class="tools">
+            <input id="search" class="search" type="search" placeholder="Search collection..." oninput="render()">
+        </div>
+        <div class="chips" id="chips"></div>
+        <div id="col-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
+        <a class="fab-create" href="admin_collection" aria-label="New Collection" title="New Collection"><i class="fas fa-plus"></i></a>
+    </div>
+</div>
+
+<script>
+  let user = null;
+  let cols = [];
+
+  // สถานะคำนวณที่เซิร์ฟเวอร์ (_admin_collection_state)
+  // 'draft' = ปิดอยู่และยังไม่เคยขาย (แยกจาก 'off' ที่เคยขายแล้วปิด) / เรียงตามลำดับนี้ งานที่ต้องดูอยู่บนสุด
+  const STATES = { open: 'เปิดขาย', scheduled: 'ตั้งเวลาไว้', draft: 'ร่าง', soldout: 'สต็อกหมด', off: 'ปิดขาย', ended: 'หมดเวลา' };
+  const ORDER = Object.keys(STATES);
+  const FILTERS = [['all', 'All'], ['open', 'On sale'], ['scheduled', 'Scheduled'], ['draft', 'Draft'], ['soldout', 'Sold out'], ['off', 'Off'], ['ended', 'Ended']];
+  const stateOf = c => c.state === 'off' && !Number(c.sold) ? 'draft' : c.state;
+  // ใกล้หมด = เปิดขายอยู่ และเหลือไม่ถึง 10% ของทั้งหมด
+  const lowStock = c => !c.isLucky && c.state === 'open' && c.stock > 0 && c.stock < (c.stock + c.sold) * 0.1;
+  const store = (k, v) => { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) {} return null; };
+  let filter = store('adminColsFilter') || 'all';
+  if (!FILTERS.some(([k]) => k === filter)) filter = 'all';
+
+  function fmt(n) { return Number(n || 0).toLocaleString(); }
+  function fmtDate(s) {
+    return s ? new Date(s).toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+  }
+  function setFilter(k) { filter = k; store('adminColsFilter', k); render(); }
+
+  async function load() {
+    const list = document.getElementById('col-list');
+    try {
+      const res = await blm48AdminListCollections(user.username);
+      if (!res || res.status !== 'success') { list.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดข้อมูลไม่สำเร็จ')}</div>`; return; }
+      cols = res.data || [];
+      render();
+    } catch (e) {
+      list.innerHTML = '<div class="empty-state">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>';
+    }
+  }
+
+  function rowHtml(c) {
+    const st = stateOf(c);
+    let when = '';
+    if (st === 'scheduled') when = '<i class="fa-regular fa-clock"></i> เปิดขาย ' + fmtDate(c.saleStartAt);
+    else if (c.saleEndAt && st !== 'ended') when = 'ปิดขาย ' + fmtDate(c.saleEndAt);
+    else if (st === 'ended') when = 'ปิดไปเมื่อ ' + fmtDate(c.saleEndAt);
+    else if (st === 'draft') when = 'ยังไม่เปิดขาย · แตะเพื่อตั้งค่าต่อ';
+    const cover = c.coverImage ? `style="background-image:url('${escapeAttr(c.coverImage)}')"` : '';
+    return `
+      <a class="c-row ${st}" href="admin_collection?id=${encodeURIComponent(c.collectionId)}">
+        <div class="c-cover" ${cover}>${c.coverImage ? '' : '<i class="fa-solid fa-box-open"></i>'}</div>
+        <div class="c-info">
+          <div class="c-name">${escapeHtml(c.name || c.collectionId)}</div>
+          <div class="c-sub">
+            <span class="pill ${st}">${STATES[st] || st}</span>${lowStock(c) ? '<span class="pill low"><i class="fa-solid fa-triangle-exclamation"></i> ใกล้หมด</span>' : ''}
+            <span class="c-price"><i class="fa-solid fa-coins"></i> ${fmt(c.costTokens)}${c.allowX5 ? ` · x5 ${fmt(c.costTokensX5)}` : ''}</span>
+          </div>
+          <div class="c-when">${c.isLucky ? 'Lucky Box' : `${fmt(c.itemCount)} การ์ด${c.ssrCount ? ` · <span class="ssr">SSR ${fmt(c.ssrCount)}</span>` : ''} · เหลือ ${fmt(c.stock)} · ขายแล้ว ${fmt(c.sold)}`}${when ? '<br>' + when : ''}</div>
+        </div>
+        <i class="fa-solid fa-chevron-right c-arrow"></i>
+      </a>`;
+  }
+
+  function render() {
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const found = cols.filter(c => !q || String(c.name || '').toLowerCase().includes(q) || c.collectionId.toLowerCase().includes(q));
+    const count = k => found.filter(c => k === 'all' || stateOf(c) === k).length;
+    // ซ่อนตัวกรองที่ไม่มีรายการ (ยกเว้น All กับอันที่เลือกอยู่)
+    document.getElementById('chips').innerHTML = FILTERS.filter(([k]) => k === 'all' || k === filter || count(k)).map(([k, label]) =>
+      `<button type="button" class="chip ${k === filter ? 'active' : ''}" onclick="setFilter('${k}')">${label}<span class="n">${count(k)}</span></button>`).join('');
+    const rows = found.filter(c => filter === 'all' || stateOf(c) === filter)
+      .sort((a, b) => ORDER.indexOf(stateOf(a)) - ORDER.indexOf(stateOf(b)));
+    document.getElementById('col-list').innerHTML = rows.length ? rows.map(rowHtml).join('')
+      : `<div class="empty-state">${q || filter !== 'all' ? 'ไม่พบคอลเลกชัน' : 'ยังไม่มีคอลเลกชัน · กด + เพื่อสร้าง'}</div>`;
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    user = getUserSession();
+    if (!user) { window.location.href = 'login'; return; }
+    if (!(user.is_admin === true || (user.role && user.role.toLowerCase() === 'admin'))) {
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+    document.getElementById('page-content').style.display = 'block';
+    load();
+  });
+</script>
+</body>
+</html>

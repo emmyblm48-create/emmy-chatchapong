@@ -31,6 +31,54 @@
   document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
 })();
 
+// 🐛 [แก้บัค iOS] เมนูล่าง (.bottom-tab-bar) ลอยค้างกลางจอ: หลังคีย์บอร์ดหุบ (เช่นพิมพ์จำนวน Customize)
+// iOS ไม่คืนขนาด layout viewport ทำให้ fixed bottom:0 ไปยึดขอบล่างที่หดลงเท่าความสูงคีย์บอร์ด
+// วัดช่องว่างระหว่างขอบล่างจอจริง (visualViewport) กับขอบล่าง layout แล้วเลื่อนเมนูลงไปเท่านั้น
+// ปกติช่องว่าง = 0 จึงไม่มีผลอะไร / ตอนคีย์บอร์ดเปิดอยู่ (ช่องว่างติดลบ) ปล่อยเมนูไว้ที่เดิม
+(function fixBottomTabBarAfterKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  let frame = 0;
+  function apply() {
+    frame = 0;
+    const bar = document.querySelector('.bottom-tab-bar');
+    if (!bar) return;
+    const gap = Math.round(vv.offsetTop + vv.height - window.innerHeight);
+    bar.style.bottom = gap > 1 ? (-gap) + 'px' : '';
+  }
+  function schedule() { if (!frame) frame = requestAnimationFrame(apply); }
+  vv.addEventListener('resize', schedule);
+  vv.addEventListener('scroll', schedule);
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('pageshow', schedule);
+  document.addEventListener('focusout', () => setTimeout(schedule, 300)); // รอคีย์บอร์ดหุบเสร็จ
+  document.addEventListener('DOMContentLoaded', schedule);
+
+  // iOS บางรุ่นไม่ส่งตัวเลขที่ผิดมาให้วัด (gap = 0) แต่ layout viewport ยังค้างเลื่อนขึ้นไปหลังคีย์บอร์ดหุบ:
+  // เมนูล่างลอยค้างกลางจอและแถบ Discover ด้านบนหายไป จนกว่าจะเลื่อนขึ้นไปบนสุด
+  // สะกิดตำแหน่ง scroll 1px แล้วกลับที่เดิม ให้ Safari คำนวณ viewport ใหม่ (ผู้ใช้มองไม่เห็นการขยับ)
+  function resyncViewport() {
+    const el = document.activeElement;
+    if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return; // คีย์บอร์ดยังเปิดอยู่
+    const x = window.scrollX, y = window.scrollY;
+    window.scrollTo(x, y + 1);
+    window.scrollTo(x, y);
+    schedule();
+  }
+  // ทำเฉพาะหลังคีย์บอร์ดเพิ่งหุบ (ไม่ทำระหว่างเลื่อนจอปกติ เพราะ scrollTo จะหยุดการเลื่อนแบบมีแรงเหวี่ยงของ iOS)
+  let fullHeight = vv.height, keyboardOpen = false;
+  document.addEventListener('focusout', (e) => {
+    if (!e.target || !/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return; // เฉพาะช่องพิมพ์ที่เปิดคีย์บอร์ด
+    setTimeout(resyncViewport, 350);
+    setTimeout(resyncViewport, 800);
+  });
+  vv.addEventListener('resize', () => {
+    if (vv.height < fullHeight - 150) keyboardOpen = true;
+    else if (keyboardOpen && vv.height > fullHeight - 50) { keyboardOpen = false; setTimeout(resyncViewport, 100); }
+    if (!keyboardOpen) fullHeight = Math.max(fullHeight, vv.height);
+  });
+})();
+
 // 👈 [ปัดย้อนกลับ] หน้าที่ไม่มี bottom-tab-bar (เมนูหลักด้านล่าง) ปัดจากขอบซ้ายสุดของจอไปทางขวาเพื่อ
 // ย้อนกลับไปหน้าก่อนหน้าได้ เหมือน edge-swipe มาตรฐานของ iOS — เช็คจาก DOM ว่ามี .bottom-tab-bar
 // อยู่จริงไหม (ไม่ใช่เช็คจากชื่อไฟล์) กันหลุดถ้าโครงสร้างหน้าเปลี่ยนในอนาคต ต้องรอ DOMContentLoaded
@@ -119,6 +167,15 @@ document.addEventListener('DOMContentLoaded', function initSwipeBackGesture() {
   document.head.appendChild(link);
 })();
 
+// ✏️ ไอคอนเส้นบางโปร่งทั้งแอป (Font Awesome -> Phosphor Light) — รายละเอียดใน assets/css/thin-icons.css
+(function loadThinIcons() {
+  if (document.querySelector('link[href*="thin-icons.css"]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'assets/css/thin-icons.css';
+  document.head.appendChild(link);
+})();
+
 // 🔄 ลากจอลงเพื่อรีเฟรชหน้า (ทุกหน้า) — ตัวโค้ดอยู่ใน assets/js/pull-to-refresh.js
 (function loadPullToRefresh() {
   if (document.querySelector('script[src*="pull-to-refresh.js"]')) return;
@@ -155,6 +212,7 @@ function updatePostCookiesUI(postId, postCookies) {
   if (!postId || postCookies === undefined || postCookies === null) return;
   const el = document.getElementById(`post-cookies-count-${postId}`);
   if (el) el.innerText = blm48ShortCount(postCookies);
+  blm48QueuePostGifts([postId]); // รูป 3 อันดับหน้าจำนวนคุกกี้นับจากใจ/คอมเมนต์/ของขวัญ เลยต้องดึงใหม่ทุกครั้งที่ยอดเปลี่ยน
 }
 
 // หา postId จากคอมเมนต์/reply (ใช้ตอนกดใจคอมเมนต์ ซึ่งมีแค่ commentId ไม่มี postId ส่งมาตรงๆ)
@@ -774,7 +832,7 @@ async function blm48OpenPostGift(postId) {
   });
 }
 
-// 📊 รูป 3 คนส่งของขวัญเยอะสุดใต้โพสต์: เก็บ id ของโพสต์ที่เพิ่งขึ้นจอ แล้วดึงทีเดียว (ทุกหน้า ทุกจังหวะที่วาดโพสต์ใหม่)
+// 📊 รูป 3 แฟนที่ให้คุกกี้โพสต์นี้เยอะสุด (กดใจ + คอมเมนต์ + กดใจคอมเมนต์ + ของขวัญ, ไม่นับ member/admin): เก็บ id ของโพสต์ที่เพิ่งขึ้นจอ แล้วดึงทีเดียว (ทุกหน้า ทุกจังหวะที่วาดโพสต์ใหม่)
 const blm48PendingGiftPosts = new Set();
 let blm48GiftSummaryTimer = null;
 function blm48QueuePostGifts(ids) {
@@ -794,7 +852,7 @@ async function blm48FlushPostGifts() {
       const s = map[id] || { gifts: 0, gifters: [] };
       const giftersEl = document.getElementById(`post-gifters-${id}`);
       if (giftersEl) giftersEl.innerHTML = (s.gifters || []).map((g, i) =>
-        `<span class="pf-gifter" data-fan="${escapeAttr(g.username || '')}">${blm48MedalAvatarHtml(g.img, i, 26, g.name)}</span>`
+        `<span class="pf-gifter" data-fan="${escapeAttr(g.username || '')}">${blm48MedalAvatarHtml(g.img, i, 32, g.name)}</span>`
       ).join('');
     });
   } catch (e) { console.error('Post gift summary error:', e); }
@@ -842,7 +900,7 @@ async function blm48FlushPostGifts() {
     .pf-cmt-list:empty { display: none; }
     .pf-cmt-list .cmt-replies-toggle { display: none !important; }
     .pf-input-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-    .pf-my-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #f2f2f2; }
+    .pf-my-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #f2f2f2; }
     .pf-input-wrap { flex: 1; min-width: 0; display: flex; align-items: center; border: 1px solid #d9d9d9; border-radius: 22px; padding: 0 6px 0 14px; background: #fff; }
     .pf-input-wrap input, .comment-input-box .pf-input-wrap input, .comment-input-box .pf-input-wrap input:focus { flex: 1; min-width: 0; width: auto !important; height: auto !important; border: none !important; border-radius: 0 !important; outline: none !important; box-shadow: none !important; background: none !important; font-family: inherit; font-size: 0.9rem; padding: 9px 0 !important; margin: 0 !important; }
     .pf-input-gift { background: none; border: none; color: #e8590c; font-size: 1.05rem; padding: 6px; cursor: pointer; flex-shrink: 0; }

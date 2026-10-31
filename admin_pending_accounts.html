@@ -58,10 +58,16 @@
 
         .header-title-zone { text-align: center; margin-bottom: 20px; }
         .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
-        .list-count { font-size: 13px; color: #888; margin: 0 0 10px; }
-        .list-count b { color: var(--primary-pink); }
+        .list-count { font-size: 13px; color: #666; margin: 0 0 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .list-count b { color: #c43d58; }
+        /* อนุมัติทั้งหมด: กดแล้วขึ้นกล่องยืนยันในหน้า (ไม่ใช้ป๊อปอัป) */
+        .btn-all { border: none; border-radius: 20px; padding: 7px 14px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; background: #e6f9ee; color: #1f7a45; }
+        .bulk-box { margin: 0 0 12px; padding: 12px; font-size: 13px; line-height: 1.5; background: #f1fbf5; color: #27794a; border-radius: 12px; }
+        .bulk-box .action-row { margin-top: 10px; }
+        .wait { font-weight: 700; }
+        .wait.long { color: #c43d58; }
 
         /* แต่ละบัญชี: แถวสรุปไม่มีปุ่ม — แตะเพื่อเปิดดูรายละเอียดและปุ่มทำรายการ (กันกดโดนโดยไม่ตั้งใจ) */
         .entry-list { display: flex; flex-direction: column; }
@@ -76,14 +82,14 @@
         .entry-avatar { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #f3f3f3; }
         .entry-body { flex: 1; min-width: 0; }
         .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-subtitle { font-size: 11.5px; color: #767676; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .entry-chevron { flex: 0 0 auto; color: #ccc; font-size: 13px; transition: transform 0.2s; }
         .pending-card.open .entry-chevron { transform: rotate(90deg); color: var(--primary-pink); }
 
         .pending-detail { display: none; padding: 0 0 14px; }
         .pending-card.open .pending-detail { display: block; }
         .detail-line { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 6px 0; }
-        .detail-line span:first-child { color: #999; }
+        .detail-line span:first-child { color: #767676; }
         .detail-line span:last-child { color: #333; font-weight: 600; text-align: right; word-break: break-all; }
 
         .action-row { display: flex; gap: 12px; margin-top: 12px; }
@@ -92,10 +98,10 @@
             font-family: 'Quicksand', 'Kanit', sans-serif;
             padding: 12px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
         }
-        .btn-approve { background: #e6f9ee; color: #27ae60; }
-        .btn-reject { background: #ffeef0; color: #ff5c7a; }
-        .btn-approve.solid { background: #2ecc71; color: #fff; }
-        .btn-reject.solid { background: #ff5c7a; color: #fff; }
+        .btn-approve { background: #e6f9ee; color: #1f7a45; }
+        .btn-reject { background: #ffeef0; color: #d63355; }
+        .btn-approve.solid { background: #1f9d55; color: #fff; }
+        .btn-reject.solid { background: #d63355; color: #fff; }
         .btn-back { background: #f3f3f3; color: #777; }
         .btn-action:disabled { opacity: 0.6; cursor: default; }
 
@@ -108,11 +114,11 @@
         .result-box.ok { background: #f1fbf5; color: #27794a; }
         .result-box.err { background: #fff4f6; color: #c43d58; }
 
-        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state { text-align: center; color: #767676; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
         .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
-        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
     </style>
@@ -140,6 +146,7 @@
         </div>
 
         <div class="list-count" id="pending-count"></div>
+        <div id="bulk-area"></div>
         <div class="entry-list" id="pending-list">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
@@ -183,12 +190,70 @@
     return cardState[username];
   }
 
+  // รอมานานแค่ไหน (เกิน 2 วัน = สีแดง)
+  function waitText(created) {
+    const h = Math.max(0, (Date.now() - new Date(created).getTime()) / 3600000);
+    const txt = h < 1 ? 'เพิ่งสมัคร' : h < 24 ? `รอ ${Math.floor(h)} ชม.` : `รอ ${Math.floor(h / 24)} วัน`;
+    return `<span class="wait ${h >= 48 ? 'long' : ''}">${txt}</span>`;
+  }
+
+  // อนุมัติทั้งหมด: null = ปิด / 'confirm' = ขึ้นกล่องยืนยัน / 'working' = กำลังทำ (โชว์ความคืบหน้า)
+  let bulkStep = null;
+  let bulkProgress = '';
+
+  function renderBulk(remainingList) {
+    const area = document.getElementById('bulk-area');
+    if (bulkStep === 'confirm' || bulkStep === 'working') {
+      const busy = bulkStep === 'working';
+      area.innerHTML = `
+        <div class="bulk-box">
+          ยืนยันอนุมัติทั้งหมด <b>${remainingList.length}</b> บัญชี? ทุกบัญชีจะเข้าใช้งานได้ทันที
+          <div class="action-row">
+            <button class="btn-action btn-back" onclick="setBulk(null)" ${busy ? 'disabled' : ''}>ย้อนกลับ</button>
+            <button class="btn-action btn-approve solid" onclick="approveAll()" ${busy ? 'disabled' : ''}>
+              ${busy ? `<i class="fas fa-spinner fa-spin"></i> กำลังอนุมัติ ${bulkProgress}` : '<i class="fas fa-check-double"></i> ยืนยันอนุมัติทั้งหมด'}
+            </button>
+          </div>
+        </div>`;
+    } else {
+      area.innerHTML = '';
+    }
+  }
+
+  function setBulk(step) { bulkStep = step; renderPendingList(); }
+
+  async function approveAll() {
+    const todo = pendingCache.filter(u => stateOf(u.username).step === 'choose');
+    bulkStep = 'working';
+    for (let n = 0; n < todo.length; n++) {
+      bulkProgress = `(${n + 1}/${todo.length})`;
+      renderPendingList();
+      const st = stateOf(todo[n].username);
+      try {
+        const res = await blm48AdminApproveUser(user.username, todo[n].username);
+        st.result = res.status === 'success' ? { ok: true, message: 'อนุมัติบัญชีเรียบร้อยแล้ว' } : { ok: false, message: res.message || 'ไม่สามารถอนุมัติได้' };
+      } catch (e) {
+        st.result = { ok: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้' };
+      }
+      st.step = 'done';
+      st.open = true; // โชว์ผลของแต่ละบัญชี
+    }
+    bulkStep = null;
+    // บัญชีที่ไม่สำเร็จ กลับไปให้เลือกใหม่ได้
+    todo.forEach(u => { const st = stateOf(u.username); if (!st.result.ok) setTimeout(() => { st.step = 'choose'; renderPendingList(); }, 4000); });
+    renderPendingList();
+  }
+
   function renderPendingList() {
     const list = document.getElementById('pending-list');
-    const remaining = pendingCache.filter(u => stateOf(u.username).step !== 'done').length;
+    const remainingList = pendingCache.filter(u => stateOf(u.username).step !== 'done');
+    const remaining = remainingList.length;
+    // ปุ่มอนุมัติทั้งหมดโชว์เมื่อเหลือ 2 บัญชีขึ้นไป และไม่มีบัญชีไหนกำลังทำรายการอยู่
+    const canBulk = remaining >= 2 && !bulkStep && remainingList.every(u => stateOf(u.username).step === 'choose');
     document.getElementById('pending-count').innerHTML = pendingCache.length
-      ? `เหลือรออนุมัติ <b>${remaining}</b> บัญชี`
+      ? `<span>เหลือรออนุมัติ <b>${remaining}</b> บัญชี</span>${canBulk ? `<button class="btn-all" onclick="setBulk('confirm')"><i class="fas fa-check-double"></i> อนุมัติทั้งหมด (${remaining})</button>` : ''}`
       : '';
+    renderBulk(remainingList);
 
     if (pendingCache.length === 0) {
       list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-check"></i>ไม่มีบัญชีรอการอนุมัติค่ะ</div>`;
@@ -203,8 +268,8 @@
           <button type="button" class="entry-row" onclick="toggleCard(${i})">
             <img class="entry-avatar" src="${escapeAttr(resolveDriveImage(u.profile_img))}">
             <div class="entry-body">
-              <div class="entry-title">${escapeHtml(u.name || u.username)} <span style="color:#999; font-weight:400;">@${escapeHtml(u.username)}</span></div>
-              <div class="entry-subtitle">${escapeHtml((u.role || '').toUpperCase())} · สร้างเมื่อ ${dt}</div>
+              <div class="entry-title">${escapeHtml(u.name || u.username)} <span style="color:#767676; font-weight:400;">@${escapeHtml(u.username)}</span></div>
+              <div class="entry-subtitle">${escapeHtml((u.role || '').toUpperCase())} · ${st.step === 'done' ? (st.result.ok ? 'อนุมัติแล้ว' : 'ไม่สำเร็จ') : waitText(u.created_at)} · ${dt}</div>
             </div>
             <i class="fas fa-chevron-right entry-chevron"></i>
           </button>

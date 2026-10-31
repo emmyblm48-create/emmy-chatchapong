@@ -81,7 +81,7 @@
   // ท่าเคลื่อนไหวตามไฟล์ออกแบบ เปิดเมื่อสติ๊กเกอร์ "เล่น" (อยู่ในการ์ดที่ถูกเลือก หรือมีคลาส .play)
   const PLAY = '.selected .gift-sticker, .gift-sticker.play';
   const CSS = `
-    .gift-sticker { position: relative; display: flex; align-items: center; justify-content: center; border-radius: 28%; border-style: solid; border-color: #ffffff; box-sizing: border-box; flex-shrink: 0; }
+    .gift-sticker { position: relative; display: flex; align-items: center; justify-content: center; box-sizing: border-box; flex-shrink: 0; }
     .gift-sticker svg { width: 100%; height: 100%; overflow: visible; }
     .gift-sticker .gs-bd { transform-box: fill-box; transform-origin: 50% 100%; }
     .gift-sticker .gs-tw { transform-box: fill-box; transform-origin: 50% 50%; }
@@ -102,8 +102,22 @@
     @keyframes gs-hop { 0%,100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-12px) rotate(-4deg); } 55% { transform: translateY(0) rotate(0); } 70% { transform: translateY(-4px) rotate(2deg); } }
     @keyframes gs-breathe { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.03,1.06); } }
     @keyframes gs-twinkle { 0%,100% { transform: scale(1) rotate(0); opacity: 1; } 50% { transform: scale(.55) rotate(45deg); opacity: .6; } }
-    @media (prefers-reduced-motion: reduce) { .gift-sticker .gs-bd, .gift-sticker .gs-tw { animation: none !important; } }
+    .gift-photo { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .gift-photo img { transform-origin: 50% 100%; }
+    ${photoSel('float')} { animation: gs-float 3s ease-in-out infinite; }
+    ${photoSel('bounce')} { animation: gs-bounce 1.4s cubic-bezier(.3,.6,.4,1) infinite; }
+    ${photoSel('wiggle')} { animation: gs-wiggle 1.8s ease-in-out infinite; transform-origin: 50% 60%; }
+    ${photoSel('sway')} { animation: gs-sway 2.6s ease-in-out infinite; }
+    ${photoSel('pulse')} { animation: gs-pulse 1.8s ease-in-out infinite; transform-origin: 50% 50%; }
+    ${photoSel('hop')} { animation: gs-hop 1.2s ease-in-out infinite; }
+    ${photoSel('breathe')} { animation: gs-breathe 3.6s ease-in-out infinite; }
+    ${photoSel('glide')} { animation: gs-glide 2.8s ease-in-out infinite; transform-origin: 50% 50%; }
+    @keyframes gs-glide { 0%,100% { transform: translate(-4px, 3px) rotate(-5deg); } 50% { transform: translate(4px, -6px) rotate(3deg); } }
+    @media (prefers-reduced-motion: reduce) { .gift-sticker .gs-bd, .gift-sticker .gs-tw, .gift-photo img { animation: none !important; } }
   `;
+  function photoSel(motion) {
+    return `.selected .gift-photo.gp-a-${motion} img, .gift-photo.play.gp-a-${motion} img`;
+  }
   function sel(cls) {
     return PLAY.split(',').map(p => `${p.trim()} ${cls}`).join(', ');
   }
@@ -137,9 +151,8 @@
     const o = r(Math.max(1.2, px * 4 / 176));
     const filter = `drop-shadow(${o}px 0 0 #fff) drop-shadow(-${o}px 0 0 #fff) drop-shadow(0 ${o}px 0 #fff) drop-shadow(0 -${o}px 0 #fff)`
       + ` drop-shadow(0 ${r(o * 1.5)}px ${r(o * 1.5)}px rgba(60,45,10,0.14))`;
-    const border = r(Math.max(1.5, px * 4 / 200));
-    const shadow = `0 ${r(px * 6 / 200)}px 0 rgba(60,45,10,0.10), 0 ${r(px * 14 / 200)}px ${r(px * 26 / 200)}px rgba(60,45,10,0.08)`;
-    return `<div class="gift-sticker${opts && opts.play ? ' play' : ''}" style="width:${px}px;height:${px}px;background:${s.bg};border-width:${border}px;box-shadow:${shadow}">`
+    // ไม่มีกล่องสี่เหลี่ยมรองหลัง — โชว์แค่ตัวสติ๊กเกอร์บนพื้นขาวของหน้า (ค่า bg ประจำชิ้นในตารางไม่ได้ใช้แล้ว)
+    return `<div class="gift-sticker${opts && opts.play ? ' play' : ''}" style="width:${px}px;height:${px}px">`
       + `<svg viewBox="${s.viewBox}" role="img" aria-label="${s.label}" style="filter:${filter}">${s.svg}</svg></div>`;
   }
 
@@ -148,8 +161,29 @@
   window.blm48GiftImageHtml = function (giftId, imageUrl, size, imgHtml, opts) {
     const member = giftStickerMember(giftId);
     if (!hasRealImage(imageUrl) && member) return giftStickerHtml(member, size, opts);
+    if (hasRealImage(imageUrl)) return giftPhotoHtml(giftId, imgHtml, opts);
     return imgHtml;
   };
+
+  // 🎞️ รูปของขวัญที่อัปโหลดจริง (PNG จากหน้า Admin Gifts) ก็ขยับได้เหมือนสติ๊กเกอร์ — เล่นตอนกดเลือก / ในกล่องยืนยัน
+  // ท่าประจำชิ้นตามของ (ชิ้นที่ไม่ได้ระบุ สุ่มท่าแบบคงที่จาก gift_id)
+  const PHOTO_MOTION = {
+    gift_001: 'hop', gift_002: 'sway', gift_003: 'pulse', gift_074: 'bounce',
+    gift_075: 'float', gift_076: 'glide', gift_077: 'wiggle', gift_078: 'float',
+    gift_079: 'breathe', gift_080: 'bounce'
+  };
+  const PHOTO_MOTIONS = ['hop', 'sway', 'pulse', 'bounce', 'float', 'wiggle', 'breathe'];
+  function photoMotion(giftId) {
+    const id = String(giftId || '');
+    if (PHOTO_MOTION[id]) return PHOTO_MOTION[id];
+    let h = 0;
+    for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return PHOTO_MOTIONS[h % PHOTO_MOTIONS.length];
+  }
+  function giftPhotoHtml(giftId, imgHtml, opts) {
+    injectCss();
+    return `<span class="gift-photo gp-a-${photoMotion(giftId)}${opts && opts.play ? ' play' : ''}">${imgHtml}</span>`;
+  }
   window.blm48GiftStickerHtml = giftStickerHtml;
   window.blm48GiftMemberName = giftStickerMember; // gift_id -> ชื่อเมมเบอร์ (ใช้เรียงแท็บ BLM48 ตามรุ่น)
   window.BLM48_GIFT_STICKER_MEMBERS = Object.keys(STICKERS);

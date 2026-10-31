@@ -23,11 +23,11 @@
         body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
         .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
         .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #page-content { display: none; }
         .legend { background: #fffaf0; border: 1px solid #ffe6ae; padding: 12px 14px; font-size: 12.5px; color: #6b5a3a; line-height: 1.8; margin-bottom: 12px; }
         .search { width: 100%; padding: 11px 14px; border: 1px solid #eee; border-radius: 10px; font-family: inherit; font-size: 14px; margin-bottom: 6px; }
-        .empty-state, .loading-state { text-align: center; color: #999; font-size: 13px; padding: 40px 20px; }
+        .empty-state, .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 40px 20px; }
 
         /* แถวเมมเบอร์ -> กดแล้วเปิดหน้า admin_theme_member */
         .m-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; }
@@ -40,6 +40,31 @@
         .m-sub .ok { color: #1f9d55; }
         .m-sub .no { color: #8a8a8a; }
         .m-arrow { color: #bbb; }
+        .m-sub .pill { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 20px; font-size: 11.5px; font-weight: 600; background: #f4f4f4; }
+        .m-sub .pill.ok { background: #e9f8ef; }
+        .m-sub .pill.miss { background: #fdecec; color: #c03535; }
+        .m-sub .soon { color: #d6336c; font-weight: 700; }
+
+        /* คำอธิบายพับเก็บได้ */
+        .legend summary { cursor: pointer; font-weight: 700; color: #6b5a3a; list-style: none; }
+        .legend summary::-webkit-details-marker { display: none; }
+        .legend summary::after { content: '\f107'; font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-left: 6px; }
+        .legend[open] summary::after { content: '\f106'; }
+        .legend[open] summary { margin-bottom: 6px; }
+        /* แจ้งเตือน: วันเกิดใกล้แล้วแต่ยังไม่มีรูป */
+        .alert-box { border: 1px solid #f3c6c6; background: #fff6f6; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+        .alert-title { font-weight: 700; font-size: 13px; color: #c03535; margin-bottom: 4px; }
+        .alert-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; color: #444; text-decoration: none; border-top: 1px dashed #f3d6d6; }
+        .alert-item:first-of-type { border-top: none; }
+        .alert-item b { flex: 1; min-width: 0; }
+        .alert-item .go { color: #c03535; font-weight: 700; font-size: 12px; white-space: nowrap; }
+        /* ตัวกรอง + จำนวน */
+        .filters { display: flex; gap: 6px; overflow-x: auto; margin: 4px -12px 6px; padding: 2px 12px; scrollbar-width: none; }
+        .filters::-webkit-scrollbar { display: none; }
+        .chip { flex-shrink: 0; border: 1px solid #eee; background: #fff; border-radius: 20px; padding: 6px 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #666; cursor: pointer; white-space: nowrap; }
+        .chip.active { background: #ffc107; border-color: #ffc107; color: #222; }
+        .chip .n { font-weight: 600; opacity: .7; margin-left: 3px; }
+        .group-title { font-size: 12px; font-weight: 700; color: #767676; text-transform: uppercase; letter-spacing: .04em; margin: 14px 0 0; }
     </style>
     <link rel="stylesheet" href="assets/css/admin-theme.css">
 </head>
@@ -53,11 +78,14 @@
 <div class="page-wrapper">
     <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
     <div id="page-content">
-        <div class="legend">
+        <details class="legend">
+            <summary><i class="fa-solid fa-circle-info"></i> How it works</summary>
             <b>Birthday Photo</b> = ใส่รูปเมมเบอร์ธรรมดา ระบบจะสร้าง Splash + Banner วันเกิดพร้อมสีที่เข้ากับรูปให้เอง (ขึ้นก่อนวันเกิด 3 วัน → หมดวันเกิด)<br>
             <b>Champ Menu Buttons</b> = ไอคอนแถบเมนูล่าง 4 ปุ่ม ที่จะใช้ตอนเมมเบอร์คนนั้นได้ Champ of the Month (ช่องว่าง = ใช้ไอคอนปกติ)
-        </div>
+        </details>
+        <div id="alert-box"></div>
         <input id="search" class="search" type="search" placeholder="Search member..." oninput="renderList()">
+        <div class="filters" id="filters"></div>
         <div id="member-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
     </div>
 </div>
@@ -87,31 +115,86 @@
     return Math.round((d - now) / 86400000);
   }
 
+  // ตัวกรอง: เลือกแล้วจำไว้ (กลับมาจากหน้าเมมเบอร์ยังอยู่ตัวกรองเดิม)
+  const SOON_DAYS = 30;  // "Birthday soon" = วันเกิดภายใน 30 วัน
+  const ALERT_DAYS = 14; // วันเกิดภายใน 14 วันแต่ยังไม่มีรูป -> เตือนด้านบน
+  const FILTERS = [
+    ['all', 'All', m => true],
+    ['soon', 'Birthday soon', m => !m.graduated && daysUntil(m.birthday) <= SOON_DAYS],
+    ['nophoto', 'No Birthday Photo', m => !m.graduated && !m.splashBd],
+    ['grad', 'Graduated', m => m.graduated]
+  ];
+  let filter = 'all';
+  try { filter = sessionStorage.getItem('adminThemeFilter') || 'all'; } catch (e) {}
+  if (!FILTERS.some(([k]) => k === filter)) filter = 'all';
+
+  const isChampM = m => champName && m.name.toLowerCase() === champName.toLowerCase();
+  const byBirthday = (a, b) => (daysUntil(a.birthday) - daysUntil(b.birthday)) || a.name.localeCompare(b.name);
+
+  function setFilter(k) {
+    filter = k;
+    try { sessionStorage.setItem('adminThemeFilter', k); } catch (e) {}
+    renderList();
+  }
+
+  function rowHtml(m) {
+    const navCount = NAV_KEYS.filter(k => m[k]).length;
+    const dleft = daysUntil(m.birthday);
+    const when = dleft <= 3 ? ' · <span class="soon">Birthday now</span>'
+      : (dleft < 9999 ? ` · <span class="${dleft <= SOON_DAYS ? 'soon' : ''}">in ${dleft} day${dleft === 1 ? '' : 's'}</span>` : '');
+    // ยังไม่มีรูปวันเกิด = สีแดง (ต้องทำ) / ปุ่ม Champ ไม่บังคับ = สีเทาถ้ายังไม่มี
+    const photoCls = m.splashBd ? 'ok' : (m.graduated ? '' : 'miss');
+    return `
+      <a class="m-row" href="admin_theme_member?id=${encodeURIComponent(m.memberId)}">
+        <img src="${escapeHtml(m.profileImg || '')}" alt="" onerror="this.style.visibility='hidden'">
+        <div class="m-info">
+          <div class="m-name">${escapeHtml(m.name)}${isChampM(m) ? '<span class="champ"><i class="fa-solid fa-crown"></i> Current Champ</span>' : ''}${m.graduated ? '<span class="grad">Graduated</span>' : ''}</div>
+          <div class="m-sub">
+            <span><i class="fa-solid fa-cake-candles"></i> ${bdayText(m.birthday)}${when}</span>
+          </div>
+          <div class="m-sub" style="margin-top:5px">
+            <span class="pill ${photoCls}"><i class="fa-solid ${m.splashBd ? 'fa-circle-check' : 'fa-circle-xmark'}"></i> Birthday Photo</span>
+            <span class="pill ${navCount === 4 ? 'ok' : ''}"><i class="fa-solid fa-crown"></i> Buttons ${navCount}/4</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right m-arrow"></i>
+      </a>`;
+  }
+
+  // เตือน: วันเกิดใกล้ (ภายใน 14 วัน) แต่ยังไม่มีรูป -> Splash/Banner วันเกิดจะไม่ขึ้น
+  function renderAlert() {
+    const due = members.filter(m => !m.graduated && !m.splashBd && daysUntil(m.birthday) <= ALERT_DAYS).sort(byBirthday);
+    document.getElementById('alert-box').innerHTML = due.length ? `
+      <div class="alert-box">
+        <div class="alert-title"><i class="fa-solid fa-triangle-exclamation"></i> Birthday coming up - no photo yet</div>
+        ${due.map(m => {
+          const d = daysUntil(m.birthday);
+          return `<a class="alert-item" href="admin_theme_member?id=${encodeURIComponent(m.memberId)}">
+            <i class="fa-solid fa-cake-candles" style="color:#d6336c"></i>
+            <b>${escapeHtml(m.name)} <span style="font-weight:500;color:#767676">· ${bdayText(m.birthday)} (${d === 0 ? 'today' : `in ${d} day${d === 1 ? '' : 's'}`})</span></b>
+            <span class="go">Add photo <i class="fa-solid fa-chevron-right"></i></span>
+          </a>`;
+        }).join('')}
+      </div>` : '';
+  }
+
   function renderList() {
     const box = document.getElementById('member-list');
     const q = document.getElementById('search').value.trim().toLowerCase();
-    const list = members
-      .filter(m => !q || m.name.toLowerCase().includes(q))
-      .sort((a, b) => (a.graduated - b.graduated) || (daysUntil(a.birthday) - daysUntil(b.birthday)) || a.name.localeCompare(b.name));
-    if (!list.length) { box.innerHTML = '<div class="empty-state">ไม่พบเมมเบอร์</div>'; return; }
-    box.innerHTML = list.map(m => {
-      const navCount = NAV_KEYS.filter(k => m[k]).length;
-      const isChamp = champName && m.name.toLowerCase() === champName.toLowerCase();
-      const dleft = daysUntil(m.birthday);
-      return `
-        <a class="m-row" href="admin_theme_member?id=${encodeURIComponent(m.memberId)}">
-          <img src="${escapeHtml(m.profileImg || '')}" alt="" onerror="this.style.visibility='hidden'">
-          <div class="m-info">
-            <div class="m-name">${escapeHtml(m.name)}${isChamp ? '<span class="champ"><i class="fa-solid fa-crown"></i> Current Champ</span>' : ''}${m.graduated ? '<span class="grad">Graduated</span>' : ''}</div>
-            <div class="m-sub">
-              <span><i class="fa-solid fa-cake-candles"></i> ${bdayText(m.birthday)}${dleft <= 3 ? ' · <b style="color:#d6336c">Birthday now</b>' : (dleft < 9999 ? ` · in ${dleft} day${dleft === 1 ? '' : 's'}` : '')}</span>
-              <span class="${m.splashBd ? 'ok' : 'no'}"><i class="fa-solid ${m.splashBd ? 'fa-circle-check' : 'fa-circle'}"></i> Birthday Photo</span>
-              <span class="${navCount ? 'ok' : 'no'}"><i class="fa-solid fa-crown"></i> Buttons ${navCount}/4</span>
-            </div>
-          </div>
-          <i class="fa-solid fa-chevron-right m-arrow"></i>
-        </a>`;
-    }).join('');
+    const match = m => !q || m.name.toLowerCase().includes(q);
+    document.getElementById('filters').innerHTML = FILTERS.map(([k, label, fn]) =>
+      `<button type="button" class="chip ${k === filter ? 'active' : ''}" onclick="setFilter('${k}')">${label}<span class="n">${members.filter(m => fn(m) && match(m)).length}</span></button>`).join('');
+    const fn = FILTERS.find(([k]) => k === filter)[2];
+    const list = members.filter(m => fn(m) && match(m)).sort(byBirthday);
+    if (!list.length) { box.innerHTML = `<div class="empty-state">${filter === 'nophoto' && !q ? 'ทุกคนมีรูปวันเกิดแล้ว' : 'ไม่พบเมมเบอร์'}</div>`; return; }
+    if (filter !== 'all') { box.innerHTML = list.map(rowHtml).join(''); return; }
+    // All: Champ ปัจจุบันขึ้นก่อน -> เมมเบอร์เรียงตามวันเกิดที่ใกล้สุด -> Graduated ท้ายสุด
+    const groups = [
+      ['Current Champ', list.filter(isChampM)],
+      ['Members · next birthday first', list.filter(m => !isChampM(m) && !m.graduated)],
+      ['Graduated', list.filter(m => !isChampM(m) && m.graduated)]
+    ].filter(([, arr]) => arr.length);
+    box.innerHTML = groups.map(([t, arr]) => `<div class="group-title">${t}</div>${arr.map(rowHtml).join('')}`).join('');
   }
 
   async function load() {
@@ -120,6 +203,7 @@
     if (!res || res.status !== 'success') { box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดไม่สำเร็จ')}</div>`; return; }
     members = res.members || [];
     champName = res.champName || '';
+    renderAlert();
     renderList();
   }
 

@@ -258,7 +258,20 @@
     { name: 'Pacifico', css: 'Pacifico', weight: 400 },
     { name: 'Dancing Script', css: 'Dancing+Script:wght@700', weight: 700 },
     { name: 'Caveat', css: 'Caveat:wght@700', weight: 700 },
-    { name: 'Great Vibes', css: 'Great+Vibes', weight: 400 }
+    { name: 'Great Vibes', css: 'Great+Vibes', weight: 400 },
+    // ฟอนต์ไฟล์ของเราเอง (assets/fonts/bday) - ไม่มีบน Google Fonts
+    { name: 'Written in the Stars', file: 'written-in-the-stars.ttf', weight: 400 },
+    { name: 'Chetkiy', file: 'chetkiy.ttf', weight: 400 },
+    { name: 'Opuntia', file: 'opuntia.ttf', weight: 400 },
+    { name: 'Saint', file: 'saint.ttf', weight: 400 },
+    { name: 'Ductile Display', file: 'ductile-display.otf', weight: 400 },
+    { name: 'Circo', file: 'circo.otf', weight: 400 },
+    { name: 'Unplugged Pop', file: 'unplugged-pop.otf', weight: 400 },
+    { name: 'Yourbold', file: 'yourbold.otf', weight: 400 },
+    { name: 'Retrogression', file: 'retrogression.otf', weight: 400 },
+    { name: 'Avinga', file: 'avinga.otf', weight: 400 },
+    { name: 'Fanlste', file: 'fanlste.otf', weight: 400 },
+    { name: 'Fanlste Italic', file: 'fanlste-italic.otf', weight: 400 }
   ];
 
   // คืนข้อมูลฟอนต์ที่อยู่ในลิสต์เท่านั้น (ชื่ออื่น/ว่าง -> null = ฟอนต์ตั้งต้น)
@@ -271,11 +284,17 @@
     if (!f) return;
     var id = 'bday-font-' + f.name.replace(/\s+/g, '-');
     if (document.getElementById(id)) return;
-    var ln = document.createElement('link');
-    ln.id = id;
-    ln.rel = 'stylesheet';
-    ln.href = 'https://fonts.googleapis.com/css2?family=' + f.css + '&display=swap';
-    (document.head || document.documentElement).appendChild(ln);
+    var el;
+    if (f.file) {
+      el = document.createElement('style');
+      el.textContent = "@font-face{font-family:'" + f.name + "';src:url('assets/fonts/bday/" + f.file + "') format('" + (/\.otf$/i.test(f.file) ? 'opentype' : 'truetype') + "');font-weight:" + f.weight + ";font-display:swap;}";
+    } else {
+      el = document.createElement('link');
+      el.rel = 'stylesheet';
+      el.href = 'https://fonts.googleapis.com/css2?family=' + f.css + '&display=swap';
+    }
+    el.id = id;
+    (document.head || document.documentElement).appendChild(el);
   }
 
   function fontStyle(f) {
