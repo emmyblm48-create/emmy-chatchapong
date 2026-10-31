@@ -32,8 +32,27 @@
         .tabs { display: flex; gap: 8px; margin-bottom: 8px; }
         .filter-tab { flex: 1; border-radius: 20px; padding: 9px 6px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 
-        /* แถวของขวัญ -> กดแล้วไปหน้าแก้ไข */
-        a.g-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; text-decoration: none; color: inherit; }
+        /* ค้นหา + กรองสถานะ + เรียง */
+        .tools { display: flex; gap: 8px; margin: 4px 0 6px; }
+        .search { flex: 1; min-width: 0; padding: 10px 14px; border: 1px solid #eee; border-radius: 10px; font-family: inherit; font-size: 14px; }
+        .sort { border: 1px solid #eee; border-radius: 10px; padding: 0 10px; font-family: inherit; font-size: 13px; color: #444; background: #fff; }
+        .chips { display: flex; gap: 6px; margin-bottom: 4px; }
+        .chip { border: 1px solid #eee; background: #fff; border-radius: 20px; padding: 5px 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; color: #666; cursor: pointer; }
+        .chip.active { background: #222; border-color: #222; color: #fff; }
+        .chip .n { font-weight: 600; opacity: .7; margin-left: 3px; }
+
+        /* แถวของขวัญ -> กดแล้วไปหน้าแก้ไข / สวิตช์ขวาสุด = เปิด-ปิดขายทันที */
+        .g-row { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f0f0f0; }
+        .g-row.off .g-img, .g-row.off .g-name { opacity: .5; }
+        a.g-link { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 12px 0; text-decoration: none; color: inherit; }
+        .g-price { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: #7a5a00; background: #fff3c4; padding: 1px 8px; border-radius: 20px; font-size: 12px; }
+        .switch { position: relative; flex-shrink: 0; width: 46px; height: 26px; border: none; border-radius: 20px; background: #ddd; cursor: pointer; padding: 0; transition: background .15s; }
+        .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .15s; }
+        .switch.on { background: #1f9d55; }
+        .switch.on::after { transform: translateX(20px); }
+        .switch:disabled { opacity: .5; cursor: default; }
+        .sw-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: #767676; }
+        .toast-msg { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #222; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 300; display: none; max-width: 90vw; }
         .g-img { width: 56px; height: 56px; flex: 0 0 56px; display: flex; align-items: center; justify-content: center; }
         .g-info { flex: 1; min-width: 0; }
         .g-name { font-weight: 700; font-size: 15px; color: #333; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -65,10 +84,21 @@
     <div id="access-denied"><i class="fa-solid fa-lock"></i><br>หน้านี้สำหรับ Role Admin เท่านั้นค่ะ</div>
     <div id="page-content">
         <div class="tabs" id="tabs"></div>
+        <div class="tools">
+            <input id="search" class="search" type="search" placeholder="Search gift..." oninput="render()">
+            <select id="sort" class="sort" onchange="setSort(this.value)" aria-label="Sort">
+                <option value="price">Price: low → high</option>
+                <option value="price-desc">Price: high → low</option>
+                <option value="sent">Most sent</option>
+                <option value="id">Newest</option>
+            </select>
+        </div>
+        <div class="chips" id="chips"></div>
         <div id="gift-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
         <a class="fab-create" id="fab-create" href="admin_gift_create" aria-label="Add Gift" title="Add Gift"><i class="fas fa-plus"></i></a>
     </div>
 </div>
+<div class="toast-msg" id="toast"></div>
 
 <script>
   let user = null;
@@ -91,6 +121,47 @@
     }
   }
 
+  // สถานะ + การเรียง จำไว้ในแท็บเบราว์เซอร์นี้ (กลับมาจากหน้าแก้ไขยังเหมือนเดิม)
+  const STATUS = [['all', 'All', g => true], ['on', 'On sale', g => g.active], ['off', 'Off', g => !g.active]];
+  const SORTS = {
+    price: (a, b) => (a.costCookies - b.costCookies) || a.giftId.localeCompare(b.giftId),
+    'price-desc': (a, b) => (b.costCookies - a.costCookies) || a.giftId.localeCompare(b.giftId),
+    sent: (a, b) => (b.sentQty - a.sentQty) || a.giftId.localeCompare(b.giftId),
+    id: (a, b) => b.giftId.localeCompare(a.giftId, undefined, { numeric: true })
+  };
+  const store = (k, v) => { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) {} return null; };
+  let status = store('adminGiftsStatus') || 'all';
+  let sortBy = store('adminGiftsSort') || 'price';
+  if (!STATUS.some(([k]) => k === status)) status = 'all';
+  if (!SORTS[sortBy]) sortBy = 'price';
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = 'none'; }, 2400);
+  }
+
+  function setStatus(k) { status = k; store('adminGiftsStatus', k); render(); }
+  function setSort(k) { sortBy = k; store('adminGiftsSort', k); render(); }
+
+  function rowHtml(g) {
+    return `
+      <div class="g-row ${g.active ? '' : 'off'}" data-id="${escapeHtml(g.giftId)}">
+        <a class="g-link" href="admin_gift_edit?id=${encodeURIComponent(g.giftId)}">
+          <div class="g-img">${blm48AdminGiftImg(g.giftId, g.imageUrl, 56)}</div>
+          <div class="g-info">
+            <div class="g-name">${escapeHtml(g.giftName || g.giftId)}</div>
+            <div class="g-sub"><span class="g-price"><i class="fa-solid fa-cookie-bite"></i> ${fmt(g.costCookies)}</span> · +${fmt(g.points)} คะแนน</div>
+            <div class="g-id">${escapeHtml(g.giftId)} · ส่งแล้ว ${fmt(g.sentQty)}${g.walletQty ? ` · อยู่ใน Backpack ${fmt(g.walletQty)}` : ''}</div>
+          </div>
+        </a>
+        <div class="sw-wrap">
+          <button type="button" class="switch ${g.active ? 'on' : ''}" role="switch" aria-checked="${g.active}" aria-label="On sale" onclick="toggleActive('${escapeHtml(g.giftId)}', this)"></button>
+          <span>${g.active ? 'On sale' : 'Off'}</span>
+        </div>
+      </div>`;
+  }
+
   function render() {
     document.getElementById('tabs').innerHTML = TIERS.map(t => {
       const n = gifts.filter(g => g.tier === t.key).length;
@@ -98,17 +169,31 @@
     }).join('');
     // ปุ่ม + เปิดหน้าเพิ่มของขวัญโดยเลือกหมวดของแท็บนี้ไว้ให้
     document.getElementById('fab-create').href = 'admin_gift_create?tier=' + encodeURIComponent(activeTier);
-    const rows = gifts.filter(g => g.tier === activeTier);
-    document.getElementById('gift-list').innerHTML = rows.length ? rows.map(g => `
-      <a class="g-row" href="admin_gift_edit?id=${encodeURIComponent(g.giftId)}">
-        <div class="g-img">${blm48AdminGiftImg(g.giftId, g.imageUrl, 56)}</div>
-        <div class="g-info">
-          <div class="g-name">${escapeHtml(g.giftName || g.giftId)} ${g.active ? '' : '<span class="pill-off">ปิดขาย</span>'}</div>
-          <div class="g-sub">${fmt(g.costCookies)} Cookie · +${fmt(g.points)} คะแนน · ส่งแล้ว ${fmt(g.sentQty)}</div>
-          <div class="g-id">${escapeHtml(g.giftId)}</div>
-        </div>
-        <i class="fas fa-chevron-right g-arrow"></i>
-      </a>`).join('') : '<div class="empty-state">ยังไม่มีของขวัญในหมวดนี้ · กด + เพื่อเพิ่ม</div>';
+    document.getElementById('sort').value = sortBy;
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const inTier = gifts.filter(g => g.tier === activeTier && (!q || String(g.giftName || '').toLowerCase().includes(q) || g.giftId.toLowerCase().includes(q)));
+    document.getElementById('chips').innerHTML = STATUS.map(([k, label, fn]) =>
+      `<button type="button" class="chip ${k === status ? 'active' : ''}" onclick="setStatus('${k}')">${label}<span class="n">${inTier.filter(fn).length}</span></button>`).join('');
+    const rows = inTier.filter(STATUS.find(([k]) => k === status)[2]).sort(SORTS[sortBy]);
+    document.getElementById('gift-list').innerHTML = rows.length ? rows.map(rowHtml).join('')
+      : `<div class="empty-state">${q || status !== 'all' ? 'ไม่พบของขวัญ' : 'ยังไม่มีของขวัญในหมวดนี้ · กด + เพื่อเพิ่ม'}</div>`;
+  }
+
+  // เปิด/ปิดขายจากรายการได้เลย ไม่ต้องเข้าหน้าแก้ไข (ส่งค่าเดิมทุกช่อง เปลี่ยนแค่ active)
+  async function toggleActive(id, btn) {
+    const g = gifts.find(x => x.giftId === id);
+    if (!g) return;
+    btn.disabled = true;
+    const next = !g.active;
+    try {
+      const res = await blm48AdminSaveGift(user.username, g.giftId, { giftName: g.giftName, tier: g.tier, costCookies: g.costCookies, points: g.points, imageUrl: g.imageUrl, active: next });
+      if (!res || res.status !== 'success') throw new Error((res && res.message) || 'บันทึกไม่สำเร็จ');
+      g.active = next;
+      toast(`${g.giftName}: ${next ? 'เปิดขายแล้ว' : 'ปิดขายแล้ว'}`);
+    } catch (e) {
+      toast(e.message || 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+    }
+    render();
   }
 
   function setTier(t) {

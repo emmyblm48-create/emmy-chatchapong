@@ -58,7 +58,7 @@
 
         .header-title-zone { text-align: center; margin-bottom: 20px; }
         .header-title-zone h1 { color: var(--primary-pink); font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 24px; margin: 0 0 6px 0; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header-title-zone p { color: #999; font-size: 13px; margin: 0; }
+        .header-title-zone p { color: #767676; font-size: 13px; margin: 0; }
 
         .entry-list { display: flex; flex-direction: column; gap: 10px; }
         .entry-row {
@@ -72,7 +72,7 @@
         }
         .entry-body { flex: 1; min-width: 0; }
         .entry-title { font-weight: 700; font-size: 13.5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .entry-subtitle { font-size: 11.5px; color: #999; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .entry-subtitle { font-size: 11.5px; color: #767676; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .entry-amounts { font-size: 13px; margin-top: 4px; display: flex; gap: 10px; }
         .entry-amounts i { margin-right: 3px; }
         .btn-pill {
@@ -81,11 +81,11 @@
             background: #fff8e1; color: #8a6d00;
         }
 
-        .empty-state { text-align: center; color: #bbb; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
+        .empty-state { text-align: center; color: #767676; font-family: 'Quicksand', 'Kanit', sans-serif; font-size: 13px; padding: 40px 20px; }
         .empty-state i { font-size: 28px; color: #ffd7e1; display: block; margin-bottom: 10px; }
-        .loading-state { text-align: center; color: #bbb; font-size: 13px; padding: 30px 20px; }
+        .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 30px 20px; }
 
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #access-denied i { font-size: 40px; color: #ffd7e1; display: block; margin-bottom: 14px; }
         #page-content { display: none; }
     </style>
@@ -112,6 +112,9 @@
             <p>ประวัติการโอน Token / Cookie / GEToken ทั้งหมดโดยแอดมิน</p>
         </div>
 
+        <input id="search" class="adm-search" type="search" placeholder="ค้นหาชื่อ, Username, Wallet Code, เลขอ้างอิง หรือแอดมิน..." oninput="renderHistory()">
+        <div class="adm-chips" id="chips"></div>
+        <div id="summary"></div>
         <div class="entry-list" id="history-list">
             <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</div>
         </div>
@@ -151,13 +154,59 @@
     }
   }
 
+  // ช่วงเวลา (เวลาไทย) - จำไว้ในแท็บนี้
+  const RANGES = [['today', 'วันนี้', 0], ['7d', '7 วัน', 7], ['30d', '30 วัน', 30], ['all', 'ทั้งหมด', null]];
+  let range = 'all';
+  try { range = sessionStorage.getItem('adminTransferRange') || 'all'; } catch (e) {}
+  if (!RANGES.some(([k]) => k === range)) range = 'all';
+  const thDay = d => new Date(d).toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' }); // YYYY-MM-DD
+
+  function inRange(log, days) {
+    if (days == null) return true;
+    const today = new Date(thDay(Date.now()) + 'T00:00:00');
+    const day = new Date(thDay(log.created_at) + 'T00:00:00');
+    return (today - day) / 86400000 <= days;
+  }
+
+  function setRange(k) {
+    range = k;
+    try { sessionStorage.setItem('adminTransferRange', k); } catch (e) {}
+    renderHistory();
+  }
+
   function renderHistory() {
     const list = document.getElementById('history-list');
     if (historyCache.length === 0) {
       list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-receipt"></i>ยังไม่มีประวัติการโอน</div>`;
       return;
     }
-    list.innerHTML = historyCache.map((log, i) => {
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const match = log => !q || [log.target_name, log.target_username, log.target_wallet_code ? 'blm-' + log.target_wallet_code : '', log.ref_no, log.admin_username]
+      .some(v => String(v || '').toLowerCase().includes(q));
+    document.getElementById('chips').innerHTML = RANGES.map(([k, label, days]) =>
+      `<button type="button" class="adm-chip ${k === range ? 'active' : ''}" onclick="setRange('${k}')">${label}<span class="n">${historyCache.filter(l => match(l) && inRange(l, days)).length}</span></button>`).join('');
+    const days = RANGES.find(([k]) => k === range)[2];
+    const rows = historyCache.map((log, i) => ({ log, i })).filter(({ log }) => match(log) && inRange(log, days));
+    // สรุปยอดรวมของรายการที่เห็น
+    const sum = k => rows.reduce((t, { log }) => t + Number(log[k] || 0), 0).toLocaleString();
+    document.getElementById('summary').innerHTML = rows.length ? `<div class="adm-summary">
+        <span><b>${rows.length.toLocaleString()}</b> รายการ</span>
+        <span><i class="fas fa-coins" style="color:#f59f00;"></i><b>${sum('token')}</b></span>
+        <span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i><b>${sum('cookie')}</b></span>
+        <span><i class="fas fa-gem" style="color:#4dabf7;"></i><b>${sum('ge_token')}</b></span>
+      </div>` : '';
+    if (!rows.length) { list.innerHTML = `<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i>ไม่พบรายการ</div>`; return; }
+    let lastDay = '';
+    list.innerHTML = rows.map(({ log, i }) => {
+      // หัววันที่ ทุกครั้งที่ขึ้นวันใหม่
+      const day = thDay(log.created_at);
+      const head = day !== lastDay ? `<div class="adm-day">${new Date(log.created_at).toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok', weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</div>` : '';
+      lastDay = day;
+      return head + rowHtml(log, i);
+    }).join('');
+  }
+
+  function rowHtml(log, i) {
       const parts = [];
       if (log.token > 0) parts.push(`<span><i class="fas fa-coins" style="color:#f59f00;"></i>${Number(log.token).toLocaleString()}</span>`);
       if (log.cookie > 0) parts.push(`<span><i class="fas fa-cookie-bite" style="color:#d2691e;"></i>${Number(log.cookie).toLocaleString()}</span>`);
@@ -167,7 +216,7 @@
         <div class="entry-row">
           <img class="entry-avatar" style="width:42px;height:42px;border-radius:50%;object-fit:cover;background:#f3f3f3;flex:0 0 auto;" src="${escapeAttr(resolveDriveImage(log.target_profile_img))}">
           <div class="entry-body">
-            <div class="entry-title">${escapeHtml(log.target_name || log.target_username)} <span style="color:#999; font-weight:400;">@${escapeHtml(log.target_username)}</span></div>
+            <div class="entry-title">${escapeHtml(log.target_name || log.target_username)} <span style="color:#767676; font-weight:400;">@${escapeHtml(log.target_username)}</span></div>
             ${log.target_wallet_code ? `<div class="entry-subtitle"><i class="fas fa-wallet" style="color:#ffc107;"></i> Wallet Code: <b style="color:#555;">BLM-${escapeHtml(log.target_wallet_code)}</b></div>` : ''}
             <div class="entry-subtitle">โดย ${escapeHtml(log.admin_username)} · ${dt}</div>
             <div class="entry-amounts">${parts.join(' ')}</div>
@@ -175,7 +224,6 @@
           <button class="btn-pill" onclick="reopenSlip(${i})"><i class="fas fa-receipt"></i> ดูสลิป</button>
         </div>
       `;
-    }).join('');
   }
 
   function reopenSlip(index) {

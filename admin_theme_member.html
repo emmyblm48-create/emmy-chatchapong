@@ -98,6 +98,27 @@
         .navbar-preview .nb-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; color: #555; }
         .navbar-preview .nb-item img { width: 34px; height: 34px; object-fit: contain; display: block; }
         .navbar-preview .nb-item i { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #767676; }
+        /* แท็บหลัก Birthday | Champ - แต่ละแท็บมีรูป + ตัวอย่าง + ตัวปรับอยู่ด้วยกัน ไม่ต้องเลื่อนไปหา Preview */
+        .main-tabs { display: flex; background: #f4f4f4; border-radius: 22px; padding: 3px; margin: 14px 0 4px; }
+        .main-tab { flex: 1; border: none; background: transparent; border-radius: 20px; padding: 9px 10px; font-family: inherit; font-size: 13.5px; font-weight: 700; color: #767676; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .main-tab.active { background: #ffc107; color: #222; }
+        .main-tab .tab-dot { width: 7px; height: 7px; border-radius: 50%; background: #d64545; }
+        /* จอมือถือตัวอย่าง (ซ้าย) + ตัวเลือก (ขวา) - คอลัมน์ขวาสูงเท่าจอแล้วเลื่อนในตัวเอง */
+        .pv-row { display: grid; grid-template-columns: minmax(0, 44%) minmax(0, 1fr); gap: 12px; margin: 6px 0 14px; }
+        @media (min-width: 600px) { .pv-row { grid-template-columns: 210px minmax(0, 1fr); } }
+        .pv-side { position: relative; min-height: 200px; }
+        .pv-side-scroll { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px; }
+        .pv-side .font-grid { margin-top: 0; }
+        .pv-side .range-row { flex-wrap: wrap; gap: 4px 10px; }
+        .pv-side .range-row span { width: auto; flex: 1; }
+        .pv-side .range-row input { flex: 1 0 100%; order: 3; }
+        /* แถบบันทึกด้านล่าง: โชว์เมื่อมีฟอนต์/ตำแหน่งรูปที่ยังไม่บันทึก */
+        .save-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 200; background: #fff; border-top: 1px solid #ffe08a; box-shadow: 0 -4px 16px rgba(0,0,0,.06); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: none; }
+        .save-bar.show { display: block; }
+        .save-bar-in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+        .save-bar-txt { flex: 1; min-width: 0; font-size: 12.5px; color: #555; line-height: 1.4; }
+        .save-bar-txt b { color: #b06a00; }
+        .toast-msg.up { bottom: calc(84px + env(safe-area-inset-bottom)); }
         .cp-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 12px; font-size: 12px; color: #767676; }
         .toast-msg { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #222; color: #fff; padding: 10px 18px; border-radius: 20px; font-size: 13px; z-index: 300; display: none; max-width: 90vw; }
     </style>
@@ -119,6 +140,7 @@
 <input type="file" id="file-input" accept="image/*" style="display:none">
 <input type="file" id="nav-file-input" accept="image/*" style="display:none">
 <div class="toast-msg" id="toast"></div>
+<div class="save-bar" id="save-bar"></div>
 
 <script>
   let user = null;
@@ -166,12 +188,24 @@
       </div>`;
   }
 
+  // แท็บหลัก: 'bday' | 'champ' (จำไว้ใน #hash กลับมาหน้าเดิมแล้วอยู่แท็บเดิม)
+  let mainTab = location.hash === '#champ' ? 'champ' : 'bday';
+
+  function setMainTab(t) {
+    if (t === mainTab) return;
+    mainTab = t;
+    adjTab = t === 'champ' ? 'champ' : 'splash';
+    try { history.replaceState(null, '', location.pathname + location.search + (t === 'champ' ? '#champ' : '')); } catch (e) {}
+    render();
+    window.scrollTo({ top: 0 });
+  }
+
   function render() {
     const navCount = NAV_SLOTS.filter(([k]) => member[k]).length;
     const isChamp = champName && member.name.toLowerCase() === champName.toLowerCase();
     document.getElementById('page-title').textContent = member.name;
     document.title = `BLM48 Membership | Theme Application · ${member.name}`;
-    document.getElementById('member-view').innerHTML = `
+    const hero = `
       <div class="m-hero">
         <img src="${escapeHtml(member.profileImg || '')}" alt="" onerror="this.style.visibility='hidden'">
         <div>
@@ -179,21 +213,58 @@
           <div class="m-hero-sub"><i class="fa-solid fa-cake-candles"></i> Birthday ${bdayText(member.birthday)}${member.graduated ? ' · Graduated' : ''}</div>
         </div>
       </div>
+      <div class="main-tabs">
+        <button type="button" class="main-tab ${mainTab === 'bday' ? 'active' : ''}" onclick="setMainTab('bday')"><i class="fa-solid fa-cake-candles"></i> Birthday${member.splashBd ? '' : ' <span class="tab-dot" title="No photo yet"></span>'}</button>
+        <button type="button" class="main-tab ${mainTab === 'champ' ? 'active' : ''}" onclick="setMainTab('champ')"><i class="fa-solid fa-crown"></i> Champ</button>
+      </div>`;
+    document.getElementById('member-view').innerHTML = hero + (mainTab === 'champ' ? champTabHtml(navCount) : bdayTabHtml());
+    if (mainTab === 'bday') { renderFontPicker(); renderBdayPreview(); renderBannerPreview(); }
+    else { renderChampPreview(); if (navDraft) renderDraft(); }
+    renderAdjust();
+    renderSaveBar();
+  }
 
-      <div class="sec-title"><i class="fa-solid fa-cake-candles" style="color:#d6336c"></i> Birthday Photo</div>
+  function bdayTabHtml() {
+    return `
+      <div class="sec-title"><i class="fa-solid fa-image" style="color:#d6336c"></i> 1. Photo</div>
       <div class="sec-note">รูปเมมเบอร์ธรรมดา (แนวตั้ง/จัตุรัส) ใช้ทำทั้ง Splash และ Banner · ถ้าเป็นรูป Splash สำเร็จรูปแบบเต็มจอ ระบบจะโชว์รูปนั้นตามเดิม</div>
       ${slotHtml('splashBd', 'Member Photo', { stateEmpty: 'No photo yet - no birthday Splash/Banner' })}
       ${slotHtml('bannerBd', 'Banner Photo (optional)', { stateEmpty: 'Empty = Banner uses the Member Photo above', fa: 'fa-panorama' })}
-      <div class="slot" style="display:block">
-        <div class="slot-label">Font</div>
-        <div class="slot-state">ฟอนต์ของชื่อเล่นเมมเบอร์ บน Splash + Banner วันเกิด · กดเลือกแล้วดูตัวอย่างใน Preview ด้านล่าง</div>
-        <div class="font-grid" id="font-grid"></div>
-        <div class="btns" id="font-actions" style="margin-top:10px"></div>
+
+      <div class="sec-title"><i class="fa-solid fa-font" style="color:#d6336c"></i> 2. Font</div>
+      <div class="sec-note">ฟอนต์ชื่อเล่นบน Splash + Banner · แตะฟอนต์ทางขวา จอตัวอย่างทางซ้ายเปลี่ยนทันที</div>
+      <div class="pv-row">
+        <div>
+          <div class="phone-preview" data-bday-preview><div class="cp-empty"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+          <div class="preview-label" style="margin-top:4px;text-align:center">Birthday Splash</div>
+        </div>
+        <div class="pv-side"><div class="pv-side-scroll"><div class="font-grid" id="font-grid"></div></div></div>
       </div>
 
+      <div class="sec-title"><i class="fa-solid fa-up-down-left-right" style="color:#d6336c"></i> 3. Photo Size &amp; Position</div>
+      <div class="sec-note">ตั้งแยกกันระหว่าง Splash กับ Banner · เลื่อนแล้วรูปในตัวอย่างขยับทันที</div>
+      <div class="preview-wrap">
+        <div class="preview-label">Home Banner (Birthday)</div>
+        <div class="banner-preview" data-banner-preview><div class="cp-empty"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+      </div>
+      <div class="adjust-panel" style="margin-top:12px"><div id="adjust-box"></div></div>`;
+  }
+
+  function champTabHtml(navCount) {
+    return `
       <div class="sec-title"><i class="fa-solid fa-trophy" style="color:#f06595"></i> Champ of the Month Splash</div>
-      <div class="sec-note">รูปเมมเบอร์ที่จะโชว์ในกรอบของ Splash Champ of the Month (แนะนำรูปแนวตั้ง) · ถ้าไม่อัปโหลด ระบบใช้รูปโปรไฟล์ล่าสุดจาก BLM48 Official Website แทน · ใช้ตอน ${escapeHtml(member.name)} ได้ Champ of the Month</div>
+      <div class="sec-note">รูปที่จะโชว์ในกรอบ Splash Champ of the Month (แนะนำรูปแนวตั้ง) · ไม่อัปโหลด = ใช้รูปโปรไฟล์ล่าสุดจาก BLM48 Official Website · ใช้ตอน ${escapeHtml(member.name)} ได้ Champ of the Month</div>
       ${slotHtml('splashChamp', 'Splash Photo', { stateEmpty: 'Empty = uses the BLM48 Official Website profile photo', fa: 'fa-mobile-screen' })}
+      <div class="pv-row">
+        <div>
+          <div class="phone-preview" data-champ-preview><div class="cp-empty"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+          <div class="preview-label" style="margin-top:4px;text-align:center">${member.splashChamp ? 'Champ Splash' : 'Using Official Website photo'}</div>
+        </div>
+        <div class="pv-side"><div class="pv-side-scroll">
+          <div class="slot-label">Photo Size &amp; Position</div>
+          <div id="adjust-box"></div>
+        </div></div>
+      </div>
 
       <div class="sec-title"><i class="fa-solid fa-crown" style="color:#f59f00"></i> Champ Menu Buttons (${navCount}/4)</div>
       <div class="sec-note">อัปโหลดรูปเมมเบอร์แยกแต่ละปุ่ม หรือใช้รูปเดียวทั้ง 4 ปุ่มก็ได้ (แนะนำ PNG ไดคัทพื้นใส) ระบบจะวางรูปไว้ด้านหลังกรอบของปุ่มนั้นให้เอง · ใช้ตอน ${escapeHtml(member.name)} ได้ Champ of the Month</div>
@@ -208,43 +279,54 @@
       </div>
       <div class="btns"><button class="btn btn-up" onclick="pickNavPhoto('*')"><i class="fa-solid fa-wand-magic-sparkles"></i> Use one photo for all 4</button></div>
       <div id="nav-draft"></div>
-
-      <div class="sec-title"><i class="fa-solid fa-eye" style="color:#4c6ef5"></i> Preview</div>
-      <div class="sec-note">ตัวอย่างทุกจอที่ผู้ใช้จะเห็นในแอป จากรูปที่บันทึกไว้ตอนนี้</div>
-      <div class="pv-phones">
-        <div>
-          <div class="preview-label">Birthday Splash</div>
-          <div class="phone-preview" data-bday-preview><div class="cp-empty"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
-        </div>
-        <div>
-          <div class="preview-label">Champ Splash</div>
-          <div class="phone-preview" data-champ-preview><div class="cp-empty"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
-          ${member.splashChamp ? '' : '<div class="preview-label" style="margin-top:4px">Using Official Website photo</div>'}
-        </div>
-      </div>
-      <!-- ตัวปรับรูปวันเกิดวางระหว่าง Splash (บน) กับ Banner (ล่าง) จะได้เห็นผลข้างๆ ตอนเลื่อน -->
-      <div class="adjust-panel">
-        <div class="slot-label">Photo Size &amp; Position</div>
-        <div class="slot-state">ตั้งค่าแยกกัน: Birthday Splash + Champ Splash (จอด้านบน) และ Banner (ด้านล่าง) · เลื่อนแล้วรูปขยับทันที</div>
-        <div id="adjust-box"></div>
-      </div>
-      <div class="preview-wrap">
-        <div class="preview-label">Home Banner (Birthday)</div>
-        <div class="banner-preview" data-banner-preview><div class="cp-empty"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
-      </div>
-      <div class="preview-wrap">
-        <div class="preview-label">Champ Menu Bar</div>
+      <div class="preview-wrap" style="margin-top:16px">
+        <div class="preview-label">Champ Menu Bar (as users see it)</div>
         <div class="navbar-preview">
           ${NAV_SLOTS.map(([k, label, fa]) => `
             <div class="nb-item">${member[k] ? `<img src="${escapeHtml(member[k])}" alt="" referrerpolicy="no-referrer" draggable="false">` : `<i class="fa-solid ${fa}"></i>`}<span>${label}</span></div>`).join('')}
         </div>
       </div>`;
-    renderFontPicker();
-    renderAdjust();
-    renderBdayPreview();
-    renderBannerPreview();
-    renderChampPreview();
   }
+
+  // ===== แถบบันทึกรวม: ฟอนต์ + ตำแหน่งรูป บันทึกทีเดียว =====
+  function renderSaveBar() {
+    const bar = document.getElementById('save-bar');
+    const parts = [];
+    if (currentFont() !== (member.bdayFont || null)) parts.push(`Font: <b>${escapeHtml(currentFont() || 'Default')}</b>`);
+    const adjParts = adjDraft ? ADJ_KEYS.filter(k => !sameAdj(adjDraft[k], savedAdjust(k))).map(k => ADJ_TAB[k]) : [];
+    if (adjParts.length) parts.push(`Position: <b>${adjParts.join(', ')}</b>`);
+    const show = parts.length > 0;
+    bar.classList.toggle('show', show);
+    document.getElementById('toast').classList.toggle('up', show);
+    if (!show) { bar.innerHTML = ''; return; }
+    if (bar.querySelector('#save-all-btn[disabled]')) return; // กำลังบันทึก
+    bar.innerHTML = `<div class="save-bar-in">
+        <div class="save-bar-txt">Unsaved · ${parts.join(' · ')}</div>
+        <button class="btn btn-del" onclick="cancelAll()">Cancel</button>
+        <button class="btn btn-up" id="save-all-btn" onclick="saveAll()"><i class="fa-solid fa-check"></i> Save</button>
+      </div>`;
+  }
+
+  async function saveAll() {
+    const btn = document.getElementById('save-all-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
+    const fontOk = currentFont() === (member.bdayFont || null) || await saveFont();
+    const adjOk = !adjChanged() || await saveAdjust();
+    if (btn && btn.isConnected) btn.disabled = false;
+    renderSaveBar();
+    if (fontOk && adjOk) toast('บันทึกแล้ว');
+  }
+
+  function cancelAll() {
+    fontDraft = undefined;
+    adjDraft = null;
+    render();
+  }
+
+  const hasUnsaved = () => currentFont() !== (member && member.bdayFont || null) || adjChanged() || !!(navDraft && NAV_SLOTS.some(([k]) => navDraft.slots[k]));
+  window.addEventListener('beforeunload', (e) => {
+    if (member && hasUnsaved()) { e.preventDefault(); e.returnValue = ''; }
+  });
 
   // ===== ฟอนต์วันเกิด: กดเลือก = ดูตัวอย่าง (ยังไม่บันทึก) -> กด Save ถึงบันทึก =====
   let fontDraft;  // undefined = ยังไม่ได้เลือกใหม่ / null = ฟอนต์ตั้งต้น / ชื่อฟอนต์
@@ -264,11 +346,12 @@
           <span class="fc-sample" style="font-family:${o.family};font-weight:${o.weight}">${sample}</span>
           <span class="fc-name">${o.label}${o.name === (member.bdayFont || null) ? ' · saved' : ''}</span>
         </button>`).join('');
-    const changed = cur !== (member.bdayFont || null);
-    document.getElementById('font-actions').innerHTML = changed
-      ? `<button class="btn btn-up" id="font-save-btn" onclick="saveFont()"><i class="fa-solid fa-check"></i> Save font</button>
-         <button class="btn btn-del" onclick="pickFont(undefined)">Cancel</button>`
-      : '';
+    // ฟอนต์ที่เลือกอยู่ท้ายลิสต์ -> เลื่อนคอลัมน์ฟอนต์ให้เห็น (เลื่อนแค่คอลัมน์ ไม่เลื่อนทั้งหน้า)
+    const col = grid.closest('.pv-side-scroll'), act = grid.querySelector('.font-chip.active');
+    if (col && act) {
+      const top = act.offsetTop - grid.offsetTop, bottom = top + act.offsetHeight;
+      if (top < col.scrollTop || bottom > col.scrollTop + col.clientHeight) col.scrollTop = Math.max(0, top - 8);
+    }
   }
 
   function pickFont(name) {
@@ -276,17 +359,17 @@
     renderFontPicker();
     renderBdayPreview();
     renderBannerPreview();
+    renderSaveBar();
   }
 
+  // บันทึกจากแถบบันทึกด้านล่าง (saveAll) - คืน true ถ้าสำเร็จ
   async function saveFont() {
-    const btn = document.getElementById('font-save-btn');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
     const res = await blm48AdminSetMemberBdayFont(user.username, member.memberId, currentFont());
-    if (!res || res.status !== 'success') { toast((res && res.message) || 'บันทึกไม่สำเร็จ'); renderFontPicker(); return; }
+    if (!res || res.status !== 'success') { toast((res && res.message) || 'บันทึกฟอนต์ไม่สำเร็จ'); return false; }
     member.bdayFont = res.font || null;
     fontDraft = undefined;
-    toast('บันทึกฟอนต์แล้ว');
     renderFontPicker();
+    return true;
   }
 
   // ===== ขนาด/ตำแหน่งรูป: Splash วันเกิด / Banner วันเกิด / Splash Champ แยกกัน, เลื่อนแถบแล้วรูปใน Preview ขยับทันที, กด Save ถึงบันทึก =====
@@ -306,11 +389,14 @@
   function renderAdjust() {
     const box = document.getElementById('adjust-box');
     if (!box) return;
+    // แท็บ Birthday ปรับ Splash/Banner, แท็บ Champ ปรับแค่ Splash Champ
+    const keys = mainTab === 'champ' ? ['champ'] : ['splash', 'banner'];
+    if (!keys.includes(adjTab)) adjTab = keys[0];
     const a = currentAdjust(adjTab);
     box.innerHTML = `
-      <div class="adj-tabs">
-        ${ADJ_KEYS.map(k => `<button type="button" class="adj-tab ${k === adjTab ? 'active' : ''}" onclick="setAdjTab('${k}')">${ADJ_TAB[k]}</button>`).join('')}
-      </div>
+      ${keys.length > 1 ? `<div class="adj-tabs">
+        ${keys.map(k => `<button type="button" class="adj-tab ${k === adjTab ? 'active' : ''}" onclick="setAdjTab('${k}')">${k === 'splash' ? 'Splash' : ADJ_TAB[k]}</button>`).join('')}
+      </div>` : ''}
       <div class="range-row"><span>Size</span><input type="range" min="100" max="300" value="${a.zoom}" oninput="adjustPhoto('zoom', this.value)"><b data-adj-val="zoom">${a.zoom}%</b></div>
       <div class="range-row"><span>Left - Right</span><input type="range" min="0" max="100" value="${a.x}" oninput="adjustPhoto('x', this.value)"><b data-adj-val="x">${a.x}</b></div>
       <div class="range-row"><span>Up - Down</span><input type="range" min="0" max="100" value="${a.y}" oninput="adjustPhoto('y', this.value)"><b data-adj-val="y">${a.y}</b></div>
@@ -318,14 +404,11 @@
     renderAdjActions();
   }
 
-  // แถวปุ่มวาดแยก -> ระหว่างลากแถบเลื่อน ปุ่ม Save โผล่/หายได้โดยแถบไม่หลุดมือ
+  // บันทึก/ยกเลิกอยู่ที่แถบบันทึกด้านล่าง - ตรงนี้มีแค่ Reset
   function renderAdjActions() {
     const row = document.getElementById('adj-actions');
     if (!row) return;
-    row.innerHTML = (adjChanged()
-      ? `<button class="btn btn-up" id="adj-save-btn" onclick="saveAdjust()"><i class="fa-solid fa-check"></i> Save position</button>
-         <button class="btn btn-del" onclick="cancelAdjust()">Cancel</button>`
-      : '') + `<button class="btn btn-mini" style="margin:0" onclick="resetAdjust()">Reset ${ADJ_LABEL[adjTab]}</button>`;
+    row.innerHTML = `<button class="btn btn-mini" style="margin:0" onclick="resetAdjust()"><i class="fa-solid fa-rotate-left"></i> Reset ${ADJ_LABEL[adjTab]}</button>`;
   }
 
   function setAdjTab(k) { adjTab = k; renderAdjust(); }
@@ -347,7 +430,7 @@
     const lbl = document.querySelector(`[data-adj-val="${prop}"]`);
     if (lbl) lbl.textContent = prop === 'zoom' ? `${val}%` : val;
     applyAdjustLive(adjTab);
-    if (!!document.getElementById('adj-save-btn') !== adjChanged()) renderAdjActions();
+    renderSaveBar();
   }
 
   function resetAdjust() {
@@ -355,26 +438,20 @@
     adjDraft[adjTab] = Object.assign({}, ADJ_DEFAULT[adjTab]);
     renderAdjust();
     applyAdjustLive(adjTab);
+    renderSaveBar();
   }
 
-  function cancelAdjust() {
-    adjDraft = null;
-    renderAdjust();
-    ADJ_KEYS.forEach(applyAdjustLive);
-  }
-
+  // บันทึกจากแถบบันทึกด้านล่าง (saveAll) - คืน true ถ้าสำเร็จ
   async function saveAdjust() {
-    const btn = document.getElementById('adj-save-btn');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
     // ค่าที่เท่าค่าตั้งต้น ส่ง null = ใช้ดีไซน์เดิม
     const payload = {};
     ADJ_KEYS.forEach(k => { payload[k] = sameAdj(adjDraft[k], ADJ_DEFAULT[k]) ? null : adjDraft[k]; });
     const res = await blm48AdminSetMemberBdayAdjust(user.username, member.memberId, payload);
-    if (!res || res.status !== 'success') { toast((res && res.message) || 'บันทึกไม่สำเร็จ'); renderAdjust(); return; }
+    if (!res || res.status !== 'success') { toast((res && res.message) || 'บันทึกตำแหน่งรูปไม่สำเร็จ'); return false; }
     member.bdayAdjust = res.adjust || null;
     adjDraft = null;
-    toast('บันทึกตำแหน่งรูปแล้ว');
     renderAdjust();
+    return true;
   }
 
   const emptyPreview = (msg) => `<div class="cp-empty">${msg}</div>`;

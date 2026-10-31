@@ -30,6 +30,7 @@
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/campaign.js"></script>
+  <script src="assets/js/member-animated-cover.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
@@ -77,6 +78,16 @@
       object-fit: cover;
       object-position: center;
       filter: brightness(0.9);
+    }
+
+    /* 🎞️ ปกแบบเคลื่อนไหว (MP4 วนลูป) แทนรูป cover สำหรับเมมเบอร์ที่มีไฟล์ใน ANIMATED_COVERS */
+    .hero-video {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      pointer-events: none;
     }
 
     .hero-gradient {
@@ -398,6 +409,7 @@ body {
   <div class="app-layout">
     <div class="hero-image-container">
       <img id="pf-cover" src="https://via.placeholder.com/800x400/ffe4e1/ff85a2?text=BLM48+Cover" class="hero-image">
+      <video id="pf-cover-video" class="hero-video" muted loop playsinline autoplay preload="auto" disablepictureinpicture aria-hidden="true"></video>
       <button id="cover-edit-btn" class="cover-edit-btn" onclick="triggerCoverUpload()"><i class="fas fa-camera"></i> Edit</button>
       <input type="file" id="cover-upload" accept="image/*" style="display:none" onchange="handleCoverImageSelect(event)">
     </div>
@@ -960,11 +972,13 @@ body {
 
   async function loadMemberCoverForSelf() {
     if (!user || !user.name) return;
+    const coverEl = document.getElementById('pf-cover');
+    const hasAnimatedCover = applyAnimatedCover(user.name, coverEl, document.getElementById('pf-cover-video')); // ตั้งทันทีไม่ต้องรอโหลด stats
     try {
       const stats = await blm48GetMemberStats(user.name);
       if (stats) {
         currentMemberCoverUrl = stats.cover_image || null;
-        document.getElementById('pf-cover').src = getMemberImg(stats.cover_image || stats.profile_img);
+        if (!hasAnimatedCover) coverEl.src = getMemberImg(stats.cover_image || stats.profile_img);
       }
     } catch (e) { console.error('loadMemberCoverForSelf error:', e); }
   }

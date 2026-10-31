@@ -6,6 +6,12 @@
 // =========================================================================
 const blm48MVs = [
    { 
+    title: "【Thai ver.】Magic Hour - JKT48 / BLM48", 
+    date: "1 November 2026",
+    image: "assets/img/mv/magic-hour.jpg",
+    link: "https://youtu.be/da0Pej5BXOw?si=fiysaOAw_1TCzl6g"
+  },
+   { 
     title: "【Cover】มปร. (It’s OK.) - BLM48", 
     date: "4 October 2026",
     image: "https://lh3.googleusercontent.com/d/1_YU62p83JdEfJtzyMEnF_0iCWyHmQbVq=s1000",

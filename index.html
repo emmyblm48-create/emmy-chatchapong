@@ -714,12 +714,13 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     /* Ranking & Lists */
    /* 1. สไตล์หลัก (ใช้สำหรับ Desktop/Tablet) */
 .section-title { 
-  font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 600; color: #444; 
+  font-family: 'Quicksand', 'Kanit', sans-serif; font-weight: 700; color: #222; /* หัวข้อตัวหนาแบบแอป iAM */
   margin: 14px 0 8px 0; font-size: 18px; /* หัวข้อแต่ละส่วนชิดกันขึ้น (เดิม 30px/15px) */
-  border-left: 5px solid var(--primary-pink); padding-left: 12px; 
+  padding-left: 0; /* เอาแถบชมพูแนวตั้งด้านหน้าออก */
 }
+.section-title.fan-ticker { font-weight: 600; color: #444; } /* แถว Top Fans / Top Today VIP คงน้ำหนักปกติแบบเดิม */
     
-/* 🏅👑 ช่อง Top Fans / Top Today VIP สลับกันแบบเลื่อนขึ้น (แถบชมพูด้านซ้ายอยู่กับที่ เลื่อนแค่เนื้อหา) */
+/* 🏅👑 ช่อง Top Fans / Top Today VIP สลับกันแบบเลื่อนขึ้น */
 .fan-ticker { height: 32px; overflow: hidden; padding-right: 0; user-select: none; }
 .fan-ticker-track { will-change: transform; }
 .fan-ticker-item { height: 32px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
@@ -1903,51 +1904,83 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 
   /* ไทม์ไลน์นับวันของเดือน (.week-block/.days-row/.day-circle) ย้ายไป glassmorphism.css ใช้ร่วมกับ specialfansday.html */
 
-  /* ดีไซน์สำหรับกล่องนับถอยหลังวันสุดท้าย */
-  .countdown-timer-box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin: 25px auto 0 auto;
-  padding: 15px;
-  background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-  backdrop-filter: blur(var(--glass-blur-sm));
-  border-radius: 15px;
-  border: 2px dashed #ffb3c1;
-  max-width: 320px;      /* ไม่ให้กล่องเวลายาวกางจนล้นในคอม */
-  width: 90%;
-  box-sizing: border-box;
-  }
-
-  .time-segment {
+  /* ดีไซน์สำหรับกล่องนับถอยหลังวันสุดท้าย: การ์ดขาวมุมมน ข้อความซ้าย + ตัวเลขกล่องเทาเข้มแบบนาฬิกาพลิก (flip clock) */
+  .finale-countdown-card {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    width: 50px;
+    justify-content: center;
+    gap: 22px;
+    margin: 16px auto 0;
+    padding: 14px 18px;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    max-width: 420px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
-  .time-val {
-    font-size: 26px;
+  .finale-countdown-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+    white-space: nowrap;
+  }
+
+  .finale-countdown-digits {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .flip-digit {
+    position: relative;
+    min-width: 34px;
+    padding: 4px 3px;
+    background: #3a3a3a;
+    border-radius: 4px;
+    color: #ffffff;
+    font-family: 'Quicksand', 'Kanit', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+
+  /* เส้นแบ่งกลางกล่อง + รอยบากซ้ายขวาแบบนาฬิกาพลิก */
+  .flip-digit::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.45);
+  }
+  .flip-digit::after {
+    content: '';
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    top: calc(50% - 2px);
+    height: 4px;
+    border-left: 2px dotted #ffffff;
+    border-right: 2px dotted #ffffff;
+  }
+
+  .flip-sep {
+    font-size: 18px;
     font-weight: 800;
-    color: #ff6b81;
+    color: #3a3a3a;
     line-height: 1;
   }
 
-  .time-lbl {
-    font-size: 11px;
-    color: #ff9fb3;
-    font-weight: 700;
-    margin-top: 4px;
-    text-transform: uppercase;
-  }
-
-  .time-separator {
-    font-size: 24px;
-    font-weight: 800;
-    color: #ffb3c1;
-    margin-top: -15px;
+  @media (max-width: 360px) {
+    .finale-countdown-card { gap: 12px; padding: 12px 12px; }
+    .finale-countdown-label { font-size: 13px; }
+    .flip-digit { min-width: 30px; font-size: 17px; }
   }
 
   @keyframes popIn {
@@ -1972,6 +2005,10 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         width: 16px;
         border-radius: 4px;
     }
+
+    /* แถบเทาแนวนอนคั่นระหว่างส่วนของหน้า Home เต็มขอบจอ (หักล้าง padding 12px ของ .main-content-container) แบบแอป iAM */
+    .home-divider { height: 5px; background: #ededed; margin: 14px -12px; }
+    .home-divider.flush-bottom { margin-bottom: 0; }
 
     .main-content-container {
       /* ✏️ ตามคำขอผู้ใช้: คอนเทนเนอร์สีขาวทึบตั้งแต่ Member Ranking ถึง Post (ไม่ใช่กระจกฝ้า) */
@@ -2097,25 +2134,14 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
 <div class="monthly-tracker-container" style="max-width: none; margin-top: 20px;">
   <div id="weekly-tracker-grid" class="tracker-grid" onclick="window.location.href='specialfansday'" style="cursor: pointer;"></div>
 
-  <div class="countdown-timer-box" id="finale-countdown" style="display: none;">
-    <div class="time-segment">
-      <span class="time-val" id="cd-days">00</span>
-      <span class="time-lbl">Days</span>
-    </div>
-    <span class="time-separator">:</span>
-    <div class="time-segment">
-      <span class="time-val" id="cd-hours">00</span>
-      <span class="time-lbl">Hrs</span>
-    </div>
-    <span class="time-separator">:</span>
-    <div class="time-segment">
-      <span class="time-val" id="cd-mins">00</span>
-      <span class="time-lbl">Mins</span>
-    </div>
-    <span class="time-separator">:</span>
-    <div class="time-segment">
-      <span class="time-val" id="cd-secs">00</span>
-      <span class="time-lbl">Secs</span>
+  <div class="finale-countdown-card" id="finale-countdown" style="display: none;">
+    <span class="finale-countdown-label">Last day of this month</span>
+    <div class="finale-countdown-digits">
+      <span class="flip-digit" id="cd-hours">00</span>
+      <span class="flip-sep">:</span>
+      <span class="flip-digit" id="cd-mins">00</span>
+      <span class="flip-sep">:</span>
+      <span class="flip-digit" id="cd-secs">00</span>
     </div>
   </div>
 </div>
@@ -2167,7 +2193,8 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   </div>
 </div>
 
-<div class="shop-banner-slider-wrapper" style="position: relative; margin: 14px -12px; border-radius: 0; overflow: hidden;"><!-- เต็มขอบจอซ้าย-ขวา (หักล้าง padding 12px ของ .main-content-container) -->
+<div class="home-divider flush-bottom"></div>
+<div class="shop-banner-slider-wrapper" style="position: relative; margin: 0 -12px 14px; border-radius: 0; overflow: hidden;"><!-- เต็มขอบจอซ้าย-ขวา (หักล้าง padding 12px ของ .main-content-container) -->
     
     <div id="autoBannerContainer" style="display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; background-color: #ffeef2; -ms-overflow-style: none; cursor: grab;">
         
@@ -2201,6 +2228,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
         </div>
     </div>
   
+<div class="home-divider"></div>
 <div class="section-title" onclick="window.location.href='campaign'" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 0; user-select: none;">
   <span>Campaign</span>
   <span style="font-size: 13px; font-weight: 500; color: #555;">View All <i class="fas fa-chevron-right" style="font-size: 12px; margin-left: 4px;"></i></span>
@@ -2213,6 +2241,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
   </div>
 </div>
   
+<div class="home-divider"></div>
 <div class="section-title" onclick="window.location.href='musicvideo'" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding-right: 0; user-select: none;">
   <span>Music Video</span>
   <span style="font-size: 13px; font-weight: 500; color: #555;">View All <i class="fas fa-chevron-right" style="font-size: 12px; margin-left: 4px;"></i></span>
@@ -2222,6 +2251,7 @@ body.dark-mode .wallet-item { background: #3d3d3d; color: #ccc; border-color: #4
     </div>
 </div>
 
+<div class="home-divider"></div>
 <div class="section-title" style="display: flex; align-items: center; justify-content: space-between; padding-right: 0;">
   <span>Timeline</span>
   <button type="button" id="tl-filter-btn" class="tl-filter-btn" onclick="openMemberPicker()" aria-label="Filter members"><span class="tl-filter-count" id="tl-filter-label"></span><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/><circle cx="8" cy="6" r="2.2" fill="#fff"/><circle cx="15" cy="12" r="2.2" fill="#fff"/><circle cx="10" cy="18" r="2.2" fill="#fff"/></svg></button>
@@ -3329,11 +3359,15 @@ function renderTracker() {
   // 🌟 Special Fans Day: นับวันของเดือน สัปดาห์ปัจจุบัน (buildSpecialFansDaysHtml อยู่ใน common.js ใช้ร่วมกับ specialfansday.html)
   container.innerHTML = buildSpecialFansDaysHtml();
 
+  // วันสุดท้ายของเดือน: ซ่อนเส้นคุกกี้ โชว์การ์ดนับถอยหลังแทน / วันอื่นๆ: โชว์เส้นคุกกี้อย่างเดียว
   const countdownBox = document.getElementById('finale-countdown');
   if (today === daysInMonth) {
+    container.style.display = 'none';
     countdownBox.style.display = 'flex';
+    countdownBox.style.marginTop = '0'; // ไม่มีเส้นคุกกี้ด้านบนแล้ว ให้การ์ดชิดหัวข้อ
     startFinaleCountdown(year, month, daysInMonth);
   } else {
+    container.style.display = '';
     countdownBox.style.display = 'none';
   }
 }

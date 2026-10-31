@@ -25,20 +25,23 @@
         body { font-family: 'Quicksand', 'Kanit', sans-serif; margin: 0; min-height: 100vh; color: #444; background: #fff; }
         .top-navigation-bar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
         .page-wrapper { max-width: 760px; margin: 0 auto; padding: 14px 12px 100px; }
-        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #999; }
+        #access-denied { display: none; text-align: center; padding: 80px 20px; color: #767676; }
         #page-content { display: none; }
         .legend { background: #fffaf0; border: 1px solid #ffe6ae; padding: 12px 14px; font-size: 12.5px; color: #6b5a3a; line-height: 1.8; margin-bottom: 14px; }
         .ev-row { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid #eee; text-decoration: none; color: inherit; }
         .ev-row img, .ev-row .ph { width: 64px; aspect-ratio: 3/4; object-fit: cover; background: linear-gradient(135deg,#ffe7a3,#ffc2d4); flex-shrink: 0; }
         .ev-body { flex: 1; min-width: 0; }
         .ev-title { font-weight: 700; font-size: 15px; color: #333; }
-        .ev-sub { font-size: 12.5px; color: #888; margin-top: 3px; }
+        .ev-sub { font-size: 12.5px; color: #767676; margin-top: 3px; }
         .ev-stats { font-size: 12.5px; color: #555; margin-top: 6px; }
+        .ev-row.past { opacity: .6; }
+        .sold-bar { height: 5px; border-radius: 4px; background: #f1f1f1; margin-top: 6px; overflow: hidden; max-width: 260px; }
+        .sold-bar span { display: block; height: 100%; background: #ffc107; }
         .pill { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; margin-left: 6px; white-space: nowrap; }
-        .pill.published { background: #e6f9ee; color: #1f9d55; }
-        .pill.draft { background: #f1f1f1; color: #777; }
-        .pill.cancelled { background: #ffe9e9; color: #d64545; }
-        .empty-state, .loading-state { text-align: center; color: #999; font-size: 13px; padding: 40px 20px; }
+        .pill.published { background: #e6f9ee; color: #1f7a45; }
+        .pill.draft { background: #f1f1f1; color: #555; }
+        .pill.cancelled { background: #ffe9e9; color: #b83232; }
+        .empty-state, .loading-state { text-align: center; color: #767676; font-size: 13px; padding: 40px 20px; }
         .fab-create { position: fixed; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom)); z-index: 200; width: 58px; height: 58px; border-radius: 50%;
             background: #ffc107; color: #222; font-size: 24px; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 6px 18px rgba(255,170,0,.45); }
     </style>
@@ -58,6 +61,8 @@
             <b>Normal round</b> = ขายช่วงเวลาที่กำหนด ระบบสุ่มเลขที่นั่งเมื่อปิดรอบ · <b>Express round</b> = ได้ที่นั่งทันที<br>
             ผู้ซื้อจ่ายด้วย Token เท่านั้น ได้ลิงก์รับชม (YouTube / Roblox) + ของรางวัลประจำโซน + Ticket Stub เข้า Inventory
         </div>
+        <input id="search" class="adm-search" type="search" placeholder="ค้นหาการแสดง..." oninput="render()">
+        <div class="adm-chips" id="chips"></div>
         <div id="event-list"><div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div></div>
     </div>
 </div>
@@ -70,16 +75,50 @@
     const res = await blm48AdminListTheaterEvents(user.username);
     const box = document.getElementById('event-list');
     if (!res || res.status !== 'success') { box.innerHTML = `<div class="empty-state">${escapeHtml((res && res.message) || 'โหลดไม่สำเร็จ')}</div>`; return; }
-    const events = res.events || [];
-    if (!events.length) { box.innerHTML = '<div class="empty-state"><i class="fa-solid fa-masks-theater"></i><br>ยังไม่มีการแสดง กด + เพื่อสร้าง</div>'; return; }
+    events = res.events || [];
+    render();
+  }
+
+  // ตัวกรอง: กำลังจะมาถึง / ผ่านไปแล้ว / ฉบับร่าง / ยกเลิก (จำไว้ในแท็บนี้)
+  let events = [];
+  const todayTh = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
+  const isPast = e => String(e.eventDate || '').slice(0, 10) < todayTh();
+  const FILTERS = [
+    ['upcoming', 'กำลังจะมาถึง', e => e.status === 'published' && !isPast(e)],
+    ['draft', 'ฉบับร่าง', e => e.status === 'draft'],
+    ['past', 'ผ่านไปแล้ว', e => e.status === 'published' && isPast(e)],
+    ['cancelled', 'ยกเลิก', e => e.status === 'cancelled'],
+    ['all', 'ทั้งหมด', e => true]
+  ];
+  let filterKey = 'upcoming';
+  try { filterKey = sessionStorage.getItem('adminTheatersFilter') || 'upcoming'; } catch (e) {}
+  if (!FILTERS.some(([k]) => k === filterKey)) filterKey = 'upcoming';
+  function setFilter(k) {
+    filterKey = k;
+    try { sessionStorage.setItem('adminTheatersFilter', k); } catch (e) {}
+    render();
+  }
+
+  function render() {
+    const box = document.getElementById('event-list');
+    if (!events.length) { document.getElementById('chips').innerHTML = ''; box.innerHTML = '<div class="empty-state"><i class="fa-solid fa-masks-theater"></i><br>ยังไม่มีการแสดง กด + เพื่อสร้าง</div>'; return; }
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const found = events.filter(e => !q || String(e.title || '').toLowerCase().includes(q));
+    document.getElementById('chips').innerHTML = FILTERS.map(([k, label, fn]) =>
+      `<button type="button" class="adm-chip ${k === filterKey ? 'active' : ''}" onclick="setFilter('${k}')">${label}<span class="n">${found.filter(fn).length}</span></button>`).join('');
+    // กำลังจะมาถึง: ใกล้สุดก่อน / อื่นๆ: ล่าสุดก่อน
+    const list = found.filter(FILTERS.find(([k]) => k === filterKey)[2])
+      .sort((a, b) => filterKey === 'upcoming' ? String(a.eventDate).localeCompare(String(b.eventDate)) : String(b.eventDate).localeCompare(String(a.eventDate)));
+    if (!list.length) { box.innerHTML = '<div class="empty-state"><i class="fa-solid fa-magnifying-glass"></i><br>ไม่มีการแสดงในหมวดนี้</div>'; return; }
     const statusTh = { published: 'เปิดแสดง', draft: 'ฉบับร่าง', cancelled: 'ยกเลิกแล้ว' };
-    box.innerHTML = events.map(e => `
-      <a class="ev-row" href="admin_theater_event?id=${e.id}">
+    box.innerHTML = list.map(e => `
+      <a class="ev-row ${isPast(e) && e.status === 'published' ? 'past' : ''}" href="admin_theater_event?id=${e.id}">
         ${e.coverUrl ? `<img src="${escapeHtml(e.coverUrl)}" alt="">` : '<div class="ph"></div>'}
         <div class="ev-body">
           <div class="ev-title">${escapeHtml(e.title)}<span class="pill ${e.status}">${statusTh[e.status] || e.status}</span></div>
           <div class="ev-sub">${theaterDate(e.eventDate)} ${theaterTimeRange(e)} · ${escapeHtml(theaterPlatform(e.platform).label)}</div>
           <div class="ev-stats">ขายแล้ว ${Number(e.sold).toLocaleString()} / ${Number(e.capacity).toLocaleString()} ที่นั่ง · <i class="fas fa-coins"></i> ${Number(e.revenue).toLocaleString()} Tokens</div>
+          ${Number(e.capacity) > 0 ? `<div class="sold-bar"><span style="width:${Math.min(100, Number(e.sold) / Number(e.capacity) * 100)}%"></span></div>` : ''}
         </div>
         <i class="fa-solid fa-chevron-right" style="color:#bbb;align-self:center"></i>
       </a>`).join('');

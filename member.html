@@ -23,6 +23,7 @@
   <script src="assets/js/common.js"></script>
   <script src="assets/js/member-gift-stickers.js"></script>
   <script src="assets/js/member-gift-sheet.js"></script>
+  <script src="assets/js/member-animated-cover.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/glassmorphism.css">
@@ -129,6 +130,30 @@
         z-index: 5;          /* อยู่เหนือน้ำชั้นรูปภาพ */
     }
     
+    /* 🎞️ ปกแบบเคลื่อนไหว (MP4 วนลูป) แทนรูป cover สำหรับเมมเบอร์ที่มีไฟล์ใน ANIMATED_COVERS */
+    .hero-video {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      aspect-ratio: 16 / 9; /* จองพื้นที่ตามสัดส่วนไฟล์ปก (16:9 เท่ารูป cover ปกติ 960x540) กันหน้ากระโดดตอนวิดีโอยังโหลดไม่เสร็จ */
+      pointer-events: none;
+    }
+
+    /* ปกเคลื่อนไหววางแบบเดียวกับหน้า profile.html: กรอบสูงตายตัว ไม่มีเงาขาว รูปโปรไฟล์ทับแค่ขอบล่าง */
+    .hero-image-container.has-animated-cover {
+      height: 260px;
+      overflow: hidden;
+    }
+    .has-animated-cover .hero-image,
+    .has-animated-cover .hero-video {
+      aspect-ratio: auto;
+      object-position: center;
+    }
+    .has-animated-cover .hero-gradient { display: none; }
+    .has-animated-cover + .profile-body { margin-top: 0; } /* รูปโปรไฟล์คร่อมขอบล่างครึ่งวงพอดี */
+
     .hero-gradient {
       position: absolute;
       bottom: 0;
@@ -143,6 +168,9 @@
     @media (min-width: 768px) {
       .hero-image-container {
         height: 480px !important;
+      }
+      .hero-image-container.has-animated-cover {
+        height: 320px !important; /* เท่ากับหน้า profile บนจอใหญ่ */
       }
 
       .hero-gradient {
@@ -323,7 +351,19 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       padding: 14px 5px;
-      margin-bottom: 24px;
+      margin-bottom: 4px;
+    }
+
+    /* เส้นคั่นแนวนอนสีเทาเต็มความกว้าง (ชดเชย padding 12px ของ .profile-body): บาง = ใต้สถิติ, หนา = คั่นระหว่างส่วน */
+    .section-divider {
+      height: 1px;
+      background: #e6e6e6;
+      margin: 0 -12px 20px;
+    }
+    .section-divider.thick {
+      height: 5px;
+      background: #ededed;
+      margin: 18px -12px;
     }
     .stat-box {
       text-align: center;
@@ -331,7 +371,6 @@
       flex-direction: column;
       justify-content: center;
     }
-    .stat-box:not(:last-child) { border-right: 1px solid #ffe5ec; }
     .stat-num {
       font-size: 20px;
       font-weight: 600;
@@ -348,7 +387,6 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      margin-bottom: 28px;
     }
     .btn-interact {
       border: none;
@@ -384,7 +422,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 19px;
+      font-size: 25px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.06);
       transition: all 0.2s ease;
     }
@@ -393,6 +431,14 @@
 
     .btn-cookie .icon-circle { background: var(--blmem-pink-light); color: var(--blmem-pink); }
     .btn-more .icon-circle { background: #f1eff5; color: #8a8698; }
+
+    /* ✏️ ไอคอนเส้นบาง (SVG sprite ด้านบน body) */
+    .ln-ic {
+      width: 1em; height: 1em; flex-shrink: 0;
+      fill: none; stroke: currentColor; stroke-width: 1.5;
+      stroke-linecap: round; stroke-linejoin: round;
+      vertical-align: -0.15em;
+    }
 
     /* 📋 Action sheet ของปุ่ม More */
     .action-sheet-backdrop {
@@ -441,6 +487,7 @@
     .action-sheet-item:last-child { border-bottom: none; }
     .action-sheet-item:active { background: #faf9fb; }
     .action-sheet-item i { width: 20px; text-align: center; color: var(--blmem-pink); font-size: 16px; }
+    .action-sheet-item .ln-ic { font-size: 21px; color: #2b2b2b; }
     .action-sheet-cancel {
       background: #fff;
       border: none;
@@ -453,11 +500,9 @@
       box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
     }
 
+    /* แถว Top Fans / Top Today VIP แบบหน้า Home: ไม่มีการ์ด วางเรียบบนพื้นขาว (ไม่มีแถบชมพูด้านซ้าย) */
     .leaderboard-section {
-      background: #ffffff;
-      border-radius: 22px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-      padding: 20px 18px;
+      padding: 4px 0;
     }
     .leaderboard-title {
       font-size: 14px;
@@ -469,6 +514,9 @@
       gap: 6px;
     }
     .leaderboard-title i { color: var(--gold-kami); }
+    /* หัวข้อส่วนต่างๆ (Special Fans Day / Timeline) ตัวหนาแบบหน้า Home */
+    .leaderboard-title.section-heading { font-size: 18px; font-weight: 700; color: #222; }
+    .leaderboard-title .ln-ic { font-size: 1.25em; color: #2b2b2b; margin-right: 4px; }
 
     /* 🏅 แถว Top Fans: ไอคอน + ชื่อ ทางซ้าย, สแตกรูปแฟนคลับ + ลูกศรทางขวา (กดพาไปหน้า Top Fans เต็ม) */
     .leaderboard-title.with-preview {
@@ -498,11 +546,16 @@
     }
     .top-fans-avatar-stack > img:first-child { margin-left: 0; }
     .top-fans-preview i.fa-chevron-right { color: #ccc; font-size: 12px; margin-left: 6px; }
+    .top-fans-preview .ln-chev { color: #2b2b2b; font-size: 22px; margin: 0 0 0 6px; }
 
     /* 🏅👑 Top Fans / Top Today VIP ใช้ช่องเดียวกัน สลับกันเลื่อนขึ้นทีละอัน (แบบเดียวกับหน้า Home) */
-    .fan-ticker { height: 30px; overflow: hidden; }
+    .fan-ticker { height: 32px; overflow: hidden; }
     .fan-ticker-track { will-change: transform; }
-    .fan-ticker .leaderboard-title.with-preview { height: 30px; }
+    .fan-ticker .leaderboard-title.with-preview { height: 32px; font-size: 18px; font-weight: 600; color: #444; }
+    .fan-ticker-label { display: inline-flex; align-items: center; gap: 6px; }
+    .fan-ticker-icon { width: 22px; height: 22px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .fan-ticker .top-fans-preview { gap: 10px; }
+    .fan-ticker .top-fans-preview i.fa-chevron-right { font-size: 14px; color: #888; margin: 0; }
 
     .post-gallery {
       display: grid;
@@ -766,15 +819,33 @@
 </head>
 <body class="glass-mesh-bg force-white-bg">
 
+  <!-- ✏️ ไอคอนเส้นบางโปร่ง (แบบ iAM) ใช้ผ่าน <svg class="ln-ic"><use href="#ic-ชื่อ"/></svg> -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="ic-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="ic-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="ic-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></symbol>
+    <symbol id="ic-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/></symbol>
+    <symbol id="ic-meh" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><path d="M9 9h.01"/><path d="M15 9h.01"/></symbol>
+    <symbol id="ic-cookie" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/></symbol>
+    <symbol id="ic-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M17 12h.01"/><path d="M12 12h.01"/><path d="M7 12h.01"/></symbol>
+    <symbol id="ic-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></symbol>
+    <symbol id="ic-crown" viewBox="0 0 24 24"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></symbol>
+    <symbol id="ic-list" viewBox="0 0 24 24"><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/></symbol>
+    <symbol id="ic-medal" viewBox="0 0 24 24"><path d="M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15"/><path d="M11 12 5.12 2.2"/><path d="m13 12 5.88-9.8"/><path d="M8 7h8"/><circle cx="12" cy="17" r="5"/></symbol>
+    <symbol id="ic-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
+    <symbol id="ic-share" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></symbol>
+  </svg>
+
   <div class="app-layout">
     <nav id="member-top-nav" class="member-top-nav">
-      <button class="nav-back-btn" onclick="goBack()" aria-label="Back"><i class="fas fa-chevron-left"></i></button>
+      <button class="nav-back-btn" onclick="goBack()" aria-label="Back"><svg class="ln-ic"><use href="#ic-chevron-left"/></svg></button>
       <div id="member-nav-title" class="member-nav-title"></div>
       <div class="nav-spacer"></div>
     </nav>
 
     <div class="hero-image-container">
       <img id="mb-avatar" src="assets/images/default-profile.png" class="hero-image">
+      <video id="mb-cover-video" class="hero-video" muted loop playsinline autoplay preload="auto" disablepictureinpicture aria-hidden="true"></video>
       <div class="hero-gradient"></div>
     </div>
 
@@ -812,38 +883,40 @@
           <div class="stat-title">Total Likes</div>
         </div>
       </div>
+      <div class="section-divider"></div>
 
       <div class="interaction-grid">
         <button id="btn-gift-trigger" class="btn-interact btn-gift" onclick="actionGift()">
-          <span class="icon-circle"><i class="fas fa-gift"></i></span>
+          <span class="icon-circle"><svg class="ln-ic"><use href="#ic-gift"/></svg></span>
           <span class="btn-label">Gift</span>
         </button>
         <button id="btn-oshi-trigger" class="btn-interact btn-oshi" onclick="actionOshi()">
-          <span class="icon-circle"><i class="fas fa-heart"></i></span>
+          <span class="icon-circle"><svg class="ln-ic"><use href="#ic-meh"/></svg></span>
           <span class="btn-label">+ Oshi</span>
         </button>
         <button id="btn-cookie-trigger" class="btn-interact btn-cookie" onclick="actionCookie()">
-          <span class="icon-circle"><i class="fas fa-cookie-bite"></i></span>
+          <span class="icon-circle"><svg class="ln-ic"><use href="#ic-cookie"/></svg></span>
           <span class="btn-label">+ Cookie</span>
         </button>
         <button class="btn-interact btn-more" onclick="openMoreMenu()">
-          <span class="icon-circle"><i class="fas fa-ellipsis"></i></span>
+          <span class="icon-circle"><svg class="ln-ic"><use href="#ic-more"/></svg></span>
           <span class="btn-label">More</span>
         </button>
       </div>
+      <div class="section-divider thick"></div>
 
       <div class="leaderboard-section">
         <div class="fan-ticker">
           <div class="fan-ticker-track" id="fan-ticker-track">
             <div class="leaderboard-title with-preview" id="top-fans-toggle" onclick="goToTopFans()">
-              <span><i class="fas fa-trophy"></i> Top Fans</span>
+              <span class="fan-ticker-label"><svg class="fan-ticker-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 2.8h9v6.8L12 12.3 7.5 9.6z"/><path d="M10.5 2.8v8M13.5 2.8v8"/><path transform="translate(12 17)" d="M0,-5 L1.29,-1.78 4.76,-1.55 2.09,.68 2.94,4.05 0,2.2 -2.94,4.05 -2.09,.68 -4.76,-1.55 -1.29,-1.78Z"/></svg>Top Fans</span>
               <span id="top-fans-preview" class="top-fans-preview">
                 <span id="top-fans-avatar-stack" class="top-fans-avatar-stack"></span>
                 <i class="fas fa-chevron-right"></i>
               </span>
             </div>
             <div class="leaderboard-title with-preview" onclick="goToTodayVip()">
-              <span><i class="fas fa-crown"></i> Top Today VIP</span>
+              <span class="fan-ticker-label"><svg class="fan-ticker-icon" viewBox="0 0 24 24" aria-hidden="true"><path transform="translate(12 12.8)" d="M0,-10.5 L3.29,-4.53 9.99,-3.24 5.33,1.73 6.17,8.49 0,5.6 -6.17,8.49 -5.33,1.73 -9.99,-3.24 -3.29,-4.53Z"/><text x="12" y="15.1" text-anchor="middle" font-family="Inter, 'Quicksand', sans-serif" font-weight="800" font-size="5.4" letter-spacing="0.1" fill="currentColor" stroke="none">VIP</text></svg>Top Today VIP</span>
               <span class="top-fans-preview">
                 <span id="today-vip-avatar-stack" class="top-fans-avatar-stack"></span>
                 <i class="fas fa-chevron-right"></i>
@@ -853,13 +926,16 @@
         </div>
       </div>
       
-      <div id="champ-thanks-container" style="display: none; margin-top: 25px;">
-        <div class="leaderboard-title" style="font-weight: 700;"><i class="fas fa-crown" style="color: #d4af37;"></i>Special Fans Day</div>
+      <div class="section-divider thick"></div>
+
+      <div id="champ-thanks-container" style="display: none;">
+        <div class="leaderboard-title section-heading"><i class="fas fa-crown" style="color: #d4af37;"></i>Special Fans Day</div>
         <div id="champ-thanks-content"></div>
+        <div class="section-divider thick"></div>
       </div>
       
-      <div class="member-feed-section" id="member-feed" style="margin-top: 25px;">
-        <div class="leaderboard-title" style="font-weight: 700;"><i class="fas fa-stream"></i> Timeline</div>
+      <div class="member-feed-section" id="member-feed">
+        <div class="leaderboard-title section-heading"><svg class="ln-ic"><use href="#ic-list"/></svg> Timeline</div>
         <div id="posts-container">
            <div id="loading-msg" style="text-align: center; color: #bbb; font-size: 13px; padding: 20px 0;">
              <i class="fa-solid fa-spinner fa-spin" style="margin-right: 5px;"></i> LOADING...
@@ -873,9 +949,9 @@
   <div id="more-menu-backdrop" class="action-sheet-backdrop" onclick="if(event.target===this) closeMoreMenu()">
     <div class="action-sheet-wrap">
       <div class="action-sheet">
-        <button class="action-sheet-item" onclick="goToTopFans()"><i class="fas fa-medal"></i> Top Fan</button>
-        <button id="notif-toggle-item" class="action-sheet-item" onclick="toggleMemberNotification()"><i class="fas fa-bell"></i> <span id="notif-toggle-label">Turn ON notification</span></button>
-        <button class="action-sheet-item" onclick="shareMemberProfile()"><i class="fas fa-share"></i> Share Profile</button>
+        <button class="action-sheet-item" onclick="goToTopFans()"><svg class="ln-ic"><use href="#ic-medal"/></svg> Top Fan</button>
+        <button id="notif-toggle-item" class="action-sheet-item" onclick="toggleMemberNotification()"><svg class="ln-ic"><use href="#ic-bell"/></svg> <span id="notif-toggle-label">Turn ON notification</span></button>
+        <button class="action-sheet-item" onclick="shareMemberProfile()"><svg class="ln-ic"><use href="#ic-share"/></svg> Share Profile</button>
       </div>
       <button class="action-sheet-cancel" onclick="closeMoreMenu()">Cancel</button>
     </div>
@@ -938,7 +1014,7 @@ function renderMemberStatsAndFans() {
     if (thanksBox) thanksBox.classList.toggle('is-graduated', isGrad); // ไอคอนหมวกหลังชื่อในการ์ด Special Fans Day
 
     const avatarEl = document.getElementById('mb-avatar');
-    if (avatarEl) avatarEl.src = getImg(m.cover_image || m.profile_img);
+    if (avatarEl && !applyAnimatedCover(m.name || memberName, avatarEl, document.getElementById('mb-cover-video'))) avatarEl.src = getImg(m.cover_image || m.profile_img);
     const avatarCircleEl = document.getElementById('mb-avatar-circle');
     if (avatarCircleEl) avatarCircleEl.src = getImg(m.profile_img);
 
@@ -1130,15 +1206,12 @@ function renderMemberStatsAndFans() {
         ? `<i class="fas fa-crown"></i> Kami-Oshi ${Number(user.kamioshiDays || 1).toLocaleString()} Days`
         : '+ Kami-Oshi';
 
+      // แบบ iAM: เป็น Oshi แล้ว = หน้ายิ้ม + "✓ Oshi", ยังไม่เป็น = หน้านิ่ง + "+ Oshi" (คามิโอชิถือเป็น Oshi ด้วยเสมอ)
       const oshiCircle = btnOshi.querySelector('.icon-circle');
       const oshiLabel = btnOshi.querySelector('.btn-label');
-      if (oshiArray.includes(searchName)) {
-        if (oshiCircle) { oshiCircle.innerHTML = '<i class="fas fa-heart-broken"></i>'; oshiCircle.style.background = '#fff4e6'; oshiCircle.style.color = '#d9480f'; }
-        if (oshiLabel) oshiLabel.textContent = 'UN-OSHI';
-      } else {
-        if (oshiCircle) { oshiCircle.innerHTML = '<i class="fas fa-heart"></i>'; oshiCircle.style.background = ''; oshiCircle.style.color = ''; }
-        if (oshiLabel) oshiLabel.textContent = '+ OSHI';
-      }
+      const isOshi = isKami || oshiArray.includes(searchName);
+      if (oshiCircle) oshiCircle.innerHTML = `<svg class="ln-ic"><use href="#ic-${isOshi ? 'smile' : 'meh'}"/></svg>`;
+      if (oshiLabel) oshiLabel.textContent = isOshi ? '✓ Oshi' : '+ Oshi';
 
       const notifLabel = document.getElementById('notif-toggle-label');
       if (notifLabel) notifLabel.textContent = isKami ? 'Turn OFF notification' : 'Turn ON notification';
@@ -1253,7 +1326,7 @@ function renderMemberStatsAndFans() {
         }
       } else {
         if (currentKamioshi === searchName) {
-          return Swal.fire('ข้อมูลซ้ำซ้อน', `${memberName} เป็นคามิโอชิหลักของคุณอยู่แล้วค่ะ 👑`, 'warning');
+          return Swal.fire('เป็นคามิโอชิอยู่', `${memberName} เป็นคามิโอชิของคุณ ต้องยกเลิก Kami-Oshi ก่อนถึงจะเลิก Oshi ได้ค่ะ 👑`, 'warning');
         }
         if (isAlreadyOshi) {
           action = "removeOshi"; confirmText = `คุณต้องการเลิกติดตาม (Un-Oshi) ${memberName} ใช่ไหมงับ?`; subTitle = "ยกเลิกการติดตาม";
@@ -1291,10 +1364,11 @@ function renderMemberStatsAndFans() {
       if (type === 'kami') {
         kamiElement.innerText = (action === "removeOshi") ? Math.max(0, currentKamiNum - 1) : currentKamiNum + 1;
         user.kamioshi = (action === "removeOshi") ? "" : memberName; // อัปเดตข้อมูลจำลองในเครื่อง
-        // ถ้าเพิ่งโปรโมทจาก Oshi ขึ้นเป็น Kami-Oshi ต้องลบออกจากรายการ Oshi เดิมด้วย ไม่งั้นจะซ้ำ
-        if (action === "setKamioshi" && isAlreadyOshi) {
-          oshiElement.innerText = Math.max(0, currentOshiNum - 1);
-          user.oshi = user.oshi.filter(o => o.toLowerCase() !== searchName);
+        // ตั้ง Kami-Oshi = กด Oshi คนนั้นให้ด้วยเลย (ยกเลิก Kami-Oshi แล้วยังคงเป็น Oshi อยู่)
+        if (action === "setKamioshi" && !isAlreadyOshi) {
+          oshiElement.innerText = currentOshiNum + 1;
+          if (!user.oshi) user.oshi = [];
+          user.oshi.push(memberName);
         }
       } else {
         oshiElement.innerText = (action === "removeOshi") ? Math.max(0, currentOshiNum - 1) : currentOshiNum + 1;

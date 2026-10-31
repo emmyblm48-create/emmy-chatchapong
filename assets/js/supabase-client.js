@@ -873,6 +873,20 @@ function blm48AdminSaveGift(adminUsername, giftId, g) {
 function blm48AdminDeleteGift(adminUsername, giftId) {
   return blm48Rpc('admin_delete_gift', { p_admin_username: adminUsername, p_gift_id: giftId });
 }
+// New Collection (admin_collections.html / admin_collection.html) - ตู้สุ่ม gacha_* ใน Shop
+// collectionId = null คือสร้างใหม่ / items = null คือไม่แตะการ์ด, [{ id|null, name, imageUrl, rate, tag, addStock }]
+function blm48AdminListCollections(adminUsername) {
+  return blm48Rpc('admin_list_collections', { p_admin_username: adminUsername });
+}
+function blm48AdminGetCollection(adminUsername, collectionId) {
+  return blm48Rpc('admin_get_collection', { p_admin_username: adminUsername, p_collection_id: collectionId });
+}
+function blm48AdminSaveCollection(adminUsername, collectionId, col, items) {
+  return blm48Rpc('admin_save_collection', { p_admin_username: adminUsername, p_collection_id: collectionId || null, p_col: col, p_items: items || null });
+}
+function blm48AdminDeleteCollection(adminUsername, collectionId) {
+  return blm48Rpc('admin_delete_collection', { p_admin_username: adminUsername, p_collection_id: collectionId });
+}
 function blm48AdminAddVoteCandidates(adminUsername, collectionId, candidates) {
   return blm48Rpc('admin_add_vote_candidates', { p_admin_username: adminUsername, p_collection_id: collectionId, p_candidates: candidates });
 }
